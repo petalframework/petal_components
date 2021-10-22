@@ -1,6 +1,6 @@
-# HEEX Tailwind Components
+# Petal - 
 
-HEEX Components for Phoenix Live View utilising the Tailwind CSS library.
+Phoenix / Elixir / Tailwind / Alpine / Live view (HEEX) Components
 
 ## TODO
 
