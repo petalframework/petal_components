@@ -1,6 +1,6 @@
-# Petal - 
+# Petal 
 
-Phoenix / Elixir / Tailwind / Alpine / Live view (HEEX) Components
+Phoenix / Elixir / Tailwind / Alpine / Live view (HEEX) Components.
 
 ## TODO
 
