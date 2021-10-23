@@ -1,4 +1,4 @@
-defmodule Theex do
+defmodule Petal do
   @moduledoc """
   Parent module
   """

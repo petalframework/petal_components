@@ -1,9 +1,9 @@
-defmodule Theex.MixProject do
+defmodule Petal.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :theex,
+      app: :petal,
       version: "0.1.0",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,

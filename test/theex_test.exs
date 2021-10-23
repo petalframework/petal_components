@@ -1,8 +1,8 @@
-defmodule TheexTest do
+defmodule PetalTest do
   use ExUnit.Case
-  doctest Theex
+  doctest Petal
 
   test "greets the world" do
-    assert Theex.hello() == :world
+    assert Petal.hello() == :world
   end
 end
