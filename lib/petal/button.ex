@@ -15,7 +15,7 @@ defmodule Petal.Button do
   def button(assigns) do
     ~H"""
     <button class={button_classes(assigns)}>
-      <%= @label %> blahddd
+      <%= @label %>
     </button>
     """
   end
@@ -31,6 +31,7 @@ defmodule Petal.Button do
   def button_classes(opts \\ %{}) do
     color = opts[:color] || "primary"
     size = opts[:size] || "md"
+    style = opts[:style] || "outline"
 
     color_css =
       case color do
@@ -76,16 +77,23 @@ defmodule Petal.Button do
 
     size_css =
       case size do
-        "xs" -> "text-xs leading-4 px-2.5 py-1.5 "
+        "xs" -> "text-xs leading-4 px-2.5 py-1.5"
         "sm" -> "text-sm leading-4 px-3 py-2"
         "md" -> "text-sm leading-5 px-4 py-2"
         "lg" -> "text-base leading-6 px-4 py-2"
         "xl" -> "text-base leading-6 px-6 py-3"
       end
 
+    style_css =
+      case style do
+        "outline" ->
+          "border text-white active:bg-primary-700 hover:bg-primary-200 focus:border-primary-700 focus:shadow-outline-blue"
+      end
+
     """
       #{color_css}
       #{size_css} font-medium
+      #{style_css}
       disabled:opacity-50
       shadow-sm
       rounded-md
