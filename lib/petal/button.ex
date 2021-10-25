@@ -8,6 +8,14 @@ defmodule Petal.Button do
     button(assigns)
   end
 
+  def render(%{type: "live_patch"} = assigns) do
+    patch(assigns)
+  end
+
+  def render(%{type: "live_redirect"} = assigns) do
+    redirect(assigns)
+  end
+
   def render(%{type: "a"} = assigns) do
     a(assigns)
   end
@@ -25,6 +33,18 @@ defmodule Petal.Button do
     <a href={@href} class={button_classes(assigns)}>
       <%= @label %>
     </a>
+    """
+  end
+
+  def patch(assigns) do
+    ~H"""
+    <%= live_patch @label, to: @href, class: button_classes(assigns) %>
+    """
+  end
+
+  def redirect(assigns) do
+    ~H"""
+    <%= live_redirect @label, to: @href, class: button_classes(assigns) %>
     """
   end
 
