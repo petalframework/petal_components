@@ -3,7 +3,10 @@ defmodule Petal.Container do
 
   def render(assigns) do
     ~H"""
-    <div>Hi</div>
+    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div cslass="max-w-3xl mx-auto">
+      </div>
+    </div>
     """
   end
 end
