@@ -1,25 +1,6 @@
 defmodule Petal.Button do
   use Phoenix.Component
 
-  # <Button.render type="a" />
-  # <Button.render type="a" />
-  # <Button.render type="button" />
-  def render(%{type: "button"} = assigns) do
-    button(assigns)
-  end
-
-  def render(%{type: "live_patch"} = assigns) do
-    patch(assigns)
-  end
-
-  def render(%{type: "live_redirect"} = assigns) do
-    redirect(assigns)
-  end
-
-  def render(%{type: "a"} = assigns) do
-    a(assigns)
-  end
-
   def button(assigns) do
     ~H"""
     <button class={button_classes(assigns)} disabled={assigns[:disabled]}>
