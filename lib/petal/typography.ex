@@ -2,7 +2,7 @@ defmodule Petal.Typography do
   use Phoenix.Component
 
   @moduledoc """
-  Everything related to text. Headings, paragraphs and
+  Everything related to text. Headings, paragraphs and links
   """
 
   def h1(assigns) do
@@ -68,9 +68,10 @@ defmodule Petal.Typography do
   defp get_heading_classes(base_classes, assigns) do
     custom_classes = assigns[:class] || ""
     underline_classes = if assigns[:underline], do: " border-b border-gray-200 pb-2", else: ""
-    margin_class = if assigns[:no_margin], do: "", else: "mb-3"
+    margin_classes = if assigns[:no_margin], do: "", else: "mb-3"
 
-    "#{base_classes} #{custom_classes} #{underline_classes} #{margin_class}"
+    [base_classes, custom_classes, underline_classes, margin_classes]
+    |> Enum.join(" ")
   end
 
   def p(assigns) do
