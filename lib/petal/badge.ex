@@ -48,8 +48,20 @@ defmodule Petal.Badge do
     "text-white-800 bg-white-100"
   end
 
+  def get_color_classes(%{color: "black"}) do
+    "text-white bg-black"
+  end
+
   def get_color_classes(%{color: "green"}) do
     "text-green-800 bg-green-100"
+  end
+
+  def get_color_classes(%{color: "red"}) do
+    "text-red-800 bg-red-100"
+  end
+
+  def get_color_classes(%{color: "blue"}) do
+    "text-blue-800 bg-blue-100"
   end
 
   def get_color_classes(%{color: "gray"}) do
@@ -58,10 +70,6 @@ defmodule Petal.Badge do
 
   def get_color_classes(%{color: "gray-light"}) do
     "text-gray-500 bg-gray-100"
-  end
-
-  def get_color_classes(%{color: "blue"}) do
-    "text-blue-800 bg-blue-100"
   end
 
   def get_color_classes(%{color: "pink"}) do
@@ -76,15 +84,7 @@ defmodule Petal.Badge do
     "text-yellow-600 bg-yellow-100"
   end
 
-  def get_color_classes(%{color: "red"}) do
-    "text-red-800 bg-red-100"
-  end
-
   def get_color_classes(%{color: "yellow"}) do
     "text-yellow-800 bg-yellow-100"
-  end
-
-  def get_color_classes(%{color: "deep-red"}) do
-    "text-red-800 bg-red-300"
   end
 end
