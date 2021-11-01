@@ -13,7 +13,7 @@ Petal stands for:
 * [Alpine JS](https://alpinejs.dev/)
 * [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
 
-A set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
 
 <p align="center">
   <img src="screenshot.png" height="1200">

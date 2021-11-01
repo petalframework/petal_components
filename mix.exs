@@ -1,14 +1,19 @@
 defmodule Petal.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/petalframework/petal"
+  @version "0.1.0"
+
   def project do
     [
       app: :petal,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      description: description(),
+      package: package(),
+      deps: deps(),
     ]
   end
 
@@ -28,7 +33,34 @@ defmodule Petal.MixProject do
     [
       {:phoenix, "~> 1.6.2", only: [:dev, :test]},
       {:phoenix_live_view, "~> 0.17.0", only: [:dev, :test]},
-      {:jason, "~> 1.0", only: [:dev, :test]}
+      {:jason, "~> 1.0", only: [:dev, :test]},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
+    ]
+  end
+
+  defp description() do
+    """
+    Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+    """
+  end
+
+  defp package do
+    [
+      maintainers: ["Matt Platts", "Nic Hoban"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp docs() do
+    [
+      main: "readme",
+      logo: "logo.png",
+      name: "Petal Components",
+      source_ref: "v#{@version}",
+      canonical: "http://hexdocs.pm/petal_components",
+      source_url: @source_url,
+      extras: ["README.md"]
     ]
   end
 end
