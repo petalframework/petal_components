@@ -1,36 +1,92 @@
-# Petal 
+<p align="center">
+  <img src="logo.png" height="128">
+  <h1 align="center">Petal Components</h1>
+</p>
 
-Phoenix / Elixir / Tailwind / Alpine / Live view (HEEX) Components.
+<img src="screenshot.png" height="600">
 
-## TODO
+## About 🌺
+
+Petal stands for:
+
+* [Phoenix](https://www.phoenixframework.org/)
+* [Elixir](https://elixir-lang.org/)
+* [Tailwind CSS](https://tailwindcss.com/)
+* [Alpine JS](https://alpinejs.dev/)
+* [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
+
+A set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+
+## Install
+
+For Petal to work you simply need Tailwind CSS and Alpine JS installed along with with some Tailwind configuration.
+### Existing projects
+
+Follow [this guide](https://sergiotapia.com/phoenix-160-liveview-esbuild-tailwind-jit-alpinejs-a-brief-tutorial) to install Tailwind and Alpine.
+
+### New projects
+
+We recommend using [Petal boilerplate](https://github.com/petalframework/petal_boilerplate), which is a fresh Phoenix install with Tailwind + Alpine installed. It comes with a project renaming script so you can still rename your project to whatever you like.
+
+### Configuration
+
+Modify your `tailwind.config.js` file to include these settings:
+
+```js
+const colors = require("tailwindcss/colors");
+
+module.exports = {
+  mode: "jit",
+  // We need to include the Petal dependency so the classes get picked up by JIT.
+  purge: ["../lib/*_web/**/*.*ex", "./js/**/*.js", "../deps/petal/**/*.*ex"],
+  darkMode: false,
+  theme: {
+    extend: {
+      colors: {
+        // Set these to your brand colors
+        primary: colors.blue,
+        secondary: colors.pink,
+      },
+    },
+  },
+  variants: {
+    extend: {
+      cursor: ["disabled"],
+    },
+  },
+  plugins: [require("@tailwindcss/forms")],
+};
+
+```
+
+## Roadmap
 
 ### Layout
-- [ ] container
-- [ ] box
+- [x] container
 
 ### Form components
-- [ ] text input
-- [ ] select dropdown
-- [ ] textarea
-- [ ] checkbox
+- [x] text input
+- [x] select dropdown
+- [x] textarea
+- [x] checkbox
 - [ ] multiple select
-- [ ] radio
+- [x] radios
 - [ ] file upload
 - [ ] switch
 
 ### Buttons
-- [ ] basic button
-- [ ] change size
-- [ ] change color
-- [ ] loading state (with spinner)
-- [ ] filled vs outline
+- [x] basic button
+- [x] change size
+- [x] change color
+- [x] loading state (with spinner)
+- [x] filled vs outline
 - [ ] button group
 
 ### Misc
 - [ ] menu dropdown
-- [ ] Tooltips
+- [ ] tooltips
 - [ ] avatar
-- [ ] alerts
+- [x] alerts
 - [ ] tables
 - [ ] cards
 - [ ] breadcrumbs
@@ -39,7 +95,4 @@ Phoenix / Elixir / Tailwind / Alpine / Live view (HEEX) Components.
 - [ ] spinners
 - [ ] accordian
 - [ ] pagination
-
-## Sponsors
-
-[Petal Framework](https://petal.build)
+- [x] badges

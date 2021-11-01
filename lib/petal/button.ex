@@ -229,7 +229,7 @@ defmodule Petal.Button do
         "border-gray-400 hover:border-gray-500 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
 
       _ ->
-        "text-gray-700 border-gray-100 hover:text-gray-900 hover:text-gray-900 hover:border-gray-200 hover:bg-gray-50 focus:outline-none focus:border-gray-200 focus:bg-gray-100 focus:text-gray-900 active:border-gray-300 active:bg-gray-200 active:text-black"
+        "text-gray-700 border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black"
     end
   end
 
