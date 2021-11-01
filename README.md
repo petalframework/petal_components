@@ -3,8 +3,6 @@
   <h1 align="center">Petal Components</h1>
 </p>
 
-<img src="screenshot.png" height="600">
-
 ## About 🌺
 
 Petal stands for:
@@ -16,6 +14,10 @@ Petal stands for:
 * [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
 
 A set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+
+<p align="center">
+  <img src="screenshot.png" height="1200">
+</p>
 
 ## Install
 
