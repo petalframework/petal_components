@@ -22,9 +22,22 @@ Petal is a set of HEEX components that makes it easy for Phoenix developers to s
 ## Install
 
 For Petal to work you simply need Tailwind CSS and Alpine JS installed along with with some Tailwind configuration.
+
 ### Existing projects
 
 Follow [this guide](https://sergiotapia.com/phoenix-160-liveview-esbuild-tailwind-jit-alpinejs-a-brief-tutorial) to install Tailwind and Alpine.
+
+Then add Petal to your deps:
+
+`mix.exs`
+
+```elixir
+defp deps do
+  [
+    {:petal_components, "~> 0.1.0"},
+  ]
+end
+```
 
 ### New projects
 
