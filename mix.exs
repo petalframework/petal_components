@@ -14,6 +14,7 @@ defmodule Petal.MixProject do
       description: description(),
       package: package(),
       deps: deps(),
+      docs: docs(),
     ]
   end
 
