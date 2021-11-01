@@ -178,8 +178,6 @@ defmodule PetalComponents.Button do
       #{disabled_css}
       #{icon_css}
       font-medium
-      disabled:opacity-50
-      disabled:cursor-not-allowed
       shadow-sm
       rounded-md
       inline-flex items-center justify-center
