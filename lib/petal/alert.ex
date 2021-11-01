@@ -1,4 +1,4 @@
-defmodule Petal.Alert do
+defmodule PetalComponents.Alert do
   use Phoenix.Component
 
   def alert(assigns) do

@@ -1,4 +1,4 @@
-defmodule Petal.Button do
+defmodule PetalComponents.Button do
   use Phoenix.Component
 
   def button(assigns) do

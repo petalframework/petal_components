@@ -1,4 +1,4 @@
-defmodule Petal do
+defmodule PetalComponents do
   @moduledoc """
   Parent module
   """

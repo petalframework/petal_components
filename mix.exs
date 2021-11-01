@@ -1,4 +1,4 @@
-defmodule Petal.MixProject do
+defmodule PetalComponents.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/petalframework/petal"
@@ -6,7 +6,7 @@ defmodule Petal.MixProject do
 
   def project do
     [
-      app: :petal,
+      app: :petal_components,
       version: @version,
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),

@@ -1,4 +1,4 @@
-defmodule Petal.Container do
+defmodule PetalComponents.Container do
   use Phoenix.Component
 
   # <.container max_width="sm|md|lg|xl" />

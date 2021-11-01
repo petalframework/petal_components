@@ -1,4 +1,4 @@
-defmodule Petal.Badge do
+defmodule PetalComponents.Badge do
   use Phoenix.Component
 
   def badge(assigns) do

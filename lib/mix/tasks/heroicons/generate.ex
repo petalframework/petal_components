@@ -13,15 +13,15 @@ defmodule Mix.Tasks.Heroicons.Generate do
     namespace = "Heroicons.#{String.capitalize(folder)}"
 
     file_content = """
-    defmodule Petal.#{namespace} do
+    defmodule PetalComponents.#{namespace} do
       use Phoenix.Component
       @moduledoc \"\"\"
       Icon name can be the function or passed in as a type eg.
-      <Petal.Heroicons.Solid.home class="w-6 h-6" />
-      <Petal.Heroicons.Solid.render type="home" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Solid.home class="w-6 h-6" />
+      <PetalComponents.Heroicons.Solid.render type="home" class="w-6 h-6" />
 
-      <Petal.Heroicons.Outline.home class="w-6 h-6" />
-      <Petal.Heroicons.Outline.render type="home" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.render type="home" class="w-6 h-6" />
       \"\"\"
 
       def render(assigns) do
@@ -46,10 +46,10 @@ defmodule Mix.Tasks.Heroicons.Generate do
         end
         """
 
-    dest_path = "./lib/petal/icons/heroicons/#{folder}.ex"
+    dest_path = "./lib/petal_components/icons/heroicons/#{folder}.ex"
 
     unless File.exists?(dest_path) do
-      File.mkdir_p("./lib/petal/icons/heroicons")
+      File.mkdir_p("./lib/petal_components/icons/heroicons")
     end
 
     File.write!(dest_path, file_content)

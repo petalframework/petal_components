@@ -1,4 +1,4 @@
-defmodule Petal.Typography do
+defmodule PetalComponents.Typography do
   use Phoenix.Component
 
   @moduledoc """

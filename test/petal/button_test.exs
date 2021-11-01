@@ -1,9 +1,9 @@
-defmodule Petal.ButtonTest do
+defmodule PetalComponents.ButtonTest do
   use ComponentCase
 
   test "button" do
     html =
-      Petal.Button.render(%{
+      PetalComponents.Button.render(%{
         __changed__: "",
         type: "a",
         label: "Press me",
@@ -18,7 +18,7 @@ defmodule Petal.ButtonTest do
 
   test "button with phx-click" do
     html =
-      Petal.Button.render(%{
+      PetalComponents.Button.render(%{
         __changed__: "",
         type: "a",
         label: "Press me",

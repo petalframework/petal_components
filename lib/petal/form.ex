@@ -1,4 +1,4 @@
-defmodule Petal.Form do
+defmodule PetalComponents.Form do
   use Phoenix.Component
   import Phoenix.HTML.Form
 

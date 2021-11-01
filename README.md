@@ -53,7 +53,7 @@ const colors = require("tailwindcss/colors");
 module.exports = {
   mode: "jit",
   // We need to include the Petal dependency so the classes get picked up by JIT.
-  purge: ["../lib/*_web/**/*.*ex", "./js/**/*.js", "../deps/petal/**/*.*ex"],
+  purge: ["../lib/*_web/**/*.*ex", "./js/**/*.js", "../deps/petal_components/**/*.*ex"],
   darkMode: false,
   theme: {
     extend: {
