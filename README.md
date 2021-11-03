@@ -3,6 +3,52 @@
   <h1 align="center">Petal Components</h1>
 </p>
 
+## Docs 📄
+
+- [About](#about)
+- [Install](#install)
+  - [Existing projects](#existing-projects)
+  - [New projects](#new-projects)
+- [Roadmap](#roadmap)
+  - [Layout](#layout)
+  - [Form components](#form-components)
+  - [Buttons](#buttons)
+  - [Misc](#misc)
+- [Examples](#examples)
+  - [Buttons](#buttons)
+    - [Button types](#button-types)
+    - [Button colors](#button-colors)
+    - [Button colors (outline)](#button-colors-(outline))
+    - [Button sizes](#button-sizes)
+    - [Button states](#button-states)
+      - [Disabled](#disabled)
+      - [Loading](#loading)
+    - [Button with icon](#button-with-icon)
+  - [Typography](#typography)
+  - [Heroicons](#heroicons)
+    - [Heroicons solid](#heroicons-solid)
+    - [Heroicons outline](#heroicons-outline)
+  - [Badges](#badges)
+  - [Alerts](#alerts)
+    - [Info alert](#info-alert)
+    - [Success alert](#success-alert)
+    - [Warning alert](#warning-alert)
+    - [Danger alert](#danger-alert)
+  - [Forms](#forms)
+    - [Text input](#text-input)
+    - [Text area](#text-area)
+    - [Select](#select)
+    - [Radios](#radios)
+  - [Dropdowns](#dropdowns)
+
+
+
+
+
+
+
+
+
 ## About 🌺
 
 Petal stands for:
@@ -112,3 +158,161 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [ ] accordian
 - [ ] pagination
 - [x] badges
+
+## Examples
+
+### Containers
+```elixir
+<Container.container max_width="full | lg | md | sm">
+```
+### Buttons
+
+#### Button types
+```elixir
+<Button.button label="Button">
+<Button.button type="a" href="/" label="a">
+<Button.patch href="/" label>
+<Button.redirect href="/">
+```
+
+#### Button colors
+```elixir
+    <Button.button color="primary | secondary | white | success | danger" label="Primary" />
+```
+
+#### Button colors (outline)
+```elixir
+    <Button.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
+```
+
+#### Button sizes
+```elixir
+<Button.button size="sm | md | lg | xl">
+```
+
+#### Button states
+
+##### Disabled
+```elixir
+<Button.button disabled type="a" href="/" label="a Disabled" />
+<Button.button disabled color="primary" label="Button Disabled" />
+<Button.patch disabled href="/" label="Live Patch Disabled" />
+<Button.redirect disabled href="/" label="Live Redirect" />
+```
+
+##### Loading
+```elixir
+<Button.button loading type="a" href="/" label="a Loading" />
+<Button.button loading label="Button Loading" />
+<Button.patch loading href="/" label="Live Patch Loading" />
+<Button.redirect loading href="/" label="Live Redirect Loading" />
+```
+
+#### Button with icon
+```elixir
+<Button.button icon type="a" href="/">
+  <Heroicons.Solid.home class="w-5 h-5" />
+  a with label
+</Button.button>
+```
+
+### Typography
+```elixir
+<Typography.h1>Heading 1</Typography.h1>
+<Typography.h2>Heading 2</Typography.h2>
+<Typography.h3>Heading 3</Typography.h3>
+<Typography.h4>Heading 4</Typography.h4>
+<Typography.h5>Heading 5</Typography.h5>
+```
+
+### Heroicons
+
+#### Heroicons solid
+```elixir
+<Heroicons.Solid.home class="w-6 h-6 text-blue-500" />
+```
+
+#### Heroicons outline
+```elixir
+<Heroicons.Outline.home class="w-6 h-6 text-blue-500" />
+```
+
+### Badges
+```elixir
+<Badge.badge color="primary | secondary | White | Black | Green | Red | Blue | Gray | Light Gray | Pink | Purple | Orange | Yellow" label="Primary" />
+```
+### Alerts
+
+#### Info alert
+```elixir
+<Alert.alert icon state="info" label="Info state">
+  <Heroicons.Outline.information_circle class="w-5 h-5" />
+</Alert.alert>
+```
+
+#### Success alert
+```elixir
+<Alert.alert icon state="success" label="Success state">
+  <Heroicons.Outline.check_circle class="w-5 h-5" />
+</Alert.alert>
+```
+
+#### Warning alert
+```elixir
+<Alert.alert icon state="warning" label="Warning state">
+  <Heroicons.Outline.exclamation class="w-5 h-5" />
+</Alert.alert>
+```
+
+#### Danger alert
+```elixir
+<Alert.alert icon state="danger" label="Danger state">
+  <Heroicons.Outline.x_circle class="w-5 h-5" />
+</Alert.alert>
+```
+
+### Forms
+
+#### Text input
+```elixir
+<Form.text_input form={:user} field={:name} placeholder="eg. John" />
+```
+
+#### Text area
+```elixir
+<Form.textarea form={:user} field={:description} />
+```
+
+#### Select
+```elixir
+<Form.select
+  options={["Admin": "admin", "User": "user"]}
+  form={:user}
+  field={:role}
+/>
+```
+
+#### Radios
+```elixir
+<Form.radios
+  form={:user}
+  field={:eye_color}
+  options={["Green": "green", "Blue": "blue", "Gray": "gray"]}
+/>
+```
+
+### Dropdowns
+```elixir
+<Dropdown.dropdown label="Dropdown">
+  <Dropdown.dropdown_menu_item type="button">
+    <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
+    Option with icon
+  </Dropdown.dropdown_menu_item>
+  <Dropdown.dropdown_menu_item type="button" label="Option 2" />
+  <Dropdown.dropdown_menu_item type="button" label="Option 3" />
+</Dropdown.dropdown>
+```
+
+
+
+
