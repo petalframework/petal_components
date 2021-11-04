@@ -180,20 +180,26 @@ defmodule Releaser do
     # Run the tests before generating the release.
     # If any test fails, stop.
     Tests.run_tests!()
+
     # Get the current version from the mix.exs file.
     version = VersionUtils.get_version()
+
     # Extract the changelog entry and add it to the changelog.
     # Use the information in the RELEASE.md file to bump the version number.
     {release_type, text} = Changelog.extract_release_type()
     new_version = VersionUtils.update_version(version, release_type)
     entry = Changelog.changelog_entry(new_version, DateTime.utc_now(), text)
     Changelog.add_changelog_entry(entry)
+
     # Set a new version on the mix.exs file
     VersionUtils.set_version(new_version)
+
+    # Remove the release file
+    Changelog.remove_release_file()
+
     # Commit the changes and ad a new 'v*.*.*' tag
     Git.add_commit_and_tag(new_version)
-    # Now that we have commited the changes, we can remove the release file
-    Changelog.remove_release_file()
+
     # Try to publish the package on hex.
     # If this fails, we don't want to run all the code above,
     # so you should run `mix hex.publish" again manually to try to solve the problem
