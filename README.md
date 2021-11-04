@@ -103,7 +103,31 @@ module.exports = {
   },
   plugins: [require("@tailwindcss/forms")],
 };
+```
 
+4 - Alias the components in your `<your_project>_web.ex` file 
+
+```elixir
+defmodule YourProjectWeb
+  ...
+
+  defp view_helpers do
+    quote do
+      ...
+      
+      alias PetalComponents.{
+        Container,
+        Typography,
+        Heroicons,
+        Button,
+        Badge,
+        Alert,
+        Form,
+        Dropdown,
+        Loading
+      }
+    end
+  end
 ```
 
 ### New projects
