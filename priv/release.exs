@@ -79,7 +79,7 @@ defmodule Releaser.Changelog do
 
   @changelog_filename "CHANGELOG.md"
   @changelog_entry_header_level 3
-  @changelog_entries_marker "\n<!-- %% CHANGELOG_ENTRIES %% -->\n"
+  @changelog_entries_marker "# Changelog\n"
 
   def remove_release_file() do
     File.rm!(@release_filename)
