@@ -93,6 +93,34 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
+  def dropdown_menu_item(%{type: "live_patch"} = assigns) do
+    ~H"""
+    <%= live_patch [
+      to: @href,
+      class: dropdown_menu_item_classes()] do %>
+      <%= if assigns[:inner_block] do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= @label %>
+      <% end %>
+    <% end %>
+    """
+  end
+
+  def dropdown_menu_item(%{type: "live_redirect"} = assigns) do
+    ~H"""
+    <%= live_redirect [
+      to: @href,
+      class: dropdown_menu_item_classes()] do %>
+      <%= if assigns[:inner_block] do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= @label %>
+      <% end %>
+    <% end %>
+    """
+  end
+
   def dropdown_menu_item_classes(),
     do:
       "block flex gap-2 items-center self-start justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 w-full text-left"

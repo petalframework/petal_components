@@ -134,7 +134,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [ ] button group
 
 ### Misc
-- [ ] menu dropdown
+- [x] menu dropdown
 - [ ] tooltips
 - [ ] avatar
 - [x] alerts
@@ -289,9 +289,10 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 <Dropdown.dropdown label="Dropdown">
   <Dropdown.dropdown_menu_item type="button">
     <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
-    Option with icon
+    Button item with icon
   </Dropdown.dropdown_menu_item>
-  <Dropdown.dropdown_menu_item type="button" label="Option 2" />
-  <Dropdown.dropdown_menu_item type="button" label="Option 3" />
+  <Dropdown.dropdown_menu_item type="a" href="/" label="a item" />
+  <Dropdown.dropdown_menu_item type="live_patch" href="/" label="Live Patch item" />
+  <Dropdown.dropdown_menu_item type="live_redirect" href="/" label="Live Redirect item" />
 </Dropdown.dropdown>
 ```
