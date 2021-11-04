@@ -1,16 +1,18 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
+  alias PetalComponents.Heroicons
 
   def alert(assigns) do
     ~H"""
-    <alert class={alert_classes(assigns)}>
+    <div class={alert_classes(assigns)}>
+      <Heroicons.Outline.render icon={get_icon(@state)} />
+
       <%= if assigns[:inner_block] do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
       <% end %>
-        <%= @label %>
-    </alert>
+    </div>
     """
   end
 
@@ -18,7 +20,7 @@ defmodule PetalComponents.Alert do
     opts = %{
       size: opts[:size] || "xl",
       state: opts[:state] || "info",
-      icon: opts[:icon] || false
+      class: opts[:class] || ""
     }
 
     size_css =
@@ -30,19 +32,14 @@ defmodule PetalComponents.Alert do
         "xl" -> "text-base leading-6 px-6 py-3"
       end
 
-    icon_css =
-      if opts[:icon] do
-        "flex gap-2 items-center whitespace-nowrap"
-      else
-        ""
-      end
-
     state_css = get_state_classes(opts)
+
+    custom_classes = opts[:class] || ""
 
     """
       #{state_css}
       #{size_css}
-      #{icon_css}
+      #{custom_classes}
       font-medium
       rounded-xl
       inline-flex items-center justify-start
@@ -51,18 +48,34 @@ defmodule PetalComponents.Alert do
   end
 
   def get_state_classes(%{state: "info"}) do
-    "w-full text-primary-500 bg-primary-100"
+    "w-full text-blue-500 bg-blue-100 flex gap-2 items-center whitespace-nowrap"
   end
 
   def get_state_classes(%{state: "success"}) do
-    "w-full text-green-600 bg-green-100"
+    "w-full text-green-600 bg-green-100 flex gap-2 items-center whitespace-nowrap"
   end
 
   def get_state_classes(%{state: "warning"}) do
-    "w-full text-yellow-600 bg-yellow-100"
+    "w-full text-yellow-600 bg-yellow-100 flex gap-2 items-center whitespace-nowrap"
   end
 
   def get_state_classes(%{state: "danger"}) do
-    "w-full text-red-600 bg-red-100"
+    "w-full text-red-600 bg-red-100 flex gap-2 items-center whitespace-nowrap"
+  end
+
+  def get_icon("info") do
+    :information_circle
+  end
+
+  def get_icon("success") do
+    :check_circle
+  end
+
+  def get_icon("warning") do
+    :exclamation_circle
+  end
+
+  def get_icon("danger") do
+    :x_circle
   end
 end

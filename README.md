@@ -3,9 +3,24 @@
   <h1 align="center">Petal Components</h1>
 </p>
 
+## About 🌺
+
+Petal stands for:
+
+* [Phoenix](https://www.phoenixframework.org/)
+* [Elixir](https://elixir-lang.org/)
+* [Tailwind CSS](https://tailwindcss.com/)
+* [Alpine JS](https://alpinejs.dev/)
+* [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
+
+Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+
+<p align="center">
+  <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752726/petal/screenshot_tti5my.png" height="1200">
+</p>
+
 ## Docs 📄
 
-- [About](#about)
 - [Install](#install)
   - [Existing projects](#existing-projects)
   - [New projects](#new-projects)
@@ -40,30 +55,6 @@
     - [Select](#select)
     - [Radios](#radios)
   - [Dropdowns](#dropdowns)
-
-
-
-
-
-
-
-
-
-## About 🌺
-
-Petal stands for:
-
-* [Phoenix](https://www.phoenixframework.org/)
-* [Elixir](https://elixir-lang.org/)
-* [Tailwind CSS](https://tailwindcss.com/)
-* [Alpine JS](https://alpinejs.dev/)
-* [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
-
-Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
-
-<p align="center">
-  <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752726/petal/screenshot_tti5my.png" height="1200">
-</p>
 
 ## Install
 
@@ -119,8 +110,6 @@ module.exports = {
 
 We recommend using [Petal boilerplate](https://github.com/petalframework/petal_boilerplate), which is a fresh Phoenix install with Tailwind + Alpine installed. It comes with a project renaming script so you can still rename your project to whatever you like.
 
-
-
 ## Roadmap
 
 ### Layout
@@ -170,19 +159,19 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 #### Button types
 ```elixir
 <Button.button label="Button">
-<Button.button type="a" href="/" label="a">
-<Button.patch href="/" label>
-<Button.redirect href="/">
+<Button.a href="/" label="a">
+<Button.patch href="/" label="Live Patch">
+<Button.redirect href="/" label="Live Redirect">
 ```
 
 #### Button colors
 ```elixir
-    <Button.button color="primary | secondary | white | success | danger" label="Primary" />
+<Button.button color="primary | secondary | white | success | danger" label="Primary" />
 ```
 
 #### Button colors (outline)
 ```elixir
-    <Button.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
+<Button.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
 ```
 
 #### Button sizes
@@ -245,30 +234,24 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 #### Info alert
 ```elixir
-<Alert.alert icon state="info" label="Info state">
-  <Heroicons.Outline.information_circle class="w-5 h-5" />
+<Alert.alert state="info">
+  This is an info state
 </Alert.alert>
 ```
 
 #### Success alert
 ```elixir
-<Alert.alert icon state="success" label="Success state">
-  <Heroicons.Outline.check_circle class="w-5 h-5" />
-</Alert.alert>
+<Alert.alert state="success" label="This is a success state" />
 ```
 
 #### Warning alert
 ```elixir
-<Alert.alert icon state="warning" label="Warning state">
-  <Heroicons.Outline.exclamation class="w-5 h-5" />
-</Alert.alert>
+<Alert.alert state="warning" label="This is a warning state" />
 ```
 
 #### Danger alert
 ```elixir
-<Alert.alert icon state="danger" label="Danger state">
-  <Heroicons.Outline.x_circle class="w-5 h-5" />
-</Alert.alert>
+<Alert.alert state="danger" label="This is a danger state" />
 ```
 
 ### Forms
@@ -312,7 +295,3 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
   <Dropdown.dropdown_menu_item type="button" label="Option 3" />
 </Dropdown.dropdown>
 ```
-
-
-
-

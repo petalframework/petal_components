@@ -2,12 +2,12 @@ defmodule PetalComponents.Heroicons.Outline do
   use Phoenix.Component
 
   @moduledoc """
-  Icon name can be the function or passed in as a type eg.
+  Icon name can be the function or passed in as a icon eg.
   <PetalComponents.Heroicons.Solid.home class="w-6 h-6" />
-  <PetalComponents.Heroicons.Solid.render type="home" class="w-6 h-6" />
+  <PetalComponents.Heroicons.Solid.render icon={:home} class="w-6 h-6" />
 
   <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
-  <PetalComponents.Heroicons.Outline.render type="home" class="w-6 h-6" />
+  <PetalComponents.Heroicons.Outline.render icon={:home} class="w-6 h-6" />
   """
 
   def render(assigns) do

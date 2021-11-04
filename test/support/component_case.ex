@@ -12,6 +12,11 @@ defmodule ComponentCase do
         |> Phoenix.HTML.Safe.to_iodata()
         |> IO.iodata_to_binary()
       end
+
+      defp render_component(module, function, params) do
+        apply(module, function, [Map.merge(%{__changed__: %{}}, params)])
+        |> heex_to_string()
+      end
     end
   end
 end

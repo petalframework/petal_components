@@ -196,7 +196,8 @@ defmodule PetalComponents.Button do
         :size,
         :variant,
         :color,
-        :icon
+        :icon,
+        :__changed__
       ])
     end)
   end
