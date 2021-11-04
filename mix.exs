@@ -1,7 +1,7 @@
 defmodule PetalComponents.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/petalframework/petal"
+  @source_url "https://github.com/petalframework/petal_components"
   @version "0.2.1"
 
   def project do
@@ -14,7 +14,7 @@ defmodule PetalComponents.MixProject do
       description: description(),
       package: package(),
       deps: deps(),
-      docs: docs(),
+      docs: docs()
     ]
   end
 
