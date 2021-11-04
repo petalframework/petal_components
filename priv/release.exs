@@ -52,6 +52,7 @@ defmodule Releaser.VersionUtils do
 
   def set_version(version) do
     contents = File.read!("mix.exs")
+    readme_contents = File.read!("README.md")
     version_string = version_to_string(version)
 
     replaced =
@@ -60,6 +61,13 @@ defmodule Releaser.VersionUtils do
       end)
 
     File.write!("mix.exs", replaced)
+
+    replaced_readme =
+      Regex.replace(@version_line_regex, readme_contents, fn _, pre, _version, post ->
+        "#{pre}#{version_string}#{post}"
+      end)
+
+    File.write!("README.md", replaced_readme)
   end
 
   def update_version(%Version{} = version, "major"), do: bump_major(version)
