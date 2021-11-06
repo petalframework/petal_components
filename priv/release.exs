@@ -50,8 +50,9 @@ defmodule Releaser.VersionUtils do
     end
   end
 
-  def set_version(version) do
+  def set_version(old_version, version) do
     version_string = version_to_string(version)
+    old_version_string = version_to_string(old_version)
     contents = File.read!("mix.exs")
 
     replaced =
@@ -61,13 +62,9 @@ defmodule Releaser.VersionUtils do
 
     File.write!("mix.exs", replaced)
 
-
+    # Update the readme to point to the latest version
     readme_contents = File.read!("README.md")
-    replaced_readme =
-      Regex.replace(@version_line_regex, readme_contents, fn _, pre, _version, post ->
-        "#{pre}#{version_string}#{post}"
-      end)
-
+    replaced_readme = String.replace(readme_contents, old_version_string, version_string)
     File.write!("README.md", replaced_readme)
   end
 
@@ -201,7 +198,7 @@ defmodule Releaser do
     Changelog.add_changelog_entry(entry)
 
     # Set a new version on the mix.exs file
-    VersionUtils.set_version(new_version)
+    VersionUtils.set_version(version, new_version)
 
     # Remove the release file
     Changelog.remove_release_file()
