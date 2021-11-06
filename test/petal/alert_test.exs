@@ -55,4 +55,15 @@ defmodule PetalComponents.AlertTest do
 
     assert html == ""
   end
+
+  test "can supply a heading" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <Alert.alert label="x" heading="Success!" />
+      """
+    )
+
+    assert html =~ "Success!"
+  end
 end
