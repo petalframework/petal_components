@@ -51,9 +51,8 @@ defmodule Releaser.VersionUtils do
   end
 
   def set_version(version) do
-    contents = File.read!("mix.exs")
-    readme_contents = File.read!("README.md")
     version_string = version_to_string(version)
+    contents = File.read!("mix.exs")
 
     replaced =
       Regex.replace(@version_line_regex, contents, fn _, pre, _version, post ->
@@ -62,6 +61,8 @@ defmodule Releaser.VersionUtils do
 
     File.write!("mix.exs", replaced)
 
+
+    readme_contents = File.read!("README.md")
     replaced_readme =
       Regex.replace(@version_line_regex, readme_contents, fn _, pre, _version, post ->
         "#{pre}#{version_string}#{post}"
@@ -207,11 +208,6 @@ defmodule Releaser do
 
     # Commit the changes and ad a new 'v*.*.*' tag
     Git.add_commit_and_tag(new_version)
-
-    # Try to publish the package on hex.
-    # If this fails, we don't want to run all the code above,
-    # so you should run `mix hex.publish" again manually to try to solve the problem
-    Publish.publish!()
   end
 end
 
