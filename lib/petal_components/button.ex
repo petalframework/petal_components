@@ -1,28 +1,22 @@
 defmodule PetalComponents.Button do
   use Phoenix.Component
+  alias PetalComponents.Loading
 
+  # prop label, :string
+  # prop size, :string
+  # prop loading, :boolean, default: false
+  # prop disabled, :boolean, default: false
+  # slot default
   def button(assigns) do
-    assigns = get_extra_attributes(assigns)
+    assigns = assign_defaults(assigns)
 
     ~H"""
-    <button class={button_classes(assigns)} disabled={assigns[:disabled]} {@extra_attributes}>
-      <%= if assigns[:loading] do %>
-        <svg
-          class="w-5 h-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
+    <button class={@classes} disabled={@disabled} {@button_opts}>
+      <%= if @loading do %>
+        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
       <% end %>
 
-      <%= if assigns[:inner_block] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -31,28 +25,22 @@ defmodule PetalComponents.Button do
     """
   end
 
+  # prop label, :string
+  # prop href, :string
+  # prop size, :string
+  # prop loading, :boolean, default: false
+  # prop disabled, :boolean, default: false
+  # slot default
   def a(assigns) do
-    assigns = get_extra_attributes(assigns)
+    assigns = assign_defaults(assigns)
 
     ~H"""
-    <a href={@href} class={button_classes(assigns)} onclick={if assigns[:disabled] || assigns[:loading], do: "return false;", else: nil} {@extra_attributes}>
-      <%= if assigns[:loading] do %>
-        <svg
-          class="w-5 h-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
+    <a href={@href} class={@classes} onclick={if @disabled || @loading, do: "return false;", else: nil} {@button_opts}>
+      <%= if @loading do %>
+        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
       <% end %>
 
-      <%= if assigns[:inner_block] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -61,32 +49,26 @@ defmodule PetalComponents.Button do
     """
   end
 
+  # prop label, :string
+  # prop href, :string
+  # prop size, :string
+  # prop loading, :boolean, default: false
+  # prop disabled, :boolean, default: false
+  # slot default
   def patch(assigns) do
-    assigns = get_extra_attributes(assigns)
+    assigns = assign_defaults(assigns)
 
     ~H"""
     <%= live_patch [
       to: @href,
-      class: button_classes(assigns),
-      onclick: (if assigns[:disabled] || assigns[:loading], do: "return false;", else: nil)
-    ] ++ Map.to_list(assigns.extra_attributes) do %>
-      <%= if assigns[:loading] do %>
-        <svg
-          class="w-5 h-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
+      class: @classes,
+      onclick: (if @disabled || @loading, do: "return false;", else: nil)
+    ] ++ Map.to_list(assigns.button_opts) do %>
+      <%= if @loading do %>
+        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
       <% end %>
 
-      <%= if assigns[:inner_block] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -95,32 +77,26 @@ defmodule PetalComponents.Button do
     """
   end
 
+  # prop label, :string
+  # prop href, :string
+  # prop size, :string
+  # prop loading, :boolean, default: false
+  # prop disabled, :boolean, default: false
+  # slot default
   def redirect(assigns) do
-    assigns = get_extra_attributes(assigns)
+    assigns = assign_defaults(assigns)
 
     ~H"""
     <%= live_redirect [
       to: @href,
-      class: button_classes(assigns),
-      onclick: (if assigns[:disabled] || assigns[:loading], do: "return false;", else: nil)
-     ] ++ Map.to_list(assigns.extra_attributes) do %>
-      <%= if assigns[:loading] do %>
-        <svg
-          class="w-5 h-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
+      class: @classes,
+      onclick: (if @disabled || @loading, do: "return false;", else: nil)
+     ] ++ Map.to_list(assigns.button_opts) do %>
+      <%= if @loading do %>
+        <Loading.spinner show={true} size="button" />
       <% end %>
 
-      <%= if assigns[:inner_block] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -129,7 +105,16 @@ defmodule PetalComponents.Button do
     """
   end
 
-  def button_classes(opts \\ %{}) do
+  defp assign_defaults(assigns) do
+    assigns
+    |> assign_new(:inner_block, fn -> nil end)
+    |> assign_new(:loading, fn -> false end)
+    |> assign_new(:disabled, fn -> false end)
+    |> assign_new(:button_opts, fn -> get_button_opts(assigns) end)
+    |> assign_new(:classes, fn -> button_classes(assigns) end)
+  end
+
+  defp button_classes(opts) do
     opts = %{
       size: opts[:size] || "md",
       variant: opts[:variant] || "solid",
@@ -187,22 +172,20 @@ defmodule PetalComponents.Button do
     """
   end
 
-  def get_extra_attributes(assigns) do
-    assign_new(assigns, :extra_attributes, fn ->
-      Map.drop(assigns, [
-        :loading,
-        :disabled,
-        :inner_block,
-        :size,
-        :variant,
-        :color,
-        :icon,
-        :__changed__
-      ])
-    end)
+  defp get_button_opts(assigns) do
+    Map.drop(assigns, [
+      :loading,
+      :disabled,
+      :inner_block,
+      :size,
+      :variant,
+      :color,
+      :icon,
+      :__changed__
+    ])
   end
 
-  def get_color_classes(%{color: "primary", variant: variant}) do
+  defp get_color_classes(%{color: "primary", variant: variant}) do
     case variant do
       "outline" ->
         "border-primary-400 hover:border-primary-600 text-primary-600 hover:text-primary-700 active:bg-primary-200 hover:bg-primary-50 focus:border-primary-700 focus:shadow-outline-primary"
@@ -212,7 +195,7 @@ defmodule PetalComponents.Button do
     end
   end
 
-  def get_color_classes(%{color: "secondary", variant: variant}) do
+  defp get_color_classes(%{color: "secondary", variant: variant}) do
     case variant do
       "outline" ->
         "border-secondary-400 hover:border-secondary-600 text-secondary-600 hover:text-secondary-700 active:bg-secondary-200 hover:bg-secondary-50 focus:border-secondary-700 focus:shadow-outline-secondary"
@@ -222,7 +205,7 @@ defmodule PetalComponents.Button do
     end
   end
 
-  def get_color_classes(%{color: "white", variant: variant}) do
+  defp get_color_classes(%{color: "white", variant: variant}) do
     case variant do
       "outline" ->
         "border-gray-400 hover:border-gray-500 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
@@ -232,7 +215,7 @@ defmodule PetalComponents.Button do
     end
   end
 
-  def get_color_classes(%{color: "success", variant: variant}) do
+  defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "outline" ->
         "border-green-400 hover:border-green-500 text-green-500 hover:text-green-600 active:border-green-600 focus:text-green-600 active:text-green-700 active:bg-green-100 hover:bg-green-50 focus:border-green-500"
@@ -242,7 +225,7 @@ defmodule PetalComponents.Button do
     end
   end
 
-  def get_color_classes(%{color: "danger", variant: variant}) do
+  defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "outline" ->
         "border-red-400 hover:border-red-600 text-red-600 hover:text-red-700 active:bg-red-200 active:border-red-700 hover:bg-red-50 focus:border-red-600"
@@ -251,4 +234,10 @@ defmodule PetalComponents.Button do
         "border-transparent text-white bg-red-500 active:bg-red-700 hover:bg-red-600 active:bg-green-700 focus:bg-red-600"
     end
   end
+
+  defp get_spinner_classes("xs"), do: "h-3 w-3"
+  defp get_spinner_classes("sm"), do: "h-4 w-4"
+  defp get_spinner_classes("md"), do: "h-5 w-5"
+  defp get_spinner_classes("lg"), do: "h-5 w-5"
+  defp get_spinner_classes("xl"), do: "h-6 w-6"
 end

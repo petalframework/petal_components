@@ -4,10 +4,10 @@ defmodule PetalComponents.Dropdown do
   def dropdown(assigns) do
     ~H"""
     <div
-    x-data="{ open: false }"
-    @keydown.escape.stop="open = false"
-    @click.outside="open = false"
-    class="relative z-10 inline-block text-left"
+      x-data="{ open: false }"
+      @keydown.escape.stop="open = false"
+      @click.outside="open = false"
+      class="relative z-10 inline-block text-left"
     >
       <div>
       <%= if @label do %>
@@ -70,9 +70,13 @@ defmodule PetalComponents.Dropdown do
   end
 
   def dropdown_menu_item(%{type: "button"} = assigns) do
+    assigns = assigns
+      |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
+
     ~H"""
-    <button class={dropdown_menu_item_classes()}>
-      <%= if assigns[:inner_block] do %>
+    <button class={@classes}>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -82,9 +86,13 @@ defmodule PetalComponents.Dropdown do
   end
 
   def dropdown_menu_item(%{type: "a"} = assigns) do
+    assigns = assigns
+      |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
+
     ~H"""
-    <a href={@href} class={dropdown_menu_item_classes()}>
-      <%= if assigns[:inner_block] do %>
+    <a href={@href} class={@classes}>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -94,11 +102,15 @@ defmodule PetalComponents.Dropdown do
   end
 
   def dropdown_menu_item(%{type: "live_patch"} = assigns) do
+    assigns = assigns
+      |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
+
     ~H"""
     <%= live_patch [
       to: @href,
-      class: dropdown_menu_item_classes()] do %>
-      <%= if assigns[:inner_block] do %>
+      class: @classes] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
@@ -108,11 +120,15 @@ defmodule PetalComponents.Dropdown do
   end
 
   def dropdown_menu_item(%{type: "live_redirect"} = assigns) do
+    assigns = assigns
+      |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
+
     ~H"""
     <%= live_redirect [
       to: @href,
-      class: dropdown_menu_item_classes()] do %>
-      <%= if assigns[:inner_block] do %>
+      class: @classes] do %>
+      <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>

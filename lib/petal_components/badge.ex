@@ -1,9 +1,16 @@
 defmodule PetalComponents.Badge do
   use Phoenix.Component
 
+  # prop label, :string
+  # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
+  # prop color, :string, options: ["primary", "secondary", "white", "black", "green", "red", "blue", "gray", "gray-light", "pink", "purple", "orange", "yellow"]
   def badge(assigns) do
+    assigns = assign_new(assigns, :classes, fn ->
+      badge_classes(assigns)
+    end)
+
     ~H"""
-    <badge class={badge_classes(assigns)}>
+    <badge class={@classes}>
       <%= @label %>
     </badge>
     """

@@ -105,7 +105,7 @@ module.exports = {
 };
 ```
 
-4 - Alias the components in your `<your_project>_web.ex` file 
+4 - Alias the components in your `<your_project>_web.ex` file
 
 ```elixir
 defmodule YourProjectWeb
@@ -114,17 +114,34 @@ defmodule YourProjectWeb
   defp view_helpers do
     quote do
       ...
-      
+
+      use PetalComponents
+    end
+  end
+```
+
+This will import the functions so you can go `<.button />` in your templates / live views.
+
+If the function names clash with yours (eg. you already have a `.button` function) you can opt to alias the modules instead:
+
+```elixir
+defmodule YourProjectWeb
+  ...
+
+  defp view_helpers do
+    quote do
+      ...
+
       alias PetalComponents.{
-        Container,
-        Typography,
         Heroicons,
-        Button,
-        Badge,
         Alert,
-        Form,
+        Badge,
+        Button,
+        Container,
         Dropdown,
-        Loading
+        Form,
+        Loading,
+        Typography
       }
     end
   end
@@ -182,60 +199,60 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 #### Button types
 ```elixir
-<Button.button label="Button">
-<Button.a href="/" label="a">
-<Button.patch href="/" label="Live Patch">
-<Button.redirect href="/" label="Live Redirect">
+<.button label="Button">
+<.a href="/" label="a">
+<.patch href="/" label="Live Patch">
+<.redirect href="/" label="Live Redirect">
 ```
 
 #### Button colors
 ```elixir
-<Button.button color="primary | secondary | white | success | danger" label="Primary" />
+<.button color="primary | secondary | white | success | danger" label="Primary" />
 ```
 
 #### Button colors (outline)
 ```elixir
-<Button.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
+<.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
 ```
 
 #### Button sizes
 ```elixir
-<Button.button size="sm | md | lg | xl">
+<.button size="sm | md | lg | xl">
 ```
 
 #### Button states
 
 ##### Disabled
 ```elixir
-<Button.button disabled type="a" href="/" label="a Disabled" />
-<Button.button disabled color="primary" label="Button Disabled" />
-<Button.patch disabled href="/" label="Live Patch Disabled" />
-<Button.redirect disabled href="/" label="Live Redirect" />
+<.button disabled type="a" href="/" label="a Disabled" />
+<.button disabled color="primary" label="Button Disabled" />
+<.patch disabled href="/" label="Live Patch Disabled" />
+<.redirect disabled href="/" label="Live Redirect" />
 ```
 
 ##### Loading
 ```elixir
-<Button.button loading type="a" href="/" label="a Loading" />
-<Button.button loading label="Button Loading" />
-<Button.patch loading href="/" label="Live Patch Loading" />
-<Button.redirect loading href="/" label="Live Redirect Loading" />
+<.button loading type="a" href="/" label="a Loading" />
+<.button loading label="Button Loading" />
+<.patch loading href="/" label="Live Patch Loading" />
+<.redirect loading href="/" label="Live Redirect Loading" />
 ```
 
 #### Button with icon
 ```elixir
-<Button.button icon type="a" href="/">
+<.button icon type="a" href="/">
   <Heroicons.Solid.home class="w-5 h-5" />
   a with label
-</Button.button>
+</.button>
 ```
 
 ### Typography
 ```elixir
-<Typography.h1>Heading 1</Typography.h1>
-<Typography.h2>Heading 2</Typography.h2>
-<Typography.h3>Heading 3</Typography.h3>
-<Typography.h4>Heading 4</Typography.h4>
-<Typography.h5>Heading 5</Typography.h5>
+<.h1>Heading 1</.h1>
+<.h2>Heading 2</.h2>
+<.h3>Heading 3</.h3>
+<.h4>Heading 4</.h4>
+<.h5>Heading 5</.h5>
 ```
 
 ### Heroicons
@@ -243,65 +260,122 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 #### Heroicons solid
 ```elixir
 <Heroicons.Solid.home class="w-6 h-6 text-blue-500" />
+<Heroicons.Solid.render icon={:home} />
 ```
 
 #### Heroicons outline
 ```elixir
 <Heroicons.Outline.home class="w-6 h-6 text-blue-500" />
+<Heroicons.Outline.render icon={:home} />
 ```
 
 ### Badges
 ```elixir
-<Badge.badge color="primary | secondary | White | Black | Green | Red | Blue | Gray | Light Gray | Pink | Purple | Orange | Yellow" label="Primary" />
+<.badge color="primary | secondary | White | Black | Green | Red | Blue | Gray | Light Gray | Pink | Purple | Orange | Yellow" label="Primary" />
 ```
 ### Alerts
 
 #### Info alert
 ```elixir
-<Alert.alert state="info">
+<.alert state="info">
   This is an info state
-</Alert.alert>
+</.alert>
 ```
 
 #### Success alert
 ```elixir
-<Alert.alert state="success" label="This is a success state" />
+<.alert state="success" label="This is a success state" />
 ```
 
 #### Warning alert
 ```elixir
-<Alert.alert state="warning" label="This is a warning state" />
+<.alert state="warning" label="This is a warning state" />
 ```
 
 #### Danger alert
 ```elixir
-<Alert.alert state="danger" label="This is a danger state" />
+<.alert state="danger" label="This is a danger state" />
 ```
 
 ### Forms
 
 #### Text input
-```elixir
-<Form.text_input form={:user} field={:name} placeholder="eg. John" />
+```html
+<.text_input form={:user} field={:name} placeholder="eg. John" />
+
+<!-- With a label and bottom margin -->
+<div class="mb-6">
+  <.form_label form={:user} field={:last_name} />
+  <.text_input form={:user} field={:last_name} placeholder="eg. Smith" />
+</div>
+
+<!-- Includes label and bottom margin -->
+<.form_field
+  type="text_input"
+  form={:user}
+  field={:first_name}
+/>
 ```
 
 #### Text area
-```elixir
-<Form.textarea form={:user} field={:description} />
+```html
+<.textarea form={:user} field={:description} />
+
+<!-- With a label and bottom margin -->
+<div class="mb-6">
+  <.form_label form={:user} field={:description} />
+  <.textarea form={:user} field={:description} />
+</div>
+
+<!-- Includes label and bottom margin -->
+<.form_field
+  type="textarea"
+  form={:user}
+  field={:description}
+/>
 ```
 
 #### Select
-```elixir
-<Form.select
+```html
+<.select
   options={["Admin": "admin", "User": "user"]}
   form={:user}
   field={:role}
 />
+
+<!-- With a label and bottom margin -->
+<div class="mb-6">
+  <.form_label form={:user} field={:role} />
+  <.select
+    options={["Admin": "admin", "User": "user"]}
+    form={:user}
+    field={:role}
+  />
+</div>
+
+<!-- Includes label and bottom margin -->
+<.form_field
+  type="select"
+  form={:user}
+  field={:first_name}
+  options={["Admin": "admin", "User": "user"]}
+/>
+```
+
+#### Checkbox
+```html
+<!-- Includes the label and margin automatically -->
+<.checkbox
+  form={:user}
+  field={:read_terms}
+  label="I accept"
+/>
 ```
 
 #### Radios
-```elixir
-<Form.radios
+```html
+<!-- A collection of radios - provide options like a select dropdown -->
+<.radios
   form={:user}
   field={:eye_color}
   options={["Green": "green", "Blue": "blue", "Gray": "gray"]}
@@ -310,13 +384,21 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 ### Dropdowns
 ```elixir
-<Dropdown.dropdown label="Dropdown">
-  <Dropdown.dropdown_menu_item type="button">
+<.dropdown label="Dropdown">
+  <.dropdown_menu_item type="button">
     <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
     Button item with icon
-  </Dropdown.dropdown_menu_item>
-  <Dropdown.dropdown_menu_item type="a" href="/" label="a item" />
-  <Dropdown.dropdown_menu_item type="live_patch" href="/" label="Live Patch item" />
-  <Dropdown.dropdown_menu_item type="live_redirect" href="/" label="Live Redirect item" />
-</Dropdown.dropdown>
+  </.dropdown_menu_item>
+  <.dropdown_menu_item type="a" href="/" label="a item" />
+  <.dropdown_menu_item type="live_patch" href="/" label="Live Patch item" />
+  <.dropdown_menu_item type="live_redirect" href="/" label="Live Redirect item" />
+</.dropdown>
+```
+
+### Loading indicators
+```
+<.spinner show={false} />
+<.spinner show={true} size="sm" />
+<.spinner show={true} size="md" class="text-green-500" />
+<.spinner show={true} size="lg" class="text-red-500" />
 ```
