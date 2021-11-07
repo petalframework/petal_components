@@ -1,4 +1,11 @@
 # Changelog
+### 0.3.0 - 2021-11-07 20:11:56
+- import instead of alias the functions
+- removed references to assigns in the HEEX templates to allow proper change tracking
+- form functions like text_input now only create an input without the label
+- added a `form_field` function that will include the label
+- fixed the spinner on different button sizes
+- removed alert sizing - stick with on size for now
 ### 0.2.2 - 2021-11-06 01:34:48
 - Fixed Alert.alert not allowing wrapping
 - Added heading parameter to Alert.alert

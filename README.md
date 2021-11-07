@@ -55,6 +55,7 @@ Petal is a set of HEEX components that makes it easy for Phoenix developers to s
     - [Select](#select)
     - [Radios](#radios)
   - [Dropdowns](#dropdowns)
+  - [Loading indicators](#loading-indicators)
 
 ## Install
 
@@ -71,7 +72,7 @@ For Petal to work you simply need Tailwind CSS and Alpine JS installed along wit
 ```elixir
 defp deps do
   [
-    {:petal_components, "~> 0.2.2"},
+    {:petal_components, "~> 0.3.0"},
   ]
 end
 ```
