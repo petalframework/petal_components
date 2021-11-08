@@ -1,12 +1,12 @@
 defmodule PetalComponents.LoadingTest do
   use ComponentCase
-  alias PetalComponents.Loading
+  import PetalComponents.Loading
 
   test "spinner" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Loading.spinner show={true} />
+      <.spinner show={true} />
       """
     )
     assert html =~ "<svg"
@@ -14,14 +14,14 @@ defmodule PetalComponents.LoadingTest do
 
     html = rendered_to_string(
       ~H"""
-      <Loading.spinner show={true} size="sm" />
+      <.spinner show={true} size="sm" />
       """
     )
     assert html =~ "h-5"
 
     html = rendered_to_string(
       ~H"""
-      <Loading.spinner show={true} class="some_class" />
+      <.spinner show={true} class="some_class" />
       """
     )
     assert html =~ "some_class"
@@ -31,7 +31,7 @@ defmodule PetalComponents.LoadingTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Loading.spinner />
+      <.spinner />
       """
     )
     assert html =~ "<svg"

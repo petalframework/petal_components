@@ -52,7 +52,7 @@ defmodule PetalComponents.Badge do
   end
 
   def get_color_classes(%{color: "white"}) do
-    "text-white-800 bg-white-100"
+    "text-black bg-white"
   end
 
   def get_color_classes(%{color: "black"}) do

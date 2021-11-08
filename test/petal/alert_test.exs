@@ -1,12 +1,12 @@
 defmodule PetalComponents.AlertTest do
   use ComponentCase
-  alias PetalComponents.Alert
+  import PetalComponents.Alert
 
   test "it renders colors and icon correctly" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Alert.alert state="info" label="Info alert" />
+      <.alert state="info" label="Info alert" />
       """
     )
     assert html =~ "Info alert"
@@ -15,21 +15,21 @@ defmodule PetalComponents.AlertTest do
 
     html = rendered_to_string(
       ~H"""
-      <Alert.alert state="warning" label="Label" />
+      <.alert state="warning" label="Label" />
       """
     )
     assert html =~ "text-yellow"
 
     html = rendered_to_string(
       ~H"""
-      <Alert.alert state="danger" label="Label" />
+      <.alert state="danger" label="Label" />
       """
     )
     assert html =~ "text-red"
 
     html = rendered_to_string(
       ~H"""
-      <Alert.alert state="success" label="Label" />
+      <.alert state="success" label="Label" />
       """
     )
     assert html =~ "text-green"
@@ -39,7 +39,7 @@ defmodule PetalComponents.AlertTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Alert.alert label="Label" />
+      <.alert label="Label" />
       """
     )
     assert html =~ "text-blue"
@@ -49,7 +49,7 @@ defmodule PetalComponents.AlertTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Alert.alert label="" />
+      <.alert label="" />
       """
     )
 
@@ -60,7 +60,7 @@ defmodule PetalComponents.AlertTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Alert.alert label="x" heading="Success!" />
+      <.alert label="x" heading="Success!" />
       """
     )
 

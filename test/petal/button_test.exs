@@ -1,36 +1,23 @@
 defmodule PetalComponents.ButtonTest do
   use ComponentCase
-  alias PetalComponents.Button
+  import PetalComponents.Button
 
-  test "Button.button" do
+  test "button" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Button.button label="Press me" phx-click="click_event" />
+      <.button label="Press me" phx-click="click_event" />
       """
     )
 
     assert html =~ "Press me"
   end
 
-  test "Button.a" do
+  test "a" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Button.a label="Press me" href="/" phx-click="Press me" />
-      """
-    )
-    assert html =~ "Press me"
-    assert html =~ "<a"
-    assert html =~ "href"
-    assert html =~ "phx-click"
-  end
-
-  test "Button.patch" do
-    assigns = %{}
-    html = rendered_to_string(
-      ~H"""
-      <Button.patch label="Press me" href="/" phx-click="click_event" />
+      <.a label="Press me" href="/" phx-click="Press me" />
       """
     )
     assert html =~ "Press me"
@@ -39,11 +26,11 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "phx-click"
   end
 
-  test "Button.redirect" do
+  test "patch" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Button.redirect label="Press me" href="/" phx-click="click_event" />
+      <.patch label="Press me" href="/" phx-click="click_event" />
       """
     )
     assert html =~ "Press me"
@@ -52,11 +39,24 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "phx-click"
   end
 
-  test "Button.button with inner_block" do
+  test "redirect" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <Button.button phx-click="click_event">Press me</Button.button>
+      <.redirect label="Press me" href="/" phx-click="click_event" />
+      """
+    )
+    assert html =~ "Press me"
+    assert html =~ "<a"
+    assert html =~ "href"
+    assert html =~ "phx-click"
+  end
+
+  test "button with inner_block" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.button phx-click="click_event">Press me</.button>
       """
     )
     assert html =~ "<button"
