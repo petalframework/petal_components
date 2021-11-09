@@ -3,7 +3,7 @@ defmodule PetalComponents.Badge do
 
   # prop label, :string
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
-  # prop color, :string, options: ["primary", "secondary", "white", "black", "green", "red", "blue", "gray", "gray-light", "pink", "purple", "orange", "yellow"]
+  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
   def badge(assigns) do
     assigns = assign_new(assigns, :classes, fn ->
       badge_classes(assigns)
@@ -44,54 +44,30 @@ defmodule PetalComponents.Badge do
   end
 
   def get_color_classes(%{color: "primary"}) do
-    "text-primary-800 bg-primary-100"
+    "text-primary-600 bg-primary-100"
   end
 
   def get_color_classes(%{color: "secondary"}) do
-    "text-secondary-800 bg-secondary-100"
+    "text-secondary-600 bg-secondary-100"
   end
 
-  def get_color_classes(%{color: "white"}) do
-    "text-black bg-white"
+  def get_color_classes(%{color: "info"}) do
+    "text-blue-600 bg-blue-100"
   end
 
-  def get_color_classes(%{color: "black"}) do
-    "text-white bg-black"
+  def get_color_classes(%{color: "success"}) do
+    "text-green-600 bg-green-100"
   end
 
-  def get_color_classes(%{color: "green"}) do
-    "text-green-800 bg-green-100"
-  end
-
-  def get_color_classes(%{color: "red"}) do
-    "text-red-800 bg-red-100"
-  end
-
-  def get_color_classes(%{color: "blue"}) do
-    "text-blue-800 bg-blue-100"
-  end
-
-  def get_color_classes(%{color: "gray"}) do
-    "text-gray-800 bg-gray-100"
-  end
-
-  def get_color_classes(%{color: "gray-light"}) do
-    "text-gray-500 bg-gray-100"
-  end
-
-  def get_color_classes(%{color: "pink"}) do
-    "text-pink-800 bg-pink-100"
-  end
-
-  def get_color_classes(%{color: "purple"}) do
-    "text-purple-800 bg-purple-100"
-  end
-
-  def get_color_classes(%{color: "orange"}) do
+  def get_color_classes(%{color: "warning"}) do
     "text-yellow-600 bg-yellow-100"
   end
 
-  def get_color_classes(%{color: "yellow"}) do
-    "text-yellow-800 bg-yellow-100"
+  def get_color_classes(%{color: "danger"}) do
+    "text-red-600 bg-red-100"
+  end
+
+  def get_color_classes(%{color: "gray"}) do
+    "text-gray-600 bg-gray-100"
   end
 end

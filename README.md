@@ -272,7 +272,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 ### Badges
 ```elixir
-<.badge color="primary | secondary | White | Black | Green | Red | Blue | Gray | Light Gray | Pink | Purple | Orange | Yellow" label="Primary" />
+<.badge color="primary | secondary | Info | Success | Warning | Danger | Gray" label="Primary" />
 ```
 ### Alerts
 
@@ -296,6 +296,13 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 #### Danger alert
 ```elixir
 <.alert state="danger" label="This is a danger state" />
+```
+
+#### Optional heading alert
+```elixir
+<.alert heading="Optional heading">
+  This is quite a long paragraph that takes up more than one line.
+</.alert>
 ```
 
 ### Forms
@@ -397,9 +404,29 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 ### Loading indicators
-```
+```elixir
 <.spinner show={false} />
 <.spinner show={true} size="sm" />
 <.spinner show={true} size="md" class="text-green-500" />
 <.spinner show={true} size="lg" class="text-red-500" />
+```
+
+### Breadcrumbs
+
+#### Slash
+```elixir
+<.breadcrumbs links={[
+  %{ label: "Link 1", to: "#" },
+  %{ label: "Link 2", to: "#" },
+  %{ label: "Link 3", to: "#" }
+]}/>
+```
+
+#### Chevron
+```elixir
+<.breadcrumbs separator="chevron" links={[
+  %{ label: "Link 1", to: "#" },
+  %{ label: "Link 2", to: "#", link_type: "live_patch" },
+  %{ label: "Link 3", to: "#", link_type: "live_redirect" },
+]}/>
 ```

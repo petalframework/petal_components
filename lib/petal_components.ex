@@ -10,7 +10,8 @@ defmodule PetalComponents do
         Dropdown,
         Form,
         Loading,
-        Typography
+        Typography,
+        Breadcrumbs
       }
     end
   end
