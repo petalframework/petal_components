@@ -23,43 +23,35 @@ defmodule PetalComponents.BadgeTest do
 
     html = rendered_to_string(
       ~H"""
-      <.badge color="white" label="White" />
+      <.badge color="info" label="Info" />
       """
     )
-    assert html =~ "White"
-    assert html =~ "text-black"
+    assert html =~ "Info"
+    assert html =~ "text-blue"
 
     html = rendered_to_string(
       ~H"""
-      <.badge color="black" label="Black" />
+      <.badge color="success" label="Success" />
       """
     )
-    assert html =~ "Black"
-    assert html =~ "text-white"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="green" label="Green" />
-      """
-    )
-    assert html =~ "Green"
+    assert html =~ "Success"
     assert html =~ "text-green"
 
     html = rendered_to_string(
       ~H"""
-      <.badge color="red" label="Red" />
+      <.badge color="warning" label="Warning" />
       """
     )
-    assert html =~ "Red"
-    assert html =~ "text-red"
+    assert html =~ "Warning"
+    assert html =~ "text-yellow"
 
     html = rendered_to_string(
       ~H"""
-      <.badge color="blue" label="Blue" />
+      <.badge color="danger" label="Danger" />
       """
     )
-    assert html =~ "Blue"
-    assert html =~ "text-blue"
+    assert html =~ "Danger"
+    assert html =~ "text-red"
 
     html = rendered_to_string(
       ~H"""
@@ -68,45 +60,5 @@ defmodule PetalComponents.BadgeTest do
     )
     assert html =~ "Gray"
     assert html =~ "text-gray"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="gray-light" label="Light Gray" />
-      """
-    )
-    assert html =~ "Light Gray"
-    assert html =~ "text-gray"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="pink" label="Pink" />
-      """
-    )
-    assert html =~ "Pink"
-    assert html =~ "text-pink"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="purple" label="Purple" />
-      """
-    )
-    assert html =~ "Purple"
-    assert html =~ "text-purple"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="orange" label="Orange" />
-      """
-    )
-    assert html =~ "Orange"
-    assert html =~ "text-yellow"
-
-    html = rendered_to_string(
-      ~H"""
-      <.badge color="yellow" label="Yellow" />
-      """
-    )
-    assert html =~ "Yellow"
-    assert html =~ "text-yellow"
   end
 end
