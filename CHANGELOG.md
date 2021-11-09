@@ -1,4 +1,7 @@
 # Changelog
+### 0.3.1 - 2021-11-09 07:36:13
+- Added breadcrumbs components
+- Removed unnecessary badge colors
 ### 0.3.0 - 2021-11-07 20:11:56
 - import instead of alias the functions
 - removed references to assigns in the HEEX templates to allow proper change tracking
