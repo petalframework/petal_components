@@ -162,8 +162,10 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [x] select dropdown
 - [x] textarea
 - [x] checkbox
-- [ ] multiple select
 - [x] radios
+- [x] errors
+- [x] labels
+- [ ] multiple select
 - [ ] file upload
 - [ ] switch
 
@@ -185,7 +187,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [ ] breadcrumbs
 - [ ] modal
 - [ ] slide over
-- [ ] spinners
+- [x] spinners
 - [ ] accordian
 - [ ] pagination
 - [x] badges
