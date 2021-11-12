@@ -11,6 +11,7 @@ defmodule PetalComponents do
         Form,
         Loading,
         Typography,
+        Avatar,
         Breadcrumbs
       }
     end

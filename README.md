@@ -56,6 +56,14 @@ Petal is a set of HEEX components that makes it easy for Phoenix developers to s
     - [Radios](#radios)
   - [Dropdowns](#dropdowns)
   - [Loading indicators](#loading-indicators)
+  - [Breadcrumbs](#breadcrumbs)
+  - [Avatar](#avatar)
+    - [Basic Avatars](#basic-avatars)
+    - [Avatars with placeholder icon](#avatars-with-placeholder-icon)
+    - [Avatar groups stacked](#avatar-groups-stacked)
+    - [Avatars with placeholder initials](#avatars-with-placeholder-initials)
+    - [Random color generated avatars with placeholder initials](#random-color-generated-avatars-with-placeholder-initials)
+    
 
 ## Install
 
@@ -180,11 +188,11 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ### Misc
 - [x] menu dropdown
 - [ ] tooltips
-- [ ] avatar
+- [x] avatar
 - [x] alerts
 - [ ] tables
 - [ ] cards
-- [ ] breadcrumbs
+- [x] breadcrumbs
 - [ ] modal
 - [ ] slide over
 - [x] spinners
@@ -310,7 +318,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ### Forms
 
 #### Text input
-```html
+```elixir
 <.text_input form={:user} field={:name} placeholder="eg. John" />
 
 <!-- With a label and bottom margin -->
@@ -328,7 +336,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 #### Text area
-```html
+```elixir
 <.textarea form={:user} field={:description} />
 
 <!-- With a label and bottom margin -->
@@ -346,7 +354,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 #### Select
-```html
+```elixir
 <.select
   options={["Admin": "admin", "User": "user"]}
   form={:user}
@@ -373,7 +381,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 #### Checkbox
-```html
+```elixir
 <!-- Includes the label and margin automatically -->
 <.checkbox
   form={:user}
@@ -383,7 +391,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 #### Radios
-```html
+```elixir
 <!-- A collection of radios - provide options like a select dropdown -->
 <.radios
   form={:user}
@@ -431,4 +439,36 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
   %{ label: "Link 2", to: "#", link_type: "live_patch" },
   %{ label: "Link 3", to: "#", link_type: "live_redirect" },
 ]}/>
+```
+
+### Breadcrumbs
+
+#### Basic Avatars
+```elixir
+<.avatar size="xs | sm | md | lg | xl " src="https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg" />
+```
+
+#### Avatars with placeholder icon
+```elixir
+<.avatar size="xs | sm | md | lg | xl"/>
+```
+
+#### Avatar groups stacked
+```elixir
+<.avatar_group avatars={[
+  "https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg",
+  "https://res.cloudinary.com/wickedsites/image/upload/v1636595188/dummy_data/avatar_1_lc8plf.png",
+  "https://res.cloudinary.com/wickedsites/image/upload/v1636595188/dummy_data/avatar_2_jhs6ww.png",
+  "https://res.cloudinary.com/wickedsites/image/upload/v1636595189/dummy_data/avatar_14_rkiyfa.png",
+]} size="xs | sm | md | lg | xl" class="inline-block"/>
+```
+
+#### Avatars with placeholder initials
+```elixir
+ <.avatar name="Petal Components" size="xs | sm | md | lg | xl" />
+```
+
+#### Random color generated avatars with placeholder initials
+```elixir
+<.avatar name="Matt Platts" size="xs | sm | md | lg | xl" random_color />
 ```
