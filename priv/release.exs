@@ -2,7 +2,7 @@ defmodule Releaser.VersionUtils do
   @doc """
   Some utilities to get and set version numbers in the `mix.exs` file and to programatically transform version numbers.
 
-  Create a file RELEASE.md and fill out the following templates.
+  1. Create a file RELEASE.md and fill out the following templates.
 
   ```
   RELEASE_TYPE: patch
@@ -16,9 +16,17 @@ defmodule Releaser.VersionUtils do
   - minor: 0.0.1 -> 0.1.0
   - patch: 0.0.1 -> 0.0.2
 
-  Then run in the terminal:
+  2. Run in the terminal:
 
-  mix run priv/release.exs
+        mix run priv/release.exs
+
+  3. Deploy to Hex.pm
+
+        mix hex.deploy
+
+  4. Push to git
+
+        git push origin main
   """
   @version_line_regex ~r/(\n\s*@version\s+")([^\n]+)("\n)/
 
