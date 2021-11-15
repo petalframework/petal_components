@@ -22,7 +22,7 @@ defmodule Releaser.VersionUtils do
 
   3. Deploy to Hex.pm
 
-        mix hex.deploy
+        mix hex.publish
 
   4. Push to git
 
