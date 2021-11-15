@@ -10,10 +10,12 @@ Petal stands for:
 * [Phoenix](https://www.phoenixframework.org/)
 * [Elixir](https://elixir-lang.org/)
 * [Tailwind CSS](https://tailwindcss.com/)
-* [Alpine JS](https://alpinejs.dev/)
+* [Alpine JS](https://alpinejs.dev/) (optional)
 * [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
 
 Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+
+Some components like [Dropdowns](#dropdowns) require Javascript to work. We default to Alpine JS (17kb) but you can choose to use `Phoenix.LiveView.JS` as an alternative (though this will only work in live environments like live views or live components).
 
 <p align="center">
   <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752726/petal/screenshot_tti5my.png" height="1200">
@@ -63,7 +65,7 @@ Petal is a set of HEEX components that makes it easy for Phoenix developers to s
     - [Avatar groups stacked](#avatar-groups-stacked)
     - [Avatars with placeholder initials](#avatars-with-placeholder-initials)
     - [Random color generated avatars with placeholder initials](#random-color-generated-avatars-with-placeholder-initials)
-    
+
 
 ## Install
 
@@ -318,91 +320,137 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ### Forms
 
 #### Text input
-```elixir
+```
 <.text_input form={:user} field={:name} placeholder="eg. John" />
 
-<!-- With a label and bottom margin -->
+<!-- With a label, errors and bottom margin -->
 <div class="mb-6">
-  <.form_label form={:user} field={:last_name} />
-  <.text_input form={:user} field={:last_name} placeholder="eg. Smith" />
+  <.form_label form={f} field={:name} />
+  <.text_input form={f} field={:name} placeholder="eg. John" />
+  <.form_field_error form={f} field={:name} class="mt-1" />
 </div>
 
-<!-- Includes label and bottom margin -->
+<!-- Includes label, errors and bottom margin -->
 <.form_field
   type="text_input"
-  form={:user}
+  form={f}
   field={:first_name}
+  placeholder="eg. John"
 />
 ```
 
 #### Text area
-```elixir
+```
 <.textarea form={:user} field={:description} />
 
-<!-- With a label and bottom margin -->
+<!-- With a label, errors and bottom margin -->
 <div class="mb-6">
-  <.form_label form={:user} field={:description} />
-  <.textarea form={:user} field={:description} />
+  <.form_label form={f} field={:description} />
+  <.textarea form={f} field={:description} />
+  <.form_field_error form={f} field={:description} class="mt-1" />
 </div>
 
-<!-- Includes label and bottom margin -->
+<!-- Includes label, errors and bottom margin -->
 <.form_field
+  form={f}
   type="textarea"
-  form={:user}
   field={:description}
 />
 ```
 
 #### Select
-```elixir
+```
 <.select
   options={["Admin": "admin", "User": "user"]}
-  form={:user}
+  form={f}
   field={:role}
 />
 
-<!-- With a label and bottom margin -->
+<!-- With a label, errors and bottom margin -->
 <div class="mb-6">
-  <.form_label form={:user} field={:role} />
+  <.form_label form={f} field={:role} />
   <.select
     options={["Admin": "admin", "User": "user"]}
-    form={:user}
+    form={f}
     field={:role}
   />
+  <.form_field_error form={f} field={:name} class="mt-1" />
 </div>
 
-<!-- Includes label and bottom margin -->
+<!-- Includes label, errors and bottom margin -->
 <.form_field
   type="select"
-  form={:user}
-  field={:first_name}
   options={["Admin": "admin", "User": "user"]}
+  form={f}
+  field={:role}
 />
 ```
 
 #### Checkbox
-```elixir
-<!-- Includes the label and margin automatically -->
-<.checkbox
-  form={:user}
+```
+<.checkbox form={f} field={:read_terms} />
+
+<!-- With a label, errors and bottom margin -->
+<label class="inline-flex items-center block gap-3 mb-6 text-sm text-gray-900 dark:text-gray-200">
+  <.checkbox form={f} field={:read_terms} />
+  <div>I accept</div>
+</label>
+
+<.form_field_error form={f} field={:read_terms} class="mt-1" />
+
+<!-- Includes label, errors and bottom margin -->
+<.form_field
+  type="checkbox"
+  form={f}
   field={:read_terms}
   label="I accept"
 />
 ```
 
 #### Radios
-```elixir
-<!-- A collection of radios - provide options like a select dropdown -->
-<.radios
-  form={:user}
+```
+<.checkbox form={f} field={:read_terms} />
+
+<!-- With a label, errors and bottom margin -->
+<.form_label form={f} field={:eye_color} />
+
+<div class="flex flex-col gap-1">
+  <label class="inline-flex items-center block gap-3 text-sm text-gray-900 dark:text-gray-200">
+    <.radio form={f} field={:eye_color} value="green" />
+    <div>Green</div>
+  </label>
+
+  <label class="inline-flex items-center block gap-3 text-sm text-gray-900 dark:text-gray-200">
+    <.radio form={f} field={:eye_color} value="blue" />
+    <div>Blue</div>
+  </label>
+
+  <label class="inline-flex items-center block gap-3 text-sm text-gray-900 dark:text-gray-200">
+    <.radio form={f} field={:eye_color} value="gray" />
+    <div>Gray</div>
+  </label>
+</div>
+
+<.form_field_error form={f} field={:read_terms} class="mt-1" />
+
+<!-- Includes label, errors and bottom margin -->
+<.form_field
+  type="radio_group"
+  form={f}
   field={:eye_color}
   options={["Green": "green", "Blue": "blue", "Gray": "gray"]}
+  label="Eye color"
 />
 ```
 
 ### Dropdowns
-```elixir
-<.dropdown label="Dropdown">
+
+Dropdowns require Javascript. You can choose whether to use Alpine JS or the `Phoenix.LiveView.JS` module.
+
+Note that the `Phoenix.LiveView.JS` option only works in live components. For dead components you must use Alpine JS.
+
+```
+<.dropdown label="Dropdown" js_lib="alpine_js|live_view_js" placement="left|right">
   <.dropdown_menu_item type="button">
     <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
     Button item with icon
@@ -414,7 +462,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 ### Loading indicators
-```elixir
+```
 <.spinner show={false} />
 <.spinner show={true} size="sm" />
 <.spinner show={true} size="md" class="text-green-500" />
