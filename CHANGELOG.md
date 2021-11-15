@@ -1,4 +1,7 @@
 # Changelog
+### 0.3.2 - 2021-11-15 02:50:45
+- Add new component Avatar
+- `<.form_field>` now shows errors from changesets
 ### 0.3.1 - 2021-11-09 07:36:13
 - Added breadcrumbs components
 - Removed unnecessary badge colors

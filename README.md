@@ -82,7 +82,7 @@ For Petal to work you simply need Tailwind CSS and Alpine JS installed along wit
 ```elixir
 defp deps do
   [
-    {:petal_components, "~> 0.3.1"},
+    {:petal_components, "~> 0.3.2"},
   ]
 end
 ```
