@@ -12,9 +12,9 @@ defmodule Releaser.VersionUtils do
   ```
 
   Release types:
-  - major: 0.0.1 -> 1.0.0
-  - minor: 0.0.1 -> 0.1.0
-  - patch: 0.0.1 -> 0.0.2
+  - major: 0.0.1 -> 1.0.0 (when you make incompatible API changes)
+  - minor: 0.0.1 -> 0.1.0 (when you add functionality in a backwards compatible manner)
+  - patch: 0.0.1 -> 0.0.2 (when you make backwards compatible bug fixes)
 
   2. Run in the terminal:
 

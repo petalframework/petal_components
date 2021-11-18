@@ -1,4 +1,7 @@
 # Changelog
+### 0.4.0 - 2021-11-18 02:18:16
+- Added new form components ("email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input")
+- `<.spinner>` defaults to visible
 ### 0.3.2 - 2021-11-15 02:50:45
 - Add new component Avatar
 - `<.form_field>` now shows errors from changesets
