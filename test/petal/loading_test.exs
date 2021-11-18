@@ -27,7 +27,7 @@ defmodule PetalComponents.LoadingTest do
     assert html =~ "some_class"
   end
 
-  test "spinner defaults to hidden" do
+  test "spinner defaults to visible" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
@@ -35,6 +35,6 @@ defmodule PetalComponents.LoadingTest do
       """
     )
     assert html =~ "<svg"
-    assert html =~ "hidden"
+    refute html =~ "hidden"
   end
 end

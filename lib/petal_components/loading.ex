@@ -28,7 +28,7 @@ defmodule PetalComponents.Loading do
   defp get_spinner_classes(assigns) do
     base_classes = "animate-spin -ml-1"
     custom_classes = assigns[:class] || ""
-    show_class = if assigns[:show], do: "", else: "hidden"
+    show_class = if assigns[:show] == false, do: "hidden", else: ""
     size_classes = assigns[:size_class] || get_size_classes(assigns[:size])
 
     Enum.join(
