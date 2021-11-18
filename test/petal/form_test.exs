@@ -202,4 +202,270 @@ defmodule PetalComponents.FormTest do
     assert html =~ "too long"
     assert html =~ "blank"
   end
+
+  test "number_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.number_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "number"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "email_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.email_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "email"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "password_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.password_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "password"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "search_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.search_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "search"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "telephone_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.telephone_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "tel"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "url_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.url_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "url"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "time_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.time_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "time"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "time_select" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.time_select
+          form={f}
+          field={:name}
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "select"
+    assert html =~ "user[name]"
+  end
+
+  test "datetime_local_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.datetime_local_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "datetime-local"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "datetime_select" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.datetime_select
+          form={f}
+          field={:name}
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "select"
+    assert html =~ "user[name]"
+  end
+
+  test "color_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.color_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "color"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "file_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user} multipart>
+        <.file_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "file"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
+  test "range_input" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.form let={f} for={:user}>
+        <.range_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """
+    )
+
+    assert html =~ "input"
+    assert html =~ "range"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
 end

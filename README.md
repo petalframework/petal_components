@@ -53,6 +53,19 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
     - [Danger alert](#danger-alert)
   - [Forms](#forms)
     - [Text input](#text-input)
+    - [Number input](#number-input)
+    - [Email input](#email-input)
+    - [Password input](#password-input)
+    - [Search input](#search-input)
+    - [Telephone input](#telephone-input)
+    - [URL input](#url-input)
+    - [Time input](#time-input)
+    - [Time select](#time-input)
+    - [Datetime local input](#datetime-input)
+    - [Datetime select](#datetime-select)
+    - [Color input](#color-input)
+    - [File input](#file-input)
+    - [Range input](#range-input)
     - [Text area](#text-area)
     - [Select](#select)
     - [Radios](#radios)
@@ -175,8 +188,12 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [x] radios
 - [x] errors
 - [x] labels
+- [x] file upload
+- [x] text variants (email, password, tel)
+- [x] color input
+- [x] range input
+- [x] time & datetime input
 - [ ] multiple select
-- [ ] file upload
 - [ ] switch
 
 ### Buttons
@@ -319,6 +336,8 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 ### Forms
 
+Inputs can take the same arguments as the equivalents in [Phoenix.HTML.Form](https://hexdocs.pm/phoenix_html/Phoenix.HTML.Form.html#content). Eg. `<.time_input precision={:second} />`.
+
 #### Text input
 ```
 <.text_input form={:user} field={:name} placeholder="eg. John" />
@@ -339,24 +358,57 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 />
 ```
 
+#### Number input
+
+Same as [Text input](#text-input) but use `<.number_input>`.
+
+#### Email input
+
+Same as [Text input](#text-input) but use `<.email_input>`.
+
+#### Password input
+
+Same as [Text input](#text-input) but use `<.password_input>`.
+
+#### Telephone input
+
+Same as [Text input](#text-input) but use `<.telephone_input>`.
+
+#### URL input
+
+Same as [Text input](#text-input) but use `<.url_input>`.
+
+#### Time input
+
+Same as [Text input](#text-input) but use `<.time_input>`.
+
+#### Time select
+
+Same as [Text input](#text-input) but use `<.time_select>`.
+
+#### Datetime input
+
+Same as [Text input](#text-input) but use `<.datetime_local_input>`.
+
+#### Datetime select
+
+Same as [Text input](#text-input) but use `<.datetime_select>`.
+
+#### Color input
+
+Same as [Text input](#text-input) but use `<.color_input>`.
+
+#### File input
+
+Same as [Text input](#text-input) but use `<.file_input>`.
+
+#### Range input
+
+Same as [Text input](#text-input) but use `<.range_input>`.
+
 #### Text area
-```
-<.textarea form={:user} field={:description} />
 
-<!-- With a label, errors and bottom margin -->
-<div class="mb-6">
-  <.form_label form={f} field={:description} />
-  <.textarea form={f} field={:description} />
-  <.form_field_error form={f} field={:description} class="mt-1" />
-</div>
-
-<!-- Includes label, errors and bottom margin -->
-<.form_field
-  form={f}
-  type="textarea"
-  field={:description}
-/>
-```
+Same as [Text input](#text-input) but use `<.textarea>`.
 
 #### Select
 ```
