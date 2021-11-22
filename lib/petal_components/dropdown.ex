@@ -101,9 +101,6 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  # Default link_type to button
-  def dropdown_menu_item(assigns), do: dropdown_menu_item(Map.put(assigns, :link_type, "button"))
-
   def dropdown_menu_item_classes(),
     do:
       "block flex gap-2 items-center self-start justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 w-full text-left"
