@@ -362,6 +362,8 @@ defmodule PetalComponents.Form do
         :field,
         :type,
         :options,
+        :inner_block,
+        :__slot__,
         :__changed__
       ])
       |> Map.to_list()

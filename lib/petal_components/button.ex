@@ -1,7 +1,9 @@
 defmodule PetalComponents.Button do
   use Phoenix.Component
   alias PetalComponents.Loading
+  import PetalComponents.Link
 
+  # <.button link_type="button|a|live_patch|live_redirect" />
   # prop label, :string
   # prop size, :string
   # prop loading, :boolean, default: false
@@ -11,102 +13,38 @@ defmodule PetalComponents.Button do
     assigns = assign_defaults(assigns)
 
     ~H"""
-    <button class={@classes} disabled={@disabled} {@button_opts}>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
-      <% end %>
+    <%= if @link_type == "button" do %>
+      <button class={@classes} disabled={@disabled} {@button_opts}>
+        <%= if @loading do %>
+          <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
+        <% end %>
 
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    </button>
-    """
-  end
+        <%= if @inner_block do %>
+          <%= render_slot(@inner_block) %>
+        <% else %>
+          <%= @label %>
+        <% end %>
+      </button>
 
-  # prop label, :string
-  # prop href, :string
-  # prop size, :string
-  # prop loading, :boolean, default: false
-  # prop disabled, :boolean, default: false
-  # slot default
-  def a(assigns) do
-    assigns = assign_defaults(assigns)
+    <% else %>
+      <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@button_opts}>
+        <%= if @loading do %>
+          <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
+        <% end %>
 
-    ~H"""
-    <a href={@href} class={@classes} onclick={if @disabled || @loading, do: "return false;", else: nil} {@button_opts}>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
-      <% end %>
-
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    </a>
-    """
-  end
-
-  # prop label, :string
-  # prop href, :string
-  # prop size, :string
-  # prop loading, :boolean, default: false
-  # prop disabled, :boolean, default: false
-  # slot default
-  def patch(assigns) do
-    assigns = assign_defaults(assigns)
-
-    ~H"""
-    <%= live_patch [
-      to: @href,
-      class: @classes,
-      onclick: (if @disabled || @loading, do: "return false;", else: nil)
-    ] ++ Map.to_list(assigns.button_opts) do %>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
-      <% end %>
-
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    <% end %>
-    """
-  end
-
-  # prop label, :string
-  # prop href, :string
-  # prop size, :string
-  # prop loading, :boolean, default: false
-  # prop disabled, :boolean, default: false
-  # slot default
-  def redirect(assigns) do
-    assigns = assign_defaults(assigns)
-
-    ~H"""
-    <%= live_redirect [
-      to: @href,
-      class: @classes,
-      onclick: (if @disabled || @loading, do: "return false;", else: nil)
-     ] ++ Map.to_list(assigns.button_opts) do %>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size="button" />
-      <% end %>
-
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+        <%= if @inner_block do %>
+          <%= render_slot(@inner_block) %>
+        <% else %>
+          <%= @label %>
+        <% end %>
+      </.link>
     <% end %>
     """
   end
 
   defp assign_defaults(assigns) do
     assigns
+    |> assign_new(:link_type, fn -> "button" end)
     |> assign_new(:inner_block, fn -> nil end)
     |> assign_new(:loading, fn -> false end)
     |> assign_new(:disabled, fn -> false end)

@@ -12,7 +12,10 @@ defmodule PetalComponents do
         Loading,
         Typography,
         Avatar,
-        Breadcrumbs
+        Progress,
+        Breadcrumbs,
+        Pagination,
+        Link
       }
     end
   end

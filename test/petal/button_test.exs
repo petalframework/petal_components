@@ -17,7 +17,7 @@ defmodule PetalComponents.ButtonTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <.a label="Press me" href="/" phx-click="Press me" />
+      <.button link_type="a" label="Press me" to="/" phx-click="Press me" />
       """
     )
     assert html =~ "Press me"
@@ -30,7 +30,7 @@ defmodule PetalComponents.ButtonTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <.patch label="Press me" href="/" phx-click="click_event" />
+      <.button link_type="live_patch" label="Press me" to="/" phx-click="click_event" />
       """
     )
     assert html =~ "Press me"
@@ -43,7 +43,7 @@ defmodule PetalComponents.ButtonTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <.redirect label="Press me" href="/" phx-click="click_event" />
+      <.button link_type="live_redirect" label="Press me" to="/" phx-click="click_event" />
       """
     )
     assert html =~ "Press me"

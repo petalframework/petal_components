@@ -32,6 +32,9 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
   - [Buttons](#buttons)
   - [Misc](#misc)
 - [Examples](#examples)
+  - [Containers](#containers)
+  - [Links](#links)
+    - [Link types](#link-types)
   - [Buttons](#buttons)
     - [Button types](#button-types)
     - [Button colors](#button-colors)
@@ -72,12 +75,17 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
   - [Dropdowns](#dropdowns)
   - [Loading indicators](#loading-indicators)
   - [Breadcrumbs](#breadcrumbs)
+    - [Slash](#slash)
+    - [Chevron](#chevron)
   - [Avatar](#avatar)
     - [Basic Avatars](#basic-avatars)
     - [Avatars with placeholder icon](#avatars-with-placeholder-icon)
     - [Avatar groups stacked](#avatar-groups-stacked)
     - [Avatars with placeholder initials](#avatars-with-placeholder-initials)
     - [Random color generated avatars with placeholder initials](#random-color-generated-avatars-with-placeholder-initials)
+  - [Progress](#progress)
+    - [Progress bar](#progress-bar)
+    - [Sizes](#sizes)
 
 
 ## Install
@@ -165,7 +173,10 @@ defmodule YourProjectWeb
         Dropdown,
         Form,
         Loading,
-        Typography
+        Typography,
+        Breadcrumb,
+        Avatar,
+        Progress
       }
     end
   end
@@ -216,8 +227,10 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [ ] slide over
 - [x] spinners
 - [ ] accordian
-- [ ] pagination
+- [x] pagination
 - [x] badges
+- [x] progress
+- [x] links
 
 ## Examples
 
@@ -225,14 +238,19 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```elixir
 <Container.container max_width="full | lg | md | sm">
 ```
+### Links
+
+#### Link types
+```elixir
+<.link link_type="a | live_patch | live_redirect" to="/" class="" label="" />
+```
+
 ### Buttons
 
 #### Button types
 ```elixir
-<.button label="Button">
-<.a href="/" label="a">
-<.patch href="/" label="Live Patch">
-<.redirect href="/" label="Live Redirect">
+<.button label="Button" />
+<.button link_type="a | live_patch | live_redirect" to="#" label="a" />
 ```
 
 #### Button colors
@@ -254,25 +272,23 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 
 ##### Disabled
 ```elixir
-<.button disabled type="a" href="/" label="a Disabled" />
-<.button disabled color="primary" label="Button Disabled" />
-<.patch disabled href="/" label="Live Patch Disabled" />
-<.redirect disabled href="/" label="Live Redirect" />
+<.button disabled link_type="a | live_patch | live_redirect"  to="/" label="Disabled" />
 ```
 
 ##### Loading
 ```elixir
-<.button loading type="a" href="/" label="a Loading" />
-<.button loading label="Button Loading" />
-<.patch loading href="/" label="Live Patch Loading" />
-<.redirect loading href="/" label="Live Redirect Loading" />
+<.button loading link_type="a | live_patch | live_redirect"  to="/" label="Loading" />
 ```
 
 #### Button with icon
 ```elixir
-<.button icon type="a" href="/">
+<.button icon>
   <Heroicons.Solid.home class="w-5 h-5" />
-  a with label
+  With label
+</.button>
+<.button icon link_type="a | live_patch | live_redirect" icon to="/">
+  <Heroicons.Solid.home  class="w-5 h-5" />
+  With label
 </.button>
 ```
 
@@ -339,7 +355,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 Inputs can take the same arguments as the equivalents in [Phoenix.HTML.Form](https://hexdocs.pm/phoenix_html/Phoenix.HTML.Form.html#content). Eg. `<.time_input precision={:second} />`.
 
 #### Text input
-```
+```elixir
 <.text_input form={:user} field={:name} placeholder="eg. John" />
 
 <!-- With a label, errors and bottom margin -->
@@ -411,7 +427,7 @@ Same as [Text input](#text-input) but use `<.range_input>`.
 Same as [Text input](#text-input) but use `<.textarea>`.
 
 #### Select
-```
+```elixir
 <.select
   options={["Admin": "admin", "User": "user"]}
   form={f}
@@ -439,7 +455,7 @@ Same as [Text input](#text-input) but use `<.textarea>`.
 ```
 
 #### Checkbox
-```
+```elixir
 <.checkbox form={f} field={:read_terms} />
 
 <!-- With a label, errors and bottom margin -->
@@ -460,7 +476,7 @@ Same as [Text input](#text-input) but use `<.textarea>`.
 ```
 
 #### Radios
-```
+```elixir
 <.checkbox form={f} field={:read_terms} />
 
 <!-- With a label, errors and bottom margin -->
@@ -501,20 +517,21 @@ Dropdowns require Javascript. You can choose whether to use Alpine JS or the `Ph
 
 Note that the `Phoenix.LiveView.JS` option only works in live components. For dead components you must use Alpine JS.
 
-```
+```elixir
 <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js" placement="left|right">
-  <.dropdown_menu_item type="button">
+  <.dropdown_menu_item>
     <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
     Button item with icon
   </.dropdown_menu_item>
-  <.dropdown_menu_item type="a" href="/" label="a item" />
-  <.dropdown_menu_item type="live_patch" href="/" label="Live Patch item" />
-  <.dropdown_menu_item type="live_redirect" href="/" label="Live Redirect item" />
+  <.dropdown_menu_item link_type="button" label="a item" />
+  <.dropdown_menu_item link_type="a" to="/" label="a item" />
+  <.dropdown_menu_item link_type="live_patch" to="/" label="Live Patch item" />
+  <.dropdown_menu_item link_type="live_redirect" to="/" label="Live Redirect item" />
 </.dropdown>
 ```
 
 ### Loading indicators
-```
+```elixir
 <.spinner show={false} />
 <.spinner show={true} size="sm" />
 <.spinner show={true} size="md" class="text-green-500" />
@@ -571,4 +588,22 @@ Note that the `Phoenix.LiveView.JS` option only works in live components. For de
 #### Random color generated avatars with placeholder initials
 ```elixir
 <.avatar name="Matt Platts" size="xs | sm | md | lg | xl" random_color />
+```
+
+### Progress
+
+#### Progress bar
+```elixir
+<.progress color="primary | secondary | info | success | warning | danger" value={30} max={100} class="max-w-xl" />
+```
+
+##### Sizes
+```elixir
+<.progress size="xs | sm | md | lg | xl" value={15} max={100} class="max-w-xl" label="15%" />
+```
+### Pagination
+
+#### Basic pagination
+```elixir
+<.pagination link_type="a | live_patch | live_redirect" class="mb-5" path="/:page" current_page={1} total_pages={10} />
 ```

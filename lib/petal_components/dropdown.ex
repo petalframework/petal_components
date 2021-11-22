@@ -2,6 +2,7 @@ defmodule PetalComponents.Dropdown do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
   alias PetalComponents.Heroicons
+  import PetalComponents.Link
 
   @transition_in_base "transition transform ease-out duration-100"
   @transition_in_start "transform opacity-0 scale-95"
@@ -17,13 +18,13 @@ defmodule PetalComponents.Dropdown do
   # slot default
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
-      <.dropdown_menu_item type="button">
+      <.dropdown_menu_item link_type="button">
         <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
         Button item with icon
       </.dropdown_menu_item>
-      <.dropdown_menu_item type="a" href="/" label="a item" />
-      <.dropdown_menu_item type="live_patch" href="/" label="Live Patch item" />
-      <.dropdown_menu_item type="live_redirect" href="/" label="Live Redirect item" />
+      <.dropdown_menu_item link_type="a" to="/" label="a item" />
+      <.dropdown_menu_item link_type="live_patch" to="/" label="Live Patch item" />
+      <.dropdown_menu_item link_type="live_redirect" to="/" label="Live Redirect item" />
     </.dropdown>
   """
   def dropdown(assigns) do
@@ -37,7 +38,7 @@ defmodule PetalComponents.Dropdown do
       <div>
         <%= if @label do %>
           <button
-            type="button"
+            link_type="button"
             class="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none"
             {js_attributes("button", @js_lib, @options_container_id)}
             aria-haspopup="true"
@@ -47,7 +48,7 @@ defmodule PetalComponents.Dropdown do
           </button>
         <% else %>
           <button
-            type="button"
+            link_type="button"
             class="flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500"
             {js_attributes("button", @js_lib, @options_container_id)}
             aria-haspopup="true"
@@ -73,76 +74,35 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  def dropdown_menu_item(%{type: "button"} = assigns) do
+  def dropdown_menu_item(assigns) do
     assigns = assigns
+      |> assign_new(:link_type, fn -> "button" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
 
     ~H"""
-    <button class={@classes}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    </button>
-    """
-  end
-
-  def dropdown_menu_item(%{type: "a"} = assigns) do
-    assigns = assigns
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-
-    ~H"""
-    <a href={@href} class={@classes}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    </a>
-    """
-  end
-
-  def dropdown_menu_item(%{type: "live_patch"} = assigns) do
-    assigns = assigns
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-
-    ~H"""
-    <%= live_patch [
-      to: @href,
-      class: @classes] do %>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+    <%= if @link_type == "button" do %>
+      <button class={@classes}>
+        <%= if @inner_block do %>
+          <%= render_slot(@inner_block) %>
+        <% else %>
+          <%= @label %>
+        <% end %>
+      </button>
+    <% else %>
+      <.link link_type={@link_type} to={@to} class={@classes}>
+        <%= if @inner_block do %>
+          <%= render_slot(@inner_block) %>
+        <% else %>
+          <%= @label %>
+        <% end %>
+      </.link>
     <% end %>
     """
   end
 
-  def dropdown_menu_item(%{type: "live_redirect"} = assigns) do
-    assigns = assigns
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-
-    ~H"""
-    <%= live_redirect [
-      to: @href,
-      class: @classes] do %>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    <% end %>
-    """
-  end
-
-  # Default type to button
-  def dropdown_menu_item(assigns), do: dropdown_menu_item(Map.put(assigns, :type, "button"))
+  # Default link_type to button
+  def dropdown_menu_item(assigns), do: dropdown_menu_item(Map.put(assigns, :link_type, "button"))
 
   def dropdown_menu_item_classes(),
     do:

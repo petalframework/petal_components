@@ -39,7 +39,6 @@ defmodule PetalComponents.Alert do
 
   defp alert_classes(opts) do
     opts = %{
-      size: opts[:size] || "md",
       state: opts[:state] || "info",
       class: opts[:class] || "",
     }

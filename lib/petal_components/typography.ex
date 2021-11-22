@@ -85,14 +85,4 @@ defmodule PetalComponents.Typography do
     </p>
     """
   end
-
-  def link(assigns) do
-    assigns = assign_new(assigns, :variant, fn -> "primary" end)
-
-    ~H"""
-    <a href={@to} class={"link link-#{@variant} #{if assigns[:class], do: @class, else: ""}"}>
-      <%= render_slot(@inner_block) %>
-    </a>
-    """
-  end
 end
