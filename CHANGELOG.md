@@ -1,4 +1,8 @@
 # Changelog
+### 0.5.0 - 2021-11-22 02:00:02
+- Added `<.pagination>`
+- Added `<.progress>`
+- Improved `<.link>` to work as a live_patch or live_rediect
 ### 0.4.0 - 2021-11-18 02:18:16
 - Added new form components ("email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input")
 - `<.spinner>` defaults to visible
