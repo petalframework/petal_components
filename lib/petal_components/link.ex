@@ -24,13 +24,13 @@ defmodule PetalComponents.Link do
     ~H"""
     <%= case @link_type do %>
       <% "a" -> %>
-        <a href={@to} class={@class} {@extra_attributes}>
+        <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ Map.to_list(@extra_attributes) do %>
           <%= if @inner_block do %>
             <%= render_slot(@inner_block) %>
           <% else %>
             <%= @label %>
           <% end %>
-        </a>
+        <% end %>
       <% "live_patch" -> %>
         <%= live_patch [
           to: @to,

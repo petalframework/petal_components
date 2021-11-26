@@ -114,6 +114,7 @@ defmodule PetalComponents.Button do
     Map.drop(assigns, [
       :loading,
       :disabled,
+      :link_type,
       :inner_block,
       :size,
       :variant,
