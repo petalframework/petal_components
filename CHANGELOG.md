@@ -1,4 +1,6 @@
 # Changelog
+### 0.5.1 - 2021-11-26 00:54:25
+- `<.link>`, `<.button>` and `<.dropdown_menu_item>` all now take `method` as a parameter. eg. `<.link method={:delete} to="/logout" label="Logout" />`
 ### 0.5.0 - 2021-11-22 02:00:02
 - Added `<.pagination>`
 - Added `<.progress>`
