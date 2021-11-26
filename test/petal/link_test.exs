@@ -54,4 +54,18 @@ defmodule PetalComponents.LinkTest do
     assert html =~ "Press me"
     assert html =~ "phx-click"
   end
+
+  test "link with method" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.link to="/" method={:put}>
+        Press me
+      </.link>
+      """
+    )
+
+    assert html =~ "Press me"
+    assert html =~ "data-method"
+  end
 end
