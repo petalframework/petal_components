@@ -86,6 +86,11 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
   - [Progress](#progress)
     - [Progress bar](#progress-bar)
     - [Sizes](#sizes)
+  - [Pagination](#pagination)
+    - [Progress bar](#progress-bar)
+    - [Sizes](#sizes)
+  - [Modal](#modal)
+    - [Sizes](#sizes)
 
 
 ## Install
@@ -165,7 +170,6 @@ defmodule YourProjectWeb
       ...
 
       alias PetalComponents.{
-        Heroicons,
         Alert,
         Badge,
         Button,
@@ -174,9 +178,12 @@ defmodule YourProjectWeb
         Form,
         Loading,
         Typography,
-        Breadcrumb,
         Avatar,
-        Progress
+        Progress,
+        Breadcrumbs,
+        Pagination,
+        Link,
+        Modal
       }
     end
   end
@@ -223,7 +230,7 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [ ] tables
 - [ ] cards
 - [x] breadcrumbs
-- [ ] modal
+- [x] modal
 - [ ] slide over
 - [x] spinners
 - [ ] accordian
@@ -558,8 +565,6 @@ Note that the `Phoenix.LiveView.JS` option only works in live components. For de
 ]}/>
 ```
 
-### Breadcrumbs
-
 #### Basic Avatars
 ```elixir
 <.avatar size="xs | sm | md | lg | xl " src="https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg" />
@@ -607,3 +612,54 @@ Note that the `Phoenix.LiveView.JS` option only works in live components. For de
 ```elixir
 <.pagination link_type="a | live_patch | live_redirect" class="mb-5" path="/:page" current_page={1} total_pages={10} />
 ```
+
+### Modal
+```
+The live view that calls <.modal> will need to handle the "close_modal" event. eg:
+```
+```elixir
+def handle_event("close_modal", _, socket) do
+  {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
+end
+```
+
+```elixir
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, :modal, false)}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    case socket.assigns.live_action do
+      :index ->
+        {:noreply, assign(socket, modal: false)}
+      :modal ->
+        {:noreply, assign(socket, modal: params["size"])}
+    end
+  end
+```
+
+```elixir
+<%= if @modal do %>
+  <.button label="sm" link_type="live_patch" to="/" />
+
+  <.modal max_width="sm | md | lg | xl | 2xl | full" title="Modal">
+    <div class="gap-5 text-sm">
+      <.form_label label="Add some text here." />
+      <div class="flex justify-end">
+        <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
+      </div>
+    </div>
+  </.modal>
+<% end %>
+```
+
+```elixir
+  @impl true
+  def handle_event("close_modal", _, socket) do
+    {:noreply, push_patch(socket, to: "/live")}
+  end
+```
+
+

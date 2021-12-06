@@ -15,7 +15,8 @@ defmodule PetalComponents do
         Progress,
         Breadcrumbs,
         Pagination,
-        Link
+        Link,
+        Modal
       }
     end
   end
