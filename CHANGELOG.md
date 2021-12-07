@@ -1,4 +1,8 @@
 # Changelog
+### 0.6.0 - 2021-12-07 00:14:21
+- New component: `<.modal>`
+- Fixed container not defaulting to full width when inside a flex
+- Add docs for `<.p>` and heading params
 ### 0.5.1 - 2021-11-26 00:54:25
 - `<.link>`, `<.button>` and `<.dropdown_menu_item>` all now take `method` as a parameter. eg. `<.link method={:delete} to="/logout" label="Logout" />`
 ### 0.5.0 - 2021-11-22 02:00:02
