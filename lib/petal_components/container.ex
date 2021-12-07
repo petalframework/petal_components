@@ -21,7 +21,7 @@ defmodule PetalComponents.Container do
       no_padding_on_mobile: assigns[:no_padding_on_mobile],
     }
 
-    base_classes = "mx-auto sm:px-6 lg:px-8"
+    base_classes = "mx-auto sm:px-6 lg:px-8 w-full"
 
     max_width_class =
       case opts.max_width do
