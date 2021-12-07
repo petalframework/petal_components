@@ -97,7 +97,7 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
 
 ## Install
 
-For Petal to work you simply need Tailwind CSS and Alpine JS installed along with with some Tailwind configuration.
+For Petal to work you simply need Tailwind CSS installed along with some Tailwind configuration. Alpine JS is optionally needed if you intend to use Dropdowns outside of a live environment.
 
 ### Existing projects
 
@@ -140,6 +140,8 @@ module.exports = {
       },
     },
   },
+
+  // Our form inputs depend on this plugin
   plugins: [require("@tailwindcss/forms")],
 };
 ```
@@ -193,7 +195,7 @@ defmodule YourProjectWeb
 
 ### New projects
 
-We recommend using [Petal boilerplate](https://github.com/petalframework/petal_boilerplate), which is a fresh Phoenix install with Tailwind + Alpine installed. It comes with a project renaming script so you can still rename your project to whatever you like.
+We recommend using [Petal boilerplate](https://github.com/petalframework/petal_boilerplate), which is a fresh Phoenix project with Tailwind and Alpine installed. It comes with a project renaming script so you can still rename your project to whatever you like.
 
 ## Roadmap
 
