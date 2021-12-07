@@ -7,29 +7,15 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html = rendered_to_string(
       ~H"""
-      <.breadcrumbs links={[
-        %{ label: "Link 1", to: "/", link_type: "live_patch" }
-        ]} class="text-md"
-      />
+      <.breadcrumbs class="text-md" links={[
+        %{ label: "Link 1", to: "/" }
+      ]} />
       """
     )
     assert html =~ "Link 1"
     assert html =~ "<a"
     assert html =~ "href"
-    assert html =~ "patch"
-  end
-
-  test "breadcrumb" do
-    assigns = %{}
-
-    html = rendered_to_string(
-      ~H"""
-      <.breadcrumb to="/" label="a" separator="chevron" />
-      """
-    )
-    assert html =~ "a"
-    assert html =~ "<a"
-    assert html =~ "href"
+    assert html =~ "text-md"
   end
 
   test "breadcrumb_patch" do
@@ -37,10 +23,11 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html = rendered_to_string(
       ~H"""
-      <.breadcrumb to="/" label="Live Patch" separator="chevron" link_type="live_patch" />
+      <.breadcrumbs class="text-md" links={[
+        %{ label: "Link 1", to: "/", link_type: "live_patch" }
+      ]} />
       """
     )
-    assert html =~ "Live Patch"
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "patch"
@@ -51,10 +38,11 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html = rendered_to_string(
       ~H"""
-      <.breadcrumb to="/" label="Live Redirect" separator="chevron" link_type="live_redirect" />
+      <.breadcrumbs class="text-md" links={[
+        %{ label: "Link 1", to: "/", link_type: "live_redirect" }
+      ]} />
       """
     )
-    assert html =~ "Live Redirect"
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "redirect"
