@@ -7,11 +7,10 @@ defmodule PetalComponents.Modal do
   # slot default
   def modal(assigns) do
     assigns = assigns
-      |> assign_new(:classes, fn -> get_full_width_classes(assigns) end)
-
+    |> assign_new(:classes, fn -> get_classes(assigns) end)
 
     ~H"""
-    <div id="modal" phx-remove={hide_modal()} data-init-modal={show_modal()}>
+    <div id="modal" phx-remove={hide_modal()}>
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 bg-opacity-30"
@@ -79,6 +78,8 @@ defmodule PetalComponents.Modal do
     |> JS.push("close_modal")
   end
 
+  # We are unsure of what the best practice is for using this.
+  # Open to suggestions/PRs
   def show_modal(js \\ %JS{}) do
     js
     |> JS.add_class("overflow-hidden", to: "body")
@@ -94,7 +95,7 @@ defmodule PetalComponents.Modal do
     }, to: "#modal-content")
   end
 
-  defp get_full_width_classes(assigns) do
+  defp get_classes(assigns) do
     opts = %{
       max_width: assigns[:max_width] || "xl",
       class: assigns[:class] || "",

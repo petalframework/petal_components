@@ -640,52 +640,53 @@ Note that the `Phoenix.LiveView.JS` option only works in live components. For de
 ```
 
 ### Modal
-```
-The live view that calls <.modal> will need to handle the "close_modal" event. eg:
-```
+
+The live view will handle the modal's state.
+
 ```elixir
-def handle_event("close_modal", _, socket) do
-  {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
+
+# Live view
+
+@impl true
+def mount(_params, _session, socket) do
+  {:ok, assign(socket, :show_modal, false)}
 end
-```
 
-```elixir
-  @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, :modal, false)}
+@impl true
+def handle_params(_params, _uri, socket) do
+  case socket.assigns.live_action do
+    :index ->
+      {:noreply, assign(socket, show_modal: false)}
+    :show ->
+      {:noreply, assign(socket, show_modal: true)}
   end
+end
 
-  @impl true
-  def handle_params(params, _uri, socket) do
-    case socket.assigns.live_action do
-      :index ->
-        {:noreply, assign(socket, modal: false)}
-      :modal ->
-        {:noreply, assign(socket, modal: params["size"])}
-    end
-  end
-```
+# This event is emitted by the component and must be catched
+@impl true
+def handle_event("close_modal", _, socket) do
+  {:noreply, push_patch(socket, to: "/index")}
+end
 
-```elixir
-<%= if @modal do %>
-  <.button label="sm" link_type="live_patch" to="/" />
+@impl true
+def render(assigns) do
+  ~H"""
+  <.button label="Show modal" link_type="live_patch" to="/show" />
 
-  <.modal max_width="sm | md | lg | xl | 2xl | full" title="Modal">
-    <div class="gap-5 text-sm">
-      <.form_label label="Add some text here." />
-      <div class="flex justify-end">
-        <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
+  <%= if @modal do %>
+    <.modal max_width="sm | md | lg | xl | 2xl | full" title="Modal">
+
+      Modal contents goes here
+
+      <div class="gap-5 text-sm">
+        <div class="flex justify-end">
+          <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
+        </div>
       </div>
-    </div>
-  </.modal>
-<% end %>
-```
-
-```elixir
-  @impl true
-  def handle_event("close_modal", _, socket) do
-    {:noreply, push_patch(socket, to: "/live")}
-  end
+    </.modal>
+  <% end %>
+  """
+end
 ```
 
 
