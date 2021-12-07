@@ -1,4 +1,6 @@
 # Changelog
+### 0.6.1 - 2021-12-07 00:51:25
+- Default the modal max_width to md
 ### 0.6.0 - 2021-12-07 00:14:21
 - New component: `<.modal>`
 - Fixed container not defaulting to full width when inside a flex
