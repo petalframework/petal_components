@@ -1,4 +1,6 @@
 # Changelog
+### 0.7.0 - 2021-12-07 03:54:41
+- Breadcrumbs no longer need a parent flex container
 ### 0.6.1 - 2021-12-07 00:51:25
 - Default the modal max_width to md
 ### 0.6.0 - 2021-12-07 00:14:21

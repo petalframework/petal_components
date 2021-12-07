@@ -110,7 +110,7 @@ For Petal to work you simply need Tailwind CSS installed along with some Tailwin
 ```elixir
 defp deps do
   [
-    {:petal_components, "~> 0.6.1"},
+    {:petal_components, "~> 0.7.0"},
   ]
 end
 ```
