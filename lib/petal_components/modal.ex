@@ -97,7 +97,7 @@ defmodule PetalComponents.Modal do
 
   defp get_classes(assigns) do
     opts = %{
-      max_width: assigns[:max_width] || "xl",
+      max_width: assigns[:max_width] || "md",
       class: assigns[:class] || "",
     }
 
