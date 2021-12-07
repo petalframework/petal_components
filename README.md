@@ -45,6 +45,8 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
       - [Loading](#loading)
     - [Button with icon](#button-with-icon)
   - [Typography](#typography)
+    - [Headings](#headings)
+    - [Paragraphs](#paragraphs)
   - [Heroicons](#heroicons)
     - [Heroicons solid](#heroicons-solid)
     - [Heroicons outline](#heroicons-outline)
@@ -239,8 +241,16 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 - [x] progress
 - [x] links
 
-## Examples
+## Configuring components
 
+Most components will allow you to provide a `class` attribute. If you wish to override an existing class you can prepend an exclamation mark to the class:
+
+```elixir
+<.h2 class="leading-1">Won't work</.h2>
+<.h2 class="!leading-1">Works!</.h2>
+```
+
+## Examples
 ### Containers
 ```elixir
 <Container.container max_width="full | lg | md | sm">
@@ -300,12 +310,28 @@ We recommend using [Petal boilerplate](https://github.com/petalframework/petal_b
 ```
 
 ### Typography
+
+#### Headings
+
 ```elixir
 <.h1>Heading 1</.h1>
 <.h2>Heading 2</.h2>
 <.h3>Heading 3</.h3>
 <.h4>Heading 4</.h4>
 <.h5>Heading 5</.h5>
+
+<.h1 no_margin>Has no bottom margin</.h1>
+<.h1 underline>Has an underline</.h1>
+<.h1 class="!mb-10">Modify bottom margin</.h1>
+<.h1 class="hover:text-gray-600">Change color on hover</.h1>
+<.h1 color_class="text-blue-700 dark:text-blue-200">Change color</.h1>
+```
+
+#### Paragraphs
+
+```elixir
+<.p>Paragraph</.p>
+<.p class="!text-blue-500">Blue paragraph</.p>
 ```
 
 ### Heroicons
