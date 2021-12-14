@@ -6,6 +6,7 @@ defmodule PetalComponents.Button do
   # <.button link_type="button|a|live_patch|live_redirect" />
   # prop label, :string
   # prop size, :string
+  # prop variant, :string
   # prop loading, :boolean, default: false
   # prop disabled, :boolean, default: false
   # slot default
@@ -47,6 +48,7 @@ defmodule PetalComponents.Button do
     |> assign_new(:link_type, fn -> "button" end)
     |> assign_new(:inner_block, fn -> nil end)
     |> assign_new(:loading, fn -> false end)
+    |> assign_new(:size, fn -> "md" end)
     |> assign_new(:disabled, fn -> false end)
     |> assign_new(:button_opts, fn -> get_button_opts(assigns) end)
     |> assign_new(:classes, fn -> button_classes(assigns) end)
@@ -120,6 +122,7 @@ defmodule PetalComponents.Button do
       :variant,
       :color,
       :icon,
+      :__slot__,
       :__changed__
     ])
   end
@@ -147,7 +150,7 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "white", variant: variant}) do
     case variant do
       "outline" ->
-        "border-gray-400 hover:border-gray-500 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
+        "border-gray-400 hover:border-gray-600 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
 
       _ ->
         "text-gray-700 border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black"
@@ -157,20 +160,20 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "outline" ->
-        "border-green-400 hover:border-green-500 text-green-500 hover:text-green-600 active:border-green-600 focus:text-green-600 active:text-green-700 active:bg-green-100 hover:bg-green-50 focus:border-green-500"
+        "border-green-400 hover:border-green-600 text-green-600 hover:text-green-700 active:border-green-600 focus:text-green-600 active:text-green-700 active:bg-green-100 hover:bg-green-50 focus:border-green-700"
 
       _ ->
-        "border-transparent text-white bg-green-500 active:bg-green-700 hover:bg-green-600 active:bg-green-700 focus:bg-green-600"
+        "border-transparent text-white bg-green-600 active:bg-green-700 hover:bg-green-700 active:bg-green-700 focus:bg-green-700"
     end
   end
 
   defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "outline" ->
-        "border-red-400 hover:border-red-600 text-red-600 hover:text-red-700 active:bg-red-200 active:border-red-700 hover:bg-red-50 focus:border-red-600"
+        "border-red-400 hover:border-red-600 text-red-600 hover:text-red-700 active:bg-red-200 active:border-red-700 hover:bg-red-50 focus:border-red-700"
 
       _ ->
-        "border-transparent text-white bg-red-500 active:bg-red-700 hover:bg-red-600 active:bg-green-700 focus:bg-red-600"
+        "border-transparent text-white bg-red-600 active:bg-red-700 hover:bg-red-700 active:bg-green-700 focus:bg-red-700"
     end
   end
 

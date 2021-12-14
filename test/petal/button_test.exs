@@ -62,4 +62,16 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "Press me"
   end
+
+  test "button with loading but no size" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.button loading phx-click="click_event">Press me</.button>
+      """
+    )
+    assert html =~ "<button"
+    assert html =~ "Press me"
+    assert html =~ "<svg"
+  end
 end
