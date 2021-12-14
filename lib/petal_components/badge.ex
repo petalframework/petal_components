@@ -3,7 +3,9 @@ defmodule PetalComponents.Badge do
 
   # prop label, :string
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
+  # prop variant, :string
   # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+
   def badge(assigns) do
     assigns = assign_new(assigns, :classes, fn ->
       badge_classes(assigns)
@@ -19,6 +21,7 @@ defmodule PetalComponents.Badge do
   def badge_classes(opts \\ %{}) do
     opts = %{
       size: opts[:size] || "sm",
+      variant: opts[:variant] || "light",
       color: opts[:color] || "primary"
     }
 
@@ -40,34 +43,98 @@ defmodule PetalComponents.Badge do
       rounded-lg
       inline-flex items-center justify-center
       focus:outline-none
+      border
     """
   end
 
-  def get_color_classes(%{color: "primary"}) do
-    "text-primary-600 bg-primary-100"
+  def get_color_classes(%{color: "primary", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-primary-600 bg-primary-100 border-primary-100"
+
+      "dark" ->
+        "text-white bg-primary-600 border-primary-600"
+
+      "outline" ->
+        "text-primary-600 border-primary-600"
+    end
   end
 
-  def get_color_classes(%{color: "secondary"}) do
-    "text-secondary-600 bg-secondary-100"
+  def get_color_classes(%{color: "secondary", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-secondary-600 bg-secondary-100 border-secondary-100"
+
+      "dark" ->
+        "text-white bg-secondary-600 border-secondary-600"
+
+      "outline" ->
+        "text-secondary-600 border border-secondary-600"
+    end
   end
 
-  def get_color_classes(%{color: "info"}) do
-    "text-blue-600 bg-blue-100"
+  def get_color_classes(%{color: "info", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-blue-600 bg-blue-100 border-blue-100"
+
+      "dark" ->
+        "text-white bg-blue-600 border-blue-600"
+
+      "outline" ->
+        "text-blue-600 border border-blue-600"
+    end
   end
 
-  def get_color_classes(%{color: "success"}) do
-    "text-green-600 bg-green-100"
+  def get_color_classes(%{color: "success", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-green-600 bg-green-100 border-green-100"
+
+      "dark" ->
+        "text-white bg-green-600 border-green-600"
+
+      "outline" ->
+        "text-green-600 border border-green-600"
+    end
   end
 
-  def get_color_classes(%{color: "warning"}) do
-    "text-yellow-600 bg-yellow-100"
+  def get_color_classes(%{color: "warning", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-yellow-600 bg-yellow-100 border-yellow-100"
+
+      "dark" ->
+        "text-white bg-yellow-600 border-yellow-600"
+
+      "outline" ->
+        "text-yellow-600 border border-yellow-600"
+    end
   end
 
-  def get_color_classes(%{color: "danger"}) do
-    "text-red-600 bg-red-100"
+  def get_color_classes(%{color: "danger", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-red-600 bg-red-100 border-red-100"
+
+      "dark" ->
+        "text-white bg-red-600 border-red-600"
+
+      "outline" ->
+        "text-red-600 border border-red-600"
+    end
   end
 
-  def get_color_classes(%{color: "gray"}) do
-    "text-gray-600 bg-gray-100"
+  def get_color_classes(%{color: "gray", variant: variant}) do
+    case variant do
+      "light" ->
+        "text-gray-600 bg-gray-100 border-gray-100"
+
+      "dark" ->
+        "text-white bg-gray-600 border-gray-600"
+
+      "outline" ->
+        "text-gray-600 border border-gray-600"
+    end
   end
 end
