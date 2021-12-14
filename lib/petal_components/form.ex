@@ -32,6 +32,7 @@ defmodule PetalComponents.Form do
           :field,
           :inner_block,
           :label,
+          :__slot__,
           :__changed__
         ])
       end)
@@ -66,7 +67,14 @@ defmodule PetalComponents.Form do
   def form_field(assigns) do
     assigns = assigns
     |> assign_new(:input_opts, fn ->
-      Map.drop(assigns, [:form, :field, :label, :field_type])
+      Map.drop(assigns, [
+        :form,
+        :field,
+        :label,
+        :field_type,
+        :__slot__,
+        :__changed__
+      ])
     end)
     |> assign_new(:label, fn ->
       if assigns[:field] do
