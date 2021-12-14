@@ -93,6 +93,13 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
     - [Sizes](#sizes)
   - [Modal](#modal)
     - [Sizes](#sizes)
+  - [Tabs](#tabs)
+    - [Basic tabs](#basic-tabs)
+    - [Tabs with underline](#tabs-with-underline)
+    - [Basic tabs with number](#basic-tabs-with-number)
+    - [Tabs underlined with number](#tabs-underlined-with-number)
+    - [Basic tabs with icons](#basic-tabs-with-icons)
+    - [Tabs underlined with outline icons](#tabs-underlined-with-outline-icons)
 
 
 ## Install
@@ -691,4 +698,64 @@ def render(assigns) do
 end
 ```
 
+### Tabs
 
+#### Basic tabs
+```elixir
+<.tabs class="flex-col sm:flex-row space-x">
+  <.tab is_active to="/">Home</.tab>
+  <.tab link_type="a | live_patch | live_redirect" to="/" label="About" />
+</.tabs>
+```
+
+#### Tabs with underline
+```elixir
+<.tabs>
+  <.tab underline is_active to="/">Home</.tab>
+  <.tab underline link_type="a | live_patch | live_redirect" to="/" label="About" />
+</.tabs>
+```
+
+#### Basic tabs with number
+```elixir
+<.tabs>
+  <.tab number={1} is_active to="/">Home</.tab>
+  <.tab number={63} link_type="a | live_patch | live_redirect" to="/" label="About" />
+</.tabs>
+```
+
+#### Tabs underlined with number
+```elixir
+<.tabs underline>
+  <.tab underline number={1} is_active to="/">Home</.tab>
+  <.tab number={63} underline link_type="a | live_patch | live_redirect" to="/" label="About" />
+</.tabs>
+```
+
+#### Basic tabs with icons
+```elixir
+<.tabs>
+  <.tab is_active to="/">
+    <Heroicons.Solid.home class="w-5 h-5 mr-2" />
+      Home
+  </.tab>
+  <.tab link_type="a | live_patch | live_redirect" to="/">
+    <Heroicons.Solid.office_building class="w-5 h-5 mr-2" />
+      Company
+  </.tab>
+</.tabs>
+```
+
+#### Tabs underlined with outline icons
+```elixir
+<.tabs underline>
+  <.tab underline is_active to="/">
+    <Heroicons.Outline.home class="w-5 h-5 mr-2" />
+      Home
+  </.tab>
+  <.tab underline link_type="a | live_patch | live_redirect" to="/">
+    <Heroicons.Outline.office_building class="w-5 h-5 mr-2" />
+      Company
+  </.tab>
+</.tabs>
+```

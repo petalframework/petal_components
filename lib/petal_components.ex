@@ -16,7 +16,8 @@ defmodule PetalComponents do
         Breadcrumbs,
         Pagination,
         Link,
-        Modal
+        Modal,
+        Tabs
       }
     end
   end
