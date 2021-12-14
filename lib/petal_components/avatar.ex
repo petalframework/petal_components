@@ -36,7 +36,7 @@ defmodule PetalComponents.Avatar do
         </div>
       <% else %>
         <img src={@src} class={Enum.join([
-          "rounded-full",
+          "rounded-full object-cover",
           get_size_classes(@size),
           @class
         ], " ")} />
