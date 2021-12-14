@@ -84,6 +84,7 @@ defmodule PetalComponents.Dropdown do
           :inner_block,
           :link_type,
           :classes,
+          :__slot__,
           :__changed__
         ])
       end)
