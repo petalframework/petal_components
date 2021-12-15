@@ -1,4 +1,10 @@
 # Changelog
+### 0.8.0 - 2021-12-15 20:17:41
+- New component: Tabs
+- Fix button that was failing when in a loading state and no size given
+- Avatar now uses the `object-cover` class for non-square images
+- New badge variations
+- Badge can now accept a class prop
 ### 0.7.0 - 2021-12-07 03:54:41
 - Breadcrumbs no longer need a parent flex container
 ### 0.6.1 - 2021-12-07 00:51:25
