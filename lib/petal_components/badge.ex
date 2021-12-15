@@ -5,46 +5,34 @@ defmodule PetalComponents.Badge do
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
   # prop variant, :string
   # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-
+  # prop class, :css_class
   def badge(assigns) do
-    assigns = assign_new(assigns, :classes, fn ->
-      badge_classes(assigns)
-    end)
+    assigns = assigns
+      |> assign_new(:size, fn -> "sm" end)
+      |> assign_new(:variant, fn -> "light" end)
+      |> assign_new(:color, fn -> "primary" end)
+      |> assign_new(:class, fn -> "" end)
 
     ~H"""
-    <badge class={@classes}>
+    <badge class={Enum.join([
+      "font-medium rounded-lg inline-flex items-center justify-center focus:outline-none border",
+      size_classes(@size),
+      get_color_classes(%{color: @color, variant: @variant}),
+      @class
+    ], " ")}>
       <%= @label %>
     </badge>
     """
   end
 
-  def badge_classes(opts \\ %{}) do
-    opts = %{
-      size: opts[:size] || "sm",
-      variant: opts[:variant] || "light",
-      color: opts[:color] || "primary"
-    }
-
-    size_css =
-      case opts[:size] do
-        "xs" -> "text-xs leading-4 px-2.5 py-1"
-        "sm" -> "text-sm leading-4 px-2.5 py-1"
-        "md" -> "text-sm leading-5 px-4 py-2"
-        "lg" -> "text-base leading-6 px-4 py-2"
-        "xl" -> "text-base leading-6 px-6 py-3"
-      end
-
-    color_css = get_color_classes(opts)
-
-    """
-      #{color_css}
-      #{size_css}
-      font-medium
-      rounded-lg
-      inline-flex items-center justify-center
-      focus:outline-none
-      border
-    """
+  def size_classes(size) do
+    case size do
+      "xs" -> "text-xs leading-4 px-2.5 py-1"
+      "sm" -> "text-sm leading-4 px-2.5 py-1"
+      "md" -> "text-sm leading-5 px-4 py-2"
+      "lg" -> "text-base leading-6 px-4 py-2"
+      "xl" -> "text-base leading-6 px-6 py-3"
+    end
   end
 
   def get_color_classes(%{color: "primary", variant: variant}) do
