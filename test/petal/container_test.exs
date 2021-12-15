@@ -11,8 +11,19 @@ defmodule PetalComponents.ContainerTest do
       """
     )
 
-      assert html =~ "<div class="
-      assert html =~ "max-w-full"
+    assert html =~ "<div class="
+    assert html =~ "max-w-full"
+  end
+
+  test "xl" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.container max_width="xl">
+      </.container>
+      """
+    )
+    assert html =~ "85rem"
   end
 
   test "lg" do
@@ -24,8 +35,8 @@ defmodule PetalComponents.ContainerTest do
       """
     )
 
-      assert html =~ "<div class="
-      assert html =~ "max-w-7xl"
+    assert html =~ "<div class="
+    assert html =~ "max-w-7xl"
   end
 
   test "md" do
@@ -37,8 +48,8 @@ defmodule PetalComponents.ContainerTest do
       """
     )
 
-      assert html =~ "<div class="
-      assert html =~ "max-w-5xl"
+    assert html =~ "<div class="
+    assert html =~ "max-w-5xl"
   end
 
   test "sm" do
@@ -50,8 +61,8 @@ defmodule PetalComponents.ContainerTest do
       """
     )
 
-      assert html =~ "<div class="
-      assert html =~ "max-w-3xl"
+    assert html =~ "<div class="
+    assert html =~ "max-w-3xl"
   end
 
 end
