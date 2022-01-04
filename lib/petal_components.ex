@@ -17,7 +17,8 @@ defmodule PetalComponents do
         Pagination,
         Link,
         Modal,
-        Tabs
+        Tabs,
+        Card
       }
     end
   end

@@ -100,6 +100,10 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
     - [Tabs underlined with number](#tabs-underlined-with-number)
     - [Basic tabs with icons](#basic-tabs-with-icons)
     - [Tabs underlined with outline icons](#tabs-underlined-with-outline-icons)
+  - [Card](#card)
+    - [Basic cards](#basic-cards)
+    - [Outline cards](#outline-cards)
+    - [Cards with media](#cards-with-media)
 
 
 ## Install
@@ -758,4 +762,40 @@ end
       Company
   </.tab>
 </.tabs>
+```
+
+### Card
+
+#### Basic cards
+```elixir
+<.card >
+  <.card_content category="Article" heading="Enhance your Phoenix development">
+    <div class="mt-4 font-light text-gray-500 text-md">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eget leo interdum, feugiat ligula eu, facilisis massa. Nunc sollicitudin massa a elit laoreet.
+    </div>
+  </.card_content>
+</.card>
+```
+
+#### Outline cards
+```elixir
+<.card variant="outline" >
+  <.card_content category="Article" heading="Enhance your Phoenix development">
+    <div class="mt-4 font-light text-gray-500 text-md">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eget leo interdum, feugiat ligula eu, facilisis massa. Nunc sollicitudin massa a elit laoreet.
+    </div>
+  </.card_content>
+</.card>
+```
+
+#### Cards with media
+```elixir
+<.card>
+  <.card_media class="h-48" src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" />
+  <.card_content category="Article" heading="Enhance your Phoenix development">
+    <div class="mt-4 font-light text-gray-500 text-md">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eget leo interdum, feugiat ligula eu, facilisis massa. Nunc sollicitudin massa a elit laoreet.
+    </div>
+  </.card_content>
+</.card>
 ```
