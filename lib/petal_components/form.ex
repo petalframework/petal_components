@@ -12,7 +12,8 @@ defmodule PetalComponents.Form do
   # prop class, :css_class
   # slot default
   def form_label(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:classes, fn -> label_classes(assigns) end)
       |> assign_new(:form, fn -> nil end)
       |> assign_new(:has_error, fn -> false end)
@@ -61,28 +62,30 @@ defmodule PetalComponents.Form do
   # prop form, :any, required: true
   # prop field, :any, required: true
   # prop type, :string, required: true, options: ["text_input", "email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input", "textarea", "select", "checkbox", "radio_gro"]
+  # prop disabled, :boolean, default: false, options: ["text_input"]
   # prop label, :string
 
   @doc "Use this when you want to include the label and some margin."
   def form_field(assigns) do
-    assigns = assigns
-    |> assign_new(:input_opts, fn ->
-      Map.drop(assigns, [
-        :form,
-        :field,
-        :label,
-        :field_type,
-        :__slot__,
-        :__changed__
-      ])
-    end)
-    |> assign_new(:label, fn ->
-      if assigns[:field] do
-        humanize(assigns[:field])
-      else
-        nil
-      end
-    end)
+    assigns =
+      assigns
+      |> assign_new(:input_opts, fn ->
+        Map.drop(assigns, [
+          :form,
+          :field,
+          :label,
+          :field_type,
+          :__slot__,
+          :__changed__
+        ])
+      end)
+      |> assign_new(:label, fn ->
+        if assigns[:field] do
+          humanize(assigns[:field])
+        else
+          nil
+        end
+      end)
 
     ~H"""
     <div class="mb-6">
@@ -218,7 +221,9 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= time_select @form, @field, [class: @classes] ++ @input_attributes %>
+    <div class="select-wrapper">
+      <%= time_select @form, @field, [class: @classes] ++ @input_attributes %>
+    </div>
     """
   end
 
@@ -234,7 +239,9 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= datetime_select @form, @field, [class: @classes] ++ @input_attributes %>
+    <div class="select-wrapper">
+      <%= datetime_select @form, @field, [class: @classes] ++ @input_attributes %>
+    </div>
     """
   end
 
@@ -393,25 +400,30 @@ defmodule PetalComponents.Form do
         "mb-2 font-medium"
       end
 
-    error_classes = if field_has_errors?(assigns) do
-      "text-red-900 dark:text-red-200"
-    else
-      "text-gray-900 dark:text-gray-200"
-    end
+    error_classes =
+      if field_has_errors?(assigns) do
+        "text-red-900 dark:text-red-200"
+      else
+        "text-gray-900 dark:text-gray-200"
+      end
 
     "#{type_classes} #{error_classes} text-sm block"
   end
 
   defp text_input_classes(has_error) do
-    "#{get_error_classes(has_error)} sm:text-sm block shadow-sm w-full rounded-md dark:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+    "#{get_error_classes(has_error)} sm:text-sm block disabled:bg-gray-100 disabled:cursor-not-allowed shadow-sm w-full rounded-md dark:bg-gray-800 dark:text-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
   end
 
   defp select_classes(has_error) do
-    "#{get_error_classes(has_error)} block w-full pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md"
+    "#{get_error_classes(has_error)} block w-full disabled:bg-gray-100 disabled:cursor-not-allowed pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md"
   end
 
   def file_input_classes(has_error) do
-    get_error_classes(has_error)
+    if has_error,
+      do:
+        "border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none file:bg-primary-200 text-sm",
+      else:
+        "focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200"
   end
 
   def color_input_classes(has_error) do
@@ -423,7 +435,11 @@ defmodule PetalComponents.Form do
   end
 
   defp checkbox_classes(has_error) do
-    error_classes = if has_error, do: "border-red-500 text-red-900 dark:text-red-200", else: "border-gray-300 text-primary-700"
+    error_classes =
+      if has_error,
+        do: "border-red-500 text-red-900 dark:text-red-200",
+        else: "border-gray-300 text-primary-700"
+
     "#{error_classes} rounded w-5 h-5 ease-linear transition-all duration-150"
   end
 
@@ -432,8 +448,12 @@ defmodule PetalComponents.Form do
     "#{error_classes} h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500"
   end
 
-  defp get_error_classes(true), do: "border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50"
-  defp get_error_classes(false), do: "border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500"
+  defp get_error_classes(true),
+    do: "border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50"
+
+  defp get_error_classes(false),
+    do:
+      "border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500"
 
   defp field_has_errors?(%{form: form, field: field}) do
     length(Keyword.get_values(form.errors, field)) > 0

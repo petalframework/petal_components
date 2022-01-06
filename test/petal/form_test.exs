@@ -5,8 +5,9 @@ defmodule PetalComponents.FormTest do
 
   test "text_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.text_input
           form={f}
@@ -15,20 +16,45 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "John"
     assert html =~ "user[name]"
     assert html =~ "random-element"
     assert html =~ "something"
+    refute html =~ " disabled "
+  end
+
+  test "text_input disabled" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+        <.form let={f} for={:user}>
+          <.text_input disabled
+            form={f}
+            field={:name}
+            placeholder="eg. John"
+            random-element="something"
+          />
+        </.form>
+      """)
+
+    assert html =~ "input"
+    assert html =~ "John"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+    assert html =~ "bg-gray-100"
+    assert html =~ " disabled "
   end
 
   test "textarea" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.textarea
           form={f}
@@ -37,8 +63,7 @@ defmodule PetalComponents.FormTest do
           placeholder="dummy text"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "<textarea"
     assert html =~ "user[description]"
@@ -49,8 +74,9 @@ defmodule PetalComponents.FormTest do
 
   test "select" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.select
           form={f}
@@ -59,8 +85,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "<select"
     assert html =~ "user[role]"
@@ -72,8 +97,9 @@ defmodule PetalComponents.FormTest do
 
   test "checkbox" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.checkbox
           form={f}
@@ -81,8 +107,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
@@ -91,8 +116,9 @@ defmodule PetalComponents.FormTest do
 
   test "radio" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.radio
           form={f}
@@ -101,8 +127,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "radio"
     assert html =~ "user[eye_color]"
@@ -112,47 +137,48 @@ defmodule PetalComponents.FormTest do
 
   test "form_label" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.form_label form={f} field={:name} />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "label"
     assert html =~ "Name"
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.form_label form={f} field={:name}>
           Something else
         </.form_label>
       </.form>
-      """
-    )
+      """)
+
     assert html =~ "Something else"
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.form_label>Simple</.form_label>
-      """
-    )
+      """)
+
     assert html =~ "Simple"
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.form_label label="Simpler" />
-      """
-    )
+      """)
+
     assert html =~ "Simpler"
   end
 
   test "form_field_error" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} as={:user} for={%Ecto.Changeset{
         action: :update,
         data: %{name: ""},
@@ -163,8 +189,7 @@ defmodule PetalComponents.FormTest do
       }>
         <.form_field_error form={f} field={:name} class="mt-1" />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "text-red-500"
     assert html =~ "phx-feedback-for"
@@ -175,8 +200,9 @@ defmodule PetalComponents.FormTest do
 
   test "form_field text_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} as={:user} for={%Ecto.Changeset{
         action: :update,
         data: %{name: ""},
@@ -192,8 +218,7 @@ defmodule PetalComponents.FormTest do
           placeholder="eg. John"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "label"
     assert html =~ "<input"
@@ -205,8 +230,9 @@ defmodule PetalComponents.FormTest do
 
   test "number_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.number_input
           form={f}
@@ -214,8 +240,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "number"
@@ -226,8 +251,9 @@ defmodule PetalComponents.FormTest do
 
   test "email_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.email_input
           form={f}
@@ -235,8 +261,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "email"
@@ -247,8 +272,9 @@ defmodule PetalComponents.FormTest do
 
   test "password_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.password_input
           form={f}
@@ -256,8 +282,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "password"
@@ -268,8 +293,9 @@ defmodule PetalComponents.FormTest do
 
   test "search_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.search_input
           form={f}
@@ -277,8 +303,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "search"
@@ -289,8 +314,9 @@ defmodule PetalComponents.FormTest do
 
   test "telephone_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.telephone_input
           form={f}
@@ -298,8 +324,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "tel"
@@ -310,8 +335,9 @@ defmodule PetalComponents.FormTest do
 
   test "url_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.url_input
           form={f}
@@ -319,8 +345,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "url"
@@ -331,8 +356,9 @@ defmodule PetalComponents.FormTest do
 
   test "time_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.time_input
           form={f}
@@ -340,8 +366,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "time"
@@ -352,16 +377,16 @@ defmodule PetalComponents.FormTest do
 
   test "time_select" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.time_select
           form={f}
           field={:name}
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "select"
     assert html =~ "user[name]"
@@ -369,8 +394,9 @@ defmodule PetalComponents.FormTest do
 
   test "datetime_local_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.datetime_local_input
           form={f}
@@ -378,8 +404,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "datetime-local"
@@ -390,16 +415,16 @@ defmodule PetalComponents.FormTest do
 
   test "datetime_select" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.datetime_select
           form={f}
           field={:name}
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "select"
@@ -408,8 +433,9 @@ defmodule PetalComponents.FormTest do
 
   test "color_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.color_input
           form={f}
@@ -417,8 +443,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "color"
@@ -429,8 +454,9 @@ defmodule PetalComponents.FormTest do
 
   test "file_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user} multipart>
         <.file_input
           form={f}
@@ -438,20 +464,21 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "file"
     assert html =~ "user[name]"
     assert html =~ "random-element"
     assert html =~ "something"
+    assert html =~ "bg-primary"
   end
 
   test "range_input" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.form let={f} for={:user}>
         <.range_input
           form={f}
@@ -459,8 +486,7 @@ defmodule PetalComponents.FormTest do
           random-element="something"
         />
       </.form>
-      """
-    )
+      """)
 
     assert html =~ "input"
     assert html =~ "range"
