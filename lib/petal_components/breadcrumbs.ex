@@ -35,13 +35,13 @@ defmodule PetalComponents.Breadcrumbs do
     """
   end
 
-  def separator(%{type: "slash"} = assigns) do
+  defp separator(%{type: "slash"} = assigns) do
     ~H"""
     <div class="px-5 text-lg text-gray-300">/</div>
     """
   end
 
-  def separator(%{type: "chevron"} = assigns) do
+  defp separator(%{type: "chevron"} = assigns) do
     ~H"""
     <div class="px-3 text-gray-300">
       <Heroicons.Solid.chevron_right class="w-6 h-6" />
@@ -49,5 +49,5 @@ defmodule PetalComponents.Breadcrumbs do
     """
   end
 
-  def get_breadcrumb_classes(user_classes), do: "hover:underline flex text-gray-500 #{user_classes}"
+  defp get_breadcrumb_classes(user_classes), do: "hover:underline flex text-gray-500 #{user_classes}"
 end

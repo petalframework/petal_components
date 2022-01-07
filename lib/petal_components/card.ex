@@ -86,7 +86,7 @@ defmodule PetalComponents.Card do
     (!src || src == "")
   end
 
-  def get_variant_classes(variant) do
+  defp get_variant_classes(variant) do
     case variant do
       "basic" ->
         "rounded-lg shadow-lg"

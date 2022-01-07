@@ -25,7 +25,7 @@ defmodule PetalComponents.Badge do
     """
   end
 
-  def size_classes(size) do
+  defp size_classes(size) do
     case size do
       "xs" -> "text-xs leading-4 px-2.5 py-1"
       "sm" -> "text-sm leading-4 px-2.5 py-1"
@@ -35,7 +35,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "primary", variant: variant}) do
+  defp get_color_classes(%{color: "primary", variant: variant}) do
     case variant do
       "light" ->
         "text-primary-600 bg-primary-100 border-primary-100"
@@ -48,7 +48,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "secondary", variant: variant}) do
+  defp get_color_classes(%{color: "secondary", variant: variant}) do
     case variant do
       "light" ->
         "text-secondary-600 bg-secondary-100 border-secondary-100"
@@ -61,7 +61,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "info", variant: variant}) do
+  defp get_color_classes(%{color: "info", variant: variant}) do
     case variant do
       "light" ->
         "text-blue-600 bg-blue-100 border-blue-100"
@@ -74,7 +74,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "success", variant: variant}) do
+  defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "light" ->
         "text-green-600 bg-green-100 border-green-100"
@@ -87,7 +87,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "warning", variant: variant}) do
+  defp get_color_classes(%{color: "warning", variant: variant}) do
     case variant do
       "light" ->
         "text-yellow-600 bg-yellow-100 border-yellow-100"
@@ -100,7 +100,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "danger", variant: variant}) do
+  defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "light" ->
         "text-red-600 bg-red-100 border-red-100"
@@ -113,7 +113,7 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  def get_color_classes(%{color: "gray", variant: variant}) do
+  defp get_color_classes(%{color: "gray", variant: variant}) do
     case variant do
       "light" ->
         "text-gray-600 bg-gray-100 border-gray-100"

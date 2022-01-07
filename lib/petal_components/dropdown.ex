@@ -110,11 +110,11 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  def dropdown_menu_item_classes(),
+  defp dropdown_menu_item_classes(),
     do:
       "block flex gap-2 items-center self-start justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 w-full text-left"
 
-  def js_attributes("container", "alpine_js", _options_container_id) do
+  defp js_attributes("container", "alpine_js", _options_container_id) do
     %{
       "x-data": "{open: false}",
       "@keydown.escape.stop": "open = false",
@@ -122,14 +122,14 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  def js_attributes("button", "alpine_js", _options_container_id) do
+  defp js_attributes("button", "alpine_js", _options_container_id) do
     %{
       "@click": "open = !open",
       "x-bind:aria-expanded": "open.toString()"
     }
   end
 
-  def js_attributes("options_container", "alpine_js", _options_container_id) do
+  defp js_attributes("options_container", "alpine_js", _options_container_id) do
     %{
       "x-cloak": true,
       "x-show": "open",
@@ -142,7 +142,7 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  def js_attributes("container", "live_view_js", options_container_id) do
+  defp js_attributes("container", "live_view_js", options_container_id) do
     %{
       "phx-click-away": JS.hide(
         to: "##{options_container_id}",
@@ -151,7 +151,7 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  def js_attributes("button", "live_view_js", options_container_id) do
+  defp js_attributes("button", "live_view_js", options_container_id) do
     %{
       "phx-click": JS.toggle(
         to: "##{options_container_id}",
@@ -162,12 +162,12 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  def js_attributes("options_container", "live_view_js", _options_container_id) do
+  defp js_attributes("options_container", "live_view_js", _options_container_id) do
     %{
       style: "display: none;",
     }
   end
 
-  def placement_class("left"), do: "right-0 origin-top-right"
-  def placement_class("right"), do: "left-0 origin-top-left"
+  defp placement_class("left"), do: "right-0 origin-top-right"
+  defp placement_class("right"), do: "left-0 origin-top-left"
 end

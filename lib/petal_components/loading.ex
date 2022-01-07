@@ -42,8 +42,8 @@ defmodule PetalComponents.Loading do
     )
   end
 
-  def get_size_classes("sm"), do: "h-5 w-5"
-  def get_size_classes("md"), do: "h-8 w-8"
-  def get_size_classes("lg"), do: "h-16 w-16"
-  def get_size_classes(_), do: "h-8 w-8"
+  defp get_size_classes("sm"), do: "h-5 w-5"
+  defp get_size_classes("md"), do: "h-8 w-8"
+  defp get_size_classes("lg"), do: "h-16 w-16"
+  defp get_size_classes(_), do: "h-8 w-8"
 end

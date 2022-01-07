@@ -418,7 +418,7 @@ defmodule PetalComponents.Form do
     "#{get_error_classes(has_error)} block w-full disabled:bg-gray-100 disabled:cursor-not-allowed pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md"
   end
 
-  def file_input_classes(has_error) do
+  defp file_input_classes(has_error) do
     if has_error,
       do:
         "border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none file:bg-primary-200 text-sm",
@@ -426,11 +426,11 @@ defmodule PetalComponents.Form do
         "focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200"
   end
 
-  def color_input_classes(has_error) do
+  defp color_input_classes(has_error) do
     get_error_classes(has_error)
   end
 
-  def range_input_classes(has_error) do
+  defp range_input_classes(has_error) do
     "#{get_error_classes(has_error)} w-full"
   end
 
