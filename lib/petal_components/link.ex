@@ -13,6 +13,7 @@ defmodule PetalComponents.Link do
       |> assign_new(:extra_attributes, fn ->
         Map.drop(assigns, [
           :class,
+          :link_type,
           :type,
           :inner_block,
           :label,
