@@ -4,22 +4,23 @@ defmodule PetalComponents.ButtonTest do
 
   test "button" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button label="Press me" phx-click="click_event" />
-      """
-    )
+      """)
 
     assert html =~ "Press me"
   end
 
   test "a" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button link_type="a" label="Press me" to="/" phx-click="Press me" />
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href"
@@ -28,11 +29,12 @@ defmodule PetalComponents.ButtonTest do
 
   test "patch" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button link_type="live_patch" label="Press me" to="/" phx-click="click_event" />
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href"
@@ -41,11 +43,12 @@ defmodule PetalComponents.ButtonTest do
 
   test "redirect" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button link_type="live_redirect" label="Press me" to="/" phx-click="click_event" />
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href"
@@ -54,24 +57,39 @@ defmodule PetalComponents.ButtonTest do
 
   test "button with inner_block" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button phx-click="click_event">Press me</.button>
-      """
-    )
+      """)
+
     assert html =~ "<button"
     assert html =~ "Press me"
   end
 
   test "button with loading but no size" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.button loading phx-click="click_event">Press me</.button>
-      """
-    )
+      """)
+
     assert html =~ "<button"
     assert html =~ "Press me"
     assert html =~ "<svg"
+  end
+
+  test "button with shadow" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button color="primary" variant="shadow" phx-click="click_event">Press me</.button>
+      """)
+
+    assert html =~ "<button"
+    assert html =~ "Press me"
+    assert html =~ "shadow-xl"
   end
 end
