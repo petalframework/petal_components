@@ -1,4 +1,9 @@
 # Changelog
+### 0.9.0 - 2022-01-07 04:43:03
+- New component: Card
+- Button colored shadow option
+- Improve styling on disabled inputs
+- Allow custom attributes to be forwarded to underlying svg element on Heroicons
 ### 0.8.0 - 2021-12-15 20:17:41
 - New component: Tabs
 - Fix button that was failing when in a loading state and no size given

@@ -13,11 +13,13 @@ defmodule PetalComponents.Card do
     ~H"""
     <div class={Enum.join([
       "flex flex-wrap overflow-hidden",
-      get_variant_classes(@variant), @class
-      ], " ")}>
+      get_variant_classes(@variant),
+      @class
+    ], " ")}>
       <div class={Enum.join([
-        "flex flex-col bg-white max-w-full", @class
-        ], " ")}>
+        "flex flex-col bg-white max-w-full",
+        @class
+      ], " ")}>
         <%= if @inner_block do %>
           <%= render_slot(@inner_block) %>
         <% end %>
@@ -35,16 +37,16 @@ defmodule PetalComponents.Card do
 
     ~H"""
     <div class={Enum.join([
-      "flex-shrink-0", @class
-      ], " ")}>
-      <%= if src_blank?(@src) do %>
-        <div class="h-full bg-gray-300">
-        </div>
+      "flex-shrink-0",
+      @class
+    ], " ")}>
+      <%= if @src do %>
+        <img src={@src} class={Enum.join([
+          "object-cover w-full",
+          @class
+        ], " ")} />
       <% else %>
-      <img src={@src} class={Enum.join([
-        "object-cover w-full",
-        @class
-      ], " ")} />
+        <div class="h-full bg-gray-300"></div>
       <% end %>
     </div>
     """
@@ -64,26 +66,24 @@ defmodule PetalComponents.Card do
     ~H"""
     <div class={Enum.join([
       "p-6 gap-2", @class
-      ], " ")}>
+    ], " ")}>
       <%= if @category do %>
         <div class="mb-3 text-sm font-medium text-primary-600">
           <%= @category %>
         </div>
       <% end %>
+
       <%= if @heading do %>
         <div class="mb-2 text-xl font-medium text-gray-900">
           <%= @heading %>
         </div>
       <% end %>
+
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% end %>
     </div>
     """
-  end
-
-  defp src_blank?(src) do
-    (!src || src == "")
   end
 
   defp get_variant_classes(variant) do
