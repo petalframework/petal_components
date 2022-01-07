@@ -109,7 +109,7 @@ defmodule PetalComponents.Typography do
 
   def p(assigns) do
     ~H"""
-    <p class={"mb-2 text-sm leading-5 text-gray-600 dark:text-gray-400 #{if assigns[:class], do: @class, else: ""}"}>
+    <p class={"mb-2 leading-5 text-gray-600 dark:text-gray-400 #{if assigns[:class], do: @class, else: ""}"}>
       <%= render_slot(@inner_block) %>
     </p>
     """
