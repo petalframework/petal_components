@@ -39,6 +39,7 @@ Some components like [Dropdowns](#dropdowns) require Javascript to work. We defa
     - [Button types](#button-types)
     - [Button colors](#button-colors)
     - [Button colors (outline)](#button-colors-(outline))
+    - [Button shadow](#button-shadow)
     - [Button sizes](#button-sizes)
     - [Button states](#button-states)
       - [Disabled](#disabled)
@@ -140,7 +141,7 @@ module.exports = {
     // We need to include the Petal dependency so the classes get picked up by JIT.
     "../deps/petal_components/**/*.*ex"
   ],
-  darkMode: false,
+  darkMode: "class",
   theme: {
     extend: {
 
@@ -291,6 +292,11 @@ Most components will allow you to provide a `class` attribute. If you wish to ov
 #### Button colors (outline)
 ```elixir
 <.button color="primary | secondary | white | success | danger" label="Primary" variant="outline" />
+```
+
+#### Button shadow
+```elixir
+<.button color="primary | secondary | white | success | danger" label="Primary" variant="shadow" />
 ```
 
 #### Button sizes
