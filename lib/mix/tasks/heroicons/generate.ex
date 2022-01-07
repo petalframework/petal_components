@@ -59,7 +59,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
     svg_content =
       File.read!(Path.join(src_path, filename))
       |> String.trim()
-      |> String.replace(~r/<svg /, "<svg class={@class} ")
+      |> String.replace(~r/<svg /, "<svg class={@class} {@extra_attributes} ")
 
     build_component(filename, svg_content)
   end
@@ -73,7 +73,11 @@ defmodule Mix.Tasks.Heroicons.Generate do
   defp build_component(filename, svg) do
     """
     def #{function_name(filename)}(assigns) do
-      assigns = assign_new(assigns, :class, fn -> "h-6 w-6" end)
+      assigns = assigns
+        |> assign_new(:class, fn -> "h-6 w-6" end)
+        |> assign_new(:extra_attributes, fn ->
+          Map.drop(assigns, [:class])
+        end)
 
       ~H\"\"\"
       #{svg}
