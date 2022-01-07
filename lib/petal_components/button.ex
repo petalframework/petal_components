@@ -103,7 +103,6 @@ defmodule PetalComponents.Button do
       #{disabled_css}
       #{icon_css}
       font-medium
-      shadow-sm
       rounded-md
       inline-flex items-center justify-center
       border
@@ -132,6 +131,9 @@ defmodule PetalComponents.Button do
       "outline" ->
         "border-primary-400 hover:border-primary-600 text-primary-600 hover:text-primary-700 active:bg-primary-200 hover:bg-primary-50 focus:border-primary-700 focus:shadow-outline-primary"
 
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-primary-600 active:bg-primary-700 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-outline-primary shadow-primary-500/30"
+
       _ ->
         "border-transparent text-white bg-primary-600 active:bg-primary-700 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-outline-primary"
     end
@@ -141,6 +143,9 @@ defmodule PetalComponents.Button do
     case variant do
       "outline" ->
         "border-secondary-400 hover:border-secondary-600 text-secondary-600 hover:text-secondary-700 active:bg-secondary-200 hover:bg-secondary-50 focus:border-secondary-700 focus:shadow-outline-secondary"
+
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-secondary-600 active:bg-secondary-700 hover:bg-secondary-700 focus:bg-secondary-700 active:bg-secondary-800 focus:shadow-outline-secondary shadow-secondary-500/30"
 
       _ ->
         "border-transparent text-white bg-secondary-600 active:bg-secondary-700 hover:bg-secondary-700 focus:bg-secondary-700 active:bg-secondary-800 focus:shadow-outline-secondary"
@@ -152,6 +157,9 @@ defmodule PetalComponents.Button do
       "outline" ->
         "border-gray-400 hover:border-gray-600 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
 
+      "shadow" ->
+        "shadow-xl text-gray-700 border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black shadow-gray-500/30"
+
       _ ->
         "text-gray-700 border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black"
     end
@@ -162,6 +170,9 @@ defmodule PetalComponents.Button do
       "outline" ->
         "border-green-400 hover:border-green-600 text-green-600 hover:text-green-700 active:border-green-600 focus:text-green-600 active:text-green-700 active:bg-green-100 hover:bg-green-50 focus:border-green-700"
 
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-green-600 active:bg-green-700 hover:bg-green-700 focus:bg-green-700 active:bg-green-800 focus:shadow-outline-green shadow-green-500/30"
+
       _ ->
         "border-transparent text-white bg-green-600 active:bg-green-700 hover:bg-green-700 active:bg-green-700 focus:bg-green-700"
     end
@@ -171,6 +182,9 @@ defmodule PetalComponents.Button do
     case variant do
       "outline" ->
         "border-red-400 hover:border-red-600 text-red-600 hover:text-red-700 active:bg-red-200 active:border-red-700 hover:bg-red-50 focus:border-red-700"
+
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-red-600 active:bg-red-700 hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:shadow-outline-red shadow-red-500/30"
 
       _ ->
         "border-transparent text-white bg-red-600 active:bg-red-700 hover:bg-red-700 active:bg-green-700 focus:bg-red-700"
