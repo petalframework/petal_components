@@ -3,9 +3,7 @@
   <h1 align="center">Petal Components</h1>
 </p>
 
-<p align="center">
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-</p>
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
   Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
