@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/petalframework/petal_components/blob/main/LICENSE.md)
+  ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 </p>
 
 <p align="center">
