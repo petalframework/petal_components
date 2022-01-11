@@ -46,7 +46,7 @@ For full documentation, visit [petal.build](https://petal.build).
 - [x] text variants (email, password, tel)
 - [x] color input
 - [x] range input
-- [x] time & datetime input
+- [x] time, datetime, & date input
 - [ ] multiple select
 - [ ] switch
 

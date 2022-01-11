@@ -431,6 +431,44 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
   end
 
+  test "date_select" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} for={:user}>
+        <.date_select
+          form={f}
+          field={:name}
+        />
+      </.form>
+      """)
+
+    assert html =~ "select"
+    assert html =~ "user[name]"
+  end
+
+  test "date_input" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} for={:user}>
+        <.date_input
+          form={f}
+          field={:name}
+          random-element="something"
+        />
+      </.form>
+      """)
+
+    assert html =~ "input"
+    assert html =~ "date"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+  end
+
   test "color_input" do
     assigns = %{}
 
