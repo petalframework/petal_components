@@ -131,6 +131,12 @@ defmodule PetalComponents.Form do
         <% "datetime_local_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
           <.datetime_local_input form={@form} field={@field} {@input_opts} />
+        <% "date_select" -> %>
+          <.form_label form={@form} field={@field} label={@label} />
+          <.date_select form={@form} field={@field} {@input_opts} />
+        <% "date_input" -> %>
+          <.form_label form={@form} field={@field} label={@label} />
+          <.date_input form={@form} field={@field} {@input_opts} />
         <% "color_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
           <.color_input form={@form} field={@field} {@input_opts} />
@@ -242,6 +248,24 @@ defmodule PetalComponents.Form do
     <div class="select-wrapper">
       <%= datetime_select @form, @field, [class: @classes] ++ @input_attributes %>
     </div>
+    """
+  end
+
+  def date_select(assigns) do
+    assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
+
+    ~H"""
+    <div class="select-wrapper">
+      <%= date_select @form, @field, [class: @classes] ++ @input_attributes %>
+    </div>
+    """
+  end
+
+  def date_input(assigns) do
+    assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
+
+    ~H"""
+    <%= date_input @form, @field, [class: @classes] ++ @input_attributes %>
     """
   end
 
