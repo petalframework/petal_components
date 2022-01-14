@@ -445,9 +445,9 @@ defmodule PetalComponents.Form do
   defp file_input_classes(has_error) do
     if has_error,
       do:
-        "border-red-500 rounded-md focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 dark:bg-red-200 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none file:bg-primary-200 text-sm",
+        "border-red-500 rounded-md focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none dark:border-none dark:bg-[#160B0B] dark:file:text-primary-500 dark:text-red-500 dark:file:bg-gray-800 file:bg-primary-200 text-sm",
       else:
-        "focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200"
+        "focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-gray-800 dark:file:text-primary-500"
   end
 
   defp color_input_classes(has_error) do
