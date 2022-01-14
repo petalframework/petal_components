@@ -227,7 +227,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper">
+    <div class="select-wrapper dark:text-white">
       <%= time_select @form, @field, [class: @classes] ++ @input_attributes %>
     </div>
     """
@@ -245,7 +245,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper">
+    <div class="select-wrapper dark:text-white">
       <%= datetime_select @form, @field, [class: @classes] ++ @input_attributes %>
     </div>
     """
@@ -255,7 +255,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper">
+    <div class="select-wrapper dark:text-white">
       <%= date_select @form, @field, [class: @classes] ++ @input_attributes %>
     </div>
     """

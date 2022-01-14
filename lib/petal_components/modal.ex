@@ -13,7 +13,7 @@ defmodule PetalComponents.Modal do
     <div id="modal" phx-remove={hide_modal()}>
       <div
         id="modal-overlay"
-        class="fixed inset-0 z-50 transition-opacity bg-gray-900 bg-opacity-30"
+        class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
         aria-hidden="true"
       >
       </div>
@@ -33,9 +33,9 @@ defmodule PetalComponents.Modal do
         >
 
           <!-- Header -->
-          <div class="px-5 py-3 border-b border-gray-200">
+          <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-400">
             <div class="flex items-center justify-between">
-              <div class="font-semibold text-gray-800">
+              <div class="font-semibold text-gray-800 dark:text-gray-200">
                 <%= @title %>
               </div>
 
@@ -101,7 +101,7 @@ defmodule PetalComponents.Modal do
       class: assigns[:class] || "",
     }
 
-    base_classes = "w-full max-h-full overflow-auto bg-white rounded shadow-lg"
+    base_classes = "w-full max-h-full overflow-auto bg-white rounded shadow-lg dark:bg-gray-800"
 
     max_width_class =
       case opts.max_width do
