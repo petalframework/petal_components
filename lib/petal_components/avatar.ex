@@ -16,18 +16,18 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
       <div class={Enum.join([
-        "inline-block overflow-hidden bg-gray-100 rounded-full",
+        "inline-block overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
         get_size_classes(@size),
         @class
         ], " ")}>
-        <Heroicons.Solid.user class="relative w-full h-full text-gray-300 top-[12%] scale-[1.15] transform" />
+        <Heroicons.Solid.user class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
       </div>
     <% else %>
       <%= if !@src && @name do %>
         <div
           style={maybe_generate_random_color(@random_color, @name)}
           class={Enum.join([
-            "flex items-center justify-center bg-gray-100 rounded-full font-semibold uppercase text-gray-500",
+            "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
             get_size_classes(@size),
             @class,
           ], " ")}
@@ -52,7 +52,7 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <div class={@classes}>
       <%= for src <- @avatars do %>
-        <.avatar src={src} size={@size} class="ring-white ring-2" />
+        <.avatar src={src} size={@size} class="ring-white ring-2 dark:ring-gray-100" />
       <% end %>
     </div>
     """
@@ -76,11 +76,11 @@ defmodule PetalComponents.Avatar do
 
     size_css =
       case opts[:size] do
-        "xs" -> "relative z-0 flex -space-x-2 overflow-hidden"
-        "sm" -> "relative z-0 flex -space-x-3 overflow-hidden"
-        "md" -> "relative z-0 flex -space-x-4 overflow-hidden"
-        "lg" -> "relative z-0 flex -space-x-5 overflow-hidden"
-        "xl" -> "relative z-0 flex -space-x-6 overflow-hidden"
+        "xs" -> "relative z-0 flex -space-x-2"
+        "sm" -> "relative z-0 flex -space-x-3"
+        "md" -> "relative z-0 flex -space-x-4"
+        "lg" -> "relative z-0 flex -space-x-5"
+        "xl" -> "relative z-0 flex -space-x-6"
       end
 
       """

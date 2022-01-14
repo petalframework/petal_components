@@ -55,10 +55,10 @@ defmodule PetalComponents.Alert do
     |> Enum.join(" ")
   end
 
-  defp get_state_classes("info"), do: "text-blue-600 bg-blue-100"
-  defp get_state_classes("success"), do: "text-green-600 bg-green-100"
-  defp get_state_classes("warning"), do: "text-yellow-600 bg-yellow-100"
-  defp get_state_classes("danger"), do: "text-red-600 bg-red-100"
+  defp get_state_classes("info"), do: "text-blue-600 bg-blue-100 dark:bg-[#071418] dark:text-blue-200"
+  defp get_state_classes("success"), do: "text-green-600 bg-green-100 dark:bg-[#0C130D] dark:text-green-200"
+  defp get_state_classes("warning"), do: "text-yellow-600 bg-yellow-100 dark:bg-[#191207] dark:text-yellow-200"
+  defp get_state_classes("danger"), do: "text-red-600 bg-red-100 dark:bg-[#160B0B] dark:text-red-200"
 
   defp get_icon("info"), do: :information_circle
   defp get_icon("success"), do: :check_circle

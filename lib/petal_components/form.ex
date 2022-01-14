@@ -331,7 +331,7 @@ defmodule PetalComponents.Form do
     ~H"""
     <div class="flex flex-col gap-1">
       <%= for {label, value} <- @options do %>
-        <label class="inline-flex items-center block gap-3">
+        <label class="inline-flex items-center gap-3">
           <.radio form={@form} field={@field} value={value} {@input_attributes} />
           <div class={label_classes(%{form: @form, field: @field, type: "radio"})}><%= label %></div>
         </label>
@@ -439,13 +439,13 @@ defmodule PetalComponents.Form do
   end
 
   defp select_classes(has_error) do
-    "#{get_error_classes(has_error)} block w-full disabled:bg-gray-100 disabled:cursor-not-allowed pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md"
+    "#{get_error_classes(has_error)} block w-full disabled:bg-gray-100 disabled:cursor-not-allowed pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md dark:border-gray-600 dark:focus:border-primary-500 dark:text-gray-300 dark:bg-gray-800"
   end
 
   defp file_input_classes(has_error) do
     if has_error,
       do:
-        "border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none file:bg-primary-200 text-sm",
+        "border-red-500 rounded-md focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 dark:bg-red-200 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:border-none file:bg-primary-200 text-sm",
       else:
         "focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200"
   end
@@ -464,12 +464,12 @@ defmodule PetalComponents.Form do
         do: "border-red-500 text-red-900 dark:text-red-200",
         else: "border-gray-300 text-primary-700"
 
-    "#{error_classes} rounded w-5 h-5 ease-linear transition-all duration-150"
+    "#{error_classes} rounded w-5 h-5 ease-linear transition-all duration-150 dark:bg-gray-800 dark:border-gray-300"
   end
 
   defp radio_classes(has_error) do
     error_classes = if has_error, do: "border-red-500", else: "border-gray-300"
-    "#{error_classes} h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500"
+    "#{error_classes} h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-300"
   end
 
   defp get_error_classes(true),

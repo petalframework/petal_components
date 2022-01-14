@@ -17,7 +17,7 @@ defmodule PetalComponents.Card do
       @class
     ], " ")}>
       <div class={Enum.join([
-        "flex flex-col bg-white max-w-full",
+        "flex flex-col bg-white dark:bg-gray-800 max-w-full",
         @class
       ], " ")}>
         <%= if @inner_block do %>
@@ -74,7 +74,7 @@ defmodule PetalComponents.Card do
       <% end %>
 
       <%= if @heading do %>
-        <div class="mb-2 text-xl font-medium text-gray-900">
+        <div class="mb-2 text-xl font-medium text-gray-900 dark:text-gray-300">
           <%= @heading %>
         </div>
       <% end %>
@@ -89,10 +89,10 @@ defmodule PetalComponents.Card do
   defp get_variant_classes(variant) do
     case variant do
       "basic" ->
-        "rounded-lg shadow-lg"
+        "rounded-lg shadow-lg dark:shadow-2xl"
 
       "outline" ->
-        "rounded-lg border border-gray-300"
+        "rounded-lg border border-gray-300 dark:border-gray-600"
     end
   end
 end

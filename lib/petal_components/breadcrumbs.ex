@@ -49,5 +49,5 @@ defmodule PetalComponents.Breadcrumbs do
     """
   end
 
-  defp get_breadcrumb_classes(user_classes), do: "hover:underline flex text-gray-500 #{user_classes}"
+  defp get_breadcrumb_classes(user_classes), do: "hover:underline flex text-gray-500 dark:text-gray-400 #{user_classes}"
 end

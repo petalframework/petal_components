@@ -39,7 +39,7 @@ defmodule PetalComponents.Dropdown do
         <%= if @label do %>
           <button
             link_type="button"
-            class="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none"
+            class="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
             {js_attributes("button", @js_lib, @options_container_id)}
             aria-haspopup="true"
           >
@@ -60,7 +60,7 @@ defmodule PetalComponents.Dropdown do
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={placement_class(@placement) <> " absolute w-56 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={placement_class(@placement) <> " absolute w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -112,7 +112,7 @@ defmodule PetalComponents.Dropdown do
 
   defp dropdown_menu_item_classes(),
     do:
-      "block flex gap-2 items-center self-start justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 w-full text-left"
+      "block flex gap-2 items-center self-start dark:hover:bg-gray-700 dark:text-gray-300 justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 dark:bg-gray-800 ease-in-out hover:bg-gray-100 w-full text-left"
 
   defp js_attributes("container", "alpine_js", _options_container_id) do
     %{

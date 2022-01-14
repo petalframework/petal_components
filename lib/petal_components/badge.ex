@@ -44,7 +44,7 @@ defmodule PetalComponents.Badge do
         "text-white bg-primary-600 border-primary-600"
 
       "outline" ->
-        "text-primary-600 border-primary-600"
+        "text-primary-600 border-primary-600 dark:text-primary-400 dark:border-primary-400"
     end
   end
 
@@ -57,7 +57,7 @@ defmodule PetalComponents.Badge do
         "text-white bg-secondary-600 border-secondary-600"
 
       "outline" ->
-        "text-secondary-600 border border-secondary-600"
+        "text-secondary-600 border border-secondary-600  dark:text-secondary-400 dark:border-secondary-400"
     end
   end
 
@@ -70,7 +70,7 @@ defmodule PetalComponents.Badge do
         "text-white bg-blue-600 border-blue-600"
 
       "outline" ->
-        "text-blue-600 border border-blue-600"
+        "text-blue-600 border border-blue-600 dark:text-blue-400 dark:border-blue-400"
     end
   end
 
@@ -83,7 +83,7 @@ defmodule PetalComponents.Badge do
         "text-white bg-green-600 border-green-600"
 
       "outline" ->
-        "text-green-600 border border-green-600"
+        "text-green-600 border border-green-600 dark:text-green-400 dark:border-green-400"
     end
   end
 
@@ -96,7 +96,7 @@ defmodule PetalComponents.Badge do
         "text-white bg-yellow-600 border-yellow-600"
 
       "outline" ->
-        "text-yellow-600 border border-yellow-600"
+        "text-yellow-600 border border-yellow-600 dark:text-yellow-400 dark:border-yellow-400"
     end
   end
 
@@ -109,20 +109,20 @@ defmodule PetalComponents.Badge do
         "text-white bg-red-600 border-red-600"
 
       "outline" ->
-        "text-red-600 border border-red-600"
+        "text-red-600 border border-red-600 dark:text-red-400 dark:border-red-400"
     end
   end
 
   defp get_color_classes(%{color: "gray", variant: variant}) do
     case variant do
       "light" ->
-        "text-gray-600 bg-gray-100 border-gray-100"
+        "text-gray-600 bg-gray-100 border-gray-100 dark:text-gray-400 dark:border-transparent"
 
       "dark" ->
         "text-white bg-gray-600 border-gray-600"
 
       "outline" ->
-        "text-gray-600 border border-gray-600"
+        "text-gray-600 border border-gray-600 dark:text-gray-400 dark:border-gray-400"
     end
   end
 end
