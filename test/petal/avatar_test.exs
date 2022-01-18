@@ -58,4 +58,15 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ "background-color:"
 
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.avatar />
+      """
+    )
+    assert html =~ "<svg"
+    assert html =~ "dark:"
+  end
 end

@@ -71,4 +71,15 @@ defmodule PetalComponents.BadgeTest do
     )
     assert html =~ "blah"
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.badge color="gray" label="Gray" class="blah" />
+      """
+    )
+    assert html =~ "blah"
+    assert html =~ "dark:"
+  end
 end

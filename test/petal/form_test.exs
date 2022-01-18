@@ -532,4 +532,28 @@ defmodule PetalComponents.FormTest do
     assert html =~ "random-element"
     assert html =~ "something"
   end
+
+  test "text_input dark mode" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} for={:user}>
+        <.text_input
+          form={f}
+          field={:name}
+          placeholder="eg. John"
+          random-element="something"
+        />
+      </.form>
+      """)
+
+    assert html =~ "input"
+    assert html =~ "John"
+    assert html =~ "user[name]"
+    assert html =~ "random-element"
+    assert html =~ "something"
+    assert html =~ "dark:"
+    refute html =~ " disabled "
+  end
 end

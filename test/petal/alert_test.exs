@@ -66,4 +66,16 @@ defmodule PetalComponents.AlertTest do
 
     assert html =~ "Success!"
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.alert label="x" heading="Success!" />
+      """
+    )
+
+    assert html =~ "Success!"
+    assert html =~ "dark:"
+  end
 end

@@ -126,4 +126,27 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "phx-click"
     assert html =~ "<svg"
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.tabs underline>
+        <.tab underline is_active to="/">
+          <Heroicons.Outline.home class="w-5 h-5 mr-2" />
+            Home
+        </.tab>
+        <.tab underline link_type="a" to="/" phx-click="click_event" >
+          <Heroicons.Outline.office_building class="w-5 h-5 mr-2"  />
+            Company
+        </.tab>
+      </.tabs>
+      """
+    )
+    assert html =~ "<a"
+    assert html =~ "href="
+    assert html =~ "phx-click"
+    assert html =~ "<svg"
+    assert html =~ "dark:"
+  end
 end

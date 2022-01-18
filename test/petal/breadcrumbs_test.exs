@@ -47,4 +47,21 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "href"
     assert html =~ "redirect"
   end
+
+  test "dark mode" do
+    assigns = %{}
+
+    html = rendered_to_string(
+      ~H"""
+      <.breadcrumbs class="text-md" links={[
+        %{ label: "Link 1", to: "/" }
+      ]} />
+      """
+    )
+    assert html =~ "Link 1"
+    assert html =~ "<a"
+    assert html =~ "href"
+    assert html =~ "text-md"
+    assert html =~ "dark:"
+  end
 end

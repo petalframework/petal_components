@@ -115,4 +115,26 @@ defmodule PetalComponents.ModalTest do
     assert html =~ "phx-click"
     assert html =~ "max-w-full"
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.button label="sm" link_type="live_patch" to="/live" />
+
+      <.modal max_width="sm" title="Modal">
+        <div class="gap-5 text-sm">
+          <.form_label label="Add some text here." />
+          <div class="flex justify-end">
+            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
+          </div>
+        </div>
+      </.modal>
+      """
+    )
+    assert html =~ "data-phx-link"
+    assert html =~ "phx-click"
+    assert html =~ "max-w-sm"
+    assert html =~ "dark:"
+  end
 end

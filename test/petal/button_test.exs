@@ -92,4 +92,18 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "Press me"
     assert html =~ "shadow-xl"
   end
+
+  test "button with dark mode" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button color="primary" variant="shadow" phx-click="click_event">Press me</.button>
+      """)
+
+    assert html =~ "<button"
+    assert html =~ "Press me"
+    assert html =~ "dark:"
+
+  end
 end

@@ -81,4 +81,15 @@ defmodule PetalComponents.PaginationTest do
     )
     refute html =~ "/page/11"
   end
+
+  test "dark mode" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={1} />
+      """
+    )
+    refute html =~ "/page/0"
+    assert html =~ "dark:"
+  end
 end
