@@ -18,6 +18,7 @@ defmodule PetalComponents.DropdownTest do
     assert html =~ "x-data"
     assert html =~ "x-show"
     assert html =~ "<svg class="
+    assert html =~ "dark:"
 
     # Test js_lib option
     html = rendered_to_string(
@@ -48,21 +49,33 @@ defmodule PetalComponents.DropdownTest do
     ) =~ "left-0"
   end
 
-  test "dark mode" do
+  test "it works with a custom trigger" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <.dropdown label="Dropdown">
-        <.dropdown_menu_item type="button">
-          <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
-          Button item with icon
-        </.dropdown_menu_item>
+      <.dropdown>
+        <:trigger_element>
+          <div>Custom trigger</div>
+        </:trigger_element>
+
+        <.dropdown_menu_item label="Item 1" />
+        <.dropdown_menu_item label="Item 2" />
       </.dropdown>
       """
     )
-    assert html =~ "x-data"
-    assert html =~ "x-show"
-    assert html =~ "<svg class="
-    assert html =~ "dark:"
+
+    assert html =~ "<div>Custom trigger</div>"
+  end
+
+  test "it works without a label" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.dropdown>
+        <.dropdown_menu_item>Option</.dropdown_menu_item>
+      </.dropdown>
+      """
+    )
+    assert html =~ "<svg"
   end
 end

@@ -16,6 +16,7 @@ defmodule PetalComponents.Dropdown do
   # prop label, :string
   # prop placement, :string, default: options: ["left", "right"]
   # slot default
+  # slot trigger_element
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
       <.dropdown_menu_item link_type="button">
@@ -32,31 +33,33 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:options_container_id, fn -> "dropdown_#{Enum.random(1..100000000)}" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
       |> assign_new(:placement, fn -> "left" end)
+      |> assign_new(:label, fn -> nil end)
+      |> assign_new(:trigger_element, fn -> nil end)
 
     ~H"""
     <div {js_attributes("container", @js_lib, @options_container_id)} class="relative z-10 inline-block text-left">
       <div>
-        <%= if @label do %>
-          <button
-            link_type="button"
-            class="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
-            {js_attributes("button", @js_lib, @options_container_id)}
-            aria-haspopup="true"
-          >
+        <button
+          type="button"
+          class={trigger_button_classes(@label, @trigger_element)}
+          {js_attributes("button", @js_lib, @options_container_id)}
+          aria-haspopup="true"
+        >
+          <span class="sr-only">Open options</span>
+
+          <%= if @label do %>
             <%= @label %>
-            <Heroicons.Solid.chevron_down class="w-5 h-5 ml-2 -mr-1" />
-          </button>
-        <% else %>
-          <button
-            link_type="button"
-            class="flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500"
-            {js_attributes("button", @js_lib, @options_container_id)}
-            aria-haspopup="true"
-          >
-            <span class="sr-only">Open options</span>
+            <Heroicons.Solid.chevron_down class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+          <% end %>
+
+          <%= if @trigger_element do %>
+            <%= render_slot(@trigger_element) %>
+          <% end %>
+
+          <%= if !@label && !@trigger_element do %>
             <Heroicons.Solid.dots_vertical class="w-5 h-5" />
-          </button>
-        <% end %>
+          <% end %>
+        </button>
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
@@ -109,6 +112,10 @@ defmodule PetalComponents.Dropdown do
     <% end %>
     """
   end
+
+  defp trigger_button_classes(nil, nil), do: "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
+  defp trigger_button_classes(_label, nil), do: "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
+  defp trigger_button_classes(_label, _trigger_element), do: "align-middle"
 
   defp dropdown_menu_item_classes(),
     do:
