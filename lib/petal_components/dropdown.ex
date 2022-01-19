@@ -94,7 +94,7 @@ defmodule PetalComponents.Dropdown do
 
     ~H"""
     <%= if @link_type == "button" do %>
-      <button class={@classes}>
+      <button class={@classes} {@extra_attributes}>
         <%= if @inner_block do %>
           <%= render_slot(@inner_block) %>
         <% else %>

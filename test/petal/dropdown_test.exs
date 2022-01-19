@@ -78,4 +78,17 @@ defmodule PetalComponents.DropdownTest do
     )
     assert html =~ "<svg"
   end
+
+  test "extra_attributes works on buttons" do
+    assigns = %{}
+    html = rendered_to_string(
+      ~H"""
+      <.dropdown>
+        <.dropdown_menu_item link_type="button" phx-click="some_event">Option</.dropdown_menu_item>
+      </.dropdown>
+      """
+    )
+    assert html =~ "phx-click"
+    assert html =~ "some_event"
+  end
 end
