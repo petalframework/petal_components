@@ -1,4 +1,6 @@
 # Changelog
+### 0.9.3 - 2022-01-19 19:28:35
+- Fixed z-index issue with dropdowns
 ### 0.9.2 - 2022-01-19 05:33:26
 - Fixed `<.dropdown_menu_item>` where extra_attributes weren't being passed to underlying button
 - Fixed z-index issue on dropdowns
