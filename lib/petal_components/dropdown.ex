@@ -37,7 +37,7 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:trigger_element, fn -> nil end)
 
     ~H"""
-    <div {js_attributes("container", @js_lib, @options_container_id)} class="relative z-10 inline-block text-left">
+    <div {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
       <div>
         <button
           type="button"

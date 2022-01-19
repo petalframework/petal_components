@@ -1,4 +1,7 @@
 # Changelog
+### 0.9.2 - 2022-01-19 05:33:26
+- Fixed `<.dropdown_menu_item>` where extra_attributes weren't being passed to underlying button
+- Fixed z-index issue on dropdowns
 ### 0.9.1 - 2022-01-19 02:55:17
 - New form component `<.date_select ...>`
 - New form component `<.date_input ...>`
