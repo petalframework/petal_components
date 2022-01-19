@@ -63,7 +63,7 @@ defmodule PetalComponents.Dropdown do
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={placement_class(@placement) <> " absolute w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={placement_class(@placement) <> " absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
