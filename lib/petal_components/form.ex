@@ -95,6 +95,9 @@ defmodule PetalComponents.Form do
             <.checkbox form={@form} field={@field} {@input_opts} />
             <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= @label %></div>
           </label>
+        <% "checkbox_group" -> %>
+          <.form_label form={@form} field={@field} label={@label} />
+          <.checkbox_group form={@form} field={@field} {@input_opts} />
         <% "radio_group" -> %>
           <.form_label form={@form} field={@field} label={@label} />
           <.radio_group form={@form} field={@field} {@input_opts} />
@@ -310,10 +313,40 @@ defmodule PetalComponents.Form do
   end
 
   def checkbox(assigns) do
-    assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
+    assigns =
+      assigns
+      |> assign_defaults(checkbox_classes(field_has_errors?(assigns)))
+      |> assign_new(:value, fn -> "true" end)
 
     ~H"""
-    <%= checkbox @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= checkbox @form, @field, [class: @classes, checked_value: @value, unchecked_value: ""] ++ @input_attributes %>
+    """
+  end
+
+  def checkbox_group(assigns) do
+    assigns =
+      assigns
+      |> assign_defaults(checkbox_classes(field_has_errors?(assigns)))
+      |> assign_new(:checked, fn ->
+        values =
+          case input_value(assigns[:form], assigns[:field]) do
+            value when is_binary(value) -> [value]
+            value when is_list(value) -> value
+            _ -> []
+          end
+
+        Enum.map(values, &to_string/1)
+      end)
+
+    ~H"""
+    <div class="flex flex-col gap-1">
+      <%= for {label, value} <- @options do %>
+        <label class="inline-flex items-center block gap-3">
+          <.checkbox form={@form} field={@field} value={value} checked={to_string(value) in @checked} {@input_attributes} />
+          <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= label %></div>
+        </label>
+      <% end %>
+    </div>
     """
   end
 
