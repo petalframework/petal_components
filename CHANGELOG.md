@@ -1,4 +1,11 @@
 # Changelog
+### 0.9.1 - 2022-01-19 02:55:17
+- New form component `<.date_select ...>`
+- New form component `<.date_input ...>`
+- Add dark mode to components
+- Fix dropdown failing when no label provided
+- Fix dropdown button not having type=button
+- Allow dropdown to have custom trigger buttons
 ### 0.9.0 - 2022-01-07 04:43:03
 - New component: Card
 - Button colored shadow option
