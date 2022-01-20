@@ -37,7 +37,7 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:trigger_element, fn -> nil end)
 
     ~H"""
-    <div {js_attributes("container", @js_lib, @options_container_id)} class="relative z-10 inline-block text-left">
+    <div {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
       <div>
         <button
           type="button"
@@ -63,7 +63,7 @@ defmodule PetalComponents.Dropdown do
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={placement_class(@placement) <> " absolute w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={placement_class(@placement) <> " absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -94,7 +94,7 @@ defmodule PetalComponents.Dropdown do
 
     ~H"""
     <%= if @link_type == "button" do %>
-      <button class={@classes}>
+      <button class={@classes} {@extra_attributes}>
         <%= if @inner_block do %>
           <%= render_slot(@inner_block) %>
         <% else %>
