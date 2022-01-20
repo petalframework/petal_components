@@ -64,6 +64,7 @@ defmodule PetalComponents.Form do
   # prop type, :string, required: true, options: ["text_input", "email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input", "textarea", "select", "checkbox", "radio_gro"]
   # prop disabled, :boolean, default: false, options: ["text_input"]
   # prop label, :string
+  # prop wrapper_classes, :css_class
 
   @doc "Use this when you want to include the label and some margin."
   def form_field(assigns) do
@@ -75,6 +76,7 @@ defmodule PetalComponents.Form do
           :field,
           :label,
           :field_type,
+          :wrapper_classes,
           :__slot__,
           :__changed__
         ])
@@ -86,9 +88,10 @@ defmodule PetalComponents.Form do
           nil
         end
       end)
+      |> assign_new(:wrapper_classes, fn -> "mb-6" end)
 
     ~H"""
-    <div class="mb-6">
+    <div class={@wrapper_classes}>
       <%= case @type do %>
         <% "checkbox" -> %>
           <label class="inline-flex items-center block gap-3">

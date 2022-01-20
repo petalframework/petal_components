@@ -198,6 +198,38 @@ defmodule PetalComponents.FormTest do
     assert html =~ "mt-1"
   end
 
+  test "form_field wrapper_classes" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} as={:user} for={%Ecto.Changeset{
+        action: :update,
+        data: %{name: ""},
+        errors: [
+          name: {"can't be blank", [validation: :required]},
+          name: {"too long", [validation: :required]},
+        ]}
+      }>
+        <.form_field
+          type="text_input"
+          form={f}
+          field={:name}
+          placeholder="eg. John"
+          wrapper_classes="wrapper-test"
+        />
+      </.form>
+      """)
+
+    assert html =~ "label"
+    assert html =~ "<input"
+    assert html =~ "user[name]"
+    assert html =~ "John"
+    assert html =~ "too long"
+    assert html =~ "blank"
+    assert html =~ "<div class=\"wrapper-test\""
+  end
+
   test "form_field text_input" do
     assigns = %{}
 
@@ -226,6 +258,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "John"
     assert html =~ "too long"
     assert html =~ "blank"
+    assert html =~ "mb-6"
   end
 
   test "number_input" do
