@@ -114,6 +114,29 @@ defmodule PetalComponents.FormTest do
     assert html =~ "random-element"
   end
 
+  test "checkbox_group" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} for={:user}>
+        <.checkbox_group
+          form={f}
+          field={:roles}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "checkbox"
+    assert html =~ "user_roles"
+    assert html =~ "user_roles_read"
+    assert html =~ "user_roles_write"
+    assert html =~ "user[roles][]"
+    assert html =~ "Read"
+    assert html =~ "Write"
+  end
+
   test "radio" do
     assigns = %{}
 
