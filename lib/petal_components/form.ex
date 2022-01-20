@@ -313,13 +313,10 @@ defmodule PetalComponents.Form do
   end
 
   def checkbox(assigns) do
-    assigns =
-      assigns
-      |> assign_defaults(checkbox_classes(field_has_errors?(assigns)))
-      |> assign_new(:value, fn -> "true" end)
+    assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= checkbox @form, @field, [class: @classes, checked_value: @value, unchecked_value: ""] ++ @input_attributes %>
+    <%= checkbox @form, @field, [class: @classes] ++ @input_attributes %>
     """
   end
 
@@ -337,12 +334,25 @@ defmodule PetalComponents.Form do
 
         Enum.map(values, &to_string/1)
       end)
+      |> assign_new(:id_prefix, fn -> input_id(assigns[:form], assigns[:field]) <> "_" end)
+      |> assign_new(:layout, fn -> :col end)
 
     ~H"""
-    <div class="flex flex-col gap-1">
+    <div class={checkbox_group_layout_classes(%{layout: @layout})}>
+      <%= hidden_input @form, @field, name: input_name(@form, @field), value: "" %>
       <%= for {label, value} <- @options do %>
-        <label class="inline-flex items-center block gap-3">
-          <.checkbox form={@form} field={@field} value={value} checked={to_string(value) in @checked} {@input_attributes} />
+        <label class={checkbox_group_layout_item_classes(%{layout: @layout})}>
+          <.checkbox
+            form={@form}
+            field={@field}
+            id={@id_prefix <> to_string(value)}
+            name={input_name(@form, @field) <> "[]"}
+            checked_value={value}
+            unchecked_value=""
+            value={value}
+            checked={to_string(value) in @checked}
+            hidden_input={false}
+            {@input_attributes} />
           <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= label %></div>
         </label>
       <% end %>
@@ -434,6 +444,7 @@ defmodule PetalComponents.Form do
         :field,
         :type,
         :options,
+        :layout,
         :inner_block,
         :__slot__,
         :__changed__
@@ -498,6 +509,26 @@ defmodule PetalComponents.Form do
         else: "border-gray-300 text-primary-700"
 
     "#{error_classes} rounded w-5 h-5 ease-linear transition-all duration-150 dark:bg-gray-800 dark:border-gray-300"
+  end
+
+  defp checkbox_group_layout_classes(assigns) do
+    case assigns[:layout] do
+      :row ->
+        "flex flex-row gap-4"
+
+      _col ->
+        "flex  flex-col gap-3"
+    end
+  end
+
+  defp checkbox_group_layout_item_classes(assigns) do
+    case assigns[:layout] do
+      :row ->
+        "inline-flex items-center block gap-2"
+
+      _col ->
+        "inline-flex items-center block gap-3"
+    end
   end
 
   defp radio_classes(has_error) do
