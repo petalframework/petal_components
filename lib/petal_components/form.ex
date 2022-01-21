@@ -94,7 +94,7 @@ defmodule PetalComponents.Form do
     <div class={@wrapper_classes}>
       <%= case @type do %>
         <% "checkbox" -> %>
-          <label class="inline-flex items-center block gap-3">
+          <label class="inline-flex items-center gap-3">
             <.checkbox form={@form} field={@field} {@input_opts} />
             <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= @label %></div>
           </label>
