@@ -26,21 +26,19 @@ defmodule PetalComponents.Form do
           nil
         end
       end)
-      |> assign_new(:label_opts, fn ->
-        Map.drop(assigns, [
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, [
           :classes,
           :form,
           :field,
           :inner_block,
           :label,
-          :__slot__,
-          :__changed__
         ])
       end)
 
     ~H"""
     <%= if @form && @field do %>
-      <%= label @form, @field, [class: @classes] ++ Map.to_list(@label_opts) do %>
+      <%= label @form, @field, [class: @classes] ++ @extra_assigns do %>
         <%= if @inner_block do %>
           <%= render_slot(@inner_block) %>
         <% else %>
@@ -48,7 +46,7 @@ defmodule PetalComponents.Form do
         <% end %>
       <% end %>
     <% else %>
-      <label class={@classes} {@label_opts}>
+      <label class={@classes} {@extra_assigns}>
         <%= if @inner_block do %>
           <%= render_slot(@inner_block) %>
         <% else %>
@@ -71,14 +69,12 @@ defmodule PetalComponents.Form do
     assigns =
       assigns
       |> assign_new(:input_opts, fn ->
-        Map.drop(assigns, [
+        assigns_to_attributes(assigns, [
           :form,
           :field,
           :label,
           :field_type,
           :wrapper_classes,
-          :__slot__,
-          :__changed__
         ])
       end)
       |> assign_new(:label, fn ->
@@ -169,7 +165,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= text_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= text_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -177,7 +173,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= email_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= email_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -185,7 +181,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= number_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= number_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -193,7 +189,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= password_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= password_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -201,7 +197,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= search_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= search_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -209,7 +205,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= telephone_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= telephone_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -217,7 +213,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= url_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= url_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -225,7 +221,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= time_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= time_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -234,7 +230,7 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="select-wrapper dark:text-white">
-      <%= time_select @form, @field, [class: @classes] ++ @input_attributes %>
+      <%= time_select @form, @field, [class: @classes] ++ @extra_assigns %>
     </div>
     """
   end
@@ -243,7 +239,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= datetime_local_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= datetime_local_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -252,7 +248,7 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="select-wrapper dark:text-white">
-      <%= datetime_select @form, @field, [class: @classes] ++ @input_attributes %>
+      <%= datetime_select @form, @field, [class: @classes] ++ @extra_assigns %>
     </div>
     """
   end
@@ -262,7 +258,7 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="select-wrapper dark:text-white">
-      <%= date_select @form, @field, [class: @classes] ++ @input_attributes %>
+      <%= date_select @form, @field, [class: @classes] ++ @extra_assigns %>
     </div>
     """
   end
@@ -271,7 +267,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= date_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= date_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -279,7 +275,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, color_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= color_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= color_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -287,7 +283,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, file_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= file_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= file_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -295,7 +291,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, range_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= range_input @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= range_input @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -303,7 +299,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= textarea @form, @field, [class: @classes] ++ Keyword.merge([rows: "4"], @input_attributes) %>
+    <%= textarea @form, @field, [class: @classes] ++ Keyword.merge([rows: "4"], @extra_assigns) %>
     """
   end
 
@@ -311,7 +307,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, select_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= select @form, @field, @options, [class: @classes] ++ @input_attributes %>
+    <%= select @form, @field, @options, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -319,7 +315,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= checkbox @form, @field, [class: @classes] ++ @input_attributes %>
+    <%= checkbox @form, @field, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -355,7 +351,7 @@ defmodule PetalComponents.Form do
             value={value}
             checked={to_string(value) in @checked}
             hidden_input={false}
-            {@input_attributes} />
+            {@extra_assigns} />
           <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= label %></div>
         </label>
       <% end %>
@@ -367,7 +363,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, radio_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= radio_button @form, @field, @value, [class: @classes] ++ @input_attributes %>
+    <%= radio_button @form, @field, @value, [class: @classes] ++ @extra_assigns %>
     """
   end
 
@@ -378,7 +374,7 @@ defmodule PetalComponents.Form do
     <div class="flex flex-col gap-1">
       <%= for {label, value} <- @options do %>
         <label class="inline-flex items-center gap-3">
-          <.radio form={@form} field={@field} value={value} {@input_attributes} />
+          <.radio form={@form} field={@field} value={value} {@extra_assigns} />
           <div class={label_classes(%{form: @form, field: @field, type: "radio"})}><%= label %></div>
         </label>
       <% end %>
@@ -440,8 +436,8 @@ defmodule PetalComponents.Form do
   defp assign_defaults(assigns, base_classes) do
     assigns
     |> assign_new(:type, fn -> "text" end)
-    |> assign_new(:input_attributes, fn ->
-      Map.drop(assigns, [
+    |> assign_new(:extra_assigns, fn ->
+      assigns_to_attributes(assigns, [
         :label,
         :form,
         :field,
@@ -449,10 +445,7 @@ defmodule PetalComponents.Form do
         :options,
         :layout,
         :inner_block,
-        :__slot__,
-        :__changed__
       ])
-      |> Map.to_list()
     end)
     |> assign_new(:classes, fn ->
       [

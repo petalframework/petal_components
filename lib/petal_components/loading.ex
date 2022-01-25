@@ -1,9 +1,8 @@
 defmodule PetalComponents.Loading do
   use Phoenix.Component
 
-  # prop size, :string, values: ["button", "sm", "md", "lg"]
-  # prop size_class, :css_class
-  # prop class, :css_class, default: ""
+  # prop size, :string, values: ["sm", "md", "lg"]
+  # prop class, :string, default: ""
   # prop show, :boolean, default: true
   def spinner(assigns) do
     assigns = assign_new(assigns, :classes, fn -> get_spinner_classes(assigns) end)

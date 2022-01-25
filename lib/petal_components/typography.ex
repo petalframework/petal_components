@@ -15,9 +15,9 @@ defmodule PetalComponents.Typography do
   def h1(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_attributes, fn -> drop_heading_props(assigns) end)
+      |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl", assigns)} {@extra_attributes}>
+    <div class={get_heading_classes("text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
@@ -30,9 +30,9 @@ defmodule PetalComponents.Typography do
   def h2(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_attributes, fn -> drop_heading_props(assigns) end)
+      |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-2xl sm:text-3xl font-extrabold leading-10", assigns)} {@extra_attributes}>
+    <div class={get_heading_classes("text-2xl sm:text-3xl font-extrabold leading-10", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
@@ -45,9 +45,9 @@ defmodule PetalComponents.Typography do
   def h3(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_attributes, fn -> drop_heading_props(assigns) end)
+      |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-xl sm:text-2xl font-bold leading-7", assigns)} {@extra_attributes}>
+    <div class={get_heading_classes("text-xl sm:text-2xl font-bold leading-7", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
@@ -60,9 +60,9 @@ defmodule PetalComponents.Typography do
   def h4(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_attributes, fn -> drop_heading_props(assigns) end)
+      |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-lg font-bold leading-6", assigns)} {@extra_attributes}>
+    <div class={get_heading_classes("text-lg font-bold leading-6", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
@@ -75,9 +75,9 @@ defmodule PetalComponents.Typography do
   def h5(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_attributes, fn -> drop_heading_props(assigns) end)
+      |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-lg font-medium leading-6", assigns)} {@extra_attributes}>
+    <div class={get_heading_classes("text-lg font-medium leading-6", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
@@ -98,12 +98,10 @@ defmodule PetalComponents.Typography do
   end
 
   defp drop_heading_props(assigns) do
-    Map.drop(assigns, [
+    assigns_to_attributes(assigns, [
       :class,
       :inner_block,
       :label,
-      :__slot__,
-      :__changed__
     ])
   end
 

@@ -37,8 +37,8 @@ defmodule PetalComponents.Tabs do
      |> assign_new(:link_type, fn -> "a" end)
      |> assign_new(:is_active, fn -> false end)
      |> assign_new(:underline, fn -> false end)
-     |> assign_new(:extra_attributes, fn ->
-      Map.drop(assigns, [
+     |> assign_new(:extra_assigns, fn ->
+      assigns_to_attributes(assigns, [
         :class,
         :inner_block,
         :number,
@@ -46,13 +46,11 @@ defmodule PetalComponents.Tabs do
         :is_active,
         :underline,
         :label,
-        :__slot__,
-        :__changed__
       ])
     end)
 
     ~H"""
-    <.link link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline)} {@extra_attributes}>
+    <.link link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline)} {@extra_assigns}>
       <%= if @number do %>
         <.render_label_or_slot {assigns} />
 

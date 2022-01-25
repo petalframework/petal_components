@@ -15,7 +15,7 @@ defmodule PetalComponents.Button do
 
     ~H"""
     <%= if @link_type == "button" do %>
-      <button class={@classes} disabled={@disabled} {@button_opts}>
+      <button class={@classes} disabled={@disabled} {@extra_assigns}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
         <% end %>
@@ -28,7 +28,7 @@ defmodule PetalComponents.Button do
       </button>
 
     <% else %>
-      <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@button_opts}>
+      <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
         <% end %>
@@ -50,7 +50,7 @@ defmodule PetalComponents.Button do
     |> assign_new(:loading, fn -> false end)
     |> assign_new(:size, fn -> "md" end)
     |> assign_new(:disabled, fn -> false end)
-    |> assign_new(:button_opts, fn -> get_button_opts(assigns) end)
+    |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
     |> assign_new(:classes, fn -> button_classes(assigns) end)
   end
 
@@ -111,8 +111,8 @@ defmodule PetalComponents.Button do
     """
   end
 
-  defp get_button_opts(assigns) do
-    Map.drop(assigns, [
+  defp get_extra_assigns(assigns) do
+    assigns_to_attributes(assigns, [
       :loading,
       :disabled,
       :link_type,
@@ -121,8 +121,6 @@ defmodule PetalComponents.Button do
       :variant,
       :color,
       :icon,
-      :__slot__,
-      :__changed__
     ])
   end
 

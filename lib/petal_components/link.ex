@@ -10,22 +10,20 @@ defmodule PetalComponents.Link do
       |> assign_new(:link_type, fn -> "a" end)
       |> assign_new(:label, fn -> nil end)
       |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:extra_attributes, fn ->
-        Map.drop(assigns, [
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, [
           :class,
           :link_type,
           :type,
           :inner_block,
           :label,
-          :__slot__,
-          :__changed__
         ])
       end)
 
     ~H"""
     <%= case @link_type do %>
       <% "a" -> %>
-        <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ Map.to_list(@extra_attributes) do %>
+        <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @extra_assigns do %>
           <%= if @inner_block do %>
             <%= render_slot(@inner_block) %>
           <% else %>
@@ -36,7 +34,7 @@ defmodule PetalComponents.Link do
         <%= live_patch [
           to: @to,
           class: @class,
-        ] ++ Enum.to_list(@extra_attributes) do %>
+        ] ++ @extra_assigns do %>
           <%= if @inner_block do %>
             <%= render_slot(@inner_block) %>
           <% else %>
@@ -47,7 +45,7 @@ defmodule PetalComponents.Link do
         <%= live_redirect [
           to: @to,
           class: @class,
-        ] ++ Enum.to_list(@extra_attributes) do %>
+        ] ++ @extra_assigns do %>
           <%= if @inner_block do %>
             <%= render_slot(@inner_block) %>
           <% else %>
