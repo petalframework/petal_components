@@ -1,4 +1,10 @@
 # Changelog
+### 0.10.0 - 2022-01-26 01:18:58
+- [BREAKING CHANGE] Rename alert property "state" to "color"
+- Add checkbox_group form field type
+- Fix z-index issue with dropdown
+- Update Alert colors
+- Add icons to badges
 ### 0.9.3 - 2022-01-19 19:28:35
 - Fixed z-index issue with dropdowns
 ### 0.9.2 - 2022-01-19 05:33:26
