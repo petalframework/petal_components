@@ -2,14 +2,14 @@ defmodule PetalComponents.Alert do
   use Phoenix.Component
   alias PetalComponents.Heroicons
 
-  # prop state, :string, options: ["info", "success", "warning", "danger"]
+  # prop color, :string, options: ["info", "success", "warning", "danger"]
   # prop class, :css_class
   # prop label, :string
   # slot default
   def alert(assigns) do
     assigns = assigns
       |> assign_new(:label, fn -> nil end)
-      |> assign_new(:state, fn -> "info" end)
+      |> assign_new(:color, fn -> "info" end)
       |> assign_new(:heading, fn -> nil end)
       |> assign_new(:with_icon, fn -> nil end)
       |> assign_new(:inner_block, fn -> nil end)
@@ -21,7 +21,7 @@ defmodule PetalComponents.Alert do
       <div class={@classes}>
         <%= if @with_icon do %>
           <div class="self-start flex-shrink-0 pt-1">
-            <Heroicons.Solid.render icon={get_icon(@state)} />
+            <Heroicons.Solid.render icon={get_icon(@color)} />
           </div>
         <% end %>
 
@@ -44,7 +44,7 @@ defmodule PetalComponents.Alert do
             </div>
 
             <%= if @close_button_properties do %>
-              <button class={Enum.join(["p-2 mouse-hover flex hover:rounded ", " ", get_dismiss_icon_classes(@state), " "])} {@close_button_properties}>
+              <button class={Enum.join(["p-2 mouse-hover flex hover:rounded ", " ", get_dismiss_icon_classes(@color), " "])} {@close_button_properties}>
                 <Heroicons.Solid.x class="self-start w-4 h-4" />
               </button>
             <% end %>
@@ -57,26 +57,26 @@ defmodule PetalComponents.Alert do
 
   defp alert_classes(opts) do
     opts = %{
-      state: opts[:state] || "info",
+      color: opts[:color] || "info",
       class: opts[:class] || "",
     }
 
     base_classes = "w-full flex text-sm rounded items-center focus:outline-none px-4 py-2 gap-3"
-    state_css = get_state_classes(opts.state)
+    color_css = get_color_classes(opts.color)
     custom_classes = opts.class
 
     [
       base_classes,
-      state_css,
+      color_css,
       custom_classes
     ]
     |> Enum.join(" ")
   end
 
-  defp get_state_classes("info"), do: "text-blue-800 bg-blue-100 dark:bg-blue-200 dark:text-blue-800"
-  defp get_state_classes("success"), do: "text-green-800 bg-green-100 dark:bg-green-200 dark:text-green-800"
-  defp get_state_classes("warning"), do: "text-yellow-800 bg-yellow-100 dark:bg-yellow-200 dark:text-yellow-800"
-  defp get_state_classes("danger"), do: "text-red-800 bg-red-100 dark:bg-red-200 dark:text-red-800"
+  defp get_color_classes("info"), do: "text-blue-800 bg-blue-100 dark:bg-blue-200 dark:text-blue-800"
+  defp get_color_classes("success"), do: "text-green-800 bg-green-100 dark:bg-green-200 dark:text-green-800"
+  defp get_color_classes("warning"), do: "text-yellow-800 bg-yellow-100 dark:bg-yellow-200 dark:text-yellow-800"
+  defp get_color_classes("danger"), do: "text-red-800 bg-red-100 dark:bg-red-200 dark:text-red-800"
 
   defp get_dismiss_icon_classes("info"), do: "bg-blue-100 dark:bg-blue-200 hover:bg-blue-200 dark:hover:bg-blue-300 hover:text-blue-800 dark:hover:text-blue-900"
   defp get_dismiss_icon_classes("success"), do: "bg-green-100 dark:bg-green-200 hover:bg-green-200 dark:hover:bg-green-300 hover:text-green-800 dark:hover:text-green-900"

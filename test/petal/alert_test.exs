@@ -6,7 +6,7 @@ defmodule PetalComponents.AlertTest do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
-      <.alert state="info" label="Info alert" />
+      <.alert with_icon color="info" label="Info alert" />
       """
     )
     assert html =~ "Info alert"
@@ -15,27 +15,27 @@ defmodule PetalComponents.AlertTest do
 
     html = rendered_to_string(
       ~H"""
-      <.alert state="warning" label="Label" />
+      <.alert color="warning" label="Label" />
       """
     )
     assert html =~ "text-yellow"
 
     html = rendered_to_string(
       ~H"""
-      <.alert state="danger" label="Label" />
+      <.alert color="danger" label="Label" />
       """
     )
     assert html =~ "text-red"
 
     html = rendered_to_string(
       ~H"""
-      <.alert state="success" label="Label" />
+      <.alert color="success" label="Label" />
       """
     )
     assert html =~ "text-green"
   end
 
-  test "default state is info" do
+  test "default color is info" do
     assigns = %{}
     html = rendered_to_string(
       ~H"""
