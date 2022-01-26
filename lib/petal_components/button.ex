@@ -4,6 +4,7 @@ defmodule PetalComponents.Button do
   import PetalComponents.Link
 
   # <.button link_type="button|a|live_patch|live_redirect" />
+  # prop class, :string
   # prop label, :string
   # prop size, :string
   # prop variant, :string
@@ -52,6 +53,7 @@ defmodule PetalComponents.Button do
     |> assign_new(:disabled, fn -> false end)
     |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
     |> assign_new(:classes, fn -> button_classes(assigns) end)
+    |> assign_new(:class, fn -> "" end)
   end
 
   defp button_classes(opts) do
@@ -61,7 +63,8 @@ defmodule PetalComponents.Button do
       color: opts[:color] || "primary",
       loading: opts[:loading] || false,
       disabled: opts[:disabled] || false,
-      icon: opts[:icon] || false
+      icon: opts[:icon] || false,
+      user_added_classes: opts[:class] || ""
     }
 
     color_css = get_color_classes(opts)
@@ -97,6 +100,7 @@ defmodule PetalComponents.Button do
       end
 
     """
+      #{opts.user_added_classes}
       #{color_css}
       #{size_css}
       #{loading_css}
@@ -109,6 +113,7 @@ defmodule PetalComponents.Button do
       focus:outline-none
       transition duration-150 ease-in-out
     """
+    |> PetalComponents.Helpers.convert_string_to_one_line()
   end
 
   defp get_extra_assigns(assigns) do
@@ -121,6 +126,7 @@ defmodule PetalComponents.Button do
       :variant,
       :color,
       :icon,
+      :class
     ])
   end
 

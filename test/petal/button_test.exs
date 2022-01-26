@@ -104,6 +104,16 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "Press me"
     assert html =~ "dark:"
+  end
 
+  test "button with custom class" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button class="some-special-class">Press me</.button>
+      """)
+
+    assert html =~ "some-special-class"
   end
 end
