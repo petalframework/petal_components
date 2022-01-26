@@ -1,4 +1,6 @@
 # Changelog
+### 0.10.1 - 2022-01-26 04:02:41
+- Buttons can now take custom classes
 ### 0.10.0 - 2022-01-26 01:18:58
 - [BREAKING CHANGE] Rename alert property "state" to "color"
 - Add checkbox_group form field type
