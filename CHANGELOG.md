@@ -2,6 +2,10 @@
 ### 0.10.3 - 2022-02-03 01:18:38
 - Added <.card_footer> for content you would like fixed to the bottom of a card
 - Added `category_color_class` to <.card_content> so that you can customize category colors
+### 0.10.2 - 2022-01-29 01:51:55
+- <.h1>, <.h2> etc now turn into those underlying html elements (h1, h2 etc)
+- <.card_media> utilises Tailwinds aspect-ratio classes
+- Fix <.card> `class` assigns appearing twice
 ### 0.10.1 - 2022-01-26 04:02:41
 - Buttons can now take custom classes
 ### 0.10.0 - 2022-01-26 01:18:58
