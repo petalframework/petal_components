@@ -17,13 +17,13 @@ defmodule PetalComponents.Typography do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl", assigns)} {@extra_assigns}>
+    <h1 class={get_heading_classes("text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </div>
+    </h1>
     """
   end
 
@@ -32,13 +32,13 @@ defmodule PetalComponents.Typography do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-2xl sm:text-3xl font-extrabold leading-10", assigns)} {@extra_assigns}>
+    <h2 class={get_heading_classes("text-2xl sm:text-3xl font-extrabold leading-10", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </div>
+    </h2>
     """
   end
 
@@ -47,13 +47,13 @@ defmodule PetalComponents.Typography do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-xl sm:text-2xl font-bold leading-7", assigns)} {@extra_assigns}>
+    <h3 class={get_heading_classes("text-xl sm:text-2xl font-bold leading-7", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </div>
+    </h3>
     """
   end
 
@@ -62,13 +62,13 @@ defmodule PetalComponents.Typography do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-lg font-bold leading-6", assigns)} {@extra_assigns}>
+    <h4 class={get_heading_classes("text-lg font-bold leading-6", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </div>
+    </h4>
     """
   end
 
@@ -77,13 +77,13 @@ defmodule PetalComponents.Typography do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn -> drop_heading_props(assigns) end)
     ~H"""
-    <div class={get_heading_classes("text-lg font-medium leading-6", assigns)} {@extra_assigns}>
+    <h5 class={get_heading_classes("text-lg font-medium leading-6", assigns)} {@extra_assigns}>
       <%= if assigns[:label] do %>
         <%= @label %>
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </div>
+    </h5>
     """
   end
 

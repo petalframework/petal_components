@@ -11,7 +11,7 @@ defmodule PetalComponents.TypographyTest do
     )
 
     assert html =~ "Heading 1"
-    assert html =~ "<div class="
+    assert html =~ "<h1 class="
     assert html =~ "text-4xl"
   end
 
@@ -24,7 +24,7 @@ defmodule PetalComponents.TypographyTest do
     )
 
     assert html =~ "Heading 2"
-    assert html =~ "<div class="
+    assert html =~ "<h2 class="
     assert html =~ "text-2xl"
   end
 
@@ -37,7 +37,7 @@ defmodule PetalComponents.TypographyTest do
     )
 
     assert html =~ "Heading 3"
-    assert html =~ "<div class="
+    assert html =~ "<h3 class="
     assert html =~ "text-xl"
   end
 
@@ -50,7 +50,7 @@ defmodule PetalComponents.TypographyTest do
     )
 
     assert html =~ "Heading 4"
-    assert html =~ "<div class="
+    assert html =~ "<h4 class="
     assert html =~ "text-lg font-bold"
   end
 
@@ -63,7 +63,7 @@ defmodule PetalComponents.TypographyTest do
     )
 
     assert html =~ "Heading 5"
-    assert html =~ "<div class="
+    assert html =~ "<h5 class="
     assert html =~ "text-lg font-medium"
   end
 end
