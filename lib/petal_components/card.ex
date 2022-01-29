@@ -8,7 +8,6 @@ defmodule PetalComponents.Card do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:variant, fn -> "basic" end)
-      |> assign_new(:inner_block, fn -> nil end)
 
     ~H"""
     <div class={Enum.join([
@@ -16,35 +15,30 @@ defmodule PetalComponents.Card do
       get_variant_classes(@variant),
       @class
     ], " ")}>
-      <div class={Enum.join([
-        "flex flex-col bg-white dark:bg-gray-800 max-w-full",
-        @class
-      ], " ")}>
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% end %>
+      <div class="flex flex-col w-full max-w-full bg-white dark:bg-gray-800">
+        <%= render_slot(@inner_block) %>
       </div>
     </div>
     """
   end
 
   # prop class, :string
+  # prop aspect_ratio_class, :string
   # prop src, :string
   def card_media(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
+      |> assign_new(:aspect_ratio_class, fn -> "aspect-video" end)
       |> assign_new(:src, fn -> nil end)
 
     ~H"""
     <div class={Enum.join([
       "flex-shrink-0",
+      @aspect_ratio_class,
       @class
     ], " ")}>
       <%= if @src do %>
-        <img src={@src} class={Enum.join([
-          "object-cover w-full",
-          @class
-        ], " ")} />
+        <img src={@src} class="object-cover w-full" />
       <% else %>
         <div class="h-full bg-gray-300"></div>
       <% end %>
