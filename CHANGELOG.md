@@ -1,4 +1,7 @@
 # Changelog
+### 0.10.3 - 2022-02-03 01:18:38
+- Added <.card_footer> for content you would like fixed to the bottom of a card
+- Added `category_color_class` to <.card_content> so that you can customize category colors
 ### 0.10.1 - 2022-01-26 04:02:41
 - Buttons can now take custom classes
 ### 0.10.0 - 2022-01-26 01:18:58
