@@ -49,20 +49,23 @@ defmodule PetalComponents.Card do
   # prop class, :string
   # prop heading, :string
   # prop category, :string
+  # prop category_color_class, :string
   # slot default
   def card_content(assigns) do
     assigns = assigns
       |> assign_new(:class, fn -> "" end)
+      |> assign_new(:category_color_class, fn -> "text-primary-600" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:category, fn -> nil end)
       |> assign_new(:heading, fn -> nil end)
 
     ~H"""
     <div class={Enum.join([
-      "p-6 gap-2", @class
+      "p-6 flex-1 font-light text-gray-500 text-md",
+      @class
     ], " ")}>
       <%= if @category do %>
-        <div class="mb-3 text-sm font-medium text-primary-600">
+        <div class={"mb-3 text-sm font-medium #{@category_color_class}"}>
           <%= @category %>
         </div>
       <% end %>
@@ -76,6 +79,14 @@ defmodule PetalComponents.Card do
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% end %>
+    </div>
+    """
+  end
+
+  def card_footer(assigns) do
+    ~H"""
+    <div class="px-6 pb-6">
+      <%= render_slot(@inner_block) %>
     </div>
     """
   end
