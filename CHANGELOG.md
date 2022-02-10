@@ -1,4 +1,6 @@
 # Changelog
+### 0.10.4 - 2022-02-10 19:49:47
+- Fixed card_media not working properly on Safari
 ### 0.10.3 - 2022-02-03 01:18:38
 - Added <.card_footer> for content you would like fixed to the bottom of a card
 - Added `category_color_class` to <.card_content> so that you can customize category colors
