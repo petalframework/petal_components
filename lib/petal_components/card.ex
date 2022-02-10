@@ -32,17 +32,19 @@ defmodule PetalComponents.Card do
       |> assign_new(:src, fn -> nil end)
 
     ~H"""
-    <div class={Enum.join([
-      "flex-shrink-0",
-      @aspect_ratio_class,
-      @class
-    ], " ")}>
-      <%= if @src do %>
-        <img src={@src} class="object-cover w-full" />
-      <% else %>
-        <div class="h-full bg-gray-300"></div>
-      <% end %>
-    </div>
+    <%= if @src do %>
+      <img src={@src} class={Enum.join([
+        "flex-shrink-0 w-full",
+        @aspect_ratio_class,
+        @class
+      ], " ")} />
+    <% else %>
+      <div class={Enum.join([
+        "flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700",
+        @aspect_ratio_class,
+        @class
+      ], " ")}></div>
+    <% end %>
     """
   end
 
