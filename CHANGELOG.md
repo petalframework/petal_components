@@ -1,4 +1,6 @@
 # Changelog
+### 0.10.5 - 2022-02-11 22:30:21
+- Fixed Heroicons sometimes failing
 ### 0.10.4 - 2022-02-10 19:49:47
 - Fixed card_media not working properly on Safari
 ### 0.10.3 - 2022-02-03 01:18:38
