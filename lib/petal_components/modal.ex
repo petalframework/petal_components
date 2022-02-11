@@ -6,8 +6,9 @@ defmodule PetalComponents.Modal do
   # prop size, :string
   # slot default
   def modal(assigns) do
-    assigns = assigns
-    |> assign_new(:classes, fn -> get_classes(assigns) end)
+    assigns =
+      assigns
+      |> assign_new(:classes, fn -> get_classes(assigns) end)
 
     ~H"""
     <div id="modal" phx-remove={hide_modal()}>
@@ -65,16 +66,22 @@ defmodule PetalComponents.Modal do
   def hide_modal(js \\ %JS{}) do
     js
     |> JS.remove_class("overflow-hidden", to: "body")
-    |> JS.hide(transition: {
-      "ease-in duration-200",
-      "opacity-100",
-      "opacity-0"
-    }, to: "#modal-overlay")
-    |> JS.hide(transition: {
-      "ease-in duration-200",
-      "opacity-100 translate-y-0 md:scale-100",
-      "opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
-    }, to: "#modal-content")
+    |> JS.hide(
+      transition: {
+        "ease-in duration-200",
+        "opacity-100",
+        "opacity-0"
+      },
+      to: "#modal-overlay"
+    )
+    |> JS.hide(
+      transition: {
+        "ease-in duration-200",
+        "opacity-100 translate-y-0 md:scale-100",
+        "opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
+      },
+      to: "#modal-content"
+    )
     |> JS.push("close_modal")
   end
 
@@ -83,22 +90,28 @@ defmodule PetalComponents.Modal do
   def show_modal(js \\ %JS{}) do
     js
     |> JS.add_class("overflow-hidden", to: "body")
-    |> JS.show(transition: {
-      "ease-in duration-300",
-      "opacity-0",
-      "opacity-100"
-    }, to: "#modal-overlay")
-    |> JS.show(transition: {
-      "transition ease-in-out duration-200",
-      "opacity-0 translate-y-4",
-      "opacity-100 translate-y-0"
-    }, to: "#modal-content")
+    |> JS.show(
+      transition: {
+        "ease-in duration-300",
+        "opacity-0",
+        "opacity-100"
+      },
+      to: "#modal-overlay"
+    )
+    |> JS.show(
+      transition: {
+        "transition ease-in-out duration-200",
+        "opacity-0 translate-y-4",
+        "opacity-100 translate-y-0"
+      },
+      to: "#modal-content"
+    )
   end
 
   defp get_classes(assigns) do
     opts = %{
       max_width: assigns[:max_width] || "md",
-      class: assigns[:class] || "",
+      class: assigns[:class] || ""
     }
 
     base_classes = "w-full max-h-full overflow-auto bg-white rounded shadow-lg dark:bg-gray-800"
@@ -114,6 +127,7 @@ defmodule PetalComponents.Modal do
       end
 
     custom_classes = opts.class
+
     [max_width_class, base_classes, custom_classes]
     |> Enum.join(" ")
   end

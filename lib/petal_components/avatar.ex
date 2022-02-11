@@ -6,7 +6,8 @@ defmodule PetalComponents.Avatar do
   # prop size, :string
 
   def avatar(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:src, fn -> nil end)
       |> assign_new(:size, fn -> "md" end)
       |> assign_new(:class, fn -> "" end)
@@ -45,7 +46,6 @@ defmodule PetalComponents.Avatar do
     """
   end
 
-
   def avatar_group(assigns) do
     assigns = assign_new(assigns, :classes, fn -> avatar_group_classes(assigns) end)
 
@@ -83,17 +83,18 @@ defmodule PetalComponents.Avatar do
         "xl" -> "relative z-0 flex -space-x-6"
       end
 
-      """
+    """
       #{opts.class}
       #{size_css}
     """
   end
 
   defp src_blank?(src) do
-    (!src || src == "")
+    !src || src == ""
   end
 
   defp maybe_generate_random_color(false, _), do: nil
+
   defp maybe_generate_random_color(true, name) do
     "background-color: #{generate_color_from_string(name)}; color: white;"
   end

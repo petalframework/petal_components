@@ -9,14 +9,14 @@ defmodule PetalComponents.Pagination do
   # prop boundary_count, :integer
   # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
 
-
   @doc """
   In the `path` param you can specify :page as the place your page number will appear.
   e.g "/posts/:page" => "/posts/1"
   """
 
   def pagination(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:link_type, fn -> "a" end)
       |> assign_new(:sibling_count, fn -> 1 end)
@@ -66,62 +66,96 @@ defmodule PetalComponents.Pagination do
     """
   end
 
-
   defp get_items(total_pages, current_page, sibling_count, boundary_count) do
     start_pages = 1..min(boundary_count, total_pages) |> Enum.to_list()
-    end_pages = max(total_pages - boundary_count + 1, boundary_count + 1)..total_pages |> Enum.to_list()
 
-    siblings_start = max(
-      min( current_page - sibling_count, total_pages - boundary_count - sibling_count * 2 - 1),
-      boundary_count + 2
-    )
+    end_pages =
+      max(total_pages - boundary_count + 1, boundary_count + 1)..total_pages |> Enum.to_list()
 
-    siblings_end = min(
-      max(current_page + sibling_count, boundary_count + sibling_count * 2 + 2),
-      (if length(end_pages) > 0, do: List.first(end_pages) - 2, else: total_pages - 1)
-    )
+    siblings_start =
+      max(
+        min(current_page - sibling_count, total_pages - boundary_count - sibling_count * 2 - 1),
+        boundary_count + 2
+      )
+
+    siblings_end =
+      min(
+        max(current_page + sibling_count, boundary_count + sibling_count * 2 + 2),
+        if(length(end_pages) > 0, do: List.first(end_pages) - 2, else: total_pages - 1)
+      )
 
     items = []
 
     # Previous button
-    items = if current_page > 1, do: items ++ [%{type: "previous", number: current_page - 1}], else: items
+    items =
+      if current_page > 1,
+        do: items ++ [%{type: "previous", number: current_page - 1}],
+        else: items
 
     # Start pages
-    items = Enum.reduce(start_pages, items, fn i, acc ->
-      acc ++ [%{type: "page", number: i, first: i == 1}]
-    end)
+    items =
+      Enum.reduce(start_pages, items, fn i, acc ->
+        acc ++ [%{type: "page", number: i, first: i == 1}]
+      end)
 
     # First ellipsis
-    items = if siblings_start > boundary_count + 2, do: items ++ [%{type: "ellipsis"}], else: (if boundary_count + 1 < total_pages - boundary_count, do: items ++ [%{type: "page", number: boundary_count + 1}], else: items)
+    items =
+      if siblings_start > boundary_count + 2,
+        do: items ++ [%{type: "ellipsis"}],
+        else:
+          if(boundary_count + 1 < total_pages - boundary_count,
+            do: items ++ [%{type: "page", number: boundary_count + 1}],
+            else: items
+          )
 
     # Siblings
-    items = Enum.reduce(siblings_start..siblings_end, items, fn i, acc ->
-      acc ++ [%{type: "page", number: i}]
-    end)
+    items =
+      Enum.reduce(siblings_start..siblings_end, items, fn i, acc ->
+        acc ++ [%{type: "page", number: i}]
+      end)
 
     # Second ellipsis
-    items = if siblings_end < total_pages - boundary_count - 1, do: items ++ [%{type: "ellipsis"}], else: (if total_pages - boundary_count > boundary_count, do: items ++ [%{type: "page", number: total_pages - boundary_count}], else: items)
+    items =
+      if siblings_end < total_pages - boundary_count - 1,
+        do: items ++ [%{type: "ellipsis"}],
+        else:
+          if(total_pages - boundary_count > boundary_count,
+            do: items ++ [%{type: "page", number: total_pages - boundary_count}],
+            else: items
+          )
 
     # End pages
-    items = Enum.reduce(end_pages, items, fn i, acc ->
-      acc ++ [%{type: "page", number: i, last: i == total_pages}]
-    end)
+    items =
+      Enum.reduce(end_pages, items, fn i, acc ->
+        acc ++ [%{type: "page", number: i, last: i == total_pages}]
+      end)
 
     # Next button
-    if current_page < total_pages, do: items ++ [%{type: "next", number: current_page + 1}], else: items
+    if current_page < total_pages,
+      do: items ++ [%{type: "next", number: current_page + 1}],
+      else: items
   end
 
   defp get_box_class(item, is_active \\ false) do
-    base_classes = "inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-400 border border-gray-200 text-gray-600 hover:text-gray-800"
-    active_classes = if is_active, do: "bg-gray-100 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 text-gray-800", else: "dark:text-gray-400 text-gray-600 hover:text-gray-800 dark:hover:text-gray-400"
-    rounded_classes = cond do
-      item[:first] ->
-        "rounded-l "
-      item[:last] ->
-        "rounded-r"
-      true ->
-        ""
-    end
+    base_classes =
+      "inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-400 border border-gray-200 text-gray-600 hover:text-gray-800"
+
+    active_classes =
+      if is_active,
+        do: "bg-gray-100 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 text-gray-800",
+        else: "dark:text-gray-400 text-gray-600 hover:text-gray-800 dark:hover:text-gray-400"
+
+    rounded_classes =
+      cond do
+        item[:first] ->
+          "rounded-l "
+
+        item[:last] ->
+          "rounded-r"
+
+        true ->
+          ""
+      end
 
     Enum.join([base_classes, active_classes, rounded_classes], " ")
   end

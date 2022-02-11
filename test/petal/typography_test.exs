@@ -4,11 +4,11 @@ defmodule PetalComponents.TypographyTest do
 
   test ".h1" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.h1>Heading 1</.h1>
-      """
-    )
+      """)
 
     assert html =~ "Heading 1"
     assert html =~ "<h1 class="
@@ -17,11 +17,11 @@ defmodule PetalComponents.TypographyTest do
 
   test ".h2" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.h2>Heading 2</.h2>
-      """
-    )
+      """)
 
     assert html =~ "Heading 2"
     assert html =~ "<h2 class="
@@ -30,11 +30,11 @@ defmodule PetalComponents.TypographyTest do
 
   test ".h3" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.h3>Heading 3</.h3>
-      """
-    )
+      """)
 
     assert html =~ "Heading 3"
     assert html =~ "<h3 class="
@@ -43,11 +43,11 @@ defmodule PetalComponents.TypographyTest do
 
   test ".h4" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.h4>Heading 4</.h4>
-      """
-    )
+      """)
 
     assert html =~ "Heading 4"
     assert html =~ "<h4 class="
@@ -56,11 +56,11 @@ defmodule PetalComponents.TypographyTest do
 
   test ".h5" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.h5>Heading 5</.h5>
-      """
-    )
+      """)
 
     assert html =~ "Heading 5"
     assert html =~ "<h5 class="

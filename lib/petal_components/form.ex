@@ -32,7 +32,7 @@ defmodule PetalComponents.Form do
           :form,
           :field,
           :inner_block,
-          :label,
+          :label
         ])
       end)
 
@@ -74,7 +74,7 @@ defmodule PetalComponents.Form do
           :field,
           :label,
           :field_type,
-          :wrapper_classes,
+          :wrapper_classes
         ])
       end)
       |> assign_new(:label, fn ->
@@ -444,7 +444,7 @@ defmodule PetalComponents.Form do
         :type,
         :options,
         :layout,
-        :inner_block,
+        :inner_block
       ])
     end)
     |> assign_new(:classes, fn ->
@@ -529,6 +529,7 @@ defmodule PetalComponents.Form do
 
   defp radio_classes(has_error) do
     error_classes = if has_error, do: "border-red-500", else: "border-gray-300"
+
     "#{error_classes} h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-300"
   end
 

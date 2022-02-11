@@ -5,7 +5,8 @@ defmodule PetalComponents.Card do
   # prop variant, :string
   # slot default
   def card(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:variant, fn -> "basic" end)
 
@@ -26,7 +27,8 @@ defmodule PetalComponents.Card do
   # prop aspect_ratio_class, :string
   # prop src, :string
   def card_media(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:aspect_ratio_class, fn -> "aspect-video" end)
       |> assign_new(:src, fn -> nil end)
@@ -54,7 +56,8 @@ defmodule PetalComponents.Card do
   # prop category_color_class, :string
   # slot default
   def card_content(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:category_color_class, fn -> "text-primary-600" end)
       |> assign_new(:inner_block, fn -> nil end)

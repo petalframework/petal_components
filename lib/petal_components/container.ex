@@ -5,7 +5,8 @@ defmodule PetalComponents.Container do
   # prop class, :css_class
   # prop no_padding_on_mobile, :boolean
   def container(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:max_width, fn -> "lg" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:no_padding_on_mobile, fn -> false end)

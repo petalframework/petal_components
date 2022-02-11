@@ -5,14 +5,14 @@ defmodule PetalComponents.TabsTest do
 
   test "Test tabs active" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs class="flex-col sm:flex-row space-x">
         <.tab is_active to="/">Home</.tab>
         <.tab link_type="a" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
 
     assert html =~ "Press me"
     assert html =~ "<a"
@@ -23,14 +23,14 @@ defmodule PetalComponents.TabsTest do
 
   test "Test tabs underline" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs class="flex-col sm:flex-row space-x">
         <.tab underline is_active to="/">Home</.tab>
         <.tab underline link_type="a" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
 
     assert html =~ "Press me"
     assert html =~ "<a"
@@ -41,14 +41,14 @@ defmodule PetalComponents.TabsTest do
 
   test "Test tabs a" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs class="flex-col sm:flex-row space-x">
         <.tab is_active to="/">Home</.tab>
         <.tab link_type="a" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
 
     assert html =~ "Press me"
     assert html =~ "<a"
@@ -58,14 +58,15 @@ defmodule PetalComponents.TabsTest do
 
   test "patch" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs class="flex-col sm:flex-row space-x">
         <.tab is_active to="/">Home</.tab>
         <.tab link_type="live_patch" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href="
@@ -74,14 +75,15 @@ defmodule PetalComponents.TabsTest do
 
   test "redirect" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs class="flex-col sm:flex-row space-x">
         <.tab is_active to="/">Home</.tab>
         <.tab link_type="live_redirect" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href="
@@ -90,14 +92,15 @@ defmodule PetalComponents.TabsTest do
 
   test "tabs with number" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs>
         <.tab number={1} is_active to="/">Home</.tab>
         <.tab number={63} link_type="a" to="/" label="Press me" phx-click="click_event" />
       </.tabs>
-      """
-    )
+      """)
+
     assert html =~ "Press me"
     assert html =~ "<a"
     assert html =~ "href="
@@ -107,8 +110,9 @@ defmodule PetalComponents.TabsTest do
 
   test "tabs with icon" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs underline>
         <.tab underline is_active to="/">
           <Heroicons.Outline.home class="w-5 h-5 mr-2" />
@@ -119,8 +123,8 @@ defmodule PetalComponents.TabsTest do
             Company
         </.tab>
       </.tabs>
-      """
-    )
+      """)
+
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
@@ -129,8 +133,9 @@ defmodule PetalComponents.TabsTest do
 
   test "dark mode" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.tabs underline>
         <.tab underline is_active to="/">
           <Heroicons.Outline.home class="w-5 h-5 mr-2" />
@@ -141,8 +146,8 @@ defmodule PetalComponents.TabsTest do
             Company
         </.tab>
       </.tabs>
-      """
-    )
+      """)
+
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"

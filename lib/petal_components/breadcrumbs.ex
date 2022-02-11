@@ -11,7 +11,8 @@ defmodule PetalComponents.Breadcrumbs do
   # prop links, :list
   # prop separator, :string, options: ["slash", "chevron"]
   def breadcrumbs(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:separator, fn -> "slash" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:link_class, fn -> "" end)
@@ -49,5 +50,6 @@ defmodule PetalComponents.Breadcrumbs do
     """
   end
 
-  defp get_breadcrumb_classes(user_classes), do: "hover:underline flex text-gray-500 dark:text-gray-400 #{user_classes}"
+  defp get_breadcrumb_classes(user_classes),
+    do: "hover:underline flex text-gray-500 dark:text-gray-400 #{user_classes}"
 end

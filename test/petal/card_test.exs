@@ -4,8 +4,9 @@ defmodule PetalComponents.CardTest do
 
   test "Basic card" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.card>
         <.card_content category="Article" heading="Enhance your Phoenix development">
           <div class="mt-4 font-light text-gray-500 text-md">
@@ -13,8 +14,7 @@ defmodule PetalComponents.CardTest do
           </div>
         </.card_content>
       </.card>
-      """
-    )
+      """)
 
     assert html =~ "Enhance"
     assert html =~ "Article"
@@ -23,8 +23,9 @@ defmodule PetalComponents.CardTest do
 
   test "Outline card" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.card variant="outline" >
         <.card_content category="Article" heading="Enhance your Phoenix development">
           <div class="mt-4 font-light text-gray-500 text-md">
@@ -32,8 +33,7 @@ defmodule PetalComponents.CardTest do
           </div>
         </.card_content>
       </.card>
-      """
-    )
+      """)
 
     assert html =~ "Enhance"
     assert html =~ "Article"
@@ -42,8 +42,9 @@ defmodule PetalComponents.CardTest do
 
   test "Card with media no url" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.card variant="outline" >
         <.card_media class="h-48" />
         <.card_content category="Article" heading="Enhance your Phoenix development">
@@ -52,8 +53,7 @@ defmodule PetalComponents.CardTest do
           </div>
         </.card_content>
       </.card>
-      """
-    )
+      """)
 
     assert html =~ "Enhance"
     assert html =~ "Article"
@@ -63,8 +63,9 @@ defmodule PetalComponents.CardTest do
 
   test "Card with media and url" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.card variant="outline" >
         <.card_media class="h-48" src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80" />
         <.card_content category="Article" heading="Enhance your Phoenix development">
@@ -73,8 +74,7 @@ defmodule PetalComponents.CardTest do
           </div>
         </.card_content>
       </.card>
-      """
-    )
+      """)
 
     assert html =~ "Enhance"
     assert html =~ "Article"
@@ -84,8 +84,9 @@ defmodule PetalComponents.CardTest do
 
   test "dark mode" do
     assigns = %{}
-    html = rendered_to_string(
-      ~H"""
+
+    html =
+      rendered_to_string(~H"""
       <.card variant="outline" >
         <.card_media class="h-48" src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80" />
         <.card_content category="Article" heading="Enhance your Phoenix development">
@@ -94,8 +95,7 @@ defmodule PetalComponents.CardTest do
           </div>
         </.card_content>
       </.card>
-      """
-    )
+      """)
 
     assert html =~ "Enhance"
     assert html =~ "Article"

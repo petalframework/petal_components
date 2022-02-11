@@ -5,13 +5,13 @@ defmodule PetalComponents.BreadcrumbsTest do
   test "breadcrumbs" do
     assigns = %{}
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.breadcrumbs class="text-md" links={[
         %{ label: "Link 1", to: "/" }
       ]} />
-      """
-    )
+      """)
+
     assert html =~ "Link 1"
     assert html =~ "<a"
     assert html =~ "href"
@@ -21,13 +21,13 @@ defmodule PetalComponents.BreadcrumbsTest do
   test "breadcrumb_patch" do
     assigns = %{}
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.breadcrumbs class="text-md" links={[
         %{ label: "Link 1", to: "/", link_type: "live_patch" }
       ]} />
-      """
-    )
+      """)
+
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "patch"
@@ -36,13 +36,13 @@ defmodule PetalComponents.BreadcrumbsTest do
   test "breadcrumb_redirect" do
     assigns = %{}
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.breadcrumbs class="text-md" links={[
         %{ label: "Link 1", to: "/", link_type: "live_redirect" }
       ]} />
-      """
-    )
+      """)
+
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "redirect"
@@ -51,13 +51,13 @@ defmodule PetalComponents.BreadcrumbsTest do
   test "dark mode" do
     assigns = %{}
 
-    html = rendered_to_string(
-      ~H"""
+    html =
+      rendered_to_string(~H"""
       <.breadcrumbs class="text-md" links={[
         %{ label: "Link 1", to: "/" }
       ]} />
-      """
-    )
+      """)
+
     assert html =~ "Link 1"
     assert html =~ "<a"
     assert html =~ "href"

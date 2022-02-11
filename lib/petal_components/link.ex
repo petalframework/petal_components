@@ -5,7 +5,8 @@ defmodule PetalComponents.Link do
   # prop label, :string
   # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
   def link(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:link_type, fn -> "a" end)
       |> assign_new(:label, fn -> nil end)
@@ -16,7 +17,7 @@ defmodule PetalComponents.Link do
           :link_type,
           :type,
           :inner_block,
-          :label,
+          :label
         ])
       end)
 

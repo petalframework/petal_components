@@ -29,8 +29,9 @@ defmodule PetalComponents.Dropdown do
     </.dropdown>
   """
   def dropdown(assigns) do
-    assigns = assigns
-      |> assign_new(:options_container_id, fn -> "dropdown_#{Enum.random(1..100000000)}" end)
+    assigns =
+      assigns
+      |> assign_new(:options_container_id, fn -> "dropdown_#{Enum.random(1..100_000_000)}" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
       |> assign_new(:placement, fn -> "left" end)
       |> assign_new(:label, fn -> nil end)
@@ -78,7 +79,8 @@ defmodule PetalComponents.Dropdown do
   end
 
   def dropdown_menu_item(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:link_type, fn -> "button" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
@@ -86,7 +88,7 @@ defmodule PetalComponents.Dropdown do
         assigns_to_attributes(assigns, [
           :inner_block,
           :link_type,
-          :classes,
+          :classes
         ])
       end)
 
@@ -111,8 +113,14 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  defp trigger_button_classes(nil, nil), do: "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
-  defp trigger_button_classes(_label, nil), do: "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
+  defp trigger_button_classes(nil, nil),
+    do:
+      "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
+
+  defp trigger_button_classes(_label, nil),
+    do:
+      "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
+
   defp trigger_button_classes(_label, _trigger_element), do: "align-middle"
 
   defp dropdown_menu_item_classes(),
@@ -143,33 +151,35 @@ defmodule PetalComponents.Dropdown do
       "x-transition:enter-end": @transition_in_end,
       "x-transition:leave": @transition_out_base,
       "x-transition:leave-start": @transition_out_start,
-      "x-transition:leave-end": @transition_out_end,
+      "x-transition:leave-end": @transition_out_end
     }
   end
 
   defp js_attributes("container", "live_view_js", options_container_id) do
     %{
-      "phx-click-away": JS.hide(
-        to: "##{options_container_id}",
-        transition: {@transition_out_base, @transition_out_start, @transition_out_end}
-      )
+      "phx-click-away":
+        JS.hide(
+          to: "##{options_container_id}",
+          transition: {@transition_out_base, @transition_out_start, @transition_out_end}
+        )
     }
   end
 
   defp js_attributes("button", "live_view_js", options_container_id) do
     %{
-      "phx-click": JS.toggle(
-        to: "##{options_container_id}",
-        display: "block",
-        in: {@transition_in_base, @transition_in_start, @transition_in_end},
-        out: {@transition_out_base, @transition_out_start, @transition_out_end}
-      )
+      "phx-click":
+        JS.toggle(
+          to: "##{options_container_id}",
+          display: "block",
+          in: {@transition_in_base, @transition_in_start, @transition_in_end},
+          out: {@transition_out_base, @transition_out_start, @transition_out_end}
+        )
     }
   end
 
   defp js_attributes("options_container", "live_view_js", _options_container_id) do
     %{
-      style: "display: none;",
+      style: "display: none;"
     }
   end
 

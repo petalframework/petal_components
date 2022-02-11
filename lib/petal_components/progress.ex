@@ -8,7 +8,8 @@ defmodule PetalComponents.Progress do
   # prop max, :integer
   # prop label, :string [xl]
   def progress(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign_new(:label, fn -> "" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:size, fn -> "md" end)
@@ -48,5 +49,4 @@ defmodule PetalComponents.Progress do
   defp get_parent_color_classes("success"), do: "bg-green-100"
   defp get_parent_color_classes("warning"), do: "bg-yellow-100"
   defp get_parent_color_classes("danger"), do: "bg-red-100"
-
 end
