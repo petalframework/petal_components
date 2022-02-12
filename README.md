@@ -10,6 +10,12 @@
 </p>
 
 <p align="center">
+  <a href="https://petal-components-demo.fly.dev">
+    DEMO
+  </a>
+</p>
+
+<p align="center">
   Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
 </p>
 
