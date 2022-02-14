@@ -1,4 +1,6 @@
 # Changelog
+### 0.10.7 - 2022-02-14 03:44:45
+- Fixed white button background
 ### 0.10.6 - 2022-02-14 03:31:50
 - Removed pure_white button shadow variant and fixed white bg for shadow
 ### 0.10.5 - 2022-02-11 22:30:21
