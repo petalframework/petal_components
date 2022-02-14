@@ -162,7 +162,7 @@ defmodule PetalComponents.Button do
         "border-gray-400 dark:border-gray-300 dark:hover:border-gray-200 dark:hover:text-gray-200 dark:hover:bg-transparent dark:text-gray-300 hover:border-gray-600 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
 
       "shadow" ->
-        "shadow-xl text-gray-700 border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30"
+        "shadow-xl text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30"
 
       _ ->
         "text-gray-700 bg-white border-transparent border-gray-300 hover:text-gray-900 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent"
@@ -171,12 +171,6 @@ defmodule PetalComponents.Button do
 
   defp get_color_classes(%{color: "pure_white", variant: variant}) do
     case variant do
-      "outline" ->
-        "border-gray-400 dark:border-gray-300 dark:hover:border-gray-200 dark:hover:text-gray-200 dark:hover:bg-transparent dark:text-gray-300 hover:border-gray-600 text-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600"
-
-      "shadow" ->
-        "shadow-xl text-gray-700 border-transparent hover:text-gray-900 hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-none focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30"
-
       _ ->
         "text-gray-700 bg-white border-transparent border-white hover:text-gray-900 hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-none focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent"
     end
