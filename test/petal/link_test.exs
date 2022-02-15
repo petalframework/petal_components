@@ -68,4 +68,36 @@ defmodule PetalComponents.LinkTest do
     assert html =~ "Press me"
     assert html =~ "data-method"
   end
+
+  test "link contains no extra spaces" do
+    assigns = %{}
+
+    assert rendered_to_string(~H"""
+    <.link to="/" label="Press me" />
+    """) =~ ">Press me<"
+
+    assert rendered_to_string(~H"""
+    <.link to="/" label=" Press me " />
+    """) =~ "> Press me <"
+
+    assert rendered_to_string(~H"""
+    <.link link_type="live_patch" to="/" label="Press me" />
+    """) =~ ">Press me<"
+
+    assert rendered_to_string(~H"""
+    <.link link_type="live_redirect" to="/" label="Press me" />
+    """) =~ ">Press me<"
+
+    assert rendered_to_string(~H"""
+    <.link to="/">Press me</.link>
+    """) =~ ">Press me<"
+
+    assert rendered_to_string(~H"""
+    <.link to="/"> Press me </.link>
+    """) =~ "> Press me <"
+
+    assert rendered_to_string(~H"""
+    <.link to="/" label="Press me" />, blah
+    """) =~ "</a>, blah"
+  end
 end

@@ -4,6 +4,7 @@ defmodule PetalComponents.Link do
   # prop class, :string
   # prop label, :string
   # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
+  # slot default
   def link(assigns) do
     assigns =
       assigns
@@ -22,38 +23,30 @@ defmodule PetalComponents.Link do
       end)
 
     ~H"""
-    <%= case @link_type do %>
-      <% "a" -> %>
-        <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @extra_assigns do %>
-          <%= if @inner_block do %>
-            <%= render_slot(@inner_block) %>
-          <% else %>
-            <%= @label %>
-          <% end %>
-        <% end %>
-      <% "live_patch" -> %>
-        <%= live_patch [
-          to: @to,
-          class: @class,
-        ] ++ @extra_assigns do %>
-          <%= if @inner_block do %>
-            <%= render_slot(@inner_block) %>
-          <% else %>
-            <%= @label %>
-          <% end %>
-        <% end %>
-      <% "live_redirect" -> %>
-        <%= live_redirect [
-          to: @to,
-          class: @class,
-        ] ++ @extra_assigns do %>
-          <%= if @inner_block do %>
-            <%= render_slot(@inner_block) %>
-          <% else %>
-            <%= @label %>
-          <% end %>
-        <% end %>
-    <% end %>
+    <.custom_link
+      inner_block={@inner_block}
+      link_type={@link_type}
+      to={@to}
+      extra_assigns={@extra_assigns}
+      class={@class}
+      label={@label}
+    />
+    """
+  end
+
+  def custom_link(%{link_type: "a"} = assigns) do
+    ~H"""
+    <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    """
+  end
+  def custom_link(%{link_type: "live_patch"} = assigns) do
+    ~H"""
+    <%= live_patch [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    """
+  end
+  def custom_link(%{link_type: "live_redirect"} = assigns) do
+    ~H"""
+    <%= live_redirect [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
 end
