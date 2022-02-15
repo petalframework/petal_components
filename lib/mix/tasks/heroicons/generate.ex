@@ -17,8 +17,8 @@ defmodule Mix.Tasks.Heroicons.Generate do
       use Phoenix.Component
       @moduledoc \"\"\"
       Icon name can be the function or passed in as a type eg.
-      <PetalComponents.Heroicons.Solid.home class="w-6 h-6" />
-      <PetalComponents.Heroicons.Solid.render type="home" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
+      <PetalComponents.Heroicons.Solid.render type="home" class="w-5 h-5" />
 
       <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
       <PetalComponents.Heroicons.Outline.render type="home" class="w-6 h-6" />
@@ -35,7 +35,8 @@ defmodule Mix.Tasks.Heroicons.Generate do
       src_path
       |> File.ls!()
       |> Enum.filter(&(Path.extname(&1) == ".svg"))
-      |> Enum.map(&create_component(src_path, &1))
+      |> Enum.sort()
+      |> Enum.map(&create_component(src_path, &1, folder))
       |> Enum.join("\n\n")
 
     file_content =
@@ -55,14 +56,14 @@ defmodule Mix.Tasks.Heroicons.Generate do
     File.write!(dest_path, file_content)
   end
 
-  defp create_component(src_path, filename) do
+  defp create_component(src_path, filename, type) do
     svg_content =
       File.read!(Path.join(src_path, filename))
       |> String.trim()
       |> String.replace(~r/<svg /, "<svg class={@class} {@extra_attributes} ")
       |> String.replace(~r/<path/, "  <path")
 
-    build_component(filename, svg_content)
+    build_component(filename, svg_content, type)
   end
 
   defp function_name(current_filename) do
@@ -71,11 +72,13 @@ defmodule Mix.Tasks.Heroicons.Generate do
     |> String.replace("-", "_")
   end
 
-  defp build_component(filename, svg) do
+  defp build_component(filename, svg, type) do
+    class = class_for(type)
+
     """
     def #{function_name(filename)}(assigns) do
       assigns = assigns
-        |> assign_new(:class, fn -> "h-6 w-6" end)
+        |> assign_new(:class, fn -> "#{class}" end)
         |> assign_new(:extra_attributes, fn ->
           assigns_to_attributes(assigns, [:class])
         end)
@@ -86,4 +89,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
     end
     """
   end
+
+  defp class_for("outline"), do: "h-6 w-6"
+  defp class_for("solid"), do: "h-5 w-5"
 end
