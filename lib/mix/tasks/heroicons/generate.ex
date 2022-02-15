@@ -35,6 +35,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
       src_path
       |> File.ls!()
       |> Enum.filter(&(Path.extname(&1) == ".svg"))
+      |> Enum.sort()
       |> Enum.map(&create_component(src_path, &1, folder))
       |> Enum.join("\n\n")
 
