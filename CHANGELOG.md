@@ -1,4 +1,29 @@
 # Changelog
+### 0.11.0 - 2022-02-15 22:00:59
+- Heroicons.Solid icons size defaults to "w-5 h-5" as recommended in their docs
+- Form inputs no longer show errors before they have been touched by the user. To get this to work, I had to remove the error classes off the inputs themselves, so they no longer turn red on error by default. However, you can turn this back on by adding these rules to your app.css file (we will update the install docs with this):
+
+```
+label.has-error:not(.phx-no-feedback) {
+  @apply !text-red-900 dark:!text-red-200;
+}
+
+textarea.has-error:not(.phx-no-feedback), input.has-error:not(.phx-no-feedback), select.has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 dark:!text-red-100 dark:!placeholder-red-300 dark:!bg-red-900;
+}
+
+input[type=file_input].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 !rounded-md focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 file:!border-none dark:!border-none dark:!bg-[#160B0B] dark:text-red-400;
+}
+
+input[type=checkbox].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 !text-red-900 dark:!text-red-200;
+}
+
+input[type=radio].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500;
+}
+```
 ### 0.10.8 - 2022-02-15 01:11:32
 - Fixed <.link> emitting white spaces
 ### 0.10.7 - 2022-02-14 03:44:45
