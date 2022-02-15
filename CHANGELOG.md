@@ -1,4 +1,6 @@
 # Changelog
+### 0.10.8 - 2022-02-15 01:11:32
+- Fixed <.link> emitting white spaces
 ### 0.10.7 - 2022-02-14 03:44:45
 - Fixed white button background
 ### 0.10.6 - 2022-02-14 03:31:50
