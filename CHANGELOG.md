@@ -1,4 +1,6 @@
 # Changelog
+### 0.11.1 - 2022-02-16 04:15:40
+- Added object-cover to card_media
 ### 0.11.0 - 2022-02-15 22:00:59
 - Heroicons.Solid icons size defaults to "w-5 h-5" as recommended in their docs
 - Form inputs no longer show errors before they have been touched by the user. To get this to work, I had to remove the error classes off the inputs themselves, so they no longer turn red on error by default. However, you can turn this back on by adding these rules to your app.css file (we will update the install docs with this):
