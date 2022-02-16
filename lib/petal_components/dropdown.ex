@@ -86,7 +86,6 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, [
-          :inner_block,
           :link_type,
           :classes
         ])

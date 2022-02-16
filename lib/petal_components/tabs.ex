@@ -42,7 +42,6 @@ defmodule PetalComponents.Tabs do
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, [
           :class,
-          :inner_block,
           :number,
           :link_type,
           :is_active,

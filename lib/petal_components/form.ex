@@ -31,7 +31,6 @@ defmodule PetalComponents.Form do
           :classes,
           :form,
           :field,
-          :inner_block,
           :label
         ])
       end)
@@ -444,7 +443,6 @@ defmodule PetalComponents.Form do
         :type,
         :options,
         :layout,
-        :inner_block
       ])
     end)
     |> assign_new(:classes, fn ->

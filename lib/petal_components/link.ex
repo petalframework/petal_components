@@ -17,7 +17,6 @@ defmodule PetalComponents.Link do
           :class,
           :link_type,
           :type,
-          :inner_block,
           :label
         ])
       end)

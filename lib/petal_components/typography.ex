@@ -110,7 +110,6 @@ defmodule PetalComponents.Typography do
   defp drop_heading_props(assigns) do
     assigns_to_attributes(assigns, [
       :class,
-      :inner_block,
       :label
     ])
   end
