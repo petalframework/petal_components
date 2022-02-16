@@ -36,7 +36,7 @@ defmodule PetalComponents.Card do
     ~H"""
     <%= if @src do %>
       <img src={@src} class={Enum.join([
-        "flex-shrink-0 w-full",
+        "flex-shrink-0 w-full object-cover",
         @aspect_ratio_class,
         @class
       ], " ")} />
