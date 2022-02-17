@@ -1,4 +1,6 @@
 # Changelog
+### 0.11.3 - 2022-02-17 23:24:49
+- Fixed bug with placeholder avatars
 ### 0.11.2 - 2022-02-16 05:40:24
 - Fix issue where untouched inputs were highlighted red
 ### 0.11.1 - 2022-02-16 04:15:40
