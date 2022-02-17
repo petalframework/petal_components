@@ -17,7 +17,7 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
       <div class={Enum.join([
-        "inline-block overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
+        "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
         get_size_classes(@size),
         @class
         ], " ")}>
