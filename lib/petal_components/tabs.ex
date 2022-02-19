@@ -10,9 +10,12 @@ defmodule PetalComponents.Tabs do
       assigns
       |> assign_new(:underline, fn -> false end)
       |> assign_new(:class, fn -> "" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(underline class)a)
+      end)
 
     ~H"""
-    <div class={Enum.join([
+    <div {@extra_assigns} class={Enum.join([
         "flex gap-x-8 gap-y-2",
         (if @underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
         @class

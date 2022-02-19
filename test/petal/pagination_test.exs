@@ -97,4 +97,15 @@ defmodule PetalComponents.PaginationTest do
     refute html =~ "/page/0"
     assert html =~ "dark:"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={1} custom-attrs="12" />
+      """)
+
+    assert html =~ ~s{custom-attrs="12"}
+  end
 end

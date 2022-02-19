@@ -80,4 +80,15 @@ defmodule PetalComponents.AlertTest do
     assert html =~ "Success!"
     assert html =~ "dark:"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.alert label="x" custom-attrs="123" heading="Success!" />
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

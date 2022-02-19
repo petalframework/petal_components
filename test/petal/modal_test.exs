@@ -139,4 +139,16 @@ defmodule PetalComponents.ModalTest do
     assert html =~ "max-w-sm"
     assert html =~ "dark:"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+
+      <.modal custom-attrs="123" title="Modal"></.modal>
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

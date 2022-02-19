@@ -99,4 +99,15 @@ defmodule PetalComponents.BadgeTest do
 
     assert html =~ "<svg"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.badge color="primary" label="Primary" custom-attrs="123" />
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

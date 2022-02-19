@@ -65,4 +65,16 @@ defmodule PetalComponents.ContainerTest do
     assert html =~ "<div class="
     assert html =~ "max-w-3xl"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.container custom-attrs="123">
+      </.container>
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

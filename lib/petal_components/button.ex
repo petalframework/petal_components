@@ -16,7 +16,7 @@ defmodule PetalComponents.Button do
 
     ~H"""
     <%= if @link_type == "button" do %>
-      <button class={@classes} disabled={@disabled} {@extra_assigns}>
+      <button {@extra_attributes} class={@classes} disabled={@disabled} {@extra_assigns}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
         <% end %>
@@ -29,7 +29,7 @@ defmodule PetalComponents.Button do
       </button>
 
     <% else %>
-      <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
+      <.link {@extra_attributes} to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
         <% end %>
@@ -54,6 +54,20 @@ defmodule PetalComponents.Button do
     |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
     |> assign_new(:classes, fn -> button_classes(assigns) end)
     |> assign_new(:class, fn -> "" end)
+    |> assign_new(:extra_attributes, fn ->
+      assigns_to_attributes(assigns, ~w(
+          link_type
+          inner_block
+          loading
+          size
+          disabled
+          extra_assigns
+          classes
+          class
+          label
+          variant
+        )a)
+    end)
   end
 
   defp button_classes(opts) do

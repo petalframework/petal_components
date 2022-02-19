@@ -116,4 +116,15 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "some-special-class"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button custom-attr="123">Press me</.button>
+      """)
+
+    assert html =~ ~s{custom-attr="123"}
+  end
 end

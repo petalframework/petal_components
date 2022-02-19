@@ -39,4 +39,15 @@ defmodule PetalComponents.LoadingTest do
     assert html =~ "<svg"
     refute html =~ "hidden"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.spinner custom-attrs="123"/>
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

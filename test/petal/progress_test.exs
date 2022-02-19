@@ -55,4 +55,15 @@ defmodule PetalComponents.ProgressTest do
 
     assert html =~ "bg-red"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.progress custom-attrs="123" value={15} max={100} />
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end
