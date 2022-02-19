@@ -9,9 +9,15 @@ defmodule PetalComponents.Card do
       assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:variant, fn -> "basic" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          class
+          variant
+        )a)
+      end)
 
     ~H"""
-    <div class={Enum.join([
+    <div {@extra_assigns} class={Enum.join([
       "flex flex-wrap overflow-hidden",
       get_variant_classes(@variant),
       @class
@@ -32,16 +38,23 @@ defmodule PetalComponents.Card do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:aspect_ratio_class, fn -> "aspect-video" end)
       |> assign_new(:src, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          class
+          aspect_ratio_class
+          src
+        )a)
+      end)
 
     ~H"""
     <%= if @src do %>
-      <img src={@src} class={Enum.join([
+      <img {@extra_assigns} src={@src} class={Enum.join([
         "flex-shrink-0 w-full object-cover",
         @aspect_ratio_class,
         @class
       ], " ")} />
     <% else %>
-      <div class={Enum.join([
+      <div {@extra_assigns} class={Enum.join([
         "flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700",
         @aspect_ratio_class,
         @class
@@ -63,9 +76,18 @@ defmodule PetalComponents.Card do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:category, fn -> nil end)
       |> assign_new(:heading, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          class
+          category_color_class
+          inner_block
+          category
+          heading
+        )a)
+      end)
 
     ~H"""
-    <div class={Enum.join([
+    <div {@extra_assigns} class={Enum.join([
       "p-6 flex-1 font-light text-gray-500 text-md",
       @class
     ], " ")}>
@@ -89,8 +111,14 @@ defmodule PetalComponents.Card do
   end
 
   def card_footer(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(class)a)
+      end)
+
     ~H"""
-    <div class="px-6 pb-6">
+    <div {@extra_assigns} class="px-6 pb-6">
       <%= render_slot(@inner_block) %>
     </div>
     """

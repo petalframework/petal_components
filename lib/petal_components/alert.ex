@@ -16,10 +16,22 @@ defmodule PetalComponents.Alert do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:classes, fn -> alert_classes(assigns) end)
       |> assign_new(:close_button_properties, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          label
+          color
+          heading
+          with_icon
+          inner_block
+          classes
+          class
+          close_button_properties
+        )a)
+      end)
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
-      <div class={@classes}>
+      <div {@extra_assigns} class={@classes}>
         <%= if @with_icon do %>
           <div class="self-start flex-shrink-0 pt-1">
             <Heroicons.Solid.render icon={get_icon(@color)} />

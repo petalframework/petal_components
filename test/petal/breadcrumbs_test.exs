@@ -64,4 +64,17 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "text-md"
     assert html =~ "dark:"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.breadcrumbs custom-attrs="123" class="text-md" links={[
+        %{ label: "Link 1", to: "/" }
+      ]} />
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+  end
 end

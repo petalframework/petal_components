@@ -74,4 +74,19 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ "<svg"
     assert html =~ "dark:"
   end
+
+  test "should include additional assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar  custom-attrs="123" src="image.png" />
+      <.avatar custom-attrs="456" />
+      <.avatar name="John Smith"  custom-attrs="789" />
+      """)
+
+    assert html =~ ~s{custom-attrs="123"}
+    assert html =~ ~s{custom-attrs="456"}
+    assert html =~ ~s{custom-attrs="789"}
+  end
 end

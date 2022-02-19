@@ -9,9 +9,17 @@ defmodule PetalComponents.Modal do
     assigns =
       assigns
       |> assign_new(:classes, fn -> get_classes(assigns) end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          classes
+          class
+          title
+          size
+        )a)
+      end)
 
     ~H"""
-    <div id="modal" phx-remove={hide_modal()}>
+    <div {@extra_assigns} id="modal" phx-remove={hide_modal()}>
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"

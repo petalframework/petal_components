@@ -82,11 +82,12 @@ defmodule PetalComponents.DropdownTest do
 
     html =
       rendered_to_string(~H"""
-      <.dropdown>
+      <.dropdown custom-attrs="123">
         <.dropdown_menu_item link_type="button" phx-click="some_event">Option</.dropdown_menu_item>
       </.dropdown>
       """)
 
+    assert html =~ ~s{custom-attrs="123"}
     assert html =~ "phx-click"
     assert html =~ "some_event"
   end

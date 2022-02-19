@@ -16,9 +16,19 @@ defmodule PetalComponents.Progress do
       |> assign_new(:value, fn -> nil end)
       |> assign_new(:color, fn -> "primary" end)
       |> assign_new(:max, fn -> 100 end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          label
+          class
+          size
+          value
+          color
+          max
+        )a)
+      end)
 
     ~H"""
-    <div class={@class}>
+    <div {@extra_assigns} class={@class}>
       <div class={"#{get_parent_classes(@size)} flex overflow-hidden #{get_parent_color_classes(@color)}"}>
         <span class={"#{get_color_classes(@color)} text-xs flex flex-col text-center text-white justify-center whitespace-nowrap font-normal leading-6 px-4 py-2"} style={"width: #{round(@value/@max*100)}%"}>
           <%= if @size == "xl" do %>

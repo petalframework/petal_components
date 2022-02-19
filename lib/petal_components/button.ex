@@ -4,16 +4,27 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Heroicons
   import PetalComponents.Link
 
-  # <.button link_type="button|a|live_patch|live_redirect" />
   # prop class, :string
+  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+  # prop link_type, :string, options: ["button", "a", "live_patch", "live_redirect"]
   # prop label, :string
   # prop size, :string
   # prop variant, :string
+  # prop to, :string
   # prop loading, :boolean, default: false
   # prop disabled, :boolean, default: false
   # slot default
   def button(assigns) do
-    assigns = assign_defaults(assigns)
+    assigns = assigns
+    |> assign_new(:link_type, fn -> "button" end)
+    |> assign_new(:inner_block, fn -> nil end)
+    |> assign_new(:loading, fn -> false end)
+    |> assign_new(:size, fn -> "md" end)
+    |> assign_new(:disabled, fn -> false end)
+    |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
+    |> assign_new(:classes, fn -> button_classes(assigns) end)
+    |> assign_new(:class, fn -> "" end)
+    |> assign_new(:to, fn -> nil end)
 
     ~H"""
     <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
@@ -30,6 +41,16 @@ defmodule PetalComponents.Button do
     """
   end
 
+  # prop class, :string
+  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+  # prop link_type, :string, options: ["button", "a", "live_patch", "live_redirect"]
+  # prop label, :string
+  # prop size, :string
+  # prop variant, :string
+  # prop to, :string
+  # prop loading, :boolean, default: false
+  # prop disabled, :boolean, default: false
+  # slot default
   def icon_button(assigns) do
     assigns = assigns
     |> assign_new(:link_type, fn -> "button" end)
@@ -67,19 +88,6 @@ defmodule PetalComponents.Button do
       <% end %>
     </.link>
     """
-  end
-
-  defp assign_defaults(assigns) do
-    assigns
-    |> assign_new(:link_type, fn -> "button" end)
-    |> assign_new(:inner_block, fn -> nil end)
-    |> assign_new(:loading, fn -> false end)
-    |> assign_new(:size, fn -> "md" end)
-    |> assign_new(:disabled, fn -> false end)
-    |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
-    |> assign_new(:classes, fn -> button_classes(assigns) end)
-    |> assign_new(:class, fn -> "" end)
-    |> assign_new(:to, fn -> nil end)
   end
 
   defp button_classes(opts) do
@@ -145,6 +153,7 @@ defmodule PetalComponents.Button do
       :color,
       :icon,
       :class,
+      :to
     ])
   end
 

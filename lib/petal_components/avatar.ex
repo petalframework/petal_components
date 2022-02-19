@@ -13,10 +13,19 @@ defmodule PetalComponents.Avatar do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:name, fn -> nil end)
       |> assign_new(:random_color, fn -> false end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          src
+          size
+          class
+          name
+          random_color
+        )a)
+      end)
 
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
-      <div class={Enum.join([
+      <div {@extra_assigns} class={Enum.join([
         "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
         get_size_classes(@size),
         @class
@@ -25,7 +34,7 @@ defmodule PetalComponents.Avatar do
       </div>
     <% else %>
       <%= if !@src && @name do %>
-        <div
+        <div {@extra_assigns}
           style={maybe_generate_random_color(@random_color, @name)}
           class={Enum.join([
             "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
@@ -36,7 +45,7 @@ defmodule PetalComponents.Avatar do
           <%= generate_initials(@name) %>
         </div>
       <% else %>
-        <img src={@src} class={Enum.join([
+        <img  {@extra_assigns} src={@src} class={Enum.join([
           "rounded-full object-cover",
           get_size_classes(@size),
           @class
@@ -47,10 +56,15 @@ defmodule PetalComponents.Avatar do
   end
 
   def avatar_group(assigns) do
-    assigns = assign_new(assigns, :classes, fn -> avatar_group_classes(assigns) end)
+    assigns =
+      assigns
+      |> assign_new(:classes, fn -> avatar_group_classes(assigns) end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(classes)a)
+      end)
 
     ~H"""
-    <div class={@classes}>
+    <div {@extra_assigns} class={@classes}>
       <%= for src <- @avatars do %>
         <.avatar src={src} size={@size} class="ring-white ring-2 dark:ring-gray-100" />
       <% end %>

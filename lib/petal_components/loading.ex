@@ -5,10 +5,21 @@ defmodule PetalComponents.Loading do
   # prop class, :string, default: ""
   # prop show, :boolean, default: true
   def spinner(assigns) do
-    assigns = assign_new(assigns, :classes, fn -> get_spinner_classes(assigns) end)
+    assigns =
+      assigns
+      |> assign_new(:classes, fn -> get_spinner_classes(assigns) end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          classes
+          class
+          size
+          show
+        )a)
+      end)
 
     ~H"""
     <svg
+      {@extra_assigns}
       class={get_spinner_classes(assigns)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"

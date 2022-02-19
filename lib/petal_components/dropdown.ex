@@ -36,9 +36,19 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:placement, fn -> "left" end)
       |> assign_new(:label, fn -> nil end)
       |> assign_new(:trigger_element, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          options_container_id
+          js_lib
+          placement
+          label
+          trigger_element
+          class
+        )a)
+      end)
 
     ~H"""
-    <div {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
+    <div {@extra_assigns} {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
       <div>
         <button
           type="button"
