@@ -1,4 +1,6 @@
 # Changelog
+### 0.11.4 - 2022-02-21 00:52:06
+- Removed excess class "border-transparent" from white button
 ### 0.11.3 - 2022-02-17 23:24:49
 - Fixed bug with placeholder avatars
 ### 0.11.2 - 2022-02-16 05:40:24
