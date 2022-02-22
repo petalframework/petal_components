@@ -25,7 +25,7 @@ defmodule PetalComponents.Loading do
   end
 
   defp get_spinner_classes(assigns) do
-    base_classes = "animate-spin -ml-1"
+    base_classes = "animate-spin"
     custom_classes = assigns[:class] || ""
     show_class = if assigns[:show] == false, do: "hidden", else: ""
     size_classes = assigns[:size_class] || get_size_classes(assigns[:size])
