@@ -107,7 +107,7 @@ defmodule PetalComponents.Tabs do
   end
 
   # Underline
-  defp get_tab_number_class(is_active, true = underline) do
+  defp get_tab_number_class(is_active, true) do
     base_classes = "whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal"
 
     active_classes =
@@ -116,7 +116,7 @@ defmodule PetalComponents.Tabs do
         else: "bg-gray-100 text-gray-500"
 
     underline_classes =
-      if underline && is_active,
+      if is_active,
         do: "bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white",
         else: "bg-gray-100 dark:bg-gray-600 dark:text-white text-gray-500"
 
