@@ -83,6 +83,7 @@ defmodule PetalComponents.Dropdown do
       assigns
       |> assign_new(:link_type, fn -> "button" end)
       |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:to, fn -> nil end)
       |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, [
@@ -92,23 +93,13 @@ defmodule PetalComponents.Dropdown do
       end)
 
     ~H"""
-    <%= if @link_type == "button" do %>
-      <button class={@classes} {@extra_assigns}>
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
-      </button>
-    <% else %>
-      <.link link_type={@link_type} to={@to} class={@classes} {@extra_assigns}>
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
-      </.link>
-    <% end %>
+    <.link link_type={@link_type} to={@to} class={@classes} {@extra_assigns}>
+      <%= if @inner_block do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= @label %>
+      <% end %>
+    </.link>
     """
   end
 
