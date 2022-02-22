@@ -1,4 +1,9 @@
 # Changelog
+### 0.12.0 - 2022-02-22 21:25:39
+- Icon buttons
+- Made a link type button and refactored dropdown
+- Removed negative margin on spinner
+- Removed unnecessary underline statement in tabs
 ### 0.11.4 - 2022-02-21 00:52:06
 - Removed excess class "border-transparent" from white button
 ### 0.11.3 - 2022-02-17 23:24:49
