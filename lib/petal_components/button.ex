@@ -1,6 +1,7 @@
 defmodule PetalComponents.Button do
   use Phoenix.Component
   alias PetalComponents.Loading
+  alias PetalComponents.Heroicons
   import PetalComponents.Link
 
   # <.button link_type="button|a|live_patch|live_redirect" />
@@ -15,32 +16,56 @@ defmodule PetalComponents.Button do
     assigns = assign_defaults(assigns)
 
     ~H"""
-    <%= if @link_type == "button" do %>
-      <button class={@classes} disabled={@disabled} {@extra_assigns}>
-        <%= if @loading do %>
-          <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
-        <% end %>
+    <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
+      <%= if @loading do %>
+        <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
+      <% end %>
 
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
-      </button>
+      <%= if @inner_block do %>
+        <%= render_slot(@inner_block) %>
+      <% else %>
+        <%= @label %>
+      <% end %>
+    </.link>
+    """
+  end
 
-    <% else %>
-      <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
-        <%= if @loading do %>
-          <Loading.spinner show={true} size_class={get_spinner_classes(@size)} />
-        <% end %>
+  def icon_button(assigns) do
+    assigns = assigns
+    |> assign_new(:link_type, fn -> "button" end)
+    |> assign_new(:inner_block, fn -> nil end)
+    |> assign_new(:loading, fn -> false end)
+    |> assign_new(:size, fn -> "sm" end)
+    |> assign_new(:disabled, fn -> false end)
+    |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
+    |> assign_new(:class, fn -> "" end)
+    |> assign_new(:to, fn -> nil end)
+    |> assign_new(:color, fn -> "gray" end)
 
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
-      </.link>
-    <% end %>
+    ~H"""
+    <.link
+      to={@to}
+      link_type={@link_type}
+      class={Enum.join(
+        [
+          "rounded-full p-2",
+          get_disabled_classes(@disabled),
+          get_icon_button_background_color_classes(@color),
+          get_icon_button_color_classes(@color),
+          @class
+        ], " ")}
+      disabled={@disabled}
+      {@extra_assigns}
+    >
+      <%= if @loading do %>
+        <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
+      <% else %>
+        <Heroicons.Solid.render icon={@icon} class={Enum.join(
+          [
+            get_icon_button_size_classes(@size)
+          ], " ")}/>
+      <% end %>
+    </.link>
     """
   end
 
@@ -54,6 +79,7 @@ defmodule PetalComponents.Button do
     |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
     |> assign_new(:classes, fn -> button_classes(assigns) end)
     |> assign_new(:class, fn -> "" end)
+    |> assign_new(:to, fn -> nil end)
   end
 
   defp button_classes(opts) do
@@ -85,13 +111,6 @@ defmodule PetalComponents.Button do
         ""
       end
 
-    disabled_css =
-      if opts[:disabled] do
-        "disabled cursor-not-allowed opacity-50"
-      else
-        ""
-      end
-
     icon_css =
       if opts[:icon] do
         "flex gap-2 items-center whitespace-nowrap"
@@ -104,7 +123,7 @@ defmodule PetalComponents.Button do
       #{color_css}
       #{size_css}
       #{loading_css}
-      #{disabled_css}
+      #{get_disabled_classes(opts[:disabled])}
       #{icon_css}
       font-medium
       rounded-md
@@ -125,7 +144,7 @@ defmodule PetalComponents.Button do
       :variant,
       :color,
       :icon,
-      :class
+      :class,
     ])
   end
 
@@ -201,9 +220,34 @@ defmodule PetalComponents.Button do
     end
   end
 
-  defp get_spinner_classes("xs"), do: "h-3 w-3"
-  defp get_spinner_classes("sm"), do: "h-4 w-4"
-  defp get_spinner_classes("md"), do: "h-5 w-5"
-  defp get_spinner_classes("lg"), do: "h-5 w-5"
-  defp get_spinner_classes("xl"), do: "h-6 w-6"
+  defp get_spinner_size_classes("xs"), do: "h-3 w-3"
+  defp get_spinner_size_classes("sm"), do: "h-4 w-4"
+  defp get_spinner_size_classes("md"), do: "h-5 w-5"
+  defp get_spinner_size_classes("lg"), do: "h-5 w-5"
+  defp get_spinner_size_classes("xl"), do: "h-6 w-6"
+
+  defp get_icon_button_size_classes("xs"), do: "w-4 h-4"
+  defp get_icon_button_size_classes("sm"), do: "w-5 h-5"
+  defp get_icon_button_size_classes("md"), do: "w-6 h-6"
+  defp get_icon_button_size_classes("lg"), do: "w-7 h-7"
+  defp get_icon_button_size_classes("xl"), do: "w-8 h-8"
+
+  defp get_icon_button_color_classes("primary"), do: "text-primary-600 dark:text-primary-400"
+  defp get_icon_button_color_classes("secondary"), do: "text-secondary-600 dark:text-secondary-400"
+  defp get_icon_button_color_classes("gray"), do: "text-gray-600 dark:text-gray-400"
+  defp get_icon_button_color_classes("info"), do: "text-blue-600 dark:text-blue-400"
+  defp get_icon_button_color_classes("success"), do: "text-green-600 dark:text-green-400"
+  defp get_icon_button_color_classes("warning"), do: "text-yellow-600 dark:text-yellow-400"
+  defp get_icon_button_color_classes("danger"), do: "text-red-600 dark:text-red-400"
+
+  defp get_icon_button_background_color_classes("primary"), do: "hover:bg-primary-50 dark:hover:bg-gray-800"
+  defp get_icon_button_background_color_classes("secondary"), do: "hover:bg-secondary-50 dark:hover:bg-gray-800"
+  defp get_icon_button_background_color_classes("gray"), do: "hover:bg-gray-100 dark:hover:bg-gray-800"
+  defp get_icon_button_background_color_classes("info"), do: "hover:bg-blue-50 dark:hover:bg-blue-800"
+  defp get_icon_button_background_color_classes("success"), do: "hover:bg-green-50 dark:hover:bg-gray-800"
+  defp get_icon_button_background_color_classes("warning"), do: "hover:bg-yellow-50 dark:hover:bg-gray-800"
+  defp get_icon_button_background_color_classes("danger"), do: "hover:bg-red-50 dark:hover:bg-gray-800"
+
+  defp get_disabled_classes(true), do: "disabled cursor-not-allowed opacity-50"
+  defp get_disabled_classes(false), do: ""
 end

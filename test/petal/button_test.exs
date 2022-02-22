@@ -116,4 +116,16 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "some-special-class"
   end
+
+  test "icon button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.icon_button to="/" link_type="button" size="xs" color="primary" icon={:clock} />
+      """)
+
+    assert html =~ "<svg"
+    assert html =~ "dark:hover:"
+  end
 end
