@@ -33,7 +33,7 @@ Some components like Dropdowns require Javascript to work. We default to Alpine 
 
 ## Documentation
 
-For full documentation, visit [petal.build](https://petal.build).
+For full documentation, visit [petal.build](https://petal.build/docs).
 
 ## Try it out
 
