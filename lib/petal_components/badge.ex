@@ -15,9 +15,20 @@ defmodule PetalComponents.Badge do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:icon, fn -> false end)
       |> assign_new(:inner_block, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          size
+          variant
+          color
+          class
+          icon
+          inner_block
+          label
+        )a)
+      end)
 
     ~H"""
-    <badge class={Enum.join([
+    <badge {@extra_assigns} class={Enum.join([
       "rounded inline-flex items-center justify-center focus:outline-none border",
       size_classes(@size),
       icon_classes(@icon),

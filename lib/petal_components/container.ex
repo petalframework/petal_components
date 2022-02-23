@@ -10,9 +10,16 @@ defmodule PetalComponents.Container do
       |> assign_new(:max_width, fn -> "lg" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:no_padding_on_mobile, fn -> false end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          max_width
+          class
+          no_padding_on_mobile
+        )a)
+      end)
 
     ~H"""
-    <div class={Enum.join([
+    <div {@extra_assigns} class={Enum.join([
       "mx-auto sm:px-6 lg:px-8 w-full",
       get_width_class(@max_width),
       get_padding_class(@no_padding_on_mobile),

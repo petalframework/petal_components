@@ -22,9 +22,20 @@ defmodule PetalComponents.Pagination do
       |> assign_new(:sibling_count, fn -> 1 end)
       |> assign_new(:boundary_count, fn -> 1 end)
       |> assign_new(:path, fn -> "/:page" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          link_type
+          sibling_count
+          boundary_count
+          total_pages
+          current_page
+          path
+          class
+        )a)
+      end)
 
     ~H"""
-    <div class={"#{@class} flex"}>
+    <div {@extra_assigns} class={"#{@class} flex"}>
       <ul class="inline-flex -space-x-px text-sm font-medium">
         <%= for item <- get_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "previous" do %>

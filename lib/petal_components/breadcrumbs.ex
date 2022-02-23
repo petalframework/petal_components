@@ -16,9 +16,17 @@ defmodule PetalComponents.Breadcrumbs do
       |> assign_new(:separator, fn -> "slash" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:link_class, fn -> "" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
+          separator
+          class
+          link_class
+          links
+        )a)
+      end)
 
     ~H"""
-    <div class={"#{@class} flex items-center"}>
+    <div {@extra_assigns} class={"#{@class} flex items-center"}>
       <%= for {link, counter} <- Enum.with_index(@links) do %>
         <%= if counter > 0 do %>
           <.separator type={@separator} />
