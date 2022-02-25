@@ -19,7 +19,8 @@ defmodule PetalComponents do
         Link,
         Modal,
         Tabs,
-        Card
+        Card,
+        Table
       }
     end
   end
