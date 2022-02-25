@@ -1,4 +1,6 @@
 # Changelog
+### 0.13.0 - 2022-02-25 03:50:18
+- Table
 ### 0.12.0 - 2022-02-22 21:25:39
 - Icon buttons
 - Made a link type button and refactored dropdown
