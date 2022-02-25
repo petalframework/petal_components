@@ -17,7 +17,6 @@ defmodule PetalComponents.Link do
         assigns_to_attributes(assigns, [
           :class,
           :link_type,
-          :type,
           :label
         ])
       end)
@@ -51,13 +50,7 @@ defmodule PetalComponents.Link do
   end
   def custom_link(%{link_type: "button"} = assigns) do
     ~H"""
-    <button class={@class} {@extra_assigns}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
-    </button>
+    <button class={@class} {@extra_assigns}><%= if @inner_block, do: render_slot(@inner_block), else: @label %></button>
     """
   end
 end
