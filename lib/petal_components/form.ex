@@ -367,12 +367,15 @@ defmodule PetalComponents.Form do
   end
 
   def radio_group(assigns) do
-    assigns = assign_defaults(assigns, radio_classes(field_has_errors?(assigns)))
+    assigns =
+      assigns
+      |> assign_defaults(radio_classes(field_has_errors?(assigns)))
+      |> assign_new(:layout, fn -> :col end)
 
     ~H"""
-    <div class="flex flex-col gap-1">
+    <div class={radio_group_layout_classes(%{layout: @layout})}>
       <%= for {label, value} <- @options do %>
-        <label class="inline-flex items-center gap-3">
+        <label class={radio_group_layout_item_classes(%{layout: @layout})}>
           <.radio form={@form} field={@field} value={value} {@extra_assigns} />
           <div class={label_classes(%{form: @form, field: @field, type: "radio"})}><%= label %></div>
         </label>
@@ -442,7 +445,7 @@ defmodule PetalComponents.Form do
         :field,
         :type,
         :options,
-        :layout,
+        :layout
       ])
     end)
     |> assign_new(:classes, fn ->
@@ -506,6 +509,26 @@ defmodule PetalComponents.Form do
 
       _col ->
         "inline-flex items-center block gap-3"
+    end
+  end
+
+  defp radio_group_layout_classes(assigns) do
+    case assigns[:layout] do
+      :row ->
+        "flex flex-row gap-4"
+
+      _col ->
+        "flex flex-col gap-1"
+    end
+  end
+
+  defp radio_group_layout_item_classes(assigns) do
+    case assigns[:layout] do
+      :row ->
+        "inline-flex items-center gap-2"
+
+      _col ->
+        "inline-flex items-center gap-3"
     end
   end
 
