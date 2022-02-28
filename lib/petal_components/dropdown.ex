@@ -31,7 +31,7 @@ defmodule PetalComponents.Dropdown do
   def dropdown(assigns) do
     assigns =
       assigns
-      |> assign_new(:options_container_id, fn -> "dropdown_#{Enum.random(1..100_000_000)}" end)
+      |> assign_new(:options_container_id, fn -> "dropdown_#{UUID.uuid4()}" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
       |> assign_new(:placement, fn -> "left" end)
       |> assign_new(:label, fn -> nil end)
