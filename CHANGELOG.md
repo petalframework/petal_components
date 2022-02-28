@@ -1,4 +1,6 @@
 # Changelog
+### 0.13.2 - 2022-02-28 02:23:54
+- added row layout to radio group
 ### 0.13.1 - 2022-02-25 20:17:55
 - Fixed button type not working
 ### 0.13.0 - 2022-02-25 03:50:18
