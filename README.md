@@ -57,8 +57,10 @@ We have a fresh [Phoenix boilerplate template](https://github.com/petalframework
 - [x] color input
 - [x] range input
 - [x] time, datetime, & date input
-- [ ] multiple select
+- [x] multiple select (see checkbox group)
 - [ ] switch
+- [ ] input help text
+- [ ] input prefix and postfix
 
 ### Buttons
 - [x] basic button
@@ -73,7 +75,7 @@ We have a fresh [Phoenix boilerplate template](https://github.com/petalframework
 - [ ] tooltips
 - [x] avatar
 - [x] alerts
-- [ ] tables
+- [x] tables
 - [x] cards
 - [x] breadcrumbs
 - [x] modal
