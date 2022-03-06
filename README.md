@@ -1,9 +1,20 @@
 <p align="center">
   <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752721/petal/logo_rh2ras.png" height="128">
+  
   <h1 align="center">Petal Components</h1>
+  
+  <p align="center">
+    Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+  </p>
 </p>
 
 <p align="center">
+  <a href="https://hex.pm/packages/petal_components">
+    <img alt="Hex Version" src="https://img.shields.io/hexpm/v/oban.svg">
+  </a>
+  <a href="https://hexdocs.pm/petal_components">
+    <img alt="Hex Docs" src="http://img.shields.io/badge/hex.pm-docs-green.svg?style=flat">
+  </a>
   <a href="https://opensource.org/licenses/MIT" alt="MIT">
     <img src="https://img.shields.io/badge/license-MIT-green" />
   </a>
@@ -13,10 +24,6 @@
   <a href="https://petal-components-demo.fly.dev">
     DEMO
   </a>
-</p>
-
-<p align="center">
-  Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
 </p>
 
 ## About
