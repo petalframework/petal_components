@@ -30,9 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="https://petal-components-demo.fly.dev">
-    DEMO
-  </a>
+  <a href="https://petal-components-demo.fly.dev">DEMO</a> | <a href="https://petal.build/docs">DOCS</a>
 </p>
 
 ## About
