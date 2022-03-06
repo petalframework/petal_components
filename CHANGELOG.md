@@ -1,4 +1,6 @@
 # Changelog
+### 0.13.3 - 2022-03-06 23:47:24
+- added user_inner_td and fixed formatting where thead and tbody are required
 ### 0.13.2 - 2022-02-28 02:23:54
 - added row layout to radio group
 ### 0.13.1 - 2022-02-25 20:17:55
