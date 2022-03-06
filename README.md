@@ -24,6 +24,9 @@
   <a href="https://petal-components-demo.fly.dev">
     <img src="https://res.cloudinary.com/wickedsites/image/upload/c_scale,h_621/v1646543077/petal/demo_nmw8eh.png" height="300" />
   </a>
+  <a href="https://petal-components-demo.fly.dev">
+    <img src="https://res.cloudinary.com/wickedsites/image/upload/c_scale,h_621/v1646543453/petal/demo-light_sijqjy.png" height="300" />
+  </a>
 </p>
 
 <p align="center">
