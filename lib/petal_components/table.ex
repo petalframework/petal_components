@@ -13,7 +13,7 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <table class="min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded">
+    <table class="min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded" {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </table>
     """
@@ -30,7 +30,7 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+    <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300" {@extra_assigns}>
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% end %>
@@ -51,8 +51,8 @@ defmodule PetalComponents.Table do
     ~H"""
     <tr class={Enum.join([
       "border-b dark:border-gray-700 bg-white dark:bg-gray-800 last:border-none",
-      @class
-    ], " ")}>
+      @class,
+    ], " ")} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </tr>
     """
@@ -72,7 +72,7 @@ defmodule PetalComponents.Table do
     <td class={Enum.join([
       "px-6 py-4 text-sm text-gray-500 dark:text-gray-400",
       @class
-    ], " ")}>
+    ], " ")} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </td>
     """
@@ -80,11 +80,20 @@ defmodule PetalComponents.Table do
 
   def user_inner_td(assigns) do
     assigns = assign_new(assigns, :class, fn -> "" end)
+    assigns = assign_new(assigns, :avatar_assigns, fn -> nil end)
+    |> assign_new(:extra_assigns, fn ->
+      assigns_to_attributes(assigns, ~w(
+        class
+        avatar_assigns
+      )a)
+    end)
 
     ~H"""
-    <div class={"#{@class}"}>
+    <div class={@class} {@extra_assigns}>
       <div class="flex items-center gap-3">
-        <.avatar {@avatar_assigns} />
+        <%= if @avatar_assigns do %>
+          <.avatar {@avatar_assigns} />
+        <% end %>
 
         <div class="flex flex-col overflow-hidden">
           <div class="overflow-hidden font-medium text-gray-900 whitespace-nowrap text-ellipsis dark:text-gray-300"><%= @label %></div>
