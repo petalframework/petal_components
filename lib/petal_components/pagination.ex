@@ -79,9 +79,9 @@ defmodule PetalComponents.Pagination do
 
   defp get_items(total_pages, current_page, sibling_count, boundary_count) do
     start_pages = 1..min(boundary_count, total_pages) |> Enum.to_list()
-
-    end_pages =
-      max(total_pages - boundary_count + 1, boundary_count + 1)..total_pages |> Enum.to_list()
+    end_pages_start = max(total_pages - boundary_count + 1, boundary_count + 1)
+    end_pages_end = total_pages
+    end_pages = end_pages_start..end_pages_end |> Enum.to_list()
 
     siblings_start =
       max(
@@ -106,7 +106,7 @@ defmodule PetalComponents.Pagination do
     # Start pages
     items =
       Enum.reduce(start_pages, items, fn i, acc ->
-        acc ++ [%{type: "page", number: i, first: i == 1}]
+        acc ++ [%{type: "page", number: i, first: i == 1, only: total_pages == 1}]
       end)
 
     # First ellipsis
@@ -121,9 +121,13 @@ defmodule PetalComponents.Pagination do
 
     # Siblings
     items =
-      Enum.reduce(siblings_start..siblings_end, items, fn i, acc ->
-        acc ++ [%{type: "page", number: i}]
-      end)
+      if siblings_start <= siblings_end do
+        Enum.reduce(siblings_start..siblings_end, items, fn i, acc ->
+          acc ++ [%{type: "page", number: i}]
+        end)
+      else
+        items
+      end
 
     # Second ellipsis
     items =
@@ -137,14 +141,20 @@ defmodule PetalComponents.Pagination do
 
     # End pages
     items =
-      Enum.reduce(end_pages, items, fn i, acc ->
-        acc ++ [%{type: "page", number: i, last: i == total_pages}]
-      end)
+      if end_pages_start <= end_pages_end do
+        Enum.reduce(end_pages, items, fn i, acc ->
+          acc ++ [%{type: "page", number: i, last: i == total_pages}]
+        end)
+      else
+        items
+      end
 
     # Next button
-    if current_page < total_pages,
+    items = if current_page < total_pages,
       do: items ++ [%{type: "next", number: current_page + 1}],
       else: items
+
+    items
   end
 
   defp get_box_class(item, is_active \\ false) do
@@ -158,6 +168,9 @@ defmodule PetalComponents.Pagination do
 
     rounded_classes =
       cond do
+        item[:only] ->
+          "rounded"
+
         item[:first] ->
           "rounded-l "
 

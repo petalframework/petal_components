@@ -2,6 +2,17 @@ defmodule PetalComponents.PaginationTest do
   use ComponentCase
   import PetalComponents.Pagination
 
+  test "test less than 5 pages" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination link_type="a" class="mb-5" path="/:page" current_page={1} total_pages={1} />
+      """)
+
+    refute html =~ "/page/2"
+  end
+
   test "previous doesn't show on page 1" do
     assigns = %{}
 
