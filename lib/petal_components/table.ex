@@ -85,6 +85,8 @@ defmodule PetalComponents.Table do
       assigns_to_attributes(assigns, ~w(
         class
         avatar_assigns
+        label
+        sub_label
       )a)
     end)
 
