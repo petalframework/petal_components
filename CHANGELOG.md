@@ -1,4 +1,10 @@
 # Changelog
+### 0.13.5 - 2022-03-09 04:53:41
+- Excluded label and sub_label in the user_inner_td
+- Fixed pagination to work when less than 5 pages
+- Fixed corners of red bg on file input error
+- Removed prop references to size_class, rename size_class / css_class to :string
+- Updated the heroicons generator to use "extra_assigns" instead of "extra_attributes"
 ### 0.13.4 - 2022-03-07 03:11:28
 - Fixed table to accept extra attributes and updated table tests
 ### 0.13.3 - 2022-03-06 23:47:24
