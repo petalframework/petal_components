@@ -13,7 +13,10 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <table class="min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded" {@extra_assigns}>
+    <table class={Enum.join([
+      "min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
+      @class,
+    ], " ")} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </table>
     """
@@ -30,7 +33,10 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300" {@extra_assigns}>
+    <th class={Enum.join([
+      "px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300",
+      @class,
+    ], " ")} {@extra_assigns}>
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% end %>
@@ -79,16 +85,18 @@ defmodule PetalComponents.Table do
   end
 
   def user_inner_td(assigns) do
-    assigns = assign_new(assigns, :class, fn -> "" end)
-    assigns = assign_new(assigns, :avatar_assigns, fn -> nil end)
-    |> assign_new(:extra_assigns, fn ->
-      assigns_to_attributes(assigns, ~w(
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:avatar_assigns, fn -> nil end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(
         class
         avatar_assigns
         label
         sub_label
       )a)
-    end)
+      end)
 
     ~H"""
     <div class={@class} {@extra_assigns}>
