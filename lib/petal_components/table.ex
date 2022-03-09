@@ -91,11 +91,11 @@ defmodule PetalComponents.Table do
       |> assign_new(:avatar_assigns, fn -> nil end)
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, ~w(
-        class
-        avatar_assigns
-        label
-        sub_label
-      )a)
+          class
+          avatar_assigns
+          label
+          sub_label
+        )a)
       end)
 
     ~H"""
