@@ -10,7 +10,7 @@ defmodule PetalComponents.Typography do
   # <.h1 label="Heading" class="mb-10" color_class="text-blue-500" />
 
   # prop label, :string
-  # prop class, :css_class
+  # prop class, :string
   # slot default
   def h1(assigns) do
     assigns =

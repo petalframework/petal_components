@@ -2,7 +2,7 @@ defmodule PetalComponents.Container do
   use Phoenix.Component
 
   # prop max_width, :string, options: ["sm", "md", "lg", "xl", "full"]
-  # prop class, :css_class
+  # prop class, :string
   # prop no_padding_on_mobile, :boolean
   def container(assigns) do
     assigns =

@@ -5,7 +5,7 @@ defmodule PetalComponents.Badge do
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
   # prop variant, :string
   # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  # prop class, :css_class
+  # prop class, :string
   def badge(assigns) do
     assigns =
       assigns

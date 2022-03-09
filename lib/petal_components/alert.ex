@@ -3,7 +3,7 @@ defmodule PetalComponents.Alert do
   alias PetalComponents.Heroicons
 
   # prop color, :string, options: ["info", "success", "warning", "danger"]
-  # prop class, :css_class
+  # prop class, :string
   # prop label, :string
   # slot default
   def alert(assigns) do
