@@ -9,7 +9,7 @@ defmodule PetalComponents.Form do
   # prop form, :any
   # prop field, :any
   # prop label, :string
-  # prop class, :css_class
+  # prop class, :string
   # slot default
   def form_label(assigns) do
     assigns =
@@ -61,7 +61,7 @@ defmodule PetalComponents.Form do
   # prop type, :string, required: true, options: ["text_input", "email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input", "textarea", "select", "checkbox", "radio_gro"]
   # prop disabled, :boolean, default: false, options: ["text_input"]
   # prop label, :string
-  # prop wrapper_classes, :css_class
+  # prop wrapper_classes, :string
 
   @doc "Use this when you want to include the label and some margin."
   def form_field(assigns) do
@@ -477,7 +477,7 @@ defmodule PetalComponents.Form do
   end
 
   defp file_input_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} focus:outline-none file:border-0 text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-gray-800 dark:file:text-primary-500"
+    "#{if has_error, do: "has-error", else: ""} focus:outline-none file:border-0 rounded-md text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-gray-800 dark:file:text-primary-500"
   end
 
   defp color_input_classes(has_error) do
