@@ -95,4 +95,28 @@ defmodule PetalComponents.TableTest do
       <.user_inner_td label="John" sub_label="Smith" custom-attr="123" />
     """) =~ ~s{custom-attr="123"}
   end
+
+  test "components include additional classes" do
+    assigns = %{}
+
+    assert rendered_to_string(~H"""
+      <.table class="extra-class"></.table>
+    """) =~ "extra-class"
+
+    assert rendered_to_string(~H"""
+      <.tr class="extra-class"></.tr>
+    """) =~ "extra-class"
+
+    assert rendered_to_string(~H"""
+      <.th class="extra-class"></.th>
+    """) =~ "extra-class"
+
+    assert rendered_to_string(~H"""
+      <.td class="extra-class"></.td>
+    """) =~ "extra-class"
+
+    assert rendered_to_string(~H"""
+      <.user_inner_td label="John" sub_label="Smith" class="extra-class" />
+    """) =~ "extra-class"
+  end
 end
