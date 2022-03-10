@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="https://petal-components-demo.fly.dev">DEMO</a> | <a href="https://petal.build/docs">DOCS</a>
+  <a href="https://petal-components-demo.fly.dev">DEMO</a> | <a href="https://petal.build/components">DOCS</a>
 </p>
 
 ## About
@@ -47,7 +47,7 @@ Some components like Dropdowns require Javascript to work. We default to Alpine 
 
 ## Documentation
 
-For full documentation, visit [petal.build](https://petal.build/docs).
+For full documentation, visit [petal.build](https://petal.build/components).
 
 ## Try it out
 
