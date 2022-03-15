@@ -60,7 +60,7 @@ defmodule PetalComponents.Pagination do
 
           <%= if item.type == "ellipsis" do %>
             <li>
-              <span class="inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-gray-900 dark:border-gray-400 border-gray-200 text-gray-400">...</span>
+              <span class="inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-gray-900 dark:border-gray-700 border-gray-200 text-gray-400">...</span>
             </li>
           <% end %>
 
@@ -159,12 +159,12 @@ defmodule PetalComponents.Pagination do
 
   defp get_box_class(item, is_active \\ false) do
     base_classes =
-      "inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-400 border border-gray-200 text-gray-600 hover:text-gray-800"
+      "inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700"
 
     active_classes =
       if is_active,
-        do: "bg-gray-100 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 text-gray-800",
-        else: "dark:text-gray-400 text-gray-600 hover:text-gray-800 dark:hover:text-gray-400"
+        do: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+        else: "bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400"
 
     rounded_classes =
       cond do
