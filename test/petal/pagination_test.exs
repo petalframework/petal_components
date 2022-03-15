@@ -119,4 +119,26 @@ defmodule PetalComponents.PaginationTest do
 
     assert html =~ ~s{custom-attrs="12"}
   end
+
+  test "correct link type for live_patch" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={1} link_type="live_patch" />
+      """)
+
+    assert html =~ ~s{data-phx-link="patch"}
+  end
+
+  test "correct link type for live_redirect" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={1} link_type="live_redirect" />
+      """)
+
+    assert html =~ ~s{data-phx-link="redirect"}
+  end
 end

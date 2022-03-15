@@ -40,7 +40,7 @@ defmodule PetalComponents.Pagination do
         <%= for item <- get_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "previous" do %>
             <div>
-              <.link type={@link_type} to={get_path(@path, item.number, @current_page)} class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-400 border-gray-200 text-gray-600 hover:text-gray-800">
+              <.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-400 border-gray-200 text-gray-600 hover:text-gray-800">
                 <Heroicons.Solid.chevron_left class="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </.link>
             </div>
@@ -51,7 +51,7 @@ defmodule PetalComponents.Pagination do
               <%= if item.number == @current_page do %>
                 <span class={get_box_class(item, true)}><%= item.number %></span>
               <% else %>
-                <.link type={@link_type} to={get_path(@path, item.number, @current_page)} class={get_box_class(item)}>
+                <.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class={get_box_class(item)}>
                   <%= item.number %>
                 </.link>
               <% end %>
@@ -66,7 +66,7 @@ defmodule PetalComponents.Pagination do
 
           <%= if item.type == "next" do %>
             <div>
-              <.link type={@link_type} to={get_path(@path, item.number, @current_page)} class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-400 border border-gray-200 text-gray-600 hover:text-gray-800">
+              <.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-400 border border-gray-200 text-gray-600 hover:text-gray-800">
                 <Heroicons.Solid.chevron_right class="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </.link>
             </div>
