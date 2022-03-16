@@ -40,8 +40,8 @@ defmodule PetalComponents.Progress do
     """
   end
 
-  defp get_color_classes("primary"), do: "bg-blue-500"
-  defp get_color_classes("secondary"), do: "bg-pink-500"
+  defp get_color_classes("primary"), do: "bg-primary-500"
+  defp get_color_classes("secondary"), do: "bg-secondary-500"
   defp get_color_classes("info"), do: "bg-blue-500"
   defp get_color_classes("success"), do: "bg-green-500"
   defp get_color_classes("warning"), do: "bg-yellow-500"
@@ -53,8 +53,8 @@ defmodule PetalComponents.Progress do
   defp get_parent_classes("lg"), do: "h-4 rounded-lg"
   defp get_parent_classes("xl"), do: "h-5 rounded-xl"
 
-  defp get_parent_color_classes("primary"), do: "bg-blue-100"
-  defp get_parent_color_classes("secondary"), do: "bg-pink-100"
+  defp get_parent_color_classes("primary"), do: "bg-primary-100"
+  defp get_parent_color_classes("secondary"), do: "bg-secondary-100"
   defp get_parent_color_classes("info"), do: "bg-blue-100"
   defp get_parent_color_classes("success"), do: "bg-green-100"
   defp get_parent_color_classes("warning"), do: "bg-yellow-100"
