@@ -54,7 +54,7 @@ defmodule PetalComponents.Tabs do
       end)
 
     ~H"""
-    <.link link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline)} {@extra_assigns}>
+    <.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@extra_assigns}>
       <%= if @number do %>
         <.render_label_or_slot {assigns} />
 
