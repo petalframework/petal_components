@@ -440,6 +440,7 @@ defmodule PetalComponents.Form do
     |> assign_new(:type, fn -> "text" end)
     |> assign_new(:extra_assigns, fn ->
       assigns_to_attributes(assigns, [
+        :class,
         :label,
         :form,
         :field,
