@@ -18,14 +18,14 @@ defmodule PetalComponents.ProgressTest do
       <.progress color="primary" value={15} max={100} />
       """)
 
-    assert html =~ "bg-blue"
+    assert html =~ "bg-primary"
 
     html =
       rendered_to_string(~H"""
       <.progress color="secondary" value={15} max={100} />
       """)
 
-    assert html =~ "bg-pink"
+    assert html =~ "bg-secondary"
 
     html =
       rendered_to_string(~H"""
