@@ -1,4 +1,10 @@
 # Changelog
+### 0.13.6 - 2022-03-27 23:59:54
+- Added info, warning and gray variants to buttons
+- Added gray variant to progress
+- Fixed progress test
+- Form does not leak the class assign as it's already set from classes
+- Made tabs text in dark mode lighter and changed assigns_to_attributes to be consistent with other components
 ### 0.13.5 - 2022-03-09 04:53:41
 - Excluded label and sub_label in the user_inner_td
 - Fixed pagination to work when less than 5 pages
