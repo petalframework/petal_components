@@ -203,6 +203,19 @@ defmodule PetalComponents.Button do
     end
   end
 
+  defp get_color_classes(%{color: "info", variant: variant}) do
+    case variant do
+      "outline" ->
+        "border-blue-400 dark:border-blue-400 dark:hover:border-blue-300 dark:hover:text-blue-300 dark:hover:bg-transparent dark:text-blue-400 hover:border-blue-600 text-blue-600 hover:text-blue-700 active:border-blue-600 focus:text-blue-600 active:text-blue-700 active:bg-blue-100 hover:bg-blue-50 focus:border-blue-700"
+
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-blue-600 active:bg-blue-700 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:shadow-outline-blue shadow-blue-500/30 dark:hover:shadow-blue-600/30 dark:focus:shadow-blue-600/30 dark:active:shadow-blue-700/30"
+
+      _ ->
+        "border-transparent text-white bg-blue-600 active:bg-blue-700 hover:bg-blue-700 active:bg-blue-700 focus:bg-blue-700"
+    end
+  end
+
   defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "outline" ->
@@ -216,6 +229,19 @@ defmodule PetalComponents.Button do
     end
   end
 
+  defp get_color_classes(%{color: "warning", variant: variant}) do
+    case variant do
+      "outline" ->
+        "border-yellow-400 dark:border-yellow-400 dark:hover:border-yellow-300 dark:hover:text-yellow-300 dark:hover:bg-transparent dark:text-yellow-400 hover:border-yellow-600 text-yellow-600 hover:text-yellow-700 active:border-yellow-600 focus:text-yellow-600 active:text-yellow-700 active:bg-yellow-100 hover:bg-yellow-50 focus:border-yellow-700"
+
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-yellow-600 active:bg-yellow-700 hover:bg-yellow-700 focus:bg-yellow-700 active:bg-yellow-800 focus:shadow-outline-yellow shadow-yellow-500/30 dark:hover:shadow-yellow-600/30 dark:focus:shadow-yellow-600/30 dark:active:shadow-yellow-700/30"
+
+      _ ->
+        "border-transparent text-white bg-yellow-600 active:bg-yellow-700 hover:bg-yellow-700 active:bg-yellow-700 focus:bg-yellow-700"
+    end
+  end
+
   defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "outline" ->
@@ -226,6 +252,19 @@ defmodule PetalComponents.Button do
 
       _ ->
         "border-transparent text-white bg-red-600 active:bg-red-700 hover:bg-red-700 active:bg-green-700 focus:bg-red-700"
+    end
+  end
+
+  defp get_color_classes(%{color: "gray", variant: variant}) do
+    case variant do
+      "outline" ->
+        "border-gray-400 dark:border-gray-400 dark:hover:border-gray-300 dark:hover:text-gray-300 dark:hover:bg-transparent dark:text-gray-400 hover:border-gray-600 text-gray-600 hover:text-gray-700 active:bg-gray-200 active:border-gray-700 hover:bg-gray-50 focus:border-gray-700"
+
+      "shadow" ->
+        "shadow-xl border-transparent text-white bg-gray-600 active:bg-gray-700 hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:shadow-outline-gray shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:focus:shadow-gray-600/30 dark:active:shadow-gray-700/30"
+
+      _ ->
+        "border-transparent text-white bg-gray-600 active:bg-gray-700 hover:bg-gray-700 active:bg-green-700 focus:bg-gray-700"
     end
   end
 
