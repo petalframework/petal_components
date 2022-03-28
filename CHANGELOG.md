@@ -1,4 +1,10 @@
 # Changelog
+### 0.13.7 - 2022-03-28 00:02:41
+- Added info, warning and gray variants to buttons
+- Added gray variant to progress
+- Fixed progress test
+- Form does not leak the class assign as it's already set from classes
+- Made tabs text in dark mode lighter and changed assigns_to_attributes to be consistent with other components
 ### 0.13.6 - 2022-03-27 23:59:54
 - Added info, warning and gray variants to buttons
 - Added gray variant to progress
