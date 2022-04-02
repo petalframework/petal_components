@@ -18,6 +18,7 @@ defmodule PetalComponents do
         Pagination,
         Link,
         Modal,
+        SlideOver,
         Tabs,
         Card,
         Table
