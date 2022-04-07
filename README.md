@@ -53,6 +53,10 @@ For full documentation, visit [petal.build](https://petal.build/components).
 
 We have a fresh [Phoenix boilerplate template](https://github.com/petalframework/petal_boilerplate) with Petal Components ready to go if you would like to get your hands dirty. 
 
+## VSCode Snippets Extension
+
+Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=petalframework.vscode-petal-components-snippets&ssr=false#overview) to gain access to 65+ snippets for all of the components. 
+
 ## Roadmap
 
 ### Layout
