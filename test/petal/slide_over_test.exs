@@ -9,13 +9,13 @@ defmodule PetalComponents.SlideOverTest do
 
     html =
       rendered_to_string(~H"""
-      <.button label="start" link_type="live_patch" to="/live" />
+      <.button label="left" link_type="live_patch" to="/live" />
 
-      <.slide_over title="SlideOver" slide_over="start">
+      <.slide_over title="SlideOver" origin="left">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />
           <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("start")} />
+            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("left")} />
           </div>
         </div>
       </.slide_over>
@@ -28,13 +28,13 @@ defmodule PetalComponents.SlideOverTest do
     # Test origin options
     html =
       rendered_to_string(~H"""
-      <.button label="end" link_type="live_patch" to="/" />
+      <.button label="right" link_type="live_patch" to="/" />
 
-      <.slide_over slide_over="end" title="SlideOver">
+      <.slide_over origin="right" title="SlideOver">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />
           <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("end")} />
+            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("right")} />
           </div>
         </div>
       </.slide_over>
@@ -48,7 +48,7 @@ defmodule PetalComponents.SlideOverTest do
       rendered_to_string(~H"""
       <.button label="top" link_type="live_patch" to="/live" />
 
-      <.slide_over slide_over="top" title="SlideOver">
+      <.slide_over origin="top" title="SlideOver">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />
           <div class="flex justify-end">
@@ -66,7 +66,7 @@ defmodule PetalComponents.SlideOverTest do
       rendered_to_string(~H"""
       <.button label="bottom" link_type="live_patch" to="/live" />
 
-      <.slide_over slide_over="bottom" title="SlideOver">
+      <.slide_over origin="bottom" title="SlideOver">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />
           <div class="flex justify-end">
@@ -86,13 +86,13 @@ defmodule PetalComponents.SlideOverTest do
 
     html =
       rendered_to_string(~H"""
-      <.button label="start" link_type="live_patch" to="/live" />
+      <.button label="left" link_type="live_patch" to="/live" />
 
-      <.slide_over slide_over="start" title="SlideOver">
+      <.slide_over origin="left" title="SlideOver">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />
           <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("start")} />
+            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("left")} />
           </div>
         </div>
       </.slide_over>
