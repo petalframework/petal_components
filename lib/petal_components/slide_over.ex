@@ -9,6 +9,7 @@ defmodule PetalComponents.SlideOver do
     assigns =
       assigns
       |> assign_new(:classes, fn -> get_classes(assigns) end)
+      |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, ~w(
           classes
@@ -29,7 +30,11 @@ defmodule PetalComponents.SlideOver do
       </div>
 
       <div
-        class="fixed inset-0 z-50 flex overflow-hidden transform"
+        class={Enum.join([
+          "fixed inset-0 z-50 flex overflow-hidden transform",
+          get_margin_classes(@slide_over),
+          @class,
+          ], " ")}
         role="dialog"
         aria-modal="true"
       >
@@ -138,5 +143,14 @@ defmodule PetalComponents.SlideOver do
 
     [slide_over_classes, max_width_class, base_classes, custom_classes]
     |> Enum.join(" ")
+  end
+
+  defp get_margin_classes(margin) do
+    case margin do
+      "start" -> "mr-10"
+      "end" -> "ml-10"
+      "top" -> "mb-10"
+      "bottom" -> "mt-10"
+    end
   end
 end
