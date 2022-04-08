@@ -1,4 +1,6 @@
 # Changelog
+### 0.14.0 - 2022-04-08 00:49:03
+- Slide Over
 ### 0.13.7 - 2022-03-28 00:02:41
 - Added info, warning and gray variants to buttons
 - Added gray variant to progress
