@@ -42,7 +42,7 @@ defmodule PetalComponents.Modal do
         >
 
           <!-- Header -->
-          <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-400">
+          <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-600">
             <div class="flex items-center justify-between">
               <div class="font-semibold text-gray-800 dark:text-gray-200">
                 <%= @title %>
