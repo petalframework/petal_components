@@ -4,20 +4,19 @@ defmodule PetalComponents.SlideOver do
 
   # prop origin, :string, options: ["left", "top", "bottom", "right"]
   # prop title, :string
-  # prop size, :string
+  # prop max_width, :string
   # slot default
   def slide_over(assigns) do
     assigns =
       assigns
-      |> assign_new(:classes, fn -> get_classes(assigns) end)
-      |> assign_new(:origin, fn -> "left" end)
+      |> assign_new(:origin, fn -> "right" end)
+      |> assign_new(:max_width, fn -> "md" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, ~w(
-          classes
           class
+          max_width
           title
-          size
           origin
         )a)
       end)
@@ -40,17 +39,16 @@ defmodule PetalComponents.SlideOver do
         role="dialog"
         aria-modal="true"
       >
-
         <div
           id="modal-content"
-          class={@classes}
+          class={get_classes(@max_width, @origin, @class)}
           phx-click-away={hide_slide_over(@origin)}
           phx-window-keydown={hide_slide_over(@origin)}
           phx-key="escape"
         >
 
           <!-- Header -->
-          <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-400">
+          <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-600">
             <div class="flex items-center justify-between">
               <div class="font-semibold text-gray-800 dark:text-gray-200">
                 <%= @title %>
@@ -111,25 +109,19 @@ defmodule PetalComponents.SlideOver do
     |> JS.push("close_slide_over")
   end
 
-  defp get_classes(assigns) do
-    opts = %{
-      max_width: assigns[:max_width] || "md",
-      class: assigns[:class] || "",
-      origin: assigns[:origin] || "left"
-    }
+  defp get_classes(max_width, origin, class) do
+    base_classes = "w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-gray-800"
 
-    base_classes = "w-full max-h-full overflow-auto bg-white rounded shadow-lg dark:bg-gray-800"
-
-    slide_over_classes = case opts.origin do
+    slide_over_classes = case origin do
       "left" -> "transition translate-x-0"
       "right" -> "transition translate-x-0 absolute right-0 inset-y-0"
       "top" -> "transition translate-y-0 absolute inset-x-0"
       "bottom" -> "transition translate-y-0 absolute inset-x-0 bottom-0"
     end
 
-    max_width_class = case opts.origin do
+    max_width_class = case origin do
       x when x in ["left", "right"] -> (
-        case opts.max_width do
+        case max_width do
           "sm" -> "max-w-sm"
           "md" -> "max-w-xl"
           "lg" -> "max-w-3xl"
@@ -141,7 +133,7 @@ defmodule PetalComponents.SlideOver do
       x when x in ["top", "bottom"] -> ""
     end
 
-    custom_classes = opts.class
+    custom_classes = class
 
     [slide_over_classes, max_width_class, base_classes, custom_classes]
     |> Enum.join(" ")
