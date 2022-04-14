@@ -14,7 +14,7 @@ defmodule PetalComponents.Table do
 
     ~H"""
     <table class={Enum.join([
-      "min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
+      "min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow dark:shadow-2xl table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
       @class,
     ], " ")} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
