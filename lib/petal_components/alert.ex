@@ -42,12 +42,12 @@ defmodule PetalComponents.Alert do
           <div class="flex items-start justify-between">
             <div>
               <%= if @heading do %>
-                <div class="pt-1 font-bold leading-6">
+                <div class="pt-1 font-bold">
                   <%= @heading %>
                 </div>
               <% end %>
 
-              <div class="py-1 font-medium leading-6">
+              <div class="py-1 font-medium">
                 <%= if @inner_block do %>
                   <%= render_slot(@inner_block) %>
                 <% else %>
