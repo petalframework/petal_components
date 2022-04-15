@@ -93,6 +93,11 @@ defmodule PetalComponents.Form do
             <.checkbox form={@form} field={@field} {@input_opts} />
             <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= @label %></div>
           </label>
+        <% "switch" -> %>
+          <label class="inline-flex items-center gap-3">
+            <.switch form={@form} field={@field} {@input_opts} />
+            <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}><%= @label %></div>
+          </label>
         <% "checkbox_group" -> %>
           <.form_label form={@form} field={@field} label={@label} />
           <.checkbox_group form={@form} field={@field} {@input_opts} />
