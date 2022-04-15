@@ -358,6 +358,14 @@ defmodule PetalComponents.Form do
     """
   end
 
+  def switch(assigns) do
+    assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
+
+    ~H"""
+    <%= checkbox @form, @field, [class: @classes, phx_feedback_for: input_name(@form, @field)] ++ @extra_assigns %>
+    """
+  end
+
   def radio(assigns) do
     assigns = assign_defaults(assigns, radio_classes(field_has_errors?(assigns)))
 
@@ -511,6 +519,10 @@ defmodule PetalComponents.Form do
       _col ->
         "inline-flex items-center block gap-3"
     end
+  end
+
+  defp switch_classes(has_error) do
+    "#{if has_error, do: "has-error", else: ""} border-gray-300 text-primary-700 rounded-full w-9 h-5 ease-linear transition-all duration-150 relative flex items-center appearance-none checked:bg-none after:h-[1em] after:w-[1em] after:rounded-full after:bg-white after:transition-all after:duration-150 after:absolute after:left-[2px] checked:after:left-[calc(100%-1em-2px)] dark:bg-gray-800 dark:border-gray-300"
   end
 
   defp radio_group_layout_classes(assigns) do

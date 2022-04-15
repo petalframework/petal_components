@@ -143,6 +143,26 @@ defmodule PetalComponents.FormTest do
     assert html =~ "Write"
   end
 
+  test "switch" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form let={f} for={:user}>
+        <.switch
+          form={f}
+          field={:read_terms}
+          random-element="something"
+        />
+      </.form>
+      """)
+
+    assert html =~ "checkbox"
+    assert html =~ "user[read_terms]"
+    assert html =~ "phx-feedback-for"
+    assert html =~ "random-element"
+  end
+
   test "radio" do
     assigns = %{}
 
