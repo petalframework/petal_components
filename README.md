@@ -4,7 +4,7 @@
   <h1 align="center">Petal Components</h1>
   
   <p align="center">
-    Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+    Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes.
   </p>
 </p>
 
@@ -104,6 +104,54 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] badges
 - [x] progress
 - [x] links
+
+## FAQ
+
+**Q: Do I need Alpine JS?**
+A: No we have designed the components to use either Alpine JS or LiveView.JS. 
+
+**Q: What if I want to use my own components too?**
+A: You can install this library and import only the components you need. 
+
+```elixir
+# The recommended option is to import every single component
+use PetalComponents
+
+# But you can get more granular. eg.
+
+# Import Button so you can now create `<.button>` components
+import PetalComponents.Button
+
+# Or just alias if you already have a `def button` HEEX component. With alias you now write the Petal component like this: `<Button.button>`
+alias PetalComponents.Button
+```
+
+**Q: Does this increase my CSS filesize?**
+A: Tailwind will scan any folders you specify and hoover up CSS classes from files to include in your final CSS file. You specify the folders in `tailwind.config.js`. By default, we instruct you to just scan the whole Petal Components library:
+
+```js
+const colors = require("tailwindcss/colors");
+
+module.exports = {
+  purge: [
+    "../lib/*_web/**/*.*ex",
+    "./js/**/*.js",
+
+    // We need to include the Petal dependency so the classes get picked up by JIT.
+    "../deps/petal_components/**/*.*ex"
+  ],
+  
+  ... rest of file omitted
+```
+
+You might be worried that if you don't use every component you'll have unused CSS classes. But we believe it's so small it won't matter. Our petal.build site's CSS file totals just 25kb. 
+
+If you really want to you can instruct Tailwind to just scan the components you use:
+
+```
+"../deps/petal_components/lib/button.ex",
+"../deps/petal_components/lib/alert.ex",
+```
 
 ## Contributing
 
