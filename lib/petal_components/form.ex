@@ -367,7 +367,14 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= checkbox @form, @field, [class: @classes, phx_feedback_for: input_name(@form, @field)] ++ @extra_assigns %>
+    <label class="relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5 group">
+      <%= checkbox @form, @field, [
+        class: @classes,
+        phx_feedback_for: input_name(@form, @field)] ++ @extra_assigns
+      %>
+      <span class="absolute h-6 mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border rounded-full pointer-events-none w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-blue-500"></span>
+      <span class="absolute left-0 inline-block w-5 h-5 transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none peer-checked:translate-x-5 ring-0 "></span>
+    </label>
     """
   end
 
@@ -527,7 +534,7 @@ defmodule PetalComponents.Form do
   end
 
   defp switch_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 text-primary-700 rounded-full w-9 h-5 ease-linear transition-all duration-150 relative flex items-center appearance-none checked:bg-none after:h-[1em] after:w-[1em] after:rounded-full after:bg-white after:transition-all after:duration-150 after:absolute after:left-[2px] checked:after:left-[calc(100%-1em-2px)] dark:bg-gray-800 dark:border-gray-300"
+    "#{if has_error, do: "has-error", else: ""} absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800"
   end
 
   defp radio_group_layout_classes(assigns) do
