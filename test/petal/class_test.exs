@@ -43,4 +43,19 @@ defmodule PetalComponents.ClassTest do
                ""
              ])
   end
+
+  test "remove nil class names" do
+    empty_keylist = []
+
+    assert "some-class extra-class my-class" ==
+             build_class([
+               nil,
+               "some-class",
+               empty_keylist[:some_key],
+               "extra-class",
+               nil,
+               "my-class",
+               nil
+             ])
+  end
 end

@@ -474,7 +474,7 @@ defmodule PetalComponents.Form do
     |> assign_new(:classes, fn ->
       build_class([
         base_classes,
-        assigns[:class] || ""
+        assigns[:class]
       ])
     end)
   end
