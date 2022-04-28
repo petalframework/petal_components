@@ -38,16 +38,19 @@ defmodule PetalComponents.Link do
     <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
+
   def custom_link(%{link_type: "live_patch"} = assigns) do
     ~H"""
     <%= live_patch [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
+
   def custom_link(%{link_type: "live_redirect"} = assigns) do
     ~H"""
     <%= live_redirect [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
+
   def custom_link(%{link_type: "button"} = assigns) do
     ~H"""
     <button class={@class} {@extra_assigns}><%= if @inner_block, do: render_slot(@inner_block), else: @label %></button>

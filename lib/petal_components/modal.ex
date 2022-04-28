@@ -1,6 +1,9 @@
 defmodule PetalComponents.Modal do
   use Phoenix.Component
+
   alias Phoenix.LiveView.JS
+
+  import PetalComponents.Class
 
   # prop title, :string
   # prop size, :string
@@ -136,7 +139,6 @@ defmodule PetalComponents.Modal do
 
     custom_classes = opts.class
 
-    [max_width_class, base_classes, custom_classes]
-    |> Enum.join(" ")
+    build_class([max_width_class, base_classes, custom_classes])
   end
 end

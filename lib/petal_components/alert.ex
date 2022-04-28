@@ -1,5 +1,7 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
+  import PetalComponents.Class
+
   alias PetalComponents.Heroicons
 
   # prop color, :string, options: ["info", "success", "warning", "danger"]
@@ -57,7 +59,7 @@ defmodule PetalComponents.Alert do
             </div>
 
             <%= if @close_button_properties do %>
-              <button class={Enum.join(["p-2 mouse-hover flex hover:rounded ", " ", get_dismiss_icon_classes(@color), " "])} {@close_button_properties}>
+              <button class={build_class(["p-2 mouse-hover flex hover:rounded", get_dismiss_icon_classes(@color)])} {@close_button_properties}>
                 <Heroicons.Solid.x class="self-start w-4 h-4" />
               </button>
             <% end %>
@@ -78,12 +80,7 @@ defmodule PetalComponents.Alert do
     color_css = get_color_classes(opts.color)
     custom_classes = opts.class
 
-    [
-      base_classes,
-      color_css,
-      custom_classes
-    ]
-    |> Enum.join(" ")
+    build_class([base_classes, color_css, custom_classes])
   end
 
   defp get_color_classes("info"),

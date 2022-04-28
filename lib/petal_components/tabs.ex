@@ -1,5 +1,7 @@
 defmodule PetalComponents.Tabs do
   use Phoenix.Component
+
+  import PetalComponents.Class
   import PetalComponents.Link
 
   # prop class, :string
@@ -15,7 +17,7 @@ defmodule PetalComponents.Tabs do
       end)
 
     ~H"""
-    <div {@extra_assigns} class={Enum.join([
+    <div {@extra_assigns} class={build_class([
         "flex gap-x-8 gap-y-2",
         (if @underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
         @class
@@ -88,7 +90,7 @@ defmodule PetalComponents.Tabs do
         else:
           "text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
 
-    Enum.join([base_classes, active_classes], " ")
+    build_class([base_classes, active_classes], " ")
   end
 
   # Underline CSS
@@ -106,7 +108,7 @@ defmodule PetalComponents.Tabs do
         do: "",
         else: "hover:border-gray-300"
 
-    Enum.join([base_classes, active_classes, underline_classes], " ")
+    build_class([base_classes, active_classes, underline_classes], " ")
   end
 
   # Underline
@@ -123,7 +125,7 @@ defmodule PetalComponents.Tabs do
         do: "bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white",
         else: "bg-gray-100 dark:bg-gray-600 dark:text-white text-gray-500"
 
-    Enum.join([base_classes, active_classes, underline_classes], " ")
+    build_class([base_classes, active_classes, underline_classes], " ")
   end
 
   # Pill
@@ -135,6 +137,6 @@ defmodule PetalComponents.Tabs do
         do: "bg-primary-600 text-white",
         else: "bg-gray-500 dark:bg-gray-600 text-white"
 
-    Enum.join([base_classes, active_classes], " ")
+    build_class([base_classes, active_classes], " ")
   end
 end

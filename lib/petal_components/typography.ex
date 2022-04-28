@@ -1,6 +1,8 @@
 defmodule PetalComponents.Typography do
   use Phoenix.Component
 
+  import PetalComponents.Class
+
   @moduledoc """
   Everything related to text. Headings, paragraphs and links
   """
@@ -103,8 +105,7 @@ defmodule PetalComponents.Typography do
     underline_classes = if assigns[:underline], do: " border-b border-gray-200 pb-2", else: ""
     margin_classes = if assigns[:no_margin], do: "", else: "mb-3"
 
-    [base_classes, custom_classes, color_classes, underline_classes, margin_classes]
-    |> Enum.join(" ")
+    build_class([base_classes, custom_classes, color_classes, underline_classes, margin_classes])
   end
 
   defp drop_heading_props(assigns) do

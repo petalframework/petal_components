@@ -1,7 +1,10 @@
 defmodule PetalComponents.Button do
   use Phoenix.Component
+
   alias PetalComponents.Loading
   alias PetalComponents.Heroicons
+
+  import PetalComponents.Class
   import PetalComponents.Link
 
   # prop class, :string
@@ -69,24 +72,24 @@ defmodule PetalComponents.Button do
     <.link
       to={@to}
       link_type={@link_type}
-      class={Enum.join(
+      class={build_class(
         [
           "rounded-full p-2 inline-block",
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
           get_icon_button_color_classes(@color),
           @class
-        ], " ")}
+        ])}
       disabled={@disabled}
       {@extra_assigns}
     >
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% else %>
-        <Heroicons.Solid.render icon={@icon} class={Enum.join(
+        <Heroicons.Solid.render icon={@icon} class={build_class(
           [
             get_icon_button_size_classes(@size)
-          ], " ")}/>
+          ])}/>
       <% end %>
     </.link>
     """

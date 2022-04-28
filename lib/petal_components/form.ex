@@ -1,5 +1,7 @@
 defmodule PetalComponents.Form do
   use Phoenix.Component
+
+  import PetalComponents.Class
   import Phoenix.HTML.Form
 
   @moduledoc """
@@ -470,11 +472,10 @@ defmodule PetalComponents.Form do
       ])
     end)
     |> assign_new(:classes, fn ->
-      [
+      build_class([
         base_classes,
         assigns[:class] || ""
-      ]
-      |> Enum.join(" ")
+      ])
     end)
   end
 

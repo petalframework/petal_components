@@ -1,6 +1,7 @@
 defmodule PetalComponents.Avatar do
   use Phoenix.Component
   alias PetalComponents.Heroicons
+  import PetalComponents.Class
 
   # prop src, :string
   # prop size, :string
@@ -25,31 +26,31 @@ defmodule PetalComponents.Avatar do
 
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
-      <div {@extra_assigns} class={Enum.join([
+      <div {@extra_assigns} class={build_class([
         "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
         get_size_classes(@size),
         @class
-        ], " ")}>
+        ])}>
         <Heroicons.Solid.user class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
       </div>
     <% else %>
       <%= if !@src && @name do %>
         <div {@extra_assigns}
           style={maybe_generate_random_color(@random_color, @name)}
-          class={Enum.join([
+          class={build_class([
             "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
             get_size_classes(@size),
             @class,
-          ], " ")}
+          ])}
         >
           <%= generate_initials(@name) %>
         </div>
       <% else %>
-        <img  {@extra_assigns} src={@src} class={Enum.join([
+        <img  {@extra_assigns} src={@src} class={build_class([
           "rounded-full object-cover",
           get_size_classes(@size),
           @class
-        ], " ")} />
+        ])} />
       <% end %>
     <% end %>
     """

@@ -1,5 +1,6 @@
 defmodule PetalComponents.Badge do
   use Phoenix.Component
+  import PetalComponents.Class
 
   # prop label, :string
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
@@ -28,13 +29,13 @@ defmodule PetalComponents.Badge do
       end)
 
     ~H"""
-    <badge {@extra_assigns} class={Enum.join([
+    <badge {@extra_assigns} class={build_class([
       "rounded inline-flex items-center justify-center focus:outline-none border",
       size_classes(@size),
       icon_classes(@icon),
       get_color_classes(%{color: @color, variant: @variant}),
       @class
-    ], " ")}>
+    ])}>
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
