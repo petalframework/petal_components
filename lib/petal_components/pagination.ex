@@ -186,7 +186,7 @@ defmodule PetalComponents.Pagination do
           ""
       end
 
-    build_class([base_classes, active_classes, rounded_classes], " ")
+    build_class([base_classes, active_classes, rounded_classes])
   end
 
   defp get_path(path, "previous", current_page) do

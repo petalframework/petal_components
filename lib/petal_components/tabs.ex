@@ -90,7 +90,7 @@ defmodule PetalComponents.Tabs do
         else:
           "text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
 
-    build_class([base_classes, active_classes], " ")
+    build_class([base_classes, active_classes])
   end
 
   # Underline CSS
@@ -108,7 +108,7 @@ defmodule PetalComponents.Tabs do
         do: "",
         else: "hover:border-gray-300"
 
-    build_class([base_classes, active_classes, underline_classes], " ")
+    build_class([base_classes, active_classes, underline_classes])
   end
 
   # Underline
@@ -125,7 +125,7 @@ defmodule PetalComponents.Tabs do
         do: "bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white",
         else: "bg-gray-100 dark:bg-gray-600 dark:text-white text-gray-500"
 
-    build_class([base_classes, active_classes, underline_classes], " ")
+    build_class([base_classes, active_classes, underline_classes])
   end
 
   # Pill
@@ -137,6 +137,6 @@ defmodule PetalComponents.Tabs do
         do: "bg-primary-600 text-white",
         else: "bg-gray-500 dark:bg-gray-600 text-white"
 
-    build_class([base_classes, active_classes], " ")
+    build_class([base_classes, active_classes])
   end
 end
