@@ -1,6 +1,8 @@
 defmodule PetalComponents.Loading do
   use Phoenix.Component
 
+  import PetalComponents.Class
+
   # prop size, :string, values: ["sm", "md", "lg"]
   # prop class, :string, default: ""
   # prop show, :boolean, default: true
@@ -37,19 +39,11 @@ defmodule PetalComponents.Loading do
 
   defp get_spinner_classes(assigns) do
     base_classes = "animate-spin"
-    custom_classes = assigns[:class] || ""
+    custom_classes = assigns[:class]
     show_class = if assigns[:show] == false, do: "hidden", else: ""
     size_classes = assigns[:size_class] || get_size_classes(assigns[:size])
 
-    Enum.join(
-      [
-        base_classes,
-        custom_classes,
-        show_class,
-        size_classes
-      ],
-      " "
-    )
+    build_class([base_classes, custom_classes, show_class, size_classes])
   end
 
   defp get_size_classes("sm"), do: "h-5 w-5"

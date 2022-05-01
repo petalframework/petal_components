@@ -1,6 +1,9 @@
 defmodule PetalComponents.Pagination do
   use Phoenix.Component
+
   alias PetalComponents.Heroicons
+
+  import PetalComponents.Class
   import PetalComponents.Link
 
   # prop path, :string
@@ -150,9 +153,10 @@ defmodule PetalComponents.Pagination do
       end
 
     # Next button
-    items = if current_page < total_pages,
-      do: items ++ [%{type: "next", number: current_page + 1}],
-      else: items
+    items =
+      if current_page < total_pages,
+        do: items ++ [%{type: "next", number: current_page + 1}],
+        else: items
 
     items
   end
@@ -164,7 +168,8 @@ defmodule PetalComponents.Pagination do
     active_classes =
       if is_active,
         do: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-        else: "bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400"
+        else:
+          "bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400"
 
     rounded_classes =
       cond do
@@ -181,7 +186,7 @@ defmodule PetalComponents.Pagination do
           ""
       end
 
-    Enum.join([base_classes, active_classes, rounded_classes], " ")
+    build_class([base_classes, active_classes, rounded_classes])
   end
 
   defp get_path(path, "previous", current_page) do

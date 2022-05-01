@@ -1,5 +1,8 @@
 defmodule PetalComponents.SlideOver do
   use Phoenix.Component
+
+  import PetalComponents.Class
+
   alias Phoenix.LiveView.JS
 
   # prop origin, :string, options: ["left", "top", "bottom", "right"]
@@ -31,11 +34,11 @@ defmodule PetalComponents.SlideOver do
       </div>
 
       <div
-        class={Enum.join([
+        class={build_class([
           "fixed inset-0 z-50 flex overflow-hidden transform",
           get_margin_classes(@origin),
           @class,
-          ], " ")}
+          ])}
         role="dialog"
         aria-modal="true"
       >
@@ -78,16 +81,20 @@ defmodule PetalComponents.SlideOver do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
   def hide_slide_over(js \\ %JS{}, origin) do
-    origin_class = case origin do
-      x when x in ["left", "right"] -> "translate-x-0"
-      x when x in ["top", "bottom"] -> "translate-y-0"
-    end
-    destination_class = case origin do
-      "left" -> "-translate-x-full"
-      "right" -> "translate-x-full"
-      "top" -> "-translate-y-full"
-      "bottom" -> "translate-y-full"
-    end
+    origin_class =
+      case origin do
+        x when x in ["left", "right"] -> "translate-x-0"
+        x when x in ["top", "bottom"] -> "translate-y-0"
+      end
+
+    destination_class =
+      case origin do
+        "left" -> "-translate-x-full"
+        "right" -> "translate-x-full"
+        "top" -> "-translate-y-full"
+        "bottom" -> "translate-y-full"
+      end
+
     js
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.hide(
@@ -104,7 +111,7 @@ defmodule PetalComponents.SlideOver do
         origin_class,
         destination_class
       },
-    to: "#modal-content"
+      to: "#modal-content"
     )
     |> JS.push("close_slide_over")
   end
@@ -112,31 +119,33 @@ defmodule PetalComponents.SlideOver do
   defp get_classes(max_width, origin, class) do
     base_classes = "w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-gray-800"
 
-    slide_over_classes = case origin do
-      "left" -> "transition translate-x-0"
-      "right" -> "transition translate-x-0 absolute right-0 inset-y-0"
-      "top" -> "transition translate-y-0 absolute inset-x-0"
-      "bottom" -> "transition translate-y-0 absolute inset-x-0 bottom-0"
-    end
+    slide_over_classes =
+      case origin do
+        "left" -> "transition translate-x-0"
+        "right" -> "transition translate-x-0 absolute right-0 inset-y-0"
+        "top" -> "transition translate-y-0 absolute inset-x-0"
+        "bottom" -> "transition translate-y-0 absolute inset-x-0 bottom-0"
+      end
 
-    max_width_class = case origin do
-      x when x in ["left", "right"] -> (
-        case max_width do
-          "sm" -> "max-w-sm"
-          "md" -> "max-w-xl"
-          "lg" -> "max-w-3xl"
-          "xl" -> "max-w-5xl"
-          "2xl" -> "max-w-7xl"
-          "full" -> "max-w-full"
-        end
-      )
-      x when x in ["top", "bottom"] -> ""
-    end
+    max_width_class =
+      case origin do
+        x when x in ["left", "right"] ->
+          case max_width do
+            "sm" -> "max-w-sm"
+            "md" -> "max-w-xl"
+            "lg" -> "max-w-3xl"
+            "xl" -> "max-w-5xl"
+            "2xl" -> "max-w-7xl"
+            "full" -> "max-w-full"
+          end
+
+        x when x in ["top", "bottom"] ->
+          ""
+      end
 
     custom_classes = class
 
-    [slide_over_classes, max_width_class, base_classes, custom_classes]
-    |> Enum.join(" ")
+    build_class([slide_over_classes, max_width_class, base_classes, custom_classes])
   end
 
   defp get_margin_classes(margin) do

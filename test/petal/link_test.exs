@@ -73,31 +73,31 @@ defmodule PetalComponents.LinkTest do
     assigns = %{}
 
     assert rendered_to_string(~H"""
-    <.link to="/" label="Press me" />
-    """) =~ ">Press me<"
+           <.link to="/" label="Press me" />
+           """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-    <.link to="/" label=" Press me " />
-    """) =~ "> Press me <"
+           <.link to="/" label=" Press me " />
+           """) =~ "> Press me <"
 
     assert rendered_to_string(~H"""
-    <.link link_type="live_patch" to="/" label="Press me" />
-    """) =~ ">Press me<"
+           <.link link_type="live_patch" to="/" label="Press me" />
+           """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-    <.link link_type="live_redirect" to="/" label="Press me" />
-    """) =~ ">Press me<"
+           <.link link_type="live_redirect" to="/" label="Press me" />
+           """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-    <.link to="/">Press me</.link>
-    """) =~ ">Press me<"
+           <.link to="/">Press me</.link>
+           """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-    <.link to="/"> Press me </.link>
-    """) =~ "> Press me <"
+           <.link to="/"> Press me </.link>
+           """) =~ "> Press me <"
 
     assert rendered_to_string(~H"""
-    <.link to="/" label="Press me" />, blah
-    """) =~ "</a>, blah"
+           <.link to="/" label="Press me" />, blah
+           """) =~ "</a>, blah"
   end
 end

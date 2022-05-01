@@ -1,6 +1,8 @@
 defmodule PetalComponents.Container do
   use Phoenix.Component
 
+  import PetalComponents.Class
+
   # prop max_width, :string, options: ["sm", "md", "lg", "xl", "full"]
   # prop class, :string
   # prop no_padding_on_mobile, :boolean
@@ -19,12 +21,12 @@ defmodule PetalComponents.Container do
       end)
 
     ~H"""
-    <div {@extra_assigns} class={Enum.join([
+    <div {@extra_assigns} class={build_class([
       "mx-auto sm:px-6 lg:px-8 w-full",
       get_width_class(@max_width),
       get_padding_class(@no_padding_on_mobile),
       @class
-    ], " ")}>
+    ])}>
       <%= render_slot(@inner_block) %>
     </div>
     """

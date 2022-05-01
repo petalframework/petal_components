@@ -1,6 +1,8 @@
 defmodule PetalComponents.Table do
   use Phoenix.Component
+
   import PetalComponents.Avatar
+  import PetalComponents.Class
 
   def table(assigns) do
     assigns =
@@ -13,10 +15,10 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <table class={Enum.join([
+    <table class={build_class([
       "min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow dark:shadow-2xl table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
       @class,
-    ], " ")} {@extra_assigns}>
+    ])} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </table>
     """
@@ -33,7 +35,7 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <th class={Enum.join([
+    <th class={build_class([
       "px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300",
       @class,
     ], " ")} {@extra_assigns}>
@@ -55,10 +57,10 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <tr class={Enum.join([
+    <tr class={build_class([
       "border-b dark:border-gray-700 bg-white dark:bg-gray-800 last:border-none",
       @class,
-    ], " ")} {@extra_assigns}>
+    ])} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </tr>
     """
@@ -75,7 +77,7 @@ defmodule PetalComponents.Table do
       end)
 
     ~H"""
-    <td class={Enum.join([
+    <td class={build_class([
       "px-6 py-4 text-sm text-gray-500 dark:text-gray-400",
       @class
     ], " ")} {@extra_assigns}>
