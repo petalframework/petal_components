@@ -21,7 +21,8 @@ defmodule PetalComponents do
         SlideOver,
         Tabs,
         Card,
-        Table
+        Table,
+        Accordion
       }
     end
   end
