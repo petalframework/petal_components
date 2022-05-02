@@ -1,7 +1,6 @@
 defmodule PetalComponents.AccordionTest do
   use ComponentCase
   import PetalComponents.Accordion
-  alias PetalComponents.Heroicons
 
   test "accordion" do
     assigns = %{}

@@ -9,7 +9,6 @@ defmodule PetalComponents.Accordion do
   # prop heading, :string
   # prop icon, :string
   # slot default
-
   def accordion(assigns) do
     assigns =
       assigns
@@ -23,6 +22,8 @@ defmodule PetalComponents.Accordion do
       |> assign_new(:extra_assigns, fn ->
         assigns_to_attributes(assigns, ~w(
           class
+          js_lib
+          container_id
           inner_block
           icon
           heading
