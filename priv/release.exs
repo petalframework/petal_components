@@ -27,6 +27,7 @@ defmodule Releaser.VersionUtils do
   4. Push to git
 
         git push origin main
+        git push --tags
   """
   @version_line_regex ~r/(\n\s*@version\s+")([^\n]+)("\n)/
 
