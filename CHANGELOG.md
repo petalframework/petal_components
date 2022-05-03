@@ -1,4 +1,8 @@
 # Changelog
+### 0.16.0 - 2022-05-03 00:56:17
+- Generate prettier classes with build_class
+- Accordion
+- Now use inline-block for icon buttons
 ### 0.15.0 - 2022-04-19 00:06:22
 - Switch - new form component
 ### 0.14.0 - 2022-04-08 00:49:03
