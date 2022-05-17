@@ -74,7 +74,7 @@ defmodule PetalComponents.Card do
     assigns =
       assigns
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:category_color_class, fn -> "text-primary-600" end)
+      |> assign_new(:category_color_class, fn -> "text-primary-600 dark:text-primary-400" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:category, fn -> nil end)
       |> assign_new(:heading, fn -> nil end)
