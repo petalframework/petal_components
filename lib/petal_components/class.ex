@@ -29,6 +29,7 @@ defmodule PetalComponents.Class do
   defp join_non_empty_list(["" | rest], joiner, acc) do
     join_non_empty_list(rest, joiner, acc)
   end
+
   defp join_non_empty_list([nil | rest], joiner, acc) do
     join_non_empty_list(rest, joiner, acc)
   end
