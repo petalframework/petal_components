@@ -1,6 +1,4 @@
 defmodule PetalComponents.Heroicons.Solid do
-  use Phoenix.Component
-
   @moduledoc """
   Icon name can be the function or passed in as a type eg.
   <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
@@ -9,9 +7,10 @@ defmodule PetalComponents.Heroicons.Solid do
   <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
   <PetalComponents.Heroicons.Outline.render type="home" class="w-6 h-6" />
   """
+  use Phoenix.Component
 
   def render(assigns) do
-    icon_name = assigns.icon
+    icon_name = String.to_existing_atom(assigns.type)
     apply(__MODULE__, icon_name, [assigns])
   end
 
