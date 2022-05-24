@@ -9,8 +9,12 @@ defmodule PetalComponents.Heroicons.Outline do
   """
   use Phoenix.Component
 
-  def render(assigns) do
-    icon_name = String.to_existing_atom(assigns.type)
+  def render(%{type: icon_name} = assigns) do
+    icon_name = String.to_existing_atom(icon_name)
+    apply(__MODULE__, icon_name, [assigns])
+  end
+
+  def render(%{icon: icon_name} = assigns) do
     apply(__MODULE__, icon_name, [assigns])
   end
 
