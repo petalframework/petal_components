@@ -19,7 +19,15 @@ defmodule PetalComponents.HeroiconsTest do
 
     html =
       rendered_to_string(~H"""
-      <Heroicons.Solid.render type="home" />
+      <Heroicons.Solid.render icon="home" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Solid.render icon={:home} />
       """)
 
     assert html =~ "<svg class="
@@ -43,7 +51,15 @@ defmodule PetalComponents.HeroiconsTest do
 
     html =
       rendered_to_string(~H"""
-      <Heroicons.Outline.render type="home" />
+      <Heroicons.Outline.render icon="home" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "none"
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Outline.render icon={:home} />
       """)
 
     assert html =~ "<svg class="
