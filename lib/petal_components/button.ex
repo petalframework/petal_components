@@ -3,9 +3,9 @@ defmodule PetalComponents.Button do
 
   alias PetalComponents.Loading
   alias PetalComponents.Heroicons
+  alias PetalComponents.Link
 
   import PetalComponents.Class
-  import PetalComponents.Link
 
   # prop class, :string
   # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
@@ -31,7 +31,7 @@ defmodule PetalComponents.Button do
       |> assign_new(:to, fn -> nil end)
 
     ~H"""
-    <.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
+    <Link.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
@@ -41,7 +41,7 @@ defmodule PetalComponents.Button do
       <% else %>
         <%= @label %>
       <% end %>
-    </.link>
+    </Link.link>
     """
   end
 
@@ -69,7 +69,7 @@ defmodule PetalComponents.Button do
       |> assign_new(:color, fn -> "gray" end)
 
     ~H"""
-    <.link
+    <Link.link
       to={@to}
       link_type={@link_type}
       class={build_class(
@@ -91,7 +91,7 @@ defmodule PetalComponents.Button do
             get_icon_button_size_classes(@size)
           ])}/>
       <% end %>
-    </.link>
+    </Link.link>
     """
   end
 
