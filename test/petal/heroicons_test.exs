@@ -14,12 +14,52 @@ defmodule PetalComponents.HeroiconsTest do
     assert html =~ "currentColor"
   end
 
+  test "it renders heroicons solid icon and color correctly via render component" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Solid.render icon="home" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Solid.render icon={:home} />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+  end
+
   test "it renders heroicons outline icon and color correctly" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
       <Heroicons.Outline.home />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "none"
+  end
+
+  test "it renders heroicons outline icon and color correctly via render component" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Outline.render icon="home" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "none"
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Outline.render icon={:home} />
       """)
 
     assert html =~ "<svg class="
