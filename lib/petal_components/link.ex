@@ -5,6 +5,11 @@ defmodule PetalComponents.Link do
   # prop label, :string
   # prop link_type, :string, options: ["a", "live_patch", "live_redirect", "button"]
   # slot default
+  @doc """
+  Deprecated in favour of the new phoenix_live_view link/1.
+  If you are using phoenix_live_view v0.17 and below, you can still import this component with:
+      import PetalComponents.Link
+  """
   def link(assigns) do
     assigns =
       assigns

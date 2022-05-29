@@ -1,5 +1,15 @@
 defmodule PetalComponents do
-  defmacro __using__(_) do
+  @moduledoc """
+  In <your_app>_web.ex you can import all Petal Components with:
+
+      use PetalComponents
+
+  If you also want to use our <.link> component, you will need to import it separately:
+
+      use PetalComponents
+      import PetalComponents.Link
+  """
+  defmacro __using__(which \\ nil) do
     quote do
       alias PetalComponents.Heroicons
 
@@ -16,7 +26,6 @@ defmodule PetalComponents do
         Progress,
         Breadcrumbs,
         Pagination,
-        Link,
         Modal,
         SlideOver,
         Tabs,
