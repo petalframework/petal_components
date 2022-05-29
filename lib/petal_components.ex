@@ -9,7 +9,7 @@ defmodule PetalComponents do
       use PetalComponents
       import PetalComponents.Link
   """
-  defmacro __using__(which \\ nil) do
+  defmacro __using__(_) do
     quote do
       alias PetalComponents.Heroicons
 
