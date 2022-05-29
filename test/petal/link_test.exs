@@ -1,13 +1,13 @@
 defmodule PetalComponents.LinkTest do
   use ComponentCase
-  import PetalComponents.Link
+  alias PetalComponents.Link
 
   test "a link with label" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.link link_type="a" to="/" label="Press me" phx-click="click_event" />
+      <Link.link link_type="a" to="/" label="Press me" phx-click="click_event" />
       """)
 
     assert html =~ "Press me"
@@ -20,7 +20,7 @@ defmodule PetalComponents.LinkTest do
 
     html =
       rendered_to_string(~H"""
-      <.link link_type="live_patch" to="/" label="Press me" phx-click="click_event" />
+      <Link.link link_type="live_patch" to="/" label="Press me" phx-click="click_event" />
       """)
 
     assert html =~ "Press me"
@@ -33,7 +33,7 @@ defmodule PetalComponents.LinkTest do
 
     html =
       rendered_to_string(~H"""
-      <.link link_type="live_redirect" to="/" label="Press me" phx-click="click_event" />
+      <Link.link link_type="live_redirect" to="/" label="Press me" phx-click="click_event" />
       """)
 
     assert html =~ "Press me"
@@ -46,9 +46,9 @@ defmodule PetalComponents.LinkTest do
 
     html =
       rendered_to_string(~H"""
-      <.link link_type="a" to="/" phx-click="click_event">
+      <Link.link link_type="a" to="/" phx-click="click_event">
         Press me
-      </.link>
+      </Link.link>
       """)
 
     assert html =~ "Press me"
@@ -60,9 +60,9 @@ defmodule PetalComponents.LinkTest do
 
     html =
       rendered_to_string(~H"""
-      <.link to="/" method={:put}>
+      <Link.link to="/" method={:put}>
         Press me
-      </.link>
+      </Link.link>
       """)
 
     assert html =~ "Press me"
@@ -73,31 +73,31 @@ defmodule PetalComponents.LinkTest do
     assigns = %{}
 
     assert rendered_to_string(~H"""
-           <.link to="/" label="Press me" />
+           <Link.link to="/" label="Press me" />
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <.link to="/" label=" Press me " />
+           <Link.link to="/" label=" Press me " />
            """) =~ "> Press me <"
 
     assert rendered_to_string(~H"""
-           <.link link_type="live_patch" to="/" label="Press me" />
+           <Link.link link_type="live_patch" to="/" label="Press me" />
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <.link link_type="live_redirect" to="/" label="Press me" />
+           <Link.link link_type="live_redirect" to="/" label="Press me" />
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <.link to="/">Press me</.link>
+           <Link.link to="/">Press me</Link.link>
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <.link to="/"> Press me </.link>
+           <Link.link to="/"> Press me </Link.link>
            """) =~ "> Press me <"
 
     assert rendered_to_string(~H"""
-           <.link to="/" label="Press me" />, blah
+           <Link.link to="/" label="Press me" />, blah
            """) =~ "</a>, blah"
   end
 end

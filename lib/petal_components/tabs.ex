@@ -1,8 +1,9 @@
 defmodule PetalComponents.Tabs do
   use Phoenix.Component
 
+  alias PetalComponents.Link
+
   import PetalComponents.Class
-  import PetalComponents.Link
 
   # prop class, :string
   # prop underline, :boolean, default: false
@@ -56,7 +57,7 @@ defmodule PetalComponents.Tabs do
       end)
 
     ~H"""
-    <.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@extra_assigns}>
+    <Link.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@extra_assigns}>
       <%= if @number do %>
         <.render_label_or_slot {assigns} />
 
@@ -66,7 +67,7 @@ defmodule PetalComponents.Tabs do
       <% else %>
         <.render_label_or_slot {assigns} />
       <% end %>
-    </.link>
+    </Link.link>
     """
   end
 

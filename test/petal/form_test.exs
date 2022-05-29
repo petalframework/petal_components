@@ -518,8 +518,7 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert html =~ "input"
-    assert html =~ "select"
+      assert html =~ "select"
     assert html =~ "user[name]"
   end
 
