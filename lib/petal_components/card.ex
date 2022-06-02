@@ -90,7 +90,7 @@ defmodule PetalComponents.Card do
 
     ~H"""
     <div {@extra_assigns} class={build_class([
-      "p-6 flex-1 font-light text-gray-500 text-md",
+      "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
       @class
     ])}>
       <%= if @category do %>
