@@ -569,4 +569,6 @@ defmodule PetalComponents.Form do
     end
   end
 
+  defp field_has_errors?(_), do: false
+
 end
