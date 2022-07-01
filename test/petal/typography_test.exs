@@ -66,4 +66,32 @@ defmodule PetalComponents.TypographyTest do
     assert html =~ "<h5 class="
     assert html =~ "text-lg font-medium"
   end
+
+  test ".p" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.p>Paragraph</.p>
+      """)
+
+    assert html =~ "Paragraph"
+    assert html =~ "<p class="
+    assert html =~ "dark:text-gray-400"
+  end
+
+  test ".p taking extra assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.p x-text="input">Paragraph</.p>
+      """)
+
+    assert html =~ "Paragraph"
+    assert html =~ "<p class="
+    assert html =~ "dark:text-gray-400"
+    assert html =~ "x-text="
+    assert html =~ "input"
+  end
 end
