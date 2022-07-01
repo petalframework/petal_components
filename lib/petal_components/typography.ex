@@ -119,13 +119,13 @@ defmodule PetalComponents.Typography do
     assigns =
       assign_new(assigns, :class, fn -> "" end)
       |> assign_new(:extra_assigns, fn ->
-      assigns_to_attributes(assigns, [:class])
-    end)
+        assigns_to_attributes(assigns, [:class])
+      end)
 
-      ~H"""
-      <p class={"mb-2 leading-5 text-gray-600 dark:text-gray-400 #{@class}"} {@extra_assigns}>
+    ~H"""
+    <p class={"mb-2 leading-5 text-gray-600 dark:text-gray-400 #{@class}"} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
-      </p>
-      """
+    </p>
+    """
   end
 end
