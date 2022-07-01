@@ -109,10 +109,7 @@ defmodule PetalComponents.Typography do
   end
 
   defp drop_heading_props(assigns) do
-    assigns_to_attributes(assigns, [
-      :class,
-      :label
-    ])
+    assigns_to_attributes(assigns, ~w(class label color_class underline no_margin)a)
   end
 
   def p(assigns) do

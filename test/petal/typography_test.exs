@@ -67,6 +67,20 @@ defmodule PetalComponents.TypographyTest do
     assert html =~ "text-lg font-medium"
   end
 
+  test ".h1 extra assigns" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.h1 color_class="text-blue-500" no_margin x-text="blah">Heading</.h1>
+      """)
+
+    assert html =~ "blah"
+    assert html =~ "x-text"
+    refute html =~ "no-margin"
+    refute html =~ "color-class"
+  end
+
   test ".p" do
     assigns = %{}
 
