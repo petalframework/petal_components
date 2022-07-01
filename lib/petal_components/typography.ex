@@ -116,13 +116,74 @@ defmodule PetalComponents.Typography do
     assigns =
       assign_new(assigns, :class, fn -> "" end)
       |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, [:class])
+        assigns_to_attributes(assigns, ~w(class)a)
       end)
 
     ~H"""
-    <p class={"mb-2 leading-5 text-gray-600 dark:text-gray-400 #{@class}"} {@extra_assigns}>
+    <p class={build_class([text_base_class(), "mb-2", @class])} {@extra_assigns}>
       <%= render_slot(@inner_block) %>
     </p>
+    """
+  end
+
+  defp text_base_class(), do: "leading-5 text-gray-600 dark:text-gray-400"
+
+  def prose(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(class)a)
+      end)
+
+    ~H"""
+    <div class={build_class(["prose dark:prose-invert", @class])} {@extra_assigns}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
+  Usage:
+      <.ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+      </.ul>
+  """
+  def ul(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(class)a)
+      end)
+
+    ~H"""
+    <ul class={build_class([text_base_class(), "list-disc list-inside", @class])} {@extra_assigns}>
+      <%= render_slot(@inner_block) %>
+    </ul>
+    """
+  end
+
+  @doc """
+  Usage:
+      <.ol>
+        <li>Item 1</li>
+        <li>Item 2</li>
+      </.ol>
+  """
+  def ol(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:extra_assigns, fn ->
+        assigns_to_attributes(assigns, ~w(class)a)
+      end)
+
+    ~H"""
+    <ol class={build_class([text_base_class(), "list-decimal list-inside", @class])} {@extra_assigns}>
+      <%= render_slot(@inner_block) %>
+    </ol>
     """
   end
 end
