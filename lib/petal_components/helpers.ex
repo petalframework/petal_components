@@ -19,7 +19,11 @@ defmodule PetalComponents.Helpers do
   end
 
   def assign_rest(assigns, exclude) do
-    Phoenix.LiveView.assign(assigns, :rest, Phoenix.LiveView.Helpers.assigns_to_attributes(assigns, exclude))
+    Phoenix.LiveView.assign(
+      assigns,
+      :rest,
+      Phoenix.LiveView.Helpers.assigns_to_attributes(assigns, exclude)
+    )
   end
 
   # Remove joiner (if present), since our last element was empty and isn't added
