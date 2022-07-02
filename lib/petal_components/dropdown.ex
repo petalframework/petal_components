@@ -138,6 +138,7 @@ defmodule PetalComponents.Dropdown do
   defp js_attributes("button", "alpine_js", _options_container_id) do
     %{
       "@click": "open = !open",
+      "@click.outside": "open = false",
       "x-bind:aria-expanded": "open.toString()"
     }
   end
