@@ -1,7 +1,7 @@
 defmodule PetalComponents.Loading do
   use Phoenix.Component
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop size, :string, values: ["sm", "md", "lg"]
   # prop class, :string, default: ""
@@ -10,18 +10,11 @@ defmodule PetalComponents.Loading do
     assigns =
       assigns
       |> assign_new(:classes, fn -> get_spinner_classes(assigns) end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          classes
-          class
-          size
-          show
-        )a)
-      end)
+      |> assign_rest(~w(classes size class show)a)
 
     ~H"""
     <svg
-      {@extra_assigns}
+      {@rest}
       class={get_spinner_classes(assigns)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"

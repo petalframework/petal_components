@@ -1,7 +1,7 @@
 defmodule PetalComponents.SlideOver do
   use Phoenix.Component
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   alias Phoenix.LiveView.JS
 
@@ -15,17 +15,10 @@ defmodule PetalComponents.SlideOver do
       |> assign_new(:origin, fn -> "right" end)
       |> assign_new(:max_width, fn -> "md" end)
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          max_width
-          title
-          origin
-        )a)
-      end)
+      |> assign_rest(~w(class max_width title origin)a)
 
     ~H"""
-    <div {@extra_assigns} id="slide-over" phx-remove={hide_slide_over(@origin)}>
+    <div {@rest} id="slide-over" phx-remove={hide_slide_over(@origin)}>
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"

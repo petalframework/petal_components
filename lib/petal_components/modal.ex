@@ -3,7 +3,7 @@ defmodule PetalComponents.Modal do
 
   alias Phoenix.LiveView.JS
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop title, :string
   # prop size, :string
@@ -12,17 +12,11 @@ defmodule PetalComponents.Modal do
     assigns =
       assigns
       |> assign_new(:classes, fn -> get_classes(assigns) end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          classes
-          class
-          title
-          size
-        )a)
-      end)
+      |> assign_new(:close_modal_target, fn -> nil end)
+      |> assign_rest(~w(classes title size)a)
 
     ~H"""
-    <div {@extra_assigns} id="modal" phx-remove={hide_modal()}>
+    <div {@rest} id="modal" phx-remove={hide_modal(@close_modal_target)}>
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
@@ -39,8 +33,8 @@ defmodule PetalComponents.Modal do
         <div
           id="modal-content"
           class={@classes}
-          phx-click-away={hide_modal()}
-          phx-window-keydown={hide_modal()}
+          phx-click-away={hide_modal(@close_modal_target)}
+          phx-window-keydown={hide_modal(@close_modal_target)}
           phx-key="escape"
         >
 
@@ -51,7 +45,7 @@ defmodule PetalComponents.Modal do
                 <%= @title %>
               </div>
 
-              <button phx-click={hide_modal()} class="text-gray-400 hover:text-gray-500">
+              <button phx-click={hide_modal(@close_modal_target)} class="text-gray-400 hover:text-gray-500">
                 <div class="sr-only">Close</div>
                 <svg class="w-4 h-4 fill-current">
                   <path d="M7.95 6.536l4.242-4.243a1 1 0 111.415 1.414L9.364 7.95l4.243 4.242a1 1 0 11-1.415 1.415L7.95 9.364l-4.243 4.243a1 1 0 01-1.414-1.415L6.536 7.95 2.293 3.707a1 1 0 011.414-1.414L7.95 6.536z" />
@@ -74,26 +68,33 @@ defmodule PetalComponents.Modal do
   # def handle_event("close_modal", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
-  def hide_modal(js \\ %JS{}) do
-    js
-    |> JS.remove_class("overflow-hidden", to: "body")
-    |> JS.hide(
-      transition: {
-        "ease-in duration-200",
-        "opacity-100",
-        "opacity-0"
-      },
-      to: "#modal-overlay"
-    )
-    |> JS.hide(
-      transition: {
-        "ease-in duration-200",
-        "opacity-100 translate-y-0 md:scale-100",
-        "opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
-      },
-      to: "#modal-content"
-    )
-    |> JS.push("close_modal")
+  def hide_modal(close_modal_target \\ nil) do
+    js =
+      %JS{}
+      |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.hide(
+        transition: {
+          "ease-in duration-200",
+          "opacity-100",
+          "opacity-0"
+        },
+        to: "#modal-overlay"
+      )
+      |> JS.hide(
+        transition: {
+          "ease-in duration-200",
+          "opacity-100 translate-y-0 md:scale-100",
+          "opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
+        },
+        to: "#modal-content"
+      )
+      |> JS.push("close_modal")
+
+    if close_modal_target do
+      JS.push(js, "close_modal", target: close_modal_target)
+    else
+      js
+    end
   end
 
   # We are unsure of what the best practice is for using this.

@@ -1,6 +1,6 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   alias PetalComponents.Heroicons
 
@@ -18,22 +18,13 @@ defmodule PetalComponents.Alert do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:classes, fn -> alert_classes(assigns) end)
       |> assign_new(:close_button_properties, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          label
-          color
-          heading
-          with_icon
-          inner_block
-          classes
-          class
-          close_button_properties
-        )a)
-      end)
+      |> assign_rest(
+        ~w(label color heading with_icon inner_block classes class close_button_properties)a
+      )
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
-      <div {@extra_assigns} class={@classes}>
+      <div {@rest} class={@classes}>
         <%= if @with_icon do %>
           <div class="self-start flex-shrink-0 pt-1">
             <Heroicons.Solid.render icon={get_icon(@color)} />

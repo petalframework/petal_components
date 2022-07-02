@@ -1,7 +1,7 @@
 defmodule PetalComponents.Avatar do
   use Phoenix.Component
   alias PetalComponents.Heroicons
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop src, :string
   # prop size, :string
@@ -14,19 +14,11 @@ defmodule PetalComponents.Avatar do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:name, fn -> nil end)
       |> assign_new(:random_color, fn -> false end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          src
-          size
-          class
-          name
-          random_color
-        )a)
-      end)
+      |> assign_rest(~w(src size class name random_color)a)
 
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
-      <div {@extra_assigns} class={build_class([
+      <div {@rest} class={build_class([
         "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
         get_size_classes(@size),
         @class
@@ -35,7 +27,7 @@ defmodule PetalComponents.Avatar do
       </div>
     <% else %>
       <%= if !@src && @name do %>
-        <div {@extra_assigns}
+        <div {@rest}
           style={maybe_generate_random_color(@random_color, @name)}
           class={build_class([
             "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
@@ -46,7 +38,7 @@ defmodule PetalComponents.Avatar do
           <%= generate_initials(@name) %>
         </div>
       <% else %>
-        <img  {@extra_assigns} src={@src} class={build_class([
+        <img  {@rest} src={@src} class={build_class([
           "rounded-full object-cover",
           get_size_classes(@size),
           @class
@@ -60,12 +52,12 @@ defmodule PetalComponents.Avatar do
     assigns =
       assigns
       |> assign_new(:classes, fn -> avatar_group_classes(assigns) end)
-      |> assign_new(:extra_assigns, fn ->
+      |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(classes)a)
       end)
 
     ~H"""
-    <div {@extra_assigns} class={@classes}>
+    <div {@rest} class={@classes}>
       <%= for src <- @avatars do %>
         <.avatar src={src} size={@size} class="ring-white ring-2 dark:ring-gray-100" />
       <% end %>

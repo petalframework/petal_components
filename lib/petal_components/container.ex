@@ -1,7 +1,7 @@
 defmodule PetalComponents.Container do
   use Phoenix.Component
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop max_width, :string, options: ["sm", "md", "lg", "xl", "full"]
   # prop class, :string
@@ -12,16 +12,10 @@ defmodule PetalComponents.Container do
       |> assign_new(:max_width, fn -> "lg" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:no_padding_on_mobile, fn -> false end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          max_width
-          class
-          no_padding_on_mobile
-        )a)
-      end)
+      |> assign_rest(~w(max_width class no_padding_on_mobile)a)
 
     ~H"""
-    <div {@extra_assigns} class={build_class([
+    <div {@rest} class={build_class([
       "mx-auto sm:px-6 lg:px-8 w-full",
       get_width_class(@max_width),
       get_padding_class(@no_padding_on_mobile),

@@ -77,7 +77,7 @@ defmodule PetalComponents.DropdownTest do
     assert html =~ "<svg"
   end
 
-  test "extra_assigns works on buttons" do
+  test "rest works on buttons" do
     assigns = %{}
 
     html =

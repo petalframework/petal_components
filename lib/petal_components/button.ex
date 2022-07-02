@@ -5,7 +5,7 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop class, :string
   # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
@@ -25,13 +25,13 @@ defmodule PetalComponents.Button do
       |> assign_new(:loading, fn -> false end)
       |> assign_new(:size, fn -> "md" end)
       |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
+      |> assign_new(:rest, fn -> get_rest(assigns) end)
       |> assign_new(:classes, fn -> button_classes(assigns) end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:to, fn -> nil end)
 
     ~H"""
-    <Link.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@extra_assigns}>
+    <Link.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
@@ -63,7 +63,7 @@ defmodule PetalComponents.Button do
       |> assign_new(:loading, fn -> false end)
       |> assign_new(:size, fn -> "sm" end)
       |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:extra_assigns, fn -> get_extra_assigns(assigns) end)
+      |> assign_new(:rest, fn -> get_rest(assigns) end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:to, fn -> nil end)
       |> assign_new(:color, fn -> "gray" end)
@@ -81,7 +81,7 @@ defmodule PetalComponents.Button do
           @class
         ])}
       disabled={@disabled}
-      {@extra_assigns}
+      {@rest}
     >
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
@@ -131,24 +131,19 @@ defmodule PetalComponents.Button do
         ""
       end
 
-    """
-      #{opts.user_added_classes}
-      #{color_css}
-      #{size_css}
-      #{loading_css}
-      #{get_disabled_classes(opts[:disabled])}
-      #{icon_css}
-      font-medium
-      rounded-md
-      inline-flex items-center justify-center
-      border
-      focus:outline-none
-      transition duration-150 ease-in-out
-    """
-    |> PetalComponents.Helpers.convert_string_to_one_line()
+    [
+      opts.user_added_classes,
+      color_css,
+      size_css,
+      loading_css,
+      get_disabled_classes(opts[:disabled]),
+      icon_css,
+      "font-medium rounded-md inline-flex items-center justify-center border focus:outline-none transition duration-150 ease-in-out"
+    ]
+    |> build_class()
   end
 
-  defp get_extra_assigns(assigns) do
+  defp get_rest(assigns) do
     assigns_to_attributes(assigns, [
       :loading,
       :disabled,

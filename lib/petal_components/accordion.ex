@@ -1,6 +1,6 @@
 defmodule PetalComponents.Accordion do
   use Phoenix.Component
-  import PetalComponents.Class
+  import PetalComponents.Helpers
   alias PetalComponents.Heroicons
   alias Phoenix.LiveView.JS
 
@@ -19,23 +19,13 @@ defmodule PetalComponents.Accordion do
       |> assign_new(:item, fn -> nil end)
       |> assign_new(:icon, fn -> "chevron" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          js_lib
-          container_id
-          inner_block
-          icon
-          heading
-          item
-        )a)
-      end)
+      |> assign_rest(~w(class js_lib container_id inner_block icon heading item)a)
 
     ~H"""
     <div
       id={@container_id}
       class={@class}
-      {@extra_assigns}
+      {@rest}
       {js_attributes("container", @js_lib, @container_id, nil)}
     >
       <%= for {item, i} <- Enum.with_index(@item) do %>

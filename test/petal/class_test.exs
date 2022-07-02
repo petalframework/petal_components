@@ -1,7 +1,7 @@
-defmodule PetalComponents.ClassTest do
+defmodule PetalComponents.HelpersTest do
   use ExUnit.Case
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   test "encode list" do
     assert "some-class extra-class my-class" ==

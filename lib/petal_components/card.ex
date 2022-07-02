@@ -1,7 +1,7 @@
 defmodule PetalComponents.Card do
   use Phoenix.Component
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop class, :string
   # prop variant, :string
@@ -11,15 +11,10 @@ defmodule PetalComponents.Card do
       assigns
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:variant, fn -> "basic" end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          variant
-        )a)
-      end)
+      |> assign_rest(~w(class variant)a)
 
     ~H"""
-    <div {@extra_assigns} class={build_class([
+    <div {@rest} class={build_class([
       "flex flex-wrap overflow-hidden",
       get_variant_classes(@variant),
       @class
@@ -40,23 +35,17 @@ defmodule PetalComponents.Card do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:aspect_ratio_class, fn -> "aspect-video" end)
       |> assign_new(:src, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          aspect_ratio_class
-          src
-        )a)
-      end)
+      |> assign_rest(~w(class aspect_ratio_class src)a)
 
     ~H"""
     <%= if @src do %>
-      <img {@extra_assigns} src={@src} class={build_class([
+      <img {@rest} src={@src} class={build_class([
         "flex-shrink-0 w-full object-cover",
         @aspect_ratio_class,
         @class
       ], " ")} />
     <% else %>
-      <div {@extra_assigns} class={build_class([
+      <div {@rest} class={build_class([
         "flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700",
         @aspect_ratio_class,
         @class
@@ -78,18 +67,10 @@ defmodule PetalComponents.Card do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:category, fn -> nil end)
       |> assign_new(:heading, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          category_color_class
-          inner_block
-          category
-          heading
-        )a)
-      end)
+      |> assign_rest(~w(class category_color_class inner_block category heading)a)
 
     ~H"""
-    <div {@extra_assigns} class={build_class([
+    <div {@rest} class={build_class([
       "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
       @class
     ])}>
@@ -115,12 +96,10 @@ defmodule PetalComponents.Card do
   def card_footer(assigns) do
     assigns =
       assigns
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(class)a)
-      end)
+      |> assign_rest(~w(class)a)
 
     ~H"""
-    <div {@extra_assigns} class="px-6 pb-6">
+    <div {@rest} class="px-6 pb-6">
       <%= render_slot(@inner_block) %>
     </div>
     """

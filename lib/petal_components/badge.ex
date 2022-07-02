@@ -1,6 +1,6 @@
 defmodule PetalComponents.Badge do
   use Phoenix.Component
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop label, :string
   # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
@@ -16,20 +16,10 @@ defmodule PetalComponents.Badge do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:icon, fn -> false end)
       |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          size
-          variant
-          color
-          class
-          icon
-          inner_block
-          label
-        )a)
-      end)
+      |> assign_rest(~w(size variant color class icon inner_block label)a)
 
     ~H"""
-    <badge {@extra_assigns} class={build_class([
+    <badge {@rest} class={build_class([
       "rounded inline-flex items-center justify-center focus:outline-none border",
       size_classes(@size),
       icon_classes(@icon),

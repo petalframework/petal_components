@@ -1,5 +1,6 @@
 defmodule PetalComponents.Dropdown do
   use Phoenix.Component
+  import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
   alias PetalComponents.Heroicons
   alias PetalComponents.Link
@@ -36,19 +37,10 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:placement, fn -> "left" end)
       |> assign_new(:label, fn -> nil end)
       |> assign_new(:trigger_element, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          options_container_id
-          js_lib
-          placement
-          label
-          trigger_element
-          class
-        )a)
-      end)
+      |> assign_rest(~w(options_container_id js_lib placement label trigger_element class)a)
 
     ~H"""
-    <div {@extra_assigns} {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
+    <div {@rest} {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
       <div>
         <button
           type="button"
@@ -95,15 +87,10 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:to, fn -> nil end)
       |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, [
-          :link_type,
-          :classes
-        ])
-      end)
+      |> assign_rest(~w(classes link_type)a)
 
     ~H"""
-    <Link.link link_type={@link_type} to={@to} class={@classes} {@extra_assigns}>
+    <Link.link link_type={@link_type} to={@to} class={@classes} {@rest}>
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>

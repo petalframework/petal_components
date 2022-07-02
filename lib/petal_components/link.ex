@@ -1,5 +1,6 @@
 defmodule PetalComponents.Link do
   use Phoenix.Component
+  import PetalComponents.Helpers
 
   # prop class, :string
   # prop label, :string
@@ -13,20 +14,14 @@ defmodule PetalComponents.Link do
       |> assign_new(:label, fn -> nil end)
       |> assign_new(:to, fn -> nil end)
       |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, [
-          :class,
-          :link_type,
-          :label
-        ])
-      end)
+      |> assign_rest(~w(class link_type label to)a)
 
     ~H"""
     <.custom_link
       inner_block={@inner_block}
       link_type={@link_type}
       to={@to}
-      extra_assigns={@extra_assigns}
+      rest={@rest}
       class={@class}
       label={@label}
     />
@@ -35,25 +30,25 @@ defmodule PetalComponents.Link do
 
   def custom_link(%{link_type: "a"} = assigns) do
     ~H"""
-    <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
 
   def custom_link(%{link_type: "live_patch"} = assigns) do
     ~H"""
-    <%= live_patch [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= live_patch [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
 
   def custom_link(%{link_type: "live_redirect"} = assigns) do
     ~H"""
-    <%= live_redirect [to: @to, class: @class] ++ @extra_assigns, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= live_redirect [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
     """
   end
 
   def custom_link(%{link_type: "button"} = assigns) do
     ~H"""
-    <button class={@class} {@extra_assigns}><%= if @inner_block, do: render_slot(@inner_block), else: @label %></button>
+    <button class={@class} {@rest}><%= if @inner_block, do: render_slot(@inner_block), else: @label %></button>
     """
   end
 end

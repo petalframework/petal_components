@@ -3,7 +3,7 @@ defmodule PetalComponents.Tabs do
 
   alias PetalComponents.Link
 
-  import PetalComponents.Class
+  import PetalComponents.Helpers
 
   # prop class, :string
   # prop underline, :boolean, default: false
@@ -13,12 +13,10 @@ defmodule PetalComponents.Tabs do
       assigns
       |> assign_new(:underline, fn -> false end)
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(underline class)a)
-      end)
+      |> assign_rest(~w(underline class)a)
 
     ~H"""
-    <div {@extra_assigns} class={build_class([
+    <div {@rest} class={build_class([
         "flex gap-x-8 gap-y-2",
         (if @underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
         @class
@@ -45,19 +43,10 @@ defmodule PetalComponents.Tabs do
       |> assign_new(:link_type, fn -> "a" end)
       |> assign_new(:is_active, fn -> false end)
       |> assign_new(:underline, fn -> false end)
-      |> assign_new(:extra_assigns, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-          number
-          link_type
-          is_active
-          underline
-          label
-        )a)
-      end)
+      |> assign_rest(~w(class number link_type is_active underline label)a)
 
     ~H"""
-    <Link.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@extra_assigns}>
+    <Link.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@rest}>
       <%= if @number do %>
         <.render_label_or_slot {assigns} />
 

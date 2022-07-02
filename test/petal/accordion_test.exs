@@ -33,7 +33,7 @@ defmodule PetalComponents.AccordionTest do
     assert html =~ "phx-click"
   end
 
-  test "extra_assigns works" do
+  test "rest works" do
     assigns = %{}
 
     html =
