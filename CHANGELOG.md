@@ -1,4 +1,11 @@
 # Changelog
+### 0.17.0 - 2022-07-02 03:29:33
+- New components: <.prose>, <.ul>, <.ol>
+- Modals fade in (extra CSS required)
+- Improve readability of card content in dark mode
+- Extra assigns on <.p> are forwarded to the p tag
+- Fix extra_assigns in headings
+- Fix dropdown button not closing when clicked
 ### 0.16.0 - 2022-05-03 00:56:17
 - Generate prettier classes with build_class
 - Accordion
