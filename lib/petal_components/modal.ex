@@ -7,6 +7,7 @@ defmodule PetalComponents.Modal do
 
   # prop title, :string
   # prop size, :string
+  # prop close_modal_target, :string
   # slot default
   def modal(assigns) do
     assigns =
@@ -19,7 +20,7 @@ defmodule PetalComponents.Modal do
     <div {@rest} id="modal" phx-remove={hide_modal(@close_modal_target)}>
       <div
         id="modal-overlay"
-        class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
+        class="fixed inset-0 z-50 transition-opacity bg-gray-900 animate-fade-in dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
         aria-hidden="true"
       >
       </div>
@@ -72,6 +73,7 @@ defmodule PetalComponents.Modal do
     js =
       %JS{}
       |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.remove_class("animate-fade-in", to: "#modal-overlay")
       |> JS.hide(
         transition: {
           "ease-in duration-200",
@@ -126,7 +128,8 @@ defmodule PetalComponents.Modal do
       class: assigns[:class] || ""
     }
 
-    base_classes = "w-full max-h-full overflow-auto bg-white rounded shadow-lg dark:bg-gray-800"
+    base_classes =
+      "animate-fade-in-scale w-full max-h-full overflow-auto bg-white rounded shadow-lg dark:bg-gray-800"
 
     max_width_class =
       case opts.max_width do
