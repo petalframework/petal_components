@@ -90,12 +90,11 @@ defmodule PetalComponents.Modal do
         },
         to: "#modal-content"
       )
-      |> JS.push("close_modal")
 
     if close_modal_target do
       JS.push(js, "close_modal", target: close_modal_target)
     else
-      js
+      JS.push(js, "close_modal")
     end
   end
 
