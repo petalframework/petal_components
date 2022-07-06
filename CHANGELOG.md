@@ -1,4 +1,6 @@
 # Changelog
+### 0.17.1 - 2022-07-06 01:05:09
+- Modals - only send close_modal event to target if provided
 ### 0.17.0 - 2022-07-02 03:29:33
 - New components: <.prose>, <.ul>, <.ol>
 - Modals fade in (extra CSS required)
