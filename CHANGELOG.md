@@ -1,4 +1,8 @@
 # Changelog
+### 0.17.2 - 2022-07-07 06:19:05
+- Added an inverted button type that fills the outlined button on hover
+- Added ring/border to card and table to add more distinction on white backgrounds
+- Added a bg color and shadow to accordion
 ### 0.17.1 - 2022-07-06 01:05:09
 - Modals - only send close_modal event to target if provided
 ### 0.17.0 - 2022-07-02 03:29:33
