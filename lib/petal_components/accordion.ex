@@ -34,7 +34,7 @@ defmodule PetalComponents.Accordion do
             <button
               {js_attributes("button", @js_lib, @container_id, i)}
               class={build_class([
-                "flex items-center justify-between w-full p-5 text-left text-gray-500 border border-gray-200 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
+                "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 shadow dark:shadow-2xl text-gray-500 border border-gray-200 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
                 (if i == 0, do: "rounded-t-xl"),
                 (unless i == length(@item) - 1, do: "border-b-0")
               ])}

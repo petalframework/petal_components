@@ -108,7 +108,7 @@ defmodule PetalComponents.Card do
   defp get_variant_classes(variant) do
     case variant do
       "basic" ->
-        "rounded-lg shadow-lg dark:shadow-2xl"
+        "rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-none"
 
       "outline" ->
         "rounded-lg border border-gray-300 dark:border-gray-600"

@@ -16,7 +16,7 @@ defmodule PetalComponents.Table do
 
     ~H"""
     <table class={build_class([
-      "min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm shadow dark:shadow-2xl table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
+      "min-w-full overflow-hidden divide-y ring-1 ring-gray-200 dark:ring-0 divide-gray-200 rounded-sm table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
       @class,
     ])} {@rest}>
       <%= render_slot(@inner_block) %>
