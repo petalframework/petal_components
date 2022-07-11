@@ -26,7 +26,7 @@ defmodule PetalComponents.Avatar do
         <Heroicons.Solid.user class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
       </div>
     <% else %>
-      <%= if !@src && @name do %>
+      <%= if src_blank?(@src) && @name do %>
         <div {@rest}
           style={maybe_generate_random_color(@random_color, @name)}
           class={build_class([
