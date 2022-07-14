@@ -34,7 +34,7 @@ defmodule PetalComponents.Accordion do
             <button
               {js_attributes("button", @js_lib, @container_id, i)}
               class={build_class([
-                "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 shadow dark:shadow-2xl text-gray-500 border border-gray-200 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
+                "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 text-gray-800 border border-gray-200 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
                 (if i == 0, do: "rounded-t-xl"),
                 (unless i == length(@item) - 1, do: "border-b-0")
               ])}
@@ -60,7 +60,7 @@ defmodule PetalComponents.Accordion do
           <div {js_attributes("content_container", @js_lib, @container_id, i)} class="accordion-content-container">
             <div
               class={build_class([
-                "p-5 border border-gray-200 dark:border-gray-700 dark:bg-gray-900",
+                "p-5 border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900",
                 (if i == length(@item) - 1, do: "border-t-0", else: "border-b-0")
               ])}
             >
