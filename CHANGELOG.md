@@ -1,4 +1,7 @@
 # Changelog
+### 0.17.4 - 2022-07-15 04:09:17
+- modified accordion aesthetic
+- differentiated white inverted button type
 ### 0.17.2 - 2022-07-07 06:19:05
 - Added an inverted button type that fills the outlined button on hover
 - Added ring/border to card and table to add more distinction on white backgrounds
