@@ -1,4 +1,6 @@
 # Changelog
+### 0.17.5 - 2022-07-15 05:01:55
+- Move card bg colors to the parent div
 ### 0.17.4 - 2022-07-15 04:09:17
 - modified accordion aesthetic
 - differentiated white inverted button type
