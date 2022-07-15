@@ -15,11 +15,11 @@ defmodule PetalComponents.Card do
 
     ~H"""
     <div {@rest} class={build_class([
-      "flex flex-wrap overflow-hidden",
+      "flex flex-wrap overflow-hidden bg-white dark:bg-gray-800",
       get_variant_classes(@variant),
       @class
     ])}>
-      <div class="flex flex-col w-full max-w-full bg-white dark:bg-gray-800">
+      <div class="flex flex-col w-full max-w-full">
         <%= render_slot(@inner_block) %>
       </div>
     </div>
