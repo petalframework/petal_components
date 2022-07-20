@@ -1,4 +1,6 @@
 # Changelog
+### 0.17.6 - 2022-07-20 03:59:09
+- Fixed issue where closing modal/slideover caused two events to be fired
 ### 0.17.5 - 2022-07-15 05:01:55
 - Move card bg colors to the parent div
 ### 0.17.4 - 2022-07-15 04:09:17
