@@ -18,7 +18,7 @@ defmodule PetalComponents.SlideOver do
       |> assign_rest(~w(class max_width title origin)a)
 
     ~H"""
-    <div {@rest} id="slide-over" phx-remove={hide_slide_over(@origin)}>
+    <div {@rest} id="slide-over">
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"

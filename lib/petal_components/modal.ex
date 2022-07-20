@@ -17,7 +17,7 @@ defmodule PetalComponents.Modal do
       |> assign_rest(~w(classes title size)a)
 
     ~H"""
-    <div {@rest} id="modal" phx-remove={hide_modal(@close_modal_target)}>
+    <div {@rest} id="modal">
       <div
         id="modal-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 animate-fade-in dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
