@@ -15,11 +15,29 @@ defmodule PetalComponents.Accordion do
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:heading, fn -> nil end)
-      |> assign_new(:item, fn -> nil end)
+      |> assign_new(:item, fn -> [] end)
+      |> assign_new(:entries, fn -> [nil] end)
       |> assign_new(:icon, fn -> "chevron" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_rest(~w(class js_lib container_id inner_block icon heading item)a)
+      |> assign_rest(~w(class js_lib container_id inner_block icon heading item entries)a)
+
+    item =
+      for entry <- assigns.entries, item <- assigns.item do
+        item_heading = Map.get(item, :heading)
+        entry_heading = Map.get(entry, :heading)
+
+        if item_heading && entry_heading do
+          raise ArgumentError, "specify heading in either :item or :entries"
+        end
+
+        heading = item_heading || entry_heading
+
+        item
+        |> Map.put(:heading, heading)
+        |> Map.put(:entry, entry)
+      end
+
+    assigns = assign(assigns, :item, item)
 
     ~H"""
     <div
@@ -64,7 +82,7 @@ defmodule PetalComponents.Accordion do
                 (if i == length(@item) - 1, do: "border-t-0", else: "border-b-0")
               ])}
             >
-              <%= render_slot(item) %>
+              <%= render_slot(item, item.entry) %>
             </div>
           </div>
         </div>
