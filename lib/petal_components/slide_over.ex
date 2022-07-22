@@ -20,7 +20,7 @@ defmodule PetalComponents.SlideOver do
     ~H"""
     <div {@rest} id="slide-over">
       <div
-        id="modal-overlay"
+        id="slide-over-overlay"
         class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70"
         aria-hidden="true"
       >
@@ -36,7 +36,7 @@ defmodule PetalComponents.SlideOver do
         aria-modal="true"
       >
         <div
-          id="modal-content"
+          id="slide-over-content"
           class={get_classes(@max_width, @origin, @class)}
           phx-click-away={hide_slide_over(@origin)}
           phx-window-keydown={hide_slide_over(@origin)}
@@ -96,7 +96,7 @@ defmodule PetalComponents.SlideOver do
         "opacity-100",
         "opacity-0"
       },
-      to: "#modal-overlay"
+      to: "#slide-over-overlay"
     )
     |> JS.hide(
       transition: {
@@ -104,7 +104,7 @@ defmodule PetalComponents.SlideOver do
         origin_class,
         destination_class
       },
-      to: "#modal-content"
+      to: "#slide-over-content"
     )
     |> JS.push("close_slide_over")
   end
