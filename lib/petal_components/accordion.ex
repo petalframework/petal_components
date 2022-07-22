@@ -16,7 +16,7 @@ defmodule PetalComponents.Accordion do
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:item, fn -> [] end)
-      |> assign_new(:entries, fn -> [nil] end)
+      |> assign_new(:entries, fn -> [%{}] end)
       |> assign_new(:icon, fn -> "chevron" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
       |> assign_rest(~w(class js_lib container_id inner_block icon heading item entries)a)
