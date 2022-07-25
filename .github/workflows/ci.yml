@@ -19,8 +19,6 @@ jobs:
         run: mix deps.get
       - name: Run tests
         run: mix test
-      - name: Get credo report
-        run: mix credo
       - name: Run code test coverage report
         run: mix coveralls.github
       - name: Upload to Codecov
