@@ -7,13 +7,24 @@ jobs:
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ['23.3.4.11', '24.3']
-        elixir: ['1.12.3', '1.13.3']
+        otp: ['25.0']
+        elixir: ['1.13.4']
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-      - run: mix deps.get
-      - run: mix test
+      - name: Install deps
+        run: mix deps.get
+      - name: Run tests
+        run: mix test
+      - name: Get credo report
+        run: mix credo
+      - name: Run code test coverage report
+        run: mix coveralls.github
+      - name: Upload to Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov

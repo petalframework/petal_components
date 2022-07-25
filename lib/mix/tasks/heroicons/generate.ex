@@ -44,9 +44,12 @@ defmodule Mix.Tasks.Heroicons.Generate do
 
     file_content =
       file_content <>
+        """
+          # coveralls-ignore-start
+        """ <>
         functions_content <>
         """
-
+          # coveralls-ignore-stop
         end
         """
 
