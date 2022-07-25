@@ -9,6 +9,9 @@ jobs:
       matrix:
         otp: ['25.0']
         elixir: ['1.13.4']
+    env:
+      MIX_ENV: test
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
@@ -20,7 +23,7 @@ jobs:
       - name: Run tests
         run: mix test
       - name: Run code test coverage report
-        run: mix coveralls.github
+        run: mix coveralls.json
       - name: Upload to Codecov
         run: |
           curl -Os https://uploader.codecov.io/latest/linux/codecov
