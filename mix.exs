@@ -15,6 +15,9 @@ defmodule PetalComponents.MixProject do
       package: package(),
       deps: deps(),
       docs: docs(),
+      aliases: [
+        audit: ["format", "credo", "coveralls"]
+      ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
