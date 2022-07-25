@@ -12,6 +12,7 @@ jobs:
     env:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CODECOV_TOKEN: 9dc807a6-ddb4-4974-a6b7-200f1e2d43b8
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
