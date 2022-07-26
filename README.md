@@ -13,7 +13,7 @@
     <img alt="Hex Version" src="https://img.shields.io/hexpm/v/petal_components.svg">
   </a>
   <a href="https://hexdocs.pm/petal_components">
-    <img alt="Hex Docs" src="http://img.shields.io/badge/hexpm/dt/petal_components?style=flat">
+    <img alt="Hex Docs" src="https://img.shields.io/hexpm/dt/petal_components.svg?style=flat">
   </a>
   <a href="https://opensource.org/licenses/MIT" alt="MIT">
     <img src="https://img.shields.io/badge/license-MIT-green" />
