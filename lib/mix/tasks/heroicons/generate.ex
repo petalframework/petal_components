@@ -29,7 +29,10 @@ defmodule Mix.Tasks.Heroicons.Generate do
       end
 
       def render(%{icon: icon_name} = assigns) do
-        icon_name = String.to_existing_atom(icon_name)
+        icon_name = 
+          icon_name
+          |> String.replace("-", "_")
+          |> String.to_existing_atom()
         apply(__MODULE__, icon_name, [assigns])
       end
     """
