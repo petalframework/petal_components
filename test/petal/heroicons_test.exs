@@ -19,15 +19,28 @@ defmodule PetalComponents.HeroiconsTest do
 
     html =
       rendered_to_string(~H"""
-      <Heroicons.Solid.render icon="home" />
+      <Heroicons.Solid.render icon="document_text" />
       """)
 
     assert html =~ "<svg class="
     assert html =~ "currentColor"
 
+    also_html =
+      rendered_to_string(~H"""
+      <Heroicons.Solid.render icon={:document_text} />
+      """)
+
+    assert also_html == html
+    assert also_html =~ "<svg class="
+    assert also_html =~ "currentColor"
+  end
+
+  test "it renders heroicons solid with dash" do
+    assigns = %{}
+
     html =
       rendered_to_string(~H"""
-      <Heroicons.Solid.render icon={:home} />
+      <Heroicons.Solid.render icon="document-text" />
       """)
 
     assert html =~ "<svg class="
@@ -51,15 +64,28 @@ defmodule PetalComponents.HeroiconsTest do
 
     html =
       rendered_to_string(~H"""
-      <Heroicons.Outline.render icon="home" />
+      <Heroicons.Outline.render icon="document_text" />
       """)
 
     assert html =~ "<svg class="
     assert html =~ "none"
 
+    also_html =
+      rendered_to_string(~H"""
+      <Heroicons.Outline.render icon={:document_text} />
+      """)
+
+    assert also_html == html
+    assert also_html =~ "<svg class="
+    assert also_html =~ "none"
+  end
+
+  test "it renders heroicons outline with dash" do
+    assigns = %{}
+
     html =
       rendered_to_string(~H"""
-      <Heroicons.Outline.render icon={:home} />
+      <Heroicons.Outline.render icon="document-text" />
       """)
 
     assert html =~ "<svg class="

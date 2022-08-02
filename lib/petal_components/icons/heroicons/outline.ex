@@ -14,10 +14,11 @@ defmodule PetalComponents.Heroicons.Outline do
   end
 
   def render(%{icon: icon_name} = assigns) do
-    icon_name = 
+    icon_name =
       icon_name
       |> String.replace("-", "_")
       |> String.to_existing_atom()
+
     apply(__MODULE__, icon_name, [assigns])
   end
 
