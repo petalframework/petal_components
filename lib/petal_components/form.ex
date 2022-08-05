@@ -494,7 +494,7 @@ defmodule PetalComponents.Form do
   end
 
   defp checkbox_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 text-primary-700 rounded w-5 h-5 ease-linear transition-all duration-150 dark:bg-gray-800 dark:border-gray-300"
+    "#{if has_error, do: "has-error", else: ""} border-gray-300 text-primary-700 rounded w-5 h-5 ease-linear transition-all duration-150 dark:bg-gray-800 dark:border-gray-600"
   end
 
   defp checkbox_group_layout_classes(assigns) do
@@ -542,7 +542,7 @@ defmodule PetalComponents.Form do
   end
 
   defp radio_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-300"
+    "#{if has_error, do: "has-error", else: ""} border-gray-300 h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
   end
 
   defp field_has_errors?(%{form: form, field: field}) do

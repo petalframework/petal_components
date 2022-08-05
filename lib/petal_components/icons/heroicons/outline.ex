@@ -1,11 +1,12 @@
 defmodule PetalComponents.Heroicons.Outline do
   @moduledoc """
   Icon name can be the function or passed in as a type eg.
-  <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
-  <PetalComponents.Heroicons.Solid.render icon="home" class="w-5 h-5" />
 
-  <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
-  <PetalComponents.Heroicons.Outline.render icon="home" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
+      <PetalComponents.Heroicons.Solid.render icon="home" class="w-5 h-5" />
+
+      <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.render icon="home" class="w-6 h-6" />
   """
   use Phoenix.Component
 
@@ -14,7 +15,11 @@ defmodule PetalComponents.Heroicons.Outline do
   end
 
   def render(%{icon: icon_name} = assigns) do
-    icon_name = String.to_existing_atom(icon_name)
+    icon_name =
+      icon_name
+      |> String.replace("-", "_")
+      |> String.to_existing_atom()
+
     apply(__MODULE__, icon_name, [assigns])
   end
 
