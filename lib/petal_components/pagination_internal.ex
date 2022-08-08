@@ -1,13 +1,21 @@
 defmodule PetalComponents.PaginationInternal do
   @doc """
-  get_items computes the pagination buttons based on
+  get_items computes the pagination button information based on
   - total number of pages,
   - current page,
   - sibling count (pages left and right of current page)
   - boundary count (pages at start, and at end of the page range)
 
-  As this receives user input, possibly from the internet
-  the result is computed ignoring invalid values and a valid result is always returned.
+  As this control receives user input, possibly from the internet
+  a reasonable result is computed despite invalid input values and
+  at least one page item is returned always.
+
+  * The resulting items list always has 1 + max(0, sibling_count) + max(0, boundary_count) page items
+  * The resulting items may/will contains ellipsis items only if boundary_count > 0
+  * The previous item has `:enabled?` false if page 1 is current
+  * The next item has `:enabled?` false if the last page is current
+
+  please see the unit tests for examples
   """
   def get_pagination_items(total_pages, current_page, sibling_count, boundary_count) do
     total_pages = max(1, total_pages)
