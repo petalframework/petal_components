@@ -103,7 +103,7 @@ defmodule PetalComponents.PaginationInternal do
 
   defp get_prev_item(current_page, _total_pages) do
     %{
-      type: "prevs",
+      type: "prev",
       number: max(1, current_page - 1),
       enabled?: current_page > 1
     }
