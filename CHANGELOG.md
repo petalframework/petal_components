@@ -1,4 +1,16 @@
 # Changelog
+### 0.17.7 - 2022-08-10 00:34:26
+- Fix 'modal' IDs used at SlideOver component
+- Make accordion items dynamic
+- Add coveralls + dependabot
+- Remove credo from ci
+- Add codecov token
+- Add mix audit alias
+- Add codecov badge
+- Use string.replace to allow "-"
+- Make borders for radio and checkbox consistent with other inputs
+- Fixed pagination control if users set sibling_count to less than 1 or boundary_count less than 1
+- Moved Pagination.get_items to PaginationInternal.get_pagination_items so we can get at it in the unit tests
 ### 0.17.6 - 2022-07-20 03:59:09
 - Fixed issue where closing modal/slideover caused two events to be fired
 ### 0.17.5 - 2022-07-15 05:01:55
