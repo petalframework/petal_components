@@ -27,7 +27,15 @@ defmodule PetalComponents.Heroicons.Solid do
 
   # coveralls-ignore-start
   def academic_cap(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -38,7 +46,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def adjustments(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -49,7 +65,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def annotation(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -60,7 +84,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def archive(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -72,7 +104,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_circle_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -83,7 +123,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_circle_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -94,7 +142,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_circle_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -105,7 +161,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_circle_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -116,7 +180,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -127,7 +199,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -138,7 +218,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_narrow_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -149,7 +237,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_narrow_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -160,7 +256,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_narrow_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -171,7 +275,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_narrow_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -182,7 +294,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -193,7 +313,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_sm_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -204,7 +332,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_sm_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -215,7 +351,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_sm_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -226,7 +370,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_sm_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -237,7 +389,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrow_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -248,7 +408,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def arrows_expand(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -259,7 +427,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def at_symbol(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -270,7 +446,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def backspace(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -281,7 +465,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def badge_check(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -292,7 +484,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def ban(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -303,7 +503,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def beaker(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -314,7 +522,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def bell(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -325,7 +541,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def book_open(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -336,7 +560,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def bookmark_alt(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -347,7 +579,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def bookmark(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -358,7 +598,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def briefcase(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -370,7 +618,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cake(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -381,7 +637,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def calculator(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -392,7 +656,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def calendar(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -403,7 +675,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def camera(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -414,7 +694,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cash(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -425,7 +713,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chart_bar(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -436,7 +732,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chart_pie(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -448,7 +752,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chart_square_bar(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -459,7 +771,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chat_alt_2(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -471,7 +791,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chat_alt(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -482,7 +810,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chat(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -493,7 +829,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def check_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -504,7 +848,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def check(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -515,7 +867,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_double_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -526,7 +886,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_double_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -537,7 +905,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_double_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -549,7 +925,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_double_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -560,7 +944,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -571,7 +963,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_left(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -582,7 +982,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_right(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -593,7 +1001,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chevron_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -604,7 +1020,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def chip(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -616,7 +1040,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def clipboard_check(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -628,7 +1060,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def clipboard_copy(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -640,7 +1080,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def clipboard_list(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -652,7 +1100,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def clipboard(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -664,7 +1120,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def clock(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -675,7 +1139,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cloud_download(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -686,7 +1158,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cloud_upload(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -698,7 +1178,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cloud(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -709,7 +1197,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def code(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -720,7 +1216,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cog(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -731,7 +1235,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def collection(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -742,7 +1254,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def color_swatch(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -753,7 +1273,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def credit_card(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -765,7 +1293,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cube_transparent(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -776,7 +1312,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cube(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -787,7 +1331,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_bangladeshi(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -798,7 +1350,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_dollar(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -810,7 +1370,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_euro(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -821,7 +1389,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_pound(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -832,7 +1408,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_rupee(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -843,7 +1427,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def currency_yen(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -854,7 +1446,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def cursor_click(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -865,7 +1465,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def database(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -878,7 +1486,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def desktop_computer(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -889,7 +1505,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def device_mobile(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -900,7 +1524,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def device_tablet(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -911,7 +1543,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_add(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -922,7 +1562,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_download(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -933,7 +1581,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_duplicate(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -945,7 +1601,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_remove(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -956,7 +1620,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_report(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -967,7 +1639,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_search(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -979,7 +1659,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document_text(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -990,7 +1678,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def document(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1001,7 +1697,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def dots_circle_horizontal(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1012,7 +1716,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def dots_horizontal(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1023,7 +1735,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def dots_vertical(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1034,7 +1754,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def download(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1045,7 +1773,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def duplicate(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1057,7 +1793,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def emoji_happy(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1068,7 +1812,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def emoji_sad(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1079,7 +1831,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def exclamation_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1090,7 +1850,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def exclamation(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1101,7 +1869,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def external_link(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1113,7 +1889,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def eye_off(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1125,7 +1909,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def eye(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1137,7 +1929,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def fast_forward(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1148,7 +1948,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def film(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1159,7 +1967,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def filter(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1170,7 +1986,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def finger_print(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1183,7 +2007,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def fire(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1194,7 +2026,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def flag(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1205,7 +2045,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def folder_add(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1216,7 +2064,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def folder_download(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1227,7 +2083,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def folder_open(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1239,7 +2103,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def folder_remove(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1250,7 +2122,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def folder(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1261,7 +2141,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def gift(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1273,7 +2161,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def globe_alt(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1284,7 +2180,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def globe(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1295,7 +2199,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def hand(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1306,7 +2218,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def hashtag(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1317,7 +2237,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def heart(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1328,7 +2256,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def home(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1339,7 +2275,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def identification(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1350,7 +2294,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def inbox_in(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1362,7 +2314,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def inbox(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1373,7 +2333,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def information_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1384,7 +2352,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def key(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1395,7 +2371,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def library(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1406,7 +2390,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def light_bulb(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1417,7 +2409,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def lightning_bolt(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1428,7 +2428,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def link(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1439,7 +2447,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def location_marker(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1450,7 +2466,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def lock_closed(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1461,7 +2485,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def lock_open(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1472,7 +2504,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def login(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1483,7 +2523,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def logout(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1494,7 +2542,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def mail_open(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1505,7 +2561,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def mail(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1517,7 +2581,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def map(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1528,7 +2600,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def menu_alt_1(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1539,7 +2619,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def menu_alt_2(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1550,7 +2638,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def menu_alt_3(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1561,7 +2657,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def menu_alt_4(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1572,7 +2676,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def menu(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1583,7 +2695,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def microphone(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1594,7 +2714,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def minus_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1605,7 +2733,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def minus_sm(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1616,7 +2752,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def minus(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1627,7 +2771,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def moon(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1638,7 +2790,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def music_note(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1649,7 +2809,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def newspaper(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1661,7 +2829,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def office_building(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1672,7 +2848,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def paper_airplane(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1683,7 +2867,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def paper_clip(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1694,7 +2886,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def pause(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1705,7 +2905,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def pencil_alt(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1717,7 +2925,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def pencil(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1728,7 +2944,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def phone_incoming(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1740,7 +2964,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def phone_missed_call(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1752,7 +2984,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def phone_outgoing(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1764,7 +3004,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def phone(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1775,7 +3023,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def photograph(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1786,7 +3042,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def play(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1797,7 +3061,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def plus_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1808,7 +3080,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def plus_sm(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1819,7 +3099,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def plus(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1830,7 +3118,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def presentation_chart_bar(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1841,7 +3137,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def presentation_chart_line(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1852,7 +3156,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def printer(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1863,7 +3175,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def puzzle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1874,7 +3194,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def qrcode(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1886,7 +3214,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def question_mark_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1897,7 +3233,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def receipt_refund(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1908,7 +3252,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def receipt_tax(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1919,7 +3271,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def refresh(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1930,7 +3290,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def reply(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1941,7 +3309,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def rewind(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1952,7 +3328,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def rss(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1964,7 +3348,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def save_as(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1976,7 +3368,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def save(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1987,7 +3387,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def scale(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1998,7 +3406,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def scissors(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2010,7 +3426,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def search_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2022,7 +3446,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def search(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2033,7 +3465,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def selector(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2044,7 +3484,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def server(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2055,7 +3503,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def share(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2066,7 +3522,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def shield_check(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2077,7 +3541,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def shield_exclamation(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2088,7 +3560,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def shopping_bag(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2099,7 +3579,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def shopping_cart(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2110,7 +3598,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def sort_ascending(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2121,7 +3617,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def sort_descending(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2132,7 +3636,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def sparkles(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2143,7 +3655,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def speakerphone(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2154,7 +3674,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def star(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2165,7 +3693,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def status_offline(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2176,7 +3712,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def status_online(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2187,7 +3731,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def stop(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2198,7 +3750,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def sun(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2209,7 +3769,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def support(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2220,7 +3788,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def switch_horizontal(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2231,7 +3807,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def switch_vertical(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2242,7 +3826,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def table(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2253,7 +3845,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def tag(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2264,7 +3864,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def template(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2275,7 +3883,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def terminal(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2286,7 +3902,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def thumb_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2297,7 +3921,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def thumb_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2308,7 +3940,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def ticket(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2319,7 +3959,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def translate(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2330,7 +3978,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def trash(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2341,7 +3997,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def trending_down(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2352,7 +4016,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def trending_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2363,7 +4035,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def truck(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2375,7 +4055,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def upload(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2386,7 +4074,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def user_add(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2397,7 +4093,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def user_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2408,7 +4112,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def user_group(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2419,7 +4131,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def user_remove(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2430,7 +4150,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def user(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2441,7 +4169,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def users(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2452,7 +4188,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def variable(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2463,7 +4207,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def video_camera(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2474,7 +4226,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def view_boards(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2485,7 +4245,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def view_grid_add(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2496,7 +4264,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def view_grid(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2507,7 +4283,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def view_list(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2518,7 +4302,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def volume_off(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2529,7 +4321,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def volume_up(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2540,7 +4340,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def wifi(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2551,7 +4359,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def x_circle(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2562,7 +4378,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def x(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2573,7 +4397,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def zoom_in(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2585,7 +4417,15 @@ defmodule PetalComponents.Heroicons.Solid do
   end
 
   def zoom_out(assigns) do
-    assigns = assign_default_attributes(assigns)
+    assigns =
+      assigns
+      |> assign_new(:title, fn -> nil end)
+      |> assign_new(:class, fn -> "h-5 w-5" end)
+      |> assign_new(:rest, fn ->
+        assigns_to_attributes(assigns, ~w(
+        class
+      )a)
+      end)
 
     ~H"""
     <svg class={@class} {@rest} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -2594,17 +4434,6 @@ defmodule PetalComponents.Heroicons.Solid do
       <path fill-rule="evenodd" d="M5 8a1 1 0 011-1h4a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
     </svg>
     """
-  end
-
-  defp assign_default_attributes(assigns) do
-    assigns
-    |> assign_new(:title, fn -> nil end)
-    |> assign_new(:class, fn -> "h-5 w-5" end)
-    |> assign_new(:rest, fn ->
-      assigns_to_attributes(assigns, ~w(
-        class
-      )a)
-    end)
   end
 
   # coveralls-ignore-stop

@@ -25,6 +25,8 @@ defmodule Mix.Tasks.Heroicons.Generate do
       \"\"\"
       use Phoenix.Component
 
+      import PetalComponents.Heroicons.Attributes
+
       def render(%{icon: icon_name} = assigns) when is_atom(icon_name) do
         apply(__MODULE__, icon_name, [assigns])
       end
@@ -72,6 +74,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
       File.read!(Path.join(src_path, filename))
       |> String.trim()
       |> String.replace(~r/<svg /, "<svg class={@class} {@rest} ")
+      |> String.replace(~r/(\A.*)/, "\\g{1}\n    <.title title={@title} />")
       |> String.replace(~r/<path/, "  <path")
 
     build_component(filename, svg_content, type)
@@ -89,6 +92,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
     """
     def #{function_name(filename)}(assigns) do
       assigns = assigns
+        |> assign_new(:title, fn -> nil end)
         |> assign_new(:class, fn -> "#{class}" end)
         |> assign_new(:rest, fn ->
           assigns_to_attributes(assigns, ~w(
