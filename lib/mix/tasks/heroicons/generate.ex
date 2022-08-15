@@ -1,11 +1,12 @@
 defmodule Mix.Tasks.Heroicons.Generate do
   use Mix.Task
 
-  @shortdoc "Convert source SVG files into heex components. Run `git clone https://github.com/tailwindlabs/heroicons.git` first."
+  @shortdoc "To run `mix heroicons.generate`. Converts source SVG files into heex components."
   def run(_) do
+    System.cmd("git", ["clone", "https://github.com/tailwindlabs/heroicons.git"])
     Enum.each(["outline", "solid"], &loop_directory/1)
-
     Mix.Task.run("format")
+    System.cmd("rm", ["-rf", "heroicons"])
   end
 
   defp loop_directory(folder) do
@@ -27,7 +28,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
       \"\"\"
       use Phoenix.Component
 
-      import PetalComponents.Heroicons.Attributes
+      alias PetalComponents.Svg
 
       def render(%{icon: icon_name} = assigns) when is_atom(icon_name) do
         apply(__MODULE__, icon_name, [assigns])
@@ -76,7 +77,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
       File.read!(Path.join(src_path, filename))
       |> String.trim()
       |> String.replace(~r/<svg /, "<svg class={@class} {@rest} ")
-      |> String.replace(~r/(\A.*)/, "\\g{1}\n    <.title title={@title} />")
+      |> String.replace(~r/(\A.*)/, "\\g{1}\n    <Svg.title title={@title} />")
       |> String.replace(~r/<path/, "  <path")
 
     build_component(filename, svg_content, type)
