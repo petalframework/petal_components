@@ -103,4 +103,26 @@ defmodule PetalComponents.HeroiconsTest do
     assert html =~ "blah"
     assert html =~ "xxx"
   end
+
+  test "it includes title element in outline icons when specified" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Outline.home title="foo" />
+      """)
+
+    assert html =~ "<title>foo</title>"
+  end
+
+  test "it includes title element in solid icons when specified" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Solid.home title="foo" />
+      """)
+
+    assert html =~ "<title>foo</title>"
+  end
 end

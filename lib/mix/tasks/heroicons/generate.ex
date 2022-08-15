@@ -1,11 +1,12 @@
 defmodule Mix.Tasks.Heroicons.Generate do
   use Mix.Task
 
-  @shortdoc "Convert source SVG files into heex components. Run `git clone https://github.com/tailwindlabs/heroicons.git` first."
+  @shortdoc "To run `mix heroicons.generate`. Converts source SVG files into heex components."
   def run(_) do
+    System.cmd("git", ["clone", "https://github.com/tailwindlabs/heroicons.git"])
     Enum.each(["outline", "solid"], &loop_directory/1)
-
     Mix.Task.run("format")
+    System.cmd("rm", ["-rf", "heroicons"])
   end
 
   defp loop_directory(folder) do
@@ -18,12 +19,16 @@ defmodule Mix.Tasks.Heroicons.Generate do
       Icon name can be the function or passed in as a type eg.
 
           <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
+          <PetalComponents.Heroicons.Solid.home title="Optional title for accessibility" class="w-5 h-5" />
           <PetalComponents.Heroicons.Solid.render icon="home" class="w-5 h-5" />
 
           <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
+          <PetalComponents.Heroicons.Outline.home title="Optional title for accessibility" class="w-6 h-6" />
           <PetalComponents.Heroicons.Outline.render icon="home" class="w-6 h-6" />
       \"\"\"
       use Phoenix.Component
+
+      alias PetalComponents.Svg
 
       def render(%{icon: icon_name} = assigns) when is_atom(icon_name) do
         apply(__MODULE__, icon_name, [assigns])
@@ -72,6 +77,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
       File.read!(Path.join(src_path, filename))
       |> String.trim()
       |> String.replace(~r/<svg /, "<svg class={@class} {@rest} ")
+      |> String.replace(~r/(\A.*)/, "\\g{1}\n    <Svg.title title={@title} />")
       |> String.replace(~r/<path/, "  <path")
 
     build_component(filename, svg_content, type)
@@ -89,6 +95,7 @@ defmodule Mix.Tasks.Heroicons.Generate do
     """
     def #{function_name(filename)}(assigns) do
       assigns = assigns
+        |> assign_new(:title, fn -> nil end)
         |> assign_new(:class, fn -> "#{class}" end)
         |> assign_new(:rest, fn ->
           assigns_to_attributes(assigns, ~w(
