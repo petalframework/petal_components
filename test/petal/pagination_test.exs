@@ -27,7 +27,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 2 pages, current page 2, siblings and boundary at zero" <>
-  " shows: only a single page and prev, no next" do
+         " shows: only a single page and prev, no next" do
     items = get_pagination_items(2, 2, 0, 0)
 
     assert [
@@ -38,7 +38,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 2, 0 siblings and boundary" <>
-  " shows: prev, [2], next" do
+         " shows: prev, [2], next" do
     items = get_pagination_items(5, 2, 0, 0)
 
     assert [
@@ -49,56 +49,56 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 1, 0 siblings and 1 boundary" <>
-  " shows: [1], 2, ..., 5, next" do
+         " shows: [1], 2, ..., 5, next" do
     items = get_pagination_items(5, 1, 0, 1)
 
     assert [
              %{type: "prev", number: 1, enabled?: false},
              %{type: "page", number: 1, current?: true},
              %{type: "page", number: 2, current?: false},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 5, current?: false},
              %{type: "next", number: 2, enabled?: true}
            ] = items
   end
 
   test "pager for 5 pages, current page 2, 0 siblings and 1 boundary" <>
-  " shows: prev, 1, [2], ..., 5, next" do
+         " shows: prev, 1, [2], ..., 5, next" do
     items = get_pagination_items(5, 2, 0, 1)
 
     assert [
              %{type: "prev", number: 1, enabled?: true},
              %{type: "page", number: 1, current?: false},
              %{type: "page", number: 2, current?: true},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 5, current?: false},
              %{type: "next", number: 3, enabled?: true}
            ] = items
   end
 
   test "pager for 5 pages, current page 3, 0 siblings and 1 boundary" <>
-  " shows: prev, 1, ,..., [3], ..., 5, next" do
+         " shows: prev, 1, ,..., [3], ..., 5, next" do
     items = get_pagination_items(5, 3, 0, 1)
 
     assert [
              %{type: "prev", number: 2, enabled?: true},
              %{type: "page", number: 1, current?: false},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 3, current?: true},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 5, current?: false},
              %{type: "next", number: 4, enabled?: true}
            ] = items
   end
 
   test "pager for 5 pages, current page 4, 0 siblings and 1 boundary" <>
-  " shows: prev, 1,... , [4], 5, next" do
+         " shows: prev, 1,... , [4], 5, next" do
     items = get_pagination_items(5, 4, 0, 1)
 
     assert [
              %{type: "prev", number: 3, enabled?: true},
              %{type: "page", number: 1, current?: false},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 4, current?: true},
              %{type: "page", number: 5, current?: false},
              %{type: "next", number: 5, enabled?: true}
@@ -106,13 +106,13 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 5, 0 siblings and 1 boundary" <>
-  " shows: prev, 1,... , 4, [5]" do
+         " shows: prev, 1,... , 4, [5]" do
     items = get_pagination_items(5, 5, 0, 1)
 
     assert [
              %{type: "prev", number: 4, enabled?: true},
              %{type: "page", number: 1, current?: false},
-             %{type: "...",  },
+             %{type: "..."},
              %{type: "page", number: 4, current?: false},
              %{type: "page", number: 5, current?: true},
              %{type: "next", number: 5, enabled?: false}
@@ -120,7 +120,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 1, 1 sibling and 0 boundary" <>
-  " shows: [1], 2, 3, next" do
+         " shows: [1], 2, 3, next" do
     items = get_pagination_items(5, 1, 1, 0)
 
     assert [
@@ -133,7 +133,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 2, 1 sibling and 0 boundary" <>
-  " shows: prev, 1, [2], 3, next" do
+         " shows: prev, 1, [2], 3, next" do
     items = get_pagination_items(5, 2, 1, 0)
 
     assert [
@@ -146,7 +146,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 3, 1 sibling and 0 boundary" <>
-  " shows: prev, 2, [3], 4, next" do
+         " shows: prev, 2, [3], 4, next" do
     items = get_pagination_items(5, 3, 1, 0)
 
     assert [
@@ -159,7 +159,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 4, 1 sibling and 0 boundary" <>
-  " shows: prev, 3, [4], 5, next" do
+         " shows: prev, 3, [4], 5, next" do
     items = get_pagination_items(5, 4, 1, 0)
 
     assert [
@@ -172,7 +172,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 5 pages, current page 5, 1 sibling and 0 boundary" <>
-  " shows: prev, 3, 4, [5]" do
+         " shows: prev, 3, 4, [5]" do
     items = get_pagination_items(5, 5, 1, 0)
 
     assert [
@@ -185,7 +185,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 100 pages, current page 1, 2 siblings and 2 boundary pages" <>
-  " shows: [1], 2, 3, 4, ... , 98, 99, 100, next" do
+         " shows: [1], 2, 3, 4, ... , 98, 99, 100, next" do
     items = get_pagination_items(100, 1, 2, 2)
 
     assert [
@@ -202,7 +202,7 @@ defmodule PetalComponents.PaginationTest do
              %{type: "page", number: 6, current?: false},
              %{type: "page", number: 7, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # end boundary pages
              %{type: "page", number: 99, current?: false},
              %{type: "page", number: 100, current?: false},
@@ -211,7 +211,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 100 pages, current page 5, 2 siblings and 2 boundary pages" <>
-  " shows: prev, 1, 2, 3, 4, [5], 6, 7 ... , 98, 99, 100, next" do
+         " shows: prev, 1, 2, 3, 4, [5], 6, 7 ... , 98, 99, 100, next" do
     items = get_pagination_items(100, 5, 2, 2)
 
     assert [
@@ -228,7 +228,7 @@ defmodule PetalComponents.PaginationTest do
              %{type: "page", number: 6, current?: false},
              %{type: "page", number: 7, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # end boundary pages
              %{type: "page", number: 99, current?: false},
              %{type: "page", number: 100, current?: false},
@@ -237,7 +237,7 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 100 pages, current page 6, 2 siblings and 2 boundary pages" <>
-  " shows: prev, 1, 2, .., 4, 5, [6], 7, 8, ... , 98, 99, 100, next" do
+         " shows: prev, 1, 2, .., 4, 5, [6], 7, 8, ... , 98, 99, 100, next" do
     items = get_pagination_items(100, 6, 2, 2)
 
     assert [
@@ -246,7 +246,7 @@ defmodule PetalComponents.PaginationTest do
              %{type: "page", number: 1, current?: false},
              %{type: "page", number: 2, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # start sibling pages
              %{type: "page", number: 4, current?: false},
              %{type: "page", number: 5, current?: false},
@@ -256,7 +256,7 @@ defmodule PetalComponents.PaginationTest do
              %{type: "page", number: 7, current?: false},
              %{type: "page", number: 8, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # end boundary pages
              %{type: "page", number: 99, current?: false},
              %{type: "page", number: 100, current?: false},
@@ -265,17 +265,17 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 100 pages, current page 7, 2 siblings and 2 boundary pages" <>
-  " shows prev, [1], 2, 3, 4, ... , 98, 99, 100, next" do
+         " shows prev, [1], 2, 3, 4, ... , 98, 99, 100, next" do
     items = get_pagination_items(100, 7, 2, 2)
 
     assert [
-             #prev page 6
+             # prev page 6
              %{type: "prev", number: 6, enabled?: true},
              # start boundary pages
              %{type: "page", number: 1, current?: false},
              %{type: "page", number: 2, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # start sibling pages
              %{type: "page", number: 5, current?: false},
              %{type: "page", number: 6, current?: false},
@@ -285,7 +285,7 @@ defmodule PetalComponents.PaginationTest do
              %{type: "page", number: 8, current?: false},
              %{type: "page", number: 9, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # end boundary pages
              %{type: "page", number: 99, current?: false},
              %{type: "page", number: 100, current?: false},
@@ -295,17 +295,17 @@ defmodule PetalComponents.PaginationTest do
   end
 
   test "pager for 100 pages, current page 100, 2 siblings and 2 boundary pages" <>
-  " shows prev, 1, 2, ... 94, 95, 96, 97, 98, 99, [100]" do
+         " shows prev, 1, 2, ... 94, 95, 96, 97, 98, 99, [100]" do
     items = get_pagination_items(100, 100, 2, 2)
 
     assert [
-             #prev page 6
+             # prev page 6
              %{type: "prev", number: 99, enabled?: true},
              # start boundary pages
              %{type: "page", number: 1, current?: false},
              %{type: "page", number: 2, current?: false},
              # ellipsis
-             %{type: "...",  },
+             %{type: "..."},
              # start sibling pages
              %{type: "page", number: 94, current?: false},
              %{type: "page", number: 95, current?: false},
