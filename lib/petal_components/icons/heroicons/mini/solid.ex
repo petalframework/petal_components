@@ -1,14 +1,14 @@
-defmodule PetalComponents.Mini.Heroicons.Solid do
+defmodule PetalComponents.Heroicons.Mini.Solid do
   @moduledoc """
   Icon name can be the function or passed in as a type eg.
 
-      <PetalComponents.Heroicons.Mini.Solid.home class="w-5 h-5" />
-      <PetalComponents.Heroicons.Mini.Solid.home title="Optional title for accessibility" class="w-5 h-5" />
-      <PetalComponents.Heroicons.Mini.Solid.render icon="home" class="w-5 h-5" />
+      <PetalComponents.Heroicons.Solid.home class="w-5 h-5" />
+      <PetalComponents.Heroicons.Solid.home title="Optional title for accessibility" class="w-5 h-5" />
+      <PetalComponents.Heroicons.Solid.render icon="home" class="w-5 h-5" />
 
-      <PetalComponents.Heroicons.Mini.Outline.home class="w-6 h-6" />
-      <PetalComponents.Heroicons.Mini.Outline.home title="Optional title for accessibility" class="w-6 h-6" />
-      <PetalComponents.Heroicons.Mini.Outline.render icon="home" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.home class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.home title="Optional title for accessibility" class="w-6 h-6" />
+      <PetalComponents.Heroicons.Outline.render icon="home" class="w-6 h-6" />
   """
   use Phoenix.Component
 
