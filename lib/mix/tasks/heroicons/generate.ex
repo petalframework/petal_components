@@ -133,6 +133,6 @@ defmodule Mix.Tasks.Heroicons.Generate do
   end
 
   defp class_for(["24/outline", _namespace, _dest_dir]), do: "h-6 w-6"
-  defp class_for(["24/solid", _namespace, _dest_dir]), do: "h-5 w-5"
+  defp class_for(["24/solid", _namespace, _dest_dir]), do: "h-6 w-6"
   defp class_for(["20/solid", _namespace, _dest_dir]), do: "h-5 w-5"
 end
