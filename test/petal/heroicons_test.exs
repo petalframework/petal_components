@@ -47,6 +47,51 @@ defmodule PetalComponents.HeroiconsTest do
     assert html =~ "currentColor"
   end
 
+  test "it renders heroicons mini solid icon and color correctly" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Mini.Solid.home />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+  end
+
+  test "it renders heroicons mini solid icon and color correctly via render component" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Mini.Solid.render icon="document_text" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+
+    also_html =
+      rendered_to_string(~H"""
+      <Heroicons.Mini.Solid.render icon={:document_text} />
+      """)
+
+    assert also_html == html
+    assert also_html =~ "<svg class="
+    assert also_html =~ "currentColor"
+  end
+
+  test "it renders heroicons mini solid with dash" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Heroicons.Mini.Solid.render icon="document-text" />
+      """)
+
+    assert html =~ "<svg class="
+    assert html =~ "currentColor"
+  end
+
   test "it renders heroicons outline icon and color correctly" do
     assigns = %{}
 

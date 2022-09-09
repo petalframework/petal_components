@@ -60,7 +60,7 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && !@trigger_element do %>
-            <Heroicons.Solid.dots_vertical class="w-5 h-5" />
+            <Heroicons.Solid.ellipsis_vertical class="w-5 h-5" />
           <% end %>
         </button>
       </div>

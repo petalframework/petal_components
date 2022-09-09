@@ -119,7 +119,7 @@ defmodule PetalComponents.TabsTest do
             Home
         </.tab>
         <.tab underline link_type="a" to="/" phx-click="click_event" >
-          <Heroicons.Outline.office_building class="w-5 h-5 mr-2"  />
+          <Heroicons.Outline.building_office class="w-5 h-5 mr-2"  />
             Company
         </.tab>
       </.tabs>
@@ -142,7 +142,7 @@ defmodule PetalComponents.TabsTest do
             Home
         </.tab>
         <.tab underline link_type="a" to="/" phx-click="click_event" >
-          <Heroicons.Outline.office_building class="w-5 h-5 mr-2"  />
+          <Heroicons.Outline.building_office class="w-5 h-5 mr-2"  />
             Company
         </.tab>
       </.tabs>
@@ -166,7 +166,7 @@ defmodule PetalComponents.TabsTest do
             Home
         </.tab>
         <.tab custom-attrs="3" underline link_type="a" to="/" phx-click="click_event" >
-          <Heroicons.Outline.office_building class="w-5 h-5 mr-2"  />
+          <Heroicons.Outline.building_office class="w-5 h-5 mr-2"  />
             Company
         </.tab>
       </.tabs>
