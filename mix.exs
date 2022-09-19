@@ -48,7 +48,8 @@ defmodule PetalComponents.MixProject do
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.10", only: :test}
+      {:excoveralls, "~> 0.10", only: :test},
+      {:heroicons, "~> 0.4.1"}
     ]
   end
 

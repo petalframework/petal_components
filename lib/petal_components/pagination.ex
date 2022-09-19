@@ -1,7 +1,6 @@
 defmodule PetalComponents.Pagination do
   use Phoenix.Component
 
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   import PetalComponents.Helpers

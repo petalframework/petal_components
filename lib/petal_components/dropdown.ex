@@ -2,7 +2,6 @@ defmodule PetalComponents.Dropdown do
   use Phoenix.Component
   import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   @transition_in_base "transition transform ease-out duration-100"
@@ -60,7 +59,7 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && !@trigger_element do %>
-            <Heroicons.Solid.dots_vertical class="w-5 h-5" />
+            <Heroicons.Solid.ellipsis_vertical class="w-5 h-5" />
           <% end %>
         </button>
       </div>

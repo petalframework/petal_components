@@ -1,7 +1,6 @@
 defmodule PetalComponents.Breadcrumbs do
   use Phoenix.Component
   import PetalComponents.Helpers
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   # Example:

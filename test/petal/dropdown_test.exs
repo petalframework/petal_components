@@ -1,7 +1,6 @@
 defmodule PetalComponents.DropdownTest do
   use ComponentCase
   import PetalComponents.Dropdown
-  alias PetalComponents.Heroicons
 
   test "dropdown" do
     assigns = %{}

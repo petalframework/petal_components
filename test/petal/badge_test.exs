@@ -1,7 +1,6 @@
 defmodule PetalComponents.BadgeTest do
   use ComponentCase
   import PetalComponents.Badge
-  alias PetalComponents.Heroicons
 
   test "it renders colors and label correctly" do
     assigns = %{}
