@@ -98,25 +98,19 @@ defmodule PetalComponents.Pagination do
     build_class([base_classes, active_classes, rounded_classes])
   end
 
+  defp get_path(path, page_number, current_page) when is_binary(path) do
+    get_path(&String.replace(path, ":page", Integer.to_string(&1)), page_number, current_page)
+  end
+
   defp get_path(fun, "previous", current_page) when is_function(fun, 1) do
-    (current_page - 1)
-    |> Integer.to_string()
-    |> then(fun)
+    get_path(fun, current_page - 1, current_page)
   end
 
   defp get_path(fun, "next", current_page) when is_function(fun, 1) do
-    (current_page + 1)
-    |> Integer.to_string()
-    |> then(fun)
+    get_path(fun, current_page + 1, current_page)
   end
 
   defp get_path(fun, page_number, _current_page) when is_function(fun, 1) do
-    page_number
-    |> Integer.to_string()
-    |> then(fun)
-  end
-
-  defp get_path(path, page_number, current_page) when is_binary(path) do
-    get_path(&String.replace(path, ":page", &1), page_number, current_page)
+    then(page_number, fun)
   end
 end
