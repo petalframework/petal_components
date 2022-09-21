@@ -22,6 +22,7 @@ defmodule PetalComponents.Alert do
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
+      <% IO.inspect(@rest) %>
       <div {@rest} class={@classes}>
         <%= if @with_icon do %>
           <div class="self-start flex-shrink-0 pt-0.5 w-6 h-6">
