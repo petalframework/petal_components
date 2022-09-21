@@ -1,6 +1,5 @@
 defmodule PetalComponents.Avatar do
   use Phoenix.Component
-  alias PetalComponents.Heroicons
   import PetalComponents.Helpers
 
   # prop src, :string

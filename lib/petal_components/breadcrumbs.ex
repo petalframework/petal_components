@@ -1,7 +1,6 @@
 defmodule PetalComponents.Breadcrumbs do
   use Phoenix.Component
   import PetalComponents.Helpers
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   # Example:
@@ -26,13 +25,13 @@ defmodule PetalComponents.Breadcrumbs do
           <.separator type={@separator} />
         <% end %>
 
-        <Link.link
+        <Link.a
           link_type={link[:link_type] || "a"}
           to={link.to}
           class={get_breadcrumb_classes(@link_class)}
         >
           <%= link.label %>
-        </Link.link>
+        </Link.a>
       <% end %>
     </div>
     """

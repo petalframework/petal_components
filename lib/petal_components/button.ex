@@ -2,7 +2,6 @@ defmodule PetalComponents.Button do
   use Phoenix.Component
 
   alias PetalComponents.Loading
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   import PetalComponents.Helpers
@@ -25,13 +24,23 @@ defmodule PetalComponents.Button do
       |> assign_new(:loading, fn -> false end)
       |> assign_new(:size, fn -> "md" end)
       |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:rest, fn -> get_rest(assigns) end)
       |> assign_new(:classes, fn -> button_classes(assigns) end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:to, fn -> nil end)
+      |> assign_rest([
+        :loading,
+        :disabled,
+        :link_type,
+        :size,
+        :variant,
+        :color,
+        :icon,
+        :class,
+        :to
+      ])
 
     ~H"""
-    <Link.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
+    <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
@@ -41,7 +50,7 @@ defmodule PetalComponents.Button do
       <% else %>
         <%= @label %>
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 
@@ -63,13 +72,23 @@ defmodule PetalComponents.Button do
       |> assign_new(:loading, fn -> false end)
       |> assign_new(:size, fn -> "sm" end)
       |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:rest, fn -> get_rest(assigns) end)
       |> assign_new(:class, fn -> "" end)
       |> assign_new(:to, fn -> nil end)
       |> assign_new(:color, fn -> "gray" end)
+      |> assign_rest([
+        :loading,
+        :disabled,
+        :link_type,
+        :size,
+        :variant,
+        :color,
+        :icon,
+        :class,
+        :to
+      ])
 
     ~H"""
-    <Link.link
+    <Link.a
       to={@to}
       link_type={@link_type}
       class={build_class(
@@ -86,12 +105,9 @@ defmodule PetalComponents.Button do
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% else %>
-        <Heroicons.Solid.render icon={@icon} class={build_class(
-          [
-            get_icon_button_size_classes(@size)
-          ])}/>
+        <%= render_slot(@icon) %>
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 
@@ -141,20 +157,6 @@ defmodule PetalComponents.Button do
       "font-medium rounded-md inline-flex items-center justify-center border focus:outline-none transition duration-150 ease-in-out"
     ]
     |> build_class()
-  end
-
-  defp get_rest(assigns) do
-    assigns_to_attributes(assigns, [
-      :loading,
-      :disabled,
-      :link_type,
-      :size,
-      :variant,
-      :color,
-      :icon,
-      :class,
-      :to
-    ])
   end
 
   defp get_color_classes(%{color: "primary", variant: variant}) do
@@ -298,11 +300,11 @@ defmodule PetalComponents.Button do
   defp get_spinner_size_classes("lg"), do: "h-5 w-5"
   defp get_spinner_size_classes("xl"), do: "h-6 w-6"
 
-  defp get_icon_button_size_classes("xs"), do: "w-4 h-4"
-  defp get_icon_button_size_classes("sm"), do: "w-5 h-5"
-  defp get_icon_button_size_classes("md"), do: "w-6 h-6"
-  defp get_icon_button_size_classes("lg"), do: "w-7 h-7"
-  defp get_icon_button_size_classes("xl"), do: "w-8 h-8"
+  def get_icon_button_size_classes("xs"), do: "w-4 h-4"
+  def get_icon_button_size_classes("sm"), do: "w-5 h-5"
+  def get_icon_button_size_classes("md"), do: "w-6 h-6"
+  def get_icon_button_size_classes("lg"), do: "w-7 h-7"
+  def get_icon_button_size_classes("xl"), do: "w-8 h-8"
 
   defp get_icon_button_color_classes("primary"), do: "text-primary-600 dark:text-primary-500"
 

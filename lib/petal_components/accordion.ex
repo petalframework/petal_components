@@ -1,7 +1,6 @@
 defmodule PetalComponents.Accordion do
   use Phoenix.Component
   import PetalComponents.Helpers
-  alias PetalComponents.Heroicons
   alias Phoenix.LiveView.JS
 
   # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
@@ -17,7 +16,6 @@ defmodule PetalComponents.Accordion do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:item, fn -> [] end)
       |> assign_new(:entries, fn -> [%{}] end)
-      |> assign_new(:icon, fn -> "chevron" end)
       |> assign_new(:js_lib, fn -> "alpine_js" end)
       |> assign_rest(~w(class js_lib container_id inner_block icon heading item entries)a)
 
@@ -61,18 +59,9 @@ defmodule PetalComponents.Accordion do
                 <%= item.heading %>
               </span>
 
-              <%= if @icon == "chevron" do %>
-                <Heroicons.Solid.chevron_down
-                  class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
-                  {js_attributes("icon", @js_lib, @container_id, i)}
-                />
-              <% else %>
-                <Heroicons.Solid.render
-                  icon={@icon}
-                  class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
-                  {js_attributes("icon", @js_lib, @container_id, i)}
-                />
-              <% end %>
+              <Heroicons.Solid.chevron_down
+                class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
+              />
             </button>
           </h2>
           <div {js_attributes("content_container", @js_lib, @container_id, i)} class="accordion-content-container">

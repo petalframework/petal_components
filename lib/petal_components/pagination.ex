@@ -1,7 +1,6 @@
 defmodule PetalComponents.Pagination do
   use Phoenix.Component
 
-  alias PetalComponents.Heroicons
   alias PetalComponents.Link
 
   import PetalComponents.Helpers
@@ -36,9 +35,9 @@ defmodule PetalComponents.Pagination do
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and item.enabled? do %>
             <div>
-              <Link.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 hover:text-gray-800">
+              <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 hover:text-gray-800">
                 <Heroicons.Solid.chevron_left class="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </Link.link>
+              </Link.a>
             </div>
           <% end %>
 
@@ -47,9 +46,9 @@ defmodule PetalComponents.Pagination do
               <%= if item.current? do %>
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
-                <Link.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class={get_box_class(item)}>
+                <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class={get_box_class(item)}>
                   <%= item.number %>
-                </Link.link>
+                </Link.a>
               <% end %>
             </li>
           <% end %>
@@ -62,9 +61,9 @@ defmodule PetalComponents.Pagination do
 
           <%= if item.type == "next" and item.enabled? do %>
             <div>
-              <Link.link link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 hover:text-gray-800">
+              <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 hover:text-gray-800">
                 <Heroicons.Solid.chevron_right class="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </Link.link>
+              </Link.a>
             </div>
           <% end %>
         <% end %>

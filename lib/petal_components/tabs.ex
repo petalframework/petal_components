@@ -46,7 +46,7 @@ defmodule PetalComponents.Tabs do
       |> assign_rest(~w(class number link_type is_active underline label)a)
 
     ~H"""
-    <Link.link link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@rest}>
+    <Link.a link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@rest}>
       <%= if @number do %>
         <.render_label_or_slot {assigns} />
 
@@ -56,7 +56,7 @@ defmodule PetalComponents.Tabs do
       <% else %>
         <.render_label_or_slot {assigns} />
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 

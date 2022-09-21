@@ -106,7 +106,7 @@ input[type=radio].has-error:not(.phx-no-feedback) {
 }
 ```
 ### 0.10.8 - 2022-02-15 01:11:32
-- Fixed <.link> emitting white spaces
+- Fixed <.a> emitting white spaces
 ### 0.10.7 - 2022-02-14 03:44:45
 - Fixed white button background
 ### 0.10.6 - 2022-02-14 03:31:50
@@ -162,11 +162,11 @@ input[type=radio].has-error:not(.phx-no-feedback) {
 - Fixed container not defaulting to full width when inside a flex
 - Add docs for `<.p>` and heading params
 ### 0.5.1 - 2021-11-26 00:54:25
-- `<.link>`, `<.button>` and `<.dropdown_menu_item>` all now take `method` as a parameter. eg. `<.link method={:delete} to="/logout" label="Logout" />`
+- `<.a>`, `<.button>` and `<.dropdown_menu_item>` all now take `method` as a parameter. eg. `<.a method={:delete} to="/logout" label="Logout" />`
 ### 0.5.0 - 2021-11-22 02:00:02
 - Added `<.pagination>`
 - Added `<.progress>`
-- Improved `<.link>` to work as a live_patch or live_rediect
+- Improved `<.a>` to work as a live_patch or live_rediect
 ### 0.4.0 - 2021-11-18 02:18:16
 - Added new form components ("email_input", "number_input", "password_input", "search_input", "telephone_input", "url_input", "time_input", "time_select", "datetime_local_input", "datetime_select", "color_input", "file_input", "range_input")
 - `<.spinner>` defaults to visible

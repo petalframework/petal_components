@@ -19,10 +19,10 @@ defmodule PetalComponents.Helpers do
   end
 
   def assign_rest(assigns, exclude) do
-    Phoenix.LiveView.assign(
+    Phoenix.Component.assign(
       assigns,
       :rest,
-      Phoenix.LiveView.Helpers.assigns_to_attributes(assigns, exclude)
+      Phoenix.Component.assigns_to_attributes(assigns, exclude)
     )
   end
 
