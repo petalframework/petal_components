@@ -546,7 +546,7 @@ defmodule PetalComponents.Form do
   end
 
   defp field_has_errors?(%{form: form, field: field}) do
-    case Keyword.get_values(form.errors, field) do
+    case Keyword.get_values(form.errors || [], field) do
       [] -> false
       _ -> true
     end

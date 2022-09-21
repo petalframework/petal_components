@@ -8,8 +8,8 @@ defmodule ComponentCase do
 
   using do
     quote do
+      import Phoenix.Component
       import Phoenix.LiveViewTest
-      import Phoenix.LiveView.Helpers
     end
   end
 end
