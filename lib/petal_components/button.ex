@@ -31,7 +31,7 @@ defmodule PetalComponents.Button do
       |> assign_new(:to, fn -> nil end)
 
     ~H"""
-    <Link.link to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
+    <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
@@ -41,7 +41,7 @@ defmodule PetalComponents.Button do
       <% else %>
         <%= @label %>
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 
@@ -69,7 +69,7 @@ defmodule PetalComponents.Button do
       |> assign_new(:color, fn -> "gray" end)
 
     ~H"""
-    <Link.link
+    <Link.a
       to={@to}
       link_type={@link_type}
       class={build_class(
@@ -91,7 +91,7 @@ defmodule PetalComponents.Button do
             get_icon_button_size_classes(@size)
           ])}/>
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 

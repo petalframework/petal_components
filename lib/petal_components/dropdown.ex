@@ -90,13 +90,13 @@ defmodule PetalComponents.Dropdown do
       |> assign_rest(~w(classes link_type)a)
 
     ~H"""
-    <Link.link link_type={@link_type} to={@to} class={@classes} {@rest}>
+    <Link.a link_type={@link_type} to={@to} class={@classes} {@rest}>
       <%= if @inner_block do %>
         <%= render_slot(@inner_block) %>
       <% else %>
         <%= @label %>
       <% end %>
-    </Link.link>
+    </Link.a>
     """
   end
 

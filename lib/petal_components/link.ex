@@ -6,7 +6,7 @@ defmodule PetalComponents.Link do
   # prop label, :string
   # prop link_type, :string, options: ["a", "live_patch", "live_redirect", "button"]
   # slot default
-  def link(assigns) do
+  def a(assigns) do
     assigns =
       assigns
       |> assign_new(:class, fn -> "" end)
