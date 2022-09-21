@@ -468,4 +468,16 @@ defmodule PetalComponents.PaginationTest do
 
     assert html =~ ~s{data-phx-link="redirect"}
   end
+
+  test "accepts function to define path" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path={& "/page/#{&1}"} total_pages={3} current_page={1} />
+      """)
+
+    assert html =~ "/page/2"
+    assert html =~ "/page/3"
+  end
 end
