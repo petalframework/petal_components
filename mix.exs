@@ -43,7 +43,7 @@ defmodule PetalComponents.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.6"},
-      {:phoenix_live_view, "~> 0.17"},
+      {:phoenix_live_view, "~> 0.18", override: true},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
