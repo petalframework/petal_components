@@ -405,13 +405,15 @@ defmodule PetalComponents.Form do
     translate_error = translator_from_config() || (&translate_error/1)
 
     ~H"""
-    <div class={@class}>
-      <%= for error <- Keyword.get_values(@form.errors, @field) do %>
-        <div class="text-xs italic text-red-500 invalid-feedback" phx-feedback-for={input_name(@form, @field)}>
-          <%= translate_error.(error) %>
-        </div>
-      <% end %>
-    </div>
+    <%= if field_has_errors?(assigns) do %>
+      <div class={@class}>
+        <%= for error <- Keyword.get_values(@form.errors || [], @field) do %>
+          <div class="text-xs italic text-red-500 invalid-feedback" phx-feedback-for={input_name(@form, @field)}>
+            <%= translate_error.(error) %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
     """
   end
 
