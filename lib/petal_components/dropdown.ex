@@ -20,7 +20,7 @@ defmodule PetalComponents.Dropdown do
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
       <.dropdown_menu_item link_type="button">
-        <Heroicons.Outline.home class="w-5 h-5 text-gray-500" />
+        <Heroicons.home class="w-5 h-5 text-gray-500" />
         Button item with icon
       </.dropdown_menu_item>
       <.dropdown_menu_item link_type="a" to="/" label="a item" />
@@ -51,7 +51,7 @@ defmodule PetalComponents.Dropdown do
 
           <%= if @label do %>
             <%= @label %>
-            <Heroicons.Solid.chevron_down class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+            <Heroicons.chevron_down solid class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
           <% end %>
 
           <%= if @trigger_element do %>
@@ -59,7 +59,7 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && !@trigger_element do %>
-            <Heroicons.Solid.ellipsis_vertical class="w-5 h-5" />
+            <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
           <% end %>
         </button>
       </div>

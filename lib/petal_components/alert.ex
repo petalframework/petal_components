@@ -49,7 +49,7 @@ defmodule PetalComponents.Alert do
 
             <%= if @close_button_properties do %>
               <button class={build_class(["p-2 mouse-hover flex hover:rounded", get_dismiss_icon_classes(@color)])} {@close_button_properties}>
-                <Heroicons.Solid.x_mark class="self-start w-4 h-4" />
+                <Heroicons.x_mark solid class="self-start w-4 h-4" />
               </button>
             <% end %>
           </div>
@@ -102,25 +102,25 @@ defmodule PetalComponents.Alert do
 
   defp get_icon(%{color: "info"} = assigns) do
     ~H"""
-    <Heroicons.Outline.information_circle/>
+    <Heroicons.information_circle/>
     """
   end
 
   defp get_icon(%{color: "success"} = assigns) do
     ~H"""
-    <Heroicons.Outline.check_circle/>
+    <Heroicons.check_circle/>
     """
   end
 
   defp get_icon(%{color: "warning"} = assigns) do
     ~H"""
-    <Heroicons.Outline.exclamation_circle/>
+    <Heroicons.exclamation_circle/>
     """
   end
 
   defp get_icon(%{color: "danger"} = assigns) do
     ~H"""
-    <Heroicons.Outline.x_circle/>
+    <Heroicons.x_circle/>
     """
   end
 

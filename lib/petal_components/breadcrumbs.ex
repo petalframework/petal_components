@@ -46,7 +46,7 @@ defmodule PetalComponents.Breadcrumbs do
   defp separator(%{type: "chevron"} = assigns) do
     ~H"""
     <div class="px-3 text-gray-300">
-      <Heroicons.Solid.chevron_right class="w-6 h-6" />
+      <Heroicons.chevron_right solid class="w-6 h-6" />
     </div>
     """
   end

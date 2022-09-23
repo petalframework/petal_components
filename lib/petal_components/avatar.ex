@@ -22,7 +22,7 @@ defmodule PetalComponents.Avatar do
         get_size_classes(@size),
         @class
         ])}>
-        <Heroicons.Solid.user class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
+        <Heroicons.user solid class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
       </div>
     <% else %>
       <%= if src_blank?(@src) && @name do %>

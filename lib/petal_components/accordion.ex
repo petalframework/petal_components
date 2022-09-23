@@ -59,7 +59,8 @@ defmodule PetalComponents.Accordion do
                 <%= item.heading %>
               </span>
 
-              <Heroicons.Solid.chevron_down
+              <Heroicons.chevron_down
+                solid
                 class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
               />
             </button>
