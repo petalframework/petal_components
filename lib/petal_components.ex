@@ -22,6 +22,8 @@ defmodule PetalComponents do
         Table,
         Accordion
       }
+
+      alias PetalComponents.HeroiconsV1
     end
   end
 end
