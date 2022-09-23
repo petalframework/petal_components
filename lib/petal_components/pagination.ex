@@ -86,10 +86,13 @@ defmodule PetalComponents.Pagination do
       case item do
         %{first?: true, last?: true} ->
           "rounded"
+
         %{first?: true, last?: false} ->
           "rounded-l "
+
         %{first?: false, last?: true} ->
           "rounded-r"
+
         _ ->
           ""
       end

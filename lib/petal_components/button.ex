@@ -105,7 +105,7 @@ defmodule PetalComponents.Button do
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% else %>
-        <%= render_slot(@icon) %>
+        <%= render_slot(@inner_block) %>
       <% end %>
     </Link.a>
     """

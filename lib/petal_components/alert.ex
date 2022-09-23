@@ -16,9 +16,7 @@ defmodule PetalComponents.Alert do
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:classes, fn -> alert_classes(assigns) end)
       |> assign_new(:close_button_properties, fn -> nil end)
-      |> assign_rest(
-        ~w(label color heading with_icon classes class close_button_properties)a
-      )
+      |> assign_rest(~w(label color heading with_icon classes class close_button_properties)a)
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
@@ -123,7 +121,6 @@ defmodule PetalComponents.Alert do
     <Heroicons.x_circle/>
     """
   end
-
 
   defp label_blank?(label, inner_block) do
     (!label || label == "") && !inner_block

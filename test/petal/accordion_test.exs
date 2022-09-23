@@ -16,7 +16,7 @@ defmodule PetalComponents.AccordionTest do
 
     assert html =~ "x-data"
     assert html =~ "x-show"
-    assert html =~ "<svg class="
+    assert html =~ "<svg"
     assert html =~ "dark:"
 
     # Test js_lib option

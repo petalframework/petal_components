@@ -24,8 +24,12 @@ defmodule PetalComponents.PaginationInternal do
     sibling_count = max(0, sibling_count)
 
     siblings_size = 1 + 2 * sibling_count
-    start_siblings = max(1, min(current_page - sibling_count, total_pages - siblings_size - boundary_count + 1))
-    end_siblings = min(max(current_page + sibling_count, siblings_size + boundary_count), total_pages)
+
+    start_siblings =
+      max(1, min(current_page - sibling_count, total_pages - siblings_size - boundary_count + 1))
+
+    end_siblings =
+      min(max(current_page + sibling_count, siblings_size + boundary_count), total_pages)
 
     boundary_start =
       if boundary_count > 0 do

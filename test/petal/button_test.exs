@@ -123,9 +123,9 @@ defmodule PetalComponents.ButtonTest do
 
     html =
       rendered_to_string(~H"""
-      <.icon_button to="/" link_type="button" size="xs" color="primary" icon>
+      <.icon_button to="/" link_type="button" size="xs" color="primary">
         <:icon>
-          <Heroicons.Solid.clock />
+          <Heroicons.clock solid class="h-4" />
         </:icon>
       </.icon_button>
 

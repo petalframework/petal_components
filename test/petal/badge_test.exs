@@ -91,7 +91,7 @@ defmodule PetalComponents.BadgeTest do
     html =
       rendered_to_string(~H"""
       <.badge color="gray" variant="light" icon label="SM" size="sm">
-        <Heroicons.Solid.clock class="w-3 h-3 pb-[0.05rem]" />
+        <Heroicons.clock solid class="w-3 h-3 pb-[0.05rem]" />
         2 hours ago
       </.badge>
       """)

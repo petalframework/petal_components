@@ -1,7 +1,6 @@
 defmodule PetalComponents.FormTest do
   use ComponentCase
   import PetalComponents.Form
-  import Phoenix.LiveView.Helpers
 
   test "text_input" do
     assigns = %{}
