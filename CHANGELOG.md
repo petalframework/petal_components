@@ -1,4 +1,12 @@
 # Changelog
+### 0.17.8 - 2022-09-25 01:10:23
+- Updated to work with Live View 0.18 - see UPGRADE_GUIDE.md
+- Disabled fields fixed in dark mode - thanks @moogle19
+- Pagination component can receive a function as a parameter that will define the path of the page - thanks @Wigny
+
+Breaking changes
+- `<.link>` was renamed to `<.a>`.
+- Renamed `Heroicons` to `HeroiconsV1`
 ### 0.17.7 - 2022-08-10 00:34:26
 - Fix 'modal' IDs used at SlideOver component
 - Make accordion items dynamic
