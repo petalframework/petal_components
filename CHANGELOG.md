@@ -1,4 +1,6 @@
 # Changelog
+### 0.18.0 - 2022-09-25 01:11:49
+- Sorry, the last release was meant to be minor, not patch
 ### 0.17.8 - 2022-09-25 01:10:23
 - Updated to work with Live View 0.18 - see UPGRADE_GUIDE.md
 - Disabled fields fixed in dark mode - thanks @moogle19
