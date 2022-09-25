@@ -57,7 +57,7 @@ This way, your app will still work with our `<a>` tags. However, we will eventua
 
 ### Renaming Heroicons
 
-PetalComponents now internally uses https://github.com/mveytsman/heroicons_elixir, which uses Heroicons V2.
+PetalComponents now internally uses https://github.com/mveytsman/heroicons_elixir, which uses Heroicons V2. If you'd like to use Heroicons V2, then use this library.
 
 Unfortunately Heroicons V2 renames a lot of icons and is kind of like another library. So we have renamed `PetalComponents.Heroicons` --> `PetalComponents.HeroiconsV1` for anyone who would like to continue using V1.
 
