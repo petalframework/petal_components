@@ -307,12 +307,6 @@ defmodule PetalComponents.Button do
   def get_icon_button_size_classes("lg"), do: "w-12 h-12"
   def get_icon_button_size_classes("xl"), do: "w-14 h-14"
 
-  def get_heroiconv1_icon_button_size_classes("xs"), do: "w-5 h-5"
-  def get_heroiconv1_icon_button_size_classes("sm"), do: "w-6 h-6"
-  def get_heroiconv1_icon_button_size_classes("md"), do: "w-7 h-7"
-  def get_heroiconv1_icon_button_size_classes("lg"), do: "w-8 h-8"
-  def get_heroiconv1_icon_button_size_classes("xl"), do: "w-10 h-10"
-
   def get_icon_button_spinner_size_classes("xs"), do: "w-5 h-5"
   def get_icon_button_spinner_size_classes("sm"), do: "w-6 h-6"
   def get_icon_button_spinner_size_classes("md"), do: "w-7 h-7"
