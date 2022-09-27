@@ -1,4 +1,7 @@
 # Changelog
+### 0.18.1 - 2022-09-27 03:29:44
+- HeroiconsV1 do not have default classes anymore
+- Fix issue where `.icon_button` svg icons were not the correct size
 ### 0.18.0 - 2022-09-25 01:11:49
 - Sorry, the last release was meant to be minor, not patch
 ### 0.17.8 - 2022-09-25 01:10:23
