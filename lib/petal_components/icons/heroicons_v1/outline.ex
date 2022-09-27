@@ -32,7 +32,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -53,7 +53,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -72,7 +72,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -91,7 +91,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -110,7 +110,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -129,7 +129,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -148,7 +148,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -167,7 +167,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -186,7 +186,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -205,7 +205,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -224,7 +224,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -243,7 +243,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -262,7 +262,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -281,7 +281,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -300,7 +300,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -319,7 +319,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -338,7 +338,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -357,7 +357,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -376,7 +376,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -395,7 +395,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -414,7 +414,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -433,7 +433,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -452,7 +452,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -471,7 +471,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -490,7 +490,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -509,7 +509,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -528,7 +528,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -547,7 +547,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -566,7 +566,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -585,7 +585,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -604,7 +604,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -623,7 +623,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -642,7 +642,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -661,7 +661,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -680,7 +680,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -700,7 +700,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -719,7 +719,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -738,7 +738,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -758,7 +758,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -777,7 +777,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -796,7 +796,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -815,7 +815,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -834,7 +834,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -853,7 +853,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -872,7 +872,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -891,7 +891,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -910,7 +910,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -929,7 +929,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -948,7 +948,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -967,7 +967,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -986,7 +986,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1005,7 +1005,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1024,7 +1024,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1043,7 +1043,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1062,7 +1062,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1081,7 +1081,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1100,7 +1100,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1119,7 +1119,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1138,7 +1138,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1157,7 +1157,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1176,7 +1176,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1195,7 +1195,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1214,7 +1214,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1234,7 +1234,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1253,7 +1253,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1272,7 +1272,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1291,7 +1291,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1310,7 +1310,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1329,7 +1329,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1348,7 +1348,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1367,7 +1367,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1386,7 +1386,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1405,7 +1405,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1424,7 +1424,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1443,7 +1443,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1462,7 +1462,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1481,7 +1481,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1500,7 +1500,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1519,7 +1519,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1538,7 +1538,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1557,7 +1557,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1576,7 +1576,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1595,7 +1595,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1614,7 +1614,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1633,7 +1633,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1652,7 +1652,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1671,7 +1671,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1690,7 +1690,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1709,7 +1709,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1728,7 +1728,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1747,7 +1747,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1766,7 +1766,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1785,7 +1785,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1804,7 +1804,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1823,7 +1823,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1842,7 +1842,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1861,7 +1861,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1880,7 +1880,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1899,7 +1899,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1919,7 +1919,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1938,7 +1938,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1957,7 +1957,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1976,7 +1976,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -1995,7 +1995,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2015,7 +2015,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2034,7 +2034,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2053,7 +2053,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2072,7 +2072,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2091,7 +2091,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2110,7 +2110,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2129,7 +2129,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2148,7 +2148,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2167,7 +2167,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2186,7 +2186,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2205,7 +2205,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2224,7 +2224,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2243,7 +2243,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2262,7 +2262,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2281,7 +2281,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2300,7 +2300,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2319,7 +2319,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2338,7 +2338,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2357,7 +2357,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2376,7 +2376,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2395,7 +2395,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2414,7 +2414,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2433,7 +2433,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2453,7 +2453,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2472,7 +2472,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2491,7 +2491,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2510,7 +2510,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2529,7 +2529,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2548,7 +2548,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2567,7 +2567,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2586,7 +2586,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2605,7 +2605,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2624,7 +2624,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2643,7 +2643,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2662,7 +2662,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2681,7 +2681,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2700,7 +2700,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2719,7 +2719,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2738,7 +2738,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2757,7 +2757,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2776,7 +2776,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2795,7 +2795,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2814,7 +2814,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2833,7 +2833,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2852,7 +2852,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2871,7 +2871,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2890,7 +2890,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2909,7 +2909,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2928,7 +2928,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2947,7 +2947,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2966,7 +2966,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -2985,7 +2985,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3004,7 +3004,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3023,7 +3023,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3043,7 +3043,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3062,7 +3062,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3081,7 +3081,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3100,7 +3100,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3119,7 +3119,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3138,7 +3138,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3157,7 +3157,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3176,7 +3176,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3195,7 +3195,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3214,7 +3214,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3233,7 +3233,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3252,7 +3252,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3271,7 +3271,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3290,7 +3290,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3309,7 +3309,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3328,7 +3328,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3347,7 +3347,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3366,7 +3366,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3385,7 +3385,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3404,7 +3404,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3423,7 +3423,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3442,7 +3442,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3461,7 +3461,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3480,7 +3480,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3499,7 +3499,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3518,7 +3518,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3537,7 +3537,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3556,7 +3556,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3575,7 +3575,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3594,7 +3594,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3613,7 +3613,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3632,7 +3632,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3651,7 +3651,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3670,7 +3670,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3689,7 +3689,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3708,7 +3708,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3728,7 +3728,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3747,7 +3747,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3766,7 +3766,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3785,7 +3785,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3804,7 +3804,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3823,7 +3823,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3842,7 +3842,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3861,7 +3861,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3880,7 +3880,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3899,7 +3899,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3918,7 +3918,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3937,7 +3937,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3956,7 +3956,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3975,7 +3975,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -3994,7 +3994,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4013,7 +4013,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4033,7 +4033,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4052,7 +4052,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4071,7 +4071,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4090,7 +4090,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4109,7 +4109,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4128,7 +4128,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4147,7 +4147,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4166,7 +4166,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4185,7 +4185,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4204,7 +4204,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4223,7 +4223,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4242,7 +4242,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4261,7 +4261,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4280,7 +4280,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4300,7 +4300,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4319,7 +4319,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4338,7 +4338,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4357,7 +4357,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4376,7 +4376,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class
@@ -4395,7 +4395,7 @@ defmodule PetalComponents.HeroiconsV1.Outline do
     assigns =
       assigns
       |> assign_new(:title, fn -> nil end)
-      |> assign_new(:class, fn -> "h-6 w-6" end)
+      |> assign_new(:class, fn -> nil end)
       |> assign_new(:rest, fn ->
         assigns_to_attributes(assigns, ~w(
         class

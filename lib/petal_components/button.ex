@@ -82,7 +82,6 @@ defmodule PetalComponents.Button do
         :size,
         :variant,
         :color,
-        :icon,
         :class,
         :to
       ])
@@ -97,13 +96,15 @@ defmodule PetalComponents.Button do
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
           get_icon_button_color_classes(@color),
+          get_icon_button_size_classes(@size),
           @class
         ])}
       disabled={@disabled}
       {@rest}
     >
       <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
+        <Loading.spinner show={true} size_class={get_icon_button_spinner_size_classes(@size)} />
+
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
@@ -300,11 +301,17 @@ defmodule PetalComponents.Button do
   defp get_spinner_size_classes("lg"), do: "h-5 w-5"
   defp get_spinner_size_classes("xl"), do: "h-6 w-6"
 
-  def get_icon_button_size_classes("xs"), do: "w-4 h-4"
-  def get_icon_button_size_classes("sm"), do: "w-5 h-5"
-  def get_icon_button_size_classes("md"), do: "w-6 h-6"
-  def get_icon_button_size_classes("lg"), do: "w-7 h-7"
-  def get_icon_button_size_classes("xl"), do: "w-8 h-8"
+  def get_icon_button_size_classes("xs"), do: "w-9 h-9"
+  def get_icon_button_size_classes("sm"), do: "w-10 h-10"
+  def get_icon_button_size_classes("md"), do: "w-11 h-11"
+  def get_icon_button_size_classes("lg"), do: "w-12 h-12"
+  def get_icon_button_size_classes("xl"), do: "w-14 h-14"
+
+  def get_icon_button_spinner_size_classes("xs"), do: "w-5 h-5"
+  def get_icon_button_spinner_size_classes("sm"), do: "w-6 h-6"
+  def get_icon_button_spinner_size_classes("md"), do: "w-7 h-7"
+  def get_icon_button_spinner_size_classes("lg"), do: "w-8 h-8"
+  def get_icon_button_spinner_size_classes("xl"), do: "w-10 h-10"
 
   defp get_icon_button_color_classes("primary"), do: "text-primary-600 dark:text-primary-500"
 
