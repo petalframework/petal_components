@@ -71,6 +71,24 @@ Replace `Heroicons.Solid` --> `HeroiconsV1.Solid`
 Replace `Heroicons.Outline` --> `HeroiconsV1.Outline`
 ```
 
+#### Icon Button
+
+We can't use a dynamic `Heroicons.Solid.render/1` anymore so instead we need to pass in the icon as the default slot.
+
+Old way:
+
+```html
+<.icon_button to="/" icon={:trash} />
+```
+
+New way:
+
+```html
+<.icon_button to="/">
+  <Heroicons.trash solid />
+<./icon_button>
+```
+
 ### Alpine JS updates
 
 You can't use the bind shortcuts in the latest Live View.
