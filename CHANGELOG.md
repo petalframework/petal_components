@@ -1,4 +1,6 @@
 # Changelog
+### 0.18.2 - 2022-09-28 00:38:14
+- Add disabled classes for checkbox
 ### 0.18.1 - 2022-09-27 03:29:44
 - HeroiconsV1 do not have default classes anymore
 - Fix issue where `.icon_button` svg icons were not the correct size
