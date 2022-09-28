@@ -6,7 +6,6 @@ defmodule PetalComponents.Accordion do
   # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
   # prop class, :string
   # prop heading, :string
-  # prop icon, :string
   # slot default
   def accordion(assigns) do
     assigns =
@@ -62,6 +61,7 @@ defmodule PetalComponents.Accordion do
               <Heroicons.chevron_down
                 solid
                 class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
+                {js_attributes("icon", @js_lib, @container_id, i)}
               />
             </button>
           </h2>
