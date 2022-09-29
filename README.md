@@ -25,10 +25,10 @@
 
 <p align="center">
   <a href="https://petal-components-demo.fly.dev">
-    <img src="https://res.cloudinary.com/wickedsites/image/upload/c_scale,h_621/v1646543077/petal/demo_nmw8eh.png" height="300" />
+    <img src="https://res.cloudinary.com/nhobes/image/upload/v1664493810/Petal_Components/Xnapper-2022-09-30-09.22.58_qufkq8.png" height="300" />
   </a>
   <a href="https://petal-components-demo.fly.dev">
-    <img src="https://res.cloudinary.com/wickedsites/image/upload/c_scale,h_621/v1646543453/petal/demo-light_sijqjy.png" height="300" />
+    <img src="https://res.cloudinary.com/nhobes/image/upload/v1664493101/Petal_Components/Xnapper-2022-09-30-09.02.10_q5hkri.png" height="300" />
   </a>
 </p>
 
