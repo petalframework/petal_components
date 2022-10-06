@@ -43,7 +43,7 @@ defmodule PetalComponents.Accordion do
       {@rest}
       {js_attributes("container", @js_lib, @container_id, nil)}
     >
-      <%= for {item, i} <- Enum.with_index(@item) do %>
+      <%= for {current_item, i} <- Enum.with_index(@item) do %>
         <div {js_attributes("item", @js_lib, @container_id, i)} data-i={i}>
           <h2>
             <button
@@ -55,7 +55,7 @@ defmodule PetalComponents.Accordion do
               ])}
             >
               <span class="font-semibold text-md">
-                <%= item.heading %>
+                <%= current_item.heading %>
               </span>
 
               <Heroicons.chevron_down
@@ -72,7 +72,7 @@ defmodule PetalComponents.Accordion do
                 (if i == length(@item) - 1, do: "border-t-0", else: "border-b-0")
               ])}
             >
-              <%= render_slot(item, item.entry) %>
+              <%= render_slot(current_item, current_item.entry) %>
             </div>
           </div>
         </div>
