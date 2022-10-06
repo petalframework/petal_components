@@ -1,4 +1,6 @@
 # Changelog
+### 0.18.4 - 2022-10-06 01:43:08
+- Fixed compilation errors in accordion
 ### 0.18.3 - 2022-09-28 03:54:34
 - Fix accordion icon not animating when opening
 ### 0.18.2 - 2022-09-28 00:38:14
