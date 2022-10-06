@@ -401,20 +401,31 @@ defmodule PetalComponents.Form do
 
   # <.form_field_error form={f} field={:name} />
   def form_field_error(assigns) do
-    assigns = assign_new(assigns, :class, fn -> "" end)
-    translate_error = translator_from_config() || (&translate_error/1)
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> "" end)
+      |> assign(:translated_errors, generated_translated_errors(assigns.form, assigns.field))
 
     ~H"""
     <%= if field_has_errors?(assigns) do %>
       <div class={@class}>
-        <%= for error <- Keyword.get_values(@form.errors || [], @field) do %>
+        <%= for translated_error <- @translated_errors do %>
           <div class="text-xs italic text-red-500 invalid-feedback" phx-feedback-for={input_name(@form, @field)}>
-            <%= translate_error.(error) %>
+            <%= translated_error %>
           </div>
         <% end %>
       </div>
     <% end %>
     """
+  end
+
+  defp generated_translated_errors(form, field) do
+    translate_error = translator_from_config() || (&translate_error/1)
+
+    Keyword.get_values(form.errors || [], field)
+    |> Enum.map(fn error ->
+      translate_error.(error)
+    end)
   end
 
   defp translate_error({msg, opts}) do
