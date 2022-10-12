@@ -2,6 +2,7 @@ defmodule PetalComponents.Card do
   use Phoenix.Component
 
   import PetalComponents.Helpers
+  alias PetalComponents.Badge
 
   # prop class, :string
   # prop variant, :string
@@ -66,6 +67,7 @@ defmodule PetalComponents.Card do
       |> assign_new(:category_color_class, fn -> "text-primary-600 dark:text-primary-400" end)
       |> assign_new(:inner_block, fn -> nil end)
       |> assign_new(:category, fn -> nil end)
+      |> assign_new(:tags, fn -> nil end)
       |> assign_new(:heading, fn -> nil end)
       |> assign_rest(~w(class category_color_class inner_block category heading)a)
 
@@ -74,11 +76,15 @@ defmodule PetalComponents.Card do
       "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
       @class
     ])}>
-      <%= if @category do %>
-        <div class={"mb-3 text-sm font-medium #{@category_color_class}"}>
+      <div class="flex items-center justify-between mb-3">
+        <div class={"text-sm font-medium #{@category_color_class}"} :if={@category}>
           <%= @category %>
         </div>
-      <% end %>
+
+        <div :if={@tags} class="flex gap-x-1 justify-items-end">
+          <Badge.badge variant="outline" label={tag} :for={tag <- @tags} />
+        </div>
+      </div>
 
       <%= if @heading do %>
         <div class="mb-2 text-xl font-medium text-gray-900 dark:text-gray-300">
