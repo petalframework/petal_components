@@ -11,13 +11,10 @@ defmodule PetalComponents.Typography do
   # <.h1 label="Heading" />
   # <.h1 label="Heading" class="mb-10" color_class="text-blue-500" />
 
-  # prop label, :string
-  # prop class, :string
-  # slot default
-
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:underline, :string, default: nil, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -32,6 +29,9 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
+  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:underline, :string, default: nil, doc: "underlines a heading")
+  attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -45,6 +45,9 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
+  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:underline, :string, default: nil, doc: "underlines a heading")
+  attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -58,6 +61,9 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
+  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:underline, :string, default: nil, doc: "underlines a heading")
+  attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -71,6 +77,9 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
+  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:underline, :string, default: nil, doc: "underlines a heading")
+  attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
