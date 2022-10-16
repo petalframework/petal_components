@@ -2,35 +2,30 @@ defmodule PetalComponents.Badge do
   use Phoenix.Component
   import PetalComponents.Helpers
 
-  # prop label, :string
-  # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
-  # prop variant, :string
-  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  # prop class, :string
-  def badge(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:size, fn -> "md" end)
-      |> assign_new(:variant, fn -> "light" end)
-      |> assign_new(:color, fn -> "primary" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:icon, fn -> false end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_rest(~w(size variant color class icon inner_block label)a)
+  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
+  attr(:variant, :string, default: "light", values: ["light", "dark", "outline"])
 
+  attr(:color, :string,
+    default: "primary",
+    values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+  )
+
+  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
+  attr(:class, :string, default: "", doc: "CSS class for parent div")
+  attr(:label, :string, default: nil, doc: "label your badge")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  def badge(assigns) do
     ~H"""
     <badge {@rest} class={build_class([
       "rounded inline-flex items-center justify-center focus:outline-none border",
       size_classes(@size),
-      icon_classes(@icon),
+      icon_classes(@with_icon),
       get_color_classes(%{color: @color, variant: @variant}),
       @class
     ])}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+      <%= render_slot(@inner_block) || @label %>
     </badge>
     """
   end
@@ -43,8 +38,8 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  defp icon_classes(icon) do
-    if icon do
+  defp icon_classes(with_icon) do
+    if with_icon do
       "flex gap-1 items-center whitespace-nowrap"
     end
   end

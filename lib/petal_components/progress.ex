@@ -1,24 +1,20 @@
 defmodule PetalComponents.Progress do
   use Phoenix.Component
-  import PetalComponents.Helpers
 
-  # prop size, :string, options: ["xs", "sm", "md", "lg", "xl"]
-  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger"]
-  # prop class, :string
-  # prop value, :integer
-  # prop max, :integer
-  # prop label, :string [xl]
+  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
+
+  attr(:color, :string,
+    default: "primary",
+    values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+  )
+
+  attr(:label, :string, default: nil, doc: "labels your progress bar [xl only]")
+  attr(:value, :integer, default: nil, doc: "adds a value to your progress bar")
+  attr(:max, :integer, default: 100, doc: "sets a max value for your progress bar")
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+
   def progress(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:label, fn -> "" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:size, fn -> "md" end)
-      |> assign_new(:value, fn -> nil end)
-      |> assign_new(:color, fn -> "primary" end)
-      |> assign_new(:max, fn -> 100 end)
-      |> assign_rest(~w(label class size value color max)a)
-
     ~H"""
     <div {@rest} class={@class}>
       <div class={"#{get_parent_classes(@size)} flex overflow-hidden #{get_parent_color_classes(@color)}"}>

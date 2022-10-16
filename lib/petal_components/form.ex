@@ -8,44 +8,26 @@ defmodule PetalComponents.Form do
   Everything related to forms: inputs, labels etc
   """
 
-  # prop form, :any
-  # prop field, :any
-  # prop label, :string
-  # prop class, :string
-  # slot default
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:has_error, :boolean, default: false, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
   def form_label(assigns) do
     assigns =
       assigns
-      |> assign_new(:classes, fn -> label_classes(assigns) end)
-      |> assign_new(:form, fn -> nil end)
-      |> assign_new(:has_error, fn -> false end)
-      |> assign_new(:field, fn -> nil end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:label, fn ->
-        if assigns[:field] do
-          humanize(assigns[:field])
-        else
-          nil
-        end
-      end)
-      |> assign_rest(~w(classes form field label)a)
+      |> assign(:classes, label_classes(assigns))
 
     ~H"""
     <%= if @form && @field do %>
-      <%= label @form, @field, [class: @classes, phx_feedback_for: input_name(@form, @field)] ++ @rest do %>
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
+      <%= label @form, @field, [class: @classes, phx_feedback_for: input_name(@form, @field)] ++ Map.to_list(@rest) do %>
+        <%= render_slot(@inner_block) || @label || humanize(@field) %>
       <% end %>
     <% else %>
       <label class={@classes} {@rest}>
-        <%= if @inner_block do %>
-          <%= render_slot(@inner_block) %>
-        <% else %>
-          <%= @label %>
-        <% end %>
+        <%= render_slot(@inner_block) || @label || humanize(@field) %>
       </label>
     <% end %>
     """
@@ -558,7 +540,7 @@ defmodule PetalComponents.Form do
     "#{if has_error, do: "has-error", else: ""} border-gray-300 h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
   end
 
-  defp field_has_errors?(%{form: form, field: field}) do
+  defp field_has_errors?(%{form: form, field: field}) when is_map(form) do
     case Keyword.get_values(form.errors || [], field) do
       [] -> false
       _ -> true

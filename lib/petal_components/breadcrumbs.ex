@@ -1,23 +1,23 @@
 defmodule PetalComponents.Breadcrumbs do
   use Phoenix.Component
-  import PetalComponents.Helpers
   alias PetalComponents.Link
 
-  # Example:
-  # <.breadcrumbs separator="chevron" links={[
-  #   %{ label: "Link 1", to: "/" },
-  #   %{ label: "Link 1", to: "/", link_type: "patch|a|redirect" }
-  # ]}/>
-  # prop links, :list
-  # prop separator, :string, options: ["slash", "chevron"]
-  def breadcrumbs(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:separator, fn -> "slash" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:link_class, fn -> "" end)
-      |> assign_rest(~w(separator class link_class links)a)
+  attr(:separator, :string, default: "slash", values: ["slash", "chevron"])
+  attr(:class, :string, default: "", doc: "Parent div CSS class")
+  attr(:link_class, :string, default: "", doc: "Link class CSS")
+  attr(:links, :list, default: [], doc: "List of your links")
+  attr(:rest, :global)
 
+  # Example:
+  # <.breadcrumbs separator="chevron"
+  #   class="mt-3"
+  #   link_class="!text-blue-500 text-sm font-semibold"
+  #   links={[
+  #     %{ label: "Link 1", to: "/" },
+  #     %{ label: "Link 1", to: "/", link_type: "patch|a|redirect" }
+  #   ]}
+  # />
+  def breadcrumbs(assigns) do
     ~H"""
     <div {@rest} class={"#{@class} flex items-center"}>
       <%= for {link, counter} <- Enum.with_index(@links) do %>

@@ -3,16 +3,12 @@ defmodule PetalComponents.Card do
 
   import PetalComponents.Helpers
 
-  # prop class, :string
-  # prop variant, :string
-  # slot default
-  def card(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:variant, fn -> "basic" end)
-      |> assign_rest(~w(class variant)a)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:variant, :string, default: "basic", values: ["basic", "outline"])
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def card(assigns) do
     ~H"""
     <div {@rest} class={build_class([
       "flex flex-wrap overflow-hidden bg-white dark:bg-gray-800",
@@ -26,17 +22,13 @@ defmodule PetalComponents.Card do
     """
   end
 
-  # prop class, :string
-  # prop aspect_ratio_class, :string
-  # prop src, :string
-  def card_media(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:aspect_ratio_class, fn -> "aspect-video" end)
-      |> assign_new(:src, fn -> nil end)
-      |> assign_rest(~w(class aspect_ratio_class src)a)
+  attr(:aspect_ratio_class, :string, default: "aspect-video", doc: "aspect ratio class")
+  attr(:src, :string, default: nil, doc: "hosted image URL")
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def card_media(assigns) do
     ~H"""
     <%= if @src do %>
       <img {@rest} src={@src} class={build_class([
@@ -54,21 +46,19 @@ defmodule PetalComponents.Card do
     """
   end
 
-  # prop class, :string
-  # prop heading, :string
-  # prop category, :string
-  # prop category_color_class, :string
-  # slot default
-  def card_content(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:category_color_class, fn -> "text-primary-600 dark:text-primary-400" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:category, fn -> nil end)
-      |> assign_new(:heading, fn -> nil end)
-      |> assign_rest(~w(class category_color_class inner_block category heading)a)
+  attr(:heading, :string, default: nil, doc: "creates a heading")
+  attr(:category, :string, default: nil, doc: "creates a category")
 
+  attr(:category_color_class, :string,
+    default: "text-primary-600 dark:text-primary-400",
+    doc: "sets a category color class"
+  )
+
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  def card_content(assigns) do
     ~H"""
     <div {@rest} class={build_class([
       "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
@@ -86,18 +76,16 @@ defmodule PetalComponents.Card do
         </div>
       <% end %>
 
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% end %>
+      <%= render_slot(@inner_block) || @label %>
     </div>
     """
   end
 
-  def card_footer(assigns) do
-    assigns =
-      assigns
-      |> assign_rest(~w(class)a)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def card_footer(assigns) do
     ~H"""
     <div {@rest} class="px-6 pb-6">
       <%= render_slot(@inner_block) %>

@@ -5,18 +5,25 @@ defmodule PetalComponents.SlideOver do
 
   alias Phoenix.LiveView.JS
 
-  # prop origin, :string, options: ["left", "top", "bottom", "right"]
-  # prop title, :string
-  # prop max_width, :string
-  # slot default
-  def slide_over(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:origin, fn -> "right" end)
-      |> assign_new(:max_width, fn -> "md" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_rest(~w(class max_width title origin)a)
+  attr(:origin, :string,
+    default: "right",
+    values: ["left", "right", "top", "bottom"],
+    doc: "slideover point of origin"
+  )
 
+  attr(:title, :string, default: nil, doc: "slideover title")
+
+  attr(:max_width, :string,
+    default: "md",
+    values: ["sm", "md", "lg", "xl", "2xl", "full"],
+    doc: "sets container max-width"
+  )
+
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  def slide_over(assigns) do
     ~H"""
     <div {@rest} id="slide-over">
       <div

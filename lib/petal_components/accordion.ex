@@ -3,20 +3,23 @@ defmodule PetalComponents.Accordion do
   import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
 
-  # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
-  # prop class, :string
-  # prop heading, :string
-  # slot default
+  attr(:container_id, :string)
+  attr(:class, :string, default: "", doc: "CSS class for parent container")
+  slot(:item, required: true, doc: "CSS class for parent container")
+  attr(:entries, :list, default: [%{}])
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
+
+  attr(:rest, :global)
+
   def accordion(assigns) do
     assigns =
       assigns
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:item, fn -> [] end)
-      |> assign_new(:entries, fn -> [%{}] end)
-      |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_rest(~w(class js_lib container_id inner_block icon heading item entries)a)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do
