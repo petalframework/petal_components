@@ -291,7 +291,7 @@ defmodule PetalComponents.Button do
         "shadow-xl border-transparent text-white bg-gray-600 active:bg-gray-700 hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:shadow-outline-gray shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:focus:shadow-gray-600/30 dark:active:shadow-gray-700/30"
 
       _ ->
-        "border-transparent text-white bg-gray-600 active:bg-gray-700 hover:bg-gray-700 active:bg-green-700 focus:bg-gray-700"
+        "border-transparent text-white bg-gray-600 active:bg-gray-700 hover:bg-gray-700 active:bg-gray-700 focus:bg-gray-700"
     end
   end
 
