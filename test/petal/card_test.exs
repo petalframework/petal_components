@@ -125,4 +125,23 @@ defmodule PetalComponents.CardTest do
       assert html =~ ~s{custom-attr="#{i}"}
     end
   end
+
+  test "should include tags" do
+    assigns = %{}
+
+html =
+  rendered_to_string(~H"""
+  <.card>
+    <.card_content category="Article" heading="Enhance your Phoenix development" tags={["tag1", "tag2"]}>
+      <div class="mt-4 font-light text-gray-500 text-md">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eget leo interdum, feugiat ligula eu, facilisis massa. Nunc sollicitudin massa a elit laoreet.
+      </div>
+    </.card_content>
+  </.card>
+  """)
+
+assert html =~ "tag1"
+assert html =~ "tag2"
+
+  end
 end
