@@ -39,7 +39,7 @@ defmodule PetalComponents.Tabs do
 
   def tab(assigns) do
     ~H"""
-    <Link.a link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@rest}>
+    <Link.a link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline) <> @class} {@rest}>
       <%= if @number do %>
         <%= render_slot(@inner_block) || @label %>
 

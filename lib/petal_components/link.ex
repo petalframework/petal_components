@@ -7,6 +7,7 @@ defmodule PetalComponents.Link do
   attr(:to, :string, default: nil, doc: "link path")
   attr(:rest, :global)
   slot(:inner_block, required: false)
+  attr(:disabled, :boolean, default: false, doc: "disables your link")
 
   def a(%{link_type: "a"} = assigns) do
     ~H"""
