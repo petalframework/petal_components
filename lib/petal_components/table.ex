@@ -68,7 +68,11 @@ defmodule PetalComponents.Table do
   attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
   attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
   attr(:rest, :global)
-  slot(:avatar_assigns, default: nil)
+
+  attr(:avatar_assigns, :map,
+    default: nil,
+    doc: "if using an avatar, this map will be passed to the avatar component as props"
+  )
 
   def user_inner_td(assigns) do
     ~H"""

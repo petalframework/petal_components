@@ -84,13 +84,14 @@ defmodule PetalComponents.Dropdown do
   end
 
   attr(:to, :string, default: nil, doc: "link path")
+  attr(:label, :string, doc: "link label")
 
   attr(:link_type, :string,
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
   )
 
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
   def dropdown_menu_item(assigns) do

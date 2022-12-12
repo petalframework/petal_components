@@ -5,7 +5,6 @@ defmodule PetalComponents.Accordion do
 
   attr(:container_id, :string)
   attr(:class, :string, default: "", doc: "CSS class for parent container")
-  slot(:item, required: true, doc: "CSS class for parent container")
   attr(:entries, :list, default: [%{}])
 
   attr(:js_lib, :string,
@@ -15,6 +14,10 @@ defmodule PetalComponents.Accordion do
   )
 
   attr(:rest, :global)
+
+  slot :item, required: true, doc: "CSS class for parent container" do
+    attr(:heading, :string)
+  end
 
   def accordion(assigns) do
     assigns =
@@ -50,6 +53,7 @@ defmodule PetalComponents.Accordion do
         <div {js_attributes("item", @js_lib, @container_id, i)} data-i={i}>
           <h2>
             <button
+              type="button"
               {js_attributes("button", @js_lib, @container_id, i)}
               class={build_class([
                 "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 text-gray-800 border border-gray-200 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",

@@ -5,7 +5,7 @@ defmodule PetalComponents.Link do
   attr(:link_type, :string, default: "a", values: ["a", "live_patch", "live_redirect", "button"])
   attr(:label, :string, default: nil, doc: "label your link")
   attr(:to, :string, default: nil, doc: "link path")
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(method))
   slot(:inner_block, required: false)
   attr(:disabled, :boolean, default: false, doc: "disables your link")
 

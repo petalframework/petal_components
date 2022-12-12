@@ -17,7 +17,17 @@ defmodule PetalComponents.Button do
 
   attr(:color, :string,
     default: "primary",
-    values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"],
+    values: [
+      "primary",
+      "secondary",
+      "info",
+      "success",
+      "warning",
+      "danger",
+      "gray",
+      "pure_white",
+      "white"
+    ],
     doc: "button color"
   )
 
@@ -33,22 +43,13 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your button")
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
   def button(assigns) do
     assigns =
       assigns
       |> assign(:classes, button_classes(assigns))
-
-    if assigns[:loading] && assigns[:label] do
-      Logger.warn("""
-      When using the loading prop, please use a block instead of a label. E.g,
-          <.button loading>
-            Button label
-          </.button>
-      """)
-    end
 
     ~H"""
     <Link.a
@@ -86,7 +87,7 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your button")
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
   def icon_button(assigns) do

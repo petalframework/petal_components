@@ -11,9 +11,14 @@ defmodule PetalComponents.Alert do
   attr(:class, :string, default: "", doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
   attr(:label, :string, default: nil, doc: "label your alert")
-  slot(:close_button_properties, default: nil)
   attr(:rest, :global)
-  slot(:inner_block, required: false)
+
+  attr(:close_button_properties, :list,
+    default: nil,
+    doc: "a list of properties passed to the close button"
+  )
+
+  slot(:inner_block)
 
   def alert(assigns) do
     assigns =
