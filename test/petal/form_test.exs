@@ -12,7 +12,7 @@ defmodule PetalComponents.FormTest do
           form={f}
           field={:name}
           placeholder="eg. John"
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -20,7 +20,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "John"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
     refute html =~ " disabled "
@@ -33,11 +33,12 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
         <.form :let={f} for={:user}>
-          <.text_input disabled
+          <.text_input
+            disabled
             form={f}
             field={:name}
             placeholder="eg. John"
-            random-element="something"
+            itemid="something"
           />
         </.form>
       """)
@@ -45,7 +46,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "John"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "bg-gray-100"
     assert html =~ " disabled "
@@ -60,7 +61,7 @@ defmodule PetalComponents.FormTest do
         <.textarea
           form={f}
           field={:description}
-          random-element="something"
+          itemid="something"
           placeholder="dummy text"
         />
       </.form>
@@ -68,7 +69,7 @@ defmodule PetalComponents.FormTest do
 
     assert html =~ "<textarea"
     assert html =~ "user[description]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "placeholder"
     assert html =~ "phx-feedback-for"
     assert html =~ "dummy text"
@@ -84,14 +85,14 @@ defmodule PetalComponents.FormTest do
           form={f}
           field={:role}
           options={["Admin": "admin", "User": "user"]}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
 
     assert html =~ "<select"
     assert html =~ "user[role]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "<option"
     assert html =~ "admin"
     assert html =~ "phx-feedback-for"
@@ -107,7 +108,7 @@ defmodule PetalComponents.FormTest do
         <.checkbox
           form={f}
           field={:read_terms}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -115,7 +116,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
     assert html =~ "phx-feedback-for"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
   end
 
   test "checkbox_group" do
@@ -151,7 +152,7 @@ defmodule PetalComponents.FormTest do
         <.switch
           form={f}
           field={:read_terms}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -159,7 +160,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
     assert html =~ "phx-feedback-for"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
   end
 
   test "radio" do
@@ -172,7 +173,7 @@ defmodule PetalComponents.FormTest do
           form={f}
           field={:eye_color}
           value="green"
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -180,7 +181,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "radio"
     assert html =~ "user[eye_color]"
     assert html =~ "green"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "phx-feedback-for"
   end
 
@@ -320,7 +321,7 @@ defmodule PetalComponents.FormTest do
         <.number_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -328,7 +329,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "number"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -342,7 +343,7 @@ defmodule PetalComponents.FormTest do
         <.email_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -350,7 +351,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "email"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -364,7 +365,7 @@ defmodule PetalComponents.FormTest do
         <.password_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -372,7 +373,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "password"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -386,7 +387,7 @@ defmodule PetalComponents.FormTest do
         <.search_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -394,7 +395,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "search"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -408,7 +409,7 @@ defmodule PetalComponents.FormTest do
         <.telephone_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -416,7 +417,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "tel"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -430,7 +431,7 @@ defmodule PetalComponents.FormTest do
         <.url_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -438,7 +439,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "url"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -452,7 +453,7 @@ defmodule PetalComponents.FormTest do
         <.time_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -460,7 +461,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "time"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -491,7 +492,7 @@ defmodule PetalComponents.FormTest do
         <.datetime_local_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -499,7 +500,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "datetime-local"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -547,7 +548,7 @@ defmodule PetalComponents.FormTest do
         <.date_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -555,7 +556,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "date"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -569,7 +570,7 @@ defmodule PetalComponents.FormTest do
         <.color_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -577,7 +578,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "color"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
@@ -591,7 +592,7 @@ defmodule PetalComponents.FormTest do
         <.file_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -599,7 +600,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "file"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "bg-primary"
     assert html =~ "phx-feedback-for"
@@ -614,7 +615,7 @@ defmodule PetalComponents.FormTest do
         <.range_input
           form={f}
           field={:name}
-          random-element="something"
+          itemid="something"
         />
       </.form>
       """)
@@ -622,7 +623,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "input"
     assert html =~ "range"
     assert html =~ "user[name]"
-    assert html =~ "random-element"
+    assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
