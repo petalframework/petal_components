@@ -1,6 +1,5 @@
 defmodule PetalComponents.Dropdown do
   use Phoenix.Component
-  import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
   alias PetalComponents.Link
 
@@ -12,11 +11,21 @@ defmodule PetalComponents.Dropdown do
   @transition_out_start "transform opacity-100 scale-100"
   @transition_out_end "transform opacity-0 scale-95"
 
-  # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
-  # prop label, :string
-  # prop placement, :string, default: options: ["left", "right"]
-  # slot default
-  # slot trigger_element
+  attr(:options_container_id, :string)
+  attr(:label, :string, default: nil, doc: "labels your dropdown option")
+  attr(:class, :string, default: "", doc: "CSS class for parent container")
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
+
+  attr(:placement, :string, default: "left", values: ["left", "right"])
+  attr(:rest, :global)
+  slot(:trigger_element)
+  slot(:inner_block, required: false)
+
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
       <.dropdown_menu_item link_type="button">
@@ -32,14 +41,9 @@ defmodule PetalComponents.Dropdown do
     assigns =
       assigns
       |> assign_new(:options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
-      |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_new(:placement, fn -> "left" end)
-      |> assign_new(:label, fn -> nil end)
-      |> assign_new(:trigger_element, fn -> nil end)
-      |> assign_rest(~w(options_container_id js_lib placement label trigger_element class)a)
 
     ~H"""
-    <div {@rest} {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
+    <div {@rest} {js_attributes("container", @js_lib, @options_container_id)} class={[@class, "relative inline-block text-left"]}>
       <div>
         <button
           type="button"
@@ -58,7 +62,7 @@ defmodule PetalComponents.Dropdown do
             <%= render_slot(@trigger_element) %>
           <% end %>
 
-          <%= if !@label && !@trigger_element do %>
+          <%= if !@label && @trigger_element == [] do %>
             <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
           <% end %>
         </button>
@@ -79,35 +83,39 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:label, :string, doc: "link label")
+
+  attr(:link_type, :string,
+    default: "button",
+    values: ["a", "live_patch", "live_redirect", "button"]
+  )
+
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
+  slot(:inner_block, required: false)
+
   def dropdown_menu_item(assigns) do
     assigns =
       assigns
-      |> assign_new(:link_type, fn -> "button" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:to, fn -> nil end)
-      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-      |> assign_rest(~w(classes link_type)a)
+      |> assign(:classes, dropdown_menu_item_classes())
 
     ~H"""
     <Link.a link_type={@link_type} to={@to} class={@classes} {@rest}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+      <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
   end
 
-  defp trigger_button_classes(nil, nil),
+  defp trigger_button_classes(nil, []),
     do:
       "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
 
-  defp trigger_button_classes(_label, nil),
+  defp trigger_button_classes(_label, []),
     do:
       "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
 
-  defp trigger_button_classes(_label, _trigger_element), do: "align-middle"
+  defp trigger_button_classes(_label, _trigger_element),
+    do: "align-middle"
 
   defp dropdown_menu_item_classes(),
     do:

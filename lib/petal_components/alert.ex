@@ -2,21 +2,28 @@ defmodule PetalComponents.Alert do
   use Phoenix.Component
   import PetalComponents.Helpers
 
-  # prop color, :string, options: ["info", "success", "warning", "danger"]
-  # prop class, :string
-  # prop label, :string
-  # slot default
+  attr(:color, :string,
+    default: "info",
+    values: ["info", "success", "warning", "danger"]
+  )
+
+  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
+  attr(:class, :string, default: "", doc: "CSS class for parent div")
+  attr(:heading, :string, default: nil, doc: "label your heading")
+  attr(:label, :string, default: nil, doc: "label your alert")
+  attr(:rest, :global)
+
+  attr(:close_button_properties, :list,
+    default: nil,
+    doc: "a list of properties passed to the close button"
+  )
+
+  slot(:inner_block)
+
   def alert(assigns) do
     assigns =
       assigns
-      |> assign_new(:label, fn -> nil end)
-      |> assign_new(:color, fn -> "info" end)
-      |> assign_new(:heading, fn -> nil end)
-      |> assign_new(:with_icon, fn -> false end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:classes, fn -> alert_classes(assigns) end)
-      |> assign_new(:close_button_properties, fn -> nil end)
-      |> assign_rest(~w(label color heading with_icon classes class close_button_properties)a)
+      |> assign(:classes, alert_classes(assigns))
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
@@ -37,11 +44,7 @@ defmodule PetalComponents.Alert do
               <% end %>
 
               <div class="py-1 font-medium">
-                <%= if @inner_block do %>
-                  <%= render_slot(@inner_block) %>
-                <% else %>
-                  <%= @label %>
-                <% end %>
+                <%= render_slot(@inner_block) || @label %>
               </div>
             </div>
 
@@ -123,6 +126,6 @@ defmodule PetalComponents.Alert do
   end
 
   defp label_blank?(label, inner_block) do
-    (!label || label == "") && !inner_block
+    (!label || label == "") && inner_block == []
   end
 end

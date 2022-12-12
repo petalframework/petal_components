@@ -5,16 +5,27 @@ defmodule PetalComponents.Modal do
 
   import PetalComponents.Helpers
 
-  # prop title, :string
-  # prop size, :string
-  # prop close_modal_target, :string
-  # slot default
+  attr(:title, :string, default: nil, doc: "modal title")
+
+  attr(:close_modal_target, :string,
+    default: nil,
+    doc:
+      "close_modal_target allows you to target a specific live component for the close event to go to. eg: close_modal_target={@myself}"
+  )
+
+  attr(:max_width, :string,
+    default: "md",
+    values: ["sm", "md", "lg", "xl", "2xl", "full"],
+    doc: "modal max width"
+  )
+
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
   def modal(assigns) do
     assigns =
       assigns
-      |> assign_new(:classes, fn -> get_classes(assigns) end)
-      |> assign_new(:close_modal_target, fn -> nil end)
-      |> assign_rest(~w(classes title size)a)
+      |> assign(:classes, get_classes(assigns))
 
     ~H"""
     <div {@rest} id="modal">

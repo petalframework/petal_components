@@ -4,58 +4,41 @@ defmodule PetalComponents.Table do
   import PetalComponents.Avatar
   import PetalComponents.Helpers
 
-  def table(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:rest, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-        )a)
-      end)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def table(assigns) do
     ~H"""
     <table class={build_class([
       "min-w-full overflow-hidden divide-y ring-1 ring-gray-200 dark:ring-0 divide-gray-200 rounded-sm table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
-      @class,
+      @class
     ])} {@rest}>
       <%= render_slot(@inner_block) %>
     </table>
     """
   end
 
-  def th(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:rest, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-        )a)
-      end)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def th(assigns) do
     ~H"""
     <th class={build_class([
       "px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300",
       @class,
     ], " ")} {@rest}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% end %>
+      <%= render_slot(@inner_block) %>
     </th>
     """
   end
 
-  def tr(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:rest, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-        )a)
-      end)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def tr(assigns) do
     ~H"""
     <tr class={build_class([
       "border-b dark:border-gray-700 bg-white dark:bg-gray-800 last:border-none",
@@ -66,16 +49,11 @@ defmodule PetalComponents.Table do
     """
   end
 
-  def td(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:rest, fn ->
-        assigns_to_attributes(assigns, ~w(
-          class
-        )a)
-      end)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def td(assigns) do
     ~H"""
     <td class={build_class([
       "px-6 py-4 text-sm text-gray-500 dark:text-gray-400",
@@ -86,13 +64,17 @@ defmodule PetalComponents.Table do
     """
   end
 
-  def user_inner_td(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:avatar_assigns, fn -> nil end)
-      |> assign_rest(~w(class avatar_assigns label sub_label)a)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
+  attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
+  attr(:rest, :global)
 
+  attr(:avatar_assigns, :map,
+    default: nil,
+    doc: "if using an avatar, this map will be passed to the avatar component as props"
+  )
+
+  def user_inner_td(assigns) do
     ~H"""
     <div class={@class} {@rest}>
       <div class="flex items-center gap-3">

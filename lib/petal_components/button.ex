@@ -5,87 +5,92 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Link
 
   import PetalComponents.Helpers
+  require Logger
 
-  # prop class, :string
-  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  # prop link_type, :string, options: ["button", "a", "live_patch", "live_redirect"]
-  # prop label, :string
-  # prop size, :string
-  # prop variant, :string
-  # prop to, :string
-  # prop loading, :boolean, default: false
-  # prop disabled, :boolean, default: false
-  # slot default
+  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes")
+
+  attr(:variant, :string,
+    default: "solid",
+    values: ["solid", "outline", "inverted", "shadow"],
+    doc: "button variant"
+  )
+
+  attr(:color, :string,
+    default: "primary",
+    values: [
+      "primary",
+      "secondary",
+      "info",
+      "success",
+      "warning",
+      "danger",
+      "gray",
+      "pure_white",
+      "white"
+    ],
+    doc: "button color"
+  )
+
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:loading, :boolean, default: false, doc: "indicates a loading state")
+  attr(:disabled, :boolean, default: false, doc: "indicates a disabled state")
+  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
+
+  attr(:link_type, :string,
+    default: "button",
+    values: ["a", "live_patch", "live_redirect", "button"]
+  )
+
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:label, :string, default: nil, doc: "labels your button")
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
+  slot(:inner_block, required: false)
+
   def button(assigns) do
     assigns =
       assigns
-      |> assign_new(:link_type, fn -> "button" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:loading, fn -> false end)
-      |> assign_new(:size, fn -> "md" end)
-      |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:classes, fn -> button_classes(assigns) end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:to, fn -> nil end)
-      |> assign_rest([
-        :loading,
-        :disabled,
-        :link_type,
-        :size,
-        :variant,
-        :color,
-        :icon,
-        :class,
-        :to
-      ])
+      |> assign(:classes, button_classes(assigns))
 
     ~H"""
-    <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
+    <Link.a
+      to={@to}
+      link_type={@link_type}
+      class={@classes}
+      disabled={@disabled}
+      {@rest}
+    >
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
 
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+      <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
   end
 
-  # prop class, :string
-  # prop color, :string, options: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  # prop link_type, :string, options: ["button", "a", "live_patch", "live_redirect"]
-  # prop label, :string
-  # prop size, :string
-  # prop variant, :string
-  # prop to, :string
-  # prop loading, :boolean, default: false
-  # prop disabled, :boolean, default: false
-  # slot default
-  def icon_button(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:link_type, fn -> "button" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:loading, fn -> false end)
-      |> assign_new(:size, fn -> "sm" end)
-      |> assign_new(:disabled, fn -> false end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:to, fn -> nil end)
-      |> assign_new(:color, fn -> "gray" end)
-      |> assign_rest([
-        :loading,
-        :disabled,
-        :link_type,
-        :size,
-        :variant,
-        :color,
-        :class,
-        :to
-      ])
+  attr(:size, :string, default: "sm", values: ["xs", "sm", "md", "lg", "xl"])
 
+  attr(:color, :string,
+    default: "gray",
+    values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+  )
+
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:loading, :boolean, default: false, doc: "indicates a loading state")
+  attr(:disabled, :boolean, default: false, doc: "indicates a disabled state")
+  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
+
+  attr(:link_type, :string,
+    default: "button",
+    values: ["a", "live_patch", "live_redirect", "button"]
+  )
+
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:label, :string, default: nil, doc: "label your button")
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
+  slot(:inner_block, required: false)
+
+  def icon_button(assigns) do
     ~H"""
     <Link.a
       to={@to}
@@ -119,7 +124,7 @@ defmodule PetalComponents.Button do
       color: opts[:color] || "primary",
       loading: opts[:loading] || false,
       disabled: opts[:disabled] || false,
-      icon: opts[:icon] || false,
+      with_icon: opts[:with_icon] || false,
       user_added_classes: opts[:class] || ""
     }
 
@@ -142,7 +147,7 @@ defmodule PetalComponents.Button do
       end
 
     icon_css =
-      if opts[:icon] do
+      if opts[:with_icon] do
         "flex gap-2 items-center whitespace-nowrap"
       else
         ""

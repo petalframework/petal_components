@@ -5,16 +5,12 @@ defmodule PetalComponents.Tabs do
 
   import PetalComponents.Helpers
 
-  # prop class, :string
-  # prop underline, :boolean, default: false
-  # slot default
-  def tabs(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:underline, fn -> false end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_rest(~w(underline class)a)
+  attr(:underline, :boolean, default: false, doc: "underlines your tabs")
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
 
+  def tabs(assigns) do
     ~H"""
     <div {@rest} class={build_class([
         "flex gap-x-8 gap-y-2",
@@ -26,47 +22,34 @@ defmodule PetalComponents.Tabs do
     """
   end
 
-  # prop class, :string
-  # prop label, :string
-  # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
-  # prop number, :integer
-  # prop underline, :boolean, default: false
-  # prop is_active, :boolean, default: false
-  # slot default
-  def tab(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:label, fn -> nil end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:number, fn -> nil end)
-      |> assign_new(:link_type, fn -> "a" end)
-      |> assign_new(:is_active, fn -> false end)
-      |> assign_new(:underline, fn -> false end)
-      |> assign_rest(~w(class number link_type is_active underline label)a)
+  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:label, :string, default: nil, doc: "labels your tab")
 
+  attr(:link_type, :string,
+    default: "a",
+    values: ["a", "live_patch", "live_redirect"]
+  )
+
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:number, :integer, default: nil, doc: "indicates a number next to your tab")
+  attr(:underline, :boolean, default: false, doc: "underlines your your tab")
+  attr(:is_active, :boolean, default: false, doc: "indicates the current tab")
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
+  slot(:inner_block, required: false)
+
+  def tab(assigns) do
     ~H"""
-    <Link.a link_type={@link_type} label={@label} to={@to} class={[get_tab_class(@is_active, @underline), @class]} {@rest}>
+    <Link.a link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline) <> @class} {@rest}>
       <%= if @number do %>
-        <.render_label_or_slot {assigns} />
+        <%= render_slot(@inner_block) || @label %>
 
         <span class={get_tab_number_class(@is_active, @underline)}>
           <%= @number %>
         </span>
       <% else %>
-        <.render_label_or_slot {assigns} />
+        <%= render_slot(@inner_block) || @label %>
       <% end %>
     </Link.a>
-    """
-  end
-
-  def render_label_or_slot(assigns) do
-    ~H"""
-    <%= if @inner_block do %>
-      <%= render_slot(@inner_block) %>
-    <% else %>
-      <%= @label %>
-    <% end %>
     """
   end
 

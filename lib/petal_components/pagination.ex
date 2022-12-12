@@ -6,11 +6,19 @@ defmodule PetalComponents.Pagination do
   import PetalComponents.Helpers
   import PetalComponents.PaginationInternal
 
-  # prop path, :string
-  # prop class, :string
-  # prop sibling_count, :integer
-  # prop boundary_count, :integer
-  # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
+  attr(:path, :string, default: "/:page", doc: "page path")
+  attr(:class, :string, default: "", doc: "Parent div CSS class")
+
+  attr(:link_type, :string,
+    default: "a",
+    values: ["a", "live_patch", "live_redirect"]
+  )
+
+  attr(:total_pages, :integer, default: nil, doc: "sets a total page count")
+  attr(:current_page, :integer, default: nil, doc: "sets the current page")
+  attr(:sibling_count, :integer, default: 1, doc: "sets a sibling count")
+  attr(:boundary_count, :integer, default: 1, doc: "sets a boundary count")
+  attr(:rest, :global)
 
   @doc """
   In the `path` param you can specify :page as the place your page number will appear.
@@ -18,17 +26,6 @@ defmodule PetalComponents.Pagination do
   """
 
   def pagination(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:link_type, fn -> "a" end)
-      |> assign_new(:sibling_count, fn -> 1 end)
-      |> assign_new(:boundary_count, fn -> 1 end)
-      |> assign_new(:path, fn -> "/:page" end)
-      |> assign_rest(
-        ~w(link_type sibling_count boundary_count total_pages current_page path class)a
-      )
-
     ~H"""
     <div {@rest} class={"#{@class} flex"}>
       <ul class="inline-flex -space-x-px text-sm font-medium">

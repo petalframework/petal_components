@@ -3,19 +3,17 @@ defmodule PetalComponents.Loading do
 
   import PetalComponents.Helpers
 
-  # prop size, :string, values: ["sm", "md", "lg"]
-  # prop class, :string, default: ""
-  # prop show, :boolean, default: true
-  def spinner(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:classes, fn -> get_spinner_classes(assigns) end)
-      |> assign_rest(~w(classes size class show)a)
+  attr(:size, :string, default: "sm", values: ["sm", "md", "lg"])
+  attr(:size_class, :string, default: nil, doc: "custom CSS classes for size. eg: h-4 w-4")
+  attr(:class, :string, default: nil, doc: "CSS class")
+  attr(:show, :boolean, default: true, doc: "show or hide spinner")
+  attr(:rest, :global)
 
+  def spinner(assigns) do
     ~H"""
     <svg
       {@rest}
-      class={get_spinner_classes(assigns)}
+      class={get_spinner_classes(@class, @show, @size, @size_class)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -30,12 +28,11 @@ defmodule PetalComponents.Loading do
     """
   end
 
-  defp get_spinner_classes(assigns) do
+  defp get_spinner_classes(user_added_classes, show, size, custom_size_class) do
     base_classes = "animate-spin"
-    custom_classes = assigns[:class]
-    show_class = if assigns[:show] == false, do: "hidden", else: ""
-    size_classes = assigns[:size_class] || get_size_classes(assigns[:size])
-
+    custom_classes = user_added_classes
+    show_class = if show == false, do: "hidden", else: ""
+    size_classes = custom_size_class || get_size_classes(size)
     build_class([base_classes, custom_classes, show_class, size_classes])
   end
 
