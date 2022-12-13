@@ -1,4 +1,7 @@
 # Changelog
+### 0.19.0 - 2022-12-13 05:11:47
+- Added declarative assigns for all components
+- Fix default green button having the wrong background
 ### 0.18.5 - 2022-10-06 02:04:15
 - Fix compilation error on form.ex
 ### 0.18.4 - 2022-10-06 01:43:08
