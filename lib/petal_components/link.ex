@@ -11,25 +11,33 @@ defmodule PetalComponents.Link do
 
   def a(%{link_type: "a"} = assigns) do
     ~H"""
-    <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ Map.to_list(@rest), do: (if @label, do: @label, else: render_slot(@inner_block)) %>
+    <%= Phoenix.HTML.Link.link([to: @to, class: @class] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
   def a(%{link_type: "live_patch"} = assigns) do
     ~H"""
-    <%= live_patch [to: @to, class: @class] ++ Map.to_list(@rest), do: (if @label, do: @label, else: render_slot(@inner_block)) %>
+    <%= live_patch([to: @to, class: @class] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
   def a(%{link_type: "live_redirect"} = assigns) do
     ~H"""
-    <%= live_redirect [to: @to, class: @class] ++ Map.to_list(@rest), do: (if @label, do: @label, else: render_slot(@inner_block)) %>
+    <%= live_redirect([to: @to, class: @class] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
   def a(%{link_type: "button"} = assigns) do
     ~H"""
-    <button class={@class} {@rest}><%= if @label, do: @label, else: render_slot(@inner_block)%></button>
+    <button class={@class} {@rest}>
+      <%= if @label, do: @label, else: render_slot(@inner_block) %>
+    </button>
     """
   end
 end

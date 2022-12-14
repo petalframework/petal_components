@@ -93,10 +93,6 @@ defmodule PetalComponents.ATest do
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <Link.a to="/"> Press me </Link.a>
-           """) =~ "> Press me <"
-
-    assert rendered_to_string(~H"""
            <Link.a to="/" label="Press me" />, blah
            """) =~ "</a>, blah"
   end

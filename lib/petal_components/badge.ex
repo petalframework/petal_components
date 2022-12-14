@@ -18,13 +18,18 @@ defmodule PetalComponents.Badge do
 
   def badge(assigns) do
     ~H"""
-    <badge {@rest} class={build_class([
-      "rounded inline-flex items-center justify-center focus:outline-none border",
-      size_classes(@size),
-      icon_classes(@with_icon),
-      get_color_classes(%{color: @color, variant: @variant}),
-      @class
-    ])}>
+    <badge
+      {@rest}
+      class={
+        build_class([
+          "rounded inline-flex items-center justify-center focus:outline-none border",
+          size_classes(@size),
+          icon_classes(@with_icon),
+          get_color_classes(%{color: @color, variant: @variant}),
+          @class
+        ])
+      }
+    >
       <%= render_slot(@inner_block) || @label %>
     </badge>
     """

@@ -9,8 +9,7 @@ defmodule PetalComponents.DropdownTest do
       rendered_to_string(~H"""
       <.dropdown label="Dropdown">
         <.dropdown_menu_item type="button">
-          <Heroicons.home class="w-5 h-5 text-gray-500" />
-          Button item with icon
+          <Heroicons.home class="w-5 h-5 text-gray-500" /> Button item with icon
         </.dropdown_menu_item>
       </.dropdown>
       """)

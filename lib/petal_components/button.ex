@@ -52,13 +52,7 @@ defmodule PetalComponents.Button do
       |> assign(:classes, button_classes(assigns))
 
     ~H"""
-    <Link.a
-      to={@to}
-      link_type={@link_type}
-      class={@classes}
-      disabled={@disabled}
-      {@rest}
-    >
+    <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
       <% end %>
@@ -95,21 +89,21 @@ defmodule PetalComponents.Button do
     <Link.a
       to={@to}
       link_type={@link_type}
-      class={build_class(
-        [
+      class={
+        build_class([
           "rounded-full p-2 inline-block",
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
           get_icon_button_color_classes(@color),
           get_icon_button_size_classes(@size),
           @class
-        ])}
+        ])
+      }
       disabled={@disabled}
       {@rest}
     >
       <%= if @loading do %>
         <Loading.spinner show={true} size_class={get_icon_button_spinner_size_classes(@size)} />
-
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>

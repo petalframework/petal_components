@@ -45,7 +45,7 @@ defmodule PetalComponents.LoadingTest do
 
     html =
       rendered_to_string(~H"""
-      <.spinner custom-attrs="123"/>
+      <.spinner custom-attrs="123" />
       """)
 
     assert html =~ ~s{custom-attrs="123"}

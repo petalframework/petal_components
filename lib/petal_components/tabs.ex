@@ -12,11 +12,19 @@ defmodule PetalComponents.Tabs do
 
   def tabs(assigns) do
     ~H"""
-    <div {@rest} class={build_class([
-        "flex gap-x-8 gap-y-2",
-        (if @underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
-        @class
-      ], " ")}>
+    <div
+      {@rest}
+      class={
+        build_class(
+          [
+            "flex gap-x-8 gap-y-2",
+            if(@underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
+            @class
+          ],
+          " "
+        )
+      }
+    >
       <%= render_slot(@inner_block) %>
     </div>
     """
@@ -39,7 +47,13 @@ defmodule PetalComponents.Tabs do
 
   def tab(assigns) do
     ~H"""
-    <Link.a link_type={@link_type} label={@label} to={@to} class={get_tab_class(@is_active, @underline) <> @class} {@rest}>
+    <Link.a
+      link_type={@link_type}
+      label={@label}
+      to={@to}
+      class={get_tab_class(@is_active, @underline) <> @class}
+      {@rest}
+    >
       <%= if @number do %>
         <%= render_slot(@inner_block) || @label %>
 

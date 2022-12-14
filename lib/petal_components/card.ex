@@ -10,11 +10,16 @@ defmodule PetalComponents.Card do
 
   def card(assigns) do
     ~H"""
-    <div {@rest} class={build_class([
-      "flex flex-wrap overflow-hidden bg-white dark:bg-gray-800",
-      get_variant_classes(@variant),
-      @class
-    ])}>
+    <div
+      {@rest}
+      class={
+        build_class([
+          "flex flex-wrap overflow-hidden bg-white dark:bg-gray-800",
+          get_variant_classes(@variant),
+          @class
+        ])
+      }
+    >
       <div class="flex flex-col w-full max-w-full">
         <%= render_slot(@inner_block) %>
       </div>
@@ -31,17 +36,32 @@ defmodule PetalComponents.Card do
   def card_media(assigns) do
     ~H"""
     <%= if @src do %>
-      <img {@rest} src={@src} class={build_class([
-        "flex-shrink-0 w-full object-cover",
-        @aspect_ratio_class,
-        @class
-      ], " ")} />
+      <img
+        {@rest}
+        src={@src}
+        class={
+          build_class(
+            [
+              "flex-shrink-0 w-full object-cover",
+              @aspect_ratio_class,
+              @class
+            ],
+            " "
+          )
+        }
+      />
     <% else %>
-      <div {@rest} class={build_class([
-        "flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700",
-        @aspect_ratio_class,
-        @class
-      ])}></div>
+      <div
+        {@rest}
+        class={
+          build_class([
+            "flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700",
+            @aspect_ratio_class,
+            @class
+          ])
+        }
+      >
+      </div>
     <% end %>
     """
   end
@@ -60,10 +80,15 @@ defmodule PetalComponents.Card do
 
   def card_content(assigns) do
     ~H"""
-    <div {@rest} class={build_class([
-      "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
-      @class
-    ])}>
+    <div
+      {@rest}
+      class={
+        build_class([
+          "p-6 flex-1 font-light text-gray-500 dark:text-gray-400 text-md",
+          @class
+        ])
+      }
+    >
       <%= if @category do %>
         <div class={"mb-3 text-sm font-medium #{@category_color_class}"}>
           <%= @category %>

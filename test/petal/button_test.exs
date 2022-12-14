@@ -126,7 +126,6 @@ defmodule PetalComponents.ButtonTest do
       <.icon_button to="/" link_type="button" size="xs" color="primary">
         <Heroicons.clock solid />
       </.icon_button>
-
       """)
 
     assert html =~ "<svg"

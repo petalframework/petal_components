@@ -474,7 +474,7 @@ defmodule PetalComponents.PaginationTest do
 
     html =
       rendered_to_string(~H"""
-      <.pagination path={& "/page/#{&1}"} total_pages={3} current_page={1} />
+      <.pagination path={&"/page/#{&1}"} total_pages={3} current_page={1} />
       """)
 
     assert html =~ "/page/2"

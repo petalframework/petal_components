@@ -145,7 +145,6 @@ defmodule PetalComponents.ModalTest do
 
     html =
       rendered_to_string(~H"""
-
       <.modal custom-attrs="123" title="Modal"></.modal>
       """)
 

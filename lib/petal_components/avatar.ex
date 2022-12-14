@@ -17,31 +17,48 @@ defmodule PetalComponents.Avatar do
   def avatar(assigns) do
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
-      <div {@rest} class={build_class([
-        "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
-        get_size_classes(@size),
-        @class
-        ])}>
-        <Heroicons.user solid class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
+      <div
+        {@rest}
+        class={
+          build_class([
+            "inline-block relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-full",
+            get_size_classes(@size),
+            @class
+          ])
+        }
+      >
+        <Heroicons.user
+          solid
+          class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform"
+        />
       </div>
     <% else %>
       <%= if src_blank?(@src) && @name do %>
-        <div {@rest}
+        <div
+          {@rest}
           style={maybe_generate_random_color(@random_color, @name)}
-          class={build_class([
-            "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
-            get_size_classes(@size),
-            @class
-          ])}
+          class={
+            build_class([
+              "flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full font-semibold uppercase text-gray-500 dark:text-gray-300",
+              get_size_classes(@size),
+              @class
+            ])
+          }
         >
           <%= generate_initials(@name) %>
         </div>
       <% else %>
-        <img  {@rest} src={@src} class={build_class([
-          "rounded-full object-cover",
-          get_size_classes(@size),
-          @class
-        ])} />
+        <img
+          {@rest}
+          src={@src}
+          class={
+            build_class([
+              "rounded-full object-cover",
+              get_size_classes(@size),
+              @class
+            ])
+          }
+        />
       <% end %>
     <% end %>
     """
@@ -60,7 +77,11 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <div {@rest} class={@classes}>
       <%= for src <- @avatars do %>
-        <.avatar src={src} size={@size} class={build_class(["ring-white ring-2 dark:ring-gray-100", @class])} />
+        <.avatar
+          src={src}
+          size={@size}
+          class={build_class(["ring-white ring-2 dark:ring-gray-100", @class])}
+        />
       <% end %>
     </div>
     """

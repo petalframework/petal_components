@@ -21,7 +21,15 @@ defmodule PetalComponents.Typography do
 
   def h1(assigns) do
     ~H"""
-    <h1 class={get_heading_classes("text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl", assigns)} {@rest}>
+    <h1
+      class={
+        get_heading_classes(
+          "text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl",
+          assigns
+        )
+      }
+      {@rest}
+    >
       <%= render_slot(@inner_block) || @label %>
     </h1>
     """

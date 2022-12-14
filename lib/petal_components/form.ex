@@ -565,7 +565,6 @@ defmodule PetalComponents.Form do
       <%= Form.hidden_input(@form, @field, name: Form.input_name(@form, @field), value: "") %>
       <%= for {label, value} <- @options do %>
         <label class={checkbox_group_layout_item_classes(%{layout: @layout})}>
-
           <.checkbox
             form={@form}
             field={@field}

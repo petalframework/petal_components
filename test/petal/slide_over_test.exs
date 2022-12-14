@@ -109,7 +109,6 @@ defmodule PetalComponents.SlideOverTest do
 
     html =
       rendered_to_string(~H"""
-
       <.slide_over custom-attrs="123" title="SlideOver"></.slide_over>
       """)
 

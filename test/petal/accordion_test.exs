@@ -78,7 +78,7 @@ defmodule PetalComponents.AccordionTest do
     html =
       rendered_to_string(~H"""
       <.accordion entries={@entries}>
-        <:item let={entry}><%= entry.content %></:item>
+        <:item :let={entry}><%= entry.content %></:item>
       </.accordion>
       """)
 
@@ -97,7 +97,7 @@ defmodule PetalComponents.AccordionTest do
       assert_raise ArgumentError, fn ->
         rendered_to_string(~H"""
         <.accordion entries={@entries}>
-          <:item heading="nope"/>
+          <:item heading="nope" />
         </.accordion>
         """)
       end

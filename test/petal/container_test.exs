@@ -7,8 +7,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="full">
-      </.container>
+      <.container max_width="full"></.container>
       """)
 
     assert html =~ "<div class="
@@ -20,8 +19,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="xl">
-      </.container>
+      <.container max_width="xl"></.container>
       """)
 
     assert html =~ "85rem"
@@ -32,8 +30,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="lg">
-      </.container>
+      <.container max_width="lg"></.container>
       """)
 
     assert html =~ "<div class="
@@ -45,8 +42,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="md">
-      </.container>
+      <.container max_width="md"></.container>
       """)
 
     assert html =~ "<div class="
@@ -58,8 +54,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="sm">
-      </.container>
+      <.container max_width="sm"></.container>
       """)
 
     assert html =~ "<div class="
@@ -71,8 +66,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container custom-attrs="123">
-      </.container>
+      <.container custom-attrs="123"></.container>
       """)
 
     assert html =~ ~s{custom-attrs="123"}

@@ -6,9 +6,9 @@ defmodule PetalComponents.Svg do
 
   def title(assigns) do
     ~H"""
-      <%= if not is_nil(@title) do %>
-        <title><%= @title %></title>
-      <% end %>
+    <%= if not is_nil(@title) do %>
+      <title><%= @title %></title>
+    <% end %>
     """
   end
 end

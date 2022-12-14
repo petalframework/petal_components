@@ -43,7 +43,11 @@ defmodule PetalComponents.Dropdown do
       |> assign_new(:options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <div {@rest} {js_attributes("container", @js_lib, @options_container_id)} class={[@class, "relative inline-block text-left"]}>
+    <div
+      {@rest}
+      {js_attributes("container", @js_lib, @options_container_id)}
+      class={[@class, "relative inline-block text-left"]}
+    >
       <div>
         <button
           type="button"

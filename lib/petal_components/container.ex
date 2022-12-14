@@ -16,12 +16,17 @@ defmodule PetalComponents.Container do
 
   def container(assigns) do
     ~H"""
-    <div {@rest} class={build_class([
-      "mx-auto sm:px-6 lg:px-8 w-full",
-      get_width_class(@max_width),
-      get_padding_class(@no_padding_on_mobile),
-      @class
-    ])}>
+    <div
+      {@rest}
+      class={
+        build_class([
+          "mx-auto sm:px-6 lg:px-8 w-full",
+          get_width_class(@max_width),
+          get_padding_class(@no_padding_on_mobile),
+          @class
+        ])
+      }
+    >
       <%= render_slot(@inner_block) %>
     </div>
     """

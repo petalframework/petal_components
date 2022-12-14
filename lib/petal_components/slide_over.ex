@@ -34,11 +34,13 @@ defmodule PetalComponents.SlideOver do
       </div>
 
       <div
-        class={build_class([
-          "fixed inset-0 z-50 flex overflow-hidden transform",
-          get_margin_classes(@origin),
-          @class,
-          ])}
+        class={
+          build_class([
+            "fixed inset-0 z-50 flex overflow-hidden transform",
+            get_margin_classes(@origin),
+            @class
+          ])
+        }
         role="dialog"
         aria-modal="true"
       >
@@ -49,7 +51,6 @@ defmodule PetalComponents.SlideOver do
           phx-window-keydown={hide_slide_over(@origin)}
           phx-key="escape"
         >
-
           <!-- Header -->
           <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-600">
             <div class="flex items-center justify-between">
@@ -65,7 +66,6 @@ defmodule PetalComponents.SlideOver do
               </button>
             </div>
           </div>
-
           <!-- Content -->
           <div class="p-5">
             <%= render_slot(@inner_block) %>

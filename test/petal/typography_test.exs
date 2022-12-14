@@ -114,7 +114,9 @@ defmodule PetalComponents.TypographyTest do
 
     html =
       rendered_to_string(~H"""
-      <.prose class="md:prose-lg" random-attribute="lol"><p>A paragraph</p></.prose>
+      <.prose class="md:prose-lg" random-attribute="lol">
+        <p>A paragraph</p>
+      </.prose>
       """)
 
     assert html =~ "A paragraph"
