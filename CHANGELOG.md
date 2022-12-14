@@ -1,4 +1,6 @@
 # Changelog
+### 0.19.1 - 2022-12-14 00:56:52
+- Fixed form_field class attribute - it wasn't getting appended to the input classes properly
 ### 0.19.0 - 2022-12-13 05:11:47
 - Added declarative assigns for all components
 - Fix default green button having the wrong background
