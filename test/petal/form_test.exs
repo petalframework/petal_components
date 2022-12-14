@@ -12,6 +12,7 @@ defmodule PetalComponents.FormTest do
           form={f}
           field={:name}
           placeholder="eg. John"
+          class="!w-max"
           itemid="something"
         />
       </.form>
@@ -25,6 +26,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "phx-feedback-for"
     refute html =~ " disabled "
     assert html =~ "dark:"
+    assert html =~ "!w-max"
   end
 
   test "text_input disabled" do
@@ -298,6 +300,7 @@ defmodule PetalComponents.FormTest do
           type="text_input"
           form={f}
           field={:name}
+          class="w-max"
           placeholder="eg. John"
         />
       </.form>
@@ -310,6 +313,8 @@ defmodule PetalComponents.FormTest do
     assert html =~ "too long"
     assert html =~ "blank"
     assert html =~ "mb-6"
+    assert html =~ "border-gray-300"
+    assert html =~ "w-max"
   end
 
   test "number_input" do

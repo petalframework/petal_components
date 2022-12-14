@@ -59,6 +59,7 @@ defmodule PetalComponents.Form do
   ]
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
+  attr(:class, :string, doc: "any additionaly CSS classes")
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:options, :list, default: [], doc: "options for the select/radio_group/checkbox_group")
 
@@ -661,7 +662,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:class, :string, default: "", doc: "extra classes for the text input")
-  # <.form_field_error form={f} field={:name} />
+
   def form_field_error(assigns) do
     assigns =
       assigns
