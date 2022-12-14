@@ -7,8 +7,8 @@ defmodule PetalComponents.DropdownTest do
 
     html =
       rendered_to_string(~H"""
-      <.dropdown label="Dropdown">
-        <.dropdown_menu_item type="button">
+      <.dropdown class="dropdown_class" menu_items_wrapper_class="menu_items_wrapper_class" label="Dropdown">
+        <.dropdown_menu_item class="dropdown_menu_item_class" type="button">
           <Heroicons.home class="w-5 h-5 text-gray-500" /> Button item with icon
         </.dropdown_menu_item>
       </.dropdown>
@@ -18,6 +18,9 @@ defmodule PetalComponents.DropdownTest do
     assert html =~ "x-show"
     assert html =~ "<svg"
     assert html =~ "dark:"
+    assert html =~ "dropdown_class"
+    assert html =~ "dropdown_menu_item_class"
+    assert html =~ "menu_items_wrapper_class"
 
     # Test js_lib option
     html =

@@ -13,7 +13,8 @@ defmodule PetalComponents.Dropdown do
 
   attr(:options_container_id, :string)
   attr(:label, :string, default: nil, doc: "labels your dropdown option")
-  attr(:class, :string, default: "", doc: "CSS class for parent container")
+  attr(:class, :string, default: "", doc: "any extra CSS class for the parent container")
+  attr(:menu_items_wrapper_class, :string, default: "", doc: "any extra CSS class for menu item wrapper container")
 
   attr(:js_lib, :string,
     default: "alpine_js",
@@ -73,7 +74,7 @@ defmodule PetalComponents.Dropdown do
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={placement_class(@placement) <> " absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -89,6 +90,7 @@ defmodule PetalComponents.Dropdown do
 
   attr(:to, :string, default: nil, doc: "link path")
   attr(:label, :string, doc: "link label")
+  attr(:class, :string, default: "", doc: "any additional CSS classes")
 
   attr(:link_type, :string,
     default: "button",
@@ -99,12 +101,13 @@ defmodule PetalComponents.Dropdown do
   slot(:inner_block, required: false)
 
   def dropdown_menu_item(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, dropdown_menu_item_classes())
-
     ~H"""
-    <Link.a link_type={@link_type} to={@to} class={@classes} {@rest}>
+    <Link.a
+      link_type={@link_type}
+      to={@to}
+      class={"#{@class} block flex gap-2 items-center self-start dark:hover:bg-gray-700 dark:text-gray-300 justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 dark:bg-gray-800 ease-in-out hover:bg-gray-100 w-full text-left"}
+      {@rest}
+    >
       <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
@@ -120,10 +123,6 @@ defmodule PetalComponents.Dropdown do
 
   defp trigger_button_classes(_label, _trigger_element),
     do: "align-middle"
-
-  defp dropdown_menu_item_classes(),
-    do:
-      "block flex gap-2 items-center self-start dark:hover:bg-gray-700 dark:text-gray-300 justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 dark:bg-gray-800 ease-in-out hover:bg-gray-100 w-full text-left"
 
   defp js_attributes("container", "alpine_js", _options_container_id) do
     %{
