@@ -5,7 +5,7 @@ defmodule PetalComponents.Form do
   alias Phoenix.HTML.Form
 
   @form_attrs ~w(autocomplete disabled form max maxlength min minlength
-  pattern placeholder readonly required size step value name multiple)
+  pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout)
 
   @moduledoc """
   Everything related to forms: inputs, labels etc
@@ -62,15 +62,7 @@ defmodule PetalComponents.Form do
   ]
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
-  attr(:class, :string, doc: "any additionaly CSS classes")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:options, :list, default: [], doc: "options for the select/radio_group/checkbox_group")
-
-  attr(:layout, :atom,
-    default: :col,
-    values: [:row, :col],
-    doc: "layout for the radio_group or checkbox_group only"
-  )
 
   attr(:type, :string,
     default: "text_input",
@@ -79,21 +71,12 @@ defmodule PetalComponents.Form do
   )
 
   attr(:wrapper_classes, :string, default: "mb-6", doc: "CSS class for wrapper")
-  attr(:disabled, :boolean, default: false, doc: "disables the input")
   attr :rest, :global, include: @form_attrs
 
   @doc "Use this when you want to include the label and some margin."
   def form_field(assigns) do
     assigns =
       assigns
-      |> assign_new(:input_opts, fn ->
-        assigns_to_attributes(assigns, [
-          :form,
-          :field,
-          :label,
-          :wrapper_classes
-        ])
-      end)
       |> assign_new(:label, fn ->
         if assigns[:field] do
           Form.humanize(assigns[:field])
@@ -101,85 +84,84 @@ defmodule PetalComponents.Form do
           nil
         end
       end)
-      |> assign_new(:wrapper_classes, fn -> "mb-6" end)
 
     ~H"""
     <div class={@wrapper_classes}>
       <%= case @type do %>
         <% "checkbox" -> %>
           <label class="inline-flex items-center gap-3">
-            <.checkbox form={@form} field={@field} {@input_opts} />
+            <.checkbox form={@form} field={@field} {@rest} />
             <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}>
               <%= @label %>
             </div>
           </label>
         <% "switch" -> %>
           <label class="inline-flex items-center gap-3">
-            <.switch form={@form} field={@field} {@input_opts} />
+            <.switch form={@form} field={@field} {@rest} />
             <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}>
               <%= @label %>
             </div>
           </label>
         <% "checkbox_group" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.checkbox_group form={@form} field={@field} {@input_opts} />
+          <.checkbox_group form={@form} field={@field} {@rest} />
         <% "radio_group" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.radio_group form={@form} field={@field} {@input_opts} />
+          <.radio_group form={@form} field={@field} {@rest} />
         <% "text_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.text_input form={@form} field={@field} {@input_opts} />
+          <.text_input form={@form} field={@field} {@rest} />
         <% "email_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.email_input form={@form} field={@field} {@input_opts} />
+          <.email_input form={@form} field={@field} {@rest} />
         <% "number_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.number_input form={@form} field={@field} {@input_opts} />
+          <.number_input form={@form} field={@field} {@rest} />
         <% "password_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.password_input form={@form} field={@field} {@input_opts} />
+          <.password_input form={@form} field={@field} {@rest} />
         <% "search_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.search_input form={@form} field={@field} {@input_opts} />
+          <.search_input form={@form} field={@field} {@rest} />
         <% "telephone_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.telephone_input form={@form} field={@field} {@input_opts} />
+          <.telephone_input form={@form} field={@field} {@rest} />
         <% "url_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.url_input form={@form} field={@field} {@input_opts} />
+          <.url_input form={@form} field={@field} {@rest} />
         <% "time_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.time_input form={@form} field={@field} {@input_opts} />
+          <.time_input form={@form} field={@field} {@rest} />
         <% "time_select" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.time_select form={@form} field={@field} {@input_opts} />
+          <.time_select form={@form} field={@field} {@rest} />
         <% "datetime_select" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.datetime_select form={@form} field={@field} {@input_opts} />
+          <.datetime_select form={@form} field={@field} {@rest} />
         <% "datetime_local_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.datetime_local_input form={@form} field={@field} {@input_opts} />
+          <.datetime_local_input form={@form} field={@field} {@rest} />
         <% "date_select" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.date_select form={@form} field={@field} {@input_opts} />
+          <.date_select form={@form} field={@field} {@rest} />
         <% "date_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.date_input form={@form} field={@field} {@input_opts} />
+          <.date_input form={@form} field={@field} {@rest} />
         <% "color_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.color_input form={@form} field={@field} {@input_opts} />
+          <.color_input form={@form} field={@field} {@rest} />
         <% "file_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.file_input form={@form} field={@field} {@input_opts} />
+          <.file_input form={@form} field={@field} {@rest} />
         <% "range_input" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.range_input form={@form} field={@field} {@input_opts} />
+          <.range_input form={@form} field={@field} {@rest} />
         <% "textarea" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.textarea form={@form} field={@field} {@input_opts} />
+          <.textarea form={@form} field={@field} {@rest} />
         <% "select" -> %>
           <.form_label form={@form} field={@field} label={@label} />
-          <.select form={@form} field={@field} {@input_opts} />
+          <.select form={@form} field={@field} {@rest} />
       <% end %>
 
       <.form_field_error class="mt-1" form={@form} field={@field} />
@@ -524,7 +506,10 @@ defmodule PetalComponents.Form do
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :string, default: "", doc: "extra classes for the text input")
-  attr(:rest, :global, include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs)
+
+  attr(:rest, :global,
+    include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
+  )
 
   def checkbox(assigns) do
     assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
