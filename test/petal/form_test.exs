@@ -269,6 +269,7 @@ defmodule PetalComponents.FormTest do
           field={:name}
           placeholder="eg. John"
           wrapper_classes="wrapper-test"
+          help_text="Help!"
         />
       </.form>
       """)
@@ -280,6 +281,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "too long"
     assert html =~ "blank"
     assert html =~ "<div class=\"wrapper-test\""
+    assert html =~ "Help!"
   end
 
   test "form_field text_input" do
