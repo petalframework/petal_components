@@ -218,6 +218,32 @@ defmodule PetalComponents.FormTest do
     assert html =~ "mt-1"
   end
 
+  test "form_help_text" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form_help_text help_text="Inline" />
+      """)
+
+    assert html =~ "Inline"
+
+    html =
+      rendered_to_string(~H"""
+      <.form_help_text>Utilising slot</.form_help_text>
+      """)
+
+    assert html =~ "Utilising slot"
+
+    html =
+      rendered_to_string(~H"""
+      <.form_help_text class="mt-1" help_text="Test class" />
+      """)
+
+    assert html =~ "Test class"
+    assert html =~ "mt-1"
+  end
+
   test "form_field wrapper_classes" do
     assigns = %{}
 
