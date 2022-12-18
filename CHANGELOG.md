@@ -1,4 +1,8 @@
 # Changelog
+### 0.19.2 - 2022-12-18 20:22:40
+- Enhancement: Dropdowns are more customisable with classes
+- Chore: Cleaned up form field attrs
+- Fix: Changed the heading attr :no_margin to be a :boolean
 ### 0.19.1 - 2022-12-14 00:56:52
 - Fixed form_field class attribute - it wasn't getting appended to the input classes properly
 ### 0.19.0 - 2022-12-13 05:11:47
