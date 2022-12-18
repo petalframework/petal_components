@@ -13,7 +13,7 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
@@ -37,7 +37,7 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
@@ -53,7 +53,7 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
@@ -69,7 +69,7 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
@@ -85,7 +85,7 @@ defmodule PetalComponents.Typography do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :string, default: nil, doc: "removes margin from headings")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
   attr(:color_class, :string, default: nil, doc: "adds a color class")
   attr(:rest, :global)
