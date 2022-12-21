@@ -63,6 +63,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
   attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:help_text, :string, default: nil, doc: "context/help for your field")
 
   attr(:type, :string,
     default: "text_input",
@@ -165,6 +166,7 @@ defmodule PetalComponents.Form do
       <% end %>
 
       <.form_field_error class="mt-1" form={@form} field={@field} />
+      <.form_help_text class="mt-1" help_text={@help_text} />
     </div>
     """
   end
@@ -670,6 +672,23 @@ defmodule PetalComponents.Form do
     """
   end
 
+  attr(:class, :string, default: "", doc: "extra classes for the help text")
+  attr(:help_text, :string, default: nil, doc: "context/help for your field")
+  slot(:inner_block, required: false)
+  attr(:rest, :global)
+
+  def form_help_text(assigns) do
+    assigns = assign_defaults(assigns, help_text_classes(assigns))
+
+    ~H"""
+    <%= if @inner_block || @help_text do %>
+      <p class={@classes} {@rest}>
+        <%= render_slot(@inner_block) || @help_text %>
+      </p>
+    <% end %>
+    """
+  end
+
   defp generated_translated_errors(form, field) do
     translate_error = translator_from_config() || (&translate_error/1)
 
@@ -731,6 +750,10 @@ defmodule PetalComponents.Form do
       end
 
     "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} text-sm block text-gray-900 dark:text-gray-200"
+  end
+
+  defp help_text_classes(_assigns) do
+    "text-xs block text-gray-900 dark:text-gray-300"
   end
 
   defp text_input_classes(has_error) do
