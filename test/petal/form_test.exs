@@ -329,6 +329,36 @@ defmodule PetalComponents.FormTest do
     assert html =~ "w-max"
   end
 
+  test "form_field checkbox label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
+      >
+        <.form_field type="checkbox" form={f} field={:name} />
+      </.form>
+      """)
+
+    assert html =~ "Name"
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
+      >
+        <.form_field type="checkbox" form={f} field={:name} label="Something else" />
+      </.form>
+      """)
+
+    assert html =~ "Something else"
+  end
+
   test "number_input" do
     assigns = %{}
 

@@ -62,7 +62,7 @@ defmodule PetalComponents.Form do
   ]
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
-  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:label, :string, doc: "labels your field")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
 
   attr(:type, :string,
