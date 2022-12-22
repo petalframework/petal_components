@@ -1,4 +1,10 @@
 # Changelog
+### 0.19.3 - 2022-12-22 02:42:17
+- Added: help text for form fields
+- Enhancement: <.td> can now accept colspan and rowspan attributes
+- Enhancement: Added some optional textarea attributes: cols, rows and wrap
+- Fixed: checkbox_group "checked" attr wasn't getting passed through
+- Fixed: checkbox label wasn't working when no label attr was passed
 ### 0.19.2 - 2022-12-18 20:22:40
 - Enhancement: Dropdowns are more customisable with classes
 - Chore: Cleaned up form field attrs
