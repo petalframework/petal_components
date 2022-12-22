@@ -113,6 +113,17 @@ defmodule PetalComponents.FormTest do
     assert html =~ "Read"
     assert html =~ "phx-feedback-for"
     assert html =~ "Write"
+    refute html =~ "checked"
+
+    # Test "checked" attribute
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={:user}>
+        <.checkbox_group checked={["read"]} form={f} field={:roles} options={[{"Read", "read"}, {"Write", "write"}]} />
+      </.form>
+      """)
+
+    assert html =~ "checked"
   end
 
   test "switch" do

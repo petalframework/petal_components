@@ -531,6 +531,7 @@ defmodule PetalComponents.Form do
   attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:layout, :atom, default: :col, values: [:row, :col], doc: "layout for the checkboxes")
+  attr(:checked, :list, doc: "a list of checked values")
   attr(:rest, :global, include: @form_attrs)
 
   def checkbox_group(assigns) do
