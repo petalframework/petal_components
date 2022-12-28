@@ -15,6 +15,7 @@ defmodule PetalComponents.Form do
   attr(:field, :atom, default: nil, doc: "")
   attr(:has_error, :boolean, default: false, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :string, doc: "CSS classes to add to your label")
   slot(:inner_block, required: false)
   attr(:rest, :global)
 
@@ -63,6 +64,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
   attr(:label, :string, doc: "labels your field")
+  attr(:label_class, :string, default: nil, doc: "extra CSS for your label")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
 
   attr(:type, :string,
@@ -92,76 +94,76 @@ defmodule PetalComponents.Form do
         <% "checkbox" -> %>
           <label class="inline-flex items-center gap-3">
             <.checkbox form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}>
+            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
               <%= @label %>
             </div>
           </label>
         <% "switch" -> %>
           <label class="inline-flex items-center gap-3">
             <.switch form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}>
+            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
               <%= @label %>
             </div>
           </label>
         <% "checkbox_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.checkbox_group form={@form} field={@field} {@rest} />
         <% "radio_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.radio_group form={@form} field={@field} {@rest} />
         <% "text_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.text_input form={@form} field={@field} {@rest} />
         <% "email_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.email_input form={@form} field={@field} {@rest} />
         <% "number_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.number_input form={@form} field={@field} {@rest} />
         <% "password_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.password_input form={@form} field={@field} {@rest} />
         <% "search_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.search_input form={@form} field={@field} {@rest} />
         <% "telephone_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.telephone_input form={@form} field={@field} {@rest} />
         <% "url_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.url_input form={@form} field={@field} {@rest} />
         <% "time_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.time_input form={@form} field={@field} {@rest} />
         <% "time_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.time_select form={@form} field={@field} {@rest} />
         <% "datetime_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.datetime_select form={@form} field={@field} {@rest} />
         <% "datetime_local_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.datetime_local_input form={@form} field={@field} {@rest} />
         <% "date_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.date_select form={@form} field={@field} {@rest} />
         <% "date_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.date_input form={@form} field={@field} {@rest} />
         <% "color_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.color_input form={@form} field={@field} {@rest} />
         <% "file_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.file_input form={@form} field={@field} {@rest} />
         <% "range_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.range_input form={@form} field={@field} {@rest} />
         <% "textarea" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.textarea form={@form} field={@field} {@rest} />
         <% "select" -> %>
-          <.form_label form={@form} field={@field} label={@label} />
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.select form={@form} field={@field} {@rest} />
       <% end %>
 
@@ -750,7 +752,7 @@ defmodule PetalComponents.Form do
         "mb-2 font-medium"
       end
 
-    "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} text-sm block text-gray-900 dark:text-gray-200"
+    "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} #{assigns[:class] || ""} text-sm block text-gray-900 dark:text-gray-200"
   end
 
   defp help_text_classes(_assigns) do

@@ -165,13 +165,14 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={:user}>
-        <.form_label form={f} field={:name} />
+        <.form_label form={f} field={:name} class="text-pink-500" />
       </.form>
       """)
 
     assert html =~ "label"
     assert html =~ "Name"
     assert html =~ "phx-feedback-for"
+    assert html =~ "text-pink-500"
 
     html =
       rendered_to_string(~H"""
@@ -293,6 +294,30 @@ defmodule PetalComponents.FormTest do
     assert html =~ "blank"
     assert html =~ "<div class=\"wrapper-test\""
     assert html =~ "Help!"
+  end
+
+  test "form_field label_class" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
+      >
+        <.form_field
+          type="text_input"
+          form={f}
+          field={:name}
+          placeholder="eg. John"
+          label_class="label-class-test"
+          help_text="Help!"
+        />
+      </.form>
+      """)
+
+    assert html =~ "label-class-test"
   end
 
   test "form_field text_input" do
