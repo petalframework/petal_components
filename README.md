@@ -102,7 +102,7 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] modal
 - [x] slide over
 - [x] spinners
-- [x] accordian
+- [x] accordion
 - [x] pagination
 - [x] badges
 - [x] progress

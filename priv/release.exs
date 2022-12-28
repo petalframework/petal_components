@@ -1,6 +1,6 @@
 defmodule Releaser.VersionUtils do
   @doc """
-  Some utilities to get and set version numbers in the `mix.exs` file and to programatically transform version numbers.
+  Some utilities to get and set version numbers in the `mix.exs` file and to programmatically transform version numbers.
 
   1. Create a file RELEASE.md and fill out the following templates.
 
