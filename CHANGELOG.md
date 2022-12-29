@@ -1,4 +1,8 @@
 # Changelog
+### 0.19.4 - 2022-12-29 00:10:21
+- New <.icon> functional component that renders a dynamic Heroicon (v2)
+- Added label_class attr to all form inputs so you can change the look of labels
+- Fixed "checked" attr for checkbox_group use with form_field
 ### 0.19.3 - 2022-12-22 02:42:17
 - Added: help text for form fields
 - Enhancement: <.td> can now accept colspan and rowspan attributes
