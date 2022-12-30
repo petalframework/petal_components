@@ -10,6 +10,8 @@ Petal Components work fine with Phoenix 1.7 - there just will be some naming con
 
 To fix, go to the generated `core_components.ex` file and rename or remove the following functions: `modal`, `button` and `table`.
 
+Unfortunately, this means the generators like `mix phx.gen.live` won't work properly. If you want generators for Petal Components, look into buying [Petal Pro](https://petal.build).
+
 For a full upgrade commit of Phoenix 1.6 to 1.7 you can see [here](https://github.com/petalframework/petal_boilerplate/commit/dfd122902b2f1730f122efafc3d6962c2a6ce91d) how we did it with Petal Boilerplate.
 
 If you want to pick and choose which components to use, you could namespace Petal Components.
