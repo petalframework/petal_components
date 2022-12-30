@@ -168,7 +168,7 @@ defmodule PetalComponents.Form do
       <% end %>
 
       <.form_field_error class="mt-1" form={@form} field={@field} />
-      <.form_help_text class="mt-1" help_text={@help_text} />
+      <.form_help_text class="mt-2" help_text={@help_text} />
     </div>
     """
   end
@@ -681,11 +681,9 @@ defmodule PetalComponents.Form do
   attr(:rest, :global)
 
   def form_help_text(assigns) do
-    assigns = assign_defaults(assigns, help_text_classes(assigns))
-
     ~H"""
     <%= if @inner_block || @help_text do %>
-      <p class={@classes} {@rest}>
+      <p class={["text-sm text-gray-500 dark:text-gray-400", @class]} {@rest}>
         <%= render_slot(@inner_block) || @help_text %>
       </p>
     <% end %>
