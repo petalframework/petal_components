@@ -1,4 +1,6 @@
 # Changelog
+### 0.19.5 - 2022-12-30 06:00:52
+- Changed: form_help_text colours
 ### 0.19.4 - 2022-12-29 00:10:21
 - New <.icon> functional component that renders a dynamic Heroicon (v2)
 - Added label_class attr to all form inputs so you can change the look of labels
