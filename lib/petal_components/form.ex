@@ -114,6 +114,8 @@ defmodule PetalComponents.Form do
         <% "text_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.text_input form={@form} field={@field} {@rest} />
+        <% "hidden_input" -> %>
+          <.hidden_input form={@form} field={@field} {@rest} />
         <% "email_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.email_input form={@form} field={@field} {@rest} />
@@ -652,6 +654,22 @@ defmodule PetalComponents.Form do
 
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
+  attr(:rest, :global, include: @form_attrs)
+
+  def hidden_input(assigns) do
+    assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
+
+    ~H"""
+    <%= Form.hidden_input(
+      @form,
+      @field,
+      [phx_feedback_for: Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+    ) %>
+    """
+  end
+
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
   attr(:class, :string, default: "", doc: "extra classes for the text input")
 
   def form_field_error(assigns) do
@@ -751,10 +769,6 @@ defmodule PetalComponents.Form do
       end
 
     "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} #{assigns[:class] || ""} text-sm block text-gray-900 dark:text-gray-200"
-  end
-
-  defp help_text_classes(_assigns) do
-    "text-xs block text-gray-900 dark:text-gray-300"
   end
 
   defp text_input_classes(has_error) do

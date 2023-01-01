@@ -1,4 +1,5 @@
 RELEASE_TYPE: patch
 
-- Fixed "list" attr warning for inputs
-- Fixed "for" attr warning for label
+- New: `<.hidden_input>` form element
+- Added "list" attr warning for inputs
+- Added "for" attr warning for label

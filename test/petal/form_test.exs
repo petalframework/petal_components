@@ -642,4 +642,22 @@ defmodule PetalComponents.FormTest do
     assert html =~ "something"
     assert html =~ "phx-feedback-for"
   end
+
+  test "hidden_input" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={:user}>
+        <.hidden_input form={f} field={:token} itemid="something" />
+      </.form>
+      """)
+
+    assert html =~ "input"
+    assert html =~ "hidden"
+    assert html =~ "token"
+    assert html =~ "user[token]"
+    assert html =~ "itemid"
+    assert html =~ "something"
+  end
 end
