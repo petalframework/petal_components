@@ -17,7 +17,7 @@ defmodule PetalComponents.Form do
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :string, doc: "CSS classes to add to your label")
   slot(:inner_block, required: false)
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(for))
 
   def form_label(assigns) do
     assigns =
