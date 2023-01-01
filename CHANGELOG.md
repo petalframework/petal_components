@@ -1,4 +1,8 @@
 # Changelog
+### 0.19.6 - 2023-01-01 22:18:07
+- New: `<.hidden_input>` form element
+- Added "list" attr warning for inputs
+- Added "for" attr warning for label
 ### 0.19.5 - 2022-12-30 06:00:52
 - Changed: form_help_text colours
 ### 0.19.4 - 2022-12-29 00:10:21
