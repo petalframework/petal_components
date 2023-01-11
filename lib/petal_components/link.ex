@@ -5,9 +5,9 @@ defmodule PetalComponents.Link do
   attr(:link_type, :string, default: "a", values: ["a", "live_patch", "live_redirect", "button"])
   attr(:label, :string, default: nil, doc: "label your link")
   attr(:to, :string, default: nil, doc: "link path")
+  attr(:disabled, :boolean, default: false, doc: "disables your link")
   attr(:rest, :global, include: ~w(method))
   slot(:inner_block, required: false)
-  attr(:disabled, :boolean, default: false, doc: "disables your link")
 
   def a(%{link_type: "a"} = assigns) do
     ~H"""
@@ -35,7 +35,7 @@ defmodule PetalComponents.Link do
 
   def a(%{link_type: "button"} = assigns) do
     ~H"""
-    <button class={@class} {@rest}>
+    <button class={@class} disabled={@disabled} {@rest}>
       <%= if @label, do: @label, else: render_slot(@inner_block) %>
     </button>
     """

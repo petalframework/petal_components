@@ -96,4 +96,18 @@ defmodule PetalComponents.ATest do
            <Link.a to="/" label="Press me" />, blah
            """) =~ "</a>, blah"
   end
+
+  test "link as a disabled button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="button" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ "disabled"
+  end
 end
