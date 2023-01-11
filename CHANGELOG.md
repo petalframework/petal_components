@@ -1,4 +1,6 @@
 # Changelog
+### 0.19.7 - 2023-01-11 21:20:15
+- Fixed disabled buttons
 ### 0.19.6 - 2023-01-01 22:18:07
 - New: `<.hidden_input>` form element
 - Added "list" attr warning for inputs
