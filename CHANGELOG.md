@@ -1,4 +1,6 @@
 # Changelog
+### 0.19.8 - 2023-01-12 00:37:24
+- New: Button now can take an icon name as an attribute. eg `<.button icon={:home} label="Home" />`
 ### 0.19.7 - 2023-01-11 21:20:15
 - Fixed disabled buttons
 ### 0.19.6 - 2023-01-01 22:18:07
