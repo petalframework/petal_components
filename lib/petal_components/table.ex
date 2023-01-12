@@ -25,7 +25,7 @@ defmodule PetalComponents.Table do
   end
 
   attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(colspan rowspan))
   slot(:inner_block, required: false)
 
   def th(assigns) do
