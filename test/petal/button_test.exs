@@ -143,4 +143,16 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ ~s{custom-attr="123"}
     assert html =~ ~s{type="button"}
   end
+
+  test "button with icon attr" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button icon={:home} label="Home" />
+      """)
+
+    assert html =~ "<button"
+    assert html =~ "<svg"
+  end
 end
