@@ -1,4 +1,8 @@
 # Changelog
+### 0.19.10 - 2023-01-14 09:24:34
+- Fixed: support button attrs: 'value', 'name'
+- Fixed: support form element attr: 'accept'
+- Fixed: support link attr: 'download'
 ### 0.19.9 - 2023-01-12 22:41:06
 - Fix: <.th> can now accept colspan and rowspan
 ### 0.19.8 - 2023-01-12 00:37:24
