@@ -1,9 +1,10 @@
 .pc-text-base {
 }
 
-// Container
+/* Container */
+
 .pc-container {
-  @apply mx-auto sm:px-6 lg:px-8 w-full;
+  @apply w-full mx-auto sm:px-6 lg:px-8;
 }
 
 .pc-container--sm {
@@ -23,6 +24,33 @@
 }
 .pc-container--mobile-padded {
   @apply px-4;
+}
+
+/* Buttons */
+
+.pc-button--xs {
+  @apply text-xs leading-4 px-2.5 py-1.5;
+}
+.pc-button--sm {
+  @apply px-3 py-2 text-sm leading-4;
+}
+.pc-button--md {
+  @apply px-4 py-2 text-sm leading-5;
+}
+.pc-button--lg {
+  @apply px-4 py-2 text-base leading-6;
+}
+.pc-button--xl {
+  @apply px-6 py-3 text-base leading-6;
+}
+.pc-button--loading {
+  @apply flex items-center gap-2 cursor-not-allowed whitespace-nowrap;
+}
+.pc-button--with-icon {
+  @apply flex items-center gap-2 whitespace-nowrap;
+}
+.pc-icon-button {
+  @apply inline-block p-2 rounded-full;
 }
 
 .select-wrapper select {

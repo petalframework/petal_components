@@ -45,7 +45,11 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your button")
-  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type value name))
+
+  attr(:rest, :global,
+    include: ~w(method download hreflang ping referrerpolicy rel target type value name)
+  )
+
   slot(:inner_block, required: false)
 
   def button(assigns) do
@@ -97,7 +101,7 @@ defmodule PetalComponents.Button do
       link_type={@link_type}
       class={
         build_class([
-          "rounded-full p-2 inline-block",
+          "pc-icon-button",
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
           get_icon_button_color_classes(@color),
@@ -130,28 +134,11 @@ defmodule PetalComponents.Button do
 
     color_css = get_color_classes(opts)
 
-    size_css =
-      case opts[:size] do
-        "xs" -> "text-xs leading-4 px-2.5 py-1.5"
-        "sm" -> "text-sm leading-4 px-3 py-2"
-        "md" -> "text-sm leading-5 px-4 py-2"
-        "lg" -> "text-base leading-6 px-4 py-2"
-        "xl" -> "text-base leading-6 px-6 py-3"
-      end
+    size_css = "pc-button--#{opts.size}"
 
-    loading_css =
-      if opts[:loading] do
-        "flex gap-2 items-center whitespace-nowrap disabled cursor-not-allowed"
-      else
-        ""
-      end
+    loading_css = if opts[:loading], do: "pc-button--loading", else: ""
 
-    icon_css =
-      if opts[:with_icon] do
-        "flex gap-2 items-center whitespace-nowrap"
-      else
-        ""
-      end
+    icon_css = if opts[:with_icon], do: "pc-button--with-icon", else: ""
 
     [
       opts.user_added_classes,
