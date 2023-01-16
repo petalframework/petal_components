@@ -20,8 +20,7 @@ defmodule PetalComponents.Container do
       {@rest}
       class={
         build_class([
-          "mx-auto sm:px-6 lg:px-8 w-full",
-          get_width_class(@max_width),
+          "pc-container pc-container--#{@max_width}",
           get_padding_class(@no_padding_on_mobile),
           @class
         ])
@@ -32,17 +31,7 @@ defmodule PetalComponents.Container do
     """
   end
 
-  defp get_width_class(max_width) do
-    case max_width do
-      "sm" -> "max-w-3xl"
-      "md" -> "max-w-5xl"
-      "lg" -> "max-w-7xl"
-      "xl" -> "max-w-[85rem]"
-      "full" -> "max-w-full"
-    end
-  end
-
   defp get_padding_class(no_padding_on_mobile) do
-    if no_padding_on_mobile, do: "", else: "px-4"
+    if no_padding_on_mobile, do: "", else: "pc-container--mobile-padded"
   end
 end

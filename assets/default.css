@@ -1,0 +1,93 @@
+.pc-text-base {
+}
+
+// Container
+.pc-container {
+  @apply mx-auto sm:px-6 lg:px-8 w-full;
+}
+
+.pc-container--sm {
+  @apply max-w-3xl;
+}
+.pc-container--md {
+  @apply max-w-5xl;
+}
+.pc-container--lg {
+  @apply max-w-7xl;
+}
+.pc-container--xl {
+  @apply max-w-[85rem];
+}
+.pc-container--full {
+  @apply max-w-full;
+}
+.pc-container--mobile-padded {
+  @apply px-4;
+}
+
+.select-wrapper select {
+  @apply text-sm border-gray-300 rounded-md shadow-sm disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+}
+
+label.has-error:not(.phx-no-feedback) {
+  @apply !text-red-900 dark:!text-red-200;
+}
+
+textarea.has-error:not(.phx-no-feedback),
+input.has-error:not(.phx-no-feedback),
+select.has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 dark:!text-red-100 dark:!placeholder-red-300 dark:!bg-red-900 focus:!ring-red-500;
+}
+
+input[type="file_input"].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 !rounded-md focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 file:!border-none dark:!border-none dark:!bg-[#160B0B] dark:text-red-400;
+}
+
+input[type="checkbox"].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 !bg-red-500 dark:!bg-red-800 !text-red-900 dark:!text-red-200;
+}
+
+input[type="radio"].has-error:not(.phx-no-feedback) {
+  @apply !border-red-500 !bg-red-500 dark:!bg-red-800 !text-red-900 dark:!text-red-200;
+}
+
+/* If in tailwind.config.json, darkMode: 'media', use this: */
+/* @media (prefers-color-scheme: dark) {
+    ::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+  } */
+
+/* If in tailwind.config.json, darkMode: 'class', use this: */
+.dark ::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Modal animation */
+.animate-fade-in-scale {
+  animation: 0.2s ease-in 0s normal forwards 1 fade-in-scale-keys;
+}
+
+.animate-fade-in {
+  animation: 0.2s ease-out 0s normal forwards 1 fade-in-keys;
+}
+
+@keyframes fade-in-scale-keys {
+  0% {
+    scale: 0.95;
+    opacity: 0;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-keys {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
