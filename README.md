@@ -33,7 +33,7 @@
 </p>
 
 <p align="center">
-  <a href="https://petal-components-demo.fly.dev">DEMO</a> | <a href="https://petal.build/components">DOCS</a>
+  <a href="https://petal.build/components">View the docs</a>
 </p>
 
 ## About
@@ -80,7 +80,7 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] time, datetime, & date input
 - [x] multiple select (see checkbox group)
 - [x] switch
-- [ ] input help text
+- [x] input help text
 - [ ] input prefix and postfix
 
 ### Buttons
@@ -93,7 +93,6 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 
 ### Misc
 - [x] menu dropdown
-- [ ] tooltips
 - [x] avatar
 - [x] alerts
 - [x] tables
@@ -107,6 +106,7 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] badges
 - [x] progress
 - [x] links
+- [ ] tooltips
 
 ## FAQ
 
