@@ -45,7 +45,7 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your button")
-  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type value name))
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type value name data))
   slot(:inner_block, required: false)
 
   def button(assigns) do
