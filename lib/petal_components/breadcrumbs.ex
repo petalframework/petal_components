@@ -19,7 +19,7 @@ defmodule PetalComponents.Breadcrumbs do
   # />
   def breadcrumbs(assigns) do
     ~H"""
-    <div {@rest} class={"#{@class} flex items-center"}>
+    <div {@rest} class={"#{@class} pc-breadcrumbs"}>
       <%= for {link, counter} <- Enum.with_index(@links) do %>
         <%= if counter > 0 do %>
           <.separator type={@separator} />
@@ -39,7 +39,7 @@ defmodule PetalComponents.Breadcrumbs do
 
   defp separator(%{type: "slash"} = assigns) do
     ~H"""
-    <div class="px-5 text-lg text-gray-300">/</div>
+    <div class="pc-breadcrumbs__separator--slash">/</div>
     """
   end
 
@@ -52,5 +52,5 @@ defmodule PetalComponents.Breadcrumbs do
   end
 
   defp get_breadcrumb_classes(user_classes),
-    do: "hover:underline flex text-gray-500 dark:text-gray-400 #{user_classes}"
+    do: "pc-breadcrumb #{user_classes}"
 end

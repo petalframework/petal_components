@@ -36,8 +36,8 @@ defmodule PetalComponents.Loading do
     build_class([base_classes, custom_classes, show_class, size_classes])
   end
 
-  defp get_size_classes("sm"), do: "h-5 w-5"
-  defp get_size_classes("md"), do: "h-8 w-8"
-  defp get_size_classes("lg"), do: "h-16 w-16"
-  defp get_size_classes(_), do: "h-8 w-8"
+  defp get_size_classes("sm"), do: "pc-spinner--sm"
+  defp get_size_classes("md"), do: "pc-spinner--md"
+  defp get_size_classes("lg"), do: "pc-spinner--lg"
+  defp get_size_classes(_), do: "pc-spinner--catch-all"
 end

@@ -17,13 +17,15 @@ defmodule PetalComponents.Progress do
   def progress(assigns) do
     ~H"""
     <div {@rest} class={@class}>
-      <div class={"#{get_parent_classes(@size)} flex overflow-hidden #{get_parent_color_classes(@color)}"}>
+      <div class={"#{get_parent_classes(@size)} pc-progress #{get_parent_color_classes(@color)}"}>
         <span
-          class={"#{get_color_classes(@color)} text-xs flex flex-col text-center text-white justify-center whitespace-nowrap font-normal leading-6 px-4 py-2"}
+          class={"#{get_color_classes(@color)} pc-progress__inner"}
           style={"width: #{round(@value/@max*100)}%"}
         >
           <%= if @size == "xl" do %>
-            <%= @label %>
+            <span class="pc-progress__label">
+              <%= @label %>
+            </span>
           <% end %>
         </span>
       </div>
@@ -31,25 +33,25 @@ defmodule PetalComponents.Progress do
     """
   end
 
-  defp get_color_classes("primary"), do: "bg-primary-500"
-  defp get_color_classes("secondary"), do: "bg-secondary-500"
-  defp get_color_classes("info"), do: "bg-blue-500"
-  defp get_color_classes("success"), do: "bg-green-500"
-  defp get_color_classes("warning"), do: "bg-yellow-500"
-  defp get_color_classes("danger"), do: "bg-red-500"
-  defp get_color_classes("gray"), do: "bg-gray-500"
+  defp get_color_classes("primary"), do: "pc-progress__inner--primary"
+  defp get_color_classes("secondary"), do: "pc-progress__inner--secondary"
+  defp get_color_classes("info"), do: "pc-progress__inner--info"
+  defp get_color_classes("success"), do: "pc-progress__inner--success"
+  defp get_color_classes("warning"), do: "pc-progress__inner--warning"
+  defp get_color_classes("danger"), do: "pc-progress__inner--danger"
+  defp get_color_classes("gray"), do: "pc-progress__inner--gray"
 
-  defp get_parent_classes("xs"), do: "h-1 rounded-sm"
-  defp get_parent_classes("sm"), do: "h-2 rounded-md"
-  defp get_parent_classes("md"), do: "h-3 rounded-md"
-  defp get_parent_classes("lg"), do: "h-4 rounded-lg"
-  defp get_parent_classes("xl"), do: "h-5 rounded-xl"
+  defp get_parent_classes("xs"), do: "pc-progress--xs"
+  defp get_parent_classes("sm"), do: "pc-progress--sm"
+  defp get_parent_classes("md"), do: "pc-progress--md"
+  defp get_parent_classes("lg"), do: "pc-progress--lg"
+  defp get_parent_classes("xl"), do: "pc-progress--xl"
 
-  defp get_parent_color_classes("primary"), do: "bg-primary-100"
-  defp get_parent_color_classes("secondary"), do: "bg-secondary-100"
-  defp get_parent_color_classes("info"), do: "bg-blue-100"
-  defp get_parent_color_classes("success"), do: "bg-green-100"
-  defp get_parent_color_classes("warning"), do: "bg-yellow-100"
-  defp get_parent_color_classes("danger"), do: "bg-red-100"
-  defp get_parent_color_classes("gray"), do: "bg-gray-100"
+  defp get_parent_color_classes("primary"), do: "pc-progress--primary"
+  defp get_parent_color_classes("secondary"), do: "pc-progress--secondary"
+  defp get_parent_color_classes("info"), do: "pc-progress--info"
+  defp get_parent_color_classes("success"), do: "pc-progress--success"
+  defp get_parent_color_classes("warning"), do: "pc-progress--warning"
+  defp get_parent_color_classes("danger"), do: "pc-progress--danger"
+  defp get_parent_color_classes("gray"), do: "pc-progress--gray"
 end
