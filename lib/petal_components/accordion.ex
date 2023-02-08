@@ -104,7 +104,7 @@ defmodule PetalComponents.Accordion do
           currentlyOpenAccordionItem.dataset.open = false
           currentlyOpenAccordionItem.querySelector("svg").classList.remove("rotate-180");
           currentlyOpenAccordionItem.querySelector(`.accordion-content-container`).style.display = "none";
-          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes");
+          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion__content-container--highlight-accordion-button-on-expanded-js-attributes");
         }
 
         // Open clicked accordion item (if not already open)
@@ -112,7 +112,7 @@ defmodule PetalComponents.Accordion do
           clickedAccordionItem.dataset.open = true
           clickedAccordionItem.querySelector("svg").classList.add("rotate-180");
           clickedAccordionItem.querySelector(`.accordion-content-container`).style.display = "block";
-          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes");
+          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion__content-container--highlight-accordion-button-on-expanded-js-attributes");
         }
       })
     </script>
@@ -142,7 +142,7 @@ defmodule PetalComponents.Accordion do
   defp js_attributes("button", "alpine_js", _container_id, _) do
     %{
       "x-on:click": "expanded = !expanded",
-      ":class": "expanded ? 'pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes' : ''",
+      ":class": "expanded ? 'pc-accordion__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
       ":aria-expanded": "expanded"
     }
   end
