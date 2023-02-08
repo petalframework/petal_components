@@ -57,19 +57,19 @@ defmodule PetalComponents.Accordion do
               {js_attributes("button", @js_lib, @container_id, i)}
               class={
                 build_class([
-                  "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 text-gray-800 border border-gray-200 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
-                  if(i == 0, do: "rounded-t-xl"),
+                  "pc-accordion accordion-button",
+                  if(i == 0, do: "pc-accordion--rounded-top"),
                   unless(i == length(@item) - 1, do: "border-b-0")
                 ])
               }
             >
-              <span class="font-semibold text-md">
+              <span class="pc-accordion__heading">
                 <%= current_item.heading %>
               </span>
 
               <Heroicons.chevron_down
                 solid
-                class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
+                class="pc-accordion__chevron"
                 {js_attributes("icon", @js_lib, @container_id, i)}
               />
             </button>
@@ -80,7 +80,7 @@ defmodule PetalComponents.Accordion do
           >
             <div class={
               build_class([
-                "p-5 border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900",
+                "pc-accordion__content-container",
                 if(i == length(@item) - 1, do: "border-t-0", else: "border-b-0")
               ])
             }>
@@ -104,7 +104,7 @@ defmodule PetalComponents.Accordion do
           currentlyOpenAccordionItem.dataset.open = false
           currentlyOpenAccordionItem.querySelector("svg").classList.remove("rotate-180");
           currentlyOpenAccordionItem.querySelector(`.accordion-content-container`).style.display = "none";
-          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("bg-gray-50", "dark:bg-gray-800");
+          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes");
         }
 
         // Open clicked accordion item (if not already open)
@@ -112,7 +112,7 @@ defmodule PetalComponents.Accordion do
           clickedAccordionItem.dataset.open = true
           clickedAccordionItem.querySelector("svg").classList.add("rotate-180");
           clickedAccordionItem.querySelector(`.accordion-content-container`).style.display = "block";
-          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("bg-gray-50", "dark:bg-gray-800");
+          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes");
         }
       })
     </script>
@@ -142,7 +142,7 @@ defmodule PetalComponents.Accordion do
   defp js_attributes("button", "alpine_js", _container_id, _) do
     %{
       "x-on:click": "expanded = !expanded",
-      ":class": "expanded ? 'bg-gray-50 dark:bg-gray-800' : ''",
+      ":class": "expanded ? 'pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes' : ''",
       ":aria-expanded": "expanded"
     }
   end

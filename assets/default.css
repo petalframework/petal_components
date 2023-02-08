@@ -778,6 +778,155 @@
 }
 .pc-pagination__item-catch-all {}
 
+/* Tabs */
+
+.pc-tabs {
+  @apply flex gap-x-8 gap-y-2;
+}
+.pc-tabs--underlined {
+  @apply border-b border-gray-200 dark:border-gray-600;
+}
+
+/* Tabs - Pill */
+
+.pc-tab__pill {
+  @apply flex items-center px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap;
+}
+.pc-tab__pill--is-active {
+  @apply bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-500;
+}
+.pc-tab__pill--is-not-active {
+  @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100;
+}
+
+/* Tabs - Individual Tab Underline */
+
+.pc-tab__underline {
+  @apply flex items-center px-3 py-3 text-sm font-medium border-b-2 whitespace-nowrap;
+}
+.pc-tab__underline--is-active {
+  @apply border-primary-500 text-primary-600 dark:text-primary-500 dark:border-primary-500;
+}
+.pc-tab__underline--is-not-active {
+  @apply text-gray-500 border-transparent dark:hover:text-gray-300 dark:text-gray-400 hover:border-gray-300 hover:text-gray-600;
+}
+.pc-tab__underline--with-underline-and-is-active {}
+.pc-tab__underline--with-underline-and-is-not-active {
+  @apply hover:border-gray-300;
+}
+
+/* Tabs - Number */
+.pc-tab__number {
+  @apply whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal;
+}
+
+/* Tabs - Pill with number */
+.pc-tab__number__pill--is-active {
+  @apply text-white bg-primary-600;
+}
+.pc-tab__number__pill--is-not-active {
+  @apply text-white bg-gray-500 dark:bg-gray-600;
+}
+
+/* Tabs - Underlined with number */
+.pc-tab__number__underline--is-active {
+  @apply bg-primary-100 text-primary-600;
+}
+.pc-tab__number__underline--is-not-active {
+  @apply text-gray-500 bg-gray-100;
+}
+.pc-tab__number__underline--with-underline-and-is-active {
+  @apply bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white;
+}
+.pc-tab__number__underline--with-underline-and-is-not-active {
+  @apply text-gray-500 bg-gray-100 dark:bg-gray-600 dark:text-white;
+}
+
+/* Cards */
+.pc-card {
+  @apply flex flex-wrap overflow-hidden bg-white dark:bg-gray-800;
+}
+.pc-card__inner {
+  @apply flex flex-col w-full max-w-full;
+}
+.pc-card--basic {
+  @apply border border-gray-200 rounded-lg shadow-lg dark:shadow-2xl dark:border-none;
+}
+.pc-card--outline {
+  @apply border border-gray-300 rounded-lg dark:border-gray-600;
+}
+
+/* Cards - content */
+.pc-card__card-content {
+  @apply flex-1 p-6 text-base font-light text-gray-500 dark:text-gray-400;
+}
+.pc-card__card-content__category {
+  @apply mb-3 text-sm font-medium;
+}
+.pc-card__card-content__heading {
+  @apply mb-2 text-xl font-medium text-gray-900 dark:text-gray-300;
+}
+
+/* Cards - with media */
+.pc-card__card-media--with-image {
+  @apply flex-shrink-0 object-cover w-full;
+}
+.pc-card__card-media--placeholder {
+  @apply flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700;
+}
+
+/* Cards - footer */
+.pc-card__footer {
+  @apply px-6 pb-6;
+}
+
+/* Table */
+.pc-table {
+  @apply min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm table-auto ring-1 ring-gray-200 dark:ring-0 dark:divide-y-0 dark:divide-gray-800 sm:rounded;
+}
+.pc-table__th {
+  @apply px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300;
+}
+.pc-table__tr {
+  @apply bg-white border-b dark:border-gray-700 dark:bg-gray-800 last:border-none;
+}
+.pc-table__td {
+  @apply px-6 py-4 text-sm text-gray-500 dark:text-gray-400;
+}
+.pc-table__user-inner-td {
+  @apply flex items-center gap-3;
+}
+.pc-table__user-inner-td__inner {
+  @apply flex flex-col overflow-hidden;
+}
+.pc-table__user-inner-td__label {
+  @apply overflow-hidden font-medium text-gray-900 whitespace-nowrap text-ellipsis dark:text-gray-300;
+}
+.pc-table__user-inner-td__sub-label {
+  @apply overflow-hidden font-normal text-gray-500 whitespace-nowrap text-ellipsis;
+}
+
+/* Accordion */
+.pc-accordion {
+  @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800;
+}
+.pc-accordion--rounded-top {
+  @apply rounded-t-xl;
+}
+.pc-accordion__heading {
+  @apply text-base font-semibold;
+}
+.pc-accordion__chevron {
+  @apply flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+}
+.pc-accordion__content-container {
+  @apply p-5 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-900;
+}
+.pc-accordion__content-container--highlight-accordion-button-on-expanded-alpine-js-attributes {
+  @apply bg-green-50 dark:bg-gray-800;
+}
+
+
 /* Other */
 
 .select-wrapper select {
