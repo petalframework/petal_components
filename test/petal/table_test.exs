@@ -11,7 +11,7 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<table"
-    assert html =~ "divide-gray-200"
+    assert html =~ "pc-table"
   end
 
   test "tr" do
@@ -23,8 +23,7 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<tr"
-    assert html =~ "last:border-none"
-    assert html =~ "bg-white"
+    assert html =~ "table__tr"
   end
 
   test "th" do
@@ -36,7 +35,7 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<th"
-    assert html =~ "bg-gray-50"
+    assert html =~ "pc-table__th"
   end
 
   test "td" do
@@ -50,8 +49,7 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<td"
-    assert html =~ "text-gray-500"
-    assert html =~ "dark:text-gray-400"
+    assert html =~ "pc-table__td"
   end
 
   test "user_inner_td" do
@@ -72,9 +70,8 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<img src="
-    assert html =~ "flex-col"
-    assert html =~ "overflow-hidden"
-    assert html =~ "text-ellipsis"
+    assert html =~ "pc-table__user-inner-td__inner"
+    assert html =~ "pc-table__user-inner-td__sub-label"
   end
 
   test "components include additional assigns" do

@@ -74,7 +74,7 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "text-md"
-    assert html =~ "dark:"
+    assert html =~ "pc-breadcrumb"
   end
 
   test "should include additional assigns" do

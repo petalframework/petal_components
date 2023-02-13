@@ -42,7 +42,7 @@ defmodule PetalComponents.AvatarTest do
       """)
 
     assert html =~ "<div"
-    assert html =~ "-space-x-"
+    assert html =~ "pc-avatar-group--xs"
   end
 
   test "it renders the avatar with initials" do
