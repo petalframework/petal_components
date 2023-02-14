@@ -91,7 +91,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "pc-button--primary--shadow"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with dark mode" do
@@ -104,7 +104,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "pc-button--primary--shadow"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with custom class" do

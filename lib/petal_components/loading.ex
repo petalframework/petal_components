@@ -29,7 +29,7 @@ defmodule PetalComponents.Loading do
   end
 
   defp get_spinner_classes(user_added_classes, show, size, custom_size_class) do
-    base_classes = "animate-spin"
+    base_classes = "pc-button__spinner-icon"
     custom_classes = user_added_classes
     show_class = if show == false, do: "hidden", else: ""
     size_classes = custom_size_class || get_size_classes(size)
@@ -39,5 +39,5 @@ defmodule PetalComponents.Loading do
   defp get_size_classes("sm"), do: "pc-spinner--sm"
   defp get_size_classes("md"), do: "pc-spinner--md"
   defp get_size_classes("lg"), do: "pc-spinner--lg"
-  defp get_size_classes(_), do: "pc-spinner--catch-all"
+  defp get_size_classes(_), do: "pc-spinner--md"
 end

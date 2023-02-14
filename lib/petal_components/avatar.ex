@@ -27,10 +27,7 @@ defmodule PetalComponents.Avatar do
           ])
         }
       >
-        <Heroicons.user
-          solid
-          class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform"
-        />
+        <Heroicons.user solid class="pc-avatar__placeholder-icon" />
       </div>
     <% else %>
       <%= if src_blank?(@src) && @name do %>
@@ -77,11 +74,7 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <div {@rest} class={@classes}>
       <%= for src <- @avatars do %>
-        <.avatar
-          src={src}
-          size={@size}
-          class={build_class(["pc-avatar-group", @class])}
-        />
+        <.avatar src={src} size={@size} class={build_class(["pc-avatar-group", @class])} />
       <% end %>
     </div>
     """

@@ -14,7 +14,11 @@ defmodule PetalComponents.Dropdown do
   attr(:options_container_id, :string)
   attr(:label, :string, default: nil, doc: "labels your dropdown option")
   attr(:class, :string, default: "", doc: "any extra CSS class for the parent container")
-  attr(:menu_items_wrapper_class, :string, default: "", doc: "any extra CSS class for menu item wrapper container")
+
+  attr(:menu_items_wrapper_class, :string,
+    default: "",
+    doc: "any extra CSS class for menu item wrapper container"
+  )
 
   attr(:js_lib, :string,
     default: "alpine_js",
@@ -60,7 +64,7 @@ defmodule PetalComponents.Dropdown do
 
           <%= if @label do %>
             <%= @label %>
-            <Heroicons.chevron_down solid class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+            <Heroicons.chevron_down solid class="pc-dropdown__chevron" />
           <% end %>
 
           <%= if @trigger_element do %>
@@ -68,7 +72,7 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && @trigger_element == [] do %>
-            <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
+            <Heroicons.ellipsis_vertical solid class="pc-dropdown__ellipsis" />
           <% end %>
         </button>
       </div>
@@ -102,24 +106,17 @@ defmodule PetalComponents.Dropdown do
 
   def dropdown_menu_item(assigns) do
     ~H"""
-    <Link.a
-      link_type={@link_type}
-      to={@to}
-      class={"#{@class} pc-dropdown__menu-item"}
-      {@rest}
-    >
+    <Link.a link_type={@link_type} to={@to} class={"#{@class} pc-dropdown__menu-item"} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
   end
 
   defp trigger_button_classes(nil, []),
-    do:
-      "pc-dropdown__trigger-button--no-label"
+    do: "pc-dropdown__trigger-button--no-label"
 
   defp trigger_button_classes(_label, []),
-    do:
-      "pc-dropdown__trigger-button--with-label"
+    do: "pc-dropdown__trigger-button--with-label"
 
   defp trigger_button_classes(_label, _trigger_element),
     do: "pc-dropdown__trigger-button--with-label-and-trigger-element"

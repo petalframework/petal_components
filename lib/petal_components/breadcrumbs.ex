@@ -39,14 +39,14 @@ defmodule PetalComponents.Breadcrumbs do
 
   defp separator(%{type: "slash"} = assigns) do
     ~H"""
-    <div class="pc-breadcrumbs__separator--slash">/</div>
+    <div class="pc-breadcrumbs__separator-slash">/</div>
     """
   end
 
   defp separator(%{type: "chevron"} = assigns) do
     ~H"""
-    <div class="px-3 text-gray-300">
-      <Heroicons.chevron_right solid class="w-6 h-6" />
+    <div class="pc-breadcrumbs__separator-chevron">
+      <Heroicons.chevron_right solid class="pc-breadcrumbs__separator-chevron__icon" />
     </div>
     """
   end

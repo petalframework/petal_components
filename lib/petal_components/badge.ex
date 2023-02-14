@@ -52,91 +52,91 @@ defmodule PetalComponents.Badge do
   defp get_color_classes(%{color: "primary", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--primary--light"
+        "pc-badge--primary-light"
 
       "dark" ->
-        "pc-badge--primary--dark"
+        "pc-badge--primary-dark"
 
       "outline" ->
-        "pc-badge--primary--outline"
+        "pc-badge--primary-outline"
     end
   end
 
   defp get_color_classes(%{color: "secondary", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--secondary--light"
+        "pc-badge--secondary-light"
 
       "dark" ->
-        "pc-badge--secondary--dark"
+        "pc-badge--secondary-dark"
 
       "outline" ->
-        "pc-badge--secondary--outline"
+        "pc-badge--secondary-outline"
     end
   end
 
   defp get_color_classes(%{color: "info", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--info--light"
+        "pc-badge--info-light"
 
       "dark" ->
-        "pc-badge--info--dark"
+        "pc-badge--info-dark"
 
       "outline" ->
-        "pc-badge--info--outline"
+        "pc-badge--info-outline"
     end
   end
 
   defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--success--light"
+        "pc-badge--success-light"
 
       "dark" ->
-        "pc-badge--success--dark"
+        "pc-badge--success-dark"
 
       "outline" ->
-        "pc-badge--success--outline"
+        "pc-badge--success-outline"
     end
   end
 
   defp get_color_classes(%{color: "warning", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--warning--light"
+        "pc-badge--warning-light"
 
       "dark" ->
-        "pc-badge--warning--dark"
+        "pc-badge--warning-dark"
 
       "outline" ->
-        "pc-badge--warning--outline"
+        "pc-badge--warning-outline"
     end
   end
 
   defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--danger--light"
+        "pc-badge--danger-light"
 
       "dark" ->
-        "pc-badge--danger--dark"
+        "pc-badge--danger-dark"
 
       "outline" ->
-        "pc-badge--danger--outline"
+        "pc-badge--danger-outline"
     end
   end
 
   defp get_color_classes(%{color: "gray", variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--gray--light"
+        "pc-badge--gray-light"
 
       "dark" ->
-        "pc-badge--gray--dark"
+        "pc-badge--gray-dark"
 
       "outline" ->
-        "pc-badge--gray--outline"
+        "pc-badge--gray-outline"
     end
   end
 end

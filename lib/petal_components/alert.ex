@@ -29,7 +29,7 @@ defmodule PetalComponents.Alert do
     <%= unless label_blank?(@label, @inner_block) do %>
       <div {@rest} class={@classes}>
         <%= if @with_icon do %>
-          <div class="pc-alert--with-icon">
+          <div class="pc-alert__icon-container">
             <.get_icon color={@color} />
           </div>
         <% end %>
@@ -50,9 +50,7 @@ defmodule PetalComponents.Alert do
 
             <%= if @close_button_properties do %>
               <button
-                class={
-                  build_class(["pc-alert__close-button", get_dismiss_icon_classes(@color)])
-                }
+                class={build_class(["pc-alert__dismiss-button", get_dismiss_icon_classes(@color)])}
                 {@close_button_properties}
               >
                 <Heroicons.x_mark solid class="self-start w-4 h-4" />
@@ -91,20 +89,16 @@ defmodule PetalComponents.Alert do
     do: "pc-alert--danger"
 
   defp get_dismiss_icon_classes("info"),
-    do:
-      "pc-alert--info__dismiss-icon"
+    do: "pc-alert__dismiss-button--info"
 
   defp get_dismiss_icon_classes("success"),
-    do:
-      "pc-alert--success__dismiss-icon"
+    do: "pc-alert__dismiss-button--success"
 
   defp get_dismiss_icon_classes("warning"),
-    do:
-      "pc-alert--warning__dismiss-icon"
+    do: "pc-alert__dismiss-button--warning"
 
   defp get_dismiss_icon_classes("danger"),
-    do:
-      "pc-alert--danger__dismiss-icon"
+    do: "pc-alert__dismiss-button--danger"
 
   defp get_icon(%{color: "info"} = assigns) do
     ~H"""

@@ -42,7 +42,7 @@ defmodule PetalComponents.Card do
         class={
           build_class(
             [
-              "pc-card__card-media--with-image",
+              "pc-card__image",
               @aspect_ratio_class,
               @class
             ],
@@ -55,7 +55,7 @@ defmodule PetalComponents.Card do
         {@rest}
         class={
           build_class([
-            "pc-card__card-media--placeholder",
+            "pc-card__image-placeholder",
             @aspect_ratio_class,
             @class
           ])
@@ -70,7 +70,7 @@ defmodule PetalComponents.Card do
   attr(:category, :string, default: nil, doc: "creates a category")
 
   attr(:category_color_class, :string,
-    default: "text-primary-600 dark:text-primary-400",
+    default: "pc-card__category--primary",
     doc: "sets a category color class"
   )
 
@@ -84,19 +84,19 @@ defmodule PetalComponents.Card do
       {@rest}
       class={
         build_class([
-          "pc-card__card-content",
+          "pc-card__content",
           @class
         ])
       }
     >
       <%= if @category do %>
-        <div class={"pc-card__card-content__category #{@category_color_class}"}>
+        <div class={"pc-card__category #{@category_color_class}"}>
           <%= @category %>
         </div>
       <% end %>
 
       <%= if @heading do %>
-        <div class="pc-card__card-content__heading">
+        <div class="pc-card__heading">
           <%= @heading %>
         </div>
       <% end %>

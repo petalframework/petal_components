@@ -73,7 +73,7 @@ defmodule PetalComponents.Form do
     doc: "The type of input"
   )
 
-  attr(:wrapper_classes, :string, default: "pc-wrapper", doc: "CSS class for wrapper")
+  attr(:wrapper_classes, :string, default: "pc-form-field-wrapper", doc: "CSS class for wrapper")
   attr :rest, :global, include: @form_attrs
 
   @doc "Use this when you want to include the label and some margin."
@@ -92,16 +92,20 @@ defmodule PetalComponents.Form do
     <div class={@wrapper_classes}>
       <%= case @type do %>
         <% "checkbox" -> %>
-          <label class="pc-wrapper__label">
+          <label class="pc-checkbox-label">
             <.checkbox form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
+            <div class={
+              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+            }>
               <%= @label %>
             </div>
           </label>
         <% "switch" -> %>
-          <label class="pc-wrapper__label">
+          <label class="pc-checkbox-label">
             <.switch form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
+            <div class={
+              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+            }>
               <%= @label %>
             </div>
           </label>
@@ -587,22 +591,21 @@ defmodule PetalComponents.Form do
   attr(:rest, :global, include: @form_attrs)
 
   def switch(assigns) do
-    assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
+    base_class = if field_has_errors?(assigns), do: "has-error", else: ""
+    assigns = assign_defaults(assigns, base_class)
 
     ~H"""
-    <label class="pc-switch__label">
+    <label class="pc-switch">
       <%= Form.checkbox(
         @form,
         @field,
         [
-          class: @classes,
+          class: "sr-only peer #{@classes}",
           phx_feedback_for: Form.input_name(@form, @field)
         ] ++ Map.to_list(@rest)
       ) %>
-      <span class="pc-switch">
-      </span>
-      <span class="pc-switch--bg">
-      </span>
+      <span class="pc-switch__fake-input"></span>
+      <span class="pc-switch__fake-input-bg"></span>
     </label>
     """
   end
@@ -681,10 +684,7 @@ defmodule PetalComponents.Form do
     <%= if field_has_errors?(assigns) do %>
       <div class={@class}>
         <%= for translated_error <- @translated_errors do %>
-          <div
-            class="pc-form-field-error"
-            phx-feedback-for={Form.input_name(@form, @field)}
-          >
+          <div class="pc-form-field-error" phx-feedback-for={Form.input_name(@form, @field)}>
             <%= translated_error %>
           </div>
         <% end %>
@@ -763,7 +763,7 @@ defmodule PetalComponents.Form do
   defp label_classes(assigns) do
     type_classes =
       if Enum.member?(["checkbox", "radio"], assigns[:type]) do
-        "pc-label--is-checkbox-or-radio"
+        "pc-label--for-checkbox"
       else
         ""
       end
@@ -798,25 +798,21 @@ defmodule PetalComponents.Form do
   defp checkbox_group_layout_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "pc-checkbox-group-layout--row"
+        "pc-checkbox-group--row"
 
       _col ->
-        "pc-checkbox-group-layout--col"
+        "pc-checkbox-group--col"
     end
   end
 
   defp checkbox_group_layout_item_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "pc-checkbox-group-layout__item--row"
+        "pc-checkbox-group__item--row"
 
       _col ->
-        "pc-checkbox-group-layout__item--col"
+        "pc-checkbox-group__item--col"
     end
-  end
-
-  defp switch_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800"
   end
 
   defp radio_group_layout_classes(assigns) do

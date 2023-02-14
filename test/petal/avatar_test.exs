@@ -76,7 +76,6 @@ defmodule PetalComponents.AvatarTest do
       """)
 
     assert html =~ "<svg"
-    assert html =~ "dark:"
   end
 
   test "should include additional assigns" do

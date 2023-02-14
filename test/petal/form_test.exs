@@ -119,7 +119,12 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={:user}>
-        <.checkbox_group checked={["read"]} form={f} field={:roles} options={[{"Read", "read"}, {"Write", "write"}]} />
+        <.checkbox_group
+          checked={["read"]}
+          form={f}
+          field={:roles}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
       </.form>
       """)
 
@@ -300,11 +305,7 @@ defmodule PetalComponents.FormTest do
 
     html =
       rendered_to_string(~H"""
-      <.form
-        :let={f}
-        as={:user}
-        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
-      >
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
         <.form_field
           type="text_input"
           form={f}
@@ -348,7 +349,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "John"
     assert html =~ "too long"
     assert html =~ "blank"
-    assert html =~ "pc-wrapper"
+    assert html =~ "pc-form-field-wrapper"
     assert html =~ "pc-text-input"
     assert html =~ "w-max"
   end
@@ -358,11 +359,7 @@ defmodule PetalComponents.FormTest do
 
     html =
       rendered_to_string(~H"""
-      <.form
-        :let={f}
-        as={:user}
-        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
-      >
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
         <.form_field type="checkbox" form={f} field={:name} />
       </.form>
       """)
@@ -371,11 +368,7 @@ defmodule PetalComponents.FormTest do
 
     html =
       rendered_to_string(~H"""
-      <.form
-        :let={f}
-        as={:user}
-        for={%Ecto.Changeset{action: :update, data: %{name: ""}}}
-      >
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
         <.form_field type="checkbox" form={f} field={:name} label="Something else" />
       </.form>
       """)

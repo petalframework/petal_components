@@ -58,7 +58,7 @@ defmodule PetalComponents.CardTest do
     assert html =~ "Enhance"
     assert html =~ "Article"
     assert html =~ "pc-card--outline"
-    assert html =~ "pc-card__card-media--placeholder"
+    assert html =~ "pc-card__image-placeholder"
   end
 
   test "Card with media and url" do
@@ -107,7 +107,6 @@ defmodule PetalComponents.CardTest do
     assert html =~ "Article"
     assert html =~ "pc-card--outline"
     assert html =~ "<img"
-    assert html =~ "dark:"
   end
 
   test "should include additional assigns" do

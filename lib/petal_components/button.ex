@@ -155,13 +155,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "primary", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--primary--outline"
+        "pc-button--primary-outline"
 
       "inverted" ->
-        "pc-button--primary--inverted"
+        "pc-button--primary-inverted"
 
       "shadow" ->
-        "pc-button--primary--shadow"
+        "pc-button--primary-shadow"
 
       _ ->
         "pc-button--primary"
@@ -171,13 +171,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "secondary", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--secondary--outline"
+        "pc-button--secondary-outline"
 
       "inverted" ->
-        "pc-button--secondary--inverted"
+        "pc-button--secondary-inverted"
 
       "shadow" ->
-        "pc-button--secondary--shadow"
+        "pc-button--secondary-shadow"
 
       _ ->
         "pc-button--secondary"
@@ -187,13 +187,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "white", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--white--outline"
+        "pc-button--white-outline"
 
       "inverted" ->
-        "pc-button--white--inverted"
+        "pc-button--white-inverted"
 
       "shadow" ->
-        "pc-button--white--shadow"
+        "pc-button--white-shadow"
 
       _ ->
         "pc-button--white"
@@ -210,13 +210,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "info", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--info--outline"
+        "pc-button--info-outline"
 
       "inverted" ->
-        "pc-button--info--inverted"
+        "pc-button--info-inverted"
 
       "shadow" ->
-        "pc-button--info--shadow"
+        "pc-button--info-shadow"
 
       _ ->
         "pc-button--info"
@@ -226,13 +226,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "success", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--success--outline"
+        "pc-button--success-outline"
 
       "inverted" ->
-        "pc-button--success--inverted"
+        "pc-button--success-inverted"
 
       "shadow" ->
-        "pc-button--success--shadow"
+        "pc-button--success-shadow"
 
       _ ->
         "pc-button--success"
@@ -242,13 +242,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "warning", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--warning--outline"
+        "pc-button--warning-outline"
 
       "inverted" ->
-        "pc-button--warning--inverted"
+        "pc-button--warning-inverted"
 
       "shadow" ->
-        "pc-button--warning--shadow"
+        "pc-button--warning-shadow"
 
       _ ->
         "pc-button--warning"
@@ -258,13 +258,13 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "danger", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--danger--outline"
+        "pc-button--danger-outline"
 
       "inverted" ->
-        "pc-button--danger--inverted"
+        "pc-button--danger-inverted"
 
       "shadow" ->
-        "pc-button--danger--shadow"
+        "pc-button--danger-shadow"
 
       _ ->
         "pc-button--danger"
@@ -274,24 +274,24 @@ defmodule PetalComponents.Button do
   defp get_color_classes(%{color: "gray", variant: variant}) do
     case variant do
       "outline" ->
-        "pc-button--gray--outline"
+        "pc-button--gray-outline"
 
       "inverted" ->
-        "pc-button--gray--inverted"
+        "pc-button--gray-inverted"
 
       "shadow" ->
-        "pc-button--gray--shadow"
+        "pc-button--gray-shadow"
 
       _ ->
         "pc-button--gray"
     end
   end
 
-  defp get_spinner_size_classes("xs"), do: "pc-button-spinner--xs"
-  defp get_spinner_size_classes("sm"), do: "pc-button-spinner--sm"
-  defp get_spinner_size_classes("md"), do: "pc-button-spinner--md"
-  defp get_spinner_size_classes("lg"), do: "pc-button-spinner--lg"
-  defp get_spinner_size_classes("xl"), do: "pc-button-spinner--xl"
+  defp get_spinner_size_classes("xs"), do: "pc-button__spinner-icon--xs"
+  defp get_spinner_size_classes("sm"), do: "pc-button__spinner-icon--sm"
+  defp get_spinner_size_classes("md"), do: "pc-button__spinner-icon--md"
+  defp get_spinner_size_classes("lg"), do: "pc-button__spinner-icon--lg"
+  defp get_spinner_size_classes("xl"), do: "pc-button__spinner-icon--xl"
 
   def get_icon_button_size_classes("xs"), do: "pc-icon-button--xs"
   def get_icon_button_size_classes("sm"), do: "pc-icon-button--sm"

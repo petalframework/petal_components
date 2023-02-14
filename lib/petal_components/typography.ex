@@ -101,9 +101,9 @@ defmodule PetalComponents.Typography do
 
   defp get_heading_classes(base_classes, assigns) do
     custom_classes = assigns[:class]
-    color_classes = assigns[:color_class] || "pc-h--color"
-    underline_classes = if assigns[:underline], do: "pc-h--underline", else: ""
-    margin_classes = if assigns[:no_margin], do: "", else: "pc-h--margin"
+    color_classes = assigns[:color_class] || "pc-heading--color"
+    underline_classes = if assigns[:underline], do: "pc-heading--underline", else: ""
+    margin_classes = if assigns[:no_margin], do: "", else: "pc-heading--margin"
 
     build_class([base_classes, custom_classes, color_classes, underline_classes, margin_classes])
   end
