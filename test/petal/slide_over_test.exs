@@ -101,7 +101,7 @@ defmodule PetalComponents.SlideOverTest do
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
     assert html =~ "translate-x-0"
-    assert html =~ "dark:"
+    assert html =~ "pc-slideover__overlay"
   end
 
   test "should include additional assigns" do
