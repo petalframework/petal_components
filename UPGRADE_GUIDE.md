@@ -1,5 +1,40 @@
 # Upgrade Guide
 
+## v0.19 to v1.0.0
+
+In `tailwind.config.js` you need to add more colors:
+
+```js
+
+  theme: {
+    extend: {
+
+      colors: {
+        primary: colors.blue,
+        secondary: colors.pink,
+
+        // ADD THESE COLORS (can pick different ones from here: https://tailwindcss.com/docs/customizing-colors)
+        success: colors.green,
+        danger: colors.red,
+        warning: colors.yellow,
+        info: colors.sky,
+
+        // Options: slate, gray, zinc, neutral, stone
+        gray: colors.gray,
+      },
+    },
+  },
+```
+
+In your `app.scss` you need to import the default Petal Components CSS:
+
+```css
+@import "tailwindcss/base";
+@import "../../deps/petal_components/assets/default.css";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+```
+
 ## v0.18 to v0.19
 
 There should be no breaking changes. This provides declarative assigns for all components so you should get warnings if you don't pass the right attributes.
