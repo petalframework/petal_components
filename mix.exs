@@ -64,7 +64,7 @@ defmodule PetalComponents.MixProject do
       maintainers: ["Matt Platts", "Nic Hoban"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(mix.exs priv lib guides assets README.md LICENSE.md CHANGELOG.md)
+      files: ~w(mix.exs priv lib assets README.md LICENSE.md CHANGELOG.md)
     ]
   end
 
