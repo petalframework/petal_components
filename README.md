@@ -156,6 +156,18 @@ If you really want to you can instruct Tailwind to just scan the components you 
 "../deps/petal_components/lib/alert.ex",
 ```
 
+**Q: Can I customize the components?**
+A: Yes! You can customize the components by overriding the CSS classes. For example, if you want to change the color of the button you can do this:
+
+```css
+.pc-button {
+  @apply inline-flex items-center justify-center font-semibold tracking-wider uppercase transition duration-150 ease-in-out border-2 rounded-none focus:outline-none;
+}
+.pc-button--primary {
+  @apply text-black border-black bg-primary-400 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-primary-500/50;
+}
+```
+
 ## Contributing
 
 If you'd like to help out we've got a [Phoenix umbrella app](https://github.com/petalframework/petal_development) that allows you to easily contribute to Petal Components (which is installed as a git submodule). If you create a new component then feel free to submit a PR. Ideally one from the roadmap but we're open to any new components that would benefit others!

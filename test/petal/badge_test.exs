@@ -11,7 +11,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Primary"
-    assert html =~ "text-primary"
+    assert html =~ "pc-badge--primary-light"
 
     html =
       rendered_to_string(~H"""
@@ -19,7 +19,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Secondary"
-    assert html =~ "text-secondary"
+    assert html =~ "pc-badge--secondary-light"
 
     html =
       rendered_to_string(~H"""
@@ -27,7 +27,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Info"
-    assert html =~ "text-blue"
+    assert html =~ "pc-badge--info-light"
 
     html =
       rendered_to_string(~H"""
@@ -35,7 +35,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Success"
-    assert html =~ "text-green"
+    assert html =~ "pc-badge--success-light"
 
     html =
       rendered_to_string(~H"""
@@ -43,7 +43,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Warning"
-    assert html =~ "text-yellow"
+    assert html =~ "pc-badge--warning-light"
 
     html =
       rendered_to_string(~H"""
@@ -51,7 +51,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Danger"
-    assert html =~ "text-red"
+    assert html =~ "pc-badge--danger-light"
 
     html =
       rendered_to_string(~H"""
@@ -59,7 +59,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "Gray"
-    assert html =~ "text-gray"
+    assert html =~ "pc-badge--gray-light"
   end
 
   test "it allows you to add a class" do
@@ -82,7 +82,7 @@ defmodule PetalComponents.BadgeTest do
       """)
 
     assert html =~ "blah"
-    assert html =~ "dark:"
+    assert html =~ "pc-badge--gray-light"
   end
 
   test "works with icon" do

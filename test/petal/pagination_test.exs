@@ -433,7 +433,7 @@ defmodule PetalComponents.PaginationTest do
       """)
 
     refute html =~ "/page/0"
-    assert html =~ "dark:"
+    assert html =~ "pc-pagination__item"
   end
 
   test "should include additional assigns" do

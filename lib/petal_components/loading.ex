@@ -29,15 +29,15 @@ defmodule PetalComponents.Loading do
   end
 
   defp get_spinner_classes(user_added_classes, show, size, custom_size_class) do
-    base_classes = "animate-spin"
+    base_classes = "pc-button__spinner-icon"
     custom_classes = user_added_classes
     show_class = if show == false, do: "hidden", else: ""
     size_classes = custom_size_class || get_size_classes(size)
     build_class([base_classes, custom_classes, show_class, size_classes])
   end
 
-  defp get_size_classes("sm"), do: "h-5 w-5"
-  defp get_size_classes("md"), do: "h-8 w-8"
-  defp get_size_classes("lg"), do: "h-16 w-16"
-  defp get_size_classes(_), do: "h-8 w-8"
+  defp get_size_classes("sm"), do: "pc-spinner--sm"
+  defp get_size_classes("md"), do: "pc-spinner--md"
+  defp get_size_classes("lg"), do: "pc-spinner--lg"
+  defp get_size_classes(_), do: "pc-spinner--md"
 end

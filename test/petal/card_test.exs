@@ -18,7 +18,7 @@ defmodule PetalComponents.CardTest do
 
     assert html =~ "Enhance"
     assert html =~ "Article"
-    assert html =~ "shadow-lg"
+    assert html =~ "pc-card--basic"
   end
 
   test "Outline card" do
@@ -37,7 +37,7 @@ defmodule PetalComponents.CardTest do
 
     assert html =~ "Enhance"
     assert html =~ "Article"
-    assert html =~ "border-gray-300"
+    assert html =~ "pc-card--outline"
   end
 
   test "Card with media no url" do
@@ -57,8 +57,8 @@ defmodule PetalComponents.CardTest do
 
     assert html =~ "Enhance"
     assert html =~ "Article"
-    assert html =~ "border-gray-300"
-    assert html =~ "bg-gray-300"
+    assert html =~ "pc-card--outline"
+    assert html =~ "pc-card__image-placeholder"
   end
 
   test "Card with media and url" do
@@ -81,7 +81,7 @@ defmodule PetalComponents.CardTest do
 
     assert html =~ "Enhance"
     assert html =~ "Article"
-    assert html =~ "border-gray-300"
+    assert html =~ "pc-card--outline"
     assert html =~ "<img"
   end
 
@@ -105,9 +105,8 @@ defmodule PetalComponents.CardTest do
 
     assert html =~ "Enhance"
     assert html =~ "Article"
-    assert html =~ "border-gray-300"
+    assert html =~ "pc-card--outline"
     assert html =~ "<img"
-    assert html =~ "dark:"
   end
 
   test "should include additional assigns" do

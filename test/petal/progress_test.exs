@@ -18,49 +18,49 @@ defmodule PetalComponents.ProgressTest do
       <.progress color="primary" value={15} max={100} />
       """)
 
-    assert html =~ "bg-primary"
+    assert html =~ "pc-progress--primary"
 
     html =
       rendered_to_string(~H"""
       <.progress color="secondary" value={15} max={100} />
       """)
 
-    assert html =~ "bg-secondary"
+    assert html =~ "pc-progress--secondary"
 
     html =
       rendered_to_string(~H"""
       <.progress color="info" value={15} max={100} />
       """)
 
-    assert html =~ "bg-blue"
+    assert html =~ "pc-progress--info"
 
     html =
       rendered_to_string(~H"""
       <.progress color="success" value={15} max={100} />
       """)
 
-    assert html =~ "bg-green"
+    assert html =~ "pc-progress--success"
 
     html =
       rendered_to_string(~H"""
       <.progress color="warning" value={15} max={100} />
       """)
 
-    assert html =~ "bg-yellow"
+    assert html =~ "pc-progress--warning"
 
     html =
       rendered_to_string(~H"""
       <.progress color="danger" value={15} max={100} />
       """)
 
-    assert html =~ "bg-red"
+    assert html =~ "pc-progress--danger"
 
     html =
       rendered_to_string(~H"""
       <.progress color="gray" value={15} max={100} />
       """)
 
-    assert html =~ "bg-gray"
+    assert html =~ "pc-progress--gray"
   end
 
   test "should include additional assigns" do

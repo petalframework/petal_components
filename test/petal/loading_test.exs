@@ -18,7 +18,7 @@ defmodule PetalComponents.LoadingTest do
       <.spinner show={true} size="sm" />
       """)
 
-    assert html =~ "h-5"
+    assert html =~ "pc-spinner--sm"
 
     html =
       rendered_to_string(~H"""

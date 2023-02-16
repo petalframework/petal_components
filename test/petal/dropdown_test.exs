@@ -17,10 +17,13 @@ defmodule PetalComponents.DropdownTest do
     assert html =~ "x-data"
     assert html =~ "x-show"
     assert html =~ "<svg"
-    assert html =~ "dark:"
-    assert html =~ "dropdown_class"
-    assert html =~ "dropdown_menu_item_class"
     assert html =~ "menu_items_wrapper_class"
+    assert html =~ "pc-dropdown__menu-items-wrapper"
+    assert html =~ "pc-dropdown"
+    assert html =~ "pc-dropdown__menu-item"
+    assert html =~ "pc-dropdown__menu-items-wrapper-placement--left"
+    assert html =~ "dropdown_menu_item_class"
+    assert html =~ "pc-dropdown__trigger-button--with-label"
 
     # Test js_lib option
     html =
@@ -38,13 +41,13 @@ defmodule PetalComponents.DropdownTest do
            <.dropdown label="Dropdown" placement="left">
              <.dropdown_menu_item label="Option" />
            </.dropdown>
-           """) =~ "right-0"
+           """) =~ "pc-dropdown__menu-items-wrapper-placement--left"
 
     assert rendered_to_string(~H"""
            <.dropdown label="Dropdown" placement="right">
              <.dropdown_menu_item label="Option" />
            </.dropdown>
-           """) =~ "left-0"
+           """) =~ "pc-dropdown__menu-items-wrapper-placement--right"
   end
 
   test "it works with a custom trigger" do

@@ -73,7 +73,7 @@ defmodule PetalComponents.Form do
     doc: "The type of input"
   )
 
-  attr(:wrapper_classes, :string, default: "mb-6", doc: "CSS class for wrapper")
+  attr(:wrapper_classes, :string, default: "pc-form-field-wrapper", doc: "CSS class for wrapper")
   attr :rest, :global, include: @form_attrs
 
   @doc "Use this when you want to include the label and some margin."
@@ -92,16 +92,20 @@ defmodule PetalComponents.Form do
     <div class={@wrapper_classes}>
       <%= case @type do %>
         <% "checkbox" -> %>
-          <label class="inline-flex items-center gap-3">
+          <label class="pc-checkbox-label">
             <.checkbox form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
+            <div class={
+              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+            }>
               <%= @label %>
             </div>
           </label>
         <% "switch" -> %>
-          <label class="inline-flex items-center gap-3">
+          <label class="pc-checkbox-label">
             <.switch form={@form} field={@field} {@rest} />
-            <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
+            <div class={
+              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+            }>
               <%= @label %>
             </div>
           </label>
@@ -169,8 +173,8 @@ defmodule PetalComponents.Form do
           <.select form={@form} field={@field} {@rest} />
       <% end %>
 
-      <.form_field_error class="mt-1" form={@form} field={@field} />
-      <.form_help_text class="mt-2" help_text={@help_text} />
+      <.form_field_error form={@form} field={@field} />
+      <.form_help_text help_text={@help_text} />
     </div>
     """
   end
@@ -329,7 +333,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper dark:text-white">
+    <div class="pc-time-select">
       <%= Form.time_select(
         @form,
         @field,
@@ -367,7 +371,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper dark:text-white">
+    <div class="pc-datetime-select">
       <%= Form.datetime_select(
         @form,
         @field,
@@ -387,7 +391,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <div class="select-wrapper dark:text-white">
+    <div class="pc-date-select">
       <%= Form.date_select(
         @form,
         @field,
@@ -587,22 +591,21 @@ defmodule PetalComponents.Form do
   attr(:rest, :global, include: @form_attrs)
 
   def switch(assigns) do
-    assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
+    base_class = if field_has_errors?(assigns), do: "has-error", else: ""
+    assigns = assign_defaults(assigns, base_class)
 
     ~H"""
-    <label class="relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5 group">
+    <label class="pc-switch">
       <%= Form.checkbox(
         @form,
         @field,
         [
-          class: @classes,
+          class: "sr-only peer #{@classes}",
           phx_feedback_for: Form.input_name(@form, @field)
         ] ++ Map.to_list(@rest)
       ) %>
-      <span class="absolute h-6 mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border rounded-full pointer-events-none w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500">
-      </span>
-      <span class="absolute left-0 inline-block w-5 h-5 transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none peer-checked:translate-x-5 ring-0 ">
-      </span>
+      <span class="pc-switch__fake-input"></span>
+      <span class="pc-switch__fake-input-bg"></span>
     </label>
     """
   end
@@ -681,10 +684,7 @@ defmodule PetalComponents.Form do
     <%= if field_has_errors?(assigns) do %>
       <div class={@class}>
         <%= for translated_error <- @translated_errors do %>
-          <div
-            class="text-xs italic text-red-500 invalid-feedback"
-            phx-feedback-for={Form.input_name(@form, @field)}
-          >
+          <div class="pc-form-field-error" phx-feedback-for={Form.input_name(@form, @field)}>
             <%= translated_error %>
           </div>
         <% end %>
@@ -701,7 +701,7 @@ defmodule PetalComponents.Form do
   def form_help_text(assigns) do
     ~H"""
     <%= if @inner_block || @help_text do %>
-      <p class={["text-sm text-gray-500 dark:text-gray-400", @class]} {@rest}>
+      <p class={["pc-form-help-text", @class]} {@rest}>
         <%= render_slot(@inner_block) || @help_text %>
       </p>
     <% end %>
@@ -763,84 +763,80 @@ defmodule PetalComponents.Form do
   defp label_classes(assigns) do
     type_classes =
       if Enum.member?(["checkbox", "radio"], assigns[:type]) do
-        ""
+        "pc-label--for-checkbox"
       else
-        "mb-2 font-medium"
+        ""
       end
 
-    "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} #{assigns[:class] || ""} text-sm block text-gray-900 dark:text-gray-200"
+    "#{if field_has_errors?(assigns), do: "has-error", else: ""} #{type_classes} #{assigns[:class] || ""} pc-label"
   end
 
   defp text_input_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm block disabled:bg-gray-100 disabled:cursor-not-allowed shadow-sm w-full rounded-md dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+    "#{if has_error, do: "has-error", else: ""} pc-text-input"
   end
 
   defp select_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 block w-full disabled:bg-gray-100 disabled:cursor-not-allowed pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md dark:disabled:bg-gray-700 dark:focus:border-primary-500 dark:text-gray-300 dark:bg-gray-800"
+    "#{if has_error, do: "has-error", else: ""} pc-select"
   end
 
   defp file_input_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} focus:outline-none file:border-0 rounded-md text-sm text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-gray-800 dark:file:text-primary-500"
+    "#{if has_error, do: "has-error", else: ""} pc-file-input"
   end
 
   defp color_input_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500"
+    "#{if has_error, do: "has-error", else: ""} pc-color-input"
   end
 
   defp range_input_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 w-full"
+    "#{if has_error, do: "has-error", else: ""} pc-range-input"
   end
 
   defp checkbox_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 text-primary-700 rounded w-5 h-5 ease-linear transition-all duration-150 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+    "#{if has_error, do: "has-error", else: ""} pc-checkbox"
   end
 
   defp checkbox_group_layout_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "flex flex-row gap-4"
+        "pc-checkbox-group--row"
 
       _col ->
-        "flex flex-col gap-3"
+        "pc-checkbox-group--col"
     end
   end
 
   defp checkbox_group_layout_item_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "inline-flex items-center block gap-2"
+        "pc-checkbox-group__item--row"
 
       _col ->
-        "inline-flex items-center block gap-3"
+        "pc-checkbox-group__item--col"
     end
-  end
-
-  defp switch_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800"
   end
 
   defp radio_group_layout_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "flex flex-row gap-4"
+        "pc-radio-group-layout--row"
 
       _col ->
-        "flex flex-col gap-1"
+        "pc-radio-group-layout--col"
     end
   end
 
   defp radio_group_layout_item_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "inline-flex items-center gap-2"
+        "pc-radio-group-layout__item--row"
 
       _col ->
-        "inline-flex items-center gap-3"
+        "pc-radio-group-layout__item--col"
     end
   end
 
   defp radio_classes(has_error) do
-    "#{if has_error, do: "has-error", else: ""} border-gray-300 h-4 w-4 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
+    "#{if has_error, do: "has-error", else: ""} pc-radio"
   end
 
   defp field_has_errors?(%{form: form, field: field}) when is_map(form) do

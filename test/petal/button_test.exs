@@ -91,7 +91,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "shadow-xl"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with dark mode" do
@@ -104,7 +104,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "dark:"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with custom class" do
@@ -129,7 +129,7 @@ defmodule PetalComponents.ButtonTest do
       """)
 
     assert html =~ "<svg"
-    assert html =~ "dark:hover:"
+    assert html =~ "pc-icon-button-bg--primary"
   end
 
   test "should include additional assigns" do

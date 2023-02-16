@@ -17,8 +17,8 @@ defmodule PetalComponents.Tabs do
       class={
         build_class(
           [
-            "flex gap-x-8 gap-y-2",
-            if(@underline, do: "border-b border-gray-200 dark:border-gray-600", else: ""),
+            "pc-tabs",
+            if(@underline, do: "pc-tabs--underline", else: ""),
             @class
           ],
           " "
@@ -69,60 +69,60 @@ defmodule PetalComponents.Tabs do
 
   # Pill CSS
   defp get_tab_class(is_active, false) do
-    base_classes = "whitespace-nowrap px-3 py-2 flex font-medium items-center text-sm rounded-md"
+    base_classes = "pc-tab__pill"
 
     active_classes =
       if is_active,
-        do: "bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-500",
+        do: "pc-tab__pill--is-active",
         else:
-          "text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
+          "pc-tab__pill--is-not-active"
 
     build_class([base_classes, active_classes])
   end
 
   # Underline CSS
   defp get_tab_class(is_active, underline) do
-    base_classes = "whitespace-nowrap flex items-center py-3 px-3 border-b-2 font-medium text-sm"
+    base_classes = "pc-tab__underline"
 
     active_classes =
       if is_active,
-        do: "border-primary-500 text-primary-600 dark:text-primary-500 dark:border-primary-500",
+        do: "pc-tab__underline--is-active",
         else:
-          "border-transparent text-gray-500 dark:hover:text-gray-300 dark:text-gray-400 hover:border-gray-300 hover:text-gray-600"
+          "pc-tab__underline--is-not-active"
 
     underline_classes =
       if is_active && underline,
-        do: "",
-        else: "hover:border-gray-300"
+        do: "pc-tab__underline--with-underline-and-is-active",
+        else: "pc-tab__underline--with-underline-and-is-not-active"
 
     build_class([base_classes, active_classes, underline_classes])
   end
 
   # Underline
   defp get_tab_number_class(is_active, true) do
-    base_classes = "whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal"
+    base_classes = "pc-tab__number"
 
     active_classes =
       if is_active,
-        do: "bg-primary-100 text-primary-600",
-        else: "bg-gray-100 text-gray-500"
+        do: "pc-tab__number__underline--is-active",
+        else: "pc-tab__number__underline--is-not-active"
 
     underline_classes =
       if is_active,
-        do: "bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white",
-        else: "bg-gray-100 dark:bg-gray-600 dark:text-white text-gray-500"
+        do: "pc-tab__number__underline--with-underline-and-is-active",
+        else: "pc-tab__number__underline--with-underline-and-is-not-active"
 
     build_class([base_classes, active_classes, underline_classes])
   end
 
   # Pill
   defp get_tab_number_class(is_active, false) do
-    base_classes = "whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal"
+    base_classes = "pc-tab__number"
 
     active_classes =
       if is_active,
-        do: "bg-primary-600 text-white",
-        else: "bg-gray-500 dark:bg-gray-600 text-white"
+        do: "pc-tab__number__pill--is-active",
+        else: "pc-tab__number__pill--is-not-active"
 
     build_class([base_classes, active_classes])
   end

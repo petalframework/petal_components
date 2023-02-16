@@ -24,7 +24,7 @@ defmodule PetalComponents.Typography do
     <h1
       class={
         get_heading_classes(
-          "text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl",
+          "pc-h1",
           assigns
         )
       }
@@ -45,7 +45,7 @@ defmodule PetalComponents.Typography do
 
   def h2(assigns) do
     ~H"""
-    <h2 class={get_heading_classes("text-2xl sm:text-3xl font-extrabold leading-10", assigns)} {@rest}>
+    <h2 class={get_heading_classes("pc-h2", assigns)} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </h2>
     """
@@ -61,7 +61,7 @@ defmodule PetalComponents.Typography do
 
   def h3(assigns) do
     ~H"""
-    <h3 class={get_heading_classes("text-xl sm:text-2xl font-bold leading-7", assigns)} {@rest}>
+    <h3 class={get_heading_classes("pc-h3", assigns)} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </h3>
     """
@@ -77,7 +77,7 @@ defmodule PetalComponents.Typography do
 
   def h4(assigns) do
     ~H"""
-    <h4 class={get_heading_classes("text-lg font-bold leading-6", assigns)} {@rest}>
+    <h4 class={get_heading_classes("pc-h4", assigns)} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </h4>
     """
@@ -93,7 +93,7 @@ defmodule PetalComponents.Typography do
 
   def h5(assigns) do
     ~H"""
-    <h5 class={get_heading_classes("text-lg font-medium leading-6", assigns)} {@rest}>
+    <h5 class={get_heading_classes("pc-h5", assigns)} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </h5>
     """
@@ -101,9 +101,9 @@ defmodule PetalComponents.Typography do
 
   defp get_heading_classes(base_classes, assigns) do
     custom_classes = assigns[:class]
-    color_classes = assigns[:color_class] || "text-gray-900 dark:text-white"
-    underline_classes = if assigns[:underline], do: " border-b border-gray-200 pb-2", else: ""
-    margin_classes = if assigns[:no_margin], do: "", else: "mb-3"
+    color_classes = assigns[:color_class] || "pc-heading--color"
+    underline_classes = if assigns[:underline], do: "pc-heading--underline", else: ""
+    margin_classes = if assigns[:no_margin], do: "", else: "pc-heading--margin"
 
     build_class([base_classes, custom_classes, color_classes, underline_classes, margin_classes])
   end
@@ -114,13 +114,11 @@ defmodule PetalComponents.Typography do
 
   def p(assigns) do
     ~H"""
-    <p class={build_class([text_base_class(), "mb-2", @class])} {@rest}>
+    <p class={build_class(["pc-text", "pc-p--margin", @class])} {@rest}>
       <%= render_slot(@inner_block) %>
     </p>
     """
   end
-
-  defp text_base_class(), do: "leading-5 text-gray-600 dark:text-gray-400"
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:rest, :global)
@@ -148,7 +146,7 @@ defmodule PetalComponents.Typography do
 
   def ul(assigns) do
     ~H"""
-    <ul class={build_class([text_base_class(), "list-disc list-inside", @class])} {@rest}>
+    <ul class={build_class(["pc-text", "list-disc list-inside", @class])} {@rest}>
       <%= render_slot(@inner_block) %>
     </ul>
     """
@@ -168,7 +166,7 @@ defmodule PetalComponents.Typography do
 
   def ol(assigns) do
     ~H"""
-    <ol class={build_class([text_base_class(), "list-decimal list-inside", @class])} {@rest}>
+    <ol class={build_class(["pc-text", "list-decimal list-inside", @class])} {@rest}>
       <%= render_slot(@inner_block) %>
     </ol>
     """

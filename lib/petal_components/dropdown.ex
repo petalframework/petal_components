@@ -14,7 +14,11 @@ defmodule PetalComponents.Dropdown do
   attr(:options_container_id, :string)
   attr(:label, :string, default: nil, doc: "labels your dropdown option")
   attr(:class, :string, default: "", doc: "any extra CSS class for the parent container")
-  attr(:menu_items_wrapper_class, :string, default: "", doc: "any extra CSS class for menu item wrapper container")
+
+  attr(:menu_items_wrapper_class, :string,
+    default: "",
+    doc: "any extra CSS class for menu item wrapper container"
+  )
 
   attr(:js_lib, :string,
     default: "alpine_js",
@@ -47,7 +51,7 @@ defmodule PetalComponents.Dropdown do
     <div
       {@rest}
       {js_attributes("container", @js_lib, @options_container_id)}
-      class={[@class, "relative inline-block text-left"]}
+      class={[@class, "pc-dropdown"]}
     >
       <div>
         <button
@@ -60,7 +64,7 @@ defmodule PetalComponents.Dropdown do
 
           <%= if @label do %>
             <%= @label %>
-            <Heroicons.chevron_down solid class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+            <Heroicons.chevron_down solid class="pc-dropdown__chevron" />
           <% end %>
 
           <%= if @trigger_element do %>
@@ -68,13 +72,13 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && @trigger_element == [] do %>
-            <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
+            <Heroicons.ellipsis_vertical solid class="pc-dropdown__ellipsis" />
           <% end %>
         </button>
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} pc-dropdown__menu-items-wrapper"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -102,27 +106,20 @@ defmodule PetalComponents.Dropdown do
 
   def dropdown_menu_item(assigns) do
     ~H"""
-    <Link.a
-      link_type={@link_type}
-      to={@to}
-      class={"#{@class} block flex gap-2 items-center self-start dark:hover:bg-gray-700 dark:text-gray-300 justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 dark:bg-gray-800 ease-in-out hover:bg-gray-100 w-full text-left"}
-      {@rest}
-    >
+    <Link.a link_type={@link_type} to={@to} class={"#{@class} pc-dropdown__menu-item"} {@rest}>
       <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
   end
 
   defp trigger_button_classes(nil, []),
-    do:
-      "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
+    do: "pc-dropdown__trigger-button--no-label"
 
   defp trigger_button_classes(_label, []),
-    do:
-      "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
+    do: "pc-dropdown__trigger-button--with-label"
 
   defp trigger_button_classes(_label, _trigger_element),
-    do: "align-middle"
+    do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
 
   defp js_attributes("container", "alpine_js", _options_container_id) do
     %{
@@ -181,6 +178,6 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  defp placement_class("left"), do: "right-0 origin-top-right"
-  defp placement_class("right"), do: "left-0 origin-top-left"
+  defp placement_class("left"), do: "pc-dropdown__menu-items-wrapper-placement--left"
+  defp placement_class("right"), do: "pc-dropdown__menu-items-wrapper-placement--right"
 end

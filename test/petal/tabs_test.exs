@@ -17,7 +17,7 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
-    assert html =~ "text-primary-"
+    assert html =~ "pc-tab__pill--is-active"
   end
 
   test "Test tabs underline" do
@@ -35,7 +35,7 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
-    assert html =~ "border-b-2"
+    assert html =~ "pc-tab__underline"
   end
 
   test "Test tabs a" do
@@ -147,7 +147,7 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "href="
     assert html =~ "phx-click"
     assert html =~ "<svg"
-    assert html =~ "dark:"
+    assert html =~ "pc-tab__underline--is-active"
   end
 
   test "should include additional assigns" do

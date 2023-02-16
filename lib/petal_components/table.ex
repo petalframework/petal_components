@@ -13,7 +13,7 @@ defmodule PetalComponents.Table do
     <table
       class={
         build_class([
-          "min-w-full overflow-hidden divide-y ring-1 ring-gray-200 dark:ring-0 divide-gray-200 rounded-sm table-auto dark:divide-y-0 dark:divide-gray-800 sm:rounded",
+          "pc-table",
           @class
         ])
       }
@@ -34,7 +34,7 @@ defmodule PetalComponents.Table do
       class={
         build_class(
           [
-            "px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300",
+            "pc-table__th",
             @class
           ],
           " "
@@ -56,7 +56,7 @@ defmodule PetalComponents.Table do
     <tr
       class={
         build_class([
-          "border-b dark:border-gray-700 bg-white dark:bg-gray-800 last:border-none",
+          "pc-table__tr",
           @class
         ])
       }
@@ -77,7 +77,7 @@ defmodule PetalComponents.Table do
       class={
         build_class(
           [
-            "px-6 py-4 text-sm text-gray-500 dark:text-gray-400",
+            "pc-table__td",
             @class
           ],
           " "
@@ -103,16 +103,16 @@ defmodule PetalComponents.Table do
   def user_inner_td(assigns) do
     ~H"""
     <div class={@class} {@rest}>
-      <div class="flex items-center gap-3">
+      <div class="pc-table__user-inner-td">
         <%= if @avatar_assigns do %>
           <.avatar {@avatar_assigns} />
         <% end %>
 
-        <div class="flex flex-col overflow-hidden">
-          <div class="overflow-hidden font-medium text-gray-900 whitespace-nowrap text-ellipsis dark:text-gray-300">
+        <div class="pc-table__user-inner-td__inner">
+          <div class="pc-table__user-inner-td__label">
             <%= @label %>
           </div>
-          <div class="overflow-hidden font-normal text-gray-500 whitespace-nowrap text-ellipsis">
+          <div class="pc-table__user-inner-td__sub-label">
             <%= @sub_label %>
           </div>
         </div>
