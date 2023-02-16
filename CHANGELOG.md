@@ -1,4 +1,6 @@
 # Changelog
+### 1.0.0 - 2023-02-16 20:22:49
+- Extracted classnames for each component into a CSS file using BEM naming convention. This allows for more flexibility in styling and theming.
 ### 0.19.10 - 2023-01-14 09:24:34
 - Fixed: support button attrs: 'value', 'name'
 - Fixed: support form element attr: 'accept'
