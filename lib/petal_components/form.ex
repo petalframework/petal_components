@@ -684,7 +684,10 @@ defmodule PetalComponents.Form do
     <%= if field_has_errors?(assigns) do %>
       <div class={@class}>
         <%= for translated_error <- @translated_errors do %>
-          <div class="pc-form-field-error" phx-feedback-for={Form.input_name(@form, @field)}>
+          <div
+            class="pc-form-field-error invalid-feedback"
+            phx-feedback-for={Form.input_name(@form, @field)}
+          >
             <%= translated_error %>
           </div>
         <% end %>
