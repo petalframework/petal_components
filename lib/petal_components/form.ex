@@ -89,7 +89,7 @@ defmodule PetalComponents.Form do
       end)
 
     ~H"""
-    <div class={@wrapper_classes}>
+    <div class={@wrapper_classes} phx-feedback-for={Form.input_name(@form, @field)}>
       <%= case @type do %>
         <% "checkbox" -> %>
           <label class="pc-checkbox-label">
