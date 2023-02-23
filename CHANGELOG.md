@@ -1,4 +1,7 @@
 # Changelog
+### 1.0.2 - 2023-02-23 10:33:11
+- Fixed: fixed an issue where phx-feedback-for was not being properly included inside of the form_field component (thanks @BobbieBarker)
+- Update: Make paragraph text easier to read
 ### 1.0.1 - 2023-02-20 05:37:11
 - Fixed issue "The `invalid-feedback` class does not exist" [#141]
 ### 1.0.0 - 2023-02-16 20:22:49
