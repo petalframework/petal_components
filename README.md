@@ -3,6 +3,10 @@
 
   <h1 align="center">Petal Components</h1>
 
+<p align="center">
+  <a href="https://petal.build">petal.build</a>
+</p>
+
   <p align="center">
     Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes.
   </p>
