@@ -59,8 +59,10 @@ defmodule PetalComponents.Form do
     "checkbox",
     "checkbox_group",
     "radio_group",
-    "switch"
+    "switch",
+    "hidden_input"
   ]
+
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
   attr(:label, :string, doc: "labels your field")
@@ -77,6 +79,12 @@ defmodule PetalComponents.Form do
   attr :rest, :global, include: @form_attrs
 
   @doc "Use this when you want to include the label and some margin."
+  def form_field(%{type: "hidden_input"} = assigns) do
+    ~H"""
+      <.hidden_input form={@form} field={@field} {@rest} />
+    """
+  end
+
   def form_field(assigns) do
     assigns =
       assigns
@@ -118,8 +126,6 @@ defmodule PetalComponents.Form do
         <% "text_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.text_input form={@form} field={@field} {@rest} />
-        <% "hidden_input" -> %>
-          <.hidden_input form={@form} field={@field} {@rest} />
         <% "email_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.email_input form={@form} field={@field} {@rest} />
