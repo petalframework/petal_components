@@ -102,13 +102,14 @@ defmodule PetalComponents.ATest do
 
     html =
       rendered_to_string(~H"""
-      <Link.a link_type="button" disabled to="/">
+      <Link.a link_type="button" disabled phx-click="click-me">
         Press me
       </Link.a>
       """)
 
     assert html =~ "Press me"
     assert html =~ " disabled"
+    refute html =~ " phx-"
 
     html =
       rendered_to_string(~H"""
@@ -119,6 +120,8 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
+    refute html =~ " phx-"
 
     html =
       rendered_to_string(~H"""
@@ -129,6 +132,8 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
+    refute html =~ " phx-"
 
     html =
       rendered_to_string(~H"""
@@ -139,5 +144,6 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
   end
 end

@@ -161,16 +161,19 @@ defmodule PetalComponents.ButtonTest do
 
     html =
       rendered_to_string(~H"""
-      <.button disabled label="Home" />
+      <.button disabled label="Home" phx-click="click-me" />
       """)
 
     assert html =~ " disabled"
+    refute html =~ " phx-"
 
     html =
       rendered_to_string(~H"""
       <.button disabled link_type="live_redirect" label="Home" />
       """)
 
+    assert html =~ ~s{href="#"}
     assert html =~ " disabled"
+    refute html =~ " phx-"
   end
 end
