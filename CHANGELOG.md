@@ -2,6 +2,7 @@
 ### 1.0.3 - 2023-02-26 03:47:33
 - Fixed: `hidden_input` not working correctly in `form_field`. Thanks @BobbieBarker!
 - Fixed: `disabled` attribute wasn't working on non-button buttons (eg. a live_redirect)
+- Fixed: Added alpine JS x-cloak hidden in CSS to avoid flash of unstyled content
 ### 1.0.2 - 2023-02-23 10:33:11
 - Fixed: fixed an issue where phx-feedback-for was not being properly included inside of the form_field component (thanks @BobbieBarker)
 - Update: Make paragraph text easier to read
