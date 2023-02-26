@@ -1121,3 +1121,8 @@ input[type="radio"].has-error:not(.phx-no-feedback) {
     opacity: 1;
   }
 }
+
+/* Needed for Alpine JS */
+[x-cloak=""] {
+  display: none;
+}
