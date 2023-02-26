@@ -155,4 +155,22 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "<svg"
   end
+
+  test "disabled button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button disabled label="Home" />
+      """)
+
+    assert html =~ " disabled"
+
+    html =
+      rendered_to_string(~H"""
+      <.button disabled link_type="live_redirect" label="Home" />
+      """)
+
+    assert html =~ " disabled"
+  end
 end

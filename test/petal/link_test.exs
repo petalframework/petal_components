@@ -108,6 +108,36 @@ defmodule PetalComponents.ATest do
       """)
 
     assert html =~ "Press me"
-    assert html =~ "disabled"
+    assert html =~ " disabled"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="live_redirect" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="live_patch" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="a" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
   end
 end
