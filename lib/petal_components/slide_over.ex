@@ -53,8 +53,8 @@ defmodule PetalComponents.SlideOver do
         <div
           id="slide-over-content"
           class={get_classes(@max_width, @origin, @class)}
-          phx-click-away={hide_slide_over(@close_slide_over_target || @origin)}
-          phx-window-keydown={hide_slide_over(@close_slide_over_target || @origin)}
+          phx-click-away={hide_slide_over(@close_slide_over_target, @origin)}
+          phx-window-keydown={hide_slide_over(@close_slide_over_target, @origin)}
           phx-key="escape"
         >
           <!-- Header -->
@@ -64,7 +64,7 @@ defmodule PetalComponents.SlideOver do
                 <%= @title %>
               </div>
 
-              <button phx-click={hide_slide_over(@close_slide_over_target || @origin)} class="pc-slideover__header__button">
+              <button phx-click={hide_slide_over(@close_slide_over_target, @origin)} class="pc-slideover__header__button">
                 <div class="sr-only">Close</div>
                 <svg class="pc-slideover__header__close-svg">
                   <path d="M7.95 6.536l4.242-4.243a1 1 0 111.415 1.414L9.364 7.95l4.243 4.242a1 1 0 11-1.415 1.415L7.95 9.364l-4.243 4.243a1 1 0 01-1.414-1.415L6.536 7.95 2.293 3.707a1 1 0 011.414-1.414L7.95 6.536z" />
@@ -86,7 +86,7 @@ defmodule PetalComponents.SlideOver do
   # def handle_event("close_slide_over", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
-  def hide_slide_over(close_slide_over_target \\ nil, origin) do
+  def hide_slide_over(close_slide_over_target, origin) do
     origin_class =
       case origin do
         x when x in ["left", "right"] -> "translate-x-0"
