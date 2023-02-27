@@ -113,7 +113,12 @@ defmodule PetalComponents.SlideOver do
       },
       to: "#slide-over-content"
     )
-    |> JS.push("close_slide_over")
+
+    if close_slide_over_target do
+      JS.push(js, "close_slide_over", target: close_slide_over_target)
+    else
+      JS.push(js, "close_slide_over")
+    end
   end
 
   defp get_classes(max_width, origin, class) do
