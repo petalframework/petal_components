@@ -19,6 +19,11 @@ defmodule PetalComponents.Modal do
     doc: "modal max width"
   )
 
+  attr(:show_on_mounted, :boolean,
+    default: false,
+    doc: "if show_on_mounted is set to false, the modal is not displayed when mounted"
+  )
+
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -28,10 +33,10 @@ defmodule PetalComponents.Modal do
       |> assign(:classes, get_classes(assigns))
 
     ~H"""
-    <div {@rest} id="modal">
+    <div {@rest} id="modal" phx-mounted={init_modal(@show_on_mounted)}>
       <div id="modal-overlay" class="pc-modal__overlay" aria-hidden="true"></div>
 
-      <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
+      <div id="modal-wrapper" class="pc-modal__wrapper" role="dialog" aria-modal="true">
         <div
           id="modal-content"
           class={@classes}
@@ -64,6 +69,17 @@ defmodule PetalComponents.Modal do
     """
   end
 
+  def init_modal(show_on_mounted) do
+    unless show_on_mounted do
+      %JS{}
+      |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.hide(to: "#modal-overlay")
+      |> JS.hide(to: "#modal-content")
+      |> JS.hide(to: "#modal-wrapper")
+      |> JS.hide(to: "#modal")
+    end
+  end
+
   # The live view that calls <.modal> will need to handle the "close_modal" event. eg:
   # def handle_event("close_modal", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
@@ -84,11 +100,20 @@ defmodule PetalComponents.Modal do
       |> JS.hide(
         transition: {
           "ease-in duration-200",
+          "opacity-100",
+          "opacity-0"
+        },
+        to: "#modal-wrapper"
+      )
+      |> JS.hide(
+        transition: {
+          "ease-in duration-200",
           "opacity-100 translate-y-0 md:scale-100",
           "opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
         },
         to: "#modal-content"
       )
+      |> JS.hide(to: "#modal")
 
     if close_modal_target do
       JS.push(js, "close_modal", target: close_modal_target)
@@ -110,6 +135,7 @@ defmodule PetalComponents.Modal do
       },
       to: "#modal-overlay"
     )
+    |> JS.show(to: "#modal-wrapper", display: "flex")
     |> JS.show(
       transition: {
         "transition ease-in-out duration-200",
@@ -118,6 +144,7 @@ defmodule PetalComponents.Modal do
       },
       to: "#modal-content"
     )
+    |> JS.show(to: "#modal")
   end
 
   defp get_classes(assigns) do
