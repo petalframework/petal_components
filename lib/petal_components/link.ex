@@ -9,6 +9,26 @@ defmodule PetalComponents.Link do
   attr(:rest, :global, include: ~w(method download))
   slot(:inner_block, required: false)
 
+  def a(%{link_type: "button", disabled: true} = assigns) do
+    assigns = update_in(assigns.rest, &Map.drop(&1, [:"phx-click"]))
+
+    ~H"""
+    <button class={@class} disabled={@disabled} {@rest}>
+      <%= if @label, do: @label, else: render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  def a(%{disabled: true} = assigns) do
+    assigns = update_in(assigns.rest, &Map.drop(&1, [:"phx-click"]))
+
+    ~H"""
+    <%= Phoenix.HTML.Link.link([to: "#", class: @class, disabled: @disabled] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
+    """
+  end
+
   def a(%{link_type: "a"} = assigns) do
     ~H"""
     <%= Phoenix.HTML.Link.link([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
