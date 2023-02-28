@@ -1,4 +1,7 @@
 # Changelog
+### 1.0.4 - 2023-02-28 03:57:29
+- Updated: Slideover now accepts a close target for when it is in a live_component
+- Fixed: Disabled buttons and links should not do anything when clicked
 ### 1.0.3 - 2023-02-26 03:47:33
 - Fixed: `hidden_input` not working correctly in `form_field`. Thanks @BobbieBarker!
 - Fixed: `disabled` attribute wasn't working on non-button buttons (eg. a live_redirect)
