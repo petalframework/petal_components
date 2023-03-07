@@ -49,94 +49,16 @@ defmodule PetalComponents.Badge do
     end
   end
 
-  defp get_color_classes(%{color: "primary", variant: variant}) do
+  defp get_color_classes(%{color: color, variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--primary-light"
+        "pc-badge--"<>color<>"-light"
 
       "dark" ->
-        "pc-badge--primary-dark"
+        "pc-badge--"<>color<>"-dark"
 
       "outline" ->
-        "pc-badge--primary-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "secondary", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--secondary-light"
-
-      "dark" ->
-        "pc-badge--secondary-dark"
-
-      "outline" ->
-        "pc-badge--secondary-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "info", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--info-light"
-
-      "dark" ->
-        "pc-badge--info-dark"
-
-      "outline" ->
-        "pc-badge--info-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "success", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--success-light"
-
-      "dark" ->
-        "pc-badge--success-dark"
-
-      "outline" ->
-        "pc-badge--success-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "warning", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--warning-light"
-
-      "dark" ->
-        "pc-badge--warning-dark"
-
-      "outline" ->
-        "pc-badge--warning-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "danger", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--danger-light"
-
-      "dark" ->
-        "pc-badge--danger-dark"
-
-      "outline" ->
-        "pc-badge--danger-outline"
-    end
-  end
-
-  defp get_color_classes(%{color: "gray", variant: variant}) do
-    case variant do
-      "light" ->
-        "pc-badge--gray-light"
-
-      "dark" ->
-        "pc-badge--gray-dark"
-
-      "outline" ->
-        "pc-badge--gray-outline"
+        "pc-badge--"<>color<>"-outline"
     end
   end
 end
