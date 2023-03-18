@@ -21,6 +21,7 @@ defmodule PetalComponents do
         Card,
         Table,
         Accordion,
+        Rating,
         Icon
       }
 
