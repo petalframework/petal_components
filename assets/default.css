@@ -1063,7 +1063,7 @@
 .pc-rating__wrapper {
   @apply flex items-center gap-1;
 }
-.pc-rating__rating_label {
+.pc-rating__label {
   @apply ml-1 text-base font-bold text-gray-700 dark:text-gray-300;
 }
 .pc-rating__star--filled {

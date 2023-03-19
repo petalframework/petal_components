@@ -5,7 +5,7 @@ defmodule PetalComponents.Rating do
 
   attr(:round_to_nearest_half, :boolean,
     default: true,
-    doc: "Whether to round the rating to the nearest half star (eg. 3.2 -> 3.5"
+    doc: "Whether to round the rating to the nearest half star (eg. 3.3 -> 3.5"
   )
 
   attr(:total, :integer, default: 5, doc: "The total number of stars to display")
@@ -39,7 +39,7 @@ defmodule PetalComponents.Rating do
       <% end %>
 
       <%= if @include_label do %>
-        <span class={["pc-rating__rating_label", @label_class]}>
+        <span class={["pc-rating__label", @label_class]}>
           <%= @rating_as_float %> out of <%= @total %>
         </span>
       <% end %>
