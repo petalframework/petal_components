@@ -3,20 +3,26 @@ defmodule PetalComponents.Accordion do
   import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
 
-  # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
-  # prop class, :string
-  # prop heading, :string
-  # slot default
+  attr(:container_id, :string)
+  attr(:class, :string, default: "", doc: "CSS class for parent container")
+  attr(:entries, :list, default: [%{}])
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
+
+  attr(:rest, :global)
+
+  slot :item, required: true, doc: "CSS class for parent container" do
+    attr(:heading, :string)
+  end
+
   def accordion(assigns) do
     assigns =
       assigns
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:item, fn -> [] end)
-      |> assign_new(:entries, fn -> [%{}] end)
-      |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_rest(~w(class js_lib container_id inner_block icon heading item entries)a)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do
@@ -47,31 +53,40 @@ defmodule PetalComponents.Accordion do
         <div {js_attributes("item", @js_lib, @container_id, i)} data-i={i}>
           <h2>
             <button
+              type="button"
               {js_attributes("button", @js_lib, @container_id, i)}
-              class={build_class([
-                "flex items-center justify-between w-full p-5 text-left bg-white dark:bg-gray-900 text-gray-800 border border-gray-200 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 accordion-button",
-                (if i == 0, do: "rounded-t-xl"),
-                (unless i == length(@item) - 1, do: "border-b-0")
-              ])}
+              class={
+                build_class([
+                  "pc-accordion-item accordion-button",
+                  if(i == 0, do: "pc-accordion-item--first"),
+                  unless(i == length(@item) - 1, do: "pc-accordion-item--last")
+                ])
+              }
             >
-              <span class="font-semibold text-md">
+              <span class="pc-accordion-item__heading">
                 <%= current_item.heading %>
               </span>
 
               <Heroicons.chevron_down
                 solid
-                class="flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500"
+                class="pc-accordion-item__chevron"
                 {js_attributes("icon", @js_lib, @container_id, i)}
               />
             </button>
           </h2>
-          <div {js_attributes("content_container", @js_lib, @container_id, i)} class="accordion-content-container">
-            <div
-              class={build_class([
-                "p-5 border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900",
-                (if i == length(@item) - 1, do: "border-t-0", else: "border-b-0")
-              ])}
-            >
+          <div
+            {js_attributes("content_container", @js_lib, @container_id, i)}
+            class="accordion-content-container"
+          >
+            <div class={
+              build_class([
+                "pc-accordion-item__content-container",
+                if(i == length(@item) - 1,
+                  do: "pc-accordion-item__content-container--last",
+                  else: "pc-accordion-item__content-container--not-last"
+                )
+              ])
+            }>
               <%= render_slot(current_item, current_item.entry) %>
             </div>
           </div>
@@ -81,7 +96,6 @@ defmodule PetalComponents.Accordion do
 
     <script>
       window.addEventListener("click_accordion", e => {
-        let containerId = e.detail.container_id;
         let i = e.detail.index;
         let clickedAccordionItem = e.target;
         let currentlyOpenAccordionItem = document.querySelector("[data-open='true']")
@@ -92,7 +106,7 @@ defmodule PetalComponents.Accordion do
           currentlyOpenAccordionItem.dataset.open = false
           currentlyOpenAccordionItem.querySelector("svg").classList.remove("rotate-180");
           currentlyOpenAccordionItem.querySelector(`.accordion-content-container`).style.display = "none";
-          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("bg-gray-50", "dark:bg-gray-800");
+          currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
         }
 
         // Open clicked accordion item (if not already open)
@@ -100,7 +114,7 @@ defmodule PetalComponents.Accordion do
           clickedAccordionItem.dataset.open = true
           clickedAccordionItem.querySelector("svg").classList.add("rotate-180");
           clickedAccordionItem.querySelector(`.accordion-content-container`).style.display = "block";
-          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("bg-gray-50", "dark:bg-gray-800");
+          clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
         }
       })
     </script>
@@ -130,7 +144,8 @@ defmodule PetalComponents.Accordion do
   defp js_attributes("button", "alpine_js", _container_id, _) do
     %{
       "x-on:click": "expanded = !expanded",
-      ":class": "expanded ? 'bg-gray-50 dark:bg-gray-800' : ''",
+      ":class":
+        "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
       ":aria-expanded": "expanded"
     }
   end

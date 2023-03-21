@@ -6,11 +6,19 @@ defmodule PetalComponents.Pagination do
   import PetalComponents.Helpers
   import PetalComponents.PaginationInternal
 
-  # prop path, :string
-  # prop class, :string
-  # prop sibling_count, :integer
-  # prop boundary_count, :integer
-  # prop link_type, :string, options: ["a", "live_patch", "live_redirect"]
+  attr(:path, :string, default: "/:page", doc: "page path")
+  attr(:class, :string, default: "", doc: "Parent div CSS class")
+
+  attr(:link_type, :string,
+    default: "a",
+    values: ["a", "live_patch", "live_redirect"]
+  )
+
+  attr(:total_pages, :integer, default: nil, doc: "sets a total page count")
+  attr(:current_page, :integer, default: nil, doc: "sets the current page")
+  attr(:sibling_count, :integer, default: 1, doc: "sets a sibling count")
+  attr(:boundary_count, :integer, default: 1, doc: "sets a boundary count")
+  attr(:rest, :global)
 
   @doc """
   In the `path` param you can specify :page as the place your page number will appear.
@@ -18,25 +26,18 @@ defmodule PetalComponents.Pagination do
   """
 
   def pagination(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:link_type, fn -> "a" end)
-      |> assign_new(:sibling_count, fn -> 1 end)
-      |> assign_new(:boundary_count, fn -> 1 end)
-      |> assign_new(:path, fn -> "/:page" end)
-      |> assign_rest(
-        ~w(link_type sibling_count boundary_count total_pages current_page path class)a
-      )
-
     ~H"""
-    <div {@rest} class={"#{@class} flex"}>
-      <ul class="inline-flex -space-x-px text-sm font-medium">
+    <div {@rest} class={"#{@class} pc-pagination"}>
+      <ul class="pc-pagination__inner">
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and item.enabled? do %>
             <div>
-              <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 hover:text-gray-800">
-                <Heroicons.chevron_left solid class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <Link.a
+                link_type={@link_type}
+                to={get_path(@path, item.number, @current_page)}
+                class="pc-pagination__item__previous"
+              >
+                <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
               </Link.a>
             </div>
           <% end %>
@@ -46,7 +47,11 @@ defmodule PetalComponents.Pagination do
               <%= if item.current? do %>
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
-                <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class={get_box_class(item)}>
+                <Link.a
+                  link_type={@link_type}
+                  to={get_path(@path, item.number, @current_page)}
+                  class={get_box_class(item)}
+                >
                   <%= item.number %>
                 </Link.a>
               <% end %>
@@ -55,14 +60,20 @@ defmodule PetalComponents.Pagination do
 
           <%= if item.type == "..." do %>
             <li>
-              <span class="inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-gray-900 dark:border-gray-700 border-gray-200 text-gray-400">...</span>
+              <span class="pc-pagination__item__ellipsis">
+                ...
+              </span>
             </li>
           <% end %>
 
           <%= if item.type == "next" and item.enabled? do %>
             <div>
-              <Link.a link_type={@link_type} to={get_path(@path, item.number, @current_page)} class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 hover:text-gray-800">
-                <Heroicons.chevron_right solid class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <Link.a
+                link_type={@link_type}
+                to={get_path(@path, item.number, @current_page)}
+                class="pc-pagination__item__next"
+              >
+                <Heroicons.chevron_right solid class="pc-pagination__item__next__chevron" />
               </Link.a>
             </div>
           <% end %>
@@ -74,27 +85,27 @@ defmodule PetalComponents.Pagination do
 
   defp get_box_class(item) do
     base_classes =
-      "inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700"
+      "pc-pagination__item"
 
     active_classes =
       if item.current?,
-        do: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+        do: "pc-pagination__item--is-current",
         else:
-          "bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400"
+          "pc-pagination__item--is-not-current"
 
     rounded_classes =
       case item do
         %{first?: true, last?: true} ->
-          "rounded"
+          "pc-pagination__item--with-single-box"
 
         %{first?: true, last?: false} ->
-          "rounded-l "
+          "pc-pagination__item--with-multiple-boxes--left"
 
         %{first?: false, last?: true} ->
-          "rounded-r"
+          "pc-pagination__item--with-multiple-boxes--right"
 
         _ ->
-          ""
+          "pc-pagination__item--rounded-catch-all"
       end
 
     build_class([base_classes, active_classes, rounded_classes])

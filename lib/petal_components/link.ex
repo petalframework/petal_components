@@ -1,54 +1,63 @@
 defmodule PetalComponents.Link do
   use Phoenix.Component
-  import PetalComponents.Helpers
 
-  # prop class, :string
-  # prop label, :string
-  # prop link_type, :string, options: ["a", "live_patch", "live_redirect", "button"]
-  # slot default
-  def a(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:link_type, fn -> "a" end)
-      |> assign_new(:label, fn -> nil end)
-      |> assign_new(:to, fn -> nil end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_rest(~w(class link_type label to)a)
+  attr(:class, :string, default: "", doc: "CSS class for link")
+  attr(:link_type, :string, default: "a", values: ["a", "live_patch", "live_redirect", "button"])
+  attr(:label, :string, default: nil, doc: "label your link")
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:disabled, :boolean, default: false, doc: "disables your link")
+  attr(:rest, :global, include: ~w(method download))
+  slot(:inner_block, required: false)
+
+  def a(%{link_type: "button", disabled: true} = assigns) do
+    assigns = update_in(assigns.rest, &Map.drop(&1, [:"phx-click"]))
 
     ~H"""
-    <.custom_link
-      inner_block={@inner_block}
-      link_type={@link_type}
-      to={@to}
-      rest={@rest}
-      class={@class}
-      label={@label}
-    />
+    <button class={@class} disabled={@disabled} {@rest}>
+      <%= if @label, do: @label, else: render_slot(@inner_block) %>
+    </button>
     """
   end
 
-  def custom_link(%{link_type: "a"} = assigns) do
+  def a(%{disabled: true} = assigns) do
+    assigns = update_in(assigns.rest, &Map.drop(&1, [:"phx-click"]))
+
     ~H"""
-    <%= Phoenix.HTML.Link.link [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= Phoenix.HTML.Link.link([to: "#", class: @class, disabled: @disabled] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
-  def custom_link(%{link_type: "live_patch"} = assigns) do
+  def a(%{link_type: "a"} = assigns) do
     ~H"""
-    <%= live_patch [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= Phoenix.HTML.Link.link([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
-  def custom_link(%{link_type: "live_redirect"} = assigns) do
+  def a(%{link_type: "live_patch"} = assigns) do
     ~H"""
-    <%= live_redirect [to: @to, class: @class] ++ @rest, do: (if @inner_block, do: render_slot(@inner_block), else: @label) %>
+    <%= live_patch([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
     """
   end
 
-  def custom_link(%{link_type: "button"} = assigns) do
+  def a(%{link_type: "live_redirect"} = assigns) do
     ~H"""
-    <button class={@class} {@rest}><%= if @inner_block, do: render_slot(@inner_block), else: @label %></button>
+    <%= live_redirect([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
+      do: if(@label, do: @label, else: render_slot(@inner_block))
+    ) %>
+    """
+  end
+
+  def a(%{link_type: "button"} = assigns) do
+    ~H"""
+    <button class={@class} disabled={@disabled} {@rest}>
+      <%= if @label, do: @label, else: render_slot(@inner_block) %>
+    </button>
     """
   end
 end

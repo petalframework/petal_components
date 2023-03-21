@@ -12,7 +12,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Heading 1"
     assert html =~ "<h1 class="
-    assert html =~ "text-4xl"
+    assert html =~ "pc-h1"
   end
 
   test ".h2" do
@@ -25,7 +25,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Heading 2"
     assert html =~ "<h2 class="
-    assert html =~ "text-2xl"
+    assert html =~ "pc-h2"
   end
 
   test ".h3" do
@@ -38,7 +38,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Heading 3"
     assert html =~ "<h3 class="
-    assert html =~ "text-xl"
+    assert html =~ "pc-h3"
   end
 
   test ".h4" do
@@ -51,7 +51,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Heading 4"
     assert html =~ "<h4 class="
-    assert html =~ "text-lg font-bold"
+    assert html =~ "pc-h4"
   end
 
   test ".h5" do
@@ -64,7 +64,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Heading 5"
     assert html =~ "<h5 class="
-    assert html =~ "text-lg font-medium"
+    assert html =~ "pc-h5"
   end
 
   test ".h1 extra assigns" do
@@ -91,7 +91,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Paragraph"
     assert html =~ "<p class="
-    assert html =~ "dark:text-gray-400"
+    assert html =~ "pc-text"
   end
 
   test ".p taking extra assigns" do
@@ -104,7 +104,7 @@ defmodule PetalComponents.TypographyTest do
 
     assert html =~ "Paragraph"
     assert html =~ "<p class="
-    assert html =~ "dark:text-gray-400"
+    assert html =~ "pc-text"
     assert html =~ "x-text="
     assert html =~ "input"
   end
@@ -114,7 +114,9 @@ defmodule PetalComponents.TypographyTest do
 
     html =
       rendered_to_string(~H"""
-      <.prose class="md:prose-lg" random-attribute="lol"><p>A paragraph</p></.prose>
+      <.prose class="md:prose-lg" random-attribute="lol">
+        <p>A paragraph</p>
+      </.prose>
       """)
 
     assert html =~ "A paragraph"
@@ -138,7 +140,7 @@ defmodule PetalComponents.TypographyTest do
     assert html =~ "<ul"
     assert html =~ "Item 1"
     assert html =~ "mb-5"
-    assert html =~ "dark"
+    assert html =~ "pc-text"
     assert html =~ "random-attribute"
   end
 
@@ -156,7 +158,7 @@ defmodule PetalComponents.TypographyTest do
     assert html =~ "<ol"
     assert html =~ "Item 1"
     assert html =~ "mb-5"
-    assert html =~ "dark"
+    assert html =~ "pc-text"
     assert html =~ "random-attribute"
   end
 end

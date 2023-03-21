@@ -3,40 +3,35 @@ defmodule PetalComponents.Container do
 
   import PetalComponents.Helpers
 
-  # prop max_width, :string, options: ["sm", "md", "lg", "xl", "full"]
-  # prop class, :string
-  # prop no_padding_on_mobile, :boolean
-  def container(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:max_width, fn -> "lg" end)
-      |> assign_new(:class, fn -> "" end)
-      |> assign_new(:no_padding_on_mobile, fn -> false end)
-      |> assign_rest(~w(max_width class no_padding_on_mobile)a)
+  attr(:max_width, :string,
+    default: "lg",
+    values: ["sm", "md", "lg", "xl", "full"],
+    doc: "sets container max-width"
+  )
 
+  attr(:class, :string, default: "", doc: "CSS class for container")
+  attr(:no_padding_on_mobile, :boolean, default: false, doc: "specify for padding on mobile")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  def container(assigns) do
     ~H"""
-    <div {@rest} class={build_class([
-      "mx-auto sm:px-6 lg:px-8 w-full",
-      get_width_class(@max_width),
-      get_padding_class(@no_padding_on_mobile),
-      @class
-    ])}>
+    <div
+      {@rest}
+      class={
+        build_class([
+          "pc-container pc-container--#{@max_width}",
+          get_padding_class(@no_padding_on_mobile),
+          @class
+        ])
+      }
+    >
       <%= render_slot(@inner_block) %>
     </div>
     """
   end
 
-  defp get_width_class(max_width) do
-    case max_width do
-      "sm" -> "max-w-3xl"
-      "md" -> "max-w-5xl"
-      "lg" -> "max-w-7xl"
-      "xl" -> "max-w-[85rem]"
-      "full" -> "max-w-full"
-    end
-  end
-
   defp get_padding_class(no_padding_on_mobile) do
-    if no_padding_on_mobile, do: "", else: "px-4"
+    if no_padding_on_mobile, do: "", else: "pc-container--mobile-padded"
   end
 end

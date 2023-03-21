@@ -7,12 +7,11 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="full">
-      </.container>
+      <.container max_width="full"></.container>
       """)
 
     assert html =~ "<div class="
-    assert html =~ "max-w-full"
+    assert html =~ "pc-container--full"
   end
 
   test "xl" do
@@ -20,11 +19,10 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="xl">
-      </.container>
+      <.container max_width="xl"></.container>
       """)
 
-    assert html =~ "85rem"
+    assert html =~ "pc-container--xl"
   end
 
   test "lg" do
@@ -32,12 +30,11 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="lg">
-      </.container>
+      <.container max_width="lg"></.container>
       """)
 
     assert html =~ "<div class="
-    assert html =~ "max-w-7xl"
+    assert html =~ "pc-container--lg"
   end
 
   test "md" do
@@ -45,12 +42,11 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="md">
-      </.container>
+      <.container max_width="md"></.container>
       """)
 
     assert html =~ "<div class="
-    assert html =~ "max-w-5xl"
+    assert html =~ "pc-container--md"
   end
 
   test "sm" do
@@ -58,12 +54,11 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container max_width="sm">
-      </.container>
+      <.container max_width="sm"></.container>
       """)
 
     assert html =~ "<div class="
-    assert html =~ "max-w-3xl"
+    assert html =~ "pc-container--sm"
   end
 
   test "should include additional assigns" do
@@ -71,8 +66,7 @@ defmodule PetalComponents.ContainerTest do
 
     html =
       rendered_to_string(~H"""
-      <.container custom-attrs="123">
-      </.container>
+      <.container custom-attrs="123"></.container>
       """)
 
     assert html =~ ~s{custom-attrs="123"}

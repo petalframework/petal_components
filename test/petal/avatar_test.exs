@@ -29,16 +29,20 @@ defmodule PetalComponents.AvatarTest do
 
     html =
       rendered_to_string(~H"""
-      <.avatar_group avatars={[
-        "image.png",
-        "image.png",
-        "image.png",
-        "image.png",
-      ]} size="xs" class="inline-block"/>
+      <.avatar_group
+        avatars={[
+          "image.png",
+          "image.png",
+          "image.png",
+          "image.png"
+        ]}
+        size="xs"
+        class="inline-block"
+      />
       """)
 
     assert html =~ "<div"
-    assert html =~ "-space-x-"
+    assert html =~ "pc-avatar-group--xs"
   end
 
   test "it renders the avatar with initials" do
@@ -72,7 +76,6 @@ defmodule PetalComponents.AvatarTest do
       """)
 
     assert html =~ "<svg"
-    assert html =~ "dark:"
   end
 
   test "should include additional assigns" do
@@ -80,9 +83,9 @@ defmodule PetalComponents.AvatarTest do
 
     html =
       rendered_to_string(~H"""
-      <.avatar  custom-attrs="123" src="image.png" />
+      <.avatar custom-attrs="123" src="image.png" />
       <.avatar custom-attrs="456" />
-      <.avatar name="John Smith"  custom-attrs="789" />
+      <.avatar name="John Smith" custom-attrs="789" />
       """)
 
     assert html =~ ~s{custom-attrs="123"}

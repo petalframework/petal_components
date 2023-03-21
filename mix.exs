@@ -2,13 +2,13 @@ defmodule PetalComponents.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/petalframework/petal_components"
-  @version "0.18.5"
+  @version "1.0.4"
 
   def project do
     [
       app: :petal_components,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       description: description(),
@@ -43,7 +43,7 @@ defmodule PetalComponents.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.6"},
-      {:phoenix_live_view, "~> 0.18.0"},
+      {:phoenix_live_view, "~> 0.18.3"},
       {:jason, "~> 1.0", only: [:dev, :test]},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
@@ -63,7 +63,8 @@ defmodule PetalComponents.MixProject do
     [
       maintainers: ["Matt Platts", "Nic Hoban"],
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url}
+      links: %{"GitHub" => @source_url},
+      files: ~w(mix.exs priv lib assets README.md LICENSE.md CHANGELOG.md)
     ]
   end
 

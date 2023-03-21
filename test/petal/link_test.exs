@@ -93,11 +93,57 @@ defmodule PetalComponents.ATest do
            """) =~ ">Press me<"
 
     assert rendered_to_string(~H"""
-           <Link.a to="/"> Press me </Link.a>
-           """) =~ "> Press me <"
-
-    assert rendered_to_string(~H"""
            <Link.a to="/" label="Press me" />, blah
            """) =~ "</a>, blah"
+  end
+
+  test "link as a disabled button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="button" disabled phx-click="click-me">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+    refute html =~ " phx-"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="live_redirect" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
+    refute html =~ " phx-"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="live_patch" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
+    refute html =~ " phx-"
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a link_type="a" disabled to="/">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ " disabled"
+    assert html =~ ~s{href="#"}
   end
 end

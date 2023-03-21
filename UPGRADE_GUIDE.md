@@ -1,5 +1,64 @@
 # Upgrade Guide
 
+## v0.19 to v1.0.0
+
+In `tailwind.config.js` you need to add more colors:
+
+```js
+
+  theme: {
+    extend: {
+
+      colors: {
+        primary: colors.blue,
+        secondary: colors.pink,
+
+        // ADD THESE COLORS (can pick different ones from here: https://tailwindcss.com/docs/customizing-colors)
+        success: colors.green,
+        danger: colors.red,
+        warning: colors.yellow,
+        info: colors.sky,
+
+        // Options: slate, gray, zinc, neutral, stone
+        gray: colors.gray,
+      },
+    },
+  },
+```
+
+In your `app.scss` you need to import the default Petal Components CSS:
+
+```css
+@import "tailwindcss/base";
+@import "../../deps/petal_components/assets/default.css";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+```
+
+## v0.18 to v0.19
+
+There should be no breaking changes. This provides declarative assigns for all components so you should get warnings if you don't pass the right attributes.
+
+### Using with Phoenix 1.7
+
+Petal Components work fine with Phoenix 1.7 - there just will be some naming conflicts as the Phoenix generator now creates a file called `core_components.ex`, which has some function components defined in there.
+
+To fix, go to the generated `core_components.ex` file and rename or remove the following functions: `modal`, `button` and `table`.
+
+Unfortunately, this means the generators like `mix phx.gen.live` won't work properly. If you want generators for Petal Components, look into buying [Petal Pro](https://petal.build).
+
+For a full upgrade commit of Phoenix 1.6 to 1.7 you can see [here](https://github.com/petalframework/petal_boilerplate/commit/dfd122902b2f1730f122efafc3d6962c2a6ce91d) how we did it with Petal Boilerplate.
+
+If you want to pick and choose which components to use, you could namespace Petal Components.
+
+```
+defmodule PC do
+  use PetalComponents
+end
+```
+
+Then there would be no naming conflicts. But you would have to use the module for every component: `<PC.button></PC.button>` etc.
+
 ## v0.17 to v0.18
 
 This guide assumes you are also updating `phoenix_live_view` to `0.18.0`.
@@ -78,7 +137,7 @@ Delete all references to `PetalComponents.Heroicons`.
 
 For every case you have used a Heroicon in a HEEX template you will have to update to the new syntax defined here: https://github.com/mveytsman/heroicons_elixir
 
-Eg. 
+Eg.
 
 ```html
 
@@ -89,7 +148,7 @@ Eg.
 <Heroicons.home solid class="" />
 ```
 
-Note the `solid` attribute. For `outline`, you don't need any attributes. 
+Note the `solid` attribute. For `outline`, you don't need any attributes.
 
 The most annoying part is that a lot of the icon names have changed. You can see a list of the all the name changes here: https://github.com/tailwindlabs/heroicons/releases/tag/v2.0.0
 

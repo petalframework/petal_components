@@ -12,28 +12,28 @@ defmodule PetalComponents.AlertTest do
 
     assert html =~ "Info alert"
     assert html =~ "<svg"
-    assert html =~ "text-blue"
+    assert html =~ "pc-alert--info"
 
     html =
       rendered_to_string(~H"""
       <.alert color="warning" label="Label" />
       """)
 
-    assert html =~ "text-yellow"
+    assert html =~ "pc-alert--warning"
 
     html =
       rendered_to_string(~H"""
       <.alert color="danger" label="Label" />
       """)
 
-    assert html =~ "text-red"
+    assert html =~ "pc-alert--danger"
 
     html =
       rendered_to_string(~H"""
       <.alert color="success" label="Label" />
       """)
 
-    assert html =~ "text-green"
+    assert html =~ "pc-alert--success"
   end
 
   test "default color is info" do
@@ -44,7 +44,7 @@ defmodule PetalComponents.AlertTest do
       <.alert label="Label" />
       """)
 
-    assert html =~ "text-blue"
+    assert html =~ "pc-alert--info"
   end
 
   test "when there is no label it doesn't render anything" do
@@ -78,7 +78,7 @@ defmodule PetalComponents.AlertTest do
       """)
 
     assert html =~ "Success!"
-    assert html =~ "dark:"
+    assert html =~ "pc-alert--info"
   end
 
   test "should include additional assigns" do

@@ -23,7 +23,6 @@ defmodule PetalComponents.ModalTest do
 
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
-    assert html =~ "max-w-sm"
 
     # Test size options
     html =
@@ -42,102 +41,7 @@ defmodule PetalComponents.ModalTest do
 
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
-    assert html =~ "max-w-xl"
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="lg" link_type="live_patch" to="/live" />
-
-      <.modal max_width="lg" title="Modal">
-        <div class="gap-5 text-sm">
-          <.form_label label="Add some text here." />
-          <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
-          </div>
-        </div>
-      </.modal>
-      """)
-
-    assert html =~ "data-phx-link"
-    assert html =~ "phx-click"
-    assert html =~ "max-w-3xl"
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="xl" link_type="live_patch" to="/live" />
-
-      <.modal max_width="xl" title="Modal">
-        <div class="gap-5 text-sm">
-          <.form_label label="Add some text here." />
-          <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
-          </div>
-        </div>
-      </.modal>
-      """)
-
-    assert html =~ "data-phx-link"
-    assert html =~ "phx-click"
-    assert html =~ "max-w-5xl"
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="2xl" link_type="live_patch" to="/live" />
-
-      <.modal max_width="2xl" title="Modal">
-        <div class="gap-5 text-sm">
-          <.form_label label="Add some text here." />
-          <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
-          </div>
-        </div>
-      </.modal>
-      """)
-
-    assert html =~ "data-phx-link"
-    assert html =~ "phx-click"
-    assert html =~ "max-w-7xl"
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="full" link_type="live_patch" to="/live" />
-
-      <.modal max_width="full" title="Modal">
-        <div class="gap-5 text-sm">
-          <.form_label label="Add some text here." />
-          <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
-          </div>
-        </div>
-      </.modal>
-      """)
-
-    assert html =~ "data-phx-link"
-    assert html =~ "phx-click"
-    assert html =~ "max-w-full"
-  end
-
-  test "dark mode" do
-    assigns = %{}
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="sm" link_type="live_patch" to="/live" />
-
-      <.modal max_width="sm" title="Modal">
-        <div class="gap-5 text-sm">
-          <.form_label label="Add some text here." />
-          <div class="flex justify-end">
-            <.button label="close" phx-click={PetalComponents.Modal.hide_modal()} />
-          </div>
-        </div>
-      </.modal>
-      """)
-
-    assert html =~ "data-phx-link"
-    assert html =~ "phx-click"
-    assert html =~ "max-w-sm"
-    assert html =~ "dark:"
+    assert html =~ "pc-modal__box--md"
   end
 
   test "should include additional assigns" do
@@ -145,7 +49,6 @@ defmodule PetalComponents.ModalTest do
 
     html =
       rendered_to_string(~H"""
-
       <.modal custom-attrs="123" title="Modal"></.modal>
       """)
 

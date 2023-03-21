@@ -18,14 +18,6 @@ defmodule PetalComponents.Helpers do
     |> IO.iodata_to_binary()
   end
 
-  def assign_rest(assigns, exclude) do
-    Phoenix.Component.assign(
-      assigns,
-      :rest,
-      Phoenix.Component.assigns_to_attributes(assigns, exclude)
-    )
-  end
-
   # Remove joiner (if present), since our last element was empty and isn't added
   defp join_non_empty_list([""], joiner, [joiner | acc]), do: acc
   defp join_non_empty_list([nil], joiner, [joiner | acc]), do: acc

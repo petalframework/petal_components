@@ -91,7 +91,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "shadow-xl"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with dark mode" do
@@ -104,7 +104,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    assert html =~ "dark:"
+    assert html =~ "pc-button--primary-shadow"
   end
 
   test "button with custom class" do
@@ -126,11 +126,10 @@ defmodule PetalComponents.ButtonTest do
       <.icon_button to="/" link_type="button" size="xs" color="primary">
         <Heroicons.clock solid />
       </.icon_button>
-
       """)
 
     assert html =~ "<svg"
-    assert html =~ "dark:hover:"
+    assert html =~ "pc-icon-button-bg--primary"
   end
 
   test "should include additional assigns" do
@@ -143,5 +142,38 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ ~s{custom-attr="123"}
     assert html =~ ~s{type="button"}
+  end
+
+  test "button with icon attr" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button icon={:home} label="Home" />
+      """)
+
+    assert html =~ "<button"
+    assert html =~ "<svg"
+  end
+
+  test "disabled button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button disabled label="Home" phx-click="click-me" />
+      """)
+
+    assert html =~ " disabled"
+    refute html =~ " phx-"
+
+    html =
+      rendered_to_string(~H"""
+      <.button disabled link_type="live_redirect" label="Home" />
+      """)
+
+    assert html =~ ~s{href="#"}
+    assert html =~ " disabled"
+    refute html =~ " phx-"
   end
 end

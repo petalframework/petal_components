@@ -1,6 +1,5 @@
 defmodule PetalComponents.Dropdown do
   use Phoenix.Component
-  import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
   alias PetalComponents.Link
 
@@ -12,11 +11,26 @@ defmodule PetalComponents.Dropdown do
   @transition_out_start "transform opacity-100 scale-100"
   @transition_out_end "transform opacity-0 scale-95"
 
-  # prop js_lib, :string, default: "alpine_js", options: ["alpine_js", "live_view_js"]
-  # prop label, :string
-  # prop placement, :string, default: options: ["left", "right"]
-  # slot default
-  # slot trigger_element
+  attr(:options_container_id, :string)
+  attr(:label, :string, default: nil, doc: "labels your dropdown option")
+  attr(:class, :string, default: "", doc: "any extra CSS class for the parent container")
+
+  attr(:menu_items_wrapper_class, :string,
+    default: "",
+    doc: "any extra CSS class for menu item wrapper container"
+  )
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
+
+  attr(:placement, :string, default: "left", values: ["left", "right"])
+  attr(:rest, :global)
+  slot(:trigger_element)
+  slot(:inner_block, required: false)
+
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
       <.dropdown_menu_item link_type="button">
@@ -32,14 +46,13 @@ defmodule PetalComponents.Dropdown do
     assigns =
       assigns
       |> assign_new(:options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
-      |> assign_new(:js_lib, fn -> "alpine_js" end)
-      |> assign_new(:placement, fn -> "left" end)
-      |> assign_new(:label, fn -> nil end)
-      |> assign_new(:trigger_element, fn -> nil end)
-      |> assign_rest(~w(options_container_id js_lib placement label trigger_element class)a)
 
     ~H"""
-    <div {@rest} {js_attributes("container", @js_lib, @options_container_id)} class="relative inline-block text-left">
+    <div
+      {@rest}
+      {js_attributes("container", @js_lib, @options_container_id)}
+      class={[@class, "pc-dropdown"]}
+    >
       <div>
         <button
           type="button"
@@ -51,21 +64,21 @@ defmodule PetalComponents.Dropdown do
 
           <%= if @label do %>
             <%= @label %>
-            <Heroicons.chevron_down solid class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+            <Heroicons.chevron_down solid class="pc-dropdown__chevron" />
           <% end %>
 
           <%= if @trigger_element do %>
             <%= render_slot(@trigger_element) %>
           <% end %>
 
-          <%= if !@label && !@trigger_element do %>
-            <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
+          <%= if !@label && @trigger_element == [] do %>
+            <Heroicons.ellipsis_vertical solid class="pc-dropdown__ellipsis" />
           <% end %>
         </button>
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={placement_class(@placement) <> " absolute z-30 w-56 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} pc-dropdown__menu-items-wrapper"}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -79,39 +92,34 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  def dropdown_menu_item(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:link_type, fn -> "button" end)
-      |> assign_new(:inner_block, fn -> nil end)
-      |> assign_new(:to, fn -> nil end)
-      |> assign_new(:classes, fn -> dropdown_menu_item_classes() end)
-      |> assign_rest(~w(classes link_type)a)
+  attr(:to, :string, default: nil, doc: "link path")
+  attr(:label, :string, doc: "link label")
+  attr(:class, :string, default: "", doc: "any additional CSS classes")
 
+  attr(:link_type, :string,
+    default: "button",
+    values: ["a", "live_patch", "live_redirect", "button"]
+  )
+
+  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
+  slot(:inner_block, required: false)
+
+  def dropdown_menu_item(assigns) do
     ~H"""
-    <Link.a link_type={@link_type} to={@to} class={@classes} {@rest}>
-      <%= if @inner_block do %>
-        <%= render_slot(@inner_block) %>
-      <% else %>
-        <%= @label %>
-      <% end %>
+    <Link.a link_type={@link_type} to={@to} class={"#{@class} pc-dropdown__menu-item"} {@rest}>
+      <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
   end
 
-  defp trigger_button_classes(nil, nil),
-    do:
-      "flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500"
+  defp trigger_button_classes(nil, []),
+    do: "pc-dropdown__trigger-button--no-label"
 
-  defp trigger_button_classes(_label, nil),
-    do:
-      "inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none"
+  defp trigger_button_classes(_label, []),
+    do: "pc-dropdown__trigger-button--with-label"
 
-  defp trigger_button_classes(_label, _trigger_element), do: "align-middle"
-
-  defp dropdown_menu_item_classes(),
-    do:
-      "block flex gap-2 items-center self-start dark:hover:bg-gray-700 dark:text-gray-300 justify-start px-4 py-2 text-sm text-gray-700 transition duration-150 dark:bg-gray-800 ease-in-out hover:bg-gray-100 w-full text-left"
+  defp trigger_button_classes(_label, _trigger_element),
+    do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
 
   defp js_attributes("container", "alpine_js", _options_container_id) do
     %{
@@ -170,6 +178,6 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  defp placement_class("left"), do: "right-0 origin-top-right"
-  defp placement_class("right"), do: "left-0 origin-top-left"
+  defp placement_class("left"), do: "pc-dropdown__menu-items-wrapper-placement--left"
+  defp placement_class("right"), do: "pc-dropdown__menu-items-wrapper-placement--right"
 end

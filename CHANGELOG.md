@@ -1,4 +1,53 @@
 # Changelog
+### 1.0.4 - 2023-02-28 03:57:29
+- Updated: Slideover now accepts a close target for when it is in a live_component
+- Fixed: Disabled buttons and links should not do anything when clicked
+### 1.0.3 - 2023-02-26 03:47:33
+- Fixed: `hidden_input` not working correctly in `form_field`. Thanks @BobbieBarker!
+- Fixed: `disabled` attribute wasn't working on non-button buttons (eg. a live_redirect)
+- Fixed: Added alpine JS x-cloak hidden in CSS to avoid flash of unstyled content
+### 1.0.2 - 2023-02-23 10:33:11
+- Fixed: fixed an issue where phx-feedback-for was not being properly included inside of the form_field component (thanks @BobbieBarker)
+- Update: Make paragraph text easier to read
+### 1.0.1 - 2023-02-20 05:37:11
+- Fixed issue "The `invalid-feedback` class does not exist" [#141]
+### 1.0.0 - 2023-02-16 20:22:49
+- Extracted classnames for each component into a CSS file using BEM naming convention. This allows for more flexibility in styling and theming.
+### 0.19.10 - 2023-01-14 09:24:34
+- Fixed: support button attrs: 'value', 'name'
+- Fixed: support form element attr: 'accept'
+- Fixed: support link attr: 'download'
+### 0.19.9 - 2023-01-12 22:41:06
+- Fix: <.th> can now accept colspan and rowspan
+### 0.19.8 - 2023-01-12 00:37:24
+- New: Button now can take an icon name as an attribute. eg `<.button icon={:home} label="Home" />`
+### 0.19.7 - 2023-01-11 21:20:15
+- Fixed disabled buttons
+### 0.19.6 - 2023-01-01 22:18:07
+- New: `<.hidden_input>` form element
+- Added "list" attr warning for inputs
+- Added "for" attr warning for label
+### 0.19.5 - 2022-12-30 06:00:52
+- Changed: form_help_text colours
+### 0.19.4 - 2022-12-29 00:10:21
+- New <.icon> functional component that renders a dynamic Heroicon (v2)
+- Added label_class attr to all form inputs so you can change the look of labels
+- Fixed "checked" attr for checkbox_group use with form_field
+### 0.19.3 - 2022-12-22 02:42:17
+- Added: help text for form fields
+- Enhancement: <.td> can now accept colspan and rowspan attributes
+- Enhancement: Added some optional textarea attributes: cols, rows and wrap
+- Fixed: checkbox_group "checked" attr wasn't getting passed through
+- Fixed: checkbox label wasn't working when no label attr was passed
+### 0.19.2 - 2022-12-18 20:22:40
+- Enhancement: Dropdowns are more customisable with classes
+- Chore: Cleaned up form field attrs
+- Fix: Changed the heading attr :no_margin to be a :boolean
+### 0.19.1 - 2022-12-14 00:56:52
+- Fixed form_field class attribute - it wasn't getting appended to the input classes properly
+### 0.19.0 - 2022-12-13 05:11:47
+- Added declarative assigns for all components
+- Fix default green button having the wrong background
 ### 0.18.5 - 2022-10-06 02:04:15
 - Fix compilation error on form.ex
 ### 0.18.4 - 2022-10-06 01:43:08

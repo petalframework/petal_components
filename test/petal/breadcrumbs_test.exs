@@ -7,9 +7,12 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html =
       rendered_to_string(~H"""
-      <.breadcrumbs class="text-md" links={[
-        %{ label: "Link 1", to: "/" }
-      ]} />
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/"}
+        ]}
+      />
       """)
 
     assert html =~ "Link 1"
@@ -23,9 +26,12 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html =
       rendered_to_string(~H"""
-      <.breadcrumbs class="text-md" links={[
-        %{ label: "Link 1", to: "/", link_type: "live_patch" }
-      ]} />
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/", link_type: "live_patch"}
+        ]}
+      />
       """)
 
     assert html =~ "<a"
@@ -38,9 +44,12 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html =
       rendered_to_string(~H"""
-      <.breadcrumbs class="text-md" links={[
-        %{ label: "Link 1", to: "/", link_type: "live_redirect" }
-      ]} />
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/", link_type: "live_redirect"}
+        ]}
+      />
       """)
 
     assert html =~ "<a"
@@ -53,16 +62,19 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html =
       rendered_to_string(~H"""
-      <.breadcrumbs class="text-md" links={[
-        %{ label: "Link 1", to: "/" }
-      ]} />
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/"}
+        ]}
+      />
       """)
 
     assert html =~ "Link 1"
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "text-md"
-    assert html =~ "dark:"
+    assert html =~ "pc-breadcrumb"
   end
 
   test "should include additional assigns" do
@@ -70,9 +82,13 @@ defmodule PetalComponents.BreadcrumbsTest do
 
     html =
       rendered_to_string(~H"""
-      <.breadcrumbs custom-attrs="123" class="text-md" links={[
-        %{ label: "Link 1", to: "/" }
-      ]} />
+      <.breadcrumbs
+        custom-attrs="123"
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/"}
+        ]}
+      />
       """)
 
     assert html =~ ~s{custom-attrs="123"}

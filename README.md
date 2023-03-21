@@ -3,6 +3,10 @@
 
   <h1 align="center">Petal Components</h1>
 
+<p align="center">
+  <a href="https://petal.build">petal.build</a>
+</p>
+
   <p align="center">
     Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes.
   </p>
@@ -33,7 +37,7 @@
 </p>
 
 <p align="center">
-  <a href="https://petal-components-demo.fly.dev">DEMO</a> | <a href="https://petal.build/components">DOCS</a>
+  <a href="https://petal.build/components">View the docs</a>
 </p>
 
 ## About
@@ -80,7 +84,7 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] time, datetime, & date input
 - [x] multiple select (see checkbox group)
 - [x] switch
-- [ ] input help text
+- [x] input help text
 - [ ] input prefix and postfix
 
 ### Buttons
@@ -93,7 +97,6 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 
 ### Misc
 - [x] menu dropdown
-- [ ] tooltips
 - [x] avatar
 - [x] alerts
 - [x] tables
@@ -102,11 +105,12 @@ Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemNa
 - [x] modal
 - [x] slide over
 - [x] spinners
-- [x] accordian
+- [x] accordion
 - [x] pagination
 - [x] badges
 - [x] progress
 - [x] links
+- [ ] tooltips
 
 ## FAQ
 
@@ -154,6 +158,18 @@ If you really want to you can instruct Tailwind to just scan the components you 
 ```
 "../deps/petal_components/lib/button.ex",
 "../deps/petal_components/lib/alert.ex",
+```
+
+**Q: Can I customize the components?**
+A: Yes! You can customize the components by overriding the CSS classes. For example, if you want to change the color of the button you can do this:
+
+```css
+.pc-button {
+  @apply inline-flex items-center justify-center font-semibold tracking-wider uppercase transition duration-150 ease-in-out border-2 rounded-none focus:outline-none;
+}
+.pc-button--primary {
+  @apply text-black border-black bg-primary-400 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-primary-500/50;
+}
 ```
 
 ## Contributing
