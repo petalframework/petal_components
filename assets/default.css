@@ -73,7 +73,7 @@
   @apply text-white border-transparent shadow-xl bg-secondary-600 hover:bg-secondary-700 focus:bg-secondary-700 active:bg-secondary-800 focus:shadow-secondary-500/50 shadow-secondary-500/30 dark:hover:shadow-secondary-600/30 dark:focus:shadow-secondary-600/30 dark:active:shadow-secondary-700/30;
 }
 .pc-button--white {
-  @apply bg-white text-gray-700 border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
+  @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
 }
 .pc-button--white-outline {
   @apply text-gray-600 border-gray-400 dark:border-gray-300 dark:hover:border-gray-200 dark:hover:text-gray-200 dark:hover:bg-transparent dark:text-gray-300 hover:border-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600;
@@ -82,10 +82,10 @@
   @apply text-gray-600 border-gray-400 dark:border-white dark:hover:border-gray-700 dark:hover:text-black dark:hover:bg-white dark:text-gray-300 hover:border-gray-600 hover:text-black active:bg-gray-700 hover:bg-white focus:border-gray-700 focus:shadow-gray-500/50;
 }
 .pc-button--white-shadow {
-  @apply bg-white shadow-xl text-gray-700 border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
+  @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
 }
 .pc-button--pure-white {
-  @apply bg-white border-transparent border-white text-gray-700 hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-none focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
+  @apply text-gray-700 bg-white border-transparent border-white hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-none focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
 }
 .pc-button--info {
   @apply text-white border-transparent bg-info-600 hover:bg-info-700 active:bg-info-800 focus:bg-info-700;
@@ -136,7 +136,7 @@
   @apply text-white bg-red-600 border-transparent shadow-xl hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:shadow-red-500/50 shadow-red-500/30 dark:hover:shadow-red-600/30 dark:focus:shadow-red-600/30 dark:active:shadow-red-700/30;
 }
 .pc-button--gray {
-  @apply text-white border-transparent bg-gray-600 active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700;
+  @apply text-white bg-gray-600 border-transparent active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700;
 }
 .pc-button--gray-outline {
   @apply text-gray-600 border-gray-400 dark:border-gray-400 dark:hover:border-gray-300 dark:hover:text-gray-300 dark:hover:bg-transparent dark:text-gray-400 hover:border-gray-600 hover:text-gray-700 active:bg-gray-200 active:border-gray-700 hover:bg-gray-50 focus:border-gray-700;
@@ -145,7 +145,7 @@
   @apply text-gray-600 border-gray-400 dark:border-gray-400 dark:hover:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:text-gray-400 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 focus:border-gray-700 focus:shadow-gray-500/50;
 }
 .pc-button--gray-shadow {
-  @apply text-white border-transparent shadow-xl bg-gray-600 active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700 focus:shadow-gray-500/50 shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:focus:shadow-gray-600/30 dark:active:shadow-gray-700/30;
+  @apply text-white bg-gray-600 border-transparent shadow-xl active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700 focus:shadow-gray-500/50 shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:focus:shadow-gray-600/30 dark:active:shadow-gray-700/30;
 }
 
 /* Buttons - loading */
@@ -399,7 +399,7 @@
   @apply text-white bg-gray-600 border-gray-600 dark:bg-gray-700 dark:border-gray-700;
 }
 .pc-badge--gray-outline {
-  @apply border text-gray-600 border-gray-600 dark:text-gray-400 dark:border-gray-400;
+  @apply text-gray-600 border border-gray-600 dark:text-gray-400 dark:border-gray-400;
 }
 
 /* Alerts */
@@ -479,6 +479,12 @@
 .pc-form-field-error {
   @apply mt-1 text-xs italic text-red-500;
 }
+.phx-no-feedback.pc-form-field-error {
+  @apply hidden;
+}
+.phx-no-feedback .pc-form-field-error {
+  @apply hidden;
+}
 .pc-form-help-text {
   @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
 }
@@ -498,28 +504,28 @@
   @apply absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer-checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800;
 }
 .pc-switch__fake-input {
-  @apply absolute h-6 mx-auto transition-colors duration-200 ease-in-out border rounded-full pointer-events-none bg-gray-200 w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500;
+  @apply absolute h-6 mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border rounded-full pointer-events-none w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500;
 }
 .pc-switch__fake-input-bg {
   @apply absolute left-0 inline-block w-5 h-5 transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none peer-checked:translate-x-5 ring-0;
 }
 .pc-text-input {
-  @apply block w-full rounded-md shadow-sm border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;
+  @apply block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;
 }
 .pc-select {
-  @apply block w-full py-2 pl-3 pr-10 text-base rounded-md cursor-pointer border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none sm:text-sm dark:disabled:bg-gray-700 dark:text-gray-300 dark:bg-gray-800;
+  @apply block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-md cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none sm:text-sm dark:disabled:bg-gray-700 dark:text-gray-300 dark:bg-gray-800;
 }
 .pc-file-input {
   @apply text-sm rounded-md cursor-pointer focus:outline-none file:border-0 text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-gray-800 dark:file:text-primary-500;
 }
 .pc-color-input {
-  @apply cursor-pointer border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
+  @apply border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
 }
 .pc-range-input {
-  @apply w-full cursor-pointer border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
+  @apply w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
 }
 .pc-checkbox {
-  @apply w-5 h-5 transition-all duration-150 ease-linear rounded border-gray-300 text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
+  @apply w-5 h-5 transition-all duration-150 ease-linear border-gray-300 rounded text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
 }
 .pc-checkbox-group--row {
   @apply flex flex-row gap-4;
@@ -534,7 +540,7 @@
   @apply inline-flex items-center gap-3 cursor-pointer;
 }
 .pc-radio {
-  @apply w-4 h-4 cursor-pointer border-gray-300 text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
+  @apply w-4 h-4 border-gray-300 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
 }
 .pc-radio-group-layout--row {
   @apply flex flex-row gap-4;
@@ -567,13 +573,13 @@
   @apply left-0 origin-top-left;
 }
 .pc-dropdown__menu-item {
-  @apply flex items-center self-start justify-start w-full gap-2 px-4 py-2 text-sm text-left transition duration-150 ease-in-out text-gray-700 dark:hover:bg-gray-700 dark:text-gray-300 dark:bg-gray-800 hover:bg-gray-100;
+  @apply flex items-center self-start justify-start w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 transition duration-150 ease-in-out dark:hover:bg-gray-700 dark:text-gray-300 dark:bg-gray-800 hover:bg-gray-100;
 }
 .pc-dropdown__trigger-button--no-label {
-  @apply flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
+  @apply flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
 }
 .pc-dropdown__trigger-button--with-label {
-  @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium bg-white border rounded-md shadow-sm text-gray-700 border-gray-300 dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none;
+  @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none;
 }
 .pc-dropdown__trigger-button--with-label-and-trigger-element {
   @apply align-middle;
@@ -618,10 +624,10 @@
   @apply object-cover rounded-full;
 }
 .pc-avatar--with-placeholder-icon {
-  @apply relative inline-block overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700;
+  @apply relative inline-block overflow-hidden bg-gray-100 rounded-full dark:bg-gray-700;
 }
 .pc-avatar--with-placeholder-initials {
-  @apply flex items-center justify-center font-semibold uppercase rounded-full text-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-gray-300;
+  @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300;
 }
 .pc-avatar-group {
   @apply ring-white ring-2 dark:ring-gray-100;
@@ -756,7 +762,7 @@
   @apply text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-300;
 }
 .pc-pagination__item--is-not-current {
-  @apply bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400;
+  @apply text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400;
 }
 .pc-pagination__item--current {
   @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700;
@@ -822,7 +828,7 @@
   @apply border-primary-500 text-primary-600 dark:text-primary-500 dark:border-primary-500;
 }
 .pc-tab__underline--is-not-active {
-  @apply border-transparent text-gray-500 dark:hover:text-gray-300 dark:text-gray-400 hover:border-gray-300 hover:text-gray-600;
+  @apply text-gray-500 border-transparent dark:hover:text-gray-300 dark:text-gray-400 hover:border-gray-300 hover:text-gray-600;
 }
 .pc-tab__underline--with-underline-and-is-active {
 }
@@ -869,10 +875,10 @@
   @apply flex flex-col w-full max-w-full;
 }
 .pc-card--basic {
-  @apply border rounded-lg shadow-lg border-gray-200 dark:shadow-2xl dark:border-none;
+  @apply border border-gray-200 rounded-lg shadow-lg dark:shadow-2xl dark:border-none;
 }
 .pc-card--outline {
-  @apply border rounded-lg border-gray-300 dark:border-gray-600;
+  @apply border border-gray-300 rounded-lg dark:border-gray-600;
 }
 
 /* Cards - content */
@@ -908,10 +914,10 @@
 /* Table */
 
 .pc-table {
-  @apply min-w-full overflow-hidden divide-y rounded-sm table-auto divide-gray-200 ring-1 ring-gray-200 dark:ring-0 dark:divide-y-0 dark:divide-gray-800 sm:rounded;
+  @apply min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm table-auto ring-1 ring-gray-200 dark:ring-0 dark:divide-y-0 dark:divide-gray-800 sm:rounded;
 }
 .pc-table__th {
-  @apply px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-300;
+  @apply px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300;
 }
 .pc-table__tr {
   @apply bg-white border-b dark:border-gray-700 dark:bg-gray-800 last:border-none;
@@ -935,7 +941,7 @@
 /* Accordion */
 
 .pc-accordion-item {
-  @apply flex items-center justify-between w-full p-5 text-left bg-white border text-gray-800 border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800;
+  @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800;
 }
 .pc-accordion-item--first {
   @apply rounded-t-xl;
@@ -947,7 +953,7 @@
   @apply text-base font-semibold;
 }
 .pc-accordion-item__chevron {
-  @apply flex-shrink-0 w-6 h-6 ml-3 duration-300 fill-current text-gray-400 dark:group-hover:text-gray-300 group-hover:text-gray-500;
+  @apply flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
 }
 .pc-accordion-item__content-container {
   @apply p-5 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-900;
@@ -1058,11 +1064,29 @@
   @apply p-5;
 }
 
+/* Rating */
+
+.pc-rating__wrapper {
+  @apply flex items-center gap-1;
+}
+.pc-rating__label {
+  @apply ml-1 text-base font-bold text-gray-700 dark:text-gray-300;
+}
+.pc-rating__star--filled {
+  @apply w-5 h-5 fill-yellow-500;
+}
+.pc-rating__star--half {
+  @apply w-5 h-5 fill-yellow-500;
+}
+.pc-rating__star--empty {
+  @apply w-5 h-5 fill-gray-400 dark:fill-gray-500;
+}
+
 /* Other */
 
 /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
 .select-wrapper select {
-  @apply text-sm rounded-md shadow-sm cursor-pointer border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+  @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
 }
 
 label.has-error:not(.phx-no-feedback) {
