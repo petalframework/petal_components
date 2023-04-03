@@ -479,6 +479,12 @@
 .pc-form-field-error {
   @apply mt-1 text-xs italic text-red-500;
 }
+.phx-no-feedback.pc-form-field-error {
+  @apply hidden;
+}
+.phx-no-feedback .pc-form-field-error {
+  @apply hidden;
+}
 .pc-form-help-text {
   @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
 }
