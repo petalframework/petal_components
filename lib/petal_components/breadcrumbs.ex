@@ -4,6 +4,7 @@ defmodule PetalComponents.Breadcrumbs do
 
   attr(:separator, :string, default: "slash", values: ["slash", "chevron"])
   attr(:class, :string, default: "", doc: "Parent div CSS class")
+  attr(:separator_class, :string, default: "", doc: "Separator div CSS class")
   attr(:link_class, :string, default: "", doc: "Link class CSS")
   attr(:links, :list, default: [], doc: "List of your links")
   attr(:rest, :global)
@@ -22,7 +23,7 @@ defmodule PetalComponents.Breadcrumbs do
     <div {@rest} class={"#{@class} pc-breadcrumbs"}>
       <%= for {link, counter} <- Enum.with_index(@links) do %>
         <%= if counter > 0 do %>
-          <.separator type={@separator} />
+          <.separator type={@separator} class={@separator_class} />
         <% end %>
 
         <Link.a
@@ -39,13 +40,13 @@ defmodule PetalComponents.Breadcrumbs do
 
   defp separator(%{type: "slash"} = assigns) do
     ~H"""
-    <div class="pc-breadcrumbs__separator-slash">/</div>
+    <div class={"pc-breadcrumbs__separator-slash " <> assigns[:class]}>/</div>
     """
   end
 
   defp separator(%{type: "chevron"} = assigns) do
     ~H"""
-    <div class="pc-breadcrumbs__separator-chevron">
+    <div class={"pc-breadcrumbs__separator-chevron " <> assigns[:class]}>
       <Heroicons.chevron_right solid class="pc-breadcrumbs__separator-chevron__icon" />
     </div>
     """
