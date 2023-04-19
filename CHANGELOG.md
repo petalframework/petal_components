@@ -3,6 +3,7 @@
 ### Unreleased
 
 - New: Add `separator_class` option to `<.breadcrumb>`
+- New: Add `tooltip` option to `<.icon_button>`
 
 ### 1.0.5 - 2023-04-03 09:33:31
 

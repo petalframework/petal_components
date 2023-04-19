@@ -91,6 +91,7 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your button")
+  attr(:tooltip, :string, default: nil, doc: "tooltip text, requires label to be set")
   attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
@@ -110,6 +111,7 @@ defmodule PetalComponents.Button do
         ])
       }
       disabled={@disabled}
+      data-tooltip-target={"tooltip-" <> Macro.underscore(@label || "")}
       {@rest}
     >
       <%= if @loading do %>
@@ -118,6 +120,16 @@ defmodule PetalComponents.Button do
         <%= render_slot(@inner_block) %>
       <% end %>
     </Link.a>
+
+    <%= unless is_nil(@tooltip) do %>
+      <div
+        id={"tooltip-" <> Macro.underscore(@label || "")}
+        role="tooltip"
+        class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+      >
+        <%= @tooltip %>
+      </div>
+    <% end %>
     """
   end
 
