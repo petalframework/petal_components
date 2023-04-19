@@ -102,6 +102,7 @@ defmodule PetalComponents.Button do
       link_type={@link_type}
       class={
         build_class([
+          "group",
           "pc-icon-button",
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
@@ -119,17 +120,17 @@ defmodule PetalComponents.Button do
       <% else %>
         <%= render_slot(@inner_block) %>
       <% end %>
-    </Link.a>
 
-    <%= unless is_nil(@tooltip) do %>
-      <div
-        id={"tooltip-" <> Macro.underscore(@label || "")}
-        role="tooltip"
-        class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-      >
-        <%= @tooltip %>
-      </div>
-    <% end %>
+      <%= unless is_nil(@tooltip) do %>
+        <div
+          id={"tooltip-" <> Macro.underscore(@label || "")}
+          role="tooltip"
+          class="group-hover:visible group-hover:opacity-100 absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+        >
+          <%= @tooltip %>
+        </div>
+      <% end %>
+    </Link.a>
     """
   end
 
