@@ -130,6 +130,31 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<svg"
     assert html =~ "pc-icon-button-bg--primary"
+    refute html =~ "id=\"tooltip-"
+  end
+
+  test "icon button with tooltip" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.icon_button
+        to="/"
+        link_type="button"
+        size="xs"
+        color="primary"
+        tooltip="Hello world!"
+        label="hello"
+      >
+        <Heroicons.clock solid />
+      </.icon_button>
+      """)
+
+    assert html =~ "<svg"
+    assert html =~ "pc-icon-button-bg--primary"
+    assert html =~ "data-tooltip-target=\"tooltip-hello\""
+    assert html =~ "id=\"tooltip-hello\""
+    assert html =~ "Hello world!"
   end
 
   test "should include additional assigns" do
