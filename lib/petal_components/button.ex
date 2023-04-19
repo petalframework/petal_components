@@ -112,7 +112,7 @@ defmodule PetalComponents.Button do
         ])
       }
       disabled={@disabled}
-      data-tooltip-target={"tooltip-" <> Macro.underscore(@label || "")}
+      data-tooltip-target={unless is_nil(@tooltip), do: "tooltip-" <> Macro.underscore(@label || "")}
       {@rest}
     >
       <%= if @loading do %>
