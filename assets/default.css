@@ -186,6 +186,10 @@
   @apply inline-block p-2 rounded-full;
 }
 
+.pc-icon-button__tooltip {
+  @apply absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 group-hover:visible group-hover:opacity-100 dark:bg-gray-700;
+}
+
 /* Icon Buttons - colors */
 
 .pc-icon-button--primary {
