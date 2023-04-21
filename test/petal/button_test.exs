@@ -130,7 +130,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<svg"
     assert html =~ "pc-icon-button-bg--primary"
-    refute html =~ "id=\"tooltip-"
+    refute html =~ "tooltip"
   end
 
   test "icon button with tooltip" do
@@ -152,8 +152,7 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<svg"
     assert html =~ "pc-icon-button-bg--primary"
-    assert html =~ "data-tooltip-target=\"tooltip-hello\""
-    assert html =~ "id=\"tooltip-hello\""
+    assert html =~ "role=\"tooltip"
     assert html =~ "Hello world!"
   end
 
