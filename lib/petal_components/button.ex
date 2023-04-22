@@ -90,8 +90,7 @@ defmodule PetalComponents.Button do
   )
 
   attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your button")
-  attr(:tooltip, :string, default: nil, doc: "tooltip text, requires label to be set")
+  attr(:tooltip, :string, default: nil, doc: "tooltip text")
   attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
