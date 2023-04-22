@@ -187,7 +187,7 @@
 }
 
 .pc-icon-button__tooltip {
-  @apply absolute flex-col items-center invisible mb-6 -translate-y-full -top-1 group-hover:flex group-hover:visible group-hover:opacity-100 opacity-0 transition-opacity duration-300;
+  @apply absolute flex-col items-center invisible mb-6 -translate-y-full -top-1 group-hover/pc-icon-button:flex group-hover/pc-icon-button:visible group-hover/pc-icon-button:opacity-100 opacity-0 transition-opacity duration-300;
 }
 
 .pc-icon-button__tooltip__text {
