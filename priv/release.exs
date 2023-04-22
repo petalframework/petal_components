@@ -126,6 +126,7 @@ defmodule Releaser.Changelog do
 
     """
     #{header_prefix} #{version_string} - #{date_time_string}
+
     #{text}
 
     """
