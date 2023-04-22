@@ -186,6 +186,19 @@
   @apply inline-block p-2 rounded-full;
 }
 
+.pc-icon-button__tooltip {
+  @apply absolute flex-col items-center hidden mb-6 -translate-y-full -top-1 group-hover:flex;
+}
+
+.pc-icon-button__tooltip__text {
+  @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 shadow-lg whitespace-nowrap dark:bg-gray-700 rounded-sm;
+}
+
+.pc-icon-button__tooltip__arrow {
+  @apply w-3 h-3 -mt-2 rotate-45 bg-gray-900 dark:bg-gray-700;
+}
+
+
 /* Icon Buttons - colors */
 
 .pc-icon-button--primary {
