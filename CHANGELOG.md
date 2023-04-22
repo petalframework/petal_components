@@ -1,7 +1,5 @@
 # Changelog
-
-### Unreleased
-
+### 1.0.6 - 2023-04-22 00:52:23
 - New: Add `separator_class` option to `<.breadcrumb>`
 - New: Add `tooltip` option to `<.icon_button>`
 
