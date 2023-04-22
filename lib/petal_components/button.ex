@@ -102,7 +102,6 @@ defmodule PetalComponents.Button do
       class={
         build_class([
           "pc-icon-button",
-          @tooltip && "relative group flex flex-col items-center",
           get_disabled_classes(@disabled),
           get_icon_button_background_color_classes(@color),
           get_icon_button_color_classes(@color),
@@ -113,18 +112,20 @@ defmodule PetalComponents.Button do
       disabled={@disabled}
       {@rest}
     >
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_icon_button_spinner_size_classes(@size)} />
-      <% else %>
-        <%= render_slot(@inner_block) %>
+      <div class={@tooltip && "relative group flex flex-col items-center"}>
+        <%= if @loading do %>
+          <Loading.spinner show={true} size_class={get_icon_button_spinner_size_classes(@size)} />
+        <% else %>
+          <%= render_slot(@inner_block) %>
 
-        <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
-          <span class="pc-icon-button__tooltip__text">
-            <%= @tooltip %>
-          </span>
-          <div class="pc-icon-button__tooltip__arrow"></div>
-        </div>
-      <% end %>
+          <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
+            <span class="pc-icon-button__tooltip__text">
+              <%= @tooltip %>
+            </span>
+            <div class="pc-icon-button__tooltip__arrow"></div>
+          </div>
+        <% end %>
+      </div>
     </Link.a>
     """
   end
