@@ -138,14 +138,7 @@ defmodule PetalComponents.ButtonTest do
 
     html =
       rendered_to_string(~H"""
-      <.icon_button
-        to="/"
-        link_type="button"
-        size="xs"
-        color="primary"
-        tooltip="Hello world!"
-        label="hello"
-      >
+      <.icon_button to="/" link_type="button" size="xs" color="primary" tooltip="Hello world!">
         <Heroicons.clock solid />
       </.icon_button>
       """)
