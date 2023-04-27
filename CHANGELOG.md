@@ -1,4 +1,9 @@
 # Changelog
+### 1.0.7 - 2023-04-27 08:16:41
+
+- Fixed checkbox group giving an empty string instead of a list when submitted
+- Added transitions to the icon button tooltip
+
 ### 1.0.6 - 2023-04-22 00:52:23
 
 - New: Add `separator_class` option to `<.breadcrumb>`
