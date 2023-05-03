@@ -1,4 +1,8 @@
 # Changelog
+### 1.0.8 - 2023-05-03 04:47:14
+
+- Fix checkbox group issue introduced in 1.0.7
+
 ### 1.0.7 - 2023-04-27 08:16:41
 
 - Fixed checkbox group giving an empty string instead of a list when submitted
