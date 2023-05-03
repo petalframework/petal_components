@@ -51,7 +51,7 @@ defmodule PetalComponents.Tabs do
       link_type={@link_type}
       label={@label}
       to={@to}
-      class={get_tab_class(@is_active, @underline) <> @class}
+      class={"#{get_tab_class(@is_active, @underline)} #{@class}"}
       {@rest}
     >
       <%= if @number do %>
@@ -74,8 +74,7 @@ defmodule PetalComponents.Tabs do
     active_classes =
       if is_active,
         do: "pc-tab__pill--is-active",
-        else:
-          "pc-tab__pill--is-not-active"
+        else: "pc-tab__pill--is-not-active"
 
     build_class([base_classes, active_classes])
   end
@@ -87,8 +86,7 @@ defmodule PetalComponents.Tabs do
     active_classes =
       if is_active,
         do: "pc-tab__underline--is-active",
-        else:
-          "pc-tab__underline--is-not-active"
+        else: "pc-tab__underline--is-not-active"
 
     underline_classes =
       if is_active && underline,
