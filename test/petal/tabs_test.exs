@@ -55,6 +55,19 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "phx-click"
   end
 
+  test "Test tabs custom css class" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tabs class="flex-col sm:flex-row space-x">
+        <.tab class="hello" is_active to="/">Home</.tab>
+      </.tabs>
+      """)
+
+    assert html =~ " hello"
+  end
+
   test "patch" do
     assigns = %{}
 
