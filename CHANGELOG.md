@@ -1,4 +1,8 @@
 # Changelog
+### 1.1.2 - 2023-05-05 23:18:10
+
+- Added help_text to <.field>
+
 ### 1.1.1 - 2023-05-05 21:34:23
 
 - Renamed .error to .field_error
