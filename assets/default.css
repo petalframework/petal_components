@@ -735,25 +735,25 @@
 /* Progress - colors */
 
 .pc-progress--primary {
-  @apply bg-primary-100;
+  @apply bg-primary-100 dark:bg-primary-900;
 }
 .pc-progress--secondary {
-  @apply bg-secondary-100;
+  @apply bg-secondary-100 dark:bg-secondary-900;
 }
 .pc-progress--info {
-  @apply bg-info-100;
+  @apply bg-info-100 dark:bg-info-900;
 }
 .pc-progress--success {
-  @apply bg-green-100;
+  @apply bg-green-100 dark:bg-green-900;
 }
 .pc-progress--warning {
-  @apply bg-yellow-100;
+  @apply bg-yellow-100 dark:bg-yellow-900;
 }
 .pc-progress--danger {
-  @apply bg-red-100;
+  @apply bg-red-100 dark:bg-red-900;
 }
 .pc-progress--gray {
-  @apply bg-gray-100;
+  @apply bg-gray-100 dark:bg-gray-900;
 }
 .pc-progress__inner--primary {
   @apply bg-primary-500;
