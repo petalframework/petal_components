@@ -95,7 +95,7 @@ defmodule PetalComponents.Field do
         />
         <%= @label %>
       </label>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -103,12 +103,12 @@ defmodule PetalComponents.Field do
   def field(%{type: "select"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.label for={@id}><%= @label %></.label>
+      <.field_label for={@id}><%= @label %></.field_label>
       <select id={@id} name={@name} class="pc-text-input" multiple={@multiple} {@rest}>
         <option :if={@prompt} value=""><%= @prompt %></option>
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -116,9 +116,9 @@ defmodule PetalComponents.Field do
   def field(%{type: "textarea"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.label for={@id}><%= @label %></.label>
+      <.field_label for={@id}><%= @label %></.field_label>
       <textarea id={@id} name={@name} class="pc-text-input" {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -146,7 +146,7 @@ defmodule PetalComponents.Field do
         </label>
         <div><%= @label %></div>
       </label>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -167,7 +167,7 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.label for={@id}><%= @label %></.label>
+      <.field_label for={@id}><%= @label %></.field_label>
       <input type="hidden" name={@name} value="" />
       <div class={[
         "pc-checkbox-group",
@@ -191,7 +191,7 @@ defmodule PetalComponents.Field do
           </label>
         <% end %>
       </div>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -199,7 +199,7 @@ defmodule PetalComponents.Field do
   def field(%{type: "radio_group"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.label for={@id}><%= @label %></.label>
+      <.field_label for={@id}><%= @label %></.field_label>
       <div class={[
         "pc-radio-group",
         @group_layout == :row && "pc-radio-group--row",
@@ -213,7 +213,7 @@ defmodule PetalComponents.Field do
           </label>
         <% end %>
       </div>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -237,7 +237,7 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.label for={@id}><%= @label %></.label>
+      <.field_label for={@id}><%= @label %></.field_label>
       <input
         type={@type}
         name={@name}
@@ -246,7 +246,7 @@ defmodule PetalComponents.Field do
         class={@class}
         {@rest}
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
     </.field_wrapper>
     """
   end
@@ -281,7 +281,7 @@ defmodule PetalComponents.Field do
   attr :rest, :global
   slot :inner_block, required: true
 
-  def label(assigns) do
+  def field_label(assigns) do
     ~H"""
     <label for={@for} class={["pc-label", @class]} {@rest}>
       <%= render_slot(@inner_block) %>
@@ -294,7 +294,7 @@ defmodule PetalComponents.Field do
   """
   slot :inner_block, required: true
 
-  def error(assigns) do
+  def field_error(assigns) do
     ~H"""
     <p class="pc-error">
       <%= render_slot(@inner_block) %>
