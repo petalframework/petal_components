@@ -55,6 +55,7 @@ defmodule PetalComponents.Field do
 
   attr :class, :string, default: nil, doc: "the class to add to the input"
   attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
+  attr(:help_text, :string, default: nil, doc: "context/help for your field")
 
   attr :rest, :global,
     include:
@@ -96,6 +97,7 @@ defmodule PetalComponents.Field do
         <%= @label %>
       </label>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -109,6 +111,7 @@ defmodule PetalComponents.Field do
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -119,6 +122,7 @@ defmodule PetalComponents.Field do
       <.field_label for={@id}><%= @label %></.field_label>
       <textarea id={@id} name={@name} class="pc-text-input" {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -147,6 +151,7 @@ defmodule PetalComponents.Field do
         <div><%= @label %></div>
       </label>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -192,6 +197,7 @@ defmodule PetalComponents.Field do
         <% end %>
       </div>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -214,6 +220,7 @@ defmodule PetalComponents.Field do
         <% end %>
       </div>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -247,6 +254,7 @@ defmodule PetalComponents.Field do
         {@rest}
       />
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -299,6 +307,19 @@ defmodule PetalComponents.Field do
     <p class="pc-error">
       <%= render_slot(@inner_block) %>
     </p>
+    """
+  end
+
+  attr :class, :string, default: "", doc: "extra classes for the help text"
+  attr :help_text, :string, default: nil, doc: "context/help for your field"
+  slot :inner_block, required: false
+  attr :rest, :global
+
+  def field_help_text(assigns) do
+    ~H"""
+    <div :if={@inner_block || @help_text} class={["pc-form-help-text", @class]} {@rest}>
+      <%= render_slot(@inner_block) || @help_text %>
+    </div>
     """
   end
 
