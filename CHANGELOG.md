@@ -1,4 +1,8 @@
 # Changelog
+### 1.1.3 - 2023-05-05 23:31:07
+
+- Ensure help_text div isn't in DOM when no help text is provided
+
 ### 1.1.2 - 2023-05-05 23:18:10
 
 - Added help_text to <.field>
