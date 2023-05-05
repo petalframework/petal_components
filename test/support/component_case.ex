@@ -10,6 +10,8 @@ defmodule ComponentCase do
     quote do
       import Phoenix.Component
       import Phoenix.LiveViewTest
+
+      import Plug.HTML, only: [html_escape: 1]
     end
   end
 end

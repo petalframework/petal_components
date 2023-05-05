@@ -479,14 +479,23 @@
 .pc-form-field-wrapper {
   @apply mb-6;
 }
+:not(.phx-no-feedback).pc-form-field-wrapper--error input {
+  @apply border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 dark:text-red-100 dark:placeholder-red-300 dark:bg-red-900 focus:ring-red-500;
+}
+:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label, :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
+  @apply !text-red-900 dark:!text-red-200;
+}
 .pc-checkbox-label {
-  @apply inline-flex items-center gap-3 cursor-pointer;
+  @apply inline-flex items-center gap-3 cursor-pointer text-sm font-normal text-gray-900 dark:text-gray-200;
 }
 .pc-label {
   @apply block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200;
 }
 .pc-label--for-checkbox {
   @apply !mb-0 font-normal;
+}
+.pc-error {
+  @apply flex gap-3 mt-3 text-sm leading-6 text-red-600 phx-no-feedback:hidden;
 }
 .pc-form-field-error {
   @apply mt-1 text-xs italic text-red-500;
@@ -510,7 +519,7 @@
   @apply select-wrapper dark:text-white;
 }
 .pc-switch {
-  @apply relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5;
+  @apply relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5 cursor-pointer;
 }
 .pc-switch__input {
   @apply absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer-checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800;
@@ -537,13 +546,16 @@
   @apply w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
 }
 .pc-checkbox {
-  @apply w-5 h-5 transition-all duration-150 ease-linear border-gray-300 rounded text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
+  @apply cursor-pointer w-5 h-5 transition-all duration-150 ease-linear border-gray-300 rounded text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
+}
+.pc-checkbox-group {
+  @apply pt-2;
 }
 .pc-checkbox-group--row {
   @apply flex flex-row gap-4;
 }
 .pc-checkbox-group--col {
-  @apply flex flex-col gap-3;
+  @apply flex flex-col gap-4;
 }
 .pc-checkbox-group__item--row {
   @apply inline-flex items-center gap-2 cursor-pointer;
@@ -554,16 +566,19 @@
 .pc-radio {
   @apply w-4 h-4 border-gray-300 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
 }
-.pc-radio-group-layout--row {
+.pc-radio-group {
+  @apply pt-2;
+}
+.pc-radio-group--row {
   @apply flex flex-row gap-4;
 }
-.pc-radio-group-layout--col {
-  @apply flex flex-col gap-1;
+.pc-radio-group--col {
+  @apply flex flex-col gap-4;
 }
-.pc-radio-group-layout__item--row {
+.pc-radio-group__item--row {
   @apply inline-flex items-center gap-2 cursor-pointer;
 }
-.pc-radio-group-layout__item--col {
+.pc-radio-group__item--col {
   @apply inline-flex items-center gap-3 cursor-pointer;
 }
 
@@ -1105,8 +1120,7 @@ label.has-error:not(.phx-no-feedback) {
   @apply !text-red-900 dark:!text-red-200;
 }
 
-textarea.has-error:not(.phx-no-feedback),
-input.has-error:not(.phx-no-feedback),
+textarea.has-error:not(.phx-no-feedback), input.has-error:not(.phx-no-feedback),
 select.has-error:not(.phx-no-feedback) {
   @apply !border-red-500 focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 dark:!text-red-100 dark:!placeholder-red-300 dark:!bg-red-900 focus:!ring-red-500;
 }

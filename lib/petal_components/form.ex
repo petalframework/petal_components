@@ -9,11 +9,12 @@ defmodule PetalComponents.Form do
 
   @moduledoc """
   Everything related to forms: inputs, labels etc
+
+  Deprecated in favor of field.ex and input.ex, which use the new `%Phoenix.HTML.FormField{}` struct.
   """
 
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
-  attr(:has_error, :boolean, default: false, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :string, doc: "CSS classes to add to your label")
   slot(:inner_block, required: false)
@@ -81,7 +82,7 @@ defmodule PetalComponents.Form do
   @doc "Use this when you want to include the label and some margin."
   def form_field(%{type: "hidden_input"} = assigns) do
     ~H"""
-      <.hidden_input form={@form} field={@field} {@rest} />
+    <.hidden_input form={@form} field={@field} {@rest} />
     """
   end
 
@@ -827,20 +828,20 @@ defmodule PetalComponents.Form do
   defp radio_group_layout_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "pc-radio-group-layout--row"
+        "pc-radio-group--row"
 
       _col ->
-        "pc-radio-group-layout--col"
+        "pc-radio-group--col"
     end
   end
 
   defp radio_group_layout_item_classes(assigns) do
     case assigns[:layout] do
       :row ->
-        "pc-radio-group-layout__item--row"
+        "pc-radio-group__item--row"
 
       _col ->
-        "pc-radio-group-layout__item--col"
+        "pc-radio-group__item--col"
     end
   end
 
