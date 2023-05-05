@@ -710,11 +710,9 @@ defmodule PetalComponents.Form do
 
   def form_help_text(assigns) do
     ~H"""
-    <%= if @inner_block || @help_text do %>
-      <p class={["pc-form-help-text", @class]} {@rest}>
-        <%= render_slot(@inner_block) || @help_text %>
-      </p>
-    <% end %>
+    <div :if={render_slot(@inner_block) || @help_text} class={["pc-form-help-text", @class]} {@rest}>
+      <%= render_slot(@inner_block) || @help_text %>
+    </div>
     """
   end
 

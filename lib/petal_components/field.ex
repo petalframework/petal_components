@@ -317,7 +317,7 @@ defmodule PetalComponents.Field do
 
   def field_help_text(assigns) do
     ~H"""
-    <div :if={@inner_block || @help_text} class={["pc-form-help-text", @class]} {@rest}>
+    <div :if={render_slot(@inner_block) || @help_text} class={["pc-form-help-text", @class]} {@rest}>
       <%= render_slot(@inner_block) || @help_text %>
     </div>
     """

@@ -258,6 +258,13 @@ defmodule PetalComponents.FormTest do
 
     assert html =~ "Test class"
     assert html =~ "mt-1"
+
+    html =
+      rendered_to_string(~H"""
+      <.form_help_text />
+      """)
+
+    refute html =~ "pc-form-help-text"
   end
 
   test "form_field wrapper_classes" do

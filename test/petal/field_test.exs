@@ -279,4 +279,37 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "phx-feedback-for"
     assert html =~ "data-extra"
   end
+
+  test "field_help_text" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.field_help_text help_text="Inline" />
+      """)
+
+    assert html =~ "Inline"
+
+    html =
+      rendered_to_string(~H"""
+      <.field_help_text>Utilising slot</.field_help_text>
+      """)
+
+    assert html =~ "Utilising slot"
+
+    html =
+      rendered_to_string(~H"""
+      <.field_help_text class="mt-1" help_text="Test class" />
+      """)
+
+    assert html =~ "Test class"
+    assert html =~ "mt-1"
+
+    html =
+      rendered_to_string(~H"""
+      <.field_help_text />
+      """)
+
+    refute html =~ "pc-form-help-text"
+  end
 end
