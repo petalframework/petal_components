@@ -495,7 +495,10 @@
   @apply !mb-0 font-normal;
 }
 .pc-error {
-  @apply flex gap-3 mt-3 text-sm leading-6 text-red-600 phx-no-feedback:hidden;
+  @apply flex gap-3 mt-3 text-sm leading-6 text-red-600;
+}
+.phx-no-feedback.pc-error, .phx-no-feedback .pc-error {
+  @apply hidden;
 }
 .pc-form-field-error {
   @apply mt-1 text-xs italic text-red-500;
