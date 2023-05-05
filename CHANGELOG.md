@@ -1,4 +1,9 @@
 # Changelog
+### 1.1.1 - 2023-05-05 21:34:23
+
+- Renamed .error to .field_error
+- Renamed .label to .field_label
+
 ### 1.1.0 - 2023-05-05 04:45:56
 
 - New: <.field> component to replace <.form_field>. <.field> takes the new `%Phoenix.HTML.FormField{}` struct, which better optimizes forms for live views
