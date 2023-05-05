@@ -13,21 +13,36 @@ defmodule PetalComponents.Field do
       <.field field={@form[:email]} type="email" />
       <.field label="Name" value="" name="name" errors={["oh no!"]} />
   """
-  attr :id, :any, default: nil
-  attr :name, :any
-  attr :label, :string
-  attr :value, :any
+  attr :id, :any,
+    default: nil,
+    doc: "the id of the input. If not passed, it will be generated automatically from the field"
+
+  attr :name, :any,
+    doc: "the name of the input. If not passed, it will be generated automatically from the field"
+
+  attr :label, :string,
+    doc:
+      "the label for the input. If not passed, it will be generated automatically from the field"
+
+  attr :value, :any,
+    doc:
+      "the value of the input. If not passed, it will be generated automatically from the field"
 
   attr :type, :string,
     default: "text",
     values:
       ~w(checkbox checkbox_group color date datetime-local email file hidden month number password
-               range radio_group search select switch tel text textarea time url week)
+               range radio_group search select switch tel text textarea time url week),
+    doc: "the type of input"
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
-  attr :errors, :list, default: []
+  attr :errors, :list,
+    default: [],
+    doc:
+      "a list of errors to display. If not passed, it will be generated automatically from the field. Format is a list of strings."
+
   attr :checked, :any, doc: "the checked flag for checkboxes and checkbox groups"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
@@ -44,9 +59,8 @@ defmodule PetalComponents.Field do
   attr :rest, :global,
     include:
       ~w(autocomplete disabled form max maxlength min minlength list
-    pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept)
-
-  slot :inner_block
+    pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept),
+    doc: "All other props go on the input"
 
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
