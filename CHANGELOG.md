@@ -1,4 +1,8 @@
 # Changelog
+### 1.1.4 - 2023-05-06 04:46:08
+
+- For consistency, the group_layout attr on <.field> should be a string like the type
+
 ### 1.1.3 - 2023-05-05 23:31:07
 
 - Ensure help_text div isn't in DOM when no help text is provided
