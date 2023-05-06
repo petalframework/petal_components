@@ -243,6 +243,40 @@ defmodule PetalComponents.FieldTest do
     assert html =~ " checked "
   end
 
+  test "field checkbox_group group_layout" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox_group"
+          checked={["read"]}
+          field={@form[:roles]}
+          group_layout="col"
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "pc-checkbox-group--col"
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox_group"
+          checked={["read"]}
+          field={@form[:roles]}
+          group_layout="row"
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "pc-checkbox-group--row"
+  end
+
   test "field switch" do
     assigns = %{form: to_form(%{}, as: :user)}
 

@@ -48,9 +48,9 @@ defmodule PetalComponents.Field do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
 
-  attr :group_layout, :atom,
-    values: [:row, :col],
-    default: :row,
+  attr :group_layout, :string,
+    values: ["row", "col"],
+    default: "row",
     doc: "the layout of the inputs in a group (checkbox_group or radio_group)"
 
   attr :class, :string, default: nil, doc: "the class to add to the input"
@@ -176,8 +176,8 @@ defmodule PetalComponents.Field do
       <input type="hidden" name={@name} value="" />
       <div class={[
         "pc-checkbox-group",
-        @group_layout == :row && "pc-checkbox-group--row",
-        @group_layout == :col && "pc-checkbox-group--col"
+        @group_layout == "row" && "pc-checkbox-group--row",
+        @group_layout == "col" && "pc-checkbox-group--col"
       ]}>
         <%= for {label, value} <- @options do %>
           <label class="pc-checkbox-label">
@@ -208,8 +208,8 @@ defmodule PetalComponents.Field do
       <.field_label for={@id}><%= @label %></.field_label>
       <div class={[
         "pc-radio-group",
-        @group_layout == :row && "pc-radio-group--row",
-        @group_layout == :col && "pc-radio-group--col"
+        @group_layout == "row" && "pc-radio-group--row",
+        @group_layout == "col" && "pc-radio-group--col"
       ]}>
         <input type="hidden" name={@name} value="" />
         <%= for {label, value} <- @options do %>
