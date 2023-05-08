@@ -112,7 +112,7 @@ defmodule PetalComponents.Card do
 
   def card_footer(assigns) do
     ~H"""
-    <div {@rest} class="pc-card__footer">
+    <div {@rest} class={build_class(["pc-card__footer", @class])}>
       <%= render_slot(@inner_block) %>
     </div>
     """
