@@ -106,7 +106,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <.field_label for={@id}><%= @label %></.field_label>
-      <select id={@id} name={@name} class="pc-text-input" multiple={@multiple} {@rest}>
+      <select id={@id} name={@name} class={["pc-text-input", @class]} multiple={@multiple} {@rest}>
         <option :if={@prompt} value=""><%= @prompt %></option>
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
@@ -120,7 +120,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <.field_label for={@id}><%= @label %></.field_label>
-      <textarea id={@id} name={@name} class="pc-text-input" {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <textarea id={@id} name={@name} class={["pc-text-input", @class]} {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
@@ -177,7 +177,8 @@ defmodule PetalComponents.Field do
       <div class={[
         "pc-checkbox-group",
         @group_layout == "row" && "pc-checkbox-group--row",
-        @group_layout == "col" && "pc-checkbox-group--col"
+        @group_layout == "col" && "pc-checkbox-group--col",
+        @class
       ]}>
         <%= for {label, value} <- @options do %>
           <label class="pc-checkbox-label">
@@ -209,7 +210,8 @@ defmodule PetalComponents.Field do
       <div class={[
         "pc-radio-group",
         @group_layout == "row" && "pc-radio-group--row",
-        @group_layout == "col" && "pc-radio-group--col"
+        @group_layout == "col" && "pc-radio-group--col",
+        @class
       ]}>
         <input type="hidden" name={@name} value="" />
         <%= for {label, value} <- @options do %>
