@@ -1,4 +1,9 @@
 # Changelog
+### 1.1.5 - 2023-05-08 23:07:33
+
+- Fixed `class` attr not working in `<.field>` for types "select", "checkbox_group", "radio_group" and "textarea"
+- Fixed <.card_footer> `class` attr not working
+
 ### 1.1.4 - 2023-05-06 04:46:08
 
 - For consistency, the group_layout attr on <.field> should be a string like the type
