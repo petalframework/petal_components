@@ -126,12 +126,14 @@ defmodule PetalComponents.CardTest do
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eget leo interdum, feugiat ligula eu, facilisis massa. Nunc sollicitudin massa a elit laoreet.
           </div>
         </.card_content>
-        <.card_footer custom-attr="5">FOOTER</.card_footer>
+        <.card_footer class="footer-class" custom-attr="5">FOOTER</.card_footer>
       </.card>
       """)
 
     for i <- 1..5 do
       assert html =~ ~s{custom-attr="#{i}"}
     end
+
+    assert html =~ "footer-class"
   end
 end

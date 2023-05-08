@@ -167,6 +167,7 @@ defmodule PetalComponents.FieldTest do
       <.form for={@form}>
         <.field
           type="select"
+          class="custom-class"
           field={@form[:role]}
           options={[Admin: "admin", User: "user"]}
           itemid="something"
@@ -181,6 +182,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "admin"
     assert html =~ "phx-feedback-for"
     assert html =~ "Admin"
+    assert html =~ "custom-class"
   end
 
   test "field textarea" do
@@ -189,7 +191,13 @@ defmodule PetalComponents.FieldTest do
     html =
       rendered_to_string(~H"""
       <.form for={@form}>
-        <.field type="textarea" field={@form[:description]} itemid="something" placeholder="dummy text" />
+        <.field
+          class="custom-class"
+          type="textarea"
+          field={@form[:description]}
+          itemid="something"
+          placeholder="dummy text"
+        />
       </.form>
       """)
 
@@ -199,6 +207,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "placeholder"
     assert html =~ "phx-feedback-for"
     assert html =~ "dummy text"
+    assert html =~ "custom-class"
   end
 
   test "field checkbox_group" do
@@ -208,6 +217,7 @@ defmodule PetalComponents.FieldTest do
       rendered_to_string(~H"""
       <.form for={@form}>
         <.field
+          class="custom-class"
           type="checkbox_group"
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
@@ -223,6 +233,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "Write"
     refute html =~ " checked "
     assert html =~ "hidden"
+    assert html =~ "custom-class"
   end
 
   test "field checkbox_group checked" do
@@ -275,6 +286,32 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert html =~ "pc-checkbox-group--row"
+  end
+
+  test "field radio_group" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio_group"
+          field={@form[:roles]}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "radio"
+    assert html =~ "user_roles"
+    assert html =~ "user[roles]"
+    assert html =~ "Read"
+    assert html =~ "phx-feedback-for"
+    assert html =~ "Write"
+    refute html =~ " checked "
+    assert html =~ "hidden"
+    assert html =~ "custom-class"
   end
 
   test "field switch" do
