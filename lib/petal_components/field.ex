@@ -120,7 +120,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <.field_label for={@id}><%= @label %></.field_label>
-      <textarea id={@id} name={@name} class={["pc-text-input", @class]} {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <textarea id={@id} name={@name} class={["pc-text-input", @class]} rows="4" {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
