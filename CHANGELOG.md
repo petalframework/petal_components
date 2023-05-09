@@ -1,4 +1,9 @@
 # Changelog
+### 1.1.6 - 2023-05-09 10:20:42
+
+- Fix <.field> checkbox_group not keeping state
+- Changed <.field> textarea to be the same size as v1 form_field version
+
 ### 1.1.5 - 2023-05-08 23:07:33
 
 - Fixed `class` attr not working in `<.field>` for types "select", "checkbox_group", "radio_group" and "textarea"
