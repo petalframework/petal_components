@@ -216,7 +216,14 @@ defmodule PetalComponents.Field do
         <input type="hidden" name={@name} value="" />
         <%= for {label, value} <- @options do %>
           <label class="pc-checkbox-label">
-            <input type="radio" name={@name} value={value} class="pc-radio" {@rest} />
+            <input
+              type="radio"
+              name={@name}
+              value={value}
+              checked={to_string(value) == @value}
+              class="pc-radio"
+              {@rest}
+            />
             <%= label %>
           </label>
         <% end %>
