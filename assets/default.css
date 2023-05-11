@@ -100,40 +100,40 @@
   @apply text-white border-transparent shadow-xl bg-info-600 hover:bg-info-700 focus:bg-info-700 active:bg-info-800 focus:shadow-info-500/50 shadow-info-500/30 dark:hover:shadow-info-600/30 dark:focus:shadow-info-600/30 dark:active:shadow-info-700/30;
 }
 .pc-button--success {
-  @apply text-white bg-green-600 border-transparent hover:bg-green-700 active:bg-green-800 focus:bg-green-700;
+  @apply text-white bg-success-600 border-transparent hover:bg-success-700 active:bg-success-800 focus:bg-success-700;
 }
 .pc-button--success-outline {
-  @apply text-green-600 border-green-400 dark:border-green-400 dark:hover:border-green-300 dark:hover:text-green-300 dark:hover:bg-transparent dark:text-green-400 hover:border-green-600 hover:text-green-700 active:border-green-600 focus:text-green-600 active:text-green-700 active:bg-green-100 hover:bg-green-50 focus:border-green-700;
+  @apply text-success-600 border-success-400 dark:border-success-400 dark:hover:border-success-300 dark:hover:text-success-300 dark:hover:bg-transparent dark:text-success-400 hover:border-success-600 hover:text-success-700 active:border-success-600 focus:text-success-600 active:text-success-700 active:bg-success-100 hover:bg-success-50 focus:border-success-700;
 }
 .pc-button--success-inverted {
-  @apply text-green-600 border-green-400 dark:border-green-400 dark:hover:border-green-700 dark:hover:text-white dark:hover:bg-green-700 dark:text-green-400 hover:border-green-600 hover:text-white active:bg-green-800 hover:bg-green-600 focus:border-green-700 focus:shadow-green-500/50;
+  @apply text-success-600 border-success-400 dark:border-success-400 dark:hover:border-success-700 dark:hover:text-white dark:hover:bg-success-700 dark:text-success-400 hover:border-success-600 hover:text-white active:bg-success-800 hover:bg-success-600 focus:border-success-700 focus:shadow-success-500/50;
 }
 .pc-button--success-shadow {
-  @apply text-white bg-green-600 border-transparent shadow-xl hover:bg-green-700 active:bg-green-800 focus:bg-green-700 focus:shadow-green-500/50 shadow-green-500/30 dark:hover:shadow-green-600/30 dark:focus:shadow-green-600/30 dark:active:shadow-green-700/30;
+  @apply text-white bg-success-600 border-transparent shadow-xl hover:bg-success-700 active:bg-success-800 focus:bg-success-700 focus:shadow-success-500/50 shadow-success-500/30 dark:hover:shadow-success-600/30 dark:focus:shadow-success-600/30 dark:active:shadow-success-700/30;
 }
 .pc-button--warning {
-  @apply text-white bg-yellow-600 border-transparent hover:bg-yellow-700 active:bg-yellow-800 focus:bg-yellow-700;
+  @apply text-white bg-warning-600 border-transparent hover:bg-warning-700 active:bg-warning-800 focus:bg-warning-700;
 }
 .pc-button--warning-outline {
-  @apply text-yellow-600 border-yellow-400 dark:border-yellow-400 dark:hover:border-yellow-300 dark:hover:text-yellow-300 dark:hover:bg-transparent dark:text-yellow-400 hover:border-yellow-600 hover:text-yellow-700 active:border-yellow-600 focus:text-yellow-600 active:text-yellow-700 active:bg-yellow-100 hover:bg-yellow-50 focus:border-yellow-700;
+  @apply text-warning-600 border-warning-400 dark:border-warning-400 dark:hover:border-warning-300 dark:hover:text-warning-300 dark:hover:bg-transparent dark:text-warning-400 hover:border-warning-600 hover:text-warning-700 active:border-warning-600 focus:text-warning-600 active:text-warning-700 active:bg-warning-100 hover:bg-warning-50 focus:border-warning-700;
 }
 .pc-button--warning-inverted {
-  @apply text-yellow-600 border-yellow-400 dark:border-yellow-400 dark:hover:border-yellow-700 dark:hover:text-white dark:hover:bg-yellow-700 dark:text-yellow-400 hover:border-yellow-600 hover:text-white active:bg-yellow-800 hover:bg-yellow-600 focus:border-yellow-700 focus:shadow-yellow-500/50;
+  @apply text-warning-600 border-warning-400 dark:border-warning-400 dark:hover:border-warning-700 dark:hover:text-white dark:hover:bg-warning-700 dark:text-warning-400 hover:border-warning-600 hover:text-white active:bg-warning-800 hover:bg-warning-600 focus:border-warning-700 focus:shadow-warning-500/50;
 }
 .pc-button--warning-shadow {
-  @apply text-white bg-yellow-600 border-transparent shadow-xl hover:bg-yellow-700 focus:bg-yellow-700 active:bg-yellow-800 focus:shadow-yellow-500/50 shadow-yellow-500/30 dark:hover:shadow-yellow-600/30 dark:focus:shadow-yellow-600/30 dark:active:shadow-yellow-700/30;
+  @apply text-white bg-warning-600 border-transparent shadow-xl hover:bg-warning-700 focus:bg-warning-700 active:bg-warning-800 focus:shadow-warning-500/50 shadow-warning-500/30 dark:hover:shadow-warning-600/30 dark:focus:shadow-warning-600/30 dark:active:shadow-warning-700/30;
 }
 .pc-button--danger {
-  @apply text-white bg-red-600 border-transparent hover:bg-red-700 active:bg-red-800 focus:bg-red-700;
+  @apply text-white bg-danger-600 border-transparent hover:bg-danger-700 active:bg-danger-800 focus:bg-danger-700;
 }
 .pc-button--danger-outline {
-  @apply text-red-600 border-red-400 dark:border-red-400 dark:hover:border-red-300 dark:hover:text-red-300 dark:hover:bg-transparent dark:text-red-400 hover:border-red-600 hover:text-red-700 active:bg-red-200 active:border-red-700 hover:bg-red-50 focus:border-red-700;
+  @apply text-danger-600 border-danger-400 dark:border-danger-400 dark:hover:border-danger-300 dark:hover:text-danger-300 dark:hover:bg-transparent dark:text-danger-400 hover:border-danger-600 hover:text-danger-700 active:bg-danger-200 active:border-danger-700 hover:bg-danger-50 focus:border-danger-700;
 }
 .pc-button--danger-inverted {
-  @apply text-red-600 border-red-400 dark:border-red-400 dark:hover:border-red-700 dark:hover:text-white dark:hover:bg-red-700 dark:text-red-400 hover:border-red-600 hover:text-white active:bg-red-800 hover:bg-red-600 focus:border-red-700 focus:shadow-red-500/50;
+  @apply text-danger-600 border-danger-400 dark:border-danger-400 dark:hover:border-danger-700 dark:hover:text-white dark:hover:bg-danger-700 dark:text-danger-400 hover:border-danger-600 hover:text-white active:bg-danger-800 hover:bg-danger-600 focus:border-danger-700 focus:shadow-danger-500/50;
 }
 .pc-button--danger-shadow {
-  @apply text-white bg-red-600 border-transparent shadow-xl hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:shadow-red-500/50 shadow-red-500/30 dark:hover:shadow-red-600/30 dark:focus:shadow-red-600/30 dark:active:shadow-red-700/30;
+  @apply text-white bg-danger-600 border-transparent shadow-xl hover:bg-danger-700 focus:bg-danger-700 active:bg-danger-800 focus:shadow-danger-500/50 shadow-danger-500/30 dark:hover:shadow-danger-600/30 dark:focus:shadow-danger-600/30 dark:active:shadow-danger-700/30;
 }
 .pc-button--gray {
   @apply text-white bg-gray-600 border-transparent active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700;
@@ -213,13 +213,13 @@
   @apply text-info-600 dark:text-info-500;
 }
 .pc-icon-button--success {
-  @apply text-green-600 dark:text-green-500;
+  @apply text-success-600 dark:text-success-500;
 }
 .pc-icon-button--warning {
-  @apply text-yellow-600 dark:text-yellow-500;
+  @apply text-warning-600 dark:text-warning-500;
 }
 .pc-icon-button--danger {
-  @apply text-red-600 dark:text-red-500;
+  @apply text-danger-600 dark:text-danger-500;
 }
 
 /* Icon Buttons - background colors */
@@ -237,13 +237,13 @@
   @apply hover:bg-info-50 dark:hover:bg-gray-800;
 }
 .pc-icon-button-bg--success {
-  @apply hover:bg-green-50 dark:hover:bg-gray-800;
+  @apply hover:bg-success-50 dark:hover:bg-gray-800;
 }
 .pc-icon-button-bg--warning {
-  @apply hover:bg-yellow-50 dark:hover:bg-gray-800;
+  @apply hover:bg-warning-50 dark:hover:bg-gray-800;
 }
 .pc-icon-button-bg--danger {
-  @apply hover:bg-red-50 dark:hover:bg-gray-800;
+  @apply hover:bg-danger-50 dark:hover:bg-gray-800;
 }
 
 /* Icon Button - sizes */
@@ -378,31 +378,31 @@
   @apply border text-info-600 border-info-600 dark:text-info-400 dark:border-info-400;
 }
 .pc-badge--success-light {
-  @apply text-green-800 bg-green-100 border-green-100 dark:bg-green-200 dark:border-green-200;
+  @apply text-success-800 bg-success-100 border-success-100 dark:bg-success-200 dark:border-success-200;
 }
 .pc-badge--success-dark {
-  @apply text-white bg-green-600 border-green-600;
+  @apply text-white bg-success-600 border-success-600;
 }
 .pc-badge--success-outline {
-  @apply text-green-600 border border-green-600 dark:text-green-400 dark:border-green-400;
+  @apply text-success-600 border border-success-600 dark:text-success-400 dark:border-success-400;
 }
 .pc-badge--warning-light {
-  @apply text-yellow-800 bg-yellow-100 border-yellow-100 dark:bg-yellow-200 dark:border-yellow-200;
+  @apply text-warning-800 bg-warning-100 border-warning-100 dark:bg-warning-200 dark:border-warning-200;
 }
 .pc-badge--warning-dark {
-  @apply text-white bg-yellow-600 border-yellow-600;
+  @apply text-white bg-warning-600 border-warning-600;
 }
 .pc-badge--warning-outline {
-  @apply text-yellow-600 border border-yellow-600 dark:text-yellow-400 dark:border-yellow-400;
+  @apply text-warning-600 border border-warning-600 dark:text-warning-400 dark:border-warning-400;
 }
 .pc-badge--danger-light {
-  @apply text-red-800 bg-red-100 border-red-100 dark:bg-red-200 dark:border-red-200;
+  @apply text-danger-800 bg-danger-100 border-danger-100 dark:bg-danger-200 dark:border-danger-200;
 }
 .pc-badge--danger-dark {
-  @apply text-white bg-red-600 border-red-600;
+  @apply text-white bg-danger-600 border-danger-600;
 }
 .pc-badge--danger-outline {
-  @apply text-red-600 border border-red-600 dark:text-red-400 dark:border-red-400;
+  @apply text-danger-600 border border-danger-600 dark:text-danger-400 dark:border-danger-400;
 }
 .pc-badge--gray-light {
   @apply text-gray-800 bg-gray-100 border-gray-100 dark:bg-gray-200 dark:border-gray-200;
@@ -438,13 +438,13 @@
   @apply bg-info-100 dark:bg-info-200 hover:bg-info-200 dark:hover:bg-info-300 hover:text-info-800 dark:hover:text-info-900;
 }
 .pc-alert__dismiss-button--success {
-  @apply bg-green-100 dark:bg-green-200 hover:bg-green-200 dark:hover:bg-green-300 hover:text-green-800 dark:hover:text-green-900;
+  @apply bg-success-100 dark:bg-success-200 hover:bg-success-200 dark:hover:bg-success-300 hover:text-success-800 dark:hover:text-success-900;
 }
 .pc-alert__dismiss-button--warning {
-  @apply bg-yellow-100 dark:bg-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-300 hover:text-yellow-800 dark:hover:text-yellow-900;
+  @apply bg-warning-100 dark:bg-warning-200 hover:bg-warning-200 dark:hover:bg-warning-300 hover:text-warning-800 dark:hover:text-warning-900;
 }
 .pc-alert__dismiss-button--danger {
-  @apply bg-red-100 dark:bg-red-200 hover:bg-red-200 dark:hover:bg-red-300 hover:text-red-800 dark:hover:text-red-900;
+  @apply bg-danger-100 dark:bg-danger-200 hover:bg-danger-200 dark:hover:bg-danger-300 hover:text-danger-800 dark:hover:text-danger-900;
 }
 
 /* Alerts - colors */
@@ -453,13 +453,13 @@
   @apply text-info-800 bg-info-100 dark:bg-info-200 dark:text-info-800;
 }
 .pc-alert--success {
-  @apply text-green-800 bg-green-100 dark:bg-green-200 dark:text-green-800;
+  @apply text-success-800 bg-success-100 dark:bg-success-200 dark:text-success-800;
 }
 .pc-alert--warning {
-  @apply text-yellow-800 bg-yellow-100 dark:bg-yellow-200 dark:text-yellow-800;
+  @apply text-warning-800 bg-warning-100 dark:bg-warning-200 dark:text-warning-800;
 }
 .pc-alert--danger {
-  @apply text-red-800 bg-red-100 dark:bg-red-200 dark:text-red-800;
+  @apply text-danger-800 bg-danger-100 dark:bg-danger-200 dark:text-danger-800;
 }
 
 /* Alerts - with icon */
@@ -479,11 +479,14 @@
 .pc-form-field-wrapper {
   @apply mb-6;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error input {
-  @apply border-red-500 focus:border-red-500 text-red-900 placeholder-red-700 bg-red-50 dark:text-red-100 dark:placeholder-red-300 dark:bg-red-900 focus:ring-red-500;
+:not(.phx-no-feedback).pc-form-field-wrapper--error input, :not(.phx-no-feedback).pc-form-field-wrapper--error select, :not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
+  @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
+}
+:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-switch .pc-switch__fake-input {
+  @apply bg-danger-200 border-danger-500;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label, :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
-  @apply !text-red-900 dark:!text-red-200;
+  @apply !text-danger-600 dark:!text-danger-200;
 }
 .pc-checkbox-label {
   @apply inline-flex items-center gap-3 cursor-pointer text-sm font-normal text-gray-900 dark:text-gray-200;
@@ -494,14 +497,11 @@
 .pc-label--for-checkbox {
   @apply !mb-0 font-normal;
 }
-.pc-error {
-  @apply flex gap-3 mt-3 text-sm leading-6 text-red-600;
-}
 .phx-no-feedback.pc-error, .phx-no-feedback .pc-error {
   @apply hidden;
 }
 .pc-form-field-error {
-  @apply mt-1 text-xs italic text-red-500;
+  @apply mt-1 text-xs italic text-danger-500;
 }
 .phx-no-feedback.pc-form-field-error {
   @apply hidden;
@@ -555,10 +555,10 @@
   @apply pt-2;
 }
 .pc-checkbox-group--row {
-  @apply flex flex-row gap-4;
+  @apply flex flex-row gap-4 mb-3;
 }
 .pc-checkbox-group--col {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-4 mb-3;
 }
 .pc-checkbox-group__item--row {
   @apply inline-flex items-center gap-2 cursor-pointer;
@@ -573,10 +573,10 @@
   @apply pt-2;
 }
 .pc-radio-group--row {
-  @apply flex flex-row gap-4;
+  @apply flex flex-row gap-4 mb-3;
 }
 .pc-radio-group--col {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-4 mb-3;
 }
 .pc-radio-group__item--row {
   @apply inline-flex items-center gap-2 cursor-pointer;
@@ -744,13 +744,13 @@
   @apply bg-info-100 dark:bg-info-900;
 }
 .pc-progress--success {
-  @apply bg-green-100 dark:bg-green-900;
+  @apply bg-success-100 dark:bg-success-900;
 }
 .pc-progress--warning {
-  @apply bg-yellow-100 dark:bg-yellow-900;
+  @apply bg-warning-100 dark:bg-warning-900;
 }
 .pc-progress--danger {
-  @apply bg-red-100 dark:bg-red-900;
+  @apply bg-danger-100 dark:bg-danger-900;
 }
 .pc-progress--gray {
   @apply bg-gray-100 dark:bg-gray-900;
@@ -765,13 +765,13 @@
   @apply bg-info-500;
 }
 .pc-progress__inner--success {
-  @apply bg-green-500;
+  @apply bg-success-500;
 }
 .pc-progress__inner--warning {
-  @apply bg-yellow-500;
+  @apply bg-warning-500;
 }
 .pc-progress__inner--danger {
-  @apply bg-red-500;
+  @apply bg-danger-500;
 }
 .pc-progress__inner--gray {
   @apply bg-gray-500;
@@ -1103,10 +1103,10 @@
   @apply ml-1 text-base font-bold text-gray-700 dark:text-gray-300;
 }
 .pc-rating__star--filled {
-  @apply w-5 h-5 fill-yellow-500;
+  @apply w-5 h-5 fill-warning-500;
 }
 .pc-rating__star--half {
-  @apply w-5 h-5 fill-yellow-500;
+  @apply w-5 h-5 fill-warning-500;
 }
 .pc-rating__star--empty {
   @apply w-5 h-5 fill-gray-400 dark:fill-gray-500;
@@ -1120,24 +1120,16 @@
 }
 
 label.has-error:not(.phx-no-feedback) {
-  @apply !text-red-900 dark:!text-red-200;
+  @apply !text-danger-900 dark:!text-danger-200;
 }
 
-textarea.has-error:not(.phx-no-feedback), input.has-error:not(.phx-no-feedback),
+textarea.has-error:not(.phx-no-feedback), input.has-error:not(.phx-no-feedback):not(:checked),
 select.has-error:not(.phx-no-feedback) {
-  @apply !border-red-500 focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 dark:!text-red-100 dark:!placeholder-red-300 dark:!bg-red-900 focus:!ring-red-500;
+  @apply !border-danger-500 focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 dark:!text-danger-100 dark:!placeholder-danger-300 dark:!bg-danger-900 focus:!ring-danger-500;
 }
 
 input[type="file_input"].has-error:not(.phx-no-feedback) {
-  @apply !border-red-500 !rounded-md focus:!border-red-500 !text-red-900 !placeholder-red-700 !bg-red-50 file:!border-none dark:!border-none dark:!bg-[#160B0B] dark:text-red-400;
-}
-
-input[type="checkbox"].has-error:not(.phx-no-feedback) {
-  @apply !border-red-500 !bg-red-500 dark:!bg-red-800 !text-red-900 dark:!text-red-200;
-}
-
-input[type="radio"].has-error:not(.phx-no-feedback) {
-  @apply !border-red-500 !bg-red-500 dark:!bg-red-800 !text-red-900 dark:!text-red-200;
+  @apply !border-danger-500 !rounded-md focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 file:!border-none dark:!border-none dark:!bg-[#160B0B] dark:text-danger-400;
 }
 
 /* If in tailwind.config.json, darkMode: 'class', use this: */
