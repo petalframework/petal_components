@@ -31,8 +31,8 @@ defmodule PetalComponents.Field do
   attr :type, :string,
     default: "text",
     values:
-      ~w(checkbox checkbox_group color date datetime-local email file hidden month number password
-               range radio_group search select switch tel text textarea time url week),
+      ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
+               range radio-group search select switch tel text textarea time url week),
     doc: "the type of input"
 
   attr :field, Phoenix.HTML.FormField,
@@ -51,7 +51,7 @@ defmodule PetalComponents.Field do
   attr :group_layout, :string,
     values: ["row", "col"],
     default: "row",
-    doc: "the layout of the inputs in a group (checkbox_group or radio_group)"
+    doc: "the layout of the inputs in a group (checkbox-group or radio-group)"
 
   attr :class, :string, default: nil, doc: "the class to add to the input"
   attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
@@ -68,7 +68,7 @@ defmodule PetalComponents.Field do
     |> assign(field: nil, id: assigns.id || field.id)
     |> assign(:errors, Enum.map(field.errors, &translate_error(&1)))
     |> assign_new(:name, fn ->
-      if assigns.multiple && assigns.type not in ["checkbox_group", "radio_group"],
+      if assigns.multiple && assigns.type not in ["checkbox-group", "radio-group"],
         do: field.name <> "[]",
         else: field.name
     end)
@@ -156,7 +156,7 @@ defmodule PetalComponents.Field do
     """
   end
 
-  def field(%{type: "checkbox_group"} = assigns) do
+  def field(%{type: "checkbox-group"} = assigns) do
     assigns =
       assigns
       |> assign_new(:checked, fn ->
@@ -203,7 +203,7 @@ defmodule PetalComponents.Field do
     """
   end
 
-  def field(%{type: "radio_group"} = assigns) do
+  def field(%{type: "radio-group"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <.field_label for={@id}><%= @label %></.field_label>
@@ -313,7 +313,7 @@ defmodule PetalComponents.Field do
 
   def field_error(assigns) do
     ~H"""
-    <p class="pc-error">
+    <p class="pc-form-field-error">
       <%= render_slot(@inner_block) %>
     </p>
     """
