@@ -56,7 +56,7 @@ defmodule PetalComponents.FieldTest do
 
     assert html =~ "name"
     assert html =~ "Name"
-    assert html =~ "pc-error"
+    assert html =~ "pc-form-field-error"
     assert html =~ html_escape("can't be blank")
     assert html =~ html_escape("too short!")
   end
@@ -79,7 +79,7 @@ defmodule PetalComponents.FieldTest do
       </.form>
       """)
 
-    assert html =~ "pc-error"
+    assert html =~ "pc-form-field-error"
     assert html =~ html_escape("can't be blank")
     assert html =~ html_escape("too short!")
   end
@@ -210,7 +210,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
-  test "field checkbox_group" do
+  test "field checkbox-group" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
@@ -218,7 +218,7 @@ defmodule PetalComponents.FieldTest do
       <.form for={@form}>
         <.field
           class="custom-class"
-          type="checkbox_group"
+          type="checkbox-group"
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
         />
@@ -236,14 +236,14 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
-  test "field checkbox_group checked" do
+  test "field checkbox-group checked" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
       rendered_to_string(~H"""
       <.form for={@form}>
         <.field
-          type="checkbox_group"
+          type="checkbox-group"
           checked={["read"]}
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
@@ -260,7 +260,7 @@ defmodule PetalComponents.FieldTest do
       <.form for={@form}>
         <.field
           class="custom-class"
-          type="checkbox_group"
+          type="checkbox-group"
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
         />
@@ -270,14 +270,14 @@ defmodule PetalComponents.FieldTest do
     assert html =~ " checked "
   end
 
-  test "field checkbox_group group_layout" do
+  test "field checkbox-group group_layout" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
       rendered_to_string(~H"""
       <.form for={@form}>
         <.field
-          type="checkbox_group"
+          type="checkbox-group"
           checked={["read"]}
           field={@form[:roles]}
           group_layout="col"
@@ -292,7 +292,7 @@ defmodule PetalComponents.FieldTest do
       rendered_to_string(~H"""
       <.form for={@form}>
         <.field
-          type="checkbox_group"
+          type="checkbox-group"
           checked={["read"]}
           field={@form[:roles]}
           group_layout="row"
@@ -304,7 +304,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "pc-checkbox-group--row"
   end
 
-  test "field radio_group" do
+  test "field radio-group" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
@@ -312,7 +312,7 @@ defmodule PetalComponents.FieldTest do
       <.form for={@form}>
         <.field
           class="custom-class"
-          type="radio_group"
+          type="radio-group"
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
         />
@@ -353,7 +353,7 @@ defmodule PetalComponents.FieldTest do
       rendered_to_string(~H"""
       <.form for={@form}>
         <.field
-          type="radio_group"
+          type="radio-group"
           field={@form[:read_terms]}
           options={[{"Read", "read"}, {"Write", "write"}]}
           data-extra="true"
