@@ -19,6 +19,11 @@ defmodule PetalComponents.Modal do
     doc: "modal max width"
   )
 
+  attr(:hide_on_mounted, :boolean,
+    default: false,
+    doc: "if hide_on_mounted is set to true, the modal is not displayed when mounted"
+  )
+
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -28,10 +33,10 @@ defmodule PetalComponents.Modal do
       |> assign(:classes, get_classes(assigns))
 
     ~H"""
-    <div {@rest} id="modal">
+    <div {@rest} id="modal" phx-mounted={init_modal(@hide_on_mounted)}>
       <div id="modal-overlay" class="pc-modal__overlay" aria-hidden="true"></div>
 
-      <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
+      <div id="modal-wrapper" class="pc-modal__wrapper" role="dialog" aria-modal="true">
         <div
           id="modal-content"
           class={@classes}
@@ -64,6 +69,14 @@ defmodule PetalComponents.Modal do
     """
   end
 
+  def init_modal(hide_on_mounted) do
+    if hide_on_mounted do
+      %JS{}
+      |> JS.hide(to: "#modal-overlay")
+      |> JS.hide(to: "#modal-wrapper")
+    end
+  end
+
   # The live view that calls <.modal> will need to handle the "close_modal" event. eg:
   # def handle_event("close_modal", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
@@ -80,6 +93,14 @@ defmodule PetalComponents.Modal do
           "opacity-0"
         },
         to: "#modal-overlay"
+      )
+      |> JS.hide(
+        transition: {
+          "ease-in duration-200",
+          "opacity-100",
+          "opacity-0"
+        },
+        to: "#modal-wrapper"
       )
       |> JS.hide(
         transition: {
@@ -110,6 +131,7 @@ defmodule PetalComponents.Modal do
       },
       to: "#modal-overlay"
     )
+    |> JS.show(to: "#modal-wrapper", display: "flex")
     |> JS.show(
       transition: {
         "transition ease-in-out duration-200",
