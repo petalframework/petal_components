@@ -13,7 +13,7 @@ defmodule PetalComponents.Input do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio radio_group search select switch tel text textarea time url week)
+               range radio search select switch tel text textarea time url week)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
