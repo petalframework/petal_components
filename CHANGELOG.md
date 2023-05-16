@@ -1,4 +1,5 @@
 # Changelog
+
 ### 1.2.2 - 2023-05-17 02:26:44
 
 - Updated: checkbox_group now supports `disabled_options` attr

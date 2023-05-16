@@ -45,6 +45,7 @@ defmodule PetalComponents.Button do
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your button")
+  attr(:tooltip, :string, default: nil, doc: "tooltip text")
 
   attr(:rest, :global,
     include: ~w(method download hreflang ping referrerpolicy rel target type value name)
@@ -59,15 +60,24 @@ defmodule PetalComponents.Button do
 
     ~H"""
     <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
-      <% else %>
-        <%= if @icon do %>
-          <Icon.icon name={@icon} mini class={get_spinner_size_classes(@size)} />
+      <div class={@tooltip && "relative group/pc-icon-button flex flex-col items-center"}>
+        <%= if @loading do %>
+          <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
+        <% else %>
+          <%= if @icon do %>
+            <Icon.icon name={@icon} mini class={get_spinner_size_classes(@size)} />
+          <% end %>
         <% end %>
-      <% end %>
 
-      <%= render_slot(@inner_block) || @label %>
+        <%= render_slot(@inner_block) || @label %>
+
+        <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
+          <span class="pc-icon-button__tooltip__text">
+            <%= @tooltip %>
+          </span>
+          <div class="pc-icon-button__tooltip__arrow"></div>
+        </div>
+      </div>
     </Link.a>
     """
   end
