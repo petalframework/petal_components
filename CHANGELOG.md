@@ -1,4 +1,9 @@
 # Changelog
+### 1.2.1 - 2023-05-16 02:56:56
+
+- Fixed transitions on modal
+- Updated `<.field>` to take a `label_class` attr
+
 ### 1.2.0 - 2023-05-11 10:15:53
 
 - Breaking change: `<.field type="checkbox_group">` is now `<.field type="checkbox-group">` (to match `datetime-local`)
