@@ -33,7 +33,7 @@ defmodule PetalComponents.Loading do
     custom_classes = user_added_classes
     show_class = if show == false, do: "hidden", else: ""
     size_classes = custom_size_class || get_size_classes(size)
-    build_class([base_classes, custom_classes, show_class, size_classes])
+    build_class([base_classes, show_class, size_classes, custom_classes])
   end
 
   defp get_size_classes("sm"), do: "pc-spinner--sm"

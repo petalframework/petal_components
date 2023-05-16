@@ -150,13 +150,13 @@ defmodule PetalComponents.Button do
     icon_css = if opts[:with_icon], do: "pc-button--with-icon", else: ""
 
     [
-      opts.user_added_classes,
       color_css,
       size_css,
       loading_css,
       get_disabled_classes(opts[:disabled]),
       icon_css,
-      "pc-button"
+      "pc-button",
+      opts.user_added_classes
     ]
     |> build_class()
   end
