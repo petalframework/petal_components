@@ -15,6 +15,7 @@ defmodule PetalComponents.FieldTest do
           itemid="something"
           value="John"
           help_text="Help text"
+          label_class="label-class"
         />
       </.form>
       """)
@@ -32,6 +33,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "!w-max"
     assert html =~ ~s|value="John"|
     assert html =~ "Help text"
+    assert html =~ "label-class"
   end
 
   test "field as text with field errors" do
