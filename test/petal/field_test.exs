@@ -238,6 +238,26 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field checkbox-group disabled_options" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox-group"
+          field={@form[:roles]}
+          options={[{"Option 1", "1"}, {"Option 2", "2"}, {"Option 3", "3"}]}
+          disabled_options={["1", "3"]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "disabled"
+    count_disabled = length(String.split(html, "disabled")) - 1
+    assert count_disabled == 2
+  end
+
   test "field checkbox-group checked" do
     assigns = %{form: to_form(%{}, as: :user)}
 

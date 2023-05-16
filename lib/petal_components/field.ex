@@ -47,6 +47,7 @@ defmodule PetalComponents.Field do
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
+  attr :disabled_options, :list, default: [], doc: "the options to disable in a checkbox group"
 
   attr :group_layout, :string,
     values: ["row", "col"],
@@ -192,6 +193,7 @@ defmodule PetalComponents.Field do
               checked={to_string(value) in @checked}
               hidden_input={false}
               class="pc-checkbox"
+              disabled={value in @disabled_options}
               {@rest}
             />
             <%= label %>
