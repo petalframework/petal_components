@@ -12,7 +12,6 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    refute html =~ "tooltip"
   end
 
   test "a" do
@@ -27,7 +26,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "phx-click"
-    refute html =~ "tooltip"
   end
 
   test "patch" do
@@ -42,7 +40,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "phx-click"
-    refute html =~ "tooltip"
   end
 
   test "redirect" do
@@ -57,7 +54,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "phx-click"
-    refute html =~ "tooltip"
   end
 
   test "button with inner_block" do
@@ -70,7 +66,6 @@ defmodule PetalComponents.ButtonTest do
 
     assert html =~ "<button"
     assert html =~ "Press me"
-    refute html =~ "tooltip"
   end
 
   test "button with loading but no size" do
@@ -84,7 +79,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "Press me"
     assert html =~ "<svg"
-    refute html =~ "tooltip"
   end
 
   test "button with shadow" do
@@ -98,7 +92,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "Press me"
     assert html =~ "pc-button--primary-shadow"
-    refute html =~ "tooltip"
   end
 
   test "button with dark mode" do
@@ -112,7 +105,6 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ "<button"
     assert html =~ "Press me"
     assert html =~ "pc-button--primary-shadow"
-    refute html =~ "tooltip"
   end
 
   test "button with custom class" do
@@ -124,21 +116,6 @@ defmodule PetalComponents.ButtonTest do
       """)
 
     assert html =~ "pc-button some-special-class"
-    refute html =~ "tooltip"
-  end
-
-  test "button with tooltip" do
-    assigns = %{}
-
-    html =
-      rendered_to_string(~H"""
-      <.button label="Press me" phx-click="click_event" tooltip="Hello world!" />
-      """)
-
-    assert html =~ "<button"
-    assert html =~ "Press me"
-    assert html =~ "role=\"tooltip"
-    assert html =~ "Hello world!"
   end
 
   test "icon button" do
