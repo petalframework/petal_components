@@ -1,9 +1,12 @@
 # Changelog
+### 1.2.4 - 2023-05-17 04:38:50
+
+- Fixed button with icon (reverted tooltip)
+
 ### 1.2.3 - 2023-05-17 03:52:29
 
 - Updated: Move custom css classes to last so they can potentially override default ones (button, loading)
 - Added: `tooltip` option to `<.button>`
-
 
 ### 1.2.2 - 2023-05-17 02:26:44
 
