@@ -115,7 +115,7 @@ defmodule PetalComponents.ButtonTest do
       <.button class="some-special-class">Press me</.button>
       """)
 
-    assert html =~ "some-special-class"
+    assert html =~ "pc-button some-special-class"
   end
 
   test "icon button" do
