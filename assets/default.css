@@ -28,6 +28,22 @@
   @apply inline-flex items-center justify-center font-medium transition duration-150 ease-in-out border rounded-md focus:outline-none;
 }
 
+.pc-button__tooltip__group {
+  @apply relative flex flex-col items-center;
+}
+
+.pc-button__tooltip {
+  @apply absolute flex-col items-center invisible mb-6 -translate-y-full -top-1 group-hover/pc-button:flex group-hover/pc-button:visible group-hover/pc-button:opacity-100 opacity-0 transition-opacity duration-300;
+}
+
+.pc-button__tooltip__text {
+  @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 shadow-lg whitespace-nowrap dark:bg-gray-700 rounded-sm;
+}
+
+.pc-button__tooltip__arrow {
+  @apply w-3 h-3 -mt-2 rotate-45 bg-gray-900 dark:bg-gray-700;
+}
+
 /* Buttons - sizes */
 
 .pc-button--xs {
@@ -184,18 +200,6 @@
 
 .pc-icon-button {
   @apply inline-block p-2 rounded-full;
-}
-
-.pc-icon-button__tooltip {
-  @apply absolute flex-col items-center invisible mb-6 -translate-y-full -top-1 group-hover/pc-icon-button:flex group-hover/pc-icon-button:visible group-hover/pc-icon-button:opacity-100 opacity-0 transition-opacity duration-300;
-}
-
-.pc-icon-button__tooltip__text {
-  @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 shadow-lg whitespace-nowrap dark:bg-gray-700 rounded-sm;
-}
-
-.pc-icon-button__tooltip__arrow {
-  @apply w-3 h-3 -mt-2 rotate-45 bg-gray-900 dark:bg-gray-700;
 }
 
 /* Icon Buttons - colors */

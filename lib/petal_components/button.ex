@@ -60,7 +60,7 @@ defmodule PetalComponents.Button do
 
     ~H"""
     <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
-      <div class={@tooltip && "relative group/pc-icon-button flex flex-col items-center"}>
+      <div class={@tooltip && "pc-button__tooltip__group group/pc-button"}>
         <div class="inline-flex flex-nowrap gap-2">
           <%= if @loading do %>
             <Loading.spinner show={true} size_class={get_spinner_size_classes(@size)} />
@@ -73,11 +73,11 @@ defmodule PetalComponents.Button do
           <%= render_slot(@inner_block) || @label %>
         </div>
 
-        <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
-          <span class="pc-icon-button__tooltip__text">
+        <div :if={@tooltip} role="tooltip" class="pc-button__tooltip">
+          <span class="pc-button__tooltip__text">
             <%= @tooltip %>
           </span>
-          <div class="pc-icon-button__tooltip__arrow"></div>
+          <div class="pc-button__tooltip__arrow"></div>
         </div>
       </div>
     </Link.a>
@@ -124,17 +124,17 @@ defmodule PetalComponents.Button do
       disabled={@disabled}
       {@rest}
     >
-      <div class={@tooltip && "relative group/pc-icon-button flex flex-col items-center"}>
+      <div class={@tooltip && "pc-button__tooltip__group group/pc-button"}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={get_icon_button_spinner_size_classes(@size)} />
         <% else %>
           <%= render_slot(@inner_block) %>
 
-          <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
-            <span class="pc-icon-button__tooltip__text">
+          <div :if={@tooltip} role="tooltip" class="pc-button__tooltip">
+            <span class="pc-button__tooltip__text">
               <%= @tooltip %>
             </span>
-            <div class="pc-icon-button__tooltip__arrow"></div>
+            <div class="pc-button__tooltip__arrow"></div>
           </div>
         <% end %>
       </div>
