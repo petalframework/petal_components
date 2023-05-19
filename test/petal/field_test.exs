@@ -199,6 +199,7 @@ defmodule PetalComponents.FieldTest do
           field={@form[:description]}
           itemid="something"
           placeholder="dummy text"
+          rows="8"
         />
       </.form>
       """)
@@ -210,6 +211,7 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "phx-feedback-for"
     assert html =~ "dummy text"
     assert html =~ "custom-class"
+    assert html =~ "rows=\"8\""
   end
 
   test "field checkbox-group" do

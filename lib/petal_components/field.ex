@@ -54,6 +54,8 @@ defmodule PetalComponents.Field do
     default: "row",
     doc: "the layout of the inputs in a group (checkbox-group or radio-group)"
 
+  attr :rows, :string, default: "4", doc: "rows for textarea"
+
   attr :class, :string, default: nil, doc: "the class to add to the input"
   attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
@@ -122,7 +124,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
-      <textarea id={@id} name={@name} class={["pc-text-input", @class]} rows="4" {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <textarea id={@id} name={@name} class={["pc-text-input", @class]} rows={@rows} {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
