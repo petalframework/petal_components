@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.5 - 2023-05-20 00:34:56
+
+- Fix: <.field type="textarea" rows="1"> - rows for textarea are now overridable
+
 ### 1.2.4 - 2023-05-17 04:38:50
 
 - Fixed button with icon (reverted tooltip)
