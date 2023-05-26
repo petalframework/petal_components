@@ -84,14 +84,12 @@ defmodule PetalComponents.Pagination do
   end
 
   defp get_box_class(item) do
-    base_classes =
-      "pc-pagination__item"
+    base_classes = "pc-pagination__item"
 
     active_classes =
       if item.current?,
         do: "pc-pagination__item--is-current",
-        else:
-          "pc-pagination__item--is-not-current"
+        else: "pc-pagination__item--is-not-current"
 
     rounded_classes =
       case item do

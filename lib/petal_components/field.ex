@@ -210,8 +210,7 @@ defmodule PetalComponents.Field do
   end
 
   def field(%{type: "radio-group"} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn -> nil end)
+    assigns = assign_new(assigns, :checked, fn -> nil end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>

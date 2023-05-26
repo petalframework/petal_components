@@ -1,4 +1,9 @@
 # Changelog
+### 1.2.6 - 2023-05-26 01:45:26
+
+- Fix radio-group checked options for <.field>
+- Fix select selected options
+
 ### 1.2.5 - 2023-05-20 00:34:56
 
 - Fix: <.field type="textarea" rows="1"> - rows for textarea are now overridable

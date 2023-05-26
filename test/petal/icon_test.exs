@@ -7,7 +7,7 @@ defmodule PetalComponents.IconTest do
 
     html =
       rendered_to_string(~H"""
-      <.icon name={:arrow_right} class="text-gray-300"/>
+      <.icon name={:arrow_right} class="text-gray-300" />
       """)
 
     assert html =~ "<svg"

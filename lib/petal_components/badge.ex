@@ -52,13 +52,13 @@ defmodule PetalComponents.Badge do
   defp get_color_classes(%{color: color, variant: variant}) do
     case variant do
       "light" ->
-        "pc-badge--"<>color<>"-light"
+        "pc-badge--" <> color <> "-light"
 
       "dark" ->
-        "pc-badge--"<>color<>"-dark"
+        "pc-badge--" <> color <> "-dark"
 
       "outline" ->
-        "pc-badge--"<>color<>"-outline"
+        "pc-badge--" <> color <> "-outline"
     end
   end
 end
