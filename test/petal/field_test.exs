@@ -374,6 +374,41 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field radio-group checked" do
+    assigns = %{form: to_form(%{"roles" => "write"}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-group"
+          field={@form[:roles]}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|value="write" checked|
+
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-group"
+          field={@form[:roles]}
+          checked="write"
+          options={[{"Read", "read"}, {"Write", "write"}]}
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|value="write" checked|
+  end
+
   test "field switch" do
     assigns = %{form: to_form(%{}, as: :user)}
 
