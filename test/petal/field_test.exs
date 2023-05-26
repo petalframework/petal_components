@@ -187,6 +187,26 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field select selected attributes" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="select"
+          class="custom-class"
+          field={@form[:role]}
+          options={[Admin: "admin", User: "user"]}
+          itemid="something"
+          selected="admin"
+        />
+      </.form>
+      """)
+
+    assert html =~ "option selected"
+  end
+
   test "field textarea" do
     assigns = %{form: to_form(%{}, as: :user)}
 

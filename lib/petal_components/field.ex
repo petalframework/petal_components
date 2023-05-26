@@ -60,11 +60,12 @@ defmodule PetalComponents.Field do
   attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   attr :label_class, :string, default: nil, doc: "extra CSS for your label"
+  attr :selected, :any, default: nil, doc: "the selected value for select inputs"
 
   attr :rest, :global,
     include:
       ~w(autocomplete disabled form max maxlength min minlength list
-    pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept),
+    pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept),
     doc: "All other props go on the input"
 
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
@@ -112,7 +113,7 @@ defmodule PetalComponents.Field do
       <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
       <select id={@id} name={@name} class={["pc-text-input", @class]} multiple={@multiple} {@rest}>
         <option :if={@prompt} value=""><%= @prompt %></option>
-        <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+        <%= Phoenix.HTML.Form.options_for_select(@options, @selected || @value) %>
       </select>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
