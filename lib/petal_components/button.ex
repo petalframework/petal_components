@@ -27,7 +27,8 @@ defmodule PetalComponents.Button do
       "danger",
       "gray",
       "pure_white",
-      "white"
+      "white",
+      "light"
     ],
     doc: "button color"
   )
@@ -293,6 +294,22 @@ defmodule PetalComponents.Button do
 
       _ ->
         "pc-button--gray"
+    end
+  end
+
+  defp get_color_classes(%{color: "light", variant: variant}) do
+    case variant do
+      "outline" ->
+        "pc-button--light-outline"
+
+      "inverted" ->
+        "pc-button--light-inverted"
+
+      "shadow" ->
+        "pc-button--light-shadow"
+
+      _ ->
+        "pc-button--light"
     end
   end
 
