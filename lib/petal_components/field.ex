@@ -228,7 +228,9 @@ defmodule PetalComponents.Field do
               type="radio"
               name={@name}
               value={value}
-              checked={to_string(value) == @value || to_string(value) == @checked}
+              checked={
+                to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
+              }
               class="pc-radio"
               {@rest}
             />
