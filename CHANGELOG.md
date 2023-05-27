@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.7 - 2023-05-27 03:34:33
+
+- Fixed radio-group value not being checked for integers
+
 ### 1.2.6 - 2023-05-26 01:45:26
 
 - Fix radio-group checked options for <.field>
