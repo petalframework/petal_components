@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.8 - 2023-05-27 05:03:40
+
+- Add light button variant for dark mode friendliness
+
 ### 1.2.7 - 2023-05-27 03:34:33
 
 - Fixed radio-group value not being checked for integers
