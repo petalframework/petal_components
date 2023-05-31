@@ -54,6 +54,11 @@ defmodule PetalComponents.Field do
     default: "row",
     doc: "the layout of the inputs in a group (checkbox-group or radio-group)"
 
+  attr :empty_message, :string,
+    default: nil,
+    doc:
+      "the message to display when there are no options available, for checkbox-group or radio-group"
+
   attr :rows, :string, default: "4", doc: "rows for textarea"
 
   attr :class, :string, default: nil, doc: "the class to add to the input"
@@ -202,6 +207,12 @@ defmodule PetalComponents.Field do
             <%= label %>
           </label>
         <% end %>
+
+        <%= if @empty_message && Enum.empty?(@options) do %>
+          <div class="pc-checkbox-group--empty-message">
+            <%= @empty_message %>
+          </div>
+        <% end %>
       </div>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
@@ -236,6 +247,12 @@ defmodule PetalComponents.Field do
             />
             <%= label %>
           </label>
+        <% end %>
+
+        <%= if @empty_message && Enum.empty?(@options) do %>
+          <div class="pc-checkbox-group--empty-message">
+            <%= @empty_message %>
+          </div>
         <% end %>
       </div>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>

@@ -348,6 +348,42 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "pc-checkbox-group--row"
   end
 
+  test "field checkbox-group empty options" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox-group"
+          checked={["read"]}
+          field={@form[:roles]}
+          options={[]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    assert html =~ "No options"
+
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox-group"
+          checked={["read"]}
+          field={@form[:roles]}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    refute html =~ "No options"
+  end
+
   test "field radio-group" do
     assigns = %{form: to_form(%{}, as: :user)}
 
@@ -426,6 +462,42 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert html =~ ~s|value="write" checked|
+  end
+
+  test "field radio-group empty options" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-group"
+          field={@form[:roles]}
+          options={[]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    assert html =~ "No options"
+
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-group"
+          field={@form[:roles]}
+          options={[{"Read", "read"}, {"Write", "write"}]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    refute html =~ "No options"
   end
 
   test "field switch" do
