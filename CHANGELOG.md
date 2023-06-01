@@ -1,4 +1,9 @@
 # Changelog
+### 1.2.9 - 2023-06-01 02:35:12
+
+- Updated: add empty_message attr to `<.field>` (`<.field type="checkbox-group|radio_group" empty_message="No options">`)
+- Fixed: `<.field type="switch">` not providing a `false` value when unchecked
+
 ### 1.2.8 - 2023-05-27 05:03:40
 
 - Add light button variant for dark mode friendliness
