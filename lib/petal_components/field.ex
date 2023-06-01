@@ -144,6 +144,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <label class={["pc-checkbox-label", @label_class]}>
+        <input type="hidden" name={@name} value="false" />
         <label class="pc-switch">
           <input
             type="checkbox"

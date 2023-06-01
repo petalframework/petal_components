@@ -159,6 +159,9 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "user[read_terms]"
     assert html =~ "phx-feedback-for"
     assert html =~ "itemid"
+
+    # It includes a hidden field for when the switch is not checked
+    assert html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
   end
 
   test "field select" do
@@ -514,6 +517,9 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "user[read_terms]"
     assert html =~ "phx-feedback-for"
     assert html =~ "data-extra"
+
+    # It includes a hidden field for when the switch is not checked
+    assert html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
   end
 
   test "field radio group" do
