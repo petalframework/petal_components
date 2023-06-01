@@ -596,6 +596,10 @@
 .pc-radio-group__item--col {
   @apply inline-flex items-center gap-3 cursor-pointer;
 }
+.pc-checkbox-group--empty-message,
+.pc-radio-group--empty-message {
+  @apply text-sm;
+}
 
 /* Dropdown */
 
