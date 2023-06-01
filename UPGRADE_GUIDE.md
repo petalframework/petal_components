@@ -26,6 +26,8 @@ In `tailwind.config.js` you need to add more colors:
   },
 ```
 
+NOTE: If you are supplying your own colours, they will require keys for different shades.
+
 In your `app.scss` you need to import the default Petal Components CSS:
 
 ```css
@@ -34,6 +36,36 @@ In your `app.scss` you need to import the default Petal Components CSS:
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 ```
+
+Update tailwind and esbuild dependencies:
+
+```
+mix deps.update esbuild
+mix deps.update tailwind
+```
+
+In your `config.exs`, update tailwind and esbuild to more recent versions:
+
+```elixir
+config :esbuild,
+  version: "0.15.5",
+  default: [
+  ...
+
+
+config :tailwind,
+  version: "3.2.4",
+  default: [
+  ...
+```
+
+Update tailwind and esbuild binaries:
+
+```
+mix esbuild.install
+mix tailwind.install
+```
+
 
 ## v0.18 to v0.19
 
@@ -189,4 +221,3 @@ You can do this global replace: ` :class=` --> ` x-bind:class=`.
 You'll have to do it for each attribute using this bind syntax, eg: ` :aria-expanded=` --> ` x-bind:aria-expanded=`
 
 There could be many more if you use Alpine a lot.
-
