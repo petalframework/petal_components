@@ -28,7 +28,7 @@ In `tailwind.config.js` you need to add more colors:
 
 NOTE: If you are supplying your own colours, they will require keys for different shades.
 
-In your `app.scss` you need to import the default Petal Components CSS:
+In your `app.css` you need to import the default Petal Components CSS:
 
 ```css
 @import "tailwindcss/base";
