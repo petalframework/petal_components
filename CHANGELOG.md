@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.10 - 2023-06-05 02:06:55
+
+- Bumped phoenix_live_view dep to 0.19
+
 ### 1.2.9 - 2023-06-01 02:35:12
 
 - Updated: add empty_message attr to `<.field>` (`<.field type="checkbox-group|radio_group" empty_message="No options">`)
