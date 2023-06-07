@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.11 - 2023-06-07 00:18:05
+
+- Fix: allow checkbox/radio labels to support links. eg. `<.field type="checkbox" field={@form[:checkbox]} label={raw(~s|Please accept these <a href="#" class="text-blue-500">Terms and Conditions</a> before continuing|)} />`
+
 ### 1.2.10 - 2023-06-05 02:06:55
 
 - Bumped phoenix_live_view dep to 0.19
