@@ -104,7 +104,9 @@ defmodule PetalComponents.Field do
           class={["pc-checkbox", @class]}
           {@rest}
         />
-        <%= @label %>
+        <div>
+          <%= @label %>
+        </div>
       </label>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
@@ -205,7 +207,9 @@ defmodule PetalComponents.Field do
               disabled={value in @disabled_options}
               {@rest}
             />
-            <%= label %>
+            <div>
+              <%= label %>
+            </div>
           </label>
         <% end %>
 
@@ -246,7 +250,9 @@ defmodule PetalComponents.Field do
               class="pc-radio"
               {@rest}
             />
-            <%= label %>
+            <div>
+              <%= label %>
+            </div>
           </label>
         <% end %>
 
