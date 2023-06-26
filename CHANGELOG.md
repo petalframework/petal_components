@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.12 - 2023-06-26 23:24:23
+
+- Improvement: file input looks better in dark mode
+
 ### 1.2.11 - 2023-06-07 00:18:05
 
 - Fix: allow checkbox/radio labels to support links. eg. `<.field type="checkbox" field={@form[:checkbox]} label={raw(~s|Please accept these <a href="#" class="text-blue-500">Terms and Conditions</a> before continuing|)} />`
