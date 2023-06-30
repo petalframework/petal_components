@@ -193,4 +193,28 @@ defmodule PetalComponents.ButtonTest do
     assert html =~ " disabled"
     refute html =~ " phx-"
   end
+
+  test "rest attrs" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button
+        label="Home"
+        method="x"
+        download="x"
+        hreflang="x"
+        ping="x"
+        referrerpolicy="x"
+        rel="x"
+        target="x"
+        type="x"
+        value="x"
+        name="x"
+        form="x"
+      />
+      """)
+
+    assert html =~ ~s{method="x"}
+  end
 end

@@ -28,6 +28,8 @@ defmodule Releaser.VersionUtils do
 
         git push origin main
         git push --tags
+
+  5. Create release on Github https://github.com/petalframework/petal_components/releases/new
   """
   @version_line_regex ~r/(\n\s*@version\s+")([^\n]+)("\n)/
 
