@@ -1,4 +1,8 @@
 # Changelog
+### 1.2.13 - 2023-06-30 03:32:59
+
+- Updated: button can accept a "form" attribute
+
 ### 1.2.12 - 2023-06-26 23:24:23
 
 - Improvement: file input looks better in dark mode
