@@ -31,7 +31,7 @@ defmodule PetalComponents.Modal do
     <div
       id={@id}
       phx-mounted={!@hide && show_modal(@id)}
-      phx-remove={hide_modal(@id)}
+      phx-remove={hide_modal(@close_modal_target, @id)}
       {@rest}
       class="hidden pc-modal"
     >
