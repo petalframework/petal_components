@@ -510,6 +510,11 @@
   @apply !mb-0 font-normal;
 }
 .phx-no-feedback.pc-error, .phx-no-feedback .pc-error {
+.pc-label--required:after {
+  color: #e32;
+  content: " *";
+  display: inline;
+}
   @apply hidden;
 }
 .pc-form-field-error {

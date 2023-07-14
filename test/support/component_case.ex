@@ -12,6 +12,10 @@ defmodule ComponentCase do
       import Phoenix.LiveViewTest
 
       import Plug.HTML, only: [html_escape: 1]
+
+      defp count_substring(string, substring) do
+        string |> String.split(substring) |> Enum.count() |> Kernel.-(1)
+      end
     end
   end
 end

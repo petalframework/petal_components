@@ -575,4 +575,66 @@ defmodule PetalComponents.FieldTest do
 
     refute html =~ "pc-form-help-text"
   end
+
+  test "required_asterisk" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field required_asterisk type="textarea" field={@form[:textarea]} />
+        <.field required_asterisk type="text" field={@form[:text]} />
+        <.field required_asterisk type="switch" field={@form[:switch]} />
+        <.field required_asterisk type="checkbox" field={@form[:checkbox]} />
+        <.field required_asterisk type="color" field={@form[:color]} />
+        <.field required_asterisk type="date" field={@form[:date]} />
+        <.field required_asterisk type="datetime-local" field={@form[:datetime_local]} />
+        <.field required_asterisk type="email" field={@form[:email]} />
+        <.field required_asterisk type="file" field={@form[:file]} />
+        <.field required_asterisk type="month" field={@form[:month]} />
+        <.field required_asterisk type="number" field={@form[:number]} />
+        <.field required_asterisk type="password" field={@form[:password]} />
+        <.field required_asterisk type="range" field={@form[:range]} />
+        <.field required_asterisk type="search" field={@form[:search]} />
+        <.field required_asterisk type="tel" field={@form[:tel]} />
+        <.field required_asterisk type="time" field={@form[:time]} />
+        <.field required_asterisk type="url" field={@form[:url]} />
+        <.field required_asterisk type="week" field={@form[:week]} />
+        <.field required_asterisk type="select" field={@form[:select]} options={["1"]} />
+        <.field required_asterisk type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
+        <.field required_asterisk type="radio-group" field={@form[:radio_group]} options={["1"]} />
+      </.form>
+      """)
+
+    assert count_substring(html, "pc-label--required") == 21
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="textarea" field={@form[:textarea]} />
+        <.field type="text" field={@form[:text]} />
+        <.field type="switch" field={@form[:switch]} />
+        <.field type="checkbox" field={@form[:checkbox]} />
+        <.field type="color" field={@form[:color]} />
+        <.field type="date" field={@form[:date]} />
+        <.field type="datetime-local" field={@form[:datetime_local]} />
+        <.field type="email" field={@form[:email]} />
+        <.field type="file" field={@form[:file]} />
+        <.field type="month" field={@form[:month]} />
+        <.field type="number" field={@form[:number]} />
+        <.field type="password" field={@form[:password]} />
+        <.field type="range" field={@form[:range]} />
+        <.field type="search" field={@form[:search]} />
+        <.field type="tel" field={@form[:tel]} />
+        <.field type="time" field={@form[:time]} />
+        <.field type="url" field={@form[:url]} />
+        <.field type="week" field={@form[:week]} />
+        <.field type="select" field={@form[:select]} options={["1"]} />
+        <.field type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
+        <.field type="radio-group" field={@form[:radio_group]} options={["1"]} />
+      </.form>
+      """)
+
+    assert count_substring(html, "pc-label--required") == 0
+  end
 end
