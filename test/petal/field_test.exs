@@ -576,37 +576,41 @@ defmodule PetalComponents.FieldTest do
     refute html =~ "pc-form-help-text"
   end
 
-  test "required_asterisk" do
+  test "required fields" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
       rendered_to_string(~H"""
       <.form for={@form}>
-        <.field required_asterisk type="textarea" field={@form[:textarea]} />
-        <.field required_asterisk type="text" field={@form[:text]} />
-        <.field required_asterisk type="switch" field={@form[:switch]} />
-        <.field required_asterisk type="checkbox" field={@form[:checkbox]} />
-        <.field required_asterisk type="color" field={@form[:color]} />
-        <.field required_asterisk type="date" field={@form[:date]} />
-        <.field required_asterisk type="datetime-local" field={@form[:datetime_local]} />
-        <.field required_asterisk type="email" field={@form[:email]} />
-        <.field required_asterisk type="file" field={@form[:file]} />
-        <.field required_asterisk type="month" field={@form[:month]} />
-        <.field required_asterisk type="number" field={@form[:number]} />
-        <.field required_asterisk type="password" field={@form[:password]} />
-        <.field required_asterisk type="range" field={@form[:range]} />
-        <.field required_asterisk type="search" field={@form[:search]} />
-        <.field required_asterisk type="tel" field={@form[:tel]} />
-        <.field required_asterisk type="time" field={@form[:time]} />
-        <.field required_asterisk type="url" field={@form[:url]} />
-        <.field required_asterisk type="week" field={@form[:week]} />
-        <.field required_asterisk type="select" field={@form[:select]} options={["1"]} />
-        <.field required_asterisk type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
-        <.field required_asterisk type="radio-group" field={@form[:radio_group]} options={["1"]} />
+        <.field required type="textarea" field={@form[:textarea]} />
+        <.field required type="text" field={@form[:text]} />
+        <.field required type="switch" field={@form[:switch]} />
+        <.field required type="checkbox" field={@form[:checkbox]} />
+        <.field required type="color" field={@form[:color]} />
+        <.field required type="date" field={@form[:date]} />
+        <.field required type="datetime-local" field={@form[:datetime_local]} />
+        <.field required type="email" field={@form[:email]} />
+        <.field required type="file" field={@form[:file]} />
+        <.field required type="month" field={@form[:month]} />
+        <.field required type="number" field={@form[:number]} />
+        <.field required type="password" field={@form[:password]} />
+        <.field required type="range" field={@form[:range]} />
+        <.field required type="search" field={@form[:search]} />
+        <.field required type="tel" field={@form[:tel]} />
+        <.field required type="time" field={@form[:time]} />
+        <.field required type="url" field={@form[:url]} />
+        <.field required type="week" field={@form[:week]} />
+        <.field required type="select" field={@form[:select]} options={["1"]} />
+        <.field required type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
+        <.field required type="radio-group" field={@form[:radio_group]} options={["1"]} />
       </.form>
       """)
 
     assert count_substring(html, "pc-label--required") == 21
+
+    # Check for setting the `required` attribute on the element
+    # We check for 19 because `checkbox-group` and `radio-group` have multiple inputs so we don't put `required` on any of them
+    assert count_substring(html, " required") == 19
 
     html =
       rendered_to_string(~H"""
@@ -636,5 +640,6 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert count_substring(html, "pc-label--required") == 0
+    assert count_substring(html, " required") == 0
   end
 end
