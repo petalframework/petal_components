@@ -67,6 +67,10 @@ defmodule PetalComponents.Field do
   attr :label_class, :string, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
 
+  attr :required, :boolean,
+    default: false,
+    doc: "is this field required? is passed to the input and adds an asterisk next to the label"
+
   attr :rest, :global,
     include:
       ~w(autocomplete disabled form max maxlength min minlength list
@@ -101,10 +105,11 @@ defmodule PetalComponents.Field do
           name={@name}
           value="true"
           checked={@checked}
+          required={@required}
           class={["pc-checkbox", @class]}
           {@rest}
         />
-        <div>
+        <div class={[@required && "pc-label--required"]}>
           <%= @label %>
         </div>
       </label>
@@ -117,8 +122,17 @@ defmodule PetalComponents.Field do
   def field(%{type: "select"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
-      <select id={@id} name={@name} class={["pc-text-input", @class]} multiple={@multiple} {@rest}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <select
+        id={@id}
+        name={@name}
+        class={["pc-text-input", @class]}
+        multiple={@multiple}
+        required={@required}
+        {@rest}
+      >
         <option :if={@prompt} value=""><%= @prompt %></option>
         <%= Phoenix.HTML.Form.options_for_select(@options, @selected || @value) %>
       </select>
@@ -131,8 +145,17 @@ defmodule PetalComponents.Field do
   def field(%{type: "textarea"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
-      <textarea id={@id} name={@name} class={["pc-text-input", @class]} rows={@rows} {@rest}><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <textarea
+        id={@id}
+        name={@name}
+        class={["pc-text-input", @class]}
+        rows={@rows}
+        required={@required}
+        {@rest}
+      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
@@ -154,6 +177,7 @@ defmodule PetalComponents.Field do
             name={@name}
             value="true"
             checked={@checked}
+            required={@required}
             class={["sr-only peer", @class]}
             {@rest}
           />
@@ -161,7 +185,7 @@ defmodule PetalComponents.Field do
           <span class="pc-switch__fake-input"></span>
           <span class="pc-switch__fake-input-bg"></span>
         </label>
-        <div><%= @label %></div>
+        <div class={[@required && "pc-label--required"]}><%= @label %></div>
       </label>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
       <.field_help_text help_text={@help_text} />
@@ -185,7 +209,9 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
       <input type="hidden" name={@name} value="" />
       <div class={[
         "pc-checkbox-group",
@@ -230,7 +256,9 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
       <div class={[
         "pc-radio-group",
         @group_layout == "row" && "pc-radio-group--row",
@@ -287,13 +315,16 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label for={@id} class={@label_class}><%= @label %></.field_label>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={@class}
+        required={@required}
         {@rest}
       />
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
@@ -330,11 +361,12 @@ defmodule PetalComponents.Field do
   attr :for, :string, default: nil
   attr :class, :string, default: nil
   attr :rest, :global
+  attr :required, :boolean, default: false
   slot :inner_block, required: true
 
   def field_label(assigns) do
     ~H"""
-    <label for={@for} class={["pc-label", @class]} {@rest}>
+    <label for={@for} class={["pc-label", @class, @required && "pc-label--required"]} {@rest}>
       <%= render_slot(@inner_block) %>
     </label>
     """

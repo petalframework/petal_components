@@ -491,13 +491,18 @@
 .pc-form-field-wrapper {
   @apply mb-6;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error input, :not(.phx-no-feedback).pc-form-field-wrapper--error select, :not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
+:not(.phx-no-feedback).pc-form-field-wrapper--error input,
+:not(.phx-no-feedback).pc-form-field-wrapper--error select,
+:not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
   @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-switch .pc-switch__fake-input {
+:not(.phx-no-feedback).pc-form-field-wrapper--error
+  .pc-switch
+  .pc-switch__fake-input {
   @apply bg-danger-200 border-danger-500;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label, :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
+:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label,
+:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
   @apply !text-danger-600 dark:!text-danger-200;
 }
 .pc-checkbox-label {
@@ -509,7 +514,13 @@
 .pc-label--for-checkbox {
   @apply !mb-0 font-normal;
 }
-.phx-no-feedback.pc-error, .phx-no-feedback .pc-error {
+.pc-label--required:after {
+  color: #e32;
+  content: " *";
+  display: inline;
+}
+.phx-no-feedback.pc-error,
+.phx-no-feedback .pc-error {
   @apply hidden;
 }
 .pc-form-field-error {
@@ -1141,7 +1152,8 @@ label.has-error:not(.phx-no-feedback) {
   @apply !text-danger-900 dark:!text-danger-200;
 }
 
-textarea.has-error:not(.phx-no-feedback), input.has-error:not(.phx-no-feedback):not(:checked),
+textarea.has-error:not(.phx-no-feedback),
+input.has-error:not(.phx-no-feedback):not(:checked),
 select.has-error:not(.phx-no-feedback) {
   @apply !border-danger-500 focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 dark:!text-danger-100 dark:!placeholder-danger-300 dark:!bg-danger-900 focus:!ring-danger-500;
 }

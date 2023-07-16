@@ -575,4 +575,71 @@ defmodule PetalComponents.FieldTest do
 
     refute html =~ "pc-form-help-text"
   end
+
+  test "required fields" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field required type="textarea" field={@form[:textarea]} />
+        <.field required type="text" field={@form[:text]} />
+        <.field required type="switch" field={@form[:switch]} />
+        <.field required type="checkbox" field={@form[:checkbox]} />
+        <.field required type="color" field={@form[:color]} />
+        <.field required type="date" field={@form[:date]} />
+        <.field required type="datetime-local" field={@form[:datetime_local]} />
+        <.field required type="email" field={@form[:email]} />
+        <.field required type="file" field={@form[:file]} />
+        <.field required type="month" field={@form[:month]} />
+        <.field required type="number" field={@form[:number]} />
+        <.field required type="password" field={@form[:password]} />
+        <.field required type="range" field={@form[:range]} />
+        <.field required type="search" field={@form[:search]} />
+        <.field required type="tel" field={@form[:tel]} />
+        <.field required type="time" field={@form[:time]} />
+        <.field required type="url" field={@form[:url]} />
+        <.field required type="week" field={@form[:week]} />
+        <.field required type="select" field={@form[:select]} options={["1"]} />
+        <.field required type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
+        <.field required type="radio-group" field={@form[:radio_group]} options={["1"]} />
+      </.form>
+      """)
+
+    assert count_substring(html, "pc-label--required") == 21
+
+    # Check for setting the `required` attribute on the element
+    # We check for 19 because `checkbox-group` and `radio-group` have multiple inputs so we don't put `required` on any of them
+    assert count_substring(html, " required") == 19
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="textarea" field={@form[:textarea]} />
+        <.field type="text" field={@form[:text]} />
+        <.field type="switch" field={@form[:switch]} />
+        <.field type="checkbox" field={@form[:checkbox]} />
+        <.field type="color" field={@form[:color]} />
+        <.field type="date" field={@form[:date]} />
+        <.field type="datetime-local" field={@form[:datetime_local]} />
+        <.field type="email" field={@form[:email]} />
+        <.field type="file" field={@form[:file]} />
+        <.field type="month" field={@form[:month]} />
+        <.field type="number" field={@form[:number]} />
+        <.field type="password" field={@form[:password]} />
+        <.field type="range" field={@form[:range]} />
+        <.field type="search" field={@form[:search]} />
+        <.field type="tel" field={@form[:tel]} />
+        <.field type="time" field={@form[:time]} />
+        <.field type="url" field={@form[:url]} />
+        <.field type="week" field={@form[:week]} />
+        <.field type="select" field={@form[:select]} options={["1"]} />
+        <.field type="checkbox-group" field={@form[:checkbox_group]} options={["1"]} />
+        <.field type="radio-group" field={@form[:radio_group]} options={["1"]} />
+      </.form>
+      """)
+
+    assert count_substring(html, "pc-label--required") == 0
+    assert count_substring(html, " required") == 0
+  end
 end
