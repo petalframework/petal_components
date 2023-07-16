@@ -1,4 +1,9 @@
 # Changelog
+### 1.2.14 - 2023-07-16 02:42:07
+
+- Fix: Modal phx-remove call to hide_modal
+- New: form fields now show a red asterisk for required fields
+
 ### 1.2.13 - 2023-06-30 03:32:59
 
 - Updated: button can accept a "form" attribute
