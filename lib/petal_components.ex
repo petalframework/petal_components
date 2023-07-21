@@ -24,7 +24,9 @@ defmodule PetalComponents do
         SlideOver,
         Table,
         Tabs,
-        Typography
+        Typography,
+        UserDropdownMenu,
+        Menu
       }
 
       alias PetalComponents.HeroiconsV1
