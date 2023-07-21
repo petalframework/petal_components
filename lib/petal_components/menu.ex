@@ -126,7 +126,7 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom, required: true
   attr :title, :string, default: nil
 
-  def menu(assigns) do
+  def vertical_menu(assigns) do
     ~H"""
     <%= if menu_items_grouped?(@menu_items) do %>
       <div class="flex flex-col gap-5">
@@ -143,12 +143,6 @@ defmodule PetalComponents.Menu do
     """
   end
 
-  defp menu_items_grouped?(menu_items) do
-    Enum.all?(menu_items, fn menu_item ->
-      Map.has_key?(menu_item, :title)
-    end)
-  end
-
   attr :current_page, :atom
   attr :menu_items, :list
   attr :title, :string
@@ -162,7 +156,7 @@ defmodule PetalComponents.Menu do
 
       <div class="divide-y divide-gray-300">
         <div class="space-y-1">
-          <.menu_item
+          <.vertical_menu_item
             :for={menu_item <- @menu_items}
             all_menu_items={@menu_items}
             current_page={@current_page}
@@ -184,7 +178,7 @@ defmodule PetalComponents.Menu do
   attr :patch_group, :atom, default: nil
   attr :link_type, :string, default: "live_redirect"
 
-  def menu_item(%{menu_items: nil} = assigns) do
+  def vertical_menu_item(%{menu_items: nil} = assigns) do
     current_item = find_item(assigns.name, assigns.all_menu_items)
     assigns = assign(assigns, :current_item, current_item)
 
@@ -205,7 +199,7 @@ defmodule PetalComponents.Menu do
     """
   end
 
-  def menu_item(%{menu_items: _} = assigns) do
+  def vertical_menu_item(%{menu_items: _} = assigns) do
     ~H"""
     <div
       x-data={"{ open: #{if menu_item_active?(@name, @current_page, @menu_items), do: "true", else: "false"} }"}
@@ -234,7 +228,7 @@ defmodule PetalComponents.Menu do
         x-show="open"
         x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
       >
-        <.menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+        <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
       </div>
     </div>
     """
@@ -242,7 +236,7 @@ defmodule PetalComponents.Menu do
 
   attr :icon, :any, default: nil
 
-  def menu_icon(assigns) do
+  defp menu_icon(assigns) do
     ~H"""
     <.icon :if={is_atom(@icon)} outline name={@icon} class={menu_icon_classes()} />
 
@@ -258,6 +252,12 @@ defmodule PetalComponents.Menu do
       <%= Phoenix.HTML.raw(@icon) %>
     <% end %>
     """
+  end
+
+  defp menu_items_grouped?(menu_items) do
+    Enum.all?(menu_items, fn menu_item ->
+      Map.has_key?(menu_item, :title)
+    end)
   end
 
   # Check whether the current namge equals the current page or whether any of the menu items have the current page as their name. A menu_item may have sub-items, so we need to check recursively.
