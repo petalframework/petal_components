@@ -1,4 +1,9 @@
 # Changelog
+### 1.3.0 - 2023-07-21 08:00:47
+
+- New: <.vertical_menu> component
+- New: <.user_dropdown_menu> component
+
 ### 1.2.14 - 2023-07-16 02:42:07
 
 - Fix: Modal phx-remove call to hide_modal
