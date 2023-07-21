@@ -27,5 +27,44 @@ defmodule PetalComponents.MenuTest do
       assert html =~ "/path"
       assert html =~ "blah"
     end
+
+    test "grouped menu renders correctly" do
+      assigns = %{
+        main_menu_items: [
+          %{
+            title: "Menu group 1",
+            menu_items: [
+              %{
+                name: :home,
+                label: "Home",
+                path: "#",
+                icon: :home
+              }
+            ]
+          },
+          %{
+            title: "Menu group 2",
+            menu_items: [
+              %{
+                name: :school,
+                label: "School",
+                path: "#",
+                icon: :academic_cap
+              }
+            ]
+          }
+        ],
+        current_page: :current_page,
+        sidebar_title: "blah"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+        """)
+
+      assert html =~ "Home"
+      assert html =~ "School"
+    end
   end
 end
