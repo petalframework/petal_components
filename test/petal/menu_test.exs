@@ -12,13 +12,13 @@ defmodule PetalComponents.MenuTest do
           icon: :key
         }
       ],
-      current_page: 3,
+      current_page: :current_page,
       sidebar_title: "blah"
     }
 
     html =
       rendered_to_string(~H"""
-      <.nav_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+      <.menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
       """)
 
     assert html =~ "<svg"

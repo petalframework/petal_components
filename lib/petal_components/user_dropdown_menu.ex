@@ -10,7 +10,7 @@ defmodule PetalComponents.UserDropdownMenu do
   attr :current_user_name, :string, doc: "the current signed in user's name"
   attr :avatar_src, :string, default: nil, doc: "the current signed in user's avatar image src"
 
-  def user_menu_dropdown(assigns) do
+  def user_dropdown_menu(assigns) do
     ~H"""
     <.dropdown :if={@user_menu_items != []}>
       <:trigger_element>

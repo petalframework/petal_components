@@ -11,7 +11,7 @@ defmodule PetalComponents.UserDropdownMenuTest do
 
     html =
       rendered_to_string(~H"""
-      <.user_menu_dropdown
+      <.user_dropdown_menu
         user_menu_items={@user_menu_items}
         avatar_src={@avatar_src}
         current_user_name={@current_user_name}

@@ -126,11 +126,11 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom, required: true
   attr :title, :string, default: nil
 
-  def nav_menu(assigns) do
+  def menu(assigns) do
     ~H"""
     <%= if menu_items_grouped?(@menu_items) do %>
       <div class="flex flex-col gap-5">
-        <.nav_menu_group
+        <.menu_group
           :for={menu_group <- @menu_items}
           title={menu_group[:title]}
           menu_items={menu_group.menu_items}
@@ -138,7 +138,7 @@ defmodule PetalComponents.Menu do
         />
       </div>
     <% else %>
-      <.nav_menu_group title={@title} menu_items={@menu_items} current_page={@current_page} />
+      <.menu_group title={@title} menu_items={@menu_items} current_page={@current_page} />
     <% end %>
     """
   end
@@ -153,7 +153,7 @@ defmodule PetalComponents.Menu do
   attr :menu_items, :list
   attr :title, :string
 
-  def nav_menu_group(assigns) do
+  def menu_group(assigns) do
     ~H"""
     <nav>
       <h3 :if={@title} class="pl-3 mb-3 text-xs font-semibold leading-6 text-gray-400 uppercase">
@@ -162,7 +162,7 @@ defmodule PetalComponents.Menu do
 
       <div class="divide-y divide-gray-300">
         <div class="space-y-1">
-          <.nav_menu_item
+          <.menu_item
             :for={menu_item <- @menu_items}
             all_menu_items={@menu_items}
             current_page={@current_page}
@@ -184,7 +184,7 @@ defmodule PetalComponents.Menu do
   attr :patch_group, :atom, default: nil
   attr :link_type, :string, default: "live_redirect"
 
-  def nav_menu_item(%{menu_items: nil} = assigns) do
+  def menu_item(%{menu_items: nil} = assigns) do
     current_item = find_item(assigns.name, assigns.all_menu_items)
     assigns = assign(assigns, :current_item, current_item)
 
@@ -199,16 +199,16 @@ defmodule PetalComponents.Menu do
       }
       class={menu_item_classes(@current_page, @name)}
     >
-      <.nav_menu_icon icon={@icon} />
+      <.menu_icon icon={@icon} />
       <div class="flex-1"><%= @label %></div>
     </.a>
     """
   end
 
-  def nav_menu_item(%{menu_items: _} = assigns) do
+  def menu_item(%{menu_items: _} = assigns) do
     ~H"""
     <div
-      x-data={"{ open: #{if nav_menu_item_active?(@name, @current_page, @menu_items), do: "true", else: "false"} }"}
+      x-data={"{ open: #{if menu_item_active?(@name, @current_page, @menu_items), do: "true", else: "false"} }"}
       phx-update="ignore"
       id={"dropdown_#{@label |> String.downcase() |> String.replace(" ", "_")}"}
     >
@@ -217,7 +217,7 @@ defmodule PetalComponents.Menu do
         class={menu_item_classes(@current_page, @name)}
         @click.prevent="open = !open"
       >
-        <.nav_menu_icon icon={@icon} />
+        <.menu_icon icon={@icon} />
         <div class="flex-1 text-left"><%= @label %></div>
 
         <div class="relative inline-block">
@@ -232,9 +232,9 @@ defmodule PetalComponents.Menu do
       <div
         class="mt-1 ml-3 space-y-1"
         x-show="open"
-        x-cloak={!nav_menu_item_active?(@name, @current_page, @menu_items)}
+        x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
       >
-        <.nav_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+        <.menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
       </div>
     </div>
     """
@@ -242,7 +242,7 @@ defmodule PetalComponents.Menu do
 
   attr :icon, :any, default: nil
 
-  def nav_menu_icon(assigns) do
+  def menu_icon(assigns) do
     ~H"""
     <.icon :if={is_atom(@icon)} outline name={@icon} class={menu_icon_classes()} />
 
@@ -261,10 +261,10 @@ defmodule PetalComponents.Menu do
   end
 
   # Check whether the current namge equals the current page or whether any of the menu items have the current page as their name. A menu_item may have sub-items, so we need to check recursively.
-  defp nav_menu_item_active?(name, current_page, menu_items) do
+  defp menu_item_active?(name, current_page, menu_items) do
     name == current_page ||
       Enum.any?(menu_items, fn menu_item ->
-        nav_menu_item_active?(menu_item[:name], current_page, menu_item[:menu_items] || [])
+        menu_item_active?(menu_item[:name], current_page, menu_item[:menu_items] || [])
       end)
   end
 
