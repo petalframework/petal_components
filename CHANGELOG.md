@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.0 - 2023-07-26 03:14:50
+
+- Updated accordion class name from "pc-accordion-item--last" to "pc-accordion-item--all-except-last"
+
 ### 1.3.0 - 2023-07-21 08:00:47
 
 - New: <.vertical_menu> component
