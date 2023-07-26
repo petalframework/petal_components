@@ -1006,7 +1006,7 @@
 .pc-accordion-item--first {
   @apply rounded-t-xl;
 }
-.pc-accordion-item--last {
+.pc-accordion-item--all-except-last {
   @apply border-b-0;
 }
 .pc-accordion-item__heading {
