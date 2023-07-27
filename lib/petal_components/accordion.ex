@@ -59,7 +59,7 @@ defmodule PetalComponents.Accordion do
                 build_class([
                   "pc-accordion-item accordion-button",
                   if(i == 0, do: "pc-accordion-item--first"),
-                  unless(i == length(@item) - 1, do: "pc-accordion-item--last"),
+                  unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
                   if(i == length(@item) - 1,
                     do:
                       "pc-accordion-item--last #{if @js_lib == "live_view_js", do: "pc-accordion-item--last--closed"}"
