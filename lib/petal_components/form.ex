@@ -7,6 +7,8 @@ defmodule PetalComponents.Form do
   @form_attrs ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
   pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept)
 
+  @checkbox_form_attrs ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
+
   @moduledoc """
   Everything related to forms: inputs, labels etc
 
@@ -595,7 +597,7 @@ defmodule PetalComponents.Form do
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :string, default: "", doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
+  attr(:rest, :global, include: @checkbox_form_attrs)
 
   def switch(assigns) do
     base_class = if field_has_errors?(assigns), do: "has-error", else: ""
