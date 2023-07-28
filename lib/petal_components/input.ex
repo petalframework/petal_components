@@ -26,7 +26,7 @@ defmodule PetalComponents.Input do
 
   attr :rest, :global,
     include:
-      ~w(autocomplete disabled form max maxlength min minlength list
+      ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
     pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
