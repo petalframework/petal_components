@@ -4,7 +4,7 @@ defmodule PetalComponents.Form do
   import PetalComponents.Helpers
   alias Phoenix.HTML.Form
 
-  @form_attrs ~w(autocomplete disabled form max maxlength min minlength list
+  @form_attrs ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
   pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept)
 
   @moduledoc """
