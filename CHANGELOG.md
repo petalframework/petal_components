@@ -1,4 +1,9 @@
 # Changelog
+### 1.4.1 - 2023-07-28 10:32:02
+
+- Added support for styling last accordion item
+- Added checked_value and unchecked_value to switch global rest
+
 ### 1.4.0 - 2023-07-26 03:14:50
 
 - Updated accordion class name from "pc-accordion-item--last" to "pc-accordion-item--all-except-last"
