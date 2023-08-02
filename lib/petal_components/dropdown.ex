@@ -35,15 +35,15 @@ defmodule PetalComponents.Dropdown do
   slot :inner_block, required: false
 
   @doc """
-    <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
-      <.dropdown_menu_item link_type="button">
-        <Heroicons.home class="w-5 h-5 text-gray-500" />
-        Button item with icon
-      </.dropdown_menu_item>
-      <.dropdown_menu_item link_type="a" to="/" label="a item" />
-      <.dropdown_menu_item link_type="live_patch" to="/" label="Live Patch item" />
-      <.dropdown_menu_item link_type="live_redirect" to="/" label="Live Redirect item" />
-    </.dropdown>
+      <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
+        <.dropdown_menu_item link_type="button">
+          <Heroicons.home class="w-5 h-5 text-gray-500" />
+          Button item with icon
+        </.dropdown_menu_item>
+        <.dropdown_menu_item link_type="a" to="/" label="a item" />
+        <.dropdown_menu_item link_type="live_patch" to="/" label="Live Patch item" />
+        <.dropdown_menu_item link_type="live_redirect" to="/" label="Live Redirect item" />
+      </.dropdown>
   """
   def dropdown(assigns) do
     assigns = assign_new(assigns, :options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
