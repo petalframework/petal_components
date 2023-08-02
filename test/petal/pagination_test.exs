@@ -1,5 +1,6 @@
 defmodule PetalComponents.PaginationTest do
   use ComponentCase
+
   import PetalComponents.Pagination
   import PetalComponents.PaginationInternal
 

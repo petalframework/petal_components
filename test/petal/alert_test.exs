@@ -1,5 +1,6 @@
 defmodule PetalComponents.AlertTest do
   use ComponentCase
+
   import PetalComponents.Alert
 
   test "it renders colors and icon correctly" do

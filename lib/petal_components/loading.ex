@@ -1,4 +1,8 @@
 defmodule PetalComponents.Loading do
+  @moduledoc """
+  Loading indicators help inform the user of the current status.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Helpers

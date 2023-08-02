@@ -1,4 +1,8 @@
 defmodule PetalComponents.Link do
+  @moduledoc """
+  Easily create links, live patches or live redirects.
+  """
+
   use Phoenix.Component
 
   attr :class, :string, default: "", doc: "CSS class for link"

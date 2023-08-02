@@ -1,5 +1,6 @@
 defmodule PetalComponents.FormTest do
   use ComponentCase
+
   import PetalComponents.Form
 
   test "text_input" do

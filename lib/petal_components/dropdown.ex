@@ -1,7 +1,12 @@
 defmodule PetalComponents.Dropdown do
+  @moduledoc """
+  A dropdown is a compact UI element that allows a user to select from different options.
+  """
+
   use Phoenix.Component
-  alias Phoenix.LiveView.JS
+
   alias PetalComponents.Link
+  alias Phoenix.LiveView.JS
 
   @transition_in_base "transition transform ease-out duration-100"
   @transition_in_start "transform opacity-0 scale-95"
@@ -41,9 +46,7 @@ defmodule PetalComponents.Dropdown do
     </.dropdown>
   """
   def dropdown(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
+    assigns = assign_new(assigns, :options_container_id, fn -> "dropdown_#{Ecto.UUID.generate()}" end)
 
     ~H"""
     <div
@@ -109,14 +112,11 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  defp trigger_button_classes(nil, []),
-    do: "pc-dropdown__trigger-button--no-label"
+  defp trigger_button_classes(nil, []), do: "pc-dropdown__trigger-button--no-label"
 
-  defp trigger_button_classes(_label, []),
-    do: "pc-dropdown__trigger-button--with-label"
+  defp trigger_button_classes(_label, []), do: "pc-dropdown__trigger-button--with-label"
 
-  defp trigger_button_classes(_label, _trigger_element),
-    do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
+  defp trigger_button_classes(_label, _trigger_element), do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
 
   defp js_attributes("container", "alpine_js", _options_container_id) do
     %{

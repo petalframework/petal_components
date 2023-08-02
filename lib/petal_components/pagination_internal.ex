@@ -1,6 +1,9 @@
 defmodule PetalComponents.PaginationInternal do
+  @moduledoc false
+
   @doc """
   get_items computes the pagination button information based on
+
   - total number of pages,
   - current page,
   - sibling count (pages left and right of current page)
@@ -15,8 +18,9 @@ defmodule PetalComponents.PaginationInternal do
   * The previous item has `:enabled?` false if page 1 is current
   * The next item has `:enabled?` false if the last page is current
 
-  please see the unit tests for examples
+  Please see the unit tests for examples
   """
+
   def get_pagination_items(total_pages, current_page, sibling_count, boundary_count) do
     total_pages = max(1, total_pages)
     current_page = max(1, min(current_page, total_pages))
@@ -25,30 +29,29 @@ defmodule PetalComponents.PaginationInternal do
 
     siblings_size = 1 + 2 * sibling_count
 
-    start_siblings =
-      max(1, min(current_page - sibling_count, total_pages - siblings_size - boundary_count + 1))
+    start_siblings = max(1, min(current_page - sibling_count, total_pages - siblings_size - boundary_count + 1))
 
-    end_siblings =
-      min(max(current_page + sibling_count, siblings_size + boundary_count), total_pages)
+    end_siblings = min(max(current_page + sibling_count, siblings_size + boundary_count), total_pages)
 
     boundary_start =
       if boundary_count > 0 do
-        1..min(boundary_count, start_siblings) |> Enum.to_list()
+        Enum.to_list(1..min(boundary_count, start_siblings))
       else
         [start_siblings]
       end
 
-    siblings = start_siblings..end_siblings |> Enum.to_list()
+    siblings = Enum.to_list(start_siblings..end_siblings)
 
     boundary_end =
       if boundary_count > 0 do
-        max(total_pages - boundary_count + 1, end_siblings)..total_pages |> Enum.to_list()
+        Enum.to_list(max(total_pages - boundary_count + 1, end_siblings)..total_pages)
       else
         [end_siblings]
       end
 
     pages =
-      Enum.concat([boundary_start, siblings, boundary_end])
+      [boundary_start, siblings, boundary_end]
+      |> Enum.concat()
       |> Enum.sort()
       |> Enum.dedup()
       |> Enum.to_list()
@@ -57,11 +60,13 @@ defmodule PetalComponents.PaginationInternal do
     last_page = List.last(pages)
 
     pages_next =
-      Enum.drop(pages, 1)
+      pages
+      |> Enum.drop(1)
       |> Enum.concat([List.last(pages) + 1])
       |> Enum.to_list()
 
-    Enum.zip(pages, pages_next)
+    pages
+    |> Enum.zip(pages_next)
     |> Enum.flat_map(fn t ->
       case t do
         {page, next} when next - page == 1 ->

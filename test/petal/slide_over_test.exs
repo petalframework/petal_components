@@ -1,8 +1,9 @@
 defmodule PetalComponents.SlideOverTest do
   use ComponentCase
-  import PetalComponents.SlideOver
+
   import PetalComponents.Button
   import PetalComponents.Form
+  import PetalComponents.SlideOver
 
   test "slide_over" do
     assigns = %{}

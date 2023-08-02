@@ -1,5 +1,6 @@
 defmodule PetalComponents.AvatarTest do
   use ComponentCase
+
   import PetalComponents.Avatar
 
   test "it renders the avatar correctly" do

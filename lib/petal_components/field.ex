@@ -1,4 +1,5 @@
 defmodule PetalComponents.Field do
+  @moduledoc false
   use Phoenix.Component
 
   @doc """
@@ -17,26 +18,19 @@ defmodule PetalComponents.Field do
     default: nil,
     doc: "the id of the input. If not passed, it will be generated automatically from the field"
 
-  attr :name, :any,
-    doc: "the name of the input. If not passed, it will be generated automatically from the field"
+  attr :name, :any, doc: "the name of the input. If not passed, it will be generated automatically from the field"
 
-  attr :label, :string,
-    doc:
-      "the label for the input. If not passed, it will be generated automatically from the field"
+  attr :label, :string, doc: "the label for the input. If not passed, it will be generated automatically from the field"
 
-  attr :value, :any,
-    doc:
-      "the value of the input. If not passed, it will be generated automatically from the field"
+  attr :value, :any, doc: "the value of the input. If not passed, it will be generated automatically from the field"
 
   attr :type, :string,
     default: "text",
-    values:
-      ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
+    values: ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
                range radio-group search select switch tel text textarea time url week),
     doc: "the type of input"
 
-  attr :field, Phoenix.HTML.FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :errors, :list,
     default: [],
@@ -56,8 +50,7 @@ defmodule PetalComponents.Field do
 
   attr :empty_message, :string,
     default: nil,
-    doc:
-      "the message to display when there are no options available, for checkbox-group or radio-group"
+    doc: "the message to display when there are no options available, for checkbox-group or radio-group"
 
   attr :rows, :string, default: "4", doc: "rows for textarea"
 
@@ -92,8 +85,7 @@ defmodule PetalComponents.Field do
   end
 
   def field(%{type: "checkbox", value: value} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+    assigns = assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
@@ -163,8 +155,7 @@ defmodule PetalComponents.Field do
   end
 
   def field(%{type: "switch", value: value} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+    assigns = assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
@@ -195,8 +186,7 @@ defmodule PetalComponents.Field do
 
   def field(%{type: "checkbox-group"} = assigns) do
     assigns =
-      assigns
-      |> assign_new(:checked, fn ->
+      assign_new(assigns, :checked, fn ->
         values =
           case assigns.value do
             value when is_binary(value) -> [value]

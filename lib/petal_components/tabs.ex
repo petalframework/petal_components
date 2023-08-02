@@ -1,9 +1,13 @@
 defmodule PetalComponents.Tabs do
+  @moduledoc """
+  Tabs are used to quickly navigate between views within the same context.
+  """
+
   use Phoenix.Component
 
-  alias PetalComponents.Link
-
   import PetalComponents.Helpers
+
+  alias PetalComponents.Link
 
   attr :underline, :boolean, default: false, doc: "underlines your tabs"
   attr :class, :string, default: "", doc: "CSS class"

@@ -1,5 +1,6 @@
 defmodule PetalComponents.CardTest do
   use ComponentCase
+
   import PetalComponents.Card
 
   test "Basic card" do

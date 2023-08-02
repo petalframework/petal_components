@@ -1,8 +1,9 @@
 defmodule PetalComponents.ModalTest do
   use ComponentCase
-  import PetalComponents.Modal
+
   import PetalComponents.Button
   import PetalComponents.Form
+  import PetalComponents.Modal
 
   test "modal" do
     assigns = %{}

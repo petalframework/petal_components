@@ -1,5 +1,6 @@
 defmodule PetalComponents.AccordionTest do
   use ComponentCase
+
   import PetalComponents.Accordion
 
   test "accordion" do

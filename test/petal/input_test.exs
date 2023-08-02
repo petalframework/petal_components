@@ -1,5 +1,6 @@
 defmodule PetalComponents.InputTest do
   use ComponentCase
+
   import PetalComponents.Input
 
   test "field standard inputs" do

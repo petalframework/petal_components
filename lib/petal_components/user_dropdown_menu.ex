@@ -1,11 +1,15 @@
 defmodule PetalComponents.UserDropdownMenu do
+  @moduledoc """
+  A dropdown is a compact UI element that allows a user to select from different options.
+  """
+
   use Phoenix.Component
+
   import PetalComponents.Avatar
   import PetalComponents.Dropdown
   import PetalComponents.Icon
 
-  attr :user_menu_items, :list,
-    doc: "list of maps with keys :path, :icon (atom), :label, :method (atom - optional)"
+  attr :user_menu_items, :list, doc: "list of maps with keys :path, :icon (atom), :label, :method (atom - optional)"
 
   attr :current_user_name, :string, doc: "the current signed in user's name"
   attr :avatar_src, :string, default: nil, doc: "the current signed in user's avatar image src"

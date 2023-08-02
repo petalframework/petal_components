@@ -1,4 +1,8 @@
 defmodule PetalComponents.Card do
+  @moduledoc """
+  Cards provide a great way to present content and actions about a particular topic. Cards are full-width by default and by applying a grid class on the parent div, you can simply specify the number of columns you want and the cards will adjust perfectly.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Helpers

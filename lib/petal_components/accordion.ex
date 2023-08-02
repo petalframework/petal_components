@@ -1,6 +1,12 @@
 defmodule PetalComponents.Accordion do
+  @moduledoc """
+  An accordion is a user interface element that expands to expose hidden information. It's great for condensing information on the page and allowing the user to hide or reveal content resulting in a cleaner design aesthetic.
+  """
+
   use Phoenix.Component
+
   import PetalComponents.Helpers
+
   alias Phoenix.LiveView.JS
 
   attr :container_id, :string
@@ -19,9 +25,7 @@ defmodule PetalComponents.Accordion do
   end
 
   def accordion(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
+    assigns = assign_new(assigns, :container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do

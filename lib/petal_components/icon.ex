@@ -1,4 +1,8 @@
 defmodule PetalComponents.Icon do
+  @moduledoc """
+  A libary of 230 beatiful hand-crafted SVG icons.
+  """
+
   use Phoenix.Component
 
   attr :rest, :global,

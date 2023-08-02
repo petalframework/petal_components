@@ -1,7 +1,13 @@
 defmodule PetalComponents.Menu do
+  @moduledoc """
+  A stylish, responsive layout system for your web app.
+  Choose from 3 different layouts, each with a light and dark version.
+  """
+
   use Phoenix.Component, global_prefixes: ~w(x-)
-  import PetalComponents.Link
+
   import PetalComponents.Icon
+  import PetalComponents.Link
 
   @doc """
   ## Menu items structure
@@ -268,10 +274,9 @@ defmodule PetalComponents.Menu do
       end)
   end
 
-  defp menu_icon_classes(),
-    do: "w-5 h-5 flex-shrink-0"
+  defp menu_icon_classes, do: "w-5 h-5 flex-shrink-0"
 
-  defp menu_item_base(),
+  defp menu_item_base,
     do:
       "flex items-center text-sm font-semibold leading-none px-3 py-2 gap-3 transition duration-200 w-full rounded-md group"
 

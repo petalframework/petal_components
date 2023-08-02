@@ -1,9 +1,9 @@
 defmodule PetalComponents.Input do
-  use Phoenix.Component
-
   @moduledoc """
   Renders pure inputs (no label or errors).
   """
+
+  use Phoenix.Component
 
   attr :id, :any, default: nil
   attr :name, :any
@@ -15,8 +15,7 @@ defmodule PetalComponents.Input do
     values: ~w(checkbox color date datetime-local email file hidden month number password
                range radio search select switch tel text textarea time url week)
 
-  attr :field, Phoenix.HTML.FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+  attr :field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
@@ -57,8 +56,7 @@ defmodule PetalComponents.Input do
   end
 
   def input(%{type: "switch", value: value} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+    assigns = assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <label class="pc-switch">

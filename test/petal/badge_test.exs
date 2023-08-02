@@ -1,5 +1,6 @@
 defmodule PetalComponents.BadgeTest do
   use ComponentCase
+
   import PetalComponents.Badge
 
   test "it renders colors and label correctly" do

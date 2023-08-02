@@ -1,4 +1,5 @@
 defmodule ComponentCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
 
   setup do
@@ -10,7 +11,6 @@ defmodule ComponentCase do
     quote do
       import Phoenix.Component
       import Phoenix.LiveViewTest
-
       import Plug.HTML, only: [html_escape: 1]
 
       defp count_substring(string, substring) do

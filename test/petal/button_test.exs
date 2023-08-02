@@ -1,5 +1,6 @@
 defmodule PetalComponents.ButtonTest do
   use ComponentCase
+
   import PetalComponents.Button
 
   test "button" do

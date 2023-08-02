@@ -1,5 +1,6 @@
 defmodule PetalComponents.FieldTest do
   use ComponentCase
+
   import PetalComponents.Field
 
   test "field as text" do

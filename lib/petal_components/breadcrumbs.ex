@@ -1,5 +1,10 @@
 defmodule PetalComponents.Breadcrumbs do
+  @moduledoc """
+  Breadrumbs allow a user to easily navigate their way back to each page they have navigated from to get to the current page.
+  """
+
   use Phoenix.Component
+
   alias PetalComponents.Link
 
   attr :separator, :string, default: "slash", values: ["slash", "chevron"]
@@ -52,6 +57,5 @@ defmodule PetalComponents.Breadcrumbs do
     """
   end
 
-  defp get_breadcrumb_classes(user_classes),
-    do: "pc-breadcrumb #{user_classes}"
+  defp get_breadcrumb_classes(user_classes), do: "pc-breadcrumb #{user_classes}"
 end

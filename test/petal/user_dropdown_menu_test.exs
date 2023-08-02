@@ -1,5 +1,6 @@
 defmodule PetalComponents.UserDropdownMenuTest do
   use ComponentCase
+
   import PetalComponents.UserDropdownMenu
 
   test "renders correctly" do

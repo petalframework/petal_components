@@ -1,5 +1,6 @@
 defmodule PetalComponents.BreadcrumbsTest do
   use ComponentCase
+
   import PetalComponents.Breadcrumbs
 
   test "breadcrumbs" do

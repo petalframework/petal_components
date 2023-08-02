@@ -1,4 +1,8 @@
 defmodule PetalComponents.Container do
+  @moduledoc """
+  Containers ensure that your content does not exceed the set max-width horizontally.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Helpers

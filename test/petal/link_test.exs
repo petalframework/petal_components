@@ -1,5 +1,6 @@
 defmodule PetalComponents.ATest do
   use ComponentCase
+
   alias PetalComponents.Link
 
   test "a link with label" do

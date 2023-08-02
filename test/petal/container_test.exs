@@ -1,5 +1,6 @@
 defmodule PetalComponents.ContainerTest do
   use ComponentCase
+
   import PetalComponents.Container
 
   test "full" do

@@ -1,4 +1,8 @@
 defmodule PetalComponents.SlideOver do
+  @moduledoc """
+  A Slide Over is a UI element that presents a panel that slides in above the main view, leaving the underlying content partially visible. It is normally used when the user needs additional content/information.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Helpers
@@ -97,7 +101,8 @@ defmodule PetalComponents.SlideOver do
       end
 
     js =
-      JS.remove_class("overflow-hidden", to: "body")
+      "overflow-hidden"
+      |> JS.remove_class(to: "body")
       |> JS.hide(
         transition: {
           "ease-in duration-200",

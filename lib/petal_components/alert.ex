@@ -1,5 +1,10 @@
 defmodule PetalComponents.Alert do
+  @moduledoc """
+  Alerts are elements that provide a subtle way to bring important information to the users attention.
+  """
+
   use Phoenix.Component
+
   import PetalComponents.Helpers
 
   attr :color, :string,
@@ -19,9 +24,7 @@ defmodule PetalComponents.Alert do
   slot :inner_block
 
   def alert(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, alert_classes(assigns))
+    assigns = assign(assigns, :classes, alert_classes(assigns))
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
@@ -74,29 +77,21 @@ defmodule PetalComponents.Alert do
     build_class([base_classes, color_css, custom_classes])
   end
 
-  defp get_color_classes("info"),
-    do: "pc-alert--info"
+  defp get_color_classes("info"), do: "pc-alert--info"
 
-  defp get_color_classes("success"),
-    do: "pc-alert--success"
+  defp get_color_classes("success"), do: "pc-alert--success"
 
-  defp get_color_classes("warning"),
-    do: "pc-alert--warning"
+  defp get_color_classes("warning"), do: "pc-alert--warning"
 
-  defp get_color_classes("danger"),
-    do: "pc-alert--danger"
+  defp get_color_classes("danger"), do: "pc-alert--danger"
 
-  defp get_dismiss_icon_classes("info"),
-    do: "pc-alert__dismiss-button--info"
+  defp get_dismiss_icon_classes("info"), do: "pc-alert__dismiss-button--info"
 
-  defp get_dismiss_icon_classes("success"),
-    do: "pc-alert__dismiss-button--success"
+  defp get_dismiss_icon_classes("success"), do: "pc-alert__dismiss-button--success"
 
-  defp get_dismiss_icon_classes("warning"),
-    do: "pc-alert__dismiss-button--warning"
+  defp get_dismiss_icon_classes("warning"), do: "pc-alert__dismiss-button--warning"
 
-  defp get_dismiss_icon_classes("danger"),
-    do: "pc-alert__dismiss-button--danger"
+  defp get_dismiss_icon_classes("danger"), do: "pc-alert__dismiss-button--danger"
 
   defp get_icon(%{color: "info"} = assigns) do
     ~H"""

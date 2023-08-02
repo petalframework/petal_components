@@ -1,5 +1,6 @@
 defmodule PetalComponents.TabsTest do
   use ComponentCase
+
   import PetalComponents.Tabs
 
   test "Test tabs active" do

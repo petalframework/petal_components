@@ -13,7 +13,8 @@ defmodule PetalComponents.Helpers do
   def build_class([], _joiner), do: ""
 
   def build_class(list, joiner) when is_list(list) do
-    join_non_empty_list(list, joiner, [])
+    list
+    |> join_non_empty_list(joiner, [])
     |> :lists.reverse()
     |> IO.iodata_to_binary()
   end

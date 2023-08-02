@@ -1,10 +1,13 @@
 defmodule PetalComponents.Pagination do
+  @moduledoc """
+  Pagination is the method of splitting up content into discrete pages. It specifies the total number of pages and inidicates to a user the current page within the context of total pages.
+  """
   use Phoenix.Component
-
-  alias PetalComponents.Link
 
   import PetalComponents.Helpers
   import PetalComponents.PaginationInternal
+
+  alias PetalComponents.Link
 
   attr :path, :string, default: "/:page", doc: "page path"
   attr :class, :string, default: "", doc: "Parent div CSS class"
@@ -77,18 +80,18 @@ defmodule PetalComponents.Pagination do
               <%= if item.current? do %>
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
-              <%= if @page do %>
-                <%= render_slot(@page, item.number) %>
-              <% else %>
-                <Link.a
-                  link_type={@link_type}
-                  to={get_path(@path, item.number, @current_page)}
-                  class={get_box_class(item)}
-                >
-                  <%= item.number %>
-                </Link.a>
+                <%= if @page do %>
+                  <%= render_slot(@page, item.number) %>
+                <% else %>
+                  <Link.a
+                    link_type={@link_type}
+                    to={get_path(@path, item.number, @current_page)}
+                    class={get_box_class(item)}
+                  >
+                    <%= item.number %>
+                  </Link.a>
+                <% end %>
               <% end %>
-            <% end %>
             </li>
           <% end %>
 

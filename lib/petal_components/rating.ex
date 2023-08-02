@@ -1,4 +1,7 @@
 defmodule PetalComponents.Rating do
+  @moduledoc """
+  A read-only star rating.
+  """
   use Phoenix.Component
 
   attr :rating, :any, default: 0, doc: "The rating to display (integer or float)"
@@ -22,9 +25,7 @@ defmodule PetalComponents.Rating do
   attr :label_class, :string, default: nil, doc: "Any additional CSS classes for the rating label"
 
   def rating(assigns) do
-    assigns =
-      assigns
-      |> assign(:rating_as_float, to_float(assigns.rating))
+    assigns = assign(assigns, :rating_as_float, to_float(assigns.rating))
 
     ~H"""
     <div class={["pc-rating__wrapper", @class]}>

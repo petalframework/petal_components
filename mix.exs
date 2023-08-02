@@ -44,16 +44,17 @@ defmodule PetalComponents.MixProject do
     [
       {:phoenix, "~> 1.6"},
       {:phoenix_live_view, "~> 0.19"},
+      {:heroicons, "~> 0.5.3"},
       {:jason, "~> 1.0", only: [:dev, :test]},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:heroicons, "~> 0.5.3"}
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:styler, "~> 0.8", only: [:dev, :test], runtime: false}
     ]
   end
 
-  defp description() do
+  defp description do
     """
     Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
     """
@@ -68,7 +69,7 @@ defmodule PetalComponents.MixProject do
     ]
   end
 
-  defp docs() do
+  defp docs do
     [
       main: "readme",
       logo: "logo.png",

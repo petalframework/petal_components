@@ -33,5 +33,5 @@ export_locals_without_parens = [
   locals_without_parens: export_locals_without_parens,
   export: [locals_without_parens: export_locals_without_parens],
   subdirectories: ["priv/*/migrations"],
-  plugins: [Phoenix.LiveView.HTMLFormatter]
+  plugins: [Phoenix.LiveView.HTMLFormatter, Styler]
 ]

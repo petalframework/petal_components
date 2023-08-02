@@ -1,5 +1,10 @@
 defmodule PetalComponents.Badge do
+  @moduledoc """
+  Badges are UI elements that are most often used to represent status information, an input or attribute.
+  """
+
   use Phoenix.Component
+
   import PetalComponents.Helpers
 
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]

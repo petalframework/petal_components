@@ -1,5 +1,6 @@
 defmodule PetalComponents.MenuTest do
   use ComponentCase
+
   import PetalComponents.Menu
 
   describe "vertical_menu/1" do

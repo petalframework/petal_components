@@ -1,4 +1,8 @@
 defmodule PetalComponents.Table do
+  @moduledoc """
+  Tables are a great way to clearly display a collections of data grouped into columns and rows.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Avatar

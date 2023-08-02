@@ -1,5 +1,6 @@
 defmodule PetalComponents.TableTest do
   use ComponentCase
+
   import PetalComponents.Table
 
   test "Basic table" do

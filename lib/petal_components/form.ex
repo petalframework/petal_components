@@ -1,19 +1,20 @@
 defmodule PetalComponents.Form do
+  @moduledoc """
+  Everything related to forms: inputs, labels etc
+
+  Deprecated in favor of field.ex and input.ex, which use the new `%Phoenix.HTML.FormField{}` struct.
+  """
+
   use Phoenix.Component
 
   import PetalComponents.Helpers
+
   alias Phoenix.HTML.Form
 
   @form_attrs ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
   pattern placeholder readonly required size step value name multiple prompt selected default year month day hour minute second builder options layout cols rows wrap checked accept)
 
   @checkbox_form_attrs ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
-
-  @moduledoc """
-  Everything related to forms: inputs, labels etc
-
-  Deprecated in favor of field.ex and input.ex, which use the new `%Phoenix.HTML.FormField{}` struct.
-  """
 
   attr :form, :any, default: nil, doc: ""
   attr :field, :atom, default: nil, doc: ""
@@ -23,9 +24,7 @@ defmodule PetalComponents.Form do
   attr :rest, :global, include: ~w(for)
 
   def form_label(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, label_classes(assigns))
+    assigns = assign(assigns, :classes, label_classes(assigns))
 
     ~H"""
     <%= if @form && @field do %>
@@ -89,8 +88,7 @@ defmodule PetalComponents.Form do
 
   def form_field(assigns) do
     assigns =
-      assigns
-      |> assign_new(:label, fn ->
+      assign_new(assigns, :label, fn ->
         if assigns[:field] do
           Form.humanize(assigns[:field])
         else
@@ -525,8 +523,7 @@ defmodule PetalComponents.Form do
   attr :label, :string, default: nil, doc: "labels your field"
   attr :class, :string, default: "", doc: "extra classes for the text input"
 
-  attr :rest, :global,
-    include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
+  attr :rest, :global, include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
 
   def checkbox(assigns) do
     assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
@@ -646,9 +643,7 @@ defmodule PetalComponents.Form do
   attr :rest, :global, include: @form_attrs
 
   def radio_group(assigns) do
-    assigns =
-      assigns
-      |> assign_defaults(radio_classes(field_has_errors?(assigns)))
+    assigns = assign_defaults(assigns, radio_classes(field_has_errors?(assigns)))
 
     ~H"""
     <div class={radio_group_layout_classes(%{layout: @layout})}>
@@ -683,9 +678,7 @@ defmodule PetalComponents.Form do
   attr :class, :string, default: "", doc: "extra classes for the text input"
 
   def form_field_error(assigns) do
-    assigns =
-      assigns
-      |> assign(:translated_errors, generated_translated_errors(assigns.form, assigns.field))
+    assigns = assign(assigns, :translated_errors, generated_translated_errors(assigns.form, assigns.field))
 
     ~H"""
     <%= if field_has_errors?(assigns) do %>
@@ -719,7 +712,8 @@ defmodule PetalComponents.Form do
   defp generated_translated_errors(form, field) do
     translate_error = translator_from_config() || (&translate_error/1)
 
-    Keyword.get_values(form.errors || [], field)
+    (form.errors || [])
+    |> Keyword.get_values(field)
     |> Enum.map(fn error ->
       translate_error.(error)
     end)

@@ -1,5 +1,6 @@
 defmodule PetalComponents.LoadingTest do
   use ComponentCase
+
   import PetalComponents.Loading
 
   test "spinner" do

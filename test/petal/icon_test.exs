@@ -1,5 +1,6 @@
 defmodule PetalComponents.IconTest do
   use ComponentCase
+
   import PetalComponents.Icon
 
   test "it renders a dynamic Heroicon" do

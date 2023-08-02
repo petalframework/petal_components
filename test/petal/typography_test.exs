@@ -1,5 +1,6 @@
 defmodule PetalComponents.TypographyTest do
   use ComponentCase
+
   import PetalComponents.Typography
 
   test ".h1" do

@@ -1,5 +1,10 @@
 defmodule PetalComponents.Avatar do
+  @moduledoc """
+  Avatars enable you to represent a users identity on screen.
+  """
+
   use Phoenix.Component
+
   import PetalComponents.Helpers
 
   attr :src, :string, default: nil, doc: "hosted avatar URL"
@@ -66,9 +71,7 @@ defmodule PetalComponents.Avatar do
   attr :rest, :global
 
   def avatar_group(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, avatar_group_classes(assigns))
+    assigns = assign(assigns, :classes, avatar_group_classes(assigns))
 
     ~H"""
     <div {@rest} class={@classes}>
@@ -133,7 +136,8 @@ defmodule PetalComponents.Avatar do
     word_array = String.split(name)
 
     if length(word_array) == 1 do
-      List.first(word_array)
+      word_array
+      |> List.first()
       |> String.slice(0..1)
       |> String.upcase()
     else

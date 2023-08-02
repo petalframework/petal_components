@@ -1,4 +1,8 @@
 defmodule PetalComponents.Progress do
+  @moduledoc """
+  Using progress is an important method of communicating to your user how much progress they have made and how much they have left. It is a great way to calm your users through any type of potentially lengthy process.
+  """
+
   use Phoenix.Component
 
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]

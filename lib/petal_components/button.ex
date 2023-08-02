@@ -1,11 +1,16 @@
 defmodule PetalComponents.Button do
+  @moduledoc """
+  Buttons empower you to create interactive elements for a user.
+  """
+
   use Phoenix.Component
 
-  alias PetalComponents.Loading
-  alias PetalComponents.Link
-  alias PetalComponents.Icon
-
   import PetalComponents.Helpers
+
+  alias PetalComponents.Icon
+  alias PetalComponents.Link
+  alias PetalComponents.Loading
+
   require Logger
 
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
@@ -44,15 +49,12 @@ defmodule PetalComponents.Button do
   attr :class, :string, default: "", doc: "CSS class"
   attr :label, :string, default: nil, doc: "labels your button"
 
-  attr :rest, :global,
-    include: ~w(method download hreflang ping referrerpolicy rel target type value name form)
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type value name form)
 
   slot :inner_block, required: false
 
   def button(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, button_classes(assigns))
+    assigns = assign(assigns, :classes, button_classes(assigns))
 
     ~H"""
     <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
@@ -69,31 +71,27 @@ defmodule PetalComponents.Button do
     """
   end
 
-  attr(:size, :string, default: "sm", values: ["xs", "sm", "md", "lg", "xl"])
+  attr :size, :string, default: "sm", values: ["xs", "sm", "md", "lg", "xl"]
 
-  attr(:color, :string,
+  attr :color, :string,
     default: "gray",
     values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  )
 
-  attr(:to, :string, default: nil, doc: "link path")
-  attr(:loading, :boolean, default: false, doc: "indicates a loading state")
-  attr(:disabled, :boolean, default: false, doc: "indicates a disabled state")
-  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
+  attr :to, :string, default: nil, doc: "link path"
+  attr :loading, :boolean, default: false, doc: "indicates a loading state"
+  attr :disabled, :boolean, default: false, doc: "indicates a disabled state"
+  attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
 
-  attr(:link_type, :string,
+  attr :link_type, :string,
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
-  )
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:tooltip, :string, default: nil, doc: "tooltip text")
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :tooltip, :string, default: nil, doc: "tooltip text"
 
-  attr(:rest, :global,
-    include: ~w(method download hreflang ping referrerpolicy rel target type value name form)
-  )
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type value name form)
 
-  slot(:inner_block, required: false)
+  slot :inner_block, required: false
 
   def icon_button(assigns) do
     ~H"""
@@ -150,7 +148,7 @@ defmodule PetalComponents.Button do
 
     icon_css = if opts[:with_icon], do: "pc-button--with-icon", else: ""
 
-    [
+    build_class([
       color_css,
       size_css,
       loading_css,
@@ -158,8 +156,7 @@ defmodule PetalComponents.Button do
       icon_css,
       "pc-button",
       opts.user_added_classes
-    ]
-    |> build_class()
+    ])
   end
 
   defp get_color_classes(%{color: "primary", variant: variant}) do
@@ -333,8 +330,7 @@ defmodule PetalComponents.Button do
 
   defp get_icon_button_color_classes("primary"), do: "pc-icon-button--primary"
 
-  defp get_icon_button_color_classes("secondary"),
-    do: "pc-icon-button--secondary"
+  defp get_icon_button_color_classes("secondary"), do: "pc-icon-button--secondary"
 
   defp get_icon_button_color_classes("gray"), do: "pc-icon-button--gray"
   defp get_icon_button_color_classes("info"), do: "pc-icon-button--primary"
@@ -342,26 +338,19 @@ defmodule PetalComponents.Button do
   defp get_icon_button_color_classes("warning"), do: "pc-icon-button--warning"
   defp get_icon_button_color_classes("danger"), do: "pc-icon-button--danger"
 
-  defp get_icon_button_background_color_classes("primary"),
-    do: "pc-icon-button-bg--primary"
+  defp get_icon_button_background_color_classes("primary"), do: "pc-icon-button-bg--primary"
 
-  defp get_icon_button_background_color_classes("secondary"),
-    do: "pc-icon-button-bg--secondary"
+  defp get_icon_button_background_color_classes("secondary"), do: "pc-icon-button-bg--secondary"
 
-  defp get_icon_button_background_color_classes("gray"),
-    do: "pc-icon-button-bg--gray"
+  defp get_icon_button_background_color_classes("gray"), do: "pc-icon-button-bg--gray"
 
-  defp get_icon_button_background_color_classes("info"),
-    do: "pc-icon-button-bg--info"
+  defp get_icon_button_background_color_classes("info"), do: "pc-icon-button-bg--info"
 
-  defp get_icon_button_background_color_classes("success"),
-    do: "pc-icon-button-bg--success"
+  defp get_icon_button_background_color_classes("success"), do: "pc-icon-button-bg--success"
 
-  defp get_icon_button_background_color_classes("warning"),
-    do: "pc-icon-button-bg--warning"
+  defp get_icon_button_background_color_classes("warning"), do: "pc-icon-button-bg--warning"
 
-  defp get_icon_button_background_color_classes("danger"),
-    do: "pc-icon-button-bg--danger"
+  defp get_icon_button_background_color_classes("danger"), do: "pc-icon-button-bg--danger"
 
   defp get_disabled_classes(true), do: "pc-button--disabled"
   defp get_disabled_classes(false), do: ""

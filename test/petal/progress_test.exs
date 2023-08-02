@@ -1,5 +1,6 @@
 defmodule PetalComponents.ProgressTest do
   use ComponentCase
+
   import PetalComponents.Progress
 
   test "it renders the progress bar correctly" do

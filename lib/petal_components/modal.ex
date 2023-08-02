@@ -1,9 +1,13 @@
 defmodule PetalComponents.Modal do
+  @moduledoc """
+  Modals sit on top of an applications main window and require a live view to handle their on/off state. We recommend using a new route to map to the on/off state.
+  """
+
   use Phoenix.Component
 
-  alias Phoenix.LiveView.JS
-
   import PetalComponents.Helpers
+
+  alias Phoenix.LiveView.JS
 
   attr :id, :string, default: "modal", doc: "modal id"
   attr :hide, :boolean, default: false, doc: "modal is hidden"
@@ -23,9 +27,7 @@ defmodule PetalComponents.Modal do
   slot :inner_block, required: false
 
   def modal(assigns) do
-    assigns =
-      assigns
-      |> assign(:classes, get_classes(assigns))
+    assigns = assign(assigns, :classes, get_classes(assigns))
 
     ~H"""
     <div
@@ -86,8 +88,7 @@ defmodule PetalComponents.Modal do
         to: "##{id} .pc-modal__box",
         time: 200,
         transition:
-          {"transition-all transform ease-in duration-200",
-           "opacity-100 translate-y-0 sm:scale-100",
+          {"transition-all transform ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
            "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
       )
       |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
@@ -112,8 +113,7 @@ defmodule PetalComponents.Modal do
     |> JS.show(
       to: "##{id} .pc-modal__box",
       transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+        {"transition-all transform ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
     |> JS.add_class("overflow-hidden", to: "body")

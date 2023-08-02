@@ -1,11 +1,11 @@
 defmodule PetalComponents.Typography do
-  use Phoenix.Component
-
-  import PetalComponents.Helpers
-
   @moduledoc """
   Everything related to text. Headings, paragraphs and links
   """
+
+  use Phoenix.Component
+
+  import PetalComponents.Helpers
 
   # <.h1>Heading</.h1>
   # <.h1 label="Heading" />

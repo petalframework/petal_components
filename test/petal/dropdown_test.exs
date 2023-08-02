@@ -1,5 +1,6 @@
 defmodule PetalComponents.DropdownTest do
   use ComponentCase
+
   import PetalComponents.Dropdown
 
   test "dropdown" do
