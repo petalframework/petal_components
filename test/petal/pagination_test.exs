@@ -481,4 +481,33 @@ defmodule PetalComponents.PaginationTest do
     assert html =~ "/page/2"
     assert html =~ "/page/3"
   end
+
+  test "should work with custom slots" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination class="mb-5" current_page={1} total_pages={3}>
+        <:prev>
+          <span phx-click="prev-page" class="pc-pagination__item__previous">
+            <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
+          </span>
+        </:prev>
+        <:page :let={page}>
+          <span phx-click="to-page" phx-value-page={page}>
+            <%= page %>
+          </span>
+        </:page>
+        <:next>
+          <span phx-click="next-page" class="pc-pagination__item__next">
+            <Heroicons.chevron_right solid class="pc-pc-pagination__item__next__chevron" />
+          </span>
+        </:next>
+      </.pagination>
+      """)
+
+    assert html =~ "to-page"
+    assert html =~ "phx-value-page=\"2\""
+    assert html =~ "phx-value-page=\"3\""
+  end
 end

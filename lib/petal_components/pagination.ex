@@ -22,9 +22,9 @@ defmodule PetalComponents.Pagination do
   attr :boundary_count, :integer, default: 1, doc: "sets a boundary count"
   attr :rest, :global
 
-  slot :prev, required: false
-  slot :page, required: false
-  slot :next, required: false
+  slot :prev, required: false, default: nil
+  slot :page, required: false, default: nil
+  slot :next, required: false, default: nil
 
   @doc """
   In the `path` param you can specify :page as the place your page number will appear.
@@ -61,7 +61,7 @@ defmodule PetalComponents.Pagination do
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and item.enabled? do %>
             <div>
-              <%= if @prev do %>
+              <%= if @prev != [] do %>
                 <%= render_slot(@prev, item.number) %>
               <% else %>
                 <Link.a
@@ -80,7 +80,7 @@ defmodule PetalComponents.Pagination do
               <%= if item.current? do %>
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
-                <%= if @page do %>
+                <%= if @page != [] do %>
                   <%= render_slot(@page, item.number) %>
                 <% else %>
                   <Link.a
@@ -105,7 +105,7 @@ defmodule PetalComponents.Pagination do
 
           <%= if item.type == "next" and item.enabled? do %>
             <div>
-              <%= if @next do %>
+              <%= if @next != [] do %>
                 <%= render_slot(@next, item.number) %>
               <% else %>
                 <Link.a
