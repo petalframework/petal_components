@@ -37,7 +37,7 @@ defmodule PetalComponents.Pagination do
 
   <.pagination class="mb-5" current_page={@page} total_pages={@total_pages}>
     <:prev>
-      <span phx-click="prev-page" class="pc-pagination__item__previous">
+      <span phx-click="prev-page">
         <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
       </span>
     </:prev>
@@ -47,8 +47,8 @@ defmodule PetalComponents.Pagination do
       </span>
     </:page>
     <:next>
-      <span phx-click="next-page" class="pc-pagination__item__next">
-        <Heroicons.chevron_right solid class="pc-pc-pagination__item__next__chevron" />
+      <span phx-click="next-page">
+        <Heroicons.chevron_right solid class="pc-pagination__item__next__chevron" />
       </span>
     </:next>
   </.pagination>
@@ -62,7 +62,9 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "prev" and item.enabled? do %>
             <div>
               <%= if @prev != [] do %>
-                <%= render_slot(@prev, item.number) %>
+                <span class="pc-pagination__item__previous">
+                  <%= render_slot(@prev, item.number) %>
+                </span>
               <% else %>
                 <Link.a
                   link_type={@link_type}
@@ -81,7 +83,9 @@ defmodule PetalComponents.Pagination do
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
                 <%= if @page != [] do %>
-                  <%= render_slot(@page, item.number) %>
+                  <span class={get_box_class(item)}>
+                    <%= render_slot(@page, item.number) %>
+                  </span>
                 <% else %>
                   <Link.a
                     link_type={@link_type}
@@ -106,7 +110,9 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "next" and item.enabled? do %>
             <div>
               <%= if @next != [] do %>
-                <%= render_slot(@next, item.number) %>
+                <span class="pc-pagination__item__next">
+                  <%= render_slot(@next, item.number) %>
+                </span>
               <% else %>
                 <Link.a
                   link_type={@link_type}
