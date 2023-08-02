@@ -2,23 +2,21 @@ defmodule PetalComponents.Alert do
   use Phoenix.Component
   import PetalComponents.Helpers
 
-  attr(:color, :string,
+  attr :color, :string,
     default: "info",
     values: ["info", "success", "warning", "danger"]
-  )
 
-  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :string, default: "", doc: "CSS class for parent div")
-  attr(:heading, :string, default: nil, doc: "label your heading")
-  attr(:label, :string, default: nil, doc: "label your alert")
-  attr(:rest, :global)
+  attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
+  attr :class, :string, default: "", doc: "CSS class for parent div"
+  attr :heading, :string, default: nil, doc: "label your heading"
+  attr :label, :string, default: nil, doc: "label your alert"
+  attr :rest, :global
 
-  attr(:close_button_properties, :list,
+  attr :close_button_properties, :list,
     default: nil,
     doc: "a list of properties passed to the close button"
-  )
 
-  slot(:inner_block)
+  slot :inner_block
 
   def alert(assigns) do
     assigns =

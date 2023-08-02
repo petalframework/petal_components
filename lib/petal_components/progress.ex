@@ -1,18 +1,17 @@
 defmodule PetalComponents.Progress do
   use Phoenix.Component
 
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
+  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
 
-  attr(:color, :string,
+  attr :color, :string,
     default: "primary",
     values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  )
 
-  attr(:label, :string, default: nil, doc: "labels your progress bar [xl only]")
-  attr(:value, :integer, default: nil, doc: "adds a value to your progress bar")
-  attr(:max, :integer, default: 100, doc: "sets a max value for your progress bar")
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
+  attr :label, :string, default: nil, doc: "labels your progress bar [xl only]"
+  attr :value, :integer, default: nil, doc: "adds a value to your progress bar"
+  attr :max, :integer, default: 100, doc: "sets a max value for your progress bar"
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
 
   def progress(assigns) do
     ~H"""

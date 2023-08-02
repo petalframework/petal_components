@@ -3,20 +3,19 @@ defmodule PetalComponents.Accordion do
   import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
 
-  attr(:container_id, :string)
-  attr(:class, :string, default: "", doc: "CSS class for parent container")
-  attr(:entries, :list, default: [%{}])
+  attr :container_id, :string
+  attr :class, :string, default: "", doc: "CSS class for parent container"
+  attr :entries, :list, default: [%{}]
 
-  attr(:js_lib, :string,
+  attr :js_lib, :string,
     default: "alpine_js",
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
-  )
 
-  attr(:rest, :global)
+  attr :rest, :global
 
   slot :item, required: true, doc: "CSS class for parent container" do
-    attr(:heading, :string)
+    attr :heading, :string
   end
 
   def accordion(assigns) do

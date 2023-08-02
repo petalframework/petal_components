@@ -11,25 +11,23 @@ defmodule PetalComponents.Dropdown do
   @transition_out_start "transform opacity-100 scale-100"
   @transition_out_end "transform opacity-0 scale-95"
 
-  attr(:options_container_id, :string)
-  attr(:label, :string, default: nil, doc: "labels your dropdown option")
-  attr(:class, :string, default: "", doc: "any extra CSS class for the parent container")
+  attr :options_container_id, :string
+  attr :label, :string, default: nil, doc: "labels your dropdown option"
+  attr :class, :string, default: "", doc: "any extra CSS class for the parent container"
 
-  attr(:menu_items_wrapper_class, :string,
+  attr :menu_items_wrapper_class, :string,
     default: "",
     doc: "any extra CSS class for menu item wrapper container"
-  )
 
-  attr(:js_lib, :string,
+  attr :js_lib, :string,
     default: "alpine_js",
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
-  )
 
-  attr(:placement, :string, default: "left", values: ["left", "right"])
-  attr(:rest, :global)
-  slot(:trigger_element)
-  slot(:inner_block, required: false)
+  attr :placement, :string, default: "left", values: ["left", "right"]
+  attr :rest, :global
+  slot :trigger_element
+  slot :inner_block, required: false
 
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
@@ -92,17 +90,16 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
-  attr(:to, :string, default: nil, doc: "link path")
-  attr(:label, :string, doc: "link label")
-  attr(:class, :string, default: "", doc: "any additional CSS classes")
+  attr :to, :string, default: nil, doc: "link path"
+  attr :label, :string, doc: "link label"
+  attr :class, :string, default: "", doc: "any additional CSS classes"
 
-  attr(:link_type, :string,
+  attr :link_type, :string,
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
-  )
 
-  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
-  slot(:inner_block, required: false)
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type)
+  slot :inner_block, required: false
 
   def dropdown_menu_item(assigns) do
     ~H"""

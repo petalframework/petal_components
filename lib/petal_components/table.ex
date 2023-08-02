@@ -4,9 +4,9 @@ defmodule PetalComponents.Table do
   import PetalComponents.Avatar
   import PetalComponents.Helpers
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def table(assigns) do
     ~H"""
@@ -24,9 +24,9 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global, include: ~w(colspan rowspan))
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global, include: ~w(colspan rowspan)
+  slot :inner_block, required: false
 
   def th(assigns) do
     ~H"""
@@ -47,9 +47,9 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def tr(assigns) do
     ~H"""
@@ -67,9 +67,9 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global, include: ~w(colspan headers rowspan))
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global, include: ~w(colspan headers rowspan)
+  slot :inner_block, required: false
 
   def td(assigns) do
     ~H"""
@@ -90,15 +90,14 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
-  attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
-  attr(:rest, :global)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "Adds a label your user, e.g name"
+  attr :sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title"
+  attr :rest, :global
 
-  attr(:avatar_assigns, :map,
+  attr :avatar_assigns, :map,
     default: nil,
     doc: "if using an avatar, this map will be passed to the avatar component as props"
-  )
 
   def user_inner_td(assigns) do
     ~H"""

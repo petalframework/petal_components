@@ -5,29 +5,26 @@ defmodule PetalComponents.SlideOver do
 
   alias Phoenix.LiveView.JS
 
-  attr(:origin, :string,
+  attr :origin, :string,
     default: "right",
     values: ["left", "right", "top", "bottom"],
     doc: "slideover point of origin"
-  )
 
-  attr(:close_slide_over_target, :string,
+  attr :close_slide_over_target, :string,
     default: nil,
     doc:
       "close_slide_over_target allows you to target a specific live component for the close event to go to. eg: close_slide_over_target={@myself}"
-  )
 
-  attr(:title, :string, default: nil, doc: "slideover title")
+  attr :title, :string, default: nil, doc: "slideover title"
 
-  attr(:max_width, :string,
+  attr :max_width, :string,
     default: "md",
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
     doc: "sets container max-width"
-  )
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def slide_over(assigns) do
     ~H"""

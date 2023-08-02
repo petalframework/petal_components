@@ -2,12 +2,12 @@ defmodule PetalComponents.Breadcrumbs do
   use Phoenix.Component
   alias PetalComponents.Link
 
-  attr(:separator, :string, default: "slash", values: ["slash", "chevron"])
-  attr(:class, :string, default: "", doc: "Parent div CSS class")
-  attr(:separator_class, :string, default: "", doc: "Separator div CSS class")
-  attr(:link_class, :string, default: "", doc: "Link class CSS")
-  attr(:links, :list, default: [], doc: "List of your links")
-  attr(:rest, :global)
+  attr :separator, :string, default: "slash", values: ["slash", "chevron"]
+  attr :class, :string, default: "", doc: "Parent div CSS class"
+  attr :separator_class, :string, default: "", doc: "Separator div CSS class"
+  attr :link_class, :string, default: "", doc: "Link class CSS"
+  attr :links, :list, default: [], doc: "List of your links"
+  attr :rest, :global
 
   # Example:
   # <.breadcrumbs separator="chevron"

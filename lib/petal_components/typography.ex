@@ -11,13 +11,13 @@ defmodule PetalComponents.Typography do
   # <.h1 label="Heading" />
   # <.h1 label="Heading" class="mb-10" color_class="text-blue-500" />
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
-  attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "label your heading"
+  attr :no_margin, :boolean, default: nil, doc: "removes margin from headings"
+  attr :underline, :boolean, default: false, doc: "underlines a heading"
+  attr :color_class, :string, default: nil, doc: "adds a color class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def h1(assigns) do
     ~H"""
@@ -35,13 +35,13 @@ defmodule PetalComponents.Typography do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
-  attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "label your heading"
+  attr :no_margin, :boolean, default: nil, doc: "removes margin from headings"
+  attr :underline, :boolean, default: false, doc: "underlines a heading"
+  attr :color_class, :string, default: nil, doc: "adds a color class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def h2(assigns) do
     ~H"""
@@ -51,13 +51,13 @@ defmodule PetalComponents.Typography do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
-  attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "label your heading"
+  attr :no_margin, :boolean, default: nil, doc: "removes margin from headings"
+  attr :underline, :boolean, default: false, doc: "underlines a heading"
+  attr :color_class, :string, default: nil, doc: "adds a color class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def h3(assigns) do
     ~H"""
@@ -67,13 +67,13 @@ defmodule PetalComponents.Typography do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
-  attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "label your heading"
+  attr :no_margin, :boolean, default: nil, doc: "removes margin from headings"
+  attr :underline, :boolean, default: false, doc: "underlines a heading"
+  attr :color_class, :string, default: nil, doc: "adds a color class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def h4(assigns) do
     ~H"""
@@ -83,13 +83,13 @@ defmodule PetalComponents.Typography do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "label your heading")
-  attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
-  attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "label your heading"
+  attr :no_margin, :boolean, default: nil, doc: "removes margin from headings"
+  attr :underline, :boolean, default: false, doc: "underlines a heading"
+  attr :color_class, :string, default: nil, doc: "adds a color class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def h5(assigns) do
     ~H"""
@@ -108,9 +108,9 @@ defmodule PetalComponents.Typography do
     build_class([base_classes, custom_classes, color_classes, underline_classes, margin_classes])
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def p(assigns) do
     ~H"""
@@ -120,9 +120,9 @@ defmodule PetalComponents.Typography do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def prose(assigns) do
     ~H"""
@@ -140,9 +140,9 @@ defmodule PetalComponents.Typography do
       </.ul>
   """
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def ul(assigns) do
     ~H"""
@@ -160,9 +160,9 @@ defmodule PetalComponents.Typography do
       </.ol>
   """
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def ol(assigns) do
     ~H"""

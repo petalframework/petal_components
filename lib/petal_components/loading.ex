@@ -3,11 +3,11 @@ defmodule PetalComponents.Loading do
 
   import PetalComponents.Helpers
 
-  attr(:size, :string, default: "sm", values: ["sm", "md", "lg"])
-  attr(:size_class, :string, default: nil, doc: "custom CSS classes for size. eg: h-4 w-4")
-  attr(:class, :string, default: nil, doc: "CSS class")
-  attr(:show, :boolean, default: true, doc: "show or hide spinner")
-  attr(:rest, :global)
+  attr :size, :string, default: "sm", values: ["sm", "md", "lg"]
+  attr :size_class, :string, default: nil, doc: "custom CSS classes for size. eg: h-4 w-4"
+  attr :class, :string, default: nil, doc: "CSS class"
+  attr :show, :boolean, default: true, doc: "show or hide spinner"
+  attr :rest, :global
 
   def spinner(assigns) do
     ~H"""

@@ -2,17 +2,16 @@ defmodule PetalComponents.Avatar do
   use Phoenix.Component
   import PetalComponents.Helpers
 
-  attr(:src, :string, default: nil, doc: "hosted avatar URL")
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:name, :string, default: nil, doc: "name for placeholder initials")
+  attr :src, :string, default: nil, doc: "hosted avatar URL"
+  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :name, :string, default: nil, doc: "name for placeholder initials"
 
-  attr(:random_color, :boolean,
+  attr :random_color, :boolean,
     default: false,
     doc: "generates a random color for placeholder initials avatar"
-  )
 
-  attr(:rest, :global)
+  attr :rest, :global
 
   def avatar(assigns) do
     ~H"""
@@ -61,10 +60,10 @@ defmodule PetalComponents.Avatar do
     """
   end
 
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:avatars, :list, default: [], doc: "list of your hosted avatar URLs")
-  attr(:rest, :global)
+  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :avatars, :list, default: [], doc: "list of your hosted avatar URLs"
+  attr :rest, :global
 
   def avatar_group(assigns) do
     assigns =

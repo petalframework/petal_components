@@ -1,28 +1,25 @@
 defmodule PetalComponents.Rating do
   use Phoenix.Component
 
-  attr(:rating, :any, default: 0, doc: "The rating to display (integer or float)")
+  attr :rating, :any, default: 0, doc: "The rating to display (integer or float)"
 
-  attr(:round_to_nearest_half, :boolean,
+  attr :round_to_nearest_half, :boolean,
     default: true,
     doc: "Whether to round the rating to the nearest half star (eg. 3.3 -> 3.5"
-  )
 
-  attr(:total, :integer, default: 5, doc: "The total number of stars to display")
-  attr(:class, :string, default: nil, doc: "Any additional CSS classes for the rating wrapper")
+  attr :total, :integer, default: 5, doc: "The total number of stars to display"
+  attr :class, :string, default: nil, doc: "Any additional CSS classes for the rating wrapper"
 
-  attr(:star_class, :string,
+  attr :star_class, :string,
     default: nil,
     doc:
       "Any additional CSS classes for the individual stars. Eg. you could change the size of the stars with 'h-10 w-10'"
-  )
 
-  attr(:include_label, :boolean,
+  attr :include_label, :boolean,
     default: false,
     doc: "Whether to include an automatically generated rating label"
-  )
 
-  attr(:label_class, :string, default: nil, doc: "Any additional CSS classes for the rating label")
+  attr :label_class, :string, default: nil, doc: "Any additional CSS classes for the rating label"
 
   def rating(assigns) do
     assigns =

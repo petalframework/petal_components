@@ -5,10 +5,10 @@ defmodule PetalComponents.Tabs do
 
   import PetalComponents.Helpers
 
-  attr(:underline, :boolean, default: false, doc: "underlines your tabs")
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :underline, :boolean, default: false, doc: "underlines your tabs"
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def tabs(assigns) do
     ~H"""
@@ -30,20 +30,19 @@ defmodule PetalComponents.Tabs do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
-  attr(:label, :string, default: nil, doc: "labels your tab")
+  attr :class, :string, default: "", doc: "CSS class"
+  attr :label, :string, default: nil, doc: "labels your tab"
 
-  attr(:link_type, :string,
+  attr :link_type, :string,
     default: "a",
     values: ["a", "live_patch", "live_redirect"]
-  )
 
-  attr(:to, :string, default: nil, doc: "link path")
-  attr(:number, :integer, default: nil, doc: "indicates a number next to your tab")
-  attr(:underline, :boolean, default: false, doc: "underlines your your tab")
-  attr(:is_active, :boolean, default: false, doc: "indicates the current tab")
-  attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
-  slot(:inner_block, required: false)
+  attr :to, :string, default: nil, doc: "link path"
+  attr :number, :integer, default: nil, doc: "indicates a number next to your tab"
+  attr :underline, :boolean, default: false, doc: "underlines your your tab"
+  attr :is_active, :boolean, default: false, doc: "indicates the current tab"
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type)
+  slot :inner_block, required: false
 
   def tab(assigns) do
     ~H"""

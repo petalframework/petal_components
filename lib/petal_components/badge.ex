@@ -2,19 +2,18 @@ defmodule PetalComponents.Badge do
   use Phoenix.Component
   import PetalComponents.Helpers
 
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:variant, :string, default: "light", values: ["light", "dark", "outline"])
+  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
+  attr :variant, :string, default: "light", values: ["light", "dark", "outline"]
 
-  attr(:color, :string,
+  attr :color, :string,
     default: "primary",
     values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
-  )
 
-  attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :string, default: "", doc: "CSS class for parent div")
-  attr(:label, :string, default: nil, doc: "label your badge")
-  attr(:rest, :global)
-  slot(:inner_block, required: false)
+  attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
+  attr :class, :string, default: "", doc: "CSS class for parent div"
+  attr :label, :string, default: nil, doc: "label your badge"
+  attr :rest, :global
+  slot :inner_block, required: false
 
   def badge(assigns) do
     ~H"""
