@@ -1,24 +1,31 @@
 defmodule PetalComponents.Pagination do
+  @moduledoc """
+  Pagination is the method of splitting up content into discrete pages. It specifies the total number of pages and inidicates to a user the current page within the context of total pages.
+  """
   use Phoenix.Component
-
-  alias PetalComponents.Link
 
   import PetalComponents.Helpers
   import PetalComponents.PaginationInternal
 
-  attr(:path, :string, default: "/:page", doc: "page path")
-  attr(:class, :string, default: "", doc: "Parent div CSS class")
+  alias PetalComponents.Link
 
-  attr(:link_type, :string,
+  attr :path, :string, default: "/:page", doc: "page path"
+  attr :class, :string, default: "", doc: "Parent div CSS class"
+
+  attr :link_type, :string,
     default: "a",
-    values: ["a", "live_patch", "live_redirect"]
-  )
+    values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr(:total_pages, :integer, default: nil, doc: "sets a total page count")
-  attr(:current_page, :integer, default: nil, doc: "sets the current page")
-  attr(:sibling_count, :integer, default: 1, doc: "sets a sibling count")
-  attr(:boundary_count, :integer, default: 1, doc: "sets a boundary count")
-  attr(:rest, :global)
+  attr :event, :boolean,
+    default: false,
+    doc:
+      "whether to use `phx-click` events instead of linking. Enabling this will disable `link_type` and `path`."
+
+  attr :total_pages, :integer, default: nil, doc: "sets a total page count"
+  attr :current_page, :integer, default: nil, doc: "sets the current page"
+  attr :sibling_count, :integer, default: 1, doc: "sets a sibling count"
+  attr :boundary_count, :integer, default: 1, doc: "sets a boundary count"
+  attr :rest, :global
 
   @doc """
   In the `path` param you can specify :page as the place your page number will appear.
@@ -33,8 +40,10 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "prev" and item.enabled? do %>
             <div>
               <Link.a
-                link_type={@link_type}
-                to={get_path(@path, item.number, @current_page)}
+                phx-click={if @event, do: "goto-page"}
+                phx-value-page={item.number}
+                link_type={if @event, do: "button", else: @link_type}
+                to={if not @event, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__previous"
               >
                 <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
@@ -48,8 +57,10 @@ defmodule PetalComponents.Pagination do
                 <span class={get_box_class(item)}><%= item.number %></span>
               <% else %>
                 <Link.a
-                  link_type={@link_type}
-                  to={get_path(@path, item.number, @current_page)}
+                  phx-click={if @event, do: "goto-page"}
+                  phx-value-page={item.number}
+                  link_type={if @event, do: "button", else: @link_type}
+                  to={if not @event, do: get_path(@path, item.number, @current_page)}
                   class={get_box_class(item)}
                 >
                   <%= item.number %>
@@ -69,8 +80,10 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "next" and item.enabled? do %>
             <div>
               <Link.a
-                link_type={@link_type}
-                to={get_path(@path, item.number, @current_page)}
+                phx-click={if @event, do: "goto-page"}
+                phx-value-page={item.number}
+                link_type={if @event, do: "button", else: @link_type}
+                to={if not @event, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__next"
               >
                 <Heroicons.chevron_right solid class="pc-pagination__item__next__chevron" />
