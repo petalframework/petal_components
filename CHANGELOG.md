@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.3 - 2023-08-04 02:12:44
+
+- input can now be passed a class attribute
+
 ### 1.4.2 - 2023-08-04 01:45:24
 
 - Add option to send events in pagination component
