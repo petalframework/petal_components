@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.2 - 2023-08-04 01:45:24
+
+- Add option to send events in pagination component
+
 ### 1.4.1 - 2023-07-28 10:32:02
 
 - Added support for styling last accordion item
