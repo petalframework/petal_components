@@ -47,4 +47,17 @@ defmodule PetalComponents.InputTest do
     assert html =~ ~s|type="url"|
     assert html =~ ~s|type="week"|
   end
+
+  test "input can be passed a class attribute" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.input field={@form[:name]} class="rounted-r-none" type="text" />
+      </.form>
+      """)
+
+    assert html =~ "rounted-r-none"
+  end
 end
