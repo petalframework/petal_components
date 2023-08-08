@@ -341,7 +341,7 @@ defmodule PetalComponents.Button do
     do: "pc-icon-button--secondary"
 
   defp get_icon_button_color_classes("gray"), do: "pc-icon-button--gray"
-  defp get_icon_button_color_classes("info"), do: "pc-icon-button--primary"
+  defp get_icon_button_color_classes("info"), do: "pc-icon-button--info"
   defp get_icon_button_color_classes("success"), do: "pc-icon-button--success"
   defp get_icon_button_color_classes("warning"), do: "pc-icon-button--warning"
   defp get_icon_button_color_classes("danger"), do: "pc-icon-button--danger"
