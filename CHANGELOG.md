@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.4 - 2023-08-08 02:02:15
+
+- Fix: Icon button setting info to primary + test
+
 ### 1.4.3 - 2023-08-04 02:12:44
 
 - input can now be passed a class attribute
