@@ -133,6 +133,23 @@ defmodule PetalComponents.ButtonTest do
     refute html =~ "tooltip"
   end
 
+  test "icon button with color" do
+    colors = ~w(primary secondary success danger warning info gray)
+
+    Enum.each(colors, fn color ->
+      assigns = %{color: color}
+
+      html =
+        rendered_to_string(~H"""
+        <.icon_button color={@color}>
+          <Heroicons.clock />
+        </.icon_button>
+        """)
+
+      assert html =~ "pc-icon-button-bg--#{color}"
+    end)
+  end
+
   test "icon button with tooltip" do
     assigns = %{}
 
