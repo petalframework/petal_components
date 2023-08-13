@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.5 - 2023-08-13 22:23:12
+
+- Added type=button to close slide over button
+
 ### 1.4.4 - 2023-08-08 02:02:15
 
 - Fix: Icon button setting info to primary + test
