@@ -60,6 +60,7 @@ defmodule PetalComponents.SlideOver do
               </div>
 
               <button
+                type="button"
                 phx-click={hide_slide_over(@origin, @close_slide_over_target)}
                 class="pc-slideover__header__button"
               >
