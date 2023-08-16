@@ -14,7 +14,6 @@ defmodule PetalComponents.Dropdown do
   attr :options_container_id, :string
   attr :label, :string, default: nil, doc: "labels your dropdown option"
   attr :class, :string, default: "", doc: "any extra CSS class for the parent container"
-  attr :disabled, :boolean, default: false
 
   attr :menu_items_wrapper_class, :string,
     default: "",
@@ -57,10 +56,9 @@ defmodule PetalComponents.Dropdown do
       <div>
         <button
           type="button"
-          class={[trigger_button_classes(@label, @trigger_element), @disabled && "pc-dropdown__menu-item--disabled"]}
+          class={trigger_button_classes(@label, @trigger_element)}
           {js_attributes("button", @js_lib, @options_container_id)}
           aria-haspopup="true"
-          disabled={@disabled}
         >
           <span class="sr-only">Open options</span>
 
@@ -97,6 +95,7 @@ defmodule PetalComponents.Dropdown do
   attr :to, :string, default: nil, doc: "link path"
   attr :label, :string, doc: "link label"
   attr :class, :string, default: "", doc: "any additional CSS classes"
+  attr :disabled, :boolean, default: false
 
   attr :link_type, :string,
     default: "button",
@@ -107,7 +106,13 @@ defmodule PetalComponents.Dropdown do
 
   def dropdown_menu_item(assigns) do
     ~H"""
-    <Link.a link_type={@link_type} to={@to} class={"#{@class} pc-dropdown__menu-item"} {@rest}>
+    <Link.a
+      link_type={@link_type}
+      to={@to}
+      class={"#{@class} pc-dropdown__menu-item #{get_disabled_classes(@disabled)}"}
+      disabled={@disabled}
+      {@rest}
+    >
       <%= render_slot(@inner_block) || @label %>
     </Link.a>
     """
@@ -181,4 +186,7 @@ defmodule PetalComponents.Dropdown do
 
   defp placement_class("left"), do: "pc-dropdown__menu-items-wrapper-placement--left"
   defp placement_class("right"), do: "pc-dropdown__menu-items-wrapper-placement--right"
+
+  defp get_disabled_classes(true), do: "pc-dropdown__menu-item--disabled"
+  defp get_disabled_classes(false), do: ""
 end
