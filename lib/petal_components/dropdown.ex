@@ -109,7 +109,7 @@ defmodule PetalComponents.Dropdown do
     <Link.a
       link_type={@link_type}
       to={@to}
-      class={"#{@class} pc-dropdown__menu-item #{get_disabled_classes(@disabled)}"}
+      class={[@class, "pc-dropdown__menu-item", get_disabled_classes(@disabled)]}
       disabled={@disabled}
       {@rest}
     >
