@@ -54,6 +54,20 @@ defmodule PetalComponents.DropdownTest do
            """) =~ "pc-dropdown__menu-items-wrapper-placement--right"
   end
 
+  test "the disabled attribute works" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.dropdown>
+        <.dropdown_menu_item disabled>Option</.dropdown_menu_item>
+      </.dropdown>
+      """)
+
+    assert html =~ "pc-dropdown__menu-item--disabled"
+    assert html =~ " disabled" # the attribute itself
+  end
+
   test "it works with a custom trigger" do
     assigns = %{}
 

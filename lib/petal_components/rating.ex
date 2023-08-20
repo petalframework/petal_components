@@ -22,7 +22,10 @@ defmodule PetalComponents.Rating do
     doc: "Whether to include an automatically generated rating label"
   )
 
-  attr(:label_class, :string, default: nil, doc: "Any additional CSS classes for the rating label")
+  attr(:label_class, :string,
+    default: nil,
+    doc: "Any additional CSS classes for the rating label"
+  )
 
   def rating(assigns) do
     assigns =
