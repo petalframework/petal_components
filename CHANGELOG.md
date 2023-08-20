@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.6 - 2023-08-20 22:12:28
+
+- Added support for disabled attribute on dropdown menu items
+
 ### 1.4.5 - 2023-08-13 22:23:12
 
 - Added type=button to close slide over button
