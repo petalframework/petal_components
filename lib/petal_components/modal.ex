@@ -51,6 +51,7 @@ defmodule PetalComponents.Modal do
               </div>
 
               <button
+                type="button"
                 phx-click={hide_modal(@close_modal_target, @id)}
                 class="pc-modal__header__button"
               >

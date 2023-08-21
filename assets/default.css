@@ -496,7 +496,7 @@
 :not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
   @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error input[type=checkbox] {
+:not(.phx-no-feedback).pc-form-field-wrapper--error input[type="checkbox"] {
   @apply bg-danger-700;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error
@@ -643,6 +643,9 @@
 }
 .pc-dropdown__trigger-button--with-label-and-trigger-element {
   @apply align-middle;
+}
+.pc-dropdown__menu-item--disabled {
+  @apply text-gray-500 hover:bg-transparent;
 }
 .pc-dropdown__ellipsis {
   @apply w-5 h-5;
