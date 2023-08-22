@@ -15,6 +15,8 @@ jobs:
           version-file: .tool-versions
       - name: Install deps
         run: mix deps.get
+      - name: Check unused deps
+        run: mix deps.unlock --check-unused
       - name: Run tests
         run: mix test
       - name: Run code test coverage report
