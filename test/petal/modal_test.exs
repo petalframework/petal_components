@@ -54,4 +54,22 @@ defmodule PetalComponents.ModalTest do
 
     assert html =~ ~s{custom-attrs="123"}
   end
+
+  test "close_on_click_away" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal></.modal>
+      """)
+
+    assert html =~ ~s{phx-click-away}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal close_on_click_away={false}></.modal>
+      """)
+
+    refute html =~ ~s{phx-click-away}
+  end
 end
