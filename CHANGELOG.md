@@ -1,4 +1,9 @@
 # Changelog
+### 1.4.8 - 2023-08-24 02:56:03
+
+- Add `close_on_click_away` attr on modal [Issue 253)[https://github.com/petalframework/petal_components/pull/253]
+- Add `close_on_escape` on modal
+
 ### 1.4.7 - 2023-08-24 02:18:04
 
 - Added type=button to close modal button
