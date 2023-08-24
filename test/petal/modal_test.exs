@@ -72,4 +72,22 @@ defmodule PetalComponents.ModalTest do
 
     refute html =~ ~s{phx-click-away}
   end
+
+  test "close_on_escape" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal></.modal>
+      """)
+
+    assert html =~ ~s{phx-window-keydown}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal close_on_escape={false}></.modal>
+      """)
+
+    refute html =~ ~s{phx-window-keydown}
+  end
 end

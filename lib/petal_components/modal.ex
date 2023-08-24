@@ -18,6 +18,10 @@ defmodule PetalComponents.Modal do
     default: true,
     doc: "whether the modal should close when a user clicks away"
 
+  attr :close_on_escape, :boolean,
+    default: true,
+    doc: "whether the modal should close when a user hits escape"
+
   attr :max_width, :string,
     default: "md",
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
@@ -44,7 +48,7 @@ defmodule PetalComponents.Modal do
         <div
           class={@classes}
           phx-click-away={@close_on_click_away && hide_modal(@close_modal_target, @id)}
-          phx-window-keydown={hide_modal(@close_modal_target, @id)}
+          phx-window-keydown={@close_on_escape && hide_modal(@close_modal_target, @id)}
           phx-key="escape"
         >
           <!-- Header -->
