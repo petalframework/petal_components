@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.7 - 2023-08-24 02:18:04
+
+- Added type=button to close modal button
+
 ### 1.4.6 - 2023-08-20 22:12:28
 
 - Added support for disabled attribute on dropdown menu items
