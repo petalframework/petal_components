@@ -14,6 +14,10 @@ defmodule PetalComponents.Modal do
     doc:
       "close_modal_target allows you to target a specific live component for the close event to go to. eg: close_modal_target={@myself}"
 
+  attr :close_on_click_away, :boolean,
+    default: true,
+    doc: "whether the modal should close when a user clicks away"
+
   attr :max_width, :string,
     default: "md",
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
@@ -39,7 +43,7 @@ defmodule PetalComponents.Modal do
       <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
         <div
           class={@classes}
-          phx-click-away={hide_modal(@close_modal_target, @id)}
+          phx-click-away={@close_on_click_away && hide_modal(@close_modal_target, @id)}
           phx-window-keydown={hide_modal(@close_modal_target, @id)}
           phx-key="escape"
         >
