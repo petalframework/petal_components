@@ -10,7 +10,7 @@ defmodule PetalComponents.Pagination do
   alias PetalComponents.Link
 
   attr :path, :string, default: "/:page", doc: "page path"
-  attr :class, :string, default: "", doc: "Parent div CSS class"
+  attr :class, :string, default: "", doc: "parent div CSS class"
 
   attr :link_type, :string,
     default: "a",
@@ -21,7 +21,7 @@ defmodule PetalComponents.Pagination do
     doc:
       "whether to use `phx-click` events instead of linking. Enabling this will disable `link_type` and `path`."
 
-  attr :target, :any, default: nil, doc: "the LiveView/LiveComponent to send the event to. Example: `@myself`."
+  attr :target, :any, default: nil, doc: "the LiveView/LiveComponent to send the event to. Example: `@myself`. Will be ignored if `event` is not enabled."
   attr :total_pages, :integer, default: nil, doc: "sets a total page count"
   attr :current_page, :integer, default: nil, doc: "sets the current page"
   attr :sibling_count, :integer, default: 1, doc: "sets a sibling count"
@@ -42,7 +42,7 @@ defmodule PetalComponents.Pagination do
             <div>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
-                phx-target={@target}
+                phx-target={if @event, do: @target}
                 phx-value-page={item.number}
                 link_type={if @event, do: "button", else: @link_type}
                 to={if not @event, do: get_path(@path, item.number, @current_page)}
@@ -60,7 +60,7 @@ defmodule PetalComponents.Pagination do
               <% else %>
                 <Link.a
                   phx-click={if @event, do: "goto-page"}
-                  phx-target={@target}
+                  phx-target={if @event, do: @target}
                   phx-value-page={item.number}
                   link_type={if @event, do: "button", else: @link_type}
                   to={if not @event, do: get_path(@path, item.number, @current_page)}
@@ -84,7 +84,7 @@ defmodule PetalComponents.Pagination do
             <div>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
-                phx-target={@target}
+                phx-target={if @event, do: @target}
                 phx-value-page={item.number}
                 link_type={if @event, do: "button", else: @link_type}
                 to={if not @event, do: get_path(@path, item.number, @current_page)}
