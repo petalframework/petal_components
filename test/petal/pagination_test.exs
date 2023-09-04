@@ -495,5 +495,28 @@ defmodule PetalComponents.PaginationTest do
     assert html =~ "goto-page"
     assert html =~ "phx-value-page=\"2\""
     assert html =~ "phx-value-page=\"3\""
+    refute html =~ "phx-target"
+  end
+
+  test "target option with event option will generate 'phx-target' attribute" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination event={true} target={"some-component-id"} total_pages={3} current_page={1} />
+      """)
+
+    assert html =~ "phx-target"
+  end
+
+  test "target option without event option won't generate 'phx-target' attribute" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination target={"some-component-id"} total_pages={3} current_page={1} />
+      """)
+
+    refute html =~ "phx-target"
   end
 end

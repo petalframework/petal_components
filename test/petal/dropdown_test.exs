@@ -65,7 +65,8 @@ defmodule PetalComponents.DropdownTest do
       """)
 
     assert html =~ "pc-dropdown__menu-item--disabled"
-    assert html =~ " disabled" # the attribute itself
+    # the attribute itself
+    assert html =~ " disabled"
   end
 
   test "it works with a custom trigger" do
