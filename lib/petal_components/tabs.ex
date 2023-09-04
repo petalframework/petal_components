@@ -42,7 +42,7 @@ defmodule PetalComponents.Tabs do
   attr(:number, :integer, default: nil, doc: "indicates a number next to your tab")
   attr(:underline, :boolean, default: false, doc: "underlines your tab")
   attr(:is_active, :boolean, default: false, doc: "indicates the current tab")
-  attr(:disabled, :boolean, default: false, doc: "disabled your tab")
+  attr(:disabled, :boolean, default: false, doc: "disables your tab")
   attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
