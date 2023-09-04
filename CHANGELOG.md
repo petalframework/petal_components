@@ -1,4 +1,8 @@
 # Changelog
+### 1.4.9 - 2023-09-04 03:03:18
+
+- Add target attribute for sending pagination events to LiveComponents
+
 ### 1.4.8 - 2023-08-24 02:56:03
 
 - Add `close_on_click_away` attr on modal [Issue 253)[https://github.com/petalframework/petal_components/pull/253]
