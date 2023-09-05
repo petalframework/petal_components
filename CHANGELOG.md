@@ -1,4 +1,9 @@
 # Changelog
+### 1.5.0 - 2023-09-05 04:05:44
+
+- New high-contrast `dark` button color
+- update upgrade guide
+
 ### 1.4.9 - 2023-09-04 03:03:18
 
 - Add target attribute for sending pagination events to LiveComponents
