@@ -54,7 +54,7 @@ config :esbuild,
 
 
 config :tailwind,
-  version: "3.2.4",
+  version: "3.3.3",
   default: [
   ...
 ```
@@ -65,7 +65,6 @@ Update tailwind and esbuild binaries:
 mix esbuild.install
 mix tailwind.install
 ```
-
 
 ## v0.18 to v0.19
 
@@ -123,9 +122,10 @@ In some places you'll need to `import Phoenix.Component`. For example with `assi
 #### Renaming <.link>
 
 Live View 0.18 deprecations:
-  - `live_redirect` - deprecate in favor of new `<.link navigate={..}>` component of `Phoenix.Component`
-  - `live_patch` - deprecate in favor of new `<.link patch={..}>` component of `Phoenix.Component`
-  - `push_redirect` - deprecate in favor of new `push_navigate` function on `Phoenix.LiveView`
+
+- `live_redirect` - deprecate in favor of new `<.link navigate={..}>` component of `Phoenix.Component`
+- `live_patch` - deprecate in favor of new `<.link patch={..}>` component of `Phoenix.Component`
+- `push_redirect` - deprecate in favor of new `push_navigate` function on `Phoenix.LiveView`
 
 Petal Components has a `<.link>` component, but now Live View 0.18 has its own `<.link>`:
 
@@ -147,7 +147,6 @@ Perform these global replaces:
 This way, your app will still work with our `<a>` tags. However, we will eventually deprecate this in favour of the new Live View `<.link>`.
 
 ### Renaming Heroicons
-
 
 PetalComponents now internally uses https://github.com/mveytsman/heroicons_elixir, which uses Heroicons V2.
 
@@ -172,7 +171,6 @@ For every case you have used a Heroicon in a HEEX template you will have to upda
 Eg.
 
 ```html
-
 <!-- Old way -->
 <Heroicons.Solid.home class="" />
 
@@ -183,7 +181,6 @@ Eg.
 Note the `solid` attribute. For `outline`, you don't need any attributes.
 
 The most annoying part is that a lot of the icon names have changed. You can see a list of the all the name changes here: https://github.com/tailwindlabs/heroicons/releases/tag/v2.0.0
-
 
 #### Icon Button
 
@@ -199,7 +196,7 @@ New way:
 
 ```html
 <.icon_button to="/">
-  <Heroicons.trash solid />
+<Heroicons.trash solid />
 <./icon_button>
 ```
 
@@ -208,11 +205,13 @@ New way:
 You can't use the bind shortcuts in the latest Live View.
 
 Old:
+
 ```html
 <div :class="..."></div>
 ```
 
 New
+
 ```html
 <div x-bind:class="..."></div>
 ```
