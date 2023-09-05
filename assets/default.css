@@ -159,6 +159,18 @@
 .pc-button--light-shadow {
   @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 shadow-gray-500/30 dark:shadow-gray-600/30 dark:hover:shadow-gray-500/30 dark:focus:shadow-gray-500/30 dark:active:shadow-gray-600/30;
 }
+.pc-button--dark {
+  @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:focus:outline-none dark:focus:bg-gray-200 dark:focus:text-gray-900 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
+}
+.pc-button--dark-outline {
+  @apply bg-white dark:bg-gray-950 dark:border-white text-gray-950 border-gray-950 dark:hover:bg-gray-950 dark:hover:border-gray-300 dark:active:bg-gray-950 hover:bg-gray-50 dark:focus:bg-gray-950 dark:active:border-gray-400 dark:text-white active:border-gray-600 hover:border-gray-500 active:bg-gray-100 focus:bg-transparent;
+}
+.pc-button--dark-inverted {
+  @apply border-gray-950 text-gray-950 hover:border-transparent hover:text-white active:bg-gray-800 hover:bg-gray-950 focus:shadow-gray-500/50 dark:hover:bg-white dark:hover:text-black dark:bg-gray-950 dark:text-white dark:active:bg-gray-200 dark:active:border-gray-200 dark:border-white;
+}
+.pc-button--dark-shadow {
+  @apply text-white border-transparent shadow-xl dark:text-gray-950 bg-gray-950 active:bg-gray-900 hover:bg-gray-800 focus:bg-gray-800 focus:shadow-gray-500/50 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-white shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
+}
 
 /* Buttons - loading */
 

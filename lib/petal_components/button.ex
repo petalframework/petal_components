@@ -27,7 +27,8 @@ defmodule PetalComponents.Button do
       "gray",
       "pure_white",
       "white",
-      "light"
+      "light",
+      "dark"
     ],
     doc: "button color"
 
@@ -73,7 +74,15 @@ defmodule PetalComponents.Button do
 
   attr :color, :string,
     default: "gray",
-    values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
+    values: [
+      "primary",
+      "secondary",
+      "info",
+      "success",
+      "warning",
+      "danger",
+      "gray"
+    ]
 
   attr :to, :string, default: nil, doc: "link path"
   attr :loading, :boolean, default: false, doc: "indicates a loading state"
@@ -307,6 +316,22 @@ defmodule PetalComponents.Button do
 
       _ ->
         "pc-button--light"
+    end
+  end
+
+  defp get_color_classes(%{color: "dark", variant: variant}) do
+    case variant do
+      "outline" ->
+        "pc-button--dark-outline"
+
+      "inverted" ->
+        "pc-button--dark-inverted"
+
+      "shadow" ->
+        "pc-button--dark-shadow"
+
+      _ ->
+        "pc-button--dark"
     end
   end
 
