@@ -182,4 +182,17 @@ defmodule PetalComponents.TabsTest do
       assert html =~ ~s{custom-attrs="#{i}"}
     end
   end
+
+  test "disabled tab" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tabs custom-attrs="1" underline>
+        <.tab disabled to="/">Home</.tab>
+      </.tabs>
+      """)
+
+    assert html =~ "disabled"
+  end
 end
