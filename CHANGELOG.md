@@ -1,4 +1,8 @@
 # Changelog
+### 1.5.1 - 2023-09-06 04:55:54
+
+- Add `disabled` attribute to Tab component
+
 ### 1.5.0 - 2023-09-05 04:05:44
 
 - New high-contrast `dark` button color
