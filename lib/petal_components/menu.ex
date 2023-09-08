@@ -129,7 +129,7 @@ defmodule PetalComponents.Menu do
   def vertical_menu(assigns) do
     ~H"""
     <%= if menu_items_grouped?(@menu_items) do %>
-      <div class="flex flex-col gap-5">
+      <div class="pc-menu__vertical-menu">
         <.menu_group
           :for={menu_group <- @menu_items}
           title={menu_group[:title]}
@@ -150,12 +150,12 @@ defmodule PetalComponents.Menu do
   def menu_group(assigns) do
     ~H"""
     <nav>
-      <h3 :if={@title} class="pl-3 mb-3 text-xs font-semibold leading-6 text-gray-400 uppercase">
+      <h3 :if={@title} class="pc-menu__vertical-menu__menu-group__title">
         <%= @title %>
       </h3>
 
-      <div class="divide-y divide-gray-300">
-        <div class="space-y-1">
+      <div class="pc-menu__vertical-menu__menu-group__wrapper">
+        <div class="pc-menu__vertical-menu__menu-group">
           <.vertical_menu_item
             :for={menu_item <- @menu_items}
             all_menu_items={@menu_items}
@@ -194,7 +194,7 @@ defmodule PetalComponents.Menu do
       class={menu_item_classes(@current_page, @name)}
     >
       <.menu_icon icon={@icon} />
-      <div class="flex-1"><%= @label %></div>
+      <div class="pc-menu__vertical-menu__menu-group__menu-item__label-wrapper"><%= @label %></div>
     </.a>
     """
   end
@@ -212,19 +212,19 @@ defmodule PetalComponents.Menu do
         @click.prevent="open = !open"
       >
         <.menu_icon icon={@icon} />
-        <div class="flex-1 text-left"><%= @label %></div>
+        <div class="pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__label-wrapper">
+          <%= @label %>
+        </div>
 
-        <div class="relative inline-block">
-          <div class="ml-2">
-            <Heroicons.chevron_right
-              class="w-3 h-3 transition duration-200 transform"
-              x-bind:class="{ 'rotate-90': open }"
-            />
-          </div>
+        <div class="pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__chevron-wrapper">
+          <Heroicons.chevron_right
+            class="pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__chevron"
+            x-bind:class="{ 'rotate-90': open }"
+          />
         </div>
       </button>
       <div
-        class="mt-1 ml-3 space-y-1"
+        class="pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__sub-items"
         x-show="open"
         x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
       >
@@ -269,20 +269,18 @@ defmodule PetalComponents.Menu do
   end
 
   defp menu_icon_classes(),
-    do: "w-5 h-5 flex-shrink-0"
+    do: "pc-menu__vertical-menu__menu-icon-classes"
 
   defp menu_item_base(),
-    do:
-      "flex items-center text-sm font-semibold leading-none px-3 py-2 gap-3 transition duration-200 w-full rounded-md group"
+    do: "pc-menu__vertical-menu__menu-item-base"
 
   # Active state
   defp menu_item_classes(page, page),
-    do: "#{menu_item_base()} text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-gray-800"
+    do: "#{menu_item_base()} pc-menu__vertical-menu__menu-item-classes--active"
 
   # Inactive state
   defp menu_item_classes(_current_page, _link_page),
-    do:
-      "#{menu_item_base()} text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-gray-700"
+    do: "#{menu_item_base()} pc-menu__vertical-menu__menu-item-classes--inactive"
 
   defp find_item(name, menu_items) when is_list(menu_items) do
     Enum.find(menu_items, fn menu_item ->

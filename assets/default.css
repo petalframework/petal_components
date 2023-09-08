@@ -1159,6 +1159,60 @@
   @apply w-5 h-5 fill-gray-400 dark:fill-gray-500;
 }
 
+/* Menu */
+
+.pc-menu__vertical-menu {
+  @apply flex flex-col gap-5;
+}
+
+.pc-menu__vertical-menu__menu-icon-classes {
+  @apply flex-shrink-0 w-5 h-5;
+}
+
+.pc-menu__vertical-menu__menu-item-base {
+  @apply flex items-center w-full gap-3 px-3 py-2 text-sm font-semibold leading-none transition duration-200 rounded-md;
+}
+
+.pc-menu__vertical-menu__menu-item-classes--active {
+  @apply text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-gray-800;
+}
+
+.pc-menu__vertical-menu__menu-item-classes--inactive {
+  @apply text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-gray-700;
+}
+
+.pc-menu__vertical-menu__menu-group__wrapper {
+  @apply  divide-y divide-gray-300;
+}
+
+.pc-menu__vertical-menu__menu-group {
+  @apply  space-y-1;
+}
+
+.pc-menu__vertical-menu__menu-group__title {
+  @apply pl-3 mb-3 text-xs font-semibold leading-6 text-gray-400 uppercase;
+}
+
+.pc-menu__vertical-menu__menu-group__menu-item__label-wrapper {
+  @apply flex-1;
+}
+
+.pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__label-wrapper {
+  @apply flex-1 text-left;
+}
+
+.pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__chevron {
+  @apply w-3 h-3 ml-2 transition duration-200 transform;
+}
+
+.pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__chevron-wrapper {
+  @apply relative inline-block;
+}
+
+.pc-menu__vertical-menu__menu-group__menu-item-with-sub-items__sub-items {
+  @apply mt-1 ml-3 space-y-1;
+}
+
 /* Other */
 
 /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
