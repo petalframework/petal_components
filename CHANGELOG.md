@@ -6,7 +6,7 @@
 ### 1.5.0 - 2023-09-05 04:05:44
 
 - New high-contrast `dark` button color
-- update upgrade guide
+- Breaking change: please update Tailwind in config.exs to `3.3.3` then run `mix tailwind.install`
 
 ### 1.4.9 - 2023-09-04 03:03:18
 
