@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## v1.4 -> v1.5
+## v1.4 to v1.5
 
 v1.5 requires Tailwind v3.3.3. Update the version in `config.exs`:
 
