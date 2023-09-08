@@ -1,5 +1,16 @@
 # Upgrade Guide
 
+## v1.4 -> v1.5
+
+v1.5 requires Tailwind v3.3.3. Update the version in `config.exs`:
+
+```elixir
+config :tailwind,
+  version: "3.3.3",
+```
+
+Then run `mix tailwind.install`.
+
 ## v0.19 to v1.0.0
 
 In `tailwind.config.js` you need to add more colors:
