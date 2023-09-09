@@ -1,4 +1,8 @@
 # Changelog
+### 1.5.2 - 2023-09-09 01:04:37
+
+- Added BEM classnames for menu components
+
 ### 1.5.1 - 2023-09-06 04:55:54
 
 - Add `disabled` attribute to Tab component
