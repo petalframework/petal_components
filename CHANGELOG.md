@@ -1,4 +1,8 @@
 # Changelog
+### 1.5.3 - 2023-09-11 03:53:22
+
+- Allow configurability of menu icons active/inactive state + test
+
 ### 1.5.2 - 2023-09-09 01:04:37
 
 - Added BEM classnames for menu components
