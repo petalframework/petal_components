@@ -193,7 +193,7 @@ defmodule PetalComponents.Menu do
       }
       class={menu_item_classes(@current_page, @name)}
     >
-      <.menu_icon icon={@icon} />
+      <.menu_icon icon={@icon} is_active={@current_page == @name} />
       <div class="pc-vertical-menu-item__label"><%= @label %></div>
     </.a>
     """
@@ -235,15 +235,16 @@ defmodule PetalComponents.Menu do
   end
 
   attr :icon, :any, default: nil
+  attr :is_active, :boolean, default: false
 
   defp menu_icon(assigns) do
     ~H"""
-    <.icon :if={is_atom(@icon)} outline name={@icon} class={menu_icon_classes()} />
+    <.icon :if={is_atom(@icon)} outline name={@icon} class={menu_icon_classes(@is_active)} />
 
     <%= if is_function(@icon) do %>
       <%= Phoenix.LiveView.TagEngine.component(
         @icon,
-        [class: menu_icon_classes()],
+        [class: menu_icon_classes(@is_active)],
         {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
       ) %>
     <% end %>
@@ -268,19 +269,20 @@ defmodule PetalComponents.Menu do
       end)
   end
 
-  defp menu_icon_classes(),
-    do: "pc-vertical-menu-item__icon"
+  defp menu_icon_classes(is_active),
+    do:
+      "pc-vertical-menu-item__icon pc-vertical-menu-item__icon--#{if is_active, do: "active", else: "inactive"}"
 
-  defp menu_item_base(),
+  defp menu_item_base_classes(),
     do: "pc-vertical-menu-item"
 
   # Active state
   defp menu_item_classes(page, page),
-    do: "#{menu_item_base()} pc-vertical-menu-item--active"
+    do: "#{menu_item_base_classes()} group pc-vertical-menu-item--active"
 
   # Inactive state
   defp menu_item_classes(_current_page, _link_page),
-    do: "#{menu_item_base()} pc-vertical-menu-item--inactive"
+    do: "#{menu_item_base_classes()} group pc-vertical-menu-item--inactive"
 
   defp find_item(name, menu_items) when is_list(menu_items) do
     Enum.find(menu_items, fn menu_item ->

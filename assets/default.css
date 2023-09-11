@@ -1213,6 +1213,14 @@
   @apply mt-1 ml-3 space-y-1;
 }
 
+.pc-vertical-menu-item__icon--active {
+  @apply flex-shrink-0 w-5 h-5;
+}
+
+.pc-vertical-menu-item__icon--inactive {
+  @apply flex-shrink-0 w-5 h-5;
+}
+
 /* Other */
 
 /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */

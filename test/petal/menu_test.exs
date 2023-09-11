@@ -66,5 +66,43 @@ defmodule PetalComponents.MenuTest do
       assert html =~ "Home"
       assert html =~ "School"
     end
+
+    test "active menu item renders css correctly" do
+      assigns = %{
+        menu_items: [
+          %{
+            title: "Menu group 1",
+            menu_items: [
+              %{
+                name: :home,
+                label: "Home",
+                path: "/",
+                icon: :home
+              }
+            ]
+          },
+          %{
+            title: "Menu group 2",
+            menu_items: [
+              %{
+                name: :school,
+                label: "School",
+                path: "#",
+                icon: :academic_cap
+              }
+            ]
+          }
+        ],
+        current_page: :home,
+        title: "blah"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@menu_items} current_page={@current_page} title={@title} />
+        """)
+
+      assert html =~ "pc-vertical-menu-item__icon--active"
+    end
   end
 end
