@@ -1087,7 +1087,7 @@
   @apply text-gray-400 hover:text-gray-500;
 }
 .pc-modal__header__close-svg {
-  @apply w-4 h-4 fill-current;
+  @apply w-5 h-5 fill-current;
 }
 .pc-modal__content {
   @apply p-5;
