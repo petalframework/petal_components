@@ -1,4 +1,8 @@
 # Changelog
+### 1.5.4 - 2023-09-13 04:05:32
+
+- Changed close icon svg to Heroicons
+
 ### 1.5.3 - 2023-09-11 03:53:22
 
 - Allow configurability of menu icons active/inactive state + test
