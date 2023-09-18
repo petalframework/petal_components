@@ -22,6 +22,10 @@ defmodule PetalComponents.Modal do
     default: true,
     doc: "whether the modal should close when a user hits escape"
 
+  attr :hide_close_button, :boolean,
+    default: false,
+    doc: "whether or not the modal should have a close button in the header"
+
   attr :max_width, :string,
     default: "md",
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
@@ -57,15 +61,16 @@ defmodule PetalComponents.Modal do
               <div class="pc-modal__header__text">
                 <%= @title %>
               </div>
-
-              <button
-                type="button"
-                phx-click={hide_modal(@close_modal_target, @id)}
-                class="pc-modal__header__button"
-              >
-                <div class="sr-only">Close</div>
-                <Heroicons.x_mark class="pc-modal__header__close-svg" />
-              </button>
+              <%= unless @hide_close_button do %>
+                <button
+                  type="button"
+                  phx-click={hide_modal(@close_modal_target, @id)}
+                  class="pc-modal__header__button"
+                >
+                  <div class="sr-only">Close</div>
+                  <Heroicons.x_mark class="pc-modal__header__close-svg" />
+                </button>
+              <% end %>
             </div>
           </div>
           <!-- Content -->

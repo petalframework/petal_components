@@ -1239,7 +1239,7 @@ select.has-error:not(.phx-no-feedback) {
 }
 
 input[type="file_input"].has-error:not(.phx-no-feedback) {
-  @apply !border-danger-500 !rounded-md focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 file:!border-none dark:!border-none dark:!bg-[#160B0B] dark:text-danger-400;
+  @apply !border-danger-500 !rounded-md focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 file:!border-none dark:!border-none dark:!bg-gray-950 dark:text-danger-400;
 }
 
 /* If in tailwind.config.json, darkMode: 'class', use this: */

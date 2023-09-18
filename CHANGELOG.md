@@ -1,4 +1,8 @@
 # Changelog
+### 1.5.5 - 2023-09-18 02:15:19
+
+- adds an attribute to `hide_close_button` in the modal header
+
 ### 1.5.4 - 2023-09-13 04:05:32
 
 - Changed close icon svg to Heroicons

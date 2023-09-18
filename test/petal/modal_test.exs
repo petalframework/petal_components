@@ -90,4 +90,22 @@ defmodule PetalComponents.ModalTest do
 
     refute html =~ ~s{phx-window-keydown}
   end
+
+  test "hide_close_button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal></.modal>
+      """)
+
+    assert html =~ "<svg"
+
+    html =
+      rendered_to_string(~H"""
+      <.modal hide_close_button></.modal>
+      """)
+
+    refute html =~ "<svg"
+  end
 end
