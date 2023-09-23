@@ -26,25 +26,25 @@ defmodule PetalComponents.Link do
 
   def a(%{link_type: "a"} = assigns) do
     ~H"""
-    <%= Phoenix.HTML.Link.link([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
-      do: if(@label, do: @label, else: render_slot(@inner_block))
-    ) %>
+    <.link href={@to} class={@class} {@rest}>
+      <%= if(@label, do: @label, else: render_slot(@inner_block)) %>
+    </.link>
     """
   end
 
   def a(%{link_type: "live_patch"} = assigns) do
     ~H"""
-    <%= live_patch([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
-      do: if(@label, do: @label, else: render_slot(@inner_block))
-    ) %>
+    <.link patch={@to} class={@class} {@rest}>
+      <%= if(@label, do: @label, else: render_slot(@inner_block)) %>
+    </.link>
     """
   end
 
   def a(%{link_type: "live_redirect"} = assigns) do
     ~H"""
-    <%= live_redirect([to: @to, class: @class, disabled: @disabled] ++ Map.to_list(@rest),
-      do: if(@label, do: @label, else: render_slot(@inner_block))
-    ) %>
+    <.link navigate={@to} class={@class} {@rest}>
+      <%= if(@label, do: @label, else: render_slot(@inner_block)) %>
+    </.link>
     """
   end
 
