@@ -31,6 +31,8 @@ defmodule PetalComponents.Modal do
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
     doc: "modal max width"
 
+  attr :enable_transition, :boolean, default: true, doc: "enable modal transition animation, useful to disable for Wallaby e2e tests"
+
   attr :rest, :global
   slot :inner_block, required: false
 
@@ -42,8 +44,8 @@ defmodule PetalComponents.Modal do
     ~H"""
     <div
       id={@id}
-      phx-mounted={!@hide && show_modal(@id)}
-      phx-remove={hide_modal(@close_modal_target, @id)}
+      phx-mounted={!@hide && show_modal(@id, enable_transition: @enable_transition)}
+      phx-remove={hide_modal(@close_modal_target, @id, enable_transition: @enable_transition)}
       {@rest}
       class="hidden pc-modal"
     >
@@ -51,8 +53,8 @@ defmodule PetalComponents.Modal do
       <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
         <div
           class={@classes}
-          phx-click-away={@close_on_click_away && hide_modal(@close_modal_target, @id)}
-          phx-window-keydown={@close_on_escape && hide_modal(@close_modal_target, @id)}
+          phx-click-away={@close_on_click_away && hide_modal(@close_modal_target, @id, enable_transition: @enable_transition)}
+          phx-window-keydown={@close_on_escape && hide_modal(@close_modal_target, @id, enable_transition: @enable_transition)}
           phx-key="escape"
         >
           <!-- Header -->
@@ -64,7 +66,7 @@ defmodule PetalComponents.Modal do
               <%= unless @hide_close_button do %>
                 <button
                   type="button"
-                  phx-click={hide_modal(@close_modal_target, @id)}
+                  phx-click={hide_modal(@close_modal_target, @id, enable_transition: @enable_transition)}
                   class="pc-modal__header__button"
                 >
                   <div class="sr-only">Close</div>
@@ -87,20 +89,29 @@ defmodule PetalComponents.Modal do
   # def handle_event("close_modal", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
-  def hide_modal(close_modal_target \\ nil, id \\ "modal") do
+  def hide_modal(close_modal_target \\ nil, id \\ "modal", opts \\ []) do
+    {overlay_transition, box_transition} =
+      if Keyword.get(opts, :enable_transition, true) do
+        {
+          {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"},
+          {"transition-all transform ease-in duration-200",
+           "opacity-100 translate-y-0 sm:scale-100",
+           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+        }
+      else
+        {"", ""}
+      end
+
     js =
       %JS{}
       |> JS.hide(
         to: "##{id} .pc-modal__overlay",
-        transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
+        transition: overlay_transition
       )
       |> JS.hide(
         to: "##{id} .pc-modal__box",
         time: 200,
-        transition:
-          {"transition-all transform ease-in duration-200",
-           "opacity-100 translate-y-0 sm:scale-100",
-           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+        transition: box_transition
       )
       |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
       |> JS.remove_class("overflow-hidden", to: "body")
@@ -114,19 +125,28 @@ defmodule PetalComponents.Modal do
 
   # We are unsure of what the best practice is for using this.
   # Open to suggestions/PRs
-  def show_modal(js \\ %JS{}, id) do
-    js
+  def show_modal(id, opts) do
+    {overlay_transition, box_transition} =
+      if Keyword.get(opts, :enable_transition, true) do
+        {
+          {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"},
+          {"transition-all transform ease-out duration-300",
+           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+           "opacity-100 translate-y-0 sm:scale-100"}
+        }
+      else
+        {"", ""}
+      end
+
+    %JS{}
     |> JS.show(to: "##{id}")
     |> JS.show(
       to: "##{id} .pc-modal__overlay",
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+      transition: overlay_transition
     )
     |> JS.show(
       to: "##{id} .pc-modal__box",
-      transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
+      transition: box_transition
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id} .pc-modal__box")
