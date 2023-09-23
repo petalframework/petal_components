@@ -206,8 +206,8 @@ defmodule PetalComponents.ButtonTest do
       <.button disabled link_type="live_redirect" label="Home" />
       """)
 
-    assert html =~ ~s{href="#"}
     assert html =~ " disabled"
+    refute html =~ "href"
     refute html =~ " phx-"
   end
 

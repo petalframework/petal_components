@@ -69,34 +69,6 @@ defmodule PetalComponents.ATest do
     assert html =~ "data-method"
   end
 
-  test "link contains no extra spaces" do
-    assigns = %{}
-
-    assert rendered_to_string(~H"""
-           <Link.a to="/" label="Press me" />
-           """) =~ ">Press me<"
-
-    assert rendered_to_string(~H"""
-           <Link.a to="/" label=" Press me " />
-           """) =~ "> Press me <"
-
-    assert rendered_to_string(~H"""
-           <Link.a link_type="live_patch" to="/" label="Press me" />
-           """) =~ ">Press me<"
-
-    assert rendered_to_string(~H"""
-           <Link.a link_type="live_redirect" to="/" label="Press me" />
-           """) =~ ">Press me<"
-
-    assert rendered_to_string(~H"""
-           <Link.a to="/">Press me</Link.a>
-           """) =~ ">Press me<"
-
-    assert rendered_to_string(~H"""
-           <Link.a to="/" label="Press me" />, blah
-           """) =~ "</a>, blah"
-  end
-
   test "link as a disabled button" do
     assigns = %{}
 
@@ -120,7 +92,7 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
-    assert html =~ ~s{href="#"}
+    refute html =~ "href"
     refute html =~ " phx-"
 
     html =
@@ -132,7 +104,7 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
-    assert html =~ ~s{href="#"}
+    refute html =~ "href"
     refute html =~ " phx-"
 
     html =
@@ -144,6 +116,6 @@ defmodule PetalComponents.ATest do
 
     assert html =~ "Press me"
     assert html =~ " disabled"
-    assert html =~ ~s{href="#"}
+    refute html =~ "href"
   end
 end

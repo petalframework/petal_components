@@ -309,7 +309,7 @@
 /* Button - disabled */
 
 .pc-button--disabled {
-  @apply opacity-50 disabled:cursor-not-allowed;
+  @apply opacity-50 cursor-not-allowed;
 }
 
 /* Typography */
