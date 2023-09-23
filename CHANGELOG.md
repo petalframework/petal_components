@@ -1,4 +1,10 @@
 # Changelog
+### 1.6.0 - 2023-09-23 07:55:44
+
+- Fix: <.button disabled> where link_type not "button" now shows proper cursor and isn't clickable
+- Fix: <.a> now uses <.link> underneath to avoid warnings with live_view 0.20.0
+- Update: live_view bumped to 0.20.0
+
 ### 1.5.5 - 2023-09-18 02:15:19
 
 - adds an attribute to `hide_close_button` in the modal header
