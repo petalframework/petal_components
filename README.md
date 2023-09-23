@@ -8,7 +8,7 @@
 </p>
 
   <p align="center">
-    Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes.
+    Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes. Work in both live and dead (controller) views.
   </p>
 </p>
 
