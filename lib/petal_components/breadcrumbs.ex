@@ -1,6 +1,6 @@
 defmodule PetalComponents.Breadcrumbs do
   use Phoenix.Component
-  alias PetalComponents.Link
+  alias PetalComponents.{Icon, Link}
 
   attr(:separator, :string, default: "slash", values: ["slash", "chevron"])
   attr(:class, :string, default: "", doc: "Parent div CSS class")
@@ -15,6 +15,7 @@ defmodule PetalComponents.Breadcrumbs do
   #   link_class="!text-blue-500 text-sm font-semibold"
   #   links={[
   #     %{ label: "Link 1", to: "/" },
+  #     %{ to: "/", icon: :home, icon_class="text-blue-500" },
   #     %{ label: "Link 1", to: "/", link_type: "patch|a|redirect" }
   #   ]}
   # />
@@ -31,7 +32,14 @@ defmodule PetalComponents.Breadcrumbs do
           to={link.to}
           class={get_breadcrumb_classes(@link_class)}
         >
-          <%= link.label %>
+          <div class="flex items-center gap-2">
+            <%= if link[:icon] do %>
+              <Icon.icon name={link[:icon]} class={get_icon_classes(link[:icon_class])} />
+            <% end %>
+            <%= if link[:label] do %>
+              <%= link.label %>
+            <% end %>
+          </div>
         </Link.a>
       <% end %>
     </div>
@@ -54,4 +62,7 @@ defmodule PetalComponents.Breadcrumbs do
 
   defp get_breadcrumb_classes(user_classes),
     do: "pc-breadcrumb #{user_classes}"
+
+  defp get_icon_classes(icon_classes),
+    do: "pc-breadcrumb-icon #{icon_classes}"
 end

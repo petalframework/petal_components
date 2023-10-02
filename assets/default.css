@@ -692,6 +692,9 @@
 .pc-breadcrumbs__separator-chevron__icon {
   @apply w-6 h-6;
 }
+.pc-breadcrumb-icon {
+  @apply w-6 h-6 shrink-0;
+}
 
 /* Avatars */
 
