@@ -32,12 +32,14 @@ defmodule PetalComponents.Breadcrumbs do
           to={link.to}
           class={get_breadcrumb_classes(@link_class)}
         >
-          <%= if link[:icon] do %>
-            <Icon.icon name={link[:icon]} class={get_icon_classes(link[:icon_class])} />
-          <% end %>
-          <%= if link[:label] do %>
-            <%= link.label %>
-          <% end %>
+          <div class="flex items-center gap-2">
+            <%= if link[:icon] do %>
+              <Icon.icon name={link[:icon]} class={get_icon_classes(link[:icon_class])} />
+            <% end %>
+            <%= if link[:label] do %>
+              <%= link.label %>
+            <% end %>
+          </div>
         </Link.a>
       <% end %>
     </div>

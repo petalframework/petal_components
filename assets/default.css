@@ -693,7 +693,7 @@
   @apply w-6 h-6;
 }
 .pc-breadcrumb-icon {
-  @apply w-6 shrink-0 pr-1;
+  @apply w-6 h-6 shrink-0;
 }
 
 /* Avatars */
