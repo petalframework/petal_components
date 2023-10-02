@@ -130,7 +130,9 @@ defmodule PetalComponents.Pagination do
   end
 
   defp get_path(path, page_number, current_page) when is_binary(path) do
-    get_path(&String.replace(path, ":page", Integer.to_string(&1)), page_number, current_page)
+    # replace on `%3Apage` or `:page` in case we receive an URI encoded path
+    fun = &String.replace(path, ~r/%3Apage|:page/, Integer.to_string(&1))
+    get_path(fun, page_number, current_page)
   end
 
   defp get_path(fun, "previous", current_page) when is_function(fun, 1) do

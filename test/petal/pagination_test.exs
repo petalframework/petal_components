@@ -541,4 +541,18 @@ defmodule PetalComponents.PaginationTest do
 
     refute html =~ "phx-target"
   end
+
+  test "accept an encoded path URI to work with phoenix sigil_p and path with dynamics params" do
+    assigns = %{
+      params: %{"filter" => "test", "page" => ":page"}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path={"/page?#{URI.encode_query(@params)}"} total_pages={2} current_page={1} />
+      """)
+
+    assert html =~ "filter=test"
+    assert html =~ "page=2"
+  end
 end
