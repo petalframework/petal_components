@@ -1,4 +1,10 @@
 # Changelog
+### 1.6.1 - 2023-10-02 19:24:14
+
+- Add pagination attribute allowing always shown prev and next buttons
+- Pagination support encoded path
+- icon-support-to-breadcrumb-link
+
 ### 1.6.0 - 2023-09-23 07:55:44
 
 - Fix: <.button disabled> where link_type not "button" now shows proper cursor and isn't clickable
