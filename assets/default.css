@@ -843,13 +843,13 @@
   @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700;
 }
 .pc-pagination__item__previous {
-  @apply mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 hover:text-gray-800;
+  @apply mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
 }
 .pc-pagination__item__previous__chevron {
   @apply w-5 h-5 text-gray-600 dark:text-gray-400;
 }
 .pc-pagination__item__next {
-  @apply ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 hover:text-gray-800;
+  @apply ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
 }
 .pc-pagination__item__next__chevron {
   @apply w-5 h-5 text-gray-600 dark:text-gray-400;
@@ -1182,11 +1182,11 @@
 }
 
 .pc-vertical-menu__menu-group__wrapper {
-  @apply  divide-y divide-gray-300;
+  @apply divide-y divide-gray-300;
 }
 
 .pc-vertical-menu__menu-group {
-  @apply  space-y-1;
+  @apply space-y-1;
 }
 
 .pc-vertical-menu__menu-group__title {

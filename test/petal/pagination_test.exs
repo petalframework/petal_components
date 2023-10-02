@@ -344,6 +344,17 @@ defmodule PetalComponents.PaginationTest do
     refute html =~ "/page/0"
   end
 
+  test "previous shows on page 1 as disabled if show boundary chevrons true" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={1} show_boundary_chevrons={true} />
+      """)
+
+    assert html =~ "button class=\"pc-pagination__item__previous\" disabled"
+  end
+
   test "next doesn't show on last page" do
     assigns = %{}
 
@@ -353,6 +364,17 @@ defmodule PetalComponents.PaginationTest do
       """)
 
     refute html =~ "/page/11"
+  end
+
+  test "next shows on last page as disabled if show boundary chevrons true" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={10} show_boundary_chevrons={true} />
+      """)
+
+    assert html =~ "button class=\"pc-pagination__item__next\" disabled"
   end
 
   test "show front ellipsis if current page is greater than the boundary count" do
@@ -503,7 +525,7 @@ defmodule PetalComponents.PaginationTest do
 
     html =
       rendered_to_string(~H"""
-      <.pagination event={true} target={"some-component-id"} total_pages={3} current_page={1} />
+      <.pagination event={true} target="some-component-id" total_pages={3} current_page={1} />
       """)
 
     assert html =~ "phx-target"
@@ -514,7 +536,7 @@ defmodule PetalComponents.PaginationTest do
 
     html =
       rendered_to_string(~H"""
-      <.pagination target={"some-component-id"} total_pages={3} current_page={1} />
+      <.pagination target="some-component-id" total_pages={3} current_page={1} />
       """)
 
     refute html =~ "phx-target"

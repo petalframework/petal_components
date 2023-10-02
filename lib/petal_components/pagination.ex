@@ -26,6 +26,7 @@ defmodule PetalComponents.Pagination do
   attr :current_page, :integer, default: nil, doc: "sets the current page"
   attr :sibling_count, :integer, default: 1, doc: "sets a sibling count"
   attr :boundary_count, :integer, default: 1, doc: "sets a boundary count"
+  attr :show_boundary_chevrons, :boolean, default: false, doc: "whether to show prev & next buttons at boundary pages"
   attr :rest, :global
 
   @doc """
@@ -38,7 +39,7 @@ defmodule PetalComponents.Pagination do
     <div {@rest} class={"#{@class} pc-pagination"}>
       <ul class="pc-pagination__inner">
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
-          <%= if item.type == "prev" and item.enabled? do %>
+          <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
             <div>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
@@ -47,6 +48,7 @@ defmodule PetalComponents.Pagination do
                 link_type={if @event, do: "button", else: @link_type}
                 to={if not @event, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__previous"
+                disabled={!item.enabled?}
               >
                 <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
               </Link.a>
@@ -80,7 +82,7 @@ defmodule PetalComponents.Pagination do
             </li>
           <% end %>
 
-          <%= if item.type == "next" and item.enabled? do %>
+          <%= if item.type == "next" and (item.enabled? or @show_boundary_chevrons) do %>
             <div>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
@@ -89,6 +91,7 @@ defmodule PetalComponents.Pagination do
                 link_type={if @event, do: "button", else: @link_type}
                 to={if not @event, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__next"
+                disabled={!item.enabled?}
               >
                 <Heroicons.chevron_right solid class="pc-pagination__item__next__chevron" />
               </Link.a>
