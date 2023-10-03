@@ -1,4 +1,8 @@
 # Changelog
+### 1.6.2 - 2023-10-03 18:39:33
+
+- Default loading spinner to shrink-0 to enforce its size
+
 ### 1.6.1 - 2023-10-02 19:24:14
 
 - Add pagination attribute allowing always shown prev and next buttons

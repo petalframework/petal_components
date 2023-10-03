@@ -666,13 +666,13 @@
 /* Loading */
 
 .pc-spinner--sm {
-  @apply w-5 h-5;
+  @apply w-5 h-5 shrink-0;
 }
 .pc-spinner--md {
-  @apply w-8 h-8;
+  @apply w-8 h-8 shrink-0;
 }
 .pc-spinner--lg {
-  @apply w-16 h-16;
+  @apply w-16 h-16 shrink-0;
 }
 
 /* Breadcrumbs */
