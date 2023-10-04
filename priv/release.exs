@@ -30,6 +30,12 @@ defmodule Releaser.VersionUtils do
         git push --tags
 
   5. Create release on Github https://github.com/petalframework/petal_components/releases/new
+
+  6. Announce (optional):
+
+  - Tweet
+  - Elixir forum post: https://elixirforum.com/t/petal-components-package-a-set-of-tailwind-styled-components-written-in-heex/43633/63
+  - Reddit: https://reddit.com/r/elixir
   """
   @version_line_regex ~r/(\n\s*@version\s+")([^\n]+)("\n)/
 
