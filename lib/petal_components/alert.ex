@@ -1,6 +1,5 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
-  import PetalComponents.Helpers
 
   attr(:color, :string,
     default: "info",
@@ -8,7 +7,7 @@ defmodule PetalComponents.Alert do
   )
 
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :string, default: "", doc: "CSS class for parent div")
+  attr(:class, :any, default: "", doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
   attr(:label, :string, default: nil, doc: "label your alert")
   attr(:rest, :global)
@@ -50,7 +49,7 @@ defmodule PetalComponents.Alert do
 
             <%= if @close_button_properties do %>
               <button
-                class={build_class(["pc-alert__dismiss-button", get_dismiss_icon_classes(@color)])}
+                class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color)]}
                 {@close_button_properties}
               >
                 <Heroicons.x_mark solid class="self-start w-4 h-4" />
@@ -73,7 +72,7 @@ defmodule PetalComponents.Alert do
     color_css = get_color_classes(opts.color)
     custom_classes = opts.class
 
-    build_class([base_classes, color_css, custom_classes])
+    [base_classes, color_css, custom_classes]
   end
 
   defp get_color_classes("info"),

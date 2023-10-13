@@ -3,8 +3,6 @@ defmodule PetalComponents.Modal do
 
   alias Phoenix.LiveView.JS
 
-  import PetalComponents.Helpers
-
   attr :id, :string, default: "modal", doc: "modal id"
   attr :hide, :boolean, default: false, doc: "modal is hidden"
   attr :title, :string, default: nil, doc: "modal title"
@@ -142,6 +140,6 @@ defmodule PetalComponents.Modal do
     max_width_class = "pc-modal__box--#{opts.max_width}"
     custom_classes = opts.class
 
-    build_class([max_width_class, base_classes, custom_classes])
+    [max_width_class, base_classes, custom_classes]
   end
 end

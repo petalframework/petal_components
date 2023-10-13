@@ -1,8 +1,6 @@
 defmodule PetalComponents.Container do
   use Phoenix.Component
 
-  import PetalComponents.Helpers
-
   attr(:max_width, :string,
     default: "lg",
     values: ["sm", "md", "lg", "xl", "full"],
@@ -18,20 +16,14 @@ defmodule PetalComponents.Container do
     ~H"""
     <div
       {@rest}
-      class={
-        build_class([
-          "pc-container pc-container--#{@max_width}",
-          get_padding_class(@no_padding_on_mobile),
-          @class
-        ])
-      }
+      class={[
+        "pc-container pc-container--#{@max_width}",
+        !@no_padding_on_mobile && "pc-container--mobile-padded",
+        @class
+      ]}
     >
       <%= render_slot(@inner_block) %>
     </div>
     """
-  end
-
-  defp get_padding_class(no_padding_on_mobile) do
-    if no_padding_on_mobile, do: "", else: "pc-container--mobile-padded"
   end
 end
