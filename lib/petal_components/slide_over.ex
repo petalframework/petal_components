@@ -17,6 +17,16 @@ defmodule PetalComponents.SlideOver do
       "close_slide_over_target allows you to target a specific live component for the close event to go to. eg: close_slide_over_target={@myself}"
   )
 
+  attr(:close_on_click_away, :boolean,
+    default: true,
+    doc: "whether the slideover should close when a user clicks away"
+  )
+
+  attr (:close_on_escape, :boolean,
+    default: true,
+    doc: "whether the slideover should close when a user hits escape"
+  )
+
   attr(:title, :string, default: nil, doc: "slideover title")
 
   attr(:max_width, :string,
@@ -48,8 +58,8 @@ defmodule PetalComponents.SlideOver do
         <div
           id="slide-over-content"
           class={get_classes(@max_width, @origin, @class)}
-          phx-click-away={hide_slide_over(@origin, @close_slide_over_target)}
-          phx-window-keydown={hide_slide_over(@origin, @close_slide_over_target)}
+          phx-click-away={@close_on_click_away && hide_slide_over(@close_slide_over_target, @id)}
+          phx-window-keydown={@close_on_escape && hide_slide_over(@close_slide_over_target, @id)}
           phx-key="escape"
         >
           <!-- Header -->
