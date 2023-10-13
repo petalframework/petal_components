@@ -114,4 +114,40 @@ defmodule PetalComponents.SlideOverTest do
 
     assert html =~ ~s{custom-attrs="123"}
   end
+
+  test "close_on_click_away" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.slide_over></.slide_over>
+      """)
+
+    assert html =~ ~s{phx-click-away}
+
+    html =
+      rendered_to_string(~H"""
+      <.slide_over close_on_click_away={false}></.slide_over>
+      """)
+
+    refute html =~ ~s{phx-click-away}
+  end
+
+  test "close_on_escape" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.slide_over></.slide_over>
+      """)
+
+    assert html =~ ~s{phx-window-keydown}
+
+    html =
+      rendered_to_string(~H"""
+      <.slide_over close_on_escape={false}></.slide_over>
+      """)
+
+    refute html =~ ~s{phx-window-keydown}
+  end
 end

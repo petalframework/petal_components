@@ -19,7 +19,7 @@ defmodule PetalComponents.SlideOver do
     doc: "whether the slideover should close when a user clicks away"
   )
 
-  attr (:close_on_escape, :boolean,
+  attr(:close_on_escape, :boolean,
     default: true,
     doc: "whether the slideover should close when a user hits escape"
   )
@@ -49,8 +49,8 @@ defmodule PetalComponents.SlideOver do
         <div
           id="slide-over-content"
           class={get_classes(@max_width, @origin, @class)}
-          phx-click-away={@close_on_click_away && hide_slide_over(@close_slide_over_target, @id)}
-          phx-window-keydown={@close_on_escape && hide_slide_over(@close_slide_over_target, @id)}
+          phx-click-away={@close_on_click_away && hide_slide_over(@origin, @close_slide_over_target)}
+          phx-window-keydown={@close_on_escape && hide_slide_over(@origin, @close_slide_over_target)}
           phx-key="escape"
         >
           <!-- Header -->
