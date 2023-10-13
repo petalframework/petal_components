@@ -4,7 +4,6 @@ defmodule PetalComponents.Pagination do
   """
   use Phoenix.Component
 
-  import PetalComponents.Helpers
   import PetalComponents.PaginationInternal
 
   alias PetalComponents.Link
@@ -126,7 +125,7 @@ defmodule PetalComponents.Pagination do
           "pc-pagination__item--rounded-catch-all"
       end
 
-    build_class([base_classes, active_classes, rounded_classes])
+    [base_classes, active_classes, rounded_classes]
   end
 
   defp get_path(path, page_number, current_page) when is_binary(path) do

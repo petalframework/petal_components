@@ -1,6 +1,6 @@
 defmodule PetalComponents.Helpers do
   @moduledoc """
-  Module for constructing dynamic class names
+  For any helper functions used across multiple components. Ideally we keep this empty - components should be copy-pastable.
   """
 
   @doc """
@@ -9,6 +9,7 @@ defmodule PetalComponents.Helpers do
   This code was taken from Elixirs `Enum.join/2` function and optimized for
   building class name (e.g removing empty strings and joining with " " by default)
   """
+  @deprecated "Phoenix handles lists of strings for classes now. No need for this."
   def build_class(list, joiner \\ " ")
   def build_class([], _joiner), do: ""
 

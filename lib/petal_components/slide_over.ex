@@ -1,8 +1,5 @@
 defmodule PetalComponents.SlideOver do
   use Phoenix.Component
-
-  import PetalComponents.Helpers
-
   alias Phoenix.LiveView.JS
 
   attr(:origin, :string,
@@ -45,13 +42,7 @@ defmodule PetalComponents.SlideOver do
       <div id="slide-over-overlay" class="pc-slideover__overlay" aria-hidden="true"></div>
 
       <div
-        class={
-          build_class([
-            "pc-slideover__wrapper",
-            get_margin_classes(@origin),
-            @class
-          ])
-        }
+        class={["pc-slideover__wrapper", get_margin_classes(@origin), @class]}
         role="dialog"
         aria-modal="true"
       >
@@ -150,14 +141,7 @@ defmodule PetalComponents.SlideOver do
     max_width_class =
       case origin do
         x when x in ["left", "right"] ->
-          case max_width do
-            "sm" -> "pc-slideover__box--sm"
-            "md" -> "pc-slideover__box--md"
-            "lg" -> "pc-slideover__box--lg"
-            "xl" -> "pc-slideover__box--xl"
-            "2xl" -> "pc-slideover__box--2xl"
-            "full" -> "pc-slideover__box--full"
-          end
+          "pc-slideover__box--#{max_width}"
 
         x when x in ["top", "bottom"] ->
           ""
@@ -165,7 +149,7 @@ defmodule PetalComponents.SlideOver do
 
     custom_classes = class
 
-    build_class([slide_over_classes, max_width_class, base_classes, custom_classes])
+    [slide_over_classes, max_width_class, base_classes, custom_classes]
   end
 
   defp get_margin_classes(margin) do

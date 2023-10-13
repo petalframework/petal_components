@@ -2,7 +2,6 @@ defmodule PetalComponents.Table do
   use Phoenix.Component
 
   import PetalComponents.Avatar
-  import PetalComponents.Helpers
 
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:rest, :global)
@@ -10,15 +9,7 @@ defmodule PetalComponents.Table do
 
   def table(assigns) do
     ~H"""
-    <table
-      class={
-        build_class([
-          "pc-table",
-          @class
-        ])
-      }
-      {@rest}
-    >
+    <table class={["pc-table", @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </table>
     """
@@ -30,18 +21,7 @@ defmodule PetalComponents.Table do
 
   def th(assigns) do
     ~H"""
-    <th
-      class={
-        build_class(
-          [
-            "pc-table__th",
-            @class
-          ],
-          " "
-        )
-      }
-      {@rest}
-    >
+    <th class={["pc-table__th", @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </th>
     """
@@ -53,15 +33,7 @@ defmodule PetalComponents.Table do
 
   def tr(assigns) do
     ~H"""
-    <tr
-      class={
-        build_class([
-          "pc-table__tr",
-          @class
-        ])
-      }
-      {@rest}
-    >
+    <tr class={["pc-table__tr", @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </tr>
     """
@@ -73,24 +45,13 @@ defmodule PetalComponents.Table do
 
   def td(assigns) do
     ~H"""
-    <td
-      class={
-        build_class(
-          [
-            "pc-table__td",
-            @class
-          ],
-          " "
-        )
-      }
-      {@rest}
-    >
+    <td class={["pc-table__td", @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </td>
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: "", doc: "CSS class")
   attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
   attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
   attr(:rest, :global)

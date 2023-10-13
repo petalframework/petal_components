@@ -1,10 +1,9 @@
 defmodule PetalComponents.Accordion do
   use Phoenix.Component
-  import PetalComponents.Helpers
   alias Phoenix.LiveView.JS
 
   attr(:container_id, :string)
-  attr(:class, :string, default: "", doc: "CSS class for parent container")
+  attr(:class, :any, default: "", doc: "CSS class for parent container")
   attr(:entries, :list, default: [%{}])
 
   attr(:js_lib, :string,
@@ -56,7 +55,7 @@ defmodule PetalComponents.Accordion do
               type="button"
               {js_attributes("button", @js_lib, @container_id, i, length(@item))}
               class={
-                build_class([
+                [
                   "pc-accordion-item accordion-button",
                   if(i == 0, do: "pc-accordion-item--first"),
                   unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
@@ -64,7 +63,7 @@ defmodule PetalComponents.Accordion do
                     do:
                       "pc-accordion-item--last #{if @js_lib == "live_view_js", do: "pc-accordion-item--last--closed"}"
                   )
-                ])
+                ]
               }
             >
               <span class="pc-accordion-item__heading">
@@ -83,13 +82,13 @@ defmodule PetalComponents.Accordion do
             class="accordion-content-container"
           >
             <div class={
-              build_class([
+              [
                 "pc-accordion-item__content-container",
                 if(i == length(@item) - 1,
                   do: "pc-accordion-item__content-container--last",
                   else: "pc-accordion-item__content-container--not-last"
                 )
-              ])
+              ]
             }>
               <%= render_slot(current_item, current_item.entry) %>
             </div>
