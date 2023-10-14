@@ -1,4 +1,11 @@
 # Changelog
+### 1.7.0 - 2023-10-14 00:57:34
+
+- Added close_on_click_away to `<.slide_over>` (thx @samuelpordeus)
+- Added close_on_escape to `<.slide_over>` (thx @samuelpordeus)
+- Added fade in transition to `<.slide_over>`
+- Cleaned up classes in codebase (deprecated build_class)
+
 ### 1.6.2 - 2023-10-03 18:39:33
 
 - Default loading spinner to shrink-0 to enforce its size
