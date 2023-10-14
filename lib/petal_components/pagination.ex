@@ -20,12 +20,20 @@ defmodule PetalComponents.Pagination do
     doc:
       "whether to use `phx-click` events instead of linking. Enabling this will disable `link_type` and `path`."
 
-  attr :target, :any, default: nil, doc: "the LiveView/LiveComponent to send the event to. Example: `@myself`. Will be ignored if `event` is not enabled."
+  attr :target, :any,
+    default: nil,
+    doc:
+      "the LiveView/LiveComponent to send the event to. Example: `@myself`. Will be ignored if `event` is not enabled."
+
   attr :total_pages, :integer, default: nil, doc: "sets a total page count"
   attr :current_page, :integer, default: nil, doc: "sets the current page"
   attr :sibling_count, :integer, default: 1, doc: "sets a sibling count"
   attr :boundary_count, :integer, default: 1, doc: "sets a boundary count"
-  attr :show_boundary_chevrons, :boolean, default: false, doc: "whether to show prev & next buttons at boundary pages"
+
+  attr :show_boundary_chevrons, :boolean,
+    default: false,
+    doc: "whether to show prev & next buttons at boundary pages"
+
   attr :rest, :global
 
   @doc """

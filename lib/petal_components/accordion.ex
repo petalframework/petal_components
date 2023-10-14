@@ -54,17 +54,15 @@ defmodule PetalComponents.Accordion do
             <button
               type="button"
               {js_attributes("button", @js_lib, @container_id, i, length(@item))}
-              class={
-                [
-                  "pc-accordion-item accordion-button",
-                  if(i == 0, do: "pc-accordion-item--first"),
-                  unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
-                  if(i == length(@item) - 1,
-                    do:
-                      "pc-accordion-item--last #{if @js_lib == "live_view_js", do: "pc-accordion-item--last--closed"}"
-                  )
-                ]
-              }
+              class={[
+                "pc-accordion-item accordion-button",
+                if(i == 0, do: "pc-accordion-item--first"),
+                unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
+                if(i == length(@item) - 1,
+                  do:
+                    "pc-accordion-item--last #{if @js_lib == "live_view_js", do: "pc-accordion-item--last--closed"}"
+                )
+              ]}
             >
               <span class="pc-accordion-item__heading">
                 <%= current_item.heading %>
@@ -81,15 +79,13 @@ defmodule PetalComponents.Accordion do
             {js_attributes("content_container", @js_lib, @container_id, i, length(@item))}
             class="accordion-content-container"
           >
-            <div class={
-              [
-                "pc-accordion-item__content-container",
-                if(i == length(@item) - 1,
-                  do: "pc-accordion-item__content-container--last",
-                  else: "pc-accordion-item__content-container--not-last"
-                )
-              ]
-            }>
+            <div class={[
+              "pc-accordion-item__content-container",
+              if(i == length(@item) - 1,
+                do: "pc-accordion-item__content-container--last",
+                else: "pc-accordion-item__content-container--not-last"
+              )
+            ]}>
               <%= render_slot(current_item, current_item.entry) %>
             </div>
           </div>

@@ -105,16 +105,14 @@ defmodule PetalComponents.Button do
     <Link.a
       to={@to}
       link_type={@link_type}
-      class={
-        [
-          "pc-icon-button",
-          @disabled && "pc-button--disabled",
-          "pc-icon-button-bg--#{@color}",
-          "pc-icon-button--#{@color}",
-          "pc-icon-button--#{@size}",
-          @class
-        ]
-      }
+      class={[
+        "pc-icon-button",
+        @disabled && "pc-button--disabled",
+        "pc-icon-button-bg--#{@color}",
+        "pc-icon-button--#{@color}",
+        "pc-icon-button--#{@size}",
+        @class
+      ]}
       disabled={@disabled}
       {@rest}
     >

@@ -5,7 +5,11 @@ defmodule PetalComponents.Link do
   attr :link_type, :string, default: "a", values: ["a", "live_patch", "live_redirect", "button"]
   attr :label, :string, default: nil, doc: "label your link"
   attr :to, :string, default: nil, doc: "link path"
-  attr :disabled, :boolean, default: false, doc: "disables the link. This will turn an <a> into a <button> (<a> tags can't be disabled)"
+
+  attr :disabled, :boolean,
+    default: false,
+    doc: "disables the link. This will turn an <a> into a <button> (<a> tags can't be disabled)"
+
   attr :rest, :global, include: ~w(method download)
   slot :inner_block, required: false
 
