@@ -41,7 +41,7 @@ defmodule PetalComponents.SlideOver do
     ~H"""
     <div
       {@rest}
-      phx-mounted={!@hide && show_slide_over(@origin)}
+      phx-mounted={!@hide && show_slide_over()}
       phx-remove={hide_slide_over(@origin, @close_slide_over_target)}
       class="hidden pc-slide-over"
       id="slide-over"
@@ -89,8 +89,8 @@ defmodule PetalComponents.SlideOver do
     """
   end
 
-  def show_slide_over(js \\ %JS{}, id) do
-    js
+  def show_slide_over() do
+    %JS{}
     |> JS.show(to: "#slide-over")
     |> JS.show(
       to: "#slide-over-overlay",
