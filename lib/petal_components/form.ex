@@ -190,7 +190,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def text_input(assigns) do
@@ -208,7 +208,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def email_input(assigns) do
@@ -226,7 +226,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def number_input(assigns) do
@@ -244,7 +244,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def password_input(assigns) do
@@ -262,7 +262,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def search_input(assigns) do
@@ -280,7 +280,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def telephone_input(assigns) do
@@ -298,7 +298,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def url_input(assigns) do
@@ -316,7 +316,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def time_input(assigns) do
@@ -334,7 +334,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def time_select(assigns) do
@@ -354,7 +354,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def datetime_local_input(assigns) do
@@ -372,7 +372,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def datetime_select(assigns) do
@@ -392,7 +392,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def date_select(assigns) do
@@ -412,7 +412,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def date_input(assigns) do
@@ -430,7 +430,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def color_input(assigns) do
@@ -448,7 +448,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def file_input(assigns) do
@@ -466,7 +466,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def range_input(assigns) do
@@ -484,7 +484,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def textarea(assigns) do
@@ -523,7 +523,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
 
   attr(:rest, :global,
     include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
@@ -544,7 +544,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:layout, :atom, default: :col, values: [:row, :col], doc: "layout for the checkboxes")
   attr(:checked, :list, doc: "a list of checked values")
@@ -595,12 +595,11 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @checkbox_form_attrs)
 
   def switch(assigns) do
-    base_class = if field_has_errors?(assigns), do: "has-error", else: ""
-    assigns = assign_defaults(assigns, base_class)
+    assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
 
     ~H"""
     <label class="pc-switch">
@@ -608,7 +607,7 @@ defmodule PetalComponents.Form do
         @form,
         @field,
         [
-          class: "sr-only peer #{@classes}",
+          class: @classes,
           phx_feedback_for: Form.input_name(@form, @field)
         ] ++ Map.to_list(@rest)
       ) %>
@@ -618,10 +617,14 @@ defmodule PetalComponents.Form do
     """
   end
 
+  defp switch_classes(has_errors) do
+    "#{if has_errors, do: "has-error", else: ""} sr-only peer"
+  end
+
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:value, :any, default: nil, doc: "the radio value")
   attr(:rest, :global, include: @form_attrs)
 
@@ -641,7 +644,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :string, default: "", doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:layout, :atom, default: :col, values: [:row, :col], doc: "layout for the radio options")
   attr(:rest, :global, include: @form_attrs)

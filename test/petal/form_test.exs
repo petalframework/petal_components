@@ -145,6 +145,8 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[read_terms]"
     assert html =~ "phx-feedback-for"
     assert html =~ "itemid"
+    assert html =~ "sr-only"
+    assert html =~ "peer"
   end
 
   test "radio" do
