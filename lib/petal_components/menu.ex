@@ -126,6 +126,11 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom, required: true
   attr :title, :string, default: nil
 
+  def vertical_menu(%{menu_items: []} = assigns) do
+    ~H"""
+    """
+  end
+
   def vertical_menu(assigns) do
     ~H"""
     <%= if menu_items_grouped?(@menu_items) do %>
@@ -149,7 +154,7 @@ defmodule PetalComponents.Menu do
 
   def menu_group(assigns) do
     ~H"""
-    <nav>
+    <nav :if={@menu_items != []}>
       <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
         <%= @title %>
       </h3>
@@ -193,7 +198,7 @@ defmodule PetalComponents.Menu do
       }
       class={menu_item_classes(@current_page, @name)}
     >
-      <.menu_icon icon={@icon} is_active={@current_page == @name} />
+      <.menu_icon :if={@icon} icon={@icon} is_active={@current_page == @name} />
       <div class="pc-vertical-menu-item__label"><%= @label %></div>
     </.a>
     """
