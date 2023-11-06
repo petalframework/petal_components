@@ -1,4 +1,9 @@
 # Changelog
+### 1.7.1 - 2023-11-06 23:11:51
+
+- Fix form_field switch class bug [#275]
+- Vertical menu items no longer require an icon
+
 ### 1.7.0 - 2023-10-14 00:57:34
 
 - Added close_on_click_away to `<.slide_over>` (thx @samuelpordeus)
