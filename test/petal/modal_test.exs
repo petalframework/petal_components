@@ -108,4 +108,22 @@ defmodule PetalComponents.ModalTest do
 
     refute html =~ "<svg"
   end
+
+  test "enable_transition" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal></.modal>
+      """)
+
+    assert html =~ "transition-all"
+
+    html =
+      rendered_to_string(~H"""
+      <.modal enable_transition={false}></.modal>
+      """)
+
+    refute html =~ "transition-all"
+  end
 end
