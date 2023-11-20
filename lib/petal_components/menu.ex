@@ -120,6 +120,26 @@ defmodule PetalComponents.Menu do
           menu_items: [ ... menu items ... ]
         },
       ]
+
+  Menù groups are allowed in nested menu item too. eg:
+      main_menu_items = [
+        %{
+          name: :item1,
+          label: "Item 1",
+          icon: :key,
+          menu_items: [
+            %{
+              title: "Menu group 1",
+              menu_items: [ ... menu items ... ]
+            },
+            %{
+              title: "Menu group 2",
+              menu_items: [ ... menu items ... ]
+            },
+          ]
+        }
+      ]
+
   """
 
   attr :menu_items, :list, required: true
@@ -233,7 +253,18 @@ defmodule PetalComponents.Menu do
         x-show="open"
         x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
       >
-        <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+      <%= if menu_items_grouped?(@menu_items) do %>
+          <div class="pc-vertical-menu">
+            <.menu_group
+              :for={menu_group <- @menu_items}
+              title={menu_group[:title]}
+              menu_items={menu_group.menu_items}
+              current_page={@current_page}
+            />
+          </div>
+        <% else %>
+          <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+        <% end %>
       </div>
     </div>
     """
