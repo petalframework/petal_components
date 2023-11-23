@@ -104,6 +104,57 @@ defmodule PetalComponents.MenuTest do
       assert html =~ "School"
     end
 
+    test "nested grouped menu renders correctly" do
+      assigns = %{
+        main_menu_items: [
+          %{
+            name: :home,
+            label: "Home",
+            path: "/home",
+            icon: :home,
+            menu_items: [
+              %{
+                title: "Menu group 1",
+                menu_items: [
+                  %{
+                    name: :work,
+                    label: "Work",
+                    path: "#",
+                    icon: :briefcase
+                  }
+                ]
+              },
+              %{
+                title: "Menu group 2",
+                menu_items: [
+                  %{
+                    name: :school,
+                    label: "School",
+                    path: "#",
+                    icon: :academic_cap
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        current_page: :work,
+        sidebar_title: "Nested groups"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+        """)
+
+      assert html =~ "Menu group 1"
+      assert html =~ "Menu group 2"
+
+      assert html =~ "Home"
+      assert html =~ "Work"
+      assert html =~ "School"
+    end
+
     test "active menu item renders css correctly" do
       assigns = %{
         menu_items: [
