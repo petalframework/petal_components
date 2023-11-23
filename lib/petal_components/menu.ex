@@ -175,20 +175,7 @@ defmodule PetalComponents.Menu do
   def menu_group(assigns) do
     ~H"""
     <nav :if={@menu_items != []}>
-      <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
-        <%= @title %>
-      </h3>
-
-      <div class="pc-vertical-menu__menu-group__wrapper">
-        <div class="pc-vertical-menu__menu-group">
-          <.vertical_menu_item
-            :for={menu_item <- @menu_items}
-            all_menu_items={@menu_items}
-            current_page={@current_page}
-            {menu_item}
-          />
-        </div>
-      </div>
+      <.inner_menu_group title={@title} menu_items={@menu_items} current_page={@current_page} />
     </nav>
     """
   end
@@ -253,18 +240,42 @@ defmodule PetalComponents.Menu do
         x-show="open"
         x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
       >
-      <%= if menu_items_grouped?(@menu_items) do %>
+        <%= if menu_items_grouped?(@menu_items) do %>
           <div class="pc-vertical-menu">
-            <.menu_group
-              :for={menu_group <- @menu_items}
-              title={menu_group[:title]}
-              menu_items={menu_group.menu_items}
-              current_page={@current_page}
-            />
+            <div :for={menu_group <- @menu_items}>
+              <.inner_menu_group
+                title={menu_group[:title]}
+                menu_items={menu_group.menu_items}
+                current_page={@current_page}
+              />
+            </div>
           </div>
         <% else %>
-          <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+          <.vertical_menu_item
+            :for={menu_item <- @menu_items}
+            current_page={@current_page}
+            {menu_item}
+          />
         <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  defp inner_menu_group(assigns) do
+    ~H"""
+    <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
+      <%= @title %>
+    </h3>
+
+    <div class="pc-vertical-menu__menu-group__wrapper">
+      <div class="pc-vertical-menu__menu-group">
+        <.vertical_menu_item
+          :for={menu_item <- @menu_items}
+          all_menu_items={@menu_items}
+          current_page={@current_page}
+          {menu_item}
+        />
       </div>
     </div>
     """
