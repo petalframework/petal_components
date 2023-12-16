@@ -24,6 +24,11 @@ defmodule PetalComponents.Modal do
     default: false,
     doc: "whether or not the modal should have a close button in the header"
 
+  attr :on_cancel, JS,
+    default: JS.exec("data-cancel-default"),
+    doc:
+      "a JS function to execute when the modal is closed. Defaults to pushing close_modal event"
+
   attr :max_width, :string,
     default: "md",
     values: ["sm", "md", "lg", "xl", "2xl", "full"],
@@ -41,7 +46,9 @@ defmodule PetalComponents.Modal do
     <div
       id={@id}
       phx-mounted={!@hide && show_modal(@id)}
-      phx-remove={hide_modal(@close_modal_target, @id)}
+      phx-remove={hide_modal(@id)}
+      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      data-cancel-default={push_close_modal_event(@close_modal_target)}
       {@rest}
       class="hidden pc-modal"
     >
@@ -49,8 +56,8 @@ defmodule PetalComponents.Modal do
       <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
         <div
           class={@classes}
-          phx-click-away={@close_on_click_away && hide_modal(@close_modal_target, @id)}
-          phx-window-keydown={@close_on_escape && hide_modal(@close_modal_target, @id)}
+          phx-click-away={@close_on_click_away && JS.exec("data-cancel", to: "##{@id}")}
+          phx-window-keydown={@close_on_escape && JS.exec("data-cancel", to: "##{@id}")}
           phx-key="escape"
         >
           <!-- Header -->
@@ -62,7 +69,7 @@ defmodule PetalComponents.Modal do
               <%= unless @hide_close_button do %>
                 <button
                   type="button"
-                  phx-click={hide_modal(@close_modal_target, @id)}
+                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   class="pc-modal__header__button"
                 >
                   <div class="sr-only">Close</div>
@@ -85,29 +92,30 @@ defmodule PetalComponents.Modal do
   # def handle_event("close_modal", _, socket) do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
-  def hide_modal(close_modal_target \\ nil, id \\ "modal") do
-    js =
-      %JS{}
-      |> JS.hide(
-        to: "##{id} .pc-modal__overlay",
-        transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
-      )
-      |> JS.hide(
-        to: "##{id} .pc-modal__box",
-        time: 200,
-        transition:
-          {"transition-all transform ease-in duration-200",
-           "opacity-100 translate-y-0 sm:scale-100",
-           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
-      )
-      |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
-      |> JS.remove_class("overflow-hidden", to: "body")
-
+  defp push_close_modal_event(close_modal_target) do
     if close_modal_target do
-      JS.push(js, "close_modal", target: close_modal_target)
+      JS.push(%JS{}, "close_modal", target: close_modal_target)
     else
-      JS.push(js, "close_modal")
+      JS.push(%JS{}, "close_modal")
     end
+  end
+
+  def hide_modal(id \\ "modal") do
+    %JS{}
+    |> JS.hide(
+      to: "##{id} .pc-modal__overlay",
+      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
+    )
+    |> JS.hide(
+      to: "##{id} .pc-modal__box",
+      time: 200,
+      transition:
+        {"transition-all transform ease-in duration-200",
+         "opacity-100 translate-y-0 sm:scale-100",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+    )
+    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
+    |> JS.remove_class("overflow-hidden", to: "body")
   end
 
   # We are unsure of what the best practice is for using this.
