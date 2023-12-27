@@ -104,9 +104,9 @@ defmodule PetalComponents.Modal do
       |> JS.remove_class("overflow-hidden", to: "body")
 
     if close_modal_target do
-      JS.push(js, "close_modal", target: close_modal_target)
+      JS.push(js, "close_modal", target: close_modal_target, value: %{id: id})
     else
-      JS.push(js, "close_modal")
+      JS.push(js, "close_modal", value: %{id: id})
     end
   end
 
