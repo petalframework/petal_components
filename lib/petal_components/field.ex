@@ -87,7 +87,7 @@ defmodule PetalComponents.Field do
         else: field.name
     end)
     |> assign_new(:value, fn -> field.value end)
-    |> assign_new(:label, fn -> Phoenix.HTML.Form.humanize(field.field) end)
+    |> assign_new(:label, fn -> PhoenixHTMLHelpers.Form.humanize(field.field) end)
     |> field()
   end
 
