@@ -1,4 +1,10 @@
 # Changelog
+### 1.8.0 - 2024-01-15 04:38:46
+
+- Updated deps
+- Use new PhoenixHTMLHelpers lib
+- Fix bug where the close_modal event gets sent twice to the LiveView if you push_patch from the close_modal handle_event in the LiveView - thanks @axelclark
+
 
 ### 1.7.1 - 2023-11-06 23:11:51
 
