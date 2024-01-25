@@ -3,6 +3,8 @@ defmodule PetalComponents.Menu do
   import PetalComponents.Link
   import PetalComponents.Icon
 
+  alias Phoenix.LiveView.JS
+
   @doc """
   ## Menu items structure
 
@@ -126,8 +128,15 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom, required: true
   attr :title, :string, default: nil
 
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
+
   def vertical_menu(%{menu_items: []} = assigns) do
     ~H"""
+
     """
   end
 
@@ -137,13 +146,19 @@ defmodule PetalComponents.Menu do
       <div class="pc-vertical-menu">
         <.menu_group
           :for={menu_group <- @menu_items}
+          js_lib={@js_lib}
           title={menu_group[:title]}
           menu_items={menu_group.menu_items}
           current_page={@current_page}
         />
       </div>
     <% else %>
-      <.menu_group title={@title} menu_items={@menu_items} current_page={@current_page} />
+      <.menu_group
+        js_lib={@js_lib}
+        title={@title}
+        menu_items={@menu_items}
+        current_page={@current_page}
+      />
     <% end %>
     """
   end
@@ -151,6 +166,12 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom
   attr :menu_items, :list
   attr :title, :string
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
 
   def menu_group(assigns) do
     ~H"""
@@ -163,6 +184,7 @@ defmodule PetalComponents.Menu do
         <div class="pc-vertical-menu__menu-group">
           <.vertical_menu_item
             :for={menu_item <- @menu_items}
+            js_lib={@js_lib}
             all_menu_items={@menu_items}
             current_page={@current_page}
             {menu_item}
@@ -182,6 +204,12 @@ defmodule PetalComponents.Menu do
   attr :all_menu_items, :list, default: nil
   attr :patch_group, :atom, default: nil
   attr :link_type, :string, default: "live_redirect"
+
+  attr(:js_lib, :string,
+    default: "alpine_js",
+    values: ["alpine_js", "live_view_js"],
+    doc: "javascript library used for toggling"
+  )
 
   def vertical_menu_item(%{menu_items: nil} = assigns) do
     current_item = find_item(assigns.name, assigns.all_menu_items)
@@ -205,16 +233,21 @@ defmodule PetalComponents.Menu do
   end
 
   def vertical_menu_item(%{menu_items: _} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:submenu_id, fn -> "submenu_#{Ecto.UUID.generate()}" end)
+      |> assign_new(:icon_id, fn -> "icon_#{Ecto.UUID.generate()}" end)
+
     ~H"""
     <div
-      x-data={"{ open: #{if menu_item_active?(@name, @current_page, @menu_items), do: "true", else: "false"} }"}
       phx-update="ignore"
       id={"dropdown_#{@label |> String.downcase() |> String.replace(" ", "_")}"}
+      {js_attributes("container", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
     >
       <button
         type="button"
         class={menu_item_classes(@current_page, @name)}
-        @click.prevent="open = !open"
+        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id})}
       >
         <.menu_icon icon={@icon} />
         <div class="pc-vertical-menu-item__toggle-label">
@@ -223,15 +256,15 @@ defmodule PetalComponents.Menu do
 
         <div class="pc-vertical-menu-item__toggle-chevron__wrapper">
           <Heroicons.chevron_right
-            class="pc-vertical-menu-item__toggle-chevron__icon"
-            x-bind:class="{ 'rotate-90': open }"
+            id={@icon_id}
+            {js_attributes("icon", @js_lib, %{class: "pc-vertical-menu-item__toggle-chevron__icon", name: @name, current_page: @current_page, menu_items: @menu_items})}
           />
         </div>
       </button>
       <div
+        id={@submenu_id}
         class="pc-vertical-menu-item__submenu-wrapper"
-        x-show="open"
-        x-cloak={!menu_item_active?(@name, @current_page, @menu_items)}
+        {js_attributes("submenu", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
       >
         <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
       </div>
@@ -300,4 +333,87 @@ defmodule PetalComponents.Menu do
   end
 
   defp find_item(_, _), do: nil
+
+  defp js_attributes("container", "alpine_js", %{
+         name: name,
+         current_page: current_page,
+         menu_items: menu_items
+       }) do
+    %{
+      "x-data": "{ open: #{menu_item_active?(name, current_page, menu_items)}}"
+    }
+  end
+
+  defp js_attributes("button", "alpine_js", _args) do
+    %{
+      "@click.prevent": "open = !open"
+    }
+  end
+
+  defp js_attributes("icon", "alpine_js", %{class: class}) do
+    %{
+      class: class,
+      "x-bind:class": "{ 'rotate-90': open }"
+    }
+  end
+
+  defp js_attributes("submenu", "alpine_js", %{
+         name: name,
+         current_page: current_page,
+         menu_items: menu_items
+       }) do
+    %{
+      "x-show": "open",
+      "x-cloak": "#{!menu_item_active?(name, current_page, menu_items)}"
+    }
+  end
+
+  defp js_attributes("container", "live_view_js", _args) do
+    %{}
+  end
+
+  defp js_attributes("button", "live_view_js", %{submenu_id: submenu_id, icon_id: icon_id}) do
+    click =
+      JS.toggle(
+        to: "##{submenu_id}",
+        display: "block"
+      )
+      |> JS.remove_class(
+        "rotate-90",
+        to: "##{icon_id}.rotate-90"
+      )
+      |> JS.add_class(
+        "rotate-90",
+        to: "##{icon_id}:not(.rotate-90)"
+      )
+
+    %{
+      "phx-click": click
+    }
+  end
+
+  defp js_attributes("icon", "live_view_js", %{
+         class: class,
+         name: name,
+         current_page: current_page,
+         menu_items: menu_items
+       }) do
+    rotate = if menu_item_active?(name, current_page, menu_items), do: "rotate-90"
+
+    %{
+      class: [class, rotate]
+    }
+  end
+
+  defp js_attributes("submenu", "live_view_js", %{
+         name: name,
+         current_page: current_page,
+         menu_items: menu_items
+       }) do
+    display = if menu_item_active?(name, current_page, menu_items), do: "block", else: "none"
+
+    %{
+      style: "display: #{display};"
+    }
+  end
 end
