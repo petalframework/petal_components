@@ -2,6 +2,63 @@ defmodule PetalComponents.TableTest do
   use ComponentCase
   import PetalComponents.Table
 
+  describe "Dynamic table" do
+    setup do
+      %{
+        posts: [
+          %{
+            id: 1,
+            name: "Some post"
+          },
+          %{
+            id: 2,
+            name: "Another post"
+          }
+        ]
+      }
+    end
+
+    test "plain", assigns do
+      html =
+        rendered_to_string(~H"""
+        <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
+          <:col :let={post} label="Name" class="col-class" row_class="row-class"><%= post.name %></:col>
+        </.table>
+        """)
+
+      assert html =~ "<table"
+      assert html =~ "pc-table"
+      assert html =~ "my-class"
+      assert html =~ "col-class"
+      assert html =~ "row-class"
+
+      Enum.each(assigns.posts, fn post ->
+        assert html =~ "row_#{post.id}"
+        assert html =~ post.name
+      end)
+    end
+
+    test "row_click", assigns do
+      html =
+        rendered_to_string(~H"""
+        <.table
+          id="posts"
+          row_id={fn post -> "row_#{post.id}" end}
+          rows={@posts}
+          row_click={fn post -> Phoenix.LiveView.JS.navigate("/link_to_#{post.id}") end}
+        >
+          <:col :let={post} label="Name"><%= post.name %></:col>
+        </.table>
+        """)
+
+      assert html =~ "pc-table__tr--row-click"
+
+      Enum.each(assigns.posts, fn post ->
+        assert html =~ "link_to_#{post.id}"
+      end)
+    end
+  end
+
   test "Basic table" do
     assigns = %{}
 

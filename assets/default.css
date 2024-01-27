@@ -992,16 +992,28 @@
 /* Table */
 
 .pc-table {
-  @apply min-w-full overflow-hidden divide-y divide-gray-200 rounded-sm table-auto ring-1 ring-gray-200 dark:ring-0 dark:divide-y-0 dark:divide-gray-800 sm:rounded;
+  @apply min-w-full overflow-hidden rounded-sm table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded shadow;
 }
 .pc-table__th {
-  @apply px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300;
+  @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-gray-300;
+}
+.pc-table thead {
+  @apply border-b dark:border-gray-800 dark:bg-gray-900;
 }
 .pc-table__tr {
-  @apply bg-white border-b dark:border-gray-700 dark:bg-gray-800 last:border-none;
+  @apply bg-white border-b dark:border-gray-800 dark:bg-gray-900 last:border-none;
+}
+.pc-table__tr--row-click {
+  @apply hover:bg-gray-50 dark:hover:bg-gray-800;
 }
 .pc-table__td {
   @apply px-6 py-4 text-sm text-gray-500 dark:text-gray-400;
+}
+.pc-table__td--first-col {
+  @apply font-semibold;
+}
+.pc-table__td--row-click {
+  @apply hover:cursor-pointer;
 }
 .pc-table__user-inner-td {
   @apply flex items-center gap-3;
