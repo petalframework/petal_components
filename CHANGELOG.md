@@ -1,4 +1,9 @@
 # Changelog
+### 1.9.0 - 2024-01-27 23:11:33
+
+- <.vertical_menu> - add support for liveview JS (thanks to @mrdotb)
+- <.table> - now supports dynamic data and col slots
+
 ### 1.8.0 - 2024-01-15 04:38:46
 
 - Updated deps
