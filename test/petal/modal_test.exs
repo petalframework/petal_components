@@ -108,4 +108,15 @@ defmodule PetalComponents.ModalTest do
 
     refute html =~ "<svg"
   end
+
+  test "class" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.modal class="h-full"></.modal>
+      """)
+
+    assert html =~ "pc-modal__box--md pc-modal__box h-full"
+  end
 end
