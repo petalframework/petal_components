@@ -1,4 +1,9 @@
 # Changelog
+### 1.9.1 - 2024-02-01 19:24:57
+
+- Fix modal class
+- Removes scale classes on sm size and up for slideover
+
 ### 1.9.0 - 2024-01-27 23:11:33
 
 - <.vertical_menu> - add support for liveview JS (thanks to @mrdotb)
