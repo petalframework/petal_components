@@ -11,6 +11,7 @@ defmodule PetalComponents.Table do
       <.table id="users" rows={@users}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
+        <:empty_state>No data here yet</:empty_state>
       </.table>
   """
   attr :id, :string
@@ -26,6 +27,11 @@ defmodule PetalComponents.Table do
   slot :col do
     attr :label, :string
     attr :class, :string
+    attr :row_class, :string
+  end
+
+  slot :empty_state,
+    doc: "A message to show when the table is empty, to be used together with :col" do
     attr :row_class, :string
   end
 
@@ -48,6 +54,17 @@ defmodule PetalComponents.Table do
           </.tr>
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
+          <%= if length(@empty_state) > 0 do %>
+            <.tr class="hidden only:table-row">
+              <.td
+                :for={empty_state <- @empty_state}
+                colspan={length(@col)}
+                class={empty_state[:row_class]}
+              >
+                <%= render_slot(empty_state) %>
+              </.td>
+            </.tr>
+          <% end %>
           <.tr
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
