@@ -18,7 +18,7 @@ defmodule PetalComponents.TableTest do
       }
     end
 
-    test "plain", assigns do
+    test "plain with column slots", assigns do
       html =
         rendered_to_string(~H"""
         <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
@@ -31,6 +31,8 @@ defmodule PetalComponents.TableTest do
       assert html =~ "my-class"
       assert html =~ "col-class"
       assert html =~ "row-class"
+      refute html =~ ~r/<table.*id="posts".*>/
+      assert html =~ ~r/<tbody.*id="posts".*>/
 
       Enum.each(assigns.posts, fn post ->
         assert html =~ "row_#{post.id}"
@@ -47,9 +49,27 @@ defmodule PetalComponents.TableTest do
         </.table>
         """)
 
-      IO.puts(html)
       assert html =~ "empty-class"
       assert html =~ "This table is empty"
+    end
+
+    test "plain with custom body", assigns do
+      html =
+        rendered_to_string(~H"""
+        <.table class="my-class" id="posts">
+          <.tr class="row-class">
+            <.td>Lorem ipsum</.td>
+          </.tr>
+        </.table>
+        """)
+
+      assert html =~ "<table"
+      assert html =~ "pc-table"
+      assert html =~ "my-class"
+      assert html =~ "row-class"
+      assert html =~ ~r/<table.*id="posts".*>/
+      refute html =~ ~r/<tbody.*id="posts".*>/
+      assert html =~ "Lorem ipsum"
     end
 
     test "row_click", assigns do

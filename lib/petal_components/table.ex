@@ -46,8 +46,8 @@ defmodule PetalComponents.Table do
     assigns = assign_new(assigns, :id, fn -> "table_#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <table class={["pc-table", @class]} {@rest}>
-      <%= if length(@col) > 0 do %>
+    <%= if length(@col) > 0 do %>
+      <table class={["pc-table", @class]} {@rest}>
         <thead>
           <.tr>
             <.th :for={col <- @col} class={col[:class]}><%= col[:label] %></.th>
@@ -79,10 +79,12 @@ defmodule PetalComponents.Table do
             </.td>
           </.tr>
         </tbody>
-      <% else %>
+      </table>
+    <% else %>
+      <table id={@id} class={["pc-table", @class]} {@rest}>
         <%= render_slot(@inner_block) %>
-      <% end %>
-    </table>
+      </table>
+    <% end %>
     """
   end
 
