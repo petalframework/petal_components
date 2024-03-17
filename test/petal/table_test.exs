@@ -21,13 +21,14 @@ defmodule PetalComponents.TableTest do
     test "plain", assigns do
       html =
         rendered_to_string(~H"""
-        <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
+        <.table class="my-class" id="my-id" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
           <:col :let={post} label="Name" class="col-class" row_class="row-class"><%= post.name %></:col>
         </.table>
         """)
 
       assert html =~ "<table"
       assert html =~ "pc-table"
+      assert html =~ "my-id"
       assert html =~ "my-class"
       assert html =~ "col-class"
       assert html =~ "row-class"
@@ -47,7 +48,6 @@ defmodule PetalComponents.TableTest do
         </.table>
         """)
 
-      IO.puts(html)
       assert html =~ "empty-class"
       assert html =~ "This table is empty"
     end
@@ -78,11 +78,12 @@ defmodule PetalComponents.TableTest do
 
     html =
       rendered_to_string(~H"""
-      <.table></.table>
+      <.table id="my-id"></.table>
       """)
 
     assert html =~ "<table"
     assert html =~ "pc-table"
+    assert html =~ "my-id"
   end
 
   test "tr" do
