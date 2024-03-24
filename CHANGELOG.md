@@ -1,4 +1,30 @@
 # Changelog
+### 1.9.2 - 2024-02-13 02:51:59
+
+- Adds optional empty states for tables.
+- named slot :empty_state
+- always rendered at the top of the table into a cell that spans the whole width (the width is derived from the number of :col slots supplied)
+- the row that holds the cell has hidden only:table-row Tailwind classes so it's only visible if it's the only row
+- the slot takes row_class that is then forwarded to the cell
+- renders multiple cells if more than one :empty_state slot is given
+
+### 1.9.1 - 2024-02-01 19:24:57
+
+- Fix modal class
+- Removes scale classes on sm size and up for slideover
+
+### 1.9.0 - 2024-01-27 23:11:33
+
+- <.vertical_menu> - add support for liveview JS (thanks to @mrdotb)
+- <.table> - now supports dynamic data and col slots
+
+### 1.8.0 - 2024-01-15 04:38:46
+
+- Updated deps
+- Use new PhoenixHTMLHelpers lib
+- Fix bug where the close_modal event gets sent twice to the LiveView if you push_patch from the close_modal handle_event in the LiveView - thanks @axelclark
+
+
 ### 1.7.1 - 2023-11-06 23:11:51
 
 - Fix form_field switch class bug [#275]

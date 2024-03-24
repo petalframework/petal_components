@@ -99,9 +99,8 @@ defmodule PetalComponents.SlideOver do
     |> JS.show(
       to: "#slide-over-content",
       transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
+        {"transition-all transform ease-out duration-300", "opacity-0 sm:translate-y-0",
+         "opacity-100 translate-y-0"}
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "#slide-over-content")

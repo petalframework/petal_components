@@ -36,7 +36,7 @@ defmodule PetalComponents.Input do
       if assigns.multiple, do: field.name <> "[]", else: field.name
     end)
     |> assign_new(:value, fn -> field.value end)
-    |> assign_new(:label, fn -> Phoenix.HTML.Form.humanize(field.field) end)
+    |> assign_new(:label, fn -> PhoenixHTMLHelpers.Form.humanize(field.field) end)
     |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
     |> input()
   end
