@@ -73,4 +73,22 @@ defmodule PetalComponents.ProgressTest do
 
     assert html =~ ~s{custom-attrs="123"}
   end
+
+  test "should round width to 2 decimal places" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.progress value={50} max={100} />
+      """)
+
+    assert html =~ "width: 50.0%"
+
+    html =
+      rendered_to_string(~H"""
+      <.progress value={2} max={3} />
+      """)
+
+    assert html =~ "width: 66.67%"
+  end
 end
