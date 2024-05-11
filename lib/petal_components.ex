@@ -21,6 +21,7 @@ defmodule PetalComponents do
         Pagination,
         Progress,
         Rating,
+        Skeleton,
         SlideOver,
         Table,
         Tabs,
