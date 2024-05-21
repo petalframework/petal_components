@@ -64,6 +64,10 @@ We have a fresh [Phoenix boilerplate template](https://github.com/petalframework
 
 Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=petalframework.vscode-petal-components-snippets&ssr=false#overview) to gain access to 65+ snippets for all of the components.
 
+## Official Figma UI kit
+
+We’ve released an [official Figma UI kit for Petal](https://www.figma.com/community/file/1374192831096114078/official-petal-ui-kit). This kit includes all the open source and pro components you need to design your app in Figma.
+
 ## Roadmap
 
 ### Layout
