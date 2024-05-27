@@ -992,7 +992,7 @@
 /* Table */
 
 .pc-table {
-  @apply min-w-full overflow-hidden rounded-sm table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded shadow;
+  @apply min-w-full overflow-hidden rounded-sm shadow table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
 }
 .pc-table__th {
   @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-gray-300;

@@ -7,7 +7,7 @@ defmodule PetalComponents.ButtonTest do
 
     html =
       rendered_to_string(~H"""
-      <.button label="Press me" phx-click="click_event" />
+      <.button label="Press me" phx-clic`k="click_event" />
       """)
 
     assert html =~ "<button"

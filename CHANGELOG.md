@@ -1,4 +1,8 @@
 # Changelog
+### 1.9.3 - 2024-05-27 04:03:39
+
+- Rounds the width of the progress component to 2 decimal places
+
 ### 1.9.2 - 2024-02-13 02:51:59
 
 - Adds optional empty states for tables.
