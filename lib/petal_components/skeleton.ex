@@ -1,22 +1,9 @@
 defmodule PetalComponents.Skeleton do
   use Phoenix.Component
 
-  attr(:kind, :atom, default: :default, doc: "skeleton", values: [:default, :image])
+  attr(:kind, :atom, default: :default, doc: "skeleton", values: [:default, :image, :video, :text, :card, :widget, :list, :testimonial])
 
-  def skeleton(assigns) do
-    cond do
-      assigns[:kind] == :default -> default(assigns)
-      assigns[:kind] == :image -> image(assigns)
-      assigns[:kind] == :video -> video(assigns)
-      assigns[:kind] == :text -> text(assigns)
-      assigns[:kind] == :card -> card(assigns)
-      assigns[:kind] == :widget -> widget(assigns)
-      assigns[:kind] == :list -> list(assigns)
-      assigns[:kind] == :testimonial -> testimonial(assigns)
-    end
-  end
-
-  defp default(assigns) do
+  def skeleton(%{kind: :default} = assigns) do
     ~H"""
     <div role="status" data-skeleton="default" class="max-w-sm animate-pulse">
       <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
@@ -30,7 +17,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp image(assigns) do
+  def skeleton(%{kind: :image} = assigns) do
     ~H"""
     <div
       role="status"
@@ -61,7 +48,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp video(assigns) do
+  def skeleton(%{kind: :video} = assigns) do
     ~H"""
     <div
       role="status"
@@ -83,7 +70,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp text(assigns) do
+  def skeleton(%{kind: :text} = assigns) do
     ~H"""
     <div role="status" data-skeleton="text" class="space-y-2.5 animate-pulse max-w-lg">
       <div class="flex items-center w-full">
@@ -121,7 +108,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp card(assigns) do
+  def skeleton(%{kind: :card} = assigns) do
     ~H"""
     <div
       role="status"
@@ -164,7 +151,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp widget(assigns) do
+  def skeleton(%{kind: :widget} = assigns) do
     ~H"""
     <div
       role="status"
@@ -187,7 +174,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp list(assigns) do
+  def skeleton(%{kind: :list} = assigns) do
     ~H"""
     <div
       role="status"
@@ -234,7 +221,7 @@ defmodule PetalComponents.Skeleton do
     """
   end
 
-  defp testimonial(assigns) do
+  def skeleton(%{kind: :testimonial} = assigns) do
     ~H"""
     <div role="status" data-skeleton="testimonial" class="animate-pulse">
       <div class="h-2.5 bg-gray-300 rounded-full dark:bg-gray-700 max-w-[640px] mb-2.5 mx-auto"></div>
