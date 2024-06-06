@@ -114,7 +114,6 @@ We’ve released an [official Figma UI kit for Petal](https://www.figma.com/comm
 - [x] badges
 - [x] progress
 - [x] links
-- [ ] tooltips
 
 ## FAQ
 
