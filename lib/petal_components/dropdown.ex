@@ -20,7 +20,7 @@ defmodule PetalComponents.Dropdown do
     doc: "any extra CSS class for menu item wrapper container"
 
   attr :js_lib, :string,
-    default: "alpine_js",
+    default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
 

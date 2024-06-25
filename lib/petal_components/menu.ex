@@ -129,7 +129,7 @@ defmodule PetalComponents.Menu do
   attr :title, :string, default: nil
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
@@ -168,7 +168,7 @@ defmodule PetalComponents.Menu do
   attr :title, :string
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
@@ -206,7 +206,7 @@ defmodule PetalComponents.Menu do
   attr :link_type, :string, default: "live_redirect"
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
