@@ -42,6 +42,7 @@ defmodule PetalComponents.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:a11y_audit, "~> 0.1.0", only: :test},
       {:phoenix, "~> 1.7"},
       {:phoenix_live_view, "~> 0.20"},
       {:phoenix_html, "~> 4.0"},

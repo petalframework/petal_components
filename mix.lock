@@ -1,4 +1,5 @@
 %{
+  "a11y_audit": {:hex, :a11y_audit, "0.1.0", "f972e567c8c34a9945130ece5384571ee0c4f0b771a560fee9cf1818c3c02f7a", [:mix], [{:hound, "~> 1.1", [hex: :hound, repo: "hexpm", optional: true]}, {:wallaby, "~> 0.30", [hex: :wallaby, repo: "hexpm", optional: true]}], "hexpm", "8251d492a0e3884c01fbc9bd993c41b2af39579f297ee1972cad1b71fc7e559b"},
   "bunt": {:hex, :bunt, "1.0.0", "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44", [:mix], [], "hexpm", "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5"},
   "castore": {:hex, :castore, "1.0.5", "9eeebb394cc9a0f3ae56b813459f990abb0a3dedee1be6b27fdb50301930502f", [:mix], [], "hexpm", "8d7c597c3e4a64c395980882d4bca3cebb8d74197c590dc272cfd3b6a6310578"},
   "credo": {:hex, :credo, "1.7.4", "68ca5cf89071511c12fd9919eb84e388d231121988f6932756596195ccf7fd35", [:mix], [{:bunt, "~> 0.2.1 or ~> 1.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:file_system, "~> 0.2 or ~> 1.0", [hex: :file_system, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "9cf776d062c78bbe0f0de1ecaee183f18f2c3ec591326107989b054b7dddefc2"},
