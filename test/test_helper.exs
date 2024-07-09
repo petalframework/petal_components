@@ -18,5 +18,5 @@ Application.put_env(:wallaby, :base_url, "http://localhost:4000")
 ExUnit.after_suite(fn _ ->
   PhoenixPlaygroundHelper.shutdown()
   PhoenixPlaygroundHelper.exit_processes(phx_playground_pid)
-  :init.stop()
+  :init.stop(0)
 end)
