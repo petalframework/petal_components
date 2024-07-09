@@ -51,6 +51,7 @@ defmodule PetalComponents.SlideOver do
       <div
         class={["pc-slideover__wrapper", get_margin_classes(@origin), @class]}
         role="dialog"
+        aria-label="slide-over-content-wrapper"
         aria-modal="true"
       >
         <div
