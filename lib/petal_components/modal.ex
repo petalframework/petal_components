@@ -54,7 +54,12 @@ defmodule PetalComponents.Modal do
       class="hidden pc-modal"
     >
       <div class="pc-modal__overlay" aria-hidden="true"></div>
-      <div class="pc-modal__wrapper" role="dialog" aria-modal="true">
+      <div
+        class="pc-modal__wrapper"
+        aria-labelledby={"pc-modal__header__text-#{@id}"}
+        role="dialog"
+        aria-modal="true"
+      >
         <div
           class={@classes}
           phx-click-away={@close_on_click_away && JS.exec("data-cancel", to: "##{@id}")}
@@ -64,7 +69,7 @@ defmodule PetalComponents.Modal do
           <!-- Header -->
           <div class="pc-modal__header">
             <div class="pc-modal__header__container">
-              <div class="pc-modal__header__text">
+              <div id={"pc-modal__header__text-#{@id}"} class="pc-modal__header__text">
                 <%= @title %>
               </div>
               <%= unless @hide_close_button do %>
