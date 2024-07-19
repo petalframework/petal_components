@@ -181,7 +181,4 @@ If you'd like to help out we've got a [Phoenix umbrella app](https://github.com/
 
 ## Community, Updates & Support
 
-Looking to talk Petal with fellow devs? [Join our great community]([https://github.com/petalframework/petal_development](https://discord.com/invite/exbwVbjAct)) over at our discord. For regular updates, consider signing up to [petal.build](https://petal.build/) and if you have any questions feel free to reach out to us at <support@petal.build>.
-
-
-
+Looking to talk Petal with fellow devs? [Join our great community](https://discord.com/invite/exbwVbjAct) over at our discord. For regular updates, consider signing up to [petal.build](https://petal.build/) and if you have any questions feel free to reach out to us at <support@petal.build>.
