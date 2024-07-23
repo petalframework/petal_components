@@ -1,5 +1,7 @@
 ExUnit.start()
 
+Application.put_env(:phoenix_live_view, :debug_heex_annotations, false)
+
 # Configure logger to suppress output for :phoenix_playground
 Logger.configure(
   level: :warning,
