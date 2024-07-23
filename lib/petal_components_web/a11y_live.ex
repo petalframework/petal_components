@@ -40,12 +40,6 @@ defmodule PetalComponentsWeb.A11yLive do
     ~H"""
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
-    <script>
-      // temporary workaround for missing title, PR raised: https://github.com/phoenix-playground/phoenix_playground/pull/10
-      const title = document.createElement('title');
-      title.textContent = "Phoenix Playground";
-      document.head.appendChild(title);
-    </script>
     <main role="main">
       <.h1>Petal Components A11y Audit</.h1>
       <.h2>Heading 2</.h2>
