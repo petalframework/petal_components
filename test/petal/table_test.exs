@@ -47,7 +47,6 @@ defmodule PetalComponents.TableTest do
         </.table>
         """)
 
-      IO.puts(html)
       assert html =~ "empty-class"
       assert html =~ "This table is empty"
     end

@@ -2,6 +2,7 @@ defmodule PetalComponents.Avatar do
   use Phoenix.Component
 
   attr(:src, :string, default: nil, doc: "hosted avatar URL")
+  attr(:alt, :string, default: nil, doc: "alt text for avatar image")
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
   attr(:class, :string, default: "", doc: "CSS class")
   attr(:name, :string, default: nil, doc: "name for placeholder initials")
@@ -43,6 +44,7 @@ defmodule PetalComponents.Avatar do
         <img
           {@rest}
           src={@src}
+          alt={@alt || @src}
           class={[
             "pc-avatar--with-image",
             "pc-avatar--#{@size}",
