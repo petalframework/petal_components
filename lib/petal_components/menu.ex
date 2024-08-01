@@ -122,6 +122,26 @@ defmodule PetalComponents.Menu do
           menu_items: [ ... menu items ... ]
         },
       ]
+
+  Menù groups are allowed in nested menu item too. eg:
+      main_menu_items = [
+        %{
+          name: :item1,
+          label: "Item 1",
+          icon: :key,
+          menu_items: [
+            %{
+              title: "Menu group 1",
+              menu_items: [ ... menu items ... ]
+            },
+            %{
+              title: "Menu group 2",
+              menu_items: [ ... menu items ... ]
+            },
+          ]
+        }
+      ]
+
   """
 
   attr :menu_items, :list, required: true
@@ -176,21 +196,7 @@ defmodule PetalComponents.Menu do
   def menu_group(assigns) do
     ~H"""
     <nav :if={@menu_items != []}>
-      <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
-        <%= @title %>
-      </h3>
-
-      <div class="pc-vertical-menu__menu-group__wrapper">
-        <div class="pc-vertical-menu__menu-group">
-          <.vertical_menu_item
-            :for={menu_item <- @menu_items}
-            js_lib={@js_lib}
-            all_menu_items={@menu_items}
-            current_page={@current_page}
-            {menu_item}
-          />
-        </div>
-      </div>
+      <.inner_menu_group title={@title} menu_items={@menu_items} current_page={@current_page} />
     </nav>
     """
   end
@@ -266,7 +272,42 @@ defmodule PetalComponents.Menu do
         class="pc-vertical-menu-item__submenu-wrapper"
         {js_attributes("submenu", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
       >
-        <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
+        <%= if menu_items_grouped?(@menu_items) do %>
+          <div class="pc-vertical-menu">
+            <div :for={menu_group <- @menu_items}>
+              <.inner_menu_group
+                title={menu_group[:title]}
+                menu_items={menu_group.menu_items}
+                current_page={@current_page}
+              />
+            </div>
+          </div>
+        <% else %>
+          <.vertical_menu_item
+            :for={menu_item <- @menu_items}
+            current_page={@current_page}
+            {menu_item}
+          />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  defp inner_menu_group(assigns) do
+    ~H"""
+    <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
+      <%= @title %>
+    </h3>
+
+    <div class="pc-vertical-menu__menu-group__wrapper">
+      <div class="pc-vertical-menu__menu-group">
+        <.vertical_menu_item
+          :for={menu_item <- @menu_items}
+          all_menu_items={@menu_items}
+          current_page={@current_page}
+          {menu_item}
+        />
       </div>
     </div>
     """
