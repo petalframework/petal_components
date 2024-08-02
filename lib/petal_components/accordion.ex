@@ -3,7 +3,7 @@ defmodule PetalComponents.Accordion do
   alias Phoenix.LiveView.JS
 
   attr(:container_id, :string)
-  attr(:class, :any, default: "", doc: "CSS class for parent container")
+  attr(:class, :any, default: nil, doc: "CSS class for parent container")
   attr(:entries, :list, default: [%{}])
 
   attr(:js_lib, :string,

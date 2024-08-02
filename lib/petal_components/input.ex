@@ -22,7 +22,7 @@ defmodule PetalComponents.Input do
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
-  attr :class, :string, default: nil, doc: "the class to add to the input"
+  attr :class, :any, default: nil, doc: "the class to add to the input"
 
   attr :rest, :global,
     include:

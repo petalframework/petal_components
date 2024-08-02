@@ -7,7 +7,7 @@ defmodule PetalComponents.Alert do
   )
 
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :any, default: "", doc: "CSS class for parent div")
+  attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
   attr(:label, :string, default: nil, doc: "label your alert")
   attr(:rest, :global)

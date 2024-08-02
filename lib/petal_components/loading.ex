@@ -2,7 +2,7 @@ defmodule PetalComponents.Loading do
   use Phoenix.Component
 
   attr(:size, :string, default: "sm", values: ["sm", "md", "lg"])
-  attr(:size_class, :string, default: nil, doc: "custom CSS classes for size. eg: h-4 w-4")
+  attr(:size_class, :any, default: nil, doc: "custom CSS classes for size. eg: h-4 w-4")
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:show, :boolean, default: true, doc: "show or hide spinner")
   attr(:rest, :global)

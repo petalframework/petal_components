@@ -15,7 +15,7 @@ defmodule PetalComponents.Table do
       </.table>
   """
   attr :id, :string
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
   attr :rows, :list, default: [], doc: "the list of rows to render"
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
@@ -26,13 +26,13 @@ defmodule PetalComponents.Table do
 
   slot :col do
     attr :label, :string
-    attr :class, :string
-    attr :row_class, :string
+    attr :class, :any
+    attr :row_class, :any
   end
 
   slot :empty_state,
     doc: "A message to show when the table is empty, to be used together with :col" do
-    attr :row_class, :string
+    attr :row_class, :any
   end
 
   attr :rest, :global, include: ~w(colspan rowspan)
@@ -68,12 +68,16 @@ defmodule PetalComponents.Table do
           <.tr
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
-            class={"group #{if @row_click, do: "pc-table__tr--row-click", else: ""}"}
+            class={["group", @row_click && "pc-table__tr--row-click"]}
           >
             <.td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={"#{if @row_click, do: "pc-table__td--row-click", else: ""} #{if i == 0, do: "pc-table__td--first-col", else: ""} #{if col[:row_class], do: col[:row_class], else: ""}"}
+              class={[
+                @row_click && "pc-table__td--row-click",
+                i == 0 && "pc-table__td--first-col",
+                col[:row_class] && col[:row_class]
+              ]}
             >
               <%= render_slot(col, @row_item.(row)) %>
             </.td>
@@ -86,7 +90,7 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global, include: ~w(colspan rowspan))
   slot(:inner_block, required: false)
 
@@ -98,7 +102,7 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -110,7 +114,7 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global, include: ~w(colspan headers rowspan))
   slot(:inner_block, required: false)
 
@@ -122,7 +126,7 @@ defmodule PetalComponents.Table do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
   attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
   attr(:rest, :global)

@@ -9,9 +9,9 @@ defmodule PetalComponents.Rating do
   )
 
   attr(:total, :integer, default: 5, doc: "The total number of stars to display")
-  attr(:class, :string, default: nil, doc: "Any additional CSS classes for the rating wrapper")
+  attr(:class, :any, default: nil, doc: "Any additional CSS classes for the rating wrapper")
 
-  attr(:star_class, :string,
+  attr(:star_class, :any,
     default: nil,
     doc:
       "Any additional CSS classes for the individual stars. Eg. you could change the size of the stars with 'h-10 w-10'"
@@ -22,7 +22,7 @@ defmodule PetalComponents.Rating do
     doc: "Whether to include an automatically generated rating label"
   )
 
-  attr(:label_class, :string,
+  attr(:label_class, :any,
     default: nil,
     doc: "Any additional CSS classes for the rating label"
   )
@@ -70,7 +70,7 @@ defmodule PetalComponents.Rating do
     end
   end
 
-  attr :class, :string, default: nil, doc: "Any additional CSS classes for the star"
+  attr :class, :any, default: nil, doc: "Any additional CSS classes for the star"
   attr :type, :atom, default: :empty, doc: "The type of star to display"
 
   def rating_star(%{type: :empty} = assigns) do

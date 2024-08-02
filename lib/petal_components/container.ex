@@ -7,7 +7,7 @@ defmodule PetalComponents.Container do
     doc: "sets container max-width"
   )
 
-  attr(:class, :string, default: "", doc: "CSS class for container")
+  attr(:class, :any, default: nil, doc: "CSS class for container")
   attr(:no_padding_on_mobile, :boolean, default: false, doc: "specify for padding on mobile")
   attr(:rest, :global)
   slot(:inner_block, required: false)

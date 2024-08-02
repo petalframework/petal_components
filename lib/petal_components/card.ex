@@ -1,7 +1,7 @@
 defmodule PetalComponents.Card do
   use Phoenix.Component
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:variant, :string, default: "basic", values: ["basic", "outline"])
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -16,9 +16,9 @@ defmodule PetalComponents.Card do
     """
   end
 
-  attr(:aspect_ratio_class, :string, default: "aspect-video", doc: "aspect ratio class")
+  attr(:aspect_ratio_class, :any, default: "aspect-video", doc: "aspect ratio class")
   attr(:src, :string, default: nil, doc: "hosted image URL")
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -35,12 +35,12 @@ defmodule PetalComponents.Card do
   attr(:heading, :string, default: nil, doc: "creates a heading")
   attr(:category, :string, default: nil, doc: "creates a category")
 
-  attr(:category_color_class, :string,
+  attr(:category_color_class, :any,
     default: "pc-card__category--primary",
     doc: "sets a category color class"
   )
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -60,7 +60,7 @@ defmodule PetalComponents.Card do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 

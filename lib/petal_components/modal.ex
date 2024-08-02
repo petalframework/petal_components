@@ -6,7 +6,7 @@ defmodule PetalComponents.Modal do
   attr :id, :string, default: "modal", doc: "modal id"
   attr :hide, :boolean, default: false, doc: "modal is hidden"
   attr :title, :string, default: nil, doc: "modal title"
-  attr :class, :string, default: nil, doc: "modal class"
+  attr :class, :any, default: nil, doc: "modal class"
 
   attr :close_modal_target, :string,
     default: nil,
