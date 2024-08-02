@@ -68,7 +68,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
   attr(:label, :string, doc: "labels your field")
-  attr(:label_class, :string, default: nil, doc: "extra CSS for your label")
+  attr(:label_class, :any, default: nil, doc: "extra CSS for your label")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
 
   attr(:type, :string,
@@ -190,7 +190,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def text_input(assigns) do
@@ -200,7 +200,8 @@ defmodule PetalComponents.Form do
     <%= Form.text_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -208,7 +209,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def email_input(assigns) do
@@ -218,7 +219,8 @@ defmodule PetalComponents.Form do
     <%= Form.email_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -226,7 +228,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def number_input(assigns) do
@@ -236,7 +238,8 @@ defmodule PetalComponents.Form do
     <%= Form.number_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -244,7 +247,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def password_input(assigns) do
@@ -254,7 +257,8 @@ defmodule PetalComponents.Form do
     <%= Form.password_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -262,7 +266,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def search_input(assigns) do
@@ -272,7 +276,8 @@ defmodule PetalComponents.Form do
     <%= Form.search_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -280,7 +285,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def telephone_input(assigns) do
@@ -290,7 +295,8 @@ defmodule PetalComponents.Form do
     <%= Form.telephone_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -298,7 +304,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def url_input(assigns) do
@@ -308,7 +314,8 @@ defmodule PetalComponents.Form do
     <%= Form.url_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -316,7 +323,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def time_input(assigns) do
@@ -326,7 +333,8 @@ defmodule PetalComponents.Form do
     <%= Form.time_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -334,7 +342,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def time_select(assigns) do
@@ -345,7 +353,8 @@ defmodule PetalComponents.Form do
       <%= Form.time_select(
         @form,
         @field,
-        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+          Map.to_list(@rest)
       ) %>
     </div>
     """
@@ -354,7 +363,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def datetime_local_input(assigns) do
@@ -364,7 +373,8 @@ defmodule PetalComponents.Form do
     <%= Form.datetime_local_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -372,7 +382,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def datetime_select(assigns) do
@@ -383,7 +393,8 @@ defmodule PetalComponents.Form do
       <%= Form.datetime_select(
         @form,
         @field,
-        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+          Map.to_list(@rest)
       ) %>
     </div>
     """
@@ -392,7 +403,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def date_select(assigns) do
@@ -403,7 +414,8 @@ defmodule PetalComponents.Form do
       <%= Form.date_select(
         @form,
         @field,
-        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+        [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+          Map.to_list(@rest)
       ) %>
     </div>
     """
@@ -412,7 +424,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def date_input(assigns) do
@@ -422,7 +434,8 @@ defmodule PetalComponents.Form do
     <%= Form.date_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -430,7 +443,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def color_input(assigns) do
@@ -440,7 +453,8 @@ defmodule PetalComponents.Form do
     <%= Form.color_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -448,7 +462,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def file_input(assigns) do
@@ -458,7 +472,8 @@ defmodule PetalComponents.Form do
     <%= Form.file_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -466,7 +481,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def range_input(assigns) do
@@ -476,7 +491,8 @@ defmodule PetalComponents.Form do
     <%= Form.range_input(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -484,7 +500,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @form_attrs)
 
   def textarea(assigns) do
@@ -503,7 +519,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:rest, :global, include: @form_attrs)
 
@@ -515,7 +531,8 @@ defmodule PetalComponents.Form do
       @form,
       @field,
       @options,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -523,7 +540,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
 
   attr(:rest, :global,
     include: ~w(checked_value unchecked_value checked hidden_input) ++ @form_attrs
@@ -536,7 +553,8 @@ defmodule PetalComponents.Form do
     <%= Form.checkbox(
       @form,
       @field,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -544,7 +562,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:layout, :atom, default: :col, values: [:row, :col], doc: "layout for the checkboxes")
   attr(:checked, :list, doc: "a list of checked values")
@@ -564,11 +582,16 @@ defmodule PetalComponents.Form do
 
         Enum.map(values, &to_string/1)
       end)
-      |> assign_new(:id_prefix, fn -> Phoenix.HTML.Form.input_id(assigns[:form], assigns[:field]) <> "_" end)
+      |> assign_new(:id_prefix, fn ->
+        Phoenix.HTML.Form.input_id(assigns[:form], assigns[:field]) <> "_"
+      end)
 
     ~H"""
     <div class={checkbox_group_layout_classes(%{layout: @layout})}>
-      <%= Form.hidden_input(@form, @field, name: Phoenix.HTML.Form.input_name(@form, @field), value: "") %>
+      <%= Form.hidden_input(@form, @field,
+        name: Phoenix.HTML.Form.input_name(@form, @field),
+        value: ""
+      ) %>
       <%= for {label, value} <- @options do %>
         <label class={checkbox_group_layout_item_classes(%{layout: @layout})}>
           <.checkbox
@@ -595,7 +618,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: nil, doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:rest, :global, include: @checkbox_form_attrs)
 
   def switch(assigns) do
@@ -624,7 +647,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:value, :any, default: nil, doc: "the radio value")
   attr(:rest, :global, include: @form_attrs)
 
@@ -636,7 +659,8 @@ defmodule PetalComponents.Form do
       @form,
       @field,
       @value,
-      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
+      [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
+        Map.to_list(@rest)
     ) %>
     """
   end
@@ -644,7 +668,7 @@ defmodule PetalComponents.Form do
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :string, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:options, :list, default: [], doc: "options for the select")
   attr(:layout, :atom, default: :col, values: [:row, :col], doc: "layout for the radio options")
   attr(:rest, :global, include: @form_attrs)
@@ -684,7 +708,7 @@ defmodule PetalComponents.Form do
 
   attr(:form, :any, default: nil, doc: "")
   attr(:field, :atom, default: nil, doc: "")
-  attr(:class, :any, default: "", doc: "extra classes for the text input")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
 
   def form_field_error(assigns) do
     assigns =
@@ -707,7 +731,7 @@ defmodule PetalComponents.Form do
     """
   end
 
-  attr(:class, :any, default: "", doc: "extra classes for the help text")
+  attr(:class, :any, default: nil, doc: "extra classes for the help text")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
   slot(:inner_block, required: false)
   attr(:rest, :global)

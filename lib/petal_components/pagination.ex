@@ -9,7 +9,7 @@ defmodule PetalComponents.Pagination do
   alias PetalComponents.Link
 
   attr :path, :string, default: "/:page", doc: "page path"
-  attr :class, :string, default: "", doc: "parent div CSS class"
+  attr :class, :any, default: nil, doc: "parent div CSS class"
 
   attr :link_type, :string,
     default: "a",
@@ -43,7 +43,7 @@ defmodule PetalComponents.Pagination do
 
   def pagination(assigns) do
     ~H"""
-    <div {@rest} class={"#{@class} pc-pagination"}>
+    <div {@rest} class={["pc-pagination", @class]}>
       <ul class="pc-pagination__inner">
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>

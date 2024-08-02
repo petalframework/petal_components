@@ -11,7 +11,7 @@ defmodule PetalComponents.Progress do
   attr(:label, :string, default: nil, doc: "labels your progress bar [xl only]")
   attr(:value, :integer, default: nil, doc: "adds a value to your progress bar")
   attr(:max, :integer, default: 100, doc: "sets a max value for your progress bar")
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
 
   def progress(assigns) do

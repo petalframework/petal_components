@@ -32,7 +32,7 @@ defmodule PetalComponents.SlideOver do
     doc: "sets container max-width"
   )
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:hide, :boolean, default: false, doc: "slideover is hidden")
   attr(:rest, :global)
   slot(:inner_block, required: false)

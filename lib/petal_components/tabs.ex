@@ -4,7 +4,7 @@ defmodule PetalComponents.Tabs do
   alias PetalComponents.Link
 
   attr(:underline, :boolean, default: false, doc: "underlines your tabs")
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -16,7 +16,7 @@ defmodule PetalComponents.Tabs do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your tab")
 
   attr(:link_type, :string,
