@@ -21,7 +21,7 @@ defmodule PetalComponents.Breadcrumbs do
   # />
   def breadcrumbs(assigns) do
     ~H"""
-    <div {@rest} class={["pc-breadcrumbs", @class]}>
+    <nav {@rest} class={["pc-breadcrumbs", @class]}>
       <%= for {link, counter} <- Enum.with_index(@links) do %>
         <%= if counter > 0 do %>
           <.separator type={@separator} class={@separator_class} />
@@ -42,7 +42,7 @@ defmodule PetalComponents.Breadcrumbs do
           </div>
         </Link.a>
       <% end %>
-    </div>
+    </nav>
     """
   end
 
