@@ -48,14 +48,18 @@ defmodule PetalComponents.Breadcrumbs do
 
   defp separator(%{type: "slash"} = assigns) do
     ~H"""
-    <div class={["pc-breadcrumbs__separator-slash", @class]}>/</div>
+    <div aria-hidden="true" class={["pc-breadcrumbs__separator-slash", @class]}>/</div>
     """
   end
 
   defp separator(%{type: "chevron"} = assigns) do
     ~H"""
     <div class={["pc-breadcrumbs__separator-chevron", @class]}>
-      <Heroicons.chevron_right solid class="pc-breadcrumbs__separator-chevron__icon" />
+      <Heroicons.chevron_right
+        aria-hidden="true"
+        solid
+        class="pc-breadcrumbs__separator-chevron__icon"
+      />
     </div>
     """
   end
