@@ -1,6 +1,13 @@
 defmodule PetalComponentsWeb.A11yLive do
   @moduledoc """
   A LiveView to test the accessibility of Petal Components using `:a11y_audit`.
+
+  It's worth noting that this view is ugly because classes defined with @apply
+  are not able to be processed for Phoenix Playground at this time.
+
+  To run locally:
+  $ iex -S mix
+  iex> PhoenixPlayground.start(live: PetalComponentsWeb.A11yLive)
   """
   use Phoenix.LiveView
   use PetalComponents
@@ -31,15 +38,24 @@ defmodule PetalComponentsWeb.A11yLive do
          }
        ],
        user_menu_items: [%{path: "/path", icon: :home, label: "blah"}],
-       avatar_src: "blah.img",
-       current_user_name: nil
+       avatar_src: "https://avatars.githubusercontent.com/u/82628117?v=4",
+       current_user_name: "petal_components"
      )}
   end
 
   def render(assigns) do
     ~H"""
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js">
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
+    <script defer src="https://cdn.tailwindcss.com">
+    </script>
+    <style type="text/css">
+      svg {
+        height: 1em; width: 1em;
+      }
+    </style>
     <main role="main">
       <.h1>Petal Components A11y Audit</.h1>
       <.h2>Heading 2</.h2>
@@ -67,11 +83,14 @@ defmodule PetalComponentsWeb.A11yLive do
         <:item heading="Accordion">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis. Ut enim ad minim veniam quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         </:item>
+        <:item heading="Accordion Two">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+        </:item>
       </.accordion>
 
       <.alert with_icon color="info" label="Info alert" />
 
-      <.avatar src="image.png" />
+      <.avatar src={@avatar_src} />
 
       <.badge color="primary" label="Primary" />
 
@@ -107,9 +126,159 @@ defmodule PetalComponentsWeb.A11yLive do
       <.form for={@form}>
         <.field
           field={@form[:name]}
+          type="text"
           placeholder="eg. Sally"
           class="!w-max"
-          itemid="something"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:color]}
+          type="color"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:date]}
+          type="date"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:datetime_local]}
+          type="datetime-local"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:email]}
+          type="email"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:file]}
+          type="file"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:hidden]}
+          type="hidden"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:month]}
+          type="month"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:number]}
+          type="number"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:password]}
+          type="password"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:range]}
+          type="range"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:search]}
+          type="search"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:tel]}
+          type="tel"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:time]}
+          type="time"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:url]}
+          type="url"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
+          value="John"
+          help_text="Help text"
+          label_class="label-class"
+        />
+        <.field
+          field={@form[:week]}
+          type="week"
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something-else"
           value="John"
           help_text="Help text"
           label_class="label-class"
@@ -117,26 +286,6 @@ defmodule PetalComponentsWeb.A11yLive do
       </.form>
 
       <.icon name={:arrow_right} class="text-gray-300" />
-
-      <.form for={@form}>
-        <.input field={@form[:name]} type="text" />
-        <.input field={@form[:name]} type="color" />
-        <.input field={@form[:name]} type="date" />
-        <.input field={@form[:name]} type="datetime-local" />
-        <.input field={@form[:name]} type="email" />
-        <.input field={@form[:name]} type="file" />
-        <.input field={@form[:name]} type="hidden" />
-        <.input field={@form[:name]} type="month" />
-        <.input field={@form[:name]} type="number" />
-        <.input field={@form[:name]} type="password" />
-        <.input field={@form[:name]} type="range" />
-        <.input field={@form[:name]} type="search" />
-        <.input field={@form[:name]} type="tel" />
-        <.input field={@form[:name]} type="text" />
-        <.input field={@form[:name]} type="time" />
-        <.input field={@form[:name]} type="url" />
-        <.input field={@form[:name]} type="week" />
-      </.form>
 
       <PetalComponents.Link.a link_type="a" to="/" label="Press me" phx-click="click_event" />
 
