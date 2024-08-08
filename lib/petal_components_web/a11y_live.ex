@@ -129,160 +129,28 @@ defmodule PetalComponentsWeb.A11yLive do
           type="text"
           placeholder="eg. Sally"
           class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
           label_class="label-class"
         />
-        <.field
-          field={@form[:color]}
-          type="color"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:date]}
-          type="date"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
+        <.field field={@form[:color]} type="color" class="!w-max" label_class="label-class" />
+        <.field field={@form[:date]} type="date" class="!w-max" label_class="label-class" />
         <.field
           field={@form[:datetime_local]}
           type="datetime-local"
-          placeholder="eg. Sally"
           class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
           label_class="label-class"
         />
-        <.field
-          field={@form[:email]}
-          type="email"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:file]}
-          type="file"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:hidden]}
-          type="hidden"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:month]}
-          type="month"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:number]}
-          type="number"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:password]}
-          type="password"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:range]}
-          type="range"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:search]}
-          type="search"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:tel]}
-          type="tel"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:time]}
-          type="time"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:url]}
-          type="url"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
-        <.field
-          field={@form[:week]}
-          type="week"
-          placeholder="eg. Sally"
-          class="!w-max"
-          itemid="something-else"
-          value="John"
-          help_text="Help text"
-          label_class="label-class"
-        />
+        <.field field={@form[:email]} type="email" class="!w-max" label_class="label-class" />
+        <.field field={@form[:file]} type="file" class="!w-max" label_class="label-class" />
+        <.field field={@form[:hidden]} type="hidden" class="!w-max" label_class="label-class" />
+        <.field field={@form[:month]} type="month" class="!w-max" label_class="label-class" />
+        <.field field={@form[:number]} type="number" class="!w-max" label_class="label-class" />
+        <.field field={@form[:password]} type="password" class="!w-max" label_class="label-class" />
+        <.field field={@form[:range]} type="range" class="!w-max" label_class="label-class" />
+        <.field field={@form[:search]} type="search" class="!w-max" label_class="label-class" />
+        <.field field={@form[:tel]} type="tel" class="!w-max" label_class="label-class" />
+        <.field field={@form[:time]} type="time" class="!w-max" label_class="label-class" />
+        <.field field={@form[:url]} type="url" class="!w-max" label_class="label-class" />
+        <.field field={@form[:week]} type="week" class="!w-max" label_class="label-class" />
       </.form>
 
       <.icon name={:arrow_right} class="text-gray-300" />
