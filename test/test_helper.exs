@@ -18,6 +18,7 @@ Application.put_env(:wallaby, :base_url, "http://localhost:4000")
 
 # Teardown code
 ExUnit.after_suite(fn res ->
+  IO.inspect(res, label: "Test result!")
   %{failures: no_of_failures} = res
   passed? = no_of_failures == 0
   PhoenixPlaygroundHelper.shutdown()
