@@ -17,8 +17,10 @@ Application.put_env(:wallaby, :base_url, "http://localhost:4000")
   PhoenixPlayground.start(live: PetalComponentsWeb.A11yLive, open_browser: false)
 
 # Teardown code
-ExUnit.after_suite(fn _ ->
+ExUnit.after_suite(fn res ->
+  %{failures: no_of_failures} = res
+  passed? = no_of_failures == 0
   PhoenixPlaygroundHelper.shutdown()
   PhoenixPlaygroundHelper.exit_processes(phx_playground_pid)
-  :init.stop(0)
+  if passed?, do: :init.stop(0), else: :init.stop(1)
 end)
