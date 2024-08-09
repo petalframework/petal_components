@@ -9,7 +9,7 @@ defmodule PetalComponentsWeb.A11yLive do
   $ iex -S mix
   iex> Run.playground()
   """
-  use Phoenix.LiveView
+  use Phoenix.LiveView, global_prefixes: ~w(x-)
   use PetalComponents
 
   def mount(_params, _session, socket) do
@@ -63,17 +63,17 @@ defmodule PetalComponentsWeb.A11yLive do
       <.h4>Heading 4</.h4>
       <.h5>Heading 5</.h5>
 
-      <.ul class="mb-5" random-attribute="lol">
+      <.ul class="mb-5" x-random-attribute="lol">
         <li>Item 1</li>
         <li>Item 2</li>
       </.ul>
 
-      <.ol class="mb-5" random-attribute="lol">
+      <.ol class="mb-5" x-random-attribute="lol">
         <li>Item 1</li>
         <li>Item 2</li>
       </.ol>
 
-      <.prose class="md:prose-lg" random-attribute="lol">
+      <.prose class="md:prose-lg" x-random-attribute="lol">
         <p>A paragraph</p>
       </.prose>
 
