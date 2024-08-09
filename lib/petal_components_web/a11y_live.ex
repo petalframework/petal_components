@@ -3,11 +3,11 @@ defmodule PetalComponentsWeb.A11yLive do
   A LiveView to test the accessibility of Petal Components using `:a11y_audit`.
 
   It's worth noting that this view is ugly because classes defined with @apply
-  are not able to be processed for Phoenix Playground at this time.
+  are not able to be processed for Phoenix Playground at this time (as far as I can tell).
 
   To run locally:
   $ iex -S mix
-  iex> PhoenixPlayground.start(live: PetalComponentsWeb.A11yLive)
+  iex> Run.playground()
   """
   use Phoenix.LiveView
   use PetalComponents
