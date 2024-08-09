@@ -14,7 +14,11 @@ Application.put_env(:wallaby, :base_url, "http://localhost:4000")
 
 # we cannot use `PhoenixPlayground.Test` because that is for LiveView tests, not Wallaby (which is required by a11y_audit)
 {:ok, phx_playground_pid} =
-  PhoenixPlayground.start(live: PetalComponentsWeb.A11yLive, open_browser: false)
+  PhoenixPlayground.start(
+    live: PetalComponentsWeb.A11yLive,
+    open_browser: false,
+    live_reload: false
+  )
 
 # Teardown code
 ExUnit.after_suite(fn res ->
