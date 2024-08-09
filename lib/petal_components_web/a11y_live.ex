@@ -97,7 +97,9 @@ defmodule PetalComponentsWeb.A11yLive do
       <.breadcrumbs
         class="text-md"
         links={[
-          %{label: "Link 1", to: "/", icon: :home}
+          %{label: "Link 1", to: "/", icon: :home},
+          %{label: "Link 2", to: "/", icon: :home},
+          %{label: "Link 3", to: "/", icon: :home}
         ]}
       />
 
