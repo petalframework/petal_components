@@ -10,7 +10,7 @@ defmodule PhoenixPlaygroundHelper do
 
   defp exit_tree(pid) when is_pid(pid) do
     exit_tree_recursive(pid, MapSet.new())
-    Process.exit(pid, :kill)
+    Process.exit(pid, :normal)
   end
 
   defp exit_tree_recursive(pid, visited) when is_pid(pid) do

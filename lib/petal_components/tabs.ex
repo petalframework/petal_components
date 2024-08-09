@@ -10,9 +10,9 @@ defmodule PetalComponents.Tabs do
 
   def tabs(assigns) do
     ~H"""
-    <div {@rest} class={["pc-tabs", @underline && "pc-tabs--underline", @class]}>
+    <nav {@rest} class={["pc-tabs", @underline && "pc-tabs--underline", @class]} role="tablist">
       <%= render_slot(@inner_block) %>
-    </div>
+    </nav>
     """
   end
 
@@ -40,6 +40,8 @@ defmodule PetalComponents.Tabs do
       to={@to}
       class={get_tab_class(@is_active, @underline) ++ [@class]}
       disabled={@disabled}
+      role="tab"
+      aria-selected={@is_active}
       {@rest}
     >
       <%= if @number do %>

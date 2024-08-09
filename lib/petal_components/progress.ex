@@ -16,7 +16,15 @@ defmodule PetalComponents.Progress do
 
   def progress(assigns) do
     ~H"""
-    <div {@rest} class={["pc-progress--#{@size}", "pc-progress", "pc-progress--#{@color}", @class]}>
+    <div
+      {@rest}
+      class={["pc-progress--#{@size}", "pc-progress", "pc-progress--#{@color}", @class]}
+      role="progressbar"
+      aria-valuemin="0"
+      aria-valuemax={@max}
+      aria-valuenow={@value}
+      aria-label={@label || "Progress"}
+    >
       <span
         class={["pc-progress__inner--#{@color}", "pc-progress__inner"]}
         style={"width: #{Float.round(@value/@max*100, 2)}%"}
