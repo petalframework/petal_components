@@ -3,7 +3,7 @@ defmodule PetalComponents.Icon do
 
   attr :rest, :global,
     doc: "the arbitrary HTML attributes for the svg container",
-    include: ~w(fill stroke stroke-width)
+    include: ~w(fill stroke stroke-width role aria-hidden)
 
   attr :name, :atom, required: true
   attr :outline, :boolean, default: true
