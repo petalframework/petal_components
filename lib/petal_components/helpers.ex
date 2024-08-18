@@ -4,6 +4,34 @@ defmodule PetalComponents.Helpers do
   """
 
   @doc """
+  Generates a unique HTML ID based on the given string.
+
+  ## Parameters
+
+    - string: The input string (e.g., heading or label)
+    - prefix: An optional prefix for the ID (default: "c")
+
+  ## Examples
+
+      iex> PetalComponents.Helpers.uniq_id("My Heading")
+      "c-my-heading-1234"
+
+      iex> PetalComponents.Helpers.uniq_id("My Label", "custom")
+      "custom-my-label-5678"
+  """
+  def uniq_id(string, prefix \\ "c") do
+    slug =
+      string
+      |> String.downcase()
+      |> String.replace(~r/[^\w-]+/, "-")
+      # Limit slug length
+      |> String.slice(0, 20)
+
+    unique = System.unique_integer([:positive]) |> Integer.to_string(36)
+    "#{prefix}-#{slug}-#{unique}"
+  end
+
+  @doc """
   Builds a class string from a given input list by joining them together
 
   This code was taken from Elixirs `Enum.join/2` function and optimized for

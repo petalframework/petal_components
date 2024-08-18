@@ -89,6 +89,8 @@ defmodule PetalComponentsWeb.A11yLive do
       </.accordion>
 
       <.alert with_icon color="info" label="Info alert" />
+      <.alert with_icon color="info" label="Info alert with heading" heading="Info" />
+      <.alert with_icon color="danger" label="Error alert" />
 
       <.avatar src={@avatar_src} />
 
