@@ -9,6 +9,7 @@ defmodule PetalComponents.Badge do
     values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
   )
 
+  attr(:role, :string, default: "note", values: ["note", "status"])
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
   attr(:class, :string, default: "", doc: "CSS class for parent div")
   attr(:label, :string, default: nil, doc: "label your badge")
@@ -19,6 +20,7 @@ defmodule PetalComponents.Badge do
     ~H"""
     <badge
       {@rest}
+      role={@role}
       class={[
         "pc-badge",
         "pc-badge--#{@size}",
