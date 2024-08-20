@@ -1,5 +1,6 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
+  alias PetalComponents.Helpers
 
   attr(:color, :string,
     default: "info",
@@ -23,10 +24,18 @@ defmodule PetalComponents.Alert do
     assigns =
       assigns
       |> assign(:classes, alert_classes(assigns))
+      |> assign(:heading_id, Helpers.uniq_id(assigns.heading || "alert-heading"))
+      |> assign(:label_id, Helpers.uniq_id(assigns.label || "alert-label"))
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
-      <div {@rest} class={@classes}>
+      <div
+        {@rest}
+        class={@classes}
+        role="dialog"
+        aria-labelledby={(@heading && @heading_id) || @label_id}
+        aria-describedby={@label_id}
+      >
         <%= if @with_icon do %>
           <div class="pc-alert__icon-container">
             <.get_icon color={@color} />
@@ -37,12 +46,12 @@ defmodule PetalComponents.Alert do
           <div class="pc-alert__inner">
             <div>
               <%= if @heading do %>
-                <div class="pc-alert__heading">
+                <h2 id={@heading_id} class="pc-alert__heading">
                   <%= @heading %>
-                </div>
+                </h2>
               <% end %>
 
-              <div class="pc-alert__label">
+              <div id={@label_id} class="pc-alert__label">
                 <%= render_slot(@inner_block) || @label %>
               </div>
             </div>

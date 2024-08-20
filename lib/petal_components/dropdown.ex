@@ -111,6 +111,7 @@ defmodule PetalComponents.Dropdown do
       to={@to}
       class={[@class, "pc-dropdown__menu-item", get_disabled_classes(@disabled)]}
       disabled={@disabled}
+      role="menuitem"
       {@rest}
     >
       <%= render_slot(@inner_block) || @label %>

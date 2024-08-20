@@ -19,6 +19,8 @@ defmodule PetalComponents.Avatar do
     <%= if src_blank?(@src) && !@name do %>
       <div
         {@rest}
+        role="img"
+        aria-label="user avatar"
         class={[
           "pc-avatar--with-placeholder-icon",
           "pc-avatar--#{@size}",
@@ -32,6 +34,8 @@ defmodule PetalComponents.Avatar do
         <div
           {@rest}
           style={maybe_generate_random_color(@random_color, @name)}
+          role="img"
+          aria-label="user avatar"
           class={[
             "pc-avatar--with-placeholder-initials",
             "pc-avatar--#{@size}",

@@ -1,8 +1,15 @@
 defmodule PetalComponentsWeb.A11yLive do
   @moduledoc """
   A LiveView to test the accessibility of Petal Components using `:a11y_audit`.
+
+  It's worth noting that this view is ugly because classes defined with @apply
+  are not able to be processed for Phoenix Playground at this time (as far as I can tell).
+
+  To run locally:
+  $ iex -S mix
+  iex> Run.playground()
   """
-  use Phoenix.LiveView
+  use Phoenix.LiveView, global_prefixes: ~w(x-)
   use PetalComponents
 
   def mount(_params, _session, socket) do
@@ -31,15 +38,24 @@ defmodule PetalComponentsWeb.A11yLive do
          }
        ],
        user_menu_items: [%{path: "/path", icon: :home, label: "blah"}],
-       avatar_src: "blah.img",
-       current_user_name: nil
+       avatar_src: "https://avatars.githubusercontent.com/u/82628117?v=4",
+       current_user_name: "petal_components"
      )}
   end
 
   def render(assigns) do
     ~H"""
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js">
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
+    <script defer src="https://cdn.tailwindcss.com">
+    </script>
+    <style type="text/css">
+      svg {
+        height: 1em; width: 1em;
+      }
+    </style>
     <main role="main">
       <.h1>Petal Components A11y Audit</.h1>
       <.h2>Heading 2</.h2>
@@ -47,17 +63,17 @@ defmodule PetalComponentsWeb.A11yLive do
       <.h4>Heading 4</.h4>
       <.h5>Heading 5</.h5>
 
-      <.ul class="mb-5" random-attribute="lol">
+      <.ul class="mb-5" x-random-attribute="lol">
         <li>Item 1</li>
         <li>Item 2</li>
       </.ul>
 
-      <.ol class="mb-5" random-attribute="lol">
+      <.ol class="mb-5" x-random-attribute="lol">
         <li>Item 1</li>
         <li>Item 2</li>
       </.ol>
 
-      <.prose class="md:prose-lg" random-attribute="lol">
+      <.prose class="md:prose-lg" x-random-attribute="lol">
         <p>A paragraph</p>
       </.prose>
 
@@ -67,18 +83,25 @@ defmodule PetalComponentsWeb.A11yLive do
         <:item heading="Accordion">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis. Ut enim ad minim veniam quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         </:item>
+        <:item heading="Accordion Two">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+        </:item>
       </.accordion>
 
       <.alert with_icon color="info" label="Info alert" />
+      <.alert with_icon color="info" label="Info alert with heading" heading="Info" />
+      <.alert with_icon color="danger" label="Error alert" />
 
-      <.avatar src="image.png" />
+      <.avatar src={@avatar_src} />
 
       <.badge color="primary" label="Primary" />
 
       <.breadcrumbs
         class="text-md"
         links={[
-          %{label: "Link 1", to: "/", icon: :home}
+          %{label: "Link 1", to: "/", icon: :home},
+          %{label: "Link 2", to: "/", icon: :home},
+          %{label: "Link 3", to: "/", icon: :home}
         ]}
       />
 
@@ -107,36 +130,34 @@ defmodule PetalComponentsWeb.A11yLive do
       <.form for={@form}>
         <.field
           field={@form[:name]}
+          type="text"
           placeholder="eg. Sally"
           class="!w-max"
-          itemid="something"
-          value="John"
-          help_text="Help text"
           label_class="label-class"
         />
+        <.field field={@form[:color]} type="color" class="!w-max" label_class="label-class" />
+        <.field field={@form[:date]} type="date" class="!w-max" label_class="label-class" />
+        <.field
+          field={@form[:datetime_local]}
+          type="datetime-local"
+          class="!w-max"
+          label_class="label-class"
+        />
+        <.field field={@form[:email]} type="email" class="!w-max" label_class="label-class" />
+        <.field field={@form[:file]} type="file" class="!w-max" label_class="label-class" />
+        <.field field={@form[:hidden]} type="hidden" class="!w-max" label_class="label-class" />
+        <.field field={@form[:month]} type="month" class="!w-max" label_class="label-class" />
+        <.field field={@form[:number]} type="number" class="!w-max" label_class="label-class" />
+        <.field field={@form[:password]} type="password" class="!w-max" label_class="label-class" />
+        <.field field={@form[:range]} type="range" class="!w-max" label_class="label-class" />
+        <.field field={@form[:search]} type="search" class="!w-max" label_class="label-class" />
+        <.field field={@form[:tel]} type="tel" class="!w-max" label_class="label-class" />
+        <.field field={@form[:time]} type="time" class="!w-max" label_class="label-class" />
+        <.field field={@form[:url]} type="url" class="!w-max" label_class="label-class" />
+        <.field field={@form[:week]} type="week" class="!w-max" label_class="label-class" />
       </.form>
 
       <.icon name={:arrow_right} class="text-gray-300" />
-
-      <.form for={@form}>
-        <.input field={@form[:name]} type="text" />
-        <.input field={@form[:name]} type="color" />
-        <.input field={@form[:name]} type="date" />
-        <.input field={@form[:name]} type="datetime-local" />
-        <.input field={@form[:name]} type="email" />
-        <.input field={@form[:name]} type="file" />
-        <.input field={@form[:name]} type="hidden" />
-        <.input field={@form[:name]} type="month" />
-        <.input field={@form[:name]} type="number" />
-        <.input field={@form[:name]} type="password" />
-        <.input field={@form[:name]} type="range" />
-        <.input field={@form[:name]} type="search" />
-        <.input field={@form[:name]} type="tel" />
-        <.input field={@form[:name]} type="text" />
-        <.input field={@form[:name]} type="time" />
-        <.input field={@form[:name]} type="url" />
-        <.input field={@form[:name]} type="week" />
-      </.form>
 
       <PetalComponents.Link.a link_type="a" to="/" label="Press me" phx-click="click_event" />
 

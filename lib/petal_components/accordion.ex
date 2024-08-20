@@ -50,7 +50,7 @@ defmodule PetalComponents.Accordion do
     >
       <%= for {current_item, i} <- Enum.with_index(@item) do %>
         <div {js_attributes("item", @js_lib, @container_id, i, length(@item))} data-i={i}>
-          <h2>
+          <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
               {js_attributes("button", @js_lib, @container_id, i, length(@item))}
@@ -148,26 +148,31 @@ defmodule PetalComponents.Accordion do
     }
   end
 
-  defp js_attributes("button", "alpine_js", _container_id, i, l) when i == l - 1 do
+  defp js_attributes("button", "alpine_js", container_id, i, l) when i == l - 1 do
     %{
       "x-on:click": "expanded = !expanded",
       ":class":
         "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'",
-      ":aria-expanded": "expanded"
+      ":aria-expanded": "expanded",
+      "aria-controls": content_panel_id(container_id, i)
     }
   end
 
-  defp js_attributes("button", "alpine_js", _container_id, _i, _l) do
+  defp js_attributes("button", "alpine_js", container_id, i, _l) do
     %{
       "x-on:click": "expanded = !expanded",
       ":class":
         "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
-      ":aria-expanded": "expanded"
+      ":aria-expanded": "expanded",
+      "aria-controls": content_panel_id(container_id, i)
     }
   end
 
-  defp js_attributes("content_container", "alpine_js", _container_id, _, _) do
+  defp js_attributes("content_container", "alpine_js", container_id, i, _) do
     %{
+      id: content_panel_id(container_id, i),
+      role: "region",
+      "aria-labelledby": content_panel_header_id(container_id, i),
       "x-show": "expanded",
       "x-cloak": true,
       "x-collapse": true
@@ -194,17 +199,29 @@ defmodule PetalComponents.Accordion do
         JS.dispatch("click_accordion",
           to: "##{container_id} [data-i='#{i}']",
           detail: %{container_id: container_id, index: i, length: l}
-        )
+        ),
+      "aria-controls": content_panel_id(container_id, i)
     }
   end
 
-  defp js_attributes("content_container", "live_view_js", _container_id, _i, _) do
+  defp js_attributes("content_container", "live_view_js", container_id, i, _) do
     %{
+      id: content_panel_id(container_id, i),
+      role: "region",
+      "aria-labelledby": content_panel_header_id(container_id, i),
       style: "display: none;"
     }
   end
 
   defp js_attributes("icon", "live_view_js", _container_id, _, _) do
     %{}
+  end
+
+  defp content_panel_header_id(container_id, idx) do
+    "acc-header-#{container_id}-#{idx}"
+  end
+
+  defp content_panel_id(container_id, idx) do
+    "acc-content-panel-#{container_id}-#{idx}"
   end
 end
