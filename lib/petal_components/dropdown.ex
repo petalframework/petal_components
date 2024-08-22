@@ -158,12 +158,16 @@ defmodule PetalComponents.Dropdown do
   end
 
   defp js_attributes("container", "live_view_js", options_container_id) do
+    hide =
+      JS.hide(
+        to: "##{options_container_id}",
+        transition: {@transition_out_base, @transition_out_start, @transition_out_end}
+      )
+
     %{
-      "phx-click-away":
-        JS.hide(
-          to: "##{options_container_id}",
-          transition: {@transition_out_base, @transition_out_start, @transition_out_end}
-        )
+      "phx-click-away": hide,
+      "phx-window-keydown": hide,
+      "phx-key": "Escape"
     }
   end
 
