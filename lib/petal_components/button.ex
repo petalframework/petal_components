@@ -41,7 +41,7 @@ defmodule PetalComponents.Button do
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
   attr :label, :string, default: nil, doc: "labels your button"
 
   attr :rest, :global,
@@ -92,7 +92,7 @@ defmodule PetalComponents.Button do
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
   attr :tooltip, :string, default: nil, doc: "tooltip text"
 
   attr :rest, :global,

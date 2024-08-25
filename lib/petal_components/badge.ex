@@ -11,7 +11,7 @@ defmodule PetalComponents.Badge do
 
   attr(:role, :string, default: "note", values: ["note", "status"])
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :string, default: "", doc: "CSS class for parent div")
+  attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:label, :string, default: nil, doc: "label your badge")
   attr(:rest, :global)
   slot(:inner_block, required: false)

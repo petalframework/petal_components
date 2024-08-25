@@ -13,10 +13,10 @@ defmodule PetalComponents.Dropdown do
 
   attr :options_container_id, :string
   attr :label, :string, default: nil, doc: "labels your dropdown option"
-  attr :class, :string, default: "", doc: "any extra CSS class for the parent container"
+  attr :class, :any, default: nil, doc: "any extra CSS class for the parent container"
 
-  attr :menu_items_wrapper_class, :string,
-    default: "",
+  attr :menu_items_wrapper_class, :any,
+    default: nil,
     doc: "any extra CSS class for menu item wrapper container"
 
   attr :js_lib, :string,
@@ -78,7 +78,11 @@ defmodule PetalComponents.Dropdown do
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} pc-dropdown__menu-items-wrapper"}
+        class={[
+          placement_class(@placement),
+          @menu_items_wrapper_class,
+          "pc-dropdown__menu-items-wrapper"
+        ]}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -94,7 +98,7 @@ defmodule PetalComponents.Dropdown do
 
   attr :to, :string, default: nil, doc: "link path"
   attr :label, :string, doc: "link label"
-  attr :class, :string, default: "", doc: "any additional CSS classes"
+  attr :class, :any, default: nil, doc: "any additional CSS classes"
   attr :disabled, :boolean, default: false
 
   attr :link_type, :string,

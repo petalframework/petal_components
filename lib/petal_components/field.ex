@@ -61,10 +61,10 @@ defmodule PetalComponents.Field do
 
   attr :rows, :string, default: "4", doc: "rows for textarea"
 
-  attr :class, :string, default: nil, doc: "the class to add to the input"
-  attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
+  attr :class, :any, default: nil, doc: "the class to add to the input"
+  attr :wrapper_class, :any, default: nil, doc: "the wrapper div classes"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
-  attr :label_class, :string, default: nil, doc: "extra CSS for your label"
+  attr :label_class, :any, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
 
   attr :required, :boolean,
@@ -333,7 +333,7 @@ defmodule PetalComponents.Field do
     """
   end
 
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :errors, :list, default: []
   attr :name, :string
   attr :rest, :global
@@ -359,7 +359,7 @@ defmodule PetalComponents.Field do
   Renders a label.
   """
   attr :for, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :rest, :global
   attr :required, :boolean, default: false
   slot :inner_block, required: true
@@ -385,7 +385,7 @@ defmodule PetalComponents.Field do
     """
   end
 
-  attr :class, :string, default: "", doc: "extra classes for the help text"
+  attr :class, :any, default: nil, doc: "extra classes for the help text"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   slot :inner_block, required: false
   attr :rest, :global
