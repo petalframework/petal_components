@@ -366,9 +366,15 @@ defmodule PetalComponents.Field do
 
   def field_label(assigns) do
     ~H"""
-    <label for={@for} class={["pc-label", @class, @required && "pc-label--required"]} {@rest}>
-      <%= render_slot(@inner_block) %>
-    </label>
+    <%= if @for do %>
+      <label for={@for} class={["pc-label", @class, @required && "pc-label--required"]} {@rest}>
+        <%= render_slot(@inner_block) %>
+      </label>
+    <% else %>
+      <span class={["pc-label", @class, @required && "pc-label--required"]} {@rest}>
+        <%= render_slot(@inner_block) %>
+      </span>
+    <% end %>
     """
   end
 
