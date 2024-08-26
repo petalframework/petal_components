@@ -48,7 +48,7 @@ defmodule PetalComponents.MenuTest do
           %{
             name: :sign_in,
             label: "Path",
-            path: "/path",
+            path: "/path"
           }
         ],
         current_page: :current_page,

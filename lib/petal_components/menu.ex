@@ -136,7 +136,6 @@ defmodule PetalComponents.Menu do
 
   def vertical_menu(%{menu_items: []} = assigns) do
     ~H"""
-
     """
   end
 

@@ -1,7 +1,11 @@
 defmodule PetalComponents.Skeleton do
   use Phoenix.Component
 
-  attr(:kind, :atom, default: :default, doc: "skeleton", values: [:default, :image, :video, :text, :card, :widget, :list, :testimonial])
+  attr(:kind, :atom,
+    default: :default,
+    doc: "skeleton",
+    values: [:default, :image, :video, :text, :card, :widget, :list, :testimonial]
+  )
 
   def skeleton(%{kind: :default} = assigns) do
     ~H"""
