@@ -209,7 +209,7 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label required={@required} for={@id} class={@label_class}>
+      <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
       <input type="hidden" name={@name} value="" />
