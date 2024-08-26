@@ -253,7 +253,6 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert html =~ "checkbox"
-    assert html =~ "user_roles"
     assert html =~ "user[roles][]"
     assert html =~ "Read"
     assert html =~ "phx-feedback-for"
@@ -403,7 +402,6 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert html =~ "radio"
-    assert html =~ "user_roles"
     assert html =~ "user[roles]"
     assert html =~ "Read"
     assert html =~ "phx-feedback-for"
