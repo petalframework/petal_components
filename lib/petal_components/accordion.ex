@@ -2,6 +2,8 @@ defmodule PetalComponents.Accordion do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
+  import PetalComponents.Icon
+
   attr(:container_id, :string)
   attr(:class, :any, default: nil, doc: "CSS class for parent container")
   attr(:entries, :list, default: [%{}])
@@ -68,8 +70,8 @@ defmodule PetalComponents.Accordion do
                 <%= current_item.heading %>
               </span>
 
-              <Heroicons.chevron_down
-                solid
+              <.icon
+                name="hero-chevron-down-solid"
                 class="pc-accordion-item__chevron"
                 {js_attributes("icon", @js_lib, @container_id, i, length(@item))}
               />
@@ -105,7 +107,7 @@ defmodule PetalComponents.Accordion do
         // Close open accordion item
         if(currentlyOpenAccordionItem) {
           currentlyOpenAccordionItem.dataset.open = false
-          currentlyOpenAccordionItem.querySelector("svg").classList.remove("rotate-180");
+          currentlyOpenAccordionItem.querySelector("span.hero-chevron-down-solid").classList.remove("rotate-180");
           currentlyOpenAccordionItem.querySelector(`.accordion-content-container`).style.display = "none";
           currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
           if(isLastAccordionItem){
@@ -116,7 +118,7 @@ defmodule PetalComponents.Accordion do
         // Open clicked accordion item (if not already open)
         if (!isClosingClickedAccordionItem) {
           clickedAccordionItem.dataset.open = true
-          clickedAccordionItem.querySelector("svg").classList.add("rotate-180");
+          clickedAccordionItem.querySelector("span.hero-chevron-down-solid").classList.add("rotate-180");
           clickedAccordionItem.querySelector(`.accordion-content-container`).style.display = "block";
           clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
           if(isLastAccordionItem){

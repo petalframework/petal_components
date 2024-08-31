@@ -1,6 +1,8 @@
 defmodule PetalComponents.Avatar do
   use Phoenix.Component
 
+  import PetalComponents.Icon
+
   attr(:src, :string, default: nil, doc: "hosted avatar URL")
   attr(:alt, :string, default: nil, doc: "alt text for avatar image")
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
@@ -27,7 +29,7 @@ defmodule PetalComponents.Avatar do
           @class
         ]}
       >
-        <Heroicons.user solid class="pc-avatar__placeholder-icon" />
+        <.icon name="hero-user-solid" class="pc-avatar__placeholder-icon" />
       </div>
     <% else %>
       <%= if src_blank?(@src) && @name do %>

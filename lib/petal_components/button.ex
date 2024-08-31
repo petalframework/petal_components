@@ -3,7 +3,7 @@ defmodule PetalComponents.Button do
 
   alias PetalComponents.Loading
   alias PetalComponents.Link
-  alias PetalComponents.Icon
+  import PetalComponents.Icon
 
   require Logger
 
@@ -34,7 +34,7 @@ defmodule PetalComponents.Button do
   attr :to, :string, default: nil, doc: "link path"
   attr :loading, :boolean, default: false, doc: "indicates a loading state"
   attr :disabled, :boolean, default: false, doc: "indicates a disabled state"
-  attr :icon, :atom, default: nil, doc: "name of a Heroicon at the front of the button"
+  attr :icon, :any, default: nil, doc: "name of a Heroicon at the front of the button"
   attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
 
   attr :link_type, :string,
@@ -60,7 +60,7 @@ defmodule PetalComponents.Button do
         <Loading.spinner show={true} size_class={"pc-button__spinner-icon--#{@size}"} />
       <% else %>
         <%= if @icon do %>
-          <Icon.icon name={@icon} mini class={"pc-button__spinner-icon--#{@size}"} />
+          <.icon name={@icon} class={"pc-button__spinner-icon--#{@size}"} />
         <% end %>
       <% end %>
 

@@ -10,7 +10,7 @@ defmodule PetalComponents.MenuTest do
             name: :sign_in,
             label: "Path",
             path: "/path",
-            icon: :key
+            icon: "hero-key"
           }
         ],
         current_page: :current_page,
@@ -22,7 +22,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
-      assert html =~ "<svg"
+      assert find_icon(html, "hero-key")
       assert html =~ "Path"
       assert html =~ "/path"
       assert html =~ "blah"
@@ -75,7 +75,7 @@ defmodule PetalComponents.MenuTest do
                 name: :home,
                 label: "Home",
                 path: "#",
-                icon: :home
+                icon: "hero-home"
               }
             ]
           },
@@ -86,7 +86,7 @@ defmodule PetalComponents.MenuTest do
                 name: :school,
                 label: "School",
                 path: "#",
-                icon: :academic_cap
+                icon: "hero-academic-cap"
               }
             ]
           }
@@ -100,6 +100,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
+      assert find_icon(html, "hero-home")
       assert html =~ "Home"
       assert html =~ "School"
     end
@@ -114,7 +115,7 @@ defmodule PetalComponents.MenuTest do
                 name: :home,
                 label: "Home",
                 path: "/",
-                icon: :home
+                icon: "hero-home"
               }
             ]
           },
@@ -125,7 +126,7 @@ defmodule PetalComponents.MenuTest do
                 name: :school,
                 label: "School",
                 path: "#",
-                icon: :academic_cap
+                icon: "hero-academic-cap"
               }
             ]
           }

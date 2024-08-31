@@ -22,7 +22,7 @@ defmodule PetalComponentsWeb.A11yLive do
            name: :sign_in,
            label: "Path",
            path: "/path",
-           icon: :key
+           icon: "hero-key"
          }
        ],
        current_page: :current_page,
@@ -37,7 +37,7 @@ defmodule PetalComponentsWeb.A11yLive do
            name: "Another post"
          }
        ],
-       user_menu_items: [%{path: "/path", icon: :home, label: "blah"}],
+       user_menu_items: [%{path: "/path", icon: "hero-home", label: "blah"}],
        avatar_src: "https://avatars.githubusercontent.com/u/82628117?v=4",
        current_user_name: "petal_components"
      )}
@@ -99,9 +99,9 @@ defmodule PetalComponentsWeb.A11yLive do
       <.breadcrumbs
         class="text-md"
         links={[
-          %{label: "Link 1", to: "/", icon: :home},
-          %{label: "Link 2", to: "/", icon: :home},
-          %{label: "Link 3", to: "/", icon: :home}
+          %{label: "Link 1", to: "/", icon: "hero-home"},
+          %{label: "Link 2", to: "/", icon: "hero-home"},
+          %{label: "Link 3", to: "/", icon: "hero-home"}
         ]}
       />
 
@@ -123,7 +123,7 @@ defmodule PetalComponentsWeb.A11yLive do
         label="Dropdown"
       >
         <.dropdown_menu_item class="dropdown_menu_item_class" type="button">
-          <Heroicons.home class="w-5 h-5 text-gray-500" /> Button item with icon
+          <.icon name="hero-home-mini" class="w-5 h-5 text-gray-500" /> Button item with icon
         </.dropdown_menu_item>
       </.dropdown>
 
@@ -157,7 +157,7 @@ defmodule PetalComponentsWeb.A11yLive do
         <.field field={@form[:week]} type="week" class="!w-max" label_class="label-class" />
       </.form>
 
-      <.icon name={:arrow_right} class="text-gray-300" />
+      <.icon name="hero-arrow-right" class="text-gray-300" />
 
       <PetalComponents.Link.a link_type="a" to="/" label="Press me" phx-click="click_event" />
 

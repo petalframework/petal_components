@@ -21,7 +21,10 @@ defmodule PetalComponents.UserDropdownMenu do
             <.avatar size="sm" />
           <% end %>
 
-          <Heroicons.chevron_down mini class="w-4 h-4 ml-1 -mr-1 text-gray-400 dark:text-gray-100" />
+          <.icon
+            name="hero-chevron-down-mini"
+            class="w-4 h-4 ml-1 -mr-1 text-gray-400 dark:text-gray-100"
+          />
         </div>
       </:trigger_element>
       <%= for menu_item <- @user_menu_items do %>
@@ -31,7 +34,7 @@ defmodule PetalComponents.UserDropdownMenu do
           to={menu_item.path}
         >
           <%= if is_atom(menu_item.icon) do %>
-            <.icon outline name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <.icon name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <% end %>
 
           <%= if is_function(menu_item.icon) do %>

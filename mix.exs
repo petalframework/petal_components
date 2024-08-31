@@ -56,7 +56,12 @@ defmodule PetalComponents.MixProject do
       {:phoenix_ecto, "~> 4.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:heroicons, "~> 0.5.3"}
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.1.5",
+       app: false,
+       compile: false,
+       sparse: "optimized"}
     ]
   end
 

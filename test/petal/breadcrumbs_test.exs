@@ -10,7 +10,7 @@ defmodule PetalComponents.BreadcrumbsTest do
       <.breadcrumbs
         class="text-md"
         links={[
-          %{label: "Link 1", to: "/", icon: :home}
+          %{label: "Link 1", to: "/", icon: "hero-home"}
         ]}
       />
       """)
@@ -19,7 +19,7 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "text-md"
-    assert html =~ "<svg"
+    assert html =~ "hero-home"
   end
 
   test "breadcrumb_patch" do

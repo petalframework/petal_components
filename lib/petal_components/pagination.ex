@@ -7,6 +7,7 @@ defmodule PetalComponents.Pagination do
   import PetalComponents.PaginationInternal
 
   alias PetalComponents.Link
+  import PetalComponents.Icon
 
   attr :path, :string, default: "/:page", doc: "page path"
   attr :class, :any, default: nil, doc: "parent div CSS class"
@@ -57,7 +58,7 @@ defmodule PetalComponents.Pagination do
                 class="pc-pagination__item__previous"
                 disabled={!item.enabled?}
               >
-                <Heroicons.chevron_left solid class="pc-pagination__item__previous__chevron" />
+                <.icon name="hero-chevron-left-solid" class="pc-pagination__item__previous__chevron" />
               </Link.a>
             </div>
           <% end %>
@@ -100,7 +101,7 @@ defmodule PetalComponents.Pagination do
                 class="pc-pagination__item__next"
                 disabled={!item.enabled?}
               >
-                <Heroicons.chevron_right solid class="pc-pagination__item__next__chevron" />
+                <.icon name="hero-chevron-right-solid" class="pc-pagination__item__next__chevron" />
               </Link.a>
             </div>
           <% end %>

@@ -11,7 +11,7 @@ defmodule PetalComponents.AlertTest do
       """)
 
     assert html =~ "Info alert"
-    assert html =~ "<svg"
+    assert find_icon(html)
     assert html =~ "pc-alert--info"
 
     html =

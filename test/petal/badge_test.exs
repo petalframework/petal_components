@@ -1,6 +1,7 @@
 defmodule PetalComponents.BadgeTest do
   use ComponentCase
   import PetalComponents.Badge
+  import PetalComponents.Icon
 
   test "it renders colors and label correctly" do
     assigns = %{}
@@ -91,11 +92,11 @@ defmodule PetalComponents.BadgeTest do
     html =
       rendered_to_string(~H"""
       <.badge color="gray" variant="light" with_icon label="SM" size="sm">
-        <Heroicons.clock solid class="w-3 h-3 pb-[0.05rem]" /> 2 hours ago
+        <.icon name="hero-clock-solid" class="w-3 h-3 pb-[0.05rem]" /> 2 hours ago
       </.badge>
       """)
 
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-clock-solid")
   end
 
   test "should include additional assigns" do
