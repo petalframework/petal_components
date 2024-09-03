@@ -45,7 +45,7 @@ defmodule PetalComponents.MixProject do
     [
       {:a11y_audit, "~> 0.2.0", only: :test},
       {:phoenix_playground, "~> 0.1.4", only: [:dev, :test]},
-      {:websock_adapter, "~> 0.5.6"},
+      {:websock_adapter, "~> 0.5.7"},
       {:wallaby, "~> 0.30.9", runtime: false, only: :test},
       {:phoenix, "~> 1.7"},
       {:phoenix_live_view, "~> 0.20"},
