@@ -277,8 +277,6 @@ defmodule PetalComponents.Menu do
 
   defp menu_icon(assigns) do
     ~H"""
-    <.icon name={@icon} class={menu_icon_classes(@is_active)} />
-
     <%= if is_function(@icon) do %>
       <%= Phoenix.LiveView.TagEngine.component(
         @icon,
@@ -287,8 +285,12 @@ defmodule PetalComponents.Menu do
       ) %>
     <% end %>
 
-    <%= if is_binary(@icon) do %>
+    <%= if is_binary(@icon) && String.match?(@icon, ~r/svg|img/) do %>
       <%= Phoenix.HTML.raw(@icon) %>
+    <% end %>
+
+    <%= if is_binary(@icon) do %>
+      <.icon name={@icon} class={menu_icon_classes(@is_active)} />
     <% end %>
     """
   end

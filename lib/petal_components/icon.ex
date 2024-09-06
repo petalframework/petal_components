@@ -5,7 +5,7 @@ defmodule PetalComponents.Icon do
 
   attr :rest, :global,
     doc: "the arbitrary HTML attributes for the svg container",
-    include: ~w(fill stroke stroke-width role aria-hidden)
+    include: ~w(role aria-hidden)
 
   attr :name, :any, required: true
   attr :class, :any, default: nil, doc: "svg class"
@@ -46,7 +46,7 @@ defmodule PetalComponents.Icon do
   quote do
     attr :rest, :global,
       doc: "the arbitrary HTML attributes for the svg container",
-      include: ~w(fill stroke stroke-width role aria-hidden)
+      include: ~w(role aria-hidden)
 
     attr :name, :any, required: true
     attr :class, :any, default: nil, doc: "svg class"

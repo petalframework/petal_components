@@ -19,7 +19,7 @@ defmodule PetalComponents.UserDropdownMenuTest do
       """)
 
     assert html =~ "<img"
-    assert find_icon(html)
+    assert find_icon(html, "hero-home")
     assert html =~ "/path"
     assert html =~ "blah"
   end
