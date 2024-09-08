@@ -878,7 +878,7 @@ defmodule PetalComponents.Form do
   defp field_has_errors?(%{form: form, field: field}) when is_map(form) do
     case Keyword.get_values(form.errors || [], field) do
       [] -> false
-      _ -> true
+      _ -> used_input?(form[field])
     end
   end
 
