@@ -32,9 +32,9 @@ defmodule PetalComponents.Form do
         <%= render_slot(@inner_block) || @label || Form.humanize(@field) %>
       <% end %>
     <% else %>
-      <label class={@classes} {@rest}>
+      <span class={@classes} {@rest}>
         <%= render_slot(@inner_block) || @label || Form.humanize(@field) %>
-      </label>
+      </span>
     <% end %>
     """
   end
@@ -120,10 +120,10 @@ defmodule PetalComponents.Form do
             </div>
           </label>
         <% "checkbox_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label form={@form} label={@label} class={@label_class} />
           <.checkbox_group form={@form} field={@field} {@rest} />
         <% "radio_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label form={@form} label={@label} class={@label_class} />
           <.radio_group form={@form} field={@field} {@rest} />
         <% "text_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
@@ -150,16 +150,16 @@ defmodule PetalComponents.Form do
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.time_input form={@form} field={@field} {@rest} />
         <% "time_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label form={@form} label={@label} class={@label_class} />
           <.time_select form={@form} field={@field} {@rest} />
         <% "datetime_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label form={@form} label={@label} class={@label_class} />
           <.datetime_select form={@form} field={@field} {@rest} />
         <% "datetime_local_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.datetime_local_input form={@form} field={@field} {@rest} />
         <% "date_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label form={@form} label={@label} class={@label_class} />
           <.date_select form={@form} field={@field} {@rest} />
         <% "date_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
