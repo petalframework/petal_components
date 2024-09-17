@@ -10,7 +10,7 @@ defmodule PetalComponents.BreadcrumbsTest do
       <.breadcrumbs
         class="text-md"
         links={[
-          %{label: "Link 1", to: "/", icon: :home}
+          %{label: "Link 1", to: "/", icon: "hero-home"}
         ]}
       />
       """)
@@ -19,7 +19,28 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "<a"
     assert html =~ "href"
     assert html =~ "text-md"
-    assert html =~ "<svg"
+    assert html =~ "hero-home"
+    assert find_icon(html, "hero-home")
+  end
+
+  test "breadcrumbs with no label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{to: "/", icon: "hero-home"}
+        ]}
+      />
+      """)
+
+    assert html =~ "<a"
+    assert html =~ "href"
+    assert html =~ "text-md"
+    assert html =~ "hero-home"
+    assert find_icon(html, "hero-home")
   end
 
   test "breadcrumb_patch" do
@@ -93,5 +114,41 @@ defmodule PetalComponents.BreadcrumbsTest do
       """)
 
     assert html =~ ~s{custom-attrs="123"}
+  end
+
+  test "render multiple links with default separator" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.breadcrumbs
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/"},
+          %{label: "Link 2", to: "/"}
+        ]}
+      />
+      """)
+
+    assert html =~ "pc-breadcrumbs__separator-slash"
+  end
+
+  test "render multiple links with chevron separator" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.breadcrumbs
+        separator="chevron"
+        class="text-md"
+        links={[
+          %{label: "Link 1", to: "/"},
+          %{label: "Link 2", to: "/"}
+        ]}
+      />
+      """)
+
+    assert html =~ "pc-breadcrumbs__separator-chevron"
+    assert find_icon(html, "hero-chevron-right-solid")
   end
 end

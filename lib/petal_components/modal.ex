@@ -3,6 +3,8 @@ defmodule PetalComponents.Modal do
 
   alias Phoenix.LiveView.JS
 
+  import PetalComponents.Icon
+
   attr :id, :string, default: "modal", doc: "modal id"
   attr :hide, :boolean, default: false, doc: "modal is hidden"
   attr :title, :string, default: nil, doc: "modal title"
@@ -79,7 +81,7 @@ defmodule PetalComponents.Modal do
                   class="pc-modal__header__button"
                 >
                   <div class="sr-only">Close</div>
-                  <Heroicons.x_mark class="pc-modal__header__close-svg" />
+                  <.icon name="hero-x-mark" class="pc-modal__header__close-svg" />
                 </button>
               <% end %>
             </div>

@@ -10,7 +10,7 @@ defmodule PetalComponents.MenuTest do
             name: :sign_in,
             label: "Path",
             path: "/path",
-            icon: :key
+            icon: "hero-key"
           }
         ],
         current_page: :current_page,
@@ -22,7 +22,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
-      assert html =~ "<svg"
+      assert find_icon(html, "hero-key")
       assert html =~ "Path"
       assert html =~ "/path"
       assert html =~ "blah"
@@ -75,7 +75,7 @@ defmodule PetalComponents.MenuTest do
                 name: :home,
                 label: "Home",
                 path: "#",
-                icon: :home
+                icon: "hero-home"
               }
             ]
           },
@@ -86,7 +86,7 @@ defmodule PetalComponents.MenuTest do
                 name: :school,
                 label: "School",
                 path: "#",
-                icon: :academic_cap
+                icon: "hero-academic-cap"
               }
             ]
           }
@@ -100,6 +100,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
+      assert find_icon(html, "hero-home")
       assert html =~ "Home"
       assert html =~ "School"
     end
@@ -114,7 +115,7 @@ defmodule PetalComponents.MenuTest do
                 name: :home,
                 label: "Home",
                 path: "/",
-                icon: :home
+                icon: "hero-home"
               }
             ]
           },
@@ -125,7 +126,7 @@ defmodule PetalComponents.MenuTest do
                 name: :school,
                 label: "School",
                 path: "#",
-                icon: :academic_cap
+                icon: "hero-academic-cap"
               }
             ]
           }
@@ -140,6 +141,82 @@ defmodule PetalComponents.MenuTest do
         """)
 
       assert html =~ "pc-vertical-menu-item__icon--active"
+    end
+
+    test "nested menu items renders icon" do
+      assigns = %{
+        main_menu_items: [
+          %{
+            name: :home,
+            label: "Home",
+            icon: "hero-home",
+            menu_items: [
+              %{
+                name: :sign_in,
+                label: "Sign in",
+                path: "/sign-in",
+                icon: "hero-key"
+              },
+              %{
+                name: :sign_up,
+                label: "Sign up",
+                path: "/sign-up",
+                icon: "hero-key"
+              }
+            ]
+          }
+        ],
+        current_page: :current_page,
+        sidebar_title: "blah"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+        """)
+
+      assert html =~ "Home"
+      assert find_icon(html, "hero-home")
+      assert find_icon(html, "hero-chevron-right")
+
+      assert html =~ "Sign in"
+      assert html =~ "/sign-in"
+      assert find_icon(html, "hero-key")
+    end
+
+    test "Icon implemented as user function" do
+      assigns = %{
+        main_menu_items: [
+          %{
+            name: :sign_in,
+            label: "Sign in",
+            path: "/sign-in",
+            icon: fn assigns ->
+              ~H"""
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-6"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+              """
+            end
+          }
+        ],
+        current_page: :current_page,
+        sidebar_title: "blah"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+        """)
+
+      assert html =~ "svg"
     end
   end
 end

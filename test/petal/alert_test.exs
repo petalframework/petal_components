@@ -11,29 +11,32 @@ defmodule PetalComponents.AlertTest do
       """)
 
     assert html =~ "Info alert"
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-information-circle")
     assert html =~ "pc-alert--info"
 
     html =
       rendered_to_string(~H"""
-      <.alert color="warning" label="Label" />
+      <.alert with_icon color="warning" label="Label" />
       """)
 
+    assert find_icon(html, "hero-exclamation-circle")
     assert html =~ "pc-alert--warning"
 
     html =
       rendered_to_string(~H"""
-      <.alert color="danger" label="Label" />
+      <.alert with_icon color="danger" label="Label" />
       """)
 
+    assert find_icon(html, "hero-x-circle")
     assert html =~ "pc-alert--danger"
 
     html =
       rendered_to_string(~H"""
-      <.alert color="success" label="Label" />
+      <.alert with_icon color="success" label="Label" />
       """)
 
     assert html =~ "pc-alert--success"
+    assert find_icon(html, "hero-check-circle")
   end
 
   test "default color is info" do
@@ -90,5 +93,42 @@ defmodule PetalComponents.AlertTest do
       """)
 
     assert html =~ ~s{custom-attrs="123"}
+  end
+
+  test "dismissable alerts renders go away box with correct colours" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.alert
+        with_icon
+        color="info"
+        label="Info alert"
+        close_button_properties={["phx-click": "do_something"]}
+      />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--info"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert color="warning" label="Label" close_button_properties={["phx-click": "do_something"]} />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--warning"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert color="danger" label="Label" close_button_properties={["phx-click": "do_something"]} />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--danger"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert color="success" label="Label" close_button_properties={["phx-click": "do_something"]} />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--success"
   end
 end

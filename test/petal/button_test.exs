@@ -1,13 +1,14 @@
 defmodule PetalComponents.ButtonTest do
   use ComponentCase
   import PetalComponents.Button
+  import PetalComponents.Icon
 
   test "button" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.button label="Press me" phx-clic`k="click_event" />
+      <.button label="Press me" phx-click="click_event" />
       """)
 
     assert html =~ "<button"
@@ -124,11 +125,11 @@ defmodule PetalComponents.ButtonTest do
     html =
       rendered_to_string(~H"""
       <.icon_button to="/" link_type="button" size="xs" color="primary">
-        <Heroicons.clock solid />
+        <.icon name="hero-clock-solid" />
       </.icon_button>
       """)
 
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-clock-solid")
     assert html =~ "pc-icon-button-bg--primary"
     refute html =~ "tooltip"
   end
@@ -142,10 +143,11 @@ defmodule PetalComponents.ButtonTest do
       html =
         rendered_to_string(~H"""
         <.icon_button color={@color}>
-          <Heroicons.clock />
+          <.icon name="hero-clock" />
         </.icon_button>
         """)
 
+      assert find_icon(html, "hero-clock")
       assert html =~ "pc-icon-button-bg--#{color}"
     end)
   end
@@ -156,11 +158,11 @@ defmodule PetalComponents.ButtonTest do
     html =
       rendered_to_string(~H"""
       <.icon_button to="/" link_type="button" size="xs" color="primary" tooltip="Hello world!">
-        <Heroicons.clock solid />
+        <.icon name="hero-clock-solid" />
       </.icon_button>
       """)
 
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-clock-solid")
     assert html =~ "pc-icon-button-bg--primary"
     assert html =~ "role=\"tooltip"
     assert html =~ "Hello world!"
@@ -183,11 +185,11 @@ defmodule PetalComponents.ButtonTest do
 
     html =
       rendered_to_string(~H"""
-      <.button icon={:home} label="Home" />
+      <.button icon="hero-home" label="Home" />
       """)
 
     assert html =~ "<button"
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-home")
   end
 
   test "disabled button" do

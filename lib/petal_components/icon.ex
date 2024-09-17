@@ -1,23 +1,58 @@
 defmodule PetalComponents.Icon do
   use Phoenix.Component
 
+  require Logger
+
   attr :rest, :global,
     doc: "the arbitrary HTML attributes for the svg container",
-    include: ~w(fill stroke stroke-width role aria-hidden)
+    include: ~w(role aria-hidden)
 
-  attr :name, :atom, required: true
-  attr :outline, :boolean, default: true
-  attr :solid, :boolean, default: false
-  attr :mini, :boolean, default: false
+  attr :name, :any, required: true
+  attr :class, :any, default: nil, doc: "svg class"
 
-  @doc """
-  A dynamic way of generating a Heroicon (v2).
+  defp heroicon(%{name: "hero-" <> _} = assigns) do
+    ~H"""
+    <span class={[@name, @class]} {@rest} />
+    """
+  end
 
-  Example:
+  @icons [
+    {"", "/24/outline"},
+    {"-solid", "/24/solid"},
+    {"-mini", "/20/solid"},
+    {"-micro", "/16/solid"}
+  ]
 
-      <.icon name={:arrow_right} class="w-5 h-5 text-gray-600 dark:text-gray-400" />
-  """
-  def icon(assigns) do
-    apply(Heroicons, assigns.name, [assigns])
+  deps_paths = Mix.Project.deps_paths()
+  heroicons_path = deps_paths[:heroicons]
+
+  heroicon_names =
+    for {suffix, dir} <- @icons do
+      path =
+        Path.join(heroicons_path, dir)
+        |> Path.expand()
+
+      # Read folder
+      case File.ls(path) do
+        {:ok, file_names} ->
+          for file_name <- file_names, do: Path.rootname(file_name) <> suffix
+
+        {:error, _reason} ->
+          []
+      end
+    end
+    |> Enum.flat_map(fn x -> x end)
+
+  quote do
+    attr :rest, :global,
+      doc: "the arbitrary HTML attributes for the svg container",
+      include: ~w(role aria-hidden)
+
+    attr :name, :any, required: true
+    attr :class, :any, default: nil, doc: "svg class"
+  end
+
+  for heroicon_name <- heroicon_names do
+    def icon(%{name: "hero-" <> unquote(heroicon_name)} = assigns), do: heroicon(assigns)
   end
 end

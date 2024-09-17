@@ -4,7 +4,7 @@ defmodule PetalComponents.UserDropdownMenuTest do
 
   test "renders correctly" do
     assigns = %{
-      user_menu_items: [%{path: "/path", icon: :home, label: "blah"}],
+      user_menu_items: [%{path: "/path", icon: "hero-home", label: "blah"}],
       avatar_src: "blah.img",
       current_user_name: nil
     }
@@ -19,7 +19,7 @@ defmodule PetalComponents.UserDropdownMenuTest do
       """)
 
     assert html =~ "<img"
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-home")
     assert html =~ "/path"
     assert html =~ "blah"
   end

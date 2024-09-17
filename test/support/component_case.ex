@@ -16,6 +16,14 @@ defmodule ComponentCase do
       defp count_substring(string, substring) do
         string |> String.split(substring) |> Enum.count() |> Kernel.-(1)
       end
+
+      defp find_icon(html) do
+        Floki.find(html, "span[class^=hero]") != []
+      end
+
+      defp find_icon(html, class) do
+        Floki.find(html, "span.#{class}") != []
+      end
     end
   end
 end

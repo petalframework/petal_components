@@ -1,6 +1,7 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
   alias PetalComponents.Helpers
+  import PetalComponents.Icon
 
   attr(:color, :string,
     default: "info",
@@ -61,7 +62,7 @@ defmodule PetalComponents.Alert do
                 class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color)]}
                 {@close_button_properties}
               >
-                <Heroicons.x_mark solid class="self-start w-4 h-4" />
+                <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
               </button>
             <% end %>
           </div>
@@ -110,25 +111,25 @@ defmodule PetalComponents.Alert do
 
   defp get_icon(%{color: "info"} = assigns) do
     ~H"""
-    <Heroicons.information_circle />
+    <.icon name="hero-information-circle" />
     """
   end
 
   defp get_icon(%{color: "success"} = assigns) do
     ~H"""
-    <Heroicons.check_circle />
+    <.icon name="hero-check-circle" />
     """
   end
 
   defp get_icon(%{color: "warning"} = assigns) do
     ~H"""
-    <Heroicons.exclamation_circle />
+    <.icon name="hero-exclamation-circle" />
     """
   end
 
   defp get_icon(%{color: "danger"} = assigns) do
     ~H"""
-    <Heroicons.x_circle />
+    <.icon name="hero-x-circle" />
     """
   end
 

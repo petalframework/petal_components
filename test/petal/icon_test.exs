@@ -7,10 +7,10 @@ defmodule PetalComponents.IconTest do
 
     html =
       rendered_to_string(~H"""
-      <.icon name={:arrow_right} class="text-gray-300" />
+      <.icon name="hero-arrow-right" class="text-gray-300" />
       """)
 
-    assert html =~ "<svg"
+    assert find_icon(html, "hero-arrow-right")
     assert html =~ "text-gray-300"
   end
 end
