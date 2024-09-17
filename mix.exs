@@ -61,7 +61,8 @@ defmodule PetalComponents.MixProject do
        tag: "v2.1.5",
        app: false,
        compile: false,
-       sparse: "optimized"}
+       sparse: "optimized",
+       only: [:dev, :test]}
     ]
   end
 
