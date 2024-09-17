@@ -1,4 +1,18 @@
 # Changelog
+### 2.0.0 - 2024-09-17 06:59:11
+
+- a11y improvements by @tylerbarker in https://github.com/petalframework/petal_components/pull/331
+- Make Petal Components Accessible by @tylerbarker in https://github.com/petalframework/petal_components/pull/326
+- Aligns .icon with latest heroicon method by @mitkins in https://github.com/petalframework/petal_components/pull/340
+- Generate list of heroicons if the dependency exists by @mitkins in https://github.com/petalframework/petal_components/pull/345
+- Skeleton placeholder to be shown when loading content by @GraphiteSprite in https://github.com/petalframework/petal_components/pull/319
+- Hide dropdown when pressing escape by @RobinBoers in https://github.com/petalframework/petal_components/pull/334
+- Remove `for` attribute in `radio-group` label by @tegon in https://github.com/petalframework/petal_components/pull/333
+- Remove for attribute in checkbox-group label by @mitkins in https://github.com/petalframework/petal_components/pull/336
+- Use `spans` instead of `labels` if there is no `for` attribute by @mitkins in https://github.com/petalframework/petal_components/pull/344
+- Cleanup type of class attrs by @nallwhy in https://github.com/petalframework/petal_components/pull/329
+- Add default_js_lib config by @nallwhy in https://github.com/petalframework/petal_components/pull/335
+
 ### 1.9.3 - 2024-05-27 04:03:39
 
 - Rounds the width of the progress component to 2 decimal places
