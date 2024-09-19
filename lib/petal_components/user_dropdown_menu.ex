@@ -43,9 +43,7 @@ defmodule PetalComponents.UserDropdownMenu do
 
           <%= if is_binary(menu_item.icon) && String.match?(menu_item.icon, ~r/svg|img/) do %>
             <%= Phoenix.HTML.raw(menu_item.icon) %>
-          <% end %>
-
-          <%= if is_binary(menu_item.icon) do %>
+          <% else %>
             <.icon name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <% end %>
 

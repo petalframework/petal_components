@@ -287,9 +287,7 @@ defmodule PetalComponents.Menu do
 
     <%= if is_binary(@icon) && String.match?(@icon, ~r/svg|img/) do %>
       <%= Phoenix.HTML.raw(@icon) %>
-    <% end %>
-
-    <%= if is_binary(@icon) do %>
+    <% else %>
       <.icon name={@icon} class={menu_icon_classes(@is_active)} />
     <% end %>
     """
