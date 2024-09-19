@@ -52,11 +52,17 @@ defmodule PetalComponentsWeb.A11yLive do
     <script defer src="https://cdn.tailwindcss.com">
     </script>
     <style type="text/css">
+      /* css transitions can cause flaky a11y tests */
+      .env-test {
+        *, *::before, *::after {
+          transition: unset !important;
+        }
+      }
       svg {
         height: 1em; width: 1em;
       }
     </style>
-    <main role="main">
+    <main role="main" class="env-test">
       <.h1>Petal Components A11y Audit</.h1>
       <.h2>Heading 2</.h2>
       <.h3>Heading 3</.h3>
