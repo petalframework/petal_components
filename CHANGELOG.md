@@ -1,4 +1,9 @@
 # Changelog
+### 2.0.1 - 2024-09-20 01:48:10
+
+- Ensure css transitions don't cause flaky tests
+- Remove text placeholder from image skeleton to match video skeleton
+
 ### 2.0.0 - 2024-09-17 06:59:11
 
 - a11y improvements by @tylerbarker in https://github.com/petalframework/petal_components/pull/331
