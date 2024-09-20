@@ -1,4 +1,8 @@
 # Changelog
+### 2.0.3 - 2024-09-20 23:45:16
+
+- Fixed margin and dark mode for Avatar placeholder
+
 ### 2.0.2 - 2024-09-20 04:06:05
 
 - Fixed: heroicon pattern matching is based on deps folder - rather than dependencies listed for petal_components 
