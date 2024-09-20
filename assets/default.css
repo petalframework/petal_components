@@ -711,7 +711,7 @@
   @apply ring-white ring-2 dark:ring-gray-100;
 }
 .pc-avatar__placeholder-icon {
-  @apply relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform;
+  @apply relative w-full h-full bg-gray-300 top-[12%] scale-[1.15] transform !important;
 }
 
 /* Avatars - sizes */
