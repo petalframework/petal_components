@@ -33,20 +33,17 @@ defmodule PetalComponents.UserDropdownMenu do
           method={if menu_item[:method], do: menu_item[:method], else: nil}
           to={menu_item.path}
         >
-          <%= if is_function(menu_item.icon) do %>
-            <%= Phoenix.LiveView.TagEngine.component(
-              menu_item.icon,
-              [class: "w-5 h-5 text-gray-500 dark:text-gray-400"],
-              {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
-            ) %>
-          <% end %>
-
-          <%= if is_binary(menu_item.icon) && String.match?(menu_item.icon, ~r/svg|img/) do %>
-            <%= Phoenix.HTML.raw(menu_item.icon) %>
-          <% end %>
-
-          <%= if is_binary(menu_item.icon) do %>
-            <.icon name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <%= cond do %>
+            <% is_function(menu_item.icon) -> %>
+              <%= Phoenix.LiveView.TagEngine.component(
+                menu_item.icon,
+                [class: "w-5 h-5 text-gray-500 dark:text-gray-400"],
+                {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
+              ) %>
+            <% is_binary(menu_item.icon) && String.match?(menu_item.icon, ~r/svg|img/) -> %>
+              <%= Phoenix.HTML.raw(menu_item.icon) %>
+            <% true -> %>
+              <.icon name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <% end %>
 
           <%= menu_item.label %>

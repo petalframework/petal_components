@@ -218,5 +218,47 @@ defmodule PetalComponents.MenuTest do
 
       assert html =~ "svg"
     end
+
+    test "Icon implemented as an svg or image" do
+      assigns = %{
+        main_menu_items: [
+          %{
+            name: :sign_in,
+            label: "Sign in",
+            path: "/sign-in",
+            icon: """
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-6"
+              >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            """
+          },
+          %{
+            name: :sign_out,
+            label: "Sign out",
+            path: "/sign-out",
+            icon: """
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AoSEhkYsH3MrQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAARSURBVDjLY2AYBaMAAQgAADAAAXkT9BsAAAAASUVORK5CYII=" alt="20x20 red square" />
+            """
+          }
+        ],
+        current_page: :current_page,
+        sidebar_title: "blah"
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
+        """)
+
+      assert html =~ "svg"
+      assert html =~ "img"
+    end
   end
 end
