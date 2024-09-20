@@ -1,4 +1,9 @@
 # Changelog
+### 2.0.2 - 2024-09-20 04:06:05
+
+- Fixed: heroicon pattern matching is based on deps folder - rather than dependencies listed for petal_components 
+- Improved error messages for incorrect heroicon names
+
 ### 2.0.1 - 2024-09-20 01:48:10
 
 - Ensure css transitions don't cause flaky tests
