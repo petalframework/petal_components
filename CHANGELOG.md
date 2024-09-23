@@ -1,4 +1,8 @@
 # Changelog
+### 2.0.4 - 2024-09-23 04:31:51
+
+- Add skeleton css classes to default css to allow for configurability
+
 ### 2.0.3 - 2024-09-20 23:45:16
 
 - Fixed margin and dark mode for Avatar placeholder
