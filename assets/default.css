@@ -1110,6 +1110,352 @@
   @apply p-5;
 }
 
+/* Skeleton */
+
+.pc-skeleton {
+  @apply animate-pulse;
+}
+
+/* Default Skeleton */
+.pc-skeleton--default {
+  @apply max-w-sm pc-skeleton;
+}
+
+.pc-skeleton--default__line {
+  @apply bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--default__line--h-2 {
+  @apply h-2;
+}
+
+.pc-skeleton--default__line--h-2\.5 {
+  @apply h-2.5;
+}
+
+.pc-skeleton--default__line--w-48 {
+  @apply w-48;
+}
+
+.pc-skeleton--default__line--mb-4 {
+  @apply mb-4;
+}
+
+.pc-skeleton--default__line--mb-2\.5 {
+  @apply mb-2.5;
+}
+
+.pc-skeleton--default__line--max-w-360px {
+  @apply max-w-[360px];
+}
+
+.pc-skeleton--default__line--max-w-330px {
+  @apply max-w-[330px];
+}
+
+.pc-skeleton--default__line--max-w-300px {
+  @apply max-w-[300px];
+}
+
+/* Image Skeleton */
+.pc-skeleton--image {
+  @apply space-y-8 pc-skeleton md:space-y-0 md:space-x-8 rtl:space-x-reverse md:flex md:items-center;
+}
+
+.pc-skeleton--image__image-placeholder {
+  @apply flex items-center justify-center w-full h-48 bg-gray-300 rounded sm:w-96 dark:bg-gray-700;
+}
+
+.pc-skeleton--image__icon {
+  @apply w-10 h-10 text-gray-200 dark:text-gray-600;
+}
+
+.pc-skeleton--image__content {
+  @apply w-full;
+}
+
+/* Repeat similar classes for lines inside the image skeleton */
+.pc-skeleton--image__line {
+  @apply bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--image__line--h-2 {
+  @apply h-2;
+}
+
+.pc-skeleton--image__line--h-2\.5 {
+  @apply h-2.5;
+}
+
+.pc-skeleton--image__line--w-48 {
+  @apply w-48;
+}
+
+.pc-skeleton--image__line--mb-4 {
+  @apply mb-4;
+}
+
+.pc-skeleton--image__line--mb-2\.5 {
+  @apply mb-2.5;
+}
+
+.pc-skeleton--image__line--max-w-480px {
+  @apply max-w-[480px];
+}
+
+.pc-skeleton--image__line--max-w-440px {
+  @apply max-w-[440px];
+}
+
+.pc-skeleton--image__line--max-w-460px {
+  @apply max-w-[460px];
+}
+
+.pc-skeleton--image__line--max-w-360px {
+  @apply max-w-[360px];
+}
+
+/* Video Skeleton */
+.pc-skeleton--video {
+  @apply flex items-center justify-center h-56 max-w-sm bg-gray-300 rounded-lg pc-skeleton dark:bg-gray-700;
+}
+
+.pc-skeleton--video__icon {
+  @apply w-10 h-10 text-gray-200 dark:text-gray-600;
+}
+
+/* Text Skeleton */
+.pc-skeleton--text {
+  @apply pc-skeleton space-y-2.5 max-w-lg;
+}
+
+.pc-skeleton--text__line-group {
+  @apply flex items-center w-full;
+}
+
+.pc-skeleton--text__line-group--max-w-480px {
+  @apply max-w-[480px];
+}
+
+.pc-skeleton--text__line-group--max-w-400px {
+  @apply max-w-[400px];
+}
+
+.pc-skeleton--text__line-group--max-w-440px {
+  @apply max-w-[440px];
+}
+
+.pc-skeleton--text__line-group--max-w-360px {
+  @apply max-w-[360px];
+}
+
+.pc-skeleton--text__block {
+  @apply h-2.5 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--text__block--bg-gray-300 {
+  @apply bg-gray-300 dark:bg-gray-600;
+}
+
+.pc-skeleton--text__block--w-32 {
+  @apply w-32;
+}
+
+.pc-skeleton--text__block--w-24 {
+  @apply w-24;
+}
+
+.pc-skeleton--text__block--w-full {
+  @apply w-full;
+}
+
+.pc-skeleton--text__block--w-80 {
+  @apply w-80;
+}
+
+.pc-skeleton--text__block--ms-2 {
+  @apply ms-2;
+}
+
+/* Card Skeleton */
+.pc-skeleton--card {
+  @apply max-w-sm p-4 border border-gray-200 rounded shadow pc-skeleton md:p-6 dark:border-gray-700;
+}
+
+.pc-skeleton--card__image-placeholder {
+  @apply flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700;
+}
+
+.pc-skeleton--card__icon {
+  @apply w-10 h-10 text-gray-200 dark:text-gray-600;
+}
+
+.pc-skeleton--card__line {
+  @apply bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--card__line--h-2\.5 {
+  @apply h-2.5 w-48;
+}
+
+.pc-skeleton--card__line--h-2 {
+  @apply h-2;
+}
+
+.pc-skeleton--card__line--mb-4 {
+  @apply mb-4;
+}
+
+.pc-skeleton--card__line--mb-2\.5 {
+  @apply mb-2.5;
+}
+
+.pc-skeleton--card__avatar {
+  @apply flex items-center mt-4;
+}
+
+.pc-skeleton--card__avatar-icon {
+  @apply w-10 h-10 text-gray-200 me-3 dark:text-gray-700;
+}
+
+.pc-skeleton--card__avatar-text {
+  @apply h-2.5 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--card__avatar-text--w-32 {
+  @apply w-32 mb-2;
+}
+
+.pc-skeleton--card__avatar-text--w-48 {
+  @apply w-48 h-2;
+}
+
+/* Widget Skeleton */
+
+.pc-skeleton--widget {
+  @apply max-w-sm p-4 border border-gray-200 rounded shadow pc-skeleton md:p-6 dark:border-gray-700;
+}
+
+.pc-skeleton--widget__header-line {
+  @apply h-2.5 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--widget__header-line--w-32 {
+  @apply w-32 mb-2.5;
+}
+
+.pc-skeleton--widget__header-line--w-48 {
+  @apply w-48 h-2 mb-10;
+}
+
+.pc-skeleton--widget__chart {
+  @apply flex items-baseline mt-4;
+}
+
+.pc-skeleton--widget__chart-bar {
+  @apply w-full bg-gray-200 rounded-t-lg dark:bg-gray-700;
+}
+
+.pc-skeleton--widget__chart-bar--h-72 {
+  @apply h-72;
+}
+
+.pc-skeleton--widget__chart-bar--h-56 {
+  @apply h-56;
+}
+
+.pc-skeleton--widget__chart-bar--h-64 {
+  @apply h-64;
+}
+
+.pc-skeleton--widget__chart-bar--h-80 {
+  @apply h-80;
+}
+
+.pc-skeleton--widget__chart-bar--ms-6 {
+  @apply ms-6;
+}
+
+/* List Skeleton */
+
+.pc-skeleton--list {
+  @apply max-w-md p-4 space-y-4 border border-gray-200 divide-y divide-gray-200 rounded shadow pc-skeleton md:p-6 dark:divide-gray-700 dark:border-gray-700;
+}
+
+.pc-skeleton--list__item {
+  @apply flex items-center justify-between;
+}
+
+.pc-skeleton--list__item--pt-4 {
+  @apply pt-4;
+}
+
+.pc-skeleton--list__text-group {
+  @apply flex flex-col;
+}
+
+.pc-skeleton--list__text-line {
+  @apply w-24 mb-2.5 bg-gray-300 rounded-full dark:bg-gray-600;
+}
+
+.pc-skeleton--list__sub-text-line {
+  @apply w-32 h-2 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--list__text-line--h-2\.5 {
+  @apply h-2.5;
+}
+
+.pc-skeleton--list__button {
+  @apply h-2.5 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--list__button--w-12 {
+  @apply w-12;
+}
+
+/* Testimonial Skeleton */
+
+.pc-skeleton--testimonial {
+  @apply pc-skeleton;
+}
+
+.pc-skeleton--testimonial__line {
+  @apply h-2.5 bg-gray-300 rounded-full dark:bg-gray-700 mx-auto;
+}
+
+.pc-skeleton--testimonial__line--h-2\.5 {
+  @apply h-2.5;
+}
+
+.pc-skeleton--testimonial__line--max-w-640px {
+  @apply max-w-[640px] mb-2.5;
+}
+
+.pc-skeleton--testimonial__line--max-w-540px {
+  @apply max-w-[540px];
+}
+
+.pc-skeleton--testimonial__footer {
+  @apply flex items-center justify-center mt-4;
+}
+
+.pc-skeleton--testimonial__avatar-icon {
+  @apply w-8 h-8 text-gray-200 me-4 dark:text-gray-700;
+}
+
+.pc-skeleton--testimonial__avatar-text {
+  @apply h-2.5 bg-gray-200 rounded-full dark:bg-gray-700;
+}
+
+.pc-skeleton--testimonial__avatar-text--w-20 {
+  @apply w-20 me-3;
+}
+
+.pc-skeleton--testimonial__avatar-text--w-24 {
+  @apply w-24 h-2;
+}
+
 /* Slideover */
 
 .pc-slideover__overlay {
