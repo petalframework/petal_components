@@ -8,6 +8,7 @@ defmodule PetalComponents do
         Badge,
         Breadcrumbs,
         Button,
+        ButtonGroup,
         Card,
         Container,
         Dropdown,
