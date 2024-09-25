@@ -1,4 +1,8 @@
 # Changelog
+### 2.0.5 - 2024-09-25 23:42:23
+
+- implement button_group/1 component by @tylerbarker in https://github.com/petalframework/petal_components/pull/351
+
 ### 2.0.4 - 2024-09-23 04:31:51
 
 - Add skeleton css classes to default css to allow for configurability
