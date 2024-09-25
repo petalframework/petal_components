@@ -25,6 +25,7 @@ defmodule PetalComponentsWeb.A11yLive do
            icon: "hero-key"
          }
        ],
+       group_size: "lg",
        current_page: :current_page,
        sidebar_title: "blah",
        posts: [
@@ -112,6 +113,20 @@ defmodule PetalComponentsWeb.A11yLive do
       />
 
       <.button label="Press me" phx-click="click_event" />
+
+      <.button_group aria_label="My options" size={@group_size}>
+        <:button label="XS" phx-click="change_size" phx-value-size="xs" />
+        <:button label="SM" kind="link" patch="/app/orgs" />
+        <:button label="MD" phx-click="change_size" phx-value-size="md" />
+        <:button phx-click="change_size" phx-value-size="lg">LG</:button>
+        <:button phx-click="change_size" phx-value-size="xl">XL</:button>
+      </.button_group>
+
+      <.button_group aria_label="My links" size="md">
+        <:button kind="link" patch="/path-one">Link 1</:button>
+        <:button kind="link" patch="/path-two">Link 2</:button>
+        <:button label="Link 3" kind="link" navigate="/other" />
+      </.button_group>
 
       <.card>
         <.card_content category="Article" heading="Enhance your Phoenix development">
