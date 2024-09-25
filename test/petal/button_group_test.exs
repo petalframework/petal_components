@@ -7,14 +7,14 @@ defmodule PetalComponents.ButtonGroupTest do
 
     html =
       rendered_to_string(~H"""
-      <.button_group aria_label="My options">
+      <.button_group id="hello-group" aria_label="My options">
         <:button phx-click="change_size" phx-value-size="md">MD</:button>
         <:button disabled phx-click="change_size" phx-value-size="lg">LG</:button>
         <:button phx-click="change_size" phx-value-size="xl">XL</:button>
       </.button_group>
       """)
 
-    assert html =~ ~s{<div aria-label="My options" role="group"}
+    assert html =~ ~s{<div aria-label="My options" role="group" id="hello-group"}
     assert html =~ ~s{phx-click="change_size" phx-value-size="md">}
     assert html =~ "MD"
     assert html =~ ~s{<button disabled aria-disabled}
@@ -36,7 +36,7 @@ defmodule PetalComponents.ButtonGroupTest do
       </.button_group>
       """)
 
-    assert html =~ ~s{<div aria-label="a11y is good" role="group"}
+    assert html =~ ~s{<div aria-label="a11y is good" role="group" id=}
     assert html =~ ~s{phx-click="change_size" phx-value-size="md">}
     assert html =~ "MD"
     assert html =~ ~s{<button disabled aria-disabled}

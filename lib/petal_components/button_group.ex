@@ -1,6 +1,7 @@
 defmodule PetalComponents.ButtonGroup do
   @moduledoc false
   use Phoenix.Component
+  alias PetalComponents.Helpers
 
   @doc """
   Renders a button group. Group buttons are configured by defining multiple `:button` slots.
@@ -54,7 +55,12 @@ defmodule PetalComponents.ButtonGroup do
 
   def button_group(assigns) do
     ~H"""
-    <div aria-label={@aria_label} role="group" class={@container_class}>
+    <div
+      aria-label={@aria_label}
+      role="group"
+      id={@id || Helpers.uniq_id("button-group")}
+      class={@container_class}
+    >
       <.group_button
         :for={{group_btn_assigns, idx} <- Enum.with_index(@button)}
         idx={idx}
