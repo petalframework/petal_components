@@ -210,6 +210,14 @@
   @apply inline-block p-2 rounded-full;
 }
 
+.pc-icon-button__inner {
+  @apply flex flex-col items-center 
+}
+
+.pc-icon-button__inner--tooltip {
+  @apply relative
+}
+
 .pc-icon-button__tooltip {
   @apply absolute flex-col items-center invisible mb-6 transition-opacity duration-300 -translate-y-full opacity-0 -top-1 group-hover/pc-icon-button:flex group-hover/pc-icon-button:visible group-hover/pc-icon-button:opacity-100;
 }
