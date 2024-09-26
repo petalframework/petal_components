@@ -174,9 +174,9 @@ defmodule Releaser.Tests do
   def run_tests!() do
     error_code = Mix.Shell.IO.cmd("mix test", [])
 
-    # if error_code != 0 do
-    #   raise "This version can't be released because tests are failing."
-    # end
+    if error_code != 0 do
+      raise "This version can't be released because tests are failing."
+    end
 
     :ok
   end
