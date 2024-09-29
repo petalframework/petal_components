@@ -97,7 +97,7 @@ We’ve released an [official Figma UI kit for Petal](https://www.figma.com/comm
 - [x] change color
 - [x] loading state (with spinner)
 - [x] filled vs outline
-- [ ] button group
+- [x] button group
 
 ### Misc
 - [x] menu dropdown
