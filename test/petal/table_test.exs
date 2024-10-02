@@ -81,7 +81,19 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<table"
-    assert html =~ "pc-table"
+    assert html =~ "pc-table--surface"
+  end
+
+  test "Basic table (ghost variant)" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.table variant="ghost"></.table>
+      """)
+
+    assert html =~ "<table"
+    assert html =~ "pc-table--ghost"
   end
 
   test "tr" do

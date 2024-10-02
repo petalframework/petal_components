@@ -16,6 +16,7 @@ defmodule PetalComponents.Table do
   """
   attr :id, :string
   attr :class, :any, default: nil, doc: "CSS class"
+  attr :variant, :string, default: "surface", values: ["ghost", "surface"]
   attr :rows, :list, default: [], doc: "the list of rows to render"
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
@@ -46,7 +47,7 @@ defmodule PetalComponents.Table do
     assigns = assign_new(assigns, :id, fn -> "table_#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <table class={["pc-table", @class]} {@rest}>
+    <table class={["pc-table--#{@variant}", @class]} {@rest}>
       <%= if length(@col) > 0 do %>
         <thead>
           <.tr>

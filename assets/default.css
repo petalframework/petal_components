@@ -211,7 +211,7 @@
 }
 
 .pc-icon-button__inner {
-  @apply flex flex-col items-center 
+  @apply flex flex-col items-center
 }
 
 .pc-icon-button__inner--tooltip {
@@ -1001,8 +1001,11 @@
 
 /* Table */
 
-.pc-table {
+.pc-table--surface {
   @apply min-w-full overflow-hidden rounded-sm shadow table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
+}
+.pc-table--ghost {
+  @apply min-w-full overflow-hidden table-auto;
 }
 .pc-table__th {
   @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-gray-300;

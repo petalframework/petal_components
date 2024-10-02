@@ -1,4 +1,8 @@
 # Changelog
+### 2.1.0 - 2024-10-02 03:12:09
+
+- Adds new ghost table variant for extremely clean look
+
 ### 2.0.6 - 2024-09-26 04:23:16
 
 - Items center correctly for the Icon Button by @mitkins in https://github.com/petalframework/petal_components/pull/352
