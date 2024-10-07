@@ -1,4 +1,8 @@
 # Changelog
+### 2.1.2 - 2024-10-07 01:52:01
+
+- update button_group to support custom bg and border style props
+
 ### 2.1.1 - 2024-10-07 01:08:01
 
 - move button_group classes into default css file
