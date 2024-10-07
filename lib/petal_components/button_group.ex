@@ -26,7 +26,19 @@ defmodule PetalComponents.ButtonGroup do
         <:button label="Link 3" kind="link" navigate={~p"/other"} />
       </.button_group>
 
+  ### Custom Styles
+
+      <.button_group
+        aria_label="Custom styled buttons"
+        button_bg_class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+        button_border_class="border border-blue-300 dark:border-blue-600"
+      >
+        <:button>Custom Button 1</:button>
+        <:button>Custom Button 2</:button>
+      </.button_group>
+
   """
+
   attr :id, :string, default: nil
   attr :aria_label, :string, required: true, doc: "the ARIA label for the button group"
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
@@ -38,6 +50,15 @@ defmodule PetalComponents.ButtonGroup do
   attr :font_weight_class, :string,
     default: "font-medium",
     doc: "the font weight class to apply to all buttons - defaults to font-medium"
+
+  # New attributes for customizing button styles
+  attr :button_bg_class, :string,
+    default: nil,
+    doc: "class to customize the button background colors"
+
+  attr :button_border_class, :string,
+    default: nil,
+    doc: "class to customize the button border styles"
 
   # We mark validate_attrs false so passing phx-click etc. does not emit warnings
   slot :button, required: true, validate_attrs: false do
@@ -66,6 +87,8 @@ defmodule PetalComponents.ButtonGroup do
         last_idx={length(@button) - 1}
         size={@size}
         font_weight_class={@font_weight_class}
+        button_bg_class={@button_bg_class}
+        button_border_class={@button_border_class}
         {group_btn_assigns}
       >
         <%= if is_function(group_btn_assigns.inner_block) do %>
@@ -86,6 +109,8 @@ defmodule PetalComponents.ButtonGroup do
   attr :size, :string, required: true, values: ["xs", "sm", "md", "lg", "xl"]
   attr :idx, :integer, required: true
   attr :last_idx, :integer, required: true
+  attr :button_bg_class, :string, default: nil
+  attr :button_border_class, :string, default: nil
 
   attr :rest, :global,
     include:
@@ -125,29 +150,47 @@ defmodule PetalComponents.ButtonGroup do
     """
   end
 
-  defp group_btn_class(%{idx: 0, last_idx: 0} = opts),
-    do: ["pc-button-group__button--first-and-only" | group_btn_base_class(opts)]
-
-  defp group_btn_class(%{idx: 0, last_idx: _length} = opts),
-    do: ["pc-button-group__button--first" | group_btn_base_class(opts)]
-
-  defp group_btn_class(%{idx: last_idx, last_idx: last_idx} = opts),
-    do: ["pc-button-group__button--last" | group_btn_base_class(opts)]
-
-  defp group_btn_class(opts),
-    do: ["pc-button-group__button--middle" | group_btn_base_class(opts)]
-
-  defp group_btn_base_class(opts) do
-    [
+  defp group_btn_class(assigns) do
+    base_classes = [
       "pc-button-group__button",
-      "pc-button-group__button--size-#{opts.size}",
-      font_weight_class(opts.font_weight_class)
+      size_class(assigns.size),
+      font_weight_class(assigns.font_weight_class),
+      "pc-button-group__button--default-styles",
+      background_class(nil),
+      border_class(nil)
     ]
+
+    custom_classes = [
+      background_class(assigns.button_bg_class),
+      border_class(assigns.button_border_class)
+    ]
+
+    position_class = position_class(assigns.idx, assigns.last_idx)
+
+    # Assemble classes in order: base, custom, position
+    base_classes ++ custom_classes ++ [position_class]
   end
 
-  defp font_weight_class("font-normal"), do: "pc-button-group__button--font-weight-normal"
-  defp font_weight_class("font-medium"), do: "pc-button-group__button--font-weight-medium"
-  defp font_weight_class("font-semibold"), do: "pc-button-group__button--font-weight-semibold"
-  defp font_weight_class("font-bold"), do: "pc-button-group__button--font-weight-bold"
+  defp position_class(idx, last_idx) do
+    cond do
+      idx == 0 and idx == last_idx -> "pc-button-group__button--rounded"
+      idx == 0 -> "pc-button-group__button--rounded-r-none"
+      idx == last_idx -> "pc-button-group__button--rounded-l-none"
+      true -> "pc-button-group__button--rounded-none"
+    end
+  end
+
+  defp size_class(size), do: "pc-button-group__button--#{size}"
+
+  defp font_weight_class("font-normal"), do: "pc-button-group__button--font-normal"
+  defp font_weight_class("font-medium"), do: "pc-button-group__button--font-medium"
+  defp font_weight_class("font-semibold"), do: "pc-button-group__button--font-semibold"
+  defp font_weight_class("font-bold"), do: "pc-button-group__button--font-bold"
   defp font_weight_class(custom_class), do: custom_class
+
+  defp background_class(nil), do: "pc-button-group__button--bg-default"
+  defp background_class(custom_class), do: custom_class
+
+  defp border_class(nil), do: "pc-button-group__button--border-default"
+  defp border_class(custom_class), do: custom_class
 end

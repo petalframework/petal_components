@@ -103,4 +103,23 @@ defmodule PetalComponents.ButtonGroupTest do
     assert html =~ "Disabled as button"
     assert html =~ "</div>"
   end
+
+  test "button_group with custom styles" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button_group
+        aria_label="Custom styled buttons"
+        button_bg_class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+        button_border_class="border border-blue-300 dark:border-blue-600"
+      >
+        <:button>Custom Button 1</:button>
+        <:button>Custom Button 2</:button>
+      </.button_group>
+      """)
+
+    assert html =~ "bg-blue-500"
+    refute html =~ "dark:border-gray-800"
+  end
 end
