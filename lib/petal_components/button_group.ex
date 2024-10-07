@@ -1,5 +1,4 @@
 defmodule PetalComponents.ButtonGroup do
-  @moduledoc false
   use Phoenix.Component
   alias PetalComponents.Helpers
 
@@ -33,14 +32,14 @@ defmodule PetalComponents.ButtonGroup do
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
 
   attr :container_class, :string,
-    default: "flex -space-x-px",
+    default: "pc-button-group",
     doc: "class to apply to the group container"
 
   attr :font_weight_class, :string,
     default: "font-medium",
     doc: "the font weight class to apply to all buttons - defaults to font-medium"
 
-  # we mark validate_attrs false so passing phx-click etc. does not emit warnings
+  # We mark validate_attrs false so passing phx-click etc. does not emit warnings
   slot :button, required: true, validate_attrs: false do
     attr :class, :string, doc: "classes in addition to those already configured"
     attr :label, :string, doc: "a button label, rendered if you don't provide an inner block"
@@ -107,7 +106,7 @@ defmodule PetalComponents.ButtonGroup do
     """
   end
 
-  # anchor tags can't be disabled - renders a disabled button
+  # Anchor tags can't be disabled - renders a disabled button
   defp group_button(%{kind: "link", disabled: true} = assigns) do
     assigns = update_in(assigns.rest, &Map.drop(&1, [:"phx-click"]))
 
@@ -127,33 +126,28 @@ defmodule PetalComponents.ButtonGroup do
   end
 
   defp group_btn_class(%{idx: 0, last_idx: 0} = opts),
-    do: ["rounded" | group_btn_base_class(opts)]
+    do: ["pc-button-group__button--first-and-only" | group_btn_base_class(opts)]
 
   defp group_btn_class(%{idx: 0, last_idx: _length} = opts),
-    do: ["rounded-r-none" | group_btn_base_class(opts)]
+    do: ["pc-button-group__button--first" | group_btn_base_class(opts)]
 
   defp group_btn_class(%{idx: last_idx, last_idx: last_idx} = opts),
-    do: ["rounded-l-none" | group_btn_base_class(opts)]
+    do: ["pc-button-group__button--last" | group_btn_base_class(opts)]
 
-  defp group_btn_class(opts), do: ["rounded-none" | group_btn_base_class(opts)]
+  defp group_btn_class(opts),
+    do: ["pc-button-group__button--middle" | group_btn_base_class(opts)]
 
-  defp group_btn_base_class(opts),
-    do: [
-      opts.font_weight_class,
-      size_classes(opts.size),
-      "transition-colors whitespace-nowrap",
-      "inline-flex rounded-md items-center justify-center",
-      "focus:ring-gray-200 focus:z-10",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
-      "disabled:pointer-events-none disabled:opacity-50",
-      "bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800",
-      "text-gray-800 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300",
-      "border border-gray-200 dark:border-gray-800"
+  defp group_btn_base_class(opts) do
+    [
+      "pc-button-group__button",
+      "pc-button-group__button--size-#{opts.size}",
+      font_weight_class(opts.font_weight_class)
     ]
+  end
 
-  defp size_classes("xs"), do: "text-xs px-2.5 py-1.5 leading-4"
-  defp size_classes("sm"), do: "text-sm px-3 py-2 leading-4"
-  defp size_classes("md"), do: "text-sm px-4 py-2 leading-5"
-  defp size_classes("lg"), do: "text-base px-4 py-2 leading-6"
-  defp size_classes("xl"), do: "text-base px-6 py-3 leading-6"
+  defp font_weight_class("font-normal"), do: "pc-button-group__button--font-weight-normal"
+  defp font_weight_class("font-medium"), do: "pc-button-group__button--font-weight-medium"
+  defp font_weight_class("font-semibold"), do: "pc-button-group__button--font-weight-semibold"
+  defp font_weight_class("font-bold"), do: "pc-button-group__button--font-weight-bold"
+  defp font_weight_class(custom_class), do: custom_class
 end
