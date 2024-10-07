@@ -320,6 +320,82 @@
   @apply opacity-50 cursor-not-allowed;
 }
 
+/* Button Group */
+
+.pc-button-group {
+  @apply flex -space-x-px;
+}
+
+.pc-button-group__button {
+  @apply inline-flex items-center justify-center rounded-md;
+  @apply font-medium;
+  @apply whitespace-nowrap;
+  @apply focus:ring-gray-200 focus:z-10;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  @apply disabled:pointer-events-none disabled:opacity-50;
+  @apply bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800;
+  @apply text-gray-800 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300;
+  @apply border border-gray-200 dark:border-gray-800;
+}
+
+/* Button Group - Size modifiers */
+
+.pc-button-group__button--size-xs {
+  @apply text-xs px-2.5 py-1.5 leading-4;
+}
+
+.pc-button-group__button--size-sm {
+  @apply px-3 py-2 text-sm leading-4;
+}
+
+.pc-button-group__button--size-md {
+  @apply px-4 py-2 text-sm leading-5;
+}
+
+.pc-button-group__button--size-lg {
+  @apply px-4 py-2 text-base leading-6;
+}
+
+.pc-button-group__button--size-xl {
+  @apply px-6 py-3 text-base leading-6;
+}
+
+/* Button Group - Position modifiers */
+
+.pc-button-group__button--first-and-only {
+  @apply rounded;
+}
+
+.pc-button-group__button--first {
+  @apply rounded-r-none;
+}
+
+.pc-button-group__button--last {
+  @apply rounded-l-none;
+}
+
+.pc-button-group__button--middle {
+  @apply rounded-none;
+}
+
+/* Button Group - Font weight modifiers (if needed) */
+
+.pc-button-group__button--font-weight-normal {
+  @apply font-normal;
+}
+
+.pc-button-group__button--font-weight-medium {
+  @apply font-medium;
+}
+
+.pc-button-group__button--font-weight-semibold {
+  @apply font-semibold;
+}
+
+.pc-button-group__button--font-weight-bold {
+  @apply font-bold;
+}
+
 /* Typography */
 
 .pc-h1 {
