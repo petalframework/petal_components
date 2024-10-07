@@ -11,9 +11,10 @@ defmodule PetalComponents.Accordion do
   attr(:js_lib, :string,
     default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
-    doc: "javascript library used for toggling"
+    doc: "JavaScript library used for toggling"
   )
 
+  attr(:open_index, :integer, default: nil, doc: "Index of item to be open at render")
   attr(:rest, :global)
 
   slot :item, required: true, doc: "CSS class for parent container" do
@@ -48,21 +49,26 @@ defmodule PetalComponents.Accordion do
       id={@container_id}
       class={@class}
       {@rest}
-      {js_attributes("container", @js_lib, @container_id, nil, nil)}
+      {js_attributes("container", @js_lib, @container_id, nil, nil, @open_index)}
     >
       <%= for {current_item, i} <- Enum.with_index(@item) do %>
-        <div {js_attributes("item", @js_lib, @container_id, i, length(@item))} data-i={i}>
+        <% is_open = i == @open_index %>
+        <div
+          {js_attributes("item", @js_lib, @container_id, i, length(@item), is_open)}
+          data-i={i}
+          data-open={if is_open, do: "true", else: "false"}
+        >
           <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
-              {js_attributes("button", @js_lib, @container_id, i, length(@item))}
+              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open)}
               class={[
                 "pc-accordion-item accordion-button",
                 if(i == 0, do: "pc-accordion-item--first"),
                 unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
                 if(i == length(@item) - 1,
                   do:
-                    "pc-accordion-item--last #{if @js_lib == "live_view_js", do: "pc-accordion-item--last--closed"}"
+                    "pc-accordion-item--last #{if @js_lib == "live_view_js" and !is_open, do: "pc-accordion-item--last--closed"}"
                 )
               ]}
             >
@@ -72,13 +78,13 @@ defmodule PetalComponents.Accordion do
 
               <.icon
                 name="hero-chevron-down-solid"
-                class="pc-accordion-item__chevron"
-                {js_attributes("icon", @js_lib, @container_id, i, length(@item))}
+                class={["pc-accordion-item__chevron", if(is_open, do: "rotate-180")]}
+                {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open)}
               />
             </button>
           </h2>
           <div
-            {js_attributes("content_container", @js_lib, @container_id, i, length(@item))}
+            {js_attributes("content_container", @js_lib, @container_id, i, length(@item), is_open)}
             class="accordion-content-container"
           >
             <div class={[
@@ -130,93 +136,90 @@ defmodule PetalComponents.Accordion do
     """
   end
 
-  defp js_attributes("container", "alpine_js", _container_id, _i, _) do
-    %{
-      "x-data": "{ active: null }"
-    }
-  end
+  defp js_attributes(type, js_lib, container_id, i, l, open) do
+    case {type, js_lib} do
+      {"container", "alpine_js"} ->
+        %{"x-data": "{ active: #{open || "null"} }"}
 
-  defp js_attributes("item", "alpine_js", _container_id, i, _) do
-    %{
-      "x-data": "{
-        id: #{i},
-        get expanded() {
-          return this.active === this.id
-        },
-        set expanded(value) {
-          this.active = value ? this.id : null
-        },
-      }"
-    }
-  end
+      {"item", "alpine_js"} ->
+        %{
+          "x-data": "{
+            id: #{i},
+            get expanded() {
+              return this.active === this.id
+            },
+            set expanded(value) {
+              this.active = value ? this.id : null
+            },
+          }"
+        }
 
-  defp js_attributes("button", "alpine_js", container_id, i, l) when i == l - 1 do
-    %{
-      "x-on:click": "expanded = !expanded",
-      ":class":
-        "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'",
-      ":aria-expanded": "expanded",
-      "aria-controls": content_panel_id(container_id, i)
-    }
-  end
+      {"button", "alpine_js"} when i == l - 1 ->
+        %{
+          "x-on:click": "expanded = !expanded",
+          ":class":
+            "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'",
+          ":aria-expanded": "expanded",
+          "aria-controls": content_panel_id(container_id, i)
+        }
 
-  defp js_attributes("button", "alpine_js", container_id, i, _l) do
-    %{
-      "x-on:click": "expanded = !expanded",
-      ":class":
-        "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
-      ":aria-expanded": "expanded",
-      "aria-controls": content_panel_id(container_id, i)
-    }
-  end
+      {"button", "alpine_js"} ->
+        %{
+          "x-on:click": "expanded = !expanded",
+          ":class":
+            "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
+          ":aria-expanded": "expanded",
+          "aria-controls": content_panel_id(container_id, i)
+        }
 
-  defp js_attributes("content_container", "alpine_js", container_id, i, _) do
-    %{
-      id: content_panel_id(container_id, i),
-      role: "region",
-      "aria-labelledby": content_panel_header_id(container_id, i),
-      "x-show": "expanded",
-      "x-cloak": true,
-      "x-collapse": true
-    }
-  end
+      {"content_container", "alpine_js"} ->
+        %{
+          id: content_panel_id(container_id, i),
+          role: "region",
+          "aria-labelledby": content_panel_header_id(container_id, i),
+          "x-show": "expanded",
+          "x-cloak": true,
+          "x-collapse": true
+        }
 
-  defp js_attributes("icon", "alpine_js", _container_id, _, _) do
-    %{
-      ":class": "{ 'rotate-180': expanded }"
-    }
-  end
+      {"icon", "alpine_js"} ->
+        %{
+          ":class": "{ 'rotate-180': expanded }"
+        }
 
-  defp js_attributes("container", "live_view_js", _container_id, _i, _) do
-    %{}
-  end
+      {"container", "live_view_js"} ->
+        %{}
 
-  defp js_attributes("item", "live_view_js", _container_id, _i, _) do
-    %{}
-  end
+      {"item", "live_view_js"} ->
+        %{}
 
-  defp js_attributes("button", "live_view_js", container_id, i, l) do
-    %{
-      "phx-click":
-        JS.dispatch("click_accordion",
-          to: "##{container_id} [data-i='#{i}']",
-          detail: %{container_id: container_id, index: i, length: l}
-        ),
-      "aria-controls": content_panel_id(container_id, i)
-    }
-  end
+      {"button", "live_view_js"} ->
+        %{
+          "phx-click":
+            JS.dispatch("click_accordion",
+              to: "##{container_id} [data-i='#{i}']",
+              detail: %{container_id: container_id, index: i, length: l}
+            ),
+          "aria-controls": content_panel_id(container_id, i),
+          "aria-expanded": "#{open}"
+        }
 
-  defp js_attributes("content_container", "live_view_js", container_id, i, _) do
-    %{
-      id: content_panel_id(container_id, i),
-      role: "region",
-      "aria-labelledby": content_panel_header_id(container_id, i),
-      style: "display: none;"
-    }
-  end
+      {"content_container", "live_view_js"} ->
+        %{
+          id: content_panel_id(container_id, i),
+          role: "region",
+          "aria-labelledby": content_panel_header_id(container_id, i),
+          style: if(open, do: "display: block;", else: "display: none;")
+        }
 
-  defp js_attributes("icon", "live_view_js", _container_id, _, _) do
-    %{}
+      {"icon", "live_view_js"} ->
+        %{
+          class: if(open, do: "rotate-180", else: "")
+        }
+
+      _ ->
+        %{}
+    end
   end
 
   defp content_panel_header_id(container_id, idx) do
