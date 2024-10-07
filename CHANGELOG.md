@@ -1,4 +1,8 @@
 # Changelog
+### 2.2.0 - 2024-10-07 09:55:16
+
+- Update accordion so that you can set a particular item to be open at render
+
 ### 2.1.2 - 2024-10-07 01:52:01
 
 - update button_group to support custom bg and border style props
