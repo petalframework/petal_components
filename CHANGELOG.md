@@ -1,4 +1,9 @@
 # Changelog
+### 2.1.1 - 2024-10-07 01:08:01
+
+- move button_group classes into default css file
+- update button_group classes
+
 ### 2.1.0 - 2024-10-02 03:12:09
 
 - Adds new ghost table variant for extremely clean look
