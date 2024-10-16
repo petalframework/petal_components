@@ -113,7 +113,7 @@ defmodule PetalComponents.Button do
         "pc-icon-button--#{@size}",
         @class
       ]}
-      disabled={@disabled}-90
+      disabled={@disabled}
       {@rest}
     >
       <span class={["pc-icon-button__inner", @tooltip && "group/pc-icon-button pc-icon-button__inner--tooltip"]}>
