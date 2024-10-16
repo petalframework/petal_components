@@ -312,6 +312,73 @@ defmodule PetalComponents.Field do
     """
   end
 
+  def field(%{type: "radio-card"} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:checked, fn -> nil end)
+      |> assign_new(:size, fn -> "md" end)
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:variant, fn -> "outline" end)
+      |> assign_new(:options, fn -> [] end)
+      |> assign_new(:group_layout, fn -> "row" end)
+      |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class={[
+        "pc-radio-card-group",
+        "pc-radio-card-group--#{@group_layout}",
+        @class
+      ]}>
+        <input type="hidden" name={@name} value="" />
+        <%= for option <- @options do %>
+          <% label_text = option[:label] || ""
+          value = option[:value] || ""
+          description = option[:description] || nil
+          disabled = option[:disabled] || false
+          input_id = "#{@id_prefix}_#{value}" %>
+          <label class={[
+            "pc-radio-card",
+            "pc-radio-card--#{@size}",
+            "pc-radio-card--#{@variant}",
+            disabled && "pc-radio-card--disabled"
+          ]}>
+            <input
+              type="radio"
+              name={@name}
+              id={input_id}
+              value={value}
+              disabled={disabled}
+              checked={
+                to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
+              }
+              class="sr-only pc-radio-card__input"
+              {@rest}
+            />
+            <div class="pc-radio-card__fake-input"></div>
+            <div class="pc-radio-card__content">
+              <div class="pc-radio-card__label"><%= label_text %></div>
+              <%= if description do %>
+                <div class="pc-radio-card__description"><%= description %></div>
+              <% end %>
+            </div>
+          </label>
+        <% end %>
+        <%= if @empty_message && Enum.empty?(@options) do %>
+          <div class="pc-radio-card-group--empty-message">
+            <%= @empty_message %>
+          </div>
+        <% end %>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
   def field(%{type: "hidden"} = assigns) do
     ~H"""
     <input
