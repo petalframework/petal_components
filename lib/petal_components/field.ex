@@ -33,7 +33,7 @@ defmodule PetalComponents.Field do
     default: "text",
     values:
       ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
-               range radio-group search select switch tel text textarea time url week),
+               range radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
@@ -81,6 +81,9 @@ defmodule PetalComponents.Field do
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   attr :label_class, :any, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
+
+  attr :size, :string, default: nil, doc: "sm, md or lg - used by group-card"
+  attr :variant, :any, default: nil, doc: "outline, classic or surface - used by group-card"
 
   attr :required, :boolean,
     default: false,
@@ -335,35 +338,28 @@ defmodule PetalComponents.Field do
       ]}>
         <input type="hidden" name={@name} value="" />
         <%= for option <- @options do %>
-          <% label_text = option[:label] || ""
-          value = option[:value] || ""
-          description = option[:description] || nil
-          disabled = option[:disabled] || false
-          input_id = "#{@id_prefix}_#{value}" %>
           <label class={[
             "pc-radio-card",
             "pc-radio-card--#{@size}",
             "pc-radio-card--#{@variant}",
-            disabled && "pc-radio-card--disabled"
+            option[:disabled] && "pc-radio-card--disabled"
           ]}>
             <input
               type="radio"
               name={@name}
-              id={input_id}
-              value={value}
-              disabled={disabled}
+              id={"#{@id_prefix}_#{option[:value]}"}
+              value={option[:value]}
+              disabled={option[:disabled]}
               checked={
-                to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
+                to_string(option[:value]) == to_string(@value) || to_string(option[:value]) == to_string(@checked)
               }
               class="sr-only pc-radio-card__input"
               {@rest}
             />
             <div class="pc-radio-card__fake-input"></div>
             <div class="pc-radio-card__content">
-              <div class="pc-radio-card__label"><%= label_text %></div>
-              <%= if description do %>
-                <div class="pc-radio-card__description"><%= description %></div>
-              <% end %>
+              <div class="pc-radio-card__label"><%= option[:label] %></div>
+              <div :if={option[:description]} class="pc-radio-card__description"><%= option[:description] %></div>
             </div>
           </label>
         <% end %>
