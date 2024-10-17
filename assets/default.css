@@ -722,7 +722,12 @@
 :not(.phx-no-feedback).pc-form-field-wrapper--error
   .pc-switch
   .pc-switch__fake-input {
-  @apply bg-danger-200 border-danger-500 dark:bg-danger-700;
+  @apply bg-danger-200 border-danger-500 dark:bg-danger-600 dark:border-danger-800;
+}
+:not(.phx-no-feedback).pc-form-field-wrapper--error
+  .pc-radio-card
+  .pc-radio-card__fake-input {
+  @apply bg-danger-200 dark:bg-danger-800 border-danger-500;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label,
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
@@ -977,7 +982,7 @@
 }
 
 .pc-radio-card-group--row {
-  @apply flex-row;
+  @apply flex-col sm:flex-row;
 }
 
 .pc-radio-card-group--col {
@@ -993,19 +998,15 @@
 
 /* Apply padding to .pc-radio-card__content */
 .pc-radio-card--sm > .pc-radio-card__content {
-  @apply p-2;
+  @apply px-4 py-2;
 }
 
 .pc-radio-card--md > .pc-radio-card__content {
-  @apply p-4;
+  @apply px-8 py-4;
 }
 
 .pc-radio-card--lg > .pc-radio-card__content {
-  @apply p-6;
-}
-
-.pc-radio-card__icon {
-  @apply mb-2;
+  @apply px-12 py-6;
 }
 
 /* Adjust text size for labels */
