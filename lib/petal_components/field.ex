@@ -67,8 +67,8 @@ defmodule PetalComponents.Field do
   attr :label_class, :any, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
 
-  attr :size, :string, default: nil, doc: "sm, md or lg - used by group-card"
-  attr :variant, :any, default: nil, doc: "outline, classic or surface - used by group-card"
+  attr :size, :string, default: "md", doc: "sm, md or lg - used by radio-card"
+  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
   attr :required, :boolean,
     default: false,
@@ -303,9 +303,7 @@ defmodule PetalComponents.Field do
     assigns =
       assigns
       |> assign_new(:checked, fn -> nil end)
-      |> assign_new(:size, fn -> "md" end)
       |> assign_new(:class, fn -> "" end)
-      |> assign_new(:variant, fn -> "outline" end)
       |> assign_new(:options, fn -> [] end)
       |> assign_new(:group_layout, fn -> "row" end)
       |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
@@ -335,7 +333,8 @@ defmodule PetalComponents.Field do
               value={option[:value]}
               disabled={option[:disabled]}
               checked={
-                to_string(option[:value]) == to_string(@value) || to_string(option[:value]) == to_string(@checked)
+                to_string(option[:value]) == to_string(@value) ||
+                  to_string(option[:value]) == to_string(@checked)
               }
               class="sr-only pc-radio-card__input"
               {@rest}
@@ -343,7 +342,9 @@ defmodule PetalComponents.Field do
             <div class="pc-radio-card__fake-input"></div>
             <div class="pc-radio-card__content">
               <div class="pc-radio-card__label"><%= option[:label] %></div>
-              <div :if={option[:description]} class="pc-radio-card__description"><%= option[:description] %></div>
+              <div :if={option[:description]} class="pc-radio-card__description">
+                <%= option[:description] %>
+              </div>
             </div>
           </label>
         <% end %>
