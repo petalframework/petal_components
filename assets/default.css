@@ -1563,7 +1563,7 @@
   @apply fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70;
 }
 .pc-slideover__wrapper {
-  @apply fixed inset-0 z-50 flex overflow-hidden transform;
+  @apply fixed inset-0 z-50 flex overflow-hidden;
 }
 .pc-slideover__box {
   @apply w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-gray-800;

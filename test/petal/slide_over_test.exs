@@ -42,7 +42,7 @@ defmodule PetalComponents.SlideOverTest do
 
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
-    assert html =~ "absolute right-0 inset-y-0"
+    assert html =~ "fixed right-0 inset-y-0"
 
     html =
       rendered_to_string(~H"""
@@ -60,7 +60,7 @@ defmodule PetalComponents.SlideOverTest do
 
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
-    assert html =~ "translate-y-0 absolute inset-x-0"
+    assert html =~ "fixed inset-x-0 top-0"
 
     html =
       rendered_to_string(~H"""
@@ -78,7 +78,7 @@ defmodule PetalComponents.SlideOverTest do
 
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
-    assert html =~ "translate-y-0 absolute inset-x-0 bottom-0"
+    assert html =~ "fixed inset-x-0 bottom-0"
   end
 
   test "dark mode" do
