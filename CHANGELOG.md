@@ -1,4 +1,8 @@
 # Changelog
+### 2.2.1 - 2024-10-18 01:12:17
+
+- Fixes slide over opening animation
+
 ### 2.2.0 - 2024-10-07 09:55:16
 
 - Update accordion so that you can set a particular item to be open at render
