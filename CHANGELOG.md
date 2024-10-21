@@ -1,4 +1,9 @@
 # Changelog
+### 2.3.0 - 2024-10-21 23:37:49
+
+- Provide more variants for alert and badge (soft) to allow better support for dark mode
+- Bump a11y_audit from 0.2.0 to 0.2.1
+
 ### 2.2.1 - 2024-10-18 01:12:17
 
 - Fixes slide over opening animation
