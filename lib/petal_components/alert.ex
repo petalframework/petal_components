@@ -8,6 +8,12 @@ defmodule PetalComponents.Alert do
     values: ["info", "success", "warning", "danger"]
   )
 
+  attr(:variant, :string,
+    default: "light",
+    values: ["light", "soft", "dark", "outline"],
+    doc: "The variant of the alert"
+  )
+
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
   attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
@@ -59,7 +65,7 @@ defmodule PetalComponents.Alert do
 
             <%= if @close_button_properties do %>
               <button
-                class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color)]}
+                class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
                 {@close_button_properties}
               >
                 <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
@@ -75,39 +81,24 @@ defmodule PetalComponents.Alert do
   defp alert_classes(opts) do
     opts = %{
       color: opts[:color] || "info",
+      variant: opts[:variant] || "light",
       class: opts[:class] || ""
     }
 
     base_classes = "pc-alert-base-classes"
-    color_css = get_color_classes(opts.color)
+    color_css = get_color_classes(opts.color, opts.variant)
     custom_classes = opts.class
 
     [base_classes, color_css, custom_classes]
   end
 
-  defp get_color_classes("info"),
-    do: "pc-alert--info"
+  defp get_color_classes(color, variant) do
+    "pc-alert--#{color}-#{variant}"
+  end
 
-  defp get_color_classes("success"),
-    do: "pc-alert--success"
-
-  defp get_color_classes("warning"),
-    do: "pc-alert--warning"
-
-  defp get_color_classes("danger"),
-    do: "pc-alert--danger"
-
-  defp get_dismiss_icon_classes("info"),
-    do: "pc-alert__dismiss-button--info"
-
-  defp get_dismiss_icon_classes("success"),
-    do: "pc-alert__dismiss-button--success"
-
-  defp get_dismiss_icon_classes("warning"),
-    do: "pc-alert__dismiss-button--warning"
-
-  defp get_dismiss_icon_classes("danger"),
-    do: "pc-alert__dismiss-button--danger"
+  defp get_dismiss_icon_classes(color, variant) do
+    "pc-alert__dismiss-button--#{color}-#{variant}"
+  end
 
   defp get_icon(%{color: "info"} = assigns) do
     ~H"""

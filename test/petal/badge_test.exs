@@ -3,7 +3,7 @@ defmodule PetalComponents.BadgeTest do
   import PetalComponents.Badge
   import PetalComponents.Icon
 
-  test "it renders colors and label correctly" do
+  test "it renders colors, variants and labels correctly" do
     assigns = %{}
 
     html =
@@ -61,6 +61,30 @@ defmodule PetalComponents.BadgeTest do
 
     assert html =~ "Gray"
     assert html =~ "pc-badge--gray-light"
+
+    html =
+      rendered_to_string(~H"""
+      <.badge color="gray" variant="dark" label="Gray" />
+      """)
+
+    assert html =~ "Gray"
+    assert html =~ "pc-badge--gray-dark"
+
+    html =
+      rendered_to_string(~H"""
+      <.badge color="gray" variant="soft" label="Gray" />
+      """)
+
+    assert html =~ "Gray"
+    assert html =~ "pc-badge--gray-soft"
+
+    html =
+      rendered_to_string(~H"""
+      <.badge color="gray" variant="outline" label="Gray" />
+      """)
+
+    assert html =~ "Gray"
+    assert html =~ "pc-badge--gray-outline"
   end
 
   test "it allows you to add a class" do

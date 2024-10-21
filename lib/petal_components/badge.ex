@@ -2,7 +2,7 @@ defmodule PetalComponents.Badge do
   use Phoenix.Component
 
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:variant, :string, default: "light", values: ["light", "dark", "outline"])
+  attr(:variant, :string, default: "light", values: ["light", "dark", "soft", "outline"])
 
   attr(:color, :string,
     default: "primary",

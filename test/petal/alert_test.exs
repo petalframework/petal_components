@@ -95,7 +95,7 @@ defmodule PetalComponents.AlertTest do
     assert html =~ ~s{custom-attrs="123"}
   end
 
-  test "dismissable alerts renders go away box with correct colours" do
+  test "dismissable alerts renders go away box with correct colours and alternate variants" do
     assigns = %{}
 
     html =
@@ -130,5 +130,44 @@ defmodule PetalComponents.AlertTest do
       """)
 
     assert html =~ "pc-alert__dismiss-button--success"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert
+        with_icon
+        variant="dark"
+        color="info"
+        label="Info alert"
+        close_button_properties={["phx-click": "do_something"]}
+      />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--info-dark"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert
+        with_icon
+        variant="soft"
+        color="info"
+        label="Info alert"
+        close_button_properties={["phx-click": "do_something"]}
+      />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--info-soft"
+
+    html =
+      rendered_to_string(~H"""
+      <.alert
+        with_icon
+        variant="outline"
+        color="info"
+        label="Info alert"
+        close_button_properties={["phx-click": "do_something"]}
+      />
+      """)
+
+    assert html =~ "pc-alert__dismiss-button--info-outline"
   end
 end
