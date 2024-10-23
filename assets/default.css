@@ -1318,6 +1318,49 @@
   @apply bg-gray-50 dark:bg-gray-800;
 }
 
+/* Ghost variant */
+.pc-accordion--ghost {
+  @apply mx-auto divide-y divide-gray-900/10 dark:divide-gray-100/10;
+}
+
+.pc-accordion-item--ghost {
+  @apply py-6;
+}
+
+.pc-accordion-item__button--ghost {
+  @apply flex items-start justify-between w-full text-left text-gray-900 dark:text-gray-100;
+}
+
+.pc-accordion-item__minus {
+  @apply !w-6 !h-6 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+}
+.pc-accordion-item__plus {
+  @apply !w-6 !h-6 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+}
+
+.pc-accordion--ghost [x-cloak].pc-accordion-item__plus,
+.pc-accordion--ghost [x-cloak].pc-accordion-item__minus {
+  display: none !important;
+}
+
+.pc-accordion-item__heading--ghost {
+  @apply text-base font-semibold leading-7;
+}
+
+.pc-accordion-item__icon-container--ghost {
+  @apply relative flex items-center ml-6 h-7;
+}
+
+.pc-accordion-item__content--ghost {
+  @apply pr-12 my-2;
+}
+
+/* Hide icons by default for LiveView */
+.pc-accordion-item__plus[data-js-loading],
+.pc-accordion-item__minus[data-js-loading] {
+  display: none;
+}
+
 /* Modal */
 .pc-modal {
   @apply relative z-50;
