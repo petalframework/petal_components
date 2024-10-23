@@ -501,7 +501,7 @@ defmodule PetalComponents.FieldTest do
     refute html =~ "No options"
   end
 
-  test "field switch" do
+  test "field switch and size" do
     assigns = %{form: to_form(%{}, as: :user)}
 
     html =
@@ -518,6 +518,15 @@ defmodule PetalComponents.FieldTest do
 
     # It includes a hidden field for when the switch is not checked
     assert html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="switch" size="xs" field={@form[:read_terms]} data-extra="true" />
+      </.form>
+      """)
+
+    assert html =~ "pc-switch pc-switch--xs"
   end
 
   test "field radio group" do
