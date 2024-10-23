@@ -1,4 +1,8 @@
 # Changelog
+### 2.4.0 - 2024-10-23 04:13:40
+
+- Allow for different switch sizes and fix some error state colors
+
 ### 2.3.0 - 2024-10-21 23:37:49
 
 - Provide more variants for alert and badge (soft) to allow better support for dark mode
