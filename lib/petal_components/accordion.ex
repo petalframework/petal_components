@@ -26,7 +26,6 @@ defmodule PetalComponents.Accordion do
     assigns =
       assigns
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
-      |> assign_new(:variant, fn -> "default" end)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do
