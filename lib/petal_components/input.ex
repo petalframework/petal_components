@@ -15,6 +15,8 @@ defmodule PetalComponents.Input do
     values: ~w(checkbox color date datetime-local email file hidden month number password
                range radio search select switch tel text textarea time url week)
 
+  attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -58,10 +60,11 @@ defmodule PetalComponents.Input do
 
   def input(%{type: "switch", value: value} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assigns
+      |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
-    <label class="pc-switch">
+    <label class={["pc-switch", "pc-switch--#{@size}"]}>
       <input
         type="checkbox"
         id={@id}
@@ -72,8 +75,8 @@ defmodule PetalComponents.Input do
         {@rest}
       />
 
-      <span class="pc-switch__fake-input"></span>
-      <span class="pc-switch__fake-input-bg"></span>
+      <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
+      <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
     </label>
     """
   end

@@ -717,12 +717,12 @@
   @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error input[type="checkbox"] {
-  @apply bg-danger-700;
+  @apply bg-danger-200 dark:bg-danger-700;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error
   .pc-switch
   .pc-switch__fake-input {
-  @apply bg-danger-200 border-danger-500;
+  @apply bg-danger-200 border-danger-500 dark:bg-danger-700;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label,
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
@@ -768,16 +768,63 @@
   @apply select-wrapper dark:text-white;
 }
 .pc-switch {
-  @apply relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5 cursor-pointer;
+  @apply relative inline-flex items-center justify-center flex-shrink-0 cursor-pointer;
 }
-.pc-switch__input {
-  @apply absolute w-10 h-5 bg-white border-none rounded-full cursor-pointer peer-checked:border-0 checked:bg-transparent checked:focus:bg-transparent checked:hover:bg-transparent dark:bg-gray-800;
+.pc-switch--xs {
+  @apply w-6 h-3;
+}
+.pc-switch--sm {
+  @apply w-8 h-4;
+}
+.pc-switch--md {
+  @apply w-10 h-5;
+}
+.pc-switch--lg {
+  @apply w-12 h-6;
+}
+.pc-switch--xl {
+  @apply w-14 h-7;
 }
 .pc-switch__fake-input {
-  @apply absolute h-6 mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border rounded-full pointer-events-none w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500;
+  @apply absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-gray-300 rounded-full pointer-events-none dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500;
+}
+.pc-switch__fake-input--xs {
+  @apply h-4 w-7;
+}
+.pc-switch__fake-input--sm {
+  @apply h-5 w-9;
+}
+.pc-switch__fake-input--md {
+  @apply h-6 w-11;
+}
+.pc-switch__fake-input--lg {
+  @apply h-7 w-[3.25rem];
+}
+.pc-switch__fake-input--xl {
+  @apply h-8 w-[3.75rem];
 }
 .pc-switch__fake-input-bg {
-  @apply absolute left-0 inline-block w-5 h-5 transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none peer-checked:translate-x-5 ring-0;
+  @apply absolute left-0 inline-block transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none ring-0;
+}
+.pc-switch__fake-input-bg--xs {
+  @apply w-3 h-3;
+  @apply peer-checked:translate-x-3;
+}
+.pc-switch__fake-input-bg--sm {
+  @apply w-4 h-4;
+  @apply peer-checked:translate-x-4;
+}
+.pc-switch__fake-input-bg--md {
+  @apply w-5 h-5;
+  @apply peer-checked:translate-x-5;
+}
+.pc-switch__fake-input-bg--lg {
+  @apply w-6 h-6;
+  @apply peer-checked:translate-x-6;
+}
+.pc-switch__fake-input-bg--xl {
+  @apply w-7 h-7;
+  @apply peer-checked:translate-x-7;
 }
 .pc-text-input {
   @apply block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;

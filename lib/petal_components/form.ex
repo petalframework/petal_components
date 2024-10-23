@@ -619,13 +619,14 @@ defmodule PetalComponents.Form do
   attr(:field, :atom, default: nil, doc: "")
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch")
   attr(:rest, :global, include: @checkbox_form_attrs)
 
   def switch(assigns) do
     assigns = assign_defaults(assigns, switch_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <label class="pc-switch">
+    <label class={["pc-switch", "pc-switch--#{@size}"]}>
       <%= Form.checkbox(
         @form,
         @field,
@@ -634,8 +635,8 @@ defmodule PetalComponents.Form do
           phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)
         ] ++ Map.to_list(@rest)
       ) %>
-      <span class="pc-switch__fake-input"></span>
-      <span class="pc-switch__fake-input-bg"></span>
+      <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
+      <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
     </label>
     """
   end

@@ -35,6 +35,8 @@ defmodule PetalComponents.Field do
                range radio-group search select switch tel text textarea time url week),
     doc: "the type of input"
 
+  attr :size, :string, default: "xs", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -164,13 +166,14 @@ defmodule PetalComponents.Field do
 
   def field(%{type: "switch", value: value} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assigns
+      |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <label class={["pc-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" />
-        <label class="pc-switch">
+        <label class={["pc-switch", "pc-switch--#{@size}"]}>
           <input
             type="checkbox"
             id={@id}
@@ -182,8 +185,8 @@ defmodule PetalComponents.Field do
             {@rest}
           />
 
-          <span class="pc-switch__fake-input"></span>
-          <span class="pc-switch__fake-input-bg"></span>
+          <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
+          <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
         </label>
         <div class={[@required && "pc-label--required"]}><%= @label %></div>
       </label>
