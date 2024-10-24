@@ -1320,7 +1320,7 @@
 
 /* Ghost variant */
 .pc-accordion--ghost {
-  @apply mx-auto divide-y divide-gray-900/10 dark:divide-gray-100/10;
+  @apply w-full mx-auto divide-y divide-gray-900/10 dark:divide-gray-100/10;
 }
 
 .pc-accordion-item--ghost {

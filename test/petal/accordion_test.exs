@@ -22,6 +22,18 @@ defmodule PetalComponents.AccordionTest do
     # Test js_lib option
     html =
       rendered_to_string(~H"""
+      <.accordion variant="ghost">
+        <:item heading="Accordion">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis. Ut enim ad minim veniam quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </:item>
+      </.accordion>
+      """)
+
+    assert html =~ "pc-accordion--ghost"
+
+    # Test js_lib option
+    html =
+      rendered_to_string(~H"""
       <.accordion js_lib="live_view_js">
         <:item heading="Accordion">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis. Ut enim ad minim veniam quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
