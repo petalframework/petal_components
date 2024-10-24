@@ -1,4 +1,9 @@
 # Changelog
+### 2.4.3 - 2024-10-24 00:45:20
+
+- bump default switch size to md
+- fix rendering .alert with HTML fails #361
+
 ### 2.4.2 - 2024-10-24 00:08:31
 
 - missing w-full and adds test for pc-accordion--ghost
