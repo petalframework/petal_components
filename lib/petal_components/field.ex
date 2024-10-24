@@ -35,7 +35,7 @@ defmodule PetalComponents.Field do
                range radio-group search select switch tel text textarea time url week),
     doc: "the type of input"
 
-  attr :size, :string, default: "xs", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+  attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
