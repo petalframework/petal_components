@@ -1,4 +1,8 @@
 # Changelog
+### 2.4.2 - 2024-10-24 00:08:31
+
+- missing w-full and adds test for pc-accordion--ghost
+
 ### 2.4.1 - 2024-10-24 00:00:03
 
 - fix, variant classes not passing through correctly
