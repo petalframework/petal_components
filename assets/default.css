@@ -829,6 +829,51 @@
 .pc-text-input {
   @apply block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;
 }
+
+/* Password Field Styles */
+.pc-password-field-wrapper {
+  @apply relative;
+}
+
+.pc-password-input {
+  @apply pr-10;
+}
+
+.pc-password-toggle-button {
+  @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500;
+}
+
+.pc-password-toggle-icon-container {
+  @apply flex items-center;
+}
+
+.pc-password-toggle-icon {
+  @apply w-5 h-5 text-gray-600 dark:text-gray-400;
+}
+
+.pc-date-input {
+  @apply pc-text-input;
+  @apply [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-black dark:[&::-webkit-date-and-time-value]:text-white;
+}
+
+.pc-date-input-wrapper {
+  @apply relative;
+}
+
+.pc-date-input-icon {
+  @apply absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none;
+}
+
+.pc-date-picker-indicator {
+  @apply [&::-webkit-calendar-picker-indicator]:opacity-0;
+  @apply [&::-webkit-calendar-picker-indicator]:absolute;
+  @apply [&::-webkit-calendar-picker-indicator]:inset-y-0;
+  @apply [&::-webkit-calendar-picker-indicator]:right-0;
+  @apply [&::-webkit-calendar-picker-indicator]:w-10;
+  @apply [&::-webkit-calendar-picker-indicator]:h-full;
+  @apply [&::-webkit-calendar-picker-indicator]:cursor-pointer;
+}
+
 .pc-select {
   @apply block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-md cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none sm:text-sm dark:disabled:bg-gray-700 dark:text-gray-300 dark:bg-gray-800;
 }

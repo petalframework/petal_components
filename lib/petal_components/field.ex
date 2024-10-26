@@ -1,5 +1,6 @@
 defmodule PetalComponents.Field do
   use Phoenix.Component
+  import PetalComponents.Icon
 
   @doc """
   Renders an input with label and error messages. If you just want an input, check out input.ex
@@ -36,6 +37,10 @@ defmodule PetalComponents.Field do
     doc: "the type of input"
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+
+  attr :viewable, :boolean,
+    default: false,
+    doc: "If true, adds a toggle to show/hide the password text"
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -312,7 +317,73 @@ defmodule PetalComponents.Field do
     """
   end
 
-  # All other inputs text, datetime-local, url, password, etc. are handled here...
+  def field(%{type: "password", viewable: true} = assigns) do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class="pc-password-field-wrapper" x-data="{ show: false }">
+        <input
+          x-bind:type="show ? 'text' : 'password'"
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[@class, "pc-password-input"]}
+          required={@required}
+          {@rest}
+        />
+        <button type="button" class="pc-password-toggle-button" @click="show = !show">
+          <span x-show="!show" class="pc-password-toggle-icon-container">
+            <.icon name="hero-eye-solid" class="pc-password-toggle-icon" />
+          </span>
+          <span x-show="show" class="pc-password-toggle-icon-container" style="display: none;">
+            <.icon name="hero-eye-slash-solid" class="pc-password-toggle-icon" />
+          </span>
+        </button>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: type} = assigns)
+      when type in ["date", "datetime-local", "time", "month", "week"] do
+    assigns =
+      assign(assigns,
+        class: [assigns.class, "pc-date-input pc-date-picker-indicator"],
+        icon_name: get_icon_for_type(assigns.type)
+      )
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class="pc-date-input-wrapper">
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={@class}
+          required={@required}
+          {@rest}
+        />
+        <div class="pc-date-input-icon">
+          <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  # All other inputs (text, url, etc.) are handled here...
   def field(assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
@@ -413,6 +484,12 @@ defmodule PetalComponents.Field do
   defp get_class_for_type("file"), do: "pc-file-input"
   defp get_class_for_type("range"), do: "pc-range-input"
   defp get_class_for_type(_), do: "pc-text-input"
+
+  defp get_icon_for_type("date"), do: "hero-calendar"
+  defp get_icon_for_type("datetime-local"), do: "hero-calendar"
+  defp get_icon_for_type("month"), do: "hero-calendar"
+  defp get_icon_for_type("week"), do: "hero-calendar"
+  defp get_icon_for_type("time"), do: "hero-clock"
 
   defp translate_error({msg, opts}) do
     config_translator = get_translator_from_config()
