@@ -510,6 +510,7 @@ defmodule PetalComponents.FieldTest do
         <.field
           class="custom-class"
           type="radio-card"
+          group_layout="col"
           field={@form[:plans]}
           options={[
             %{label: "Basic Plan", value: "basic"},
@@ -521,6 +522,7 @@ defmodule PetalComponents.FieldTest do
 
     assert html =~ "radio"
     assert html =~ "user[plans]"
+    assert html =~ "pc-radio-card-group--col"
     assert html =~ "Basic Plan"
     assert html =~ "phx-feedback-for"
     assert html =~ "Pro Plan"
@@ -598,13 +600,7 @@ defmodule PetalComponents.FieldTest do
     html =
       rendered_to_string(~H"""
       <.form for={@form}>
-        <.field
-          class="custom-class"
-          type="radio-card"
-          field={@form[:plans]}
-          options={[]}
-          empty_message="No options"
-        />
+        <.field type="radio-card" field={@form[:plans]} empty_message="No options" />
       </.form>
       """)
 
