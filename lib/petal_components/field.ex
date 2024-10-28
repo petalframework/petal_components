@@ -42,6 +42,14 @@ defmodule PetalComponents.Field do
     default: false,
     doc: "If true, adds a toggle to show/hide the password text"
 
+  attr :copyable, :boolean,
+    default: false,
+    doc: "If true, adds a copy button to the field and disables the input"
+
+  attr :clearable, :boolean,
+    default: false,
+    doc: "If true, adds a clear button to clear the field value"
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -331,20 +339,128 @@ defmodule PetalComponents.Field do
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-          class={[@class, "pc-password-input"]}
+          class={[@class, "pc-password-field-input"]}
           required={@required}
           {@rest}
         />
-        <button type="button" class="pc-password-toggle-button" @click="show = !show">
-          <span x-show="!show" class="pc-password-toggle-icon-container">
-            <.icon name="hero-eye-solid" class="pc-password-toggle-icon" />
+        <button type="button" class="pc-password-field-toggle-button" @click="show = !show">
+          <span x-show="!show" class="pc-password-field-toggle-icon-container">
+            <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
           </span>
-          <span x-show="show" class="pc-password-toggle-icon-container" style="display: none;">
-            <.icon name="hero-eye-slash-solid" class="pc-password-toggle-icon" />
+          <span x-show="show" class="pc-password-field-toggle-icon-container" style="display: none;">
+            <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
           </span>
         </button>
       </div>
       <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: type, copyable: true} = assigns) when type in ["text", "url", "email"] do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <!-- Field Label -->
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <!-- Copyable Field Wrapper -->
+      <div class="pc-copyable-field-wrapper" x-data="{ copied: false }">
+        <!-- Input Field -->
+        <input
+          x-ref="copyInput"
+          type={@type || "text"}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type || "text", @value)}
+          class={[@class, "pc-copyable-field-input"]}
+          readonly
+          {@rest}
+        />
+        <!-- Copy Button -->
+        <button
+          type="button"
+          class="pc-copyable-field-button"
+          @click="
+          navigator.clipboard.writeText($refs.copyInput.value)
+            .then(() => { copied = true; setTimeout(() => copied = false, 2000); })
+        "
+        >
+          <!-- Copy Icon -->
+          <span x-show="!copied" class="pc-copyable-field-icon-container">
+            <.icon name="hero-clipboard-document-solid" class="pc-copyable-field-icon" />
+          </span>
+          <!-- Copied Icon -->
+          <span x-show="copied" class="pc-copyable-field-icon-container" style="display: none;">
+            <.icon name="hero-clipboard-document-check-solid" class="pc-copyable-field-icon" />
+          </span>
+        </button>
+      </div>
+      <!-- Error Message -->
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <!-- Help Text -->
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{clearable: true} = assigns) do
+    assigns =
+      assigns
+      |> assign(:class, [assigns.class, get_class_for_type(assigns.type || "text")])
+      |> assign_new(:value, fn ->
+        Phoenix.HTML.Form.normalize_value(assigns.type || "text", assigns.value) || ""
+      end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <!-- Field Label -->
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <!-- Clearable Field Wrapper -->
+      <div
+        class="pc-clearable-field-wrapper"
+        x-data="{ showClearButton: false }"
+        x-init="showClearButton = $refs.clearInput.value.length > 0"
+      >
+        <!-- Input Field -->
+        <input
+          x-ref="clearInput"
+          type={@type || "text"}
+          name={@name}
+          id={@id}
+          value={@value}
+          class={[@class, "pc-clearable-field-input"]}
+          required={@required}
+          {@rest}
+          x-on:input="showClearButton = $event.target.value.length > 0"
+        />
+        <!-- Clear Button -->
+        <button
+          type="button"
+          class="pc-clearable-field-button"
+          x-show="showClearButton"
+          x-on:click="
+            $refs.clearInput.value = '';
+            showClearButton = false;
+            $refs.clearInput.dispatchEvent(new Event('input'));
+          "
+          style="display: none;"
+          aria-label="Clear input"
+        >
+          <!-- Clear Icon -->
+          <span class="pc-clearable-field-icon-container">
+            <.icon name="hero-x-mark-solid" class="pc-clearable-field-icon" />
+          </span>
+        </button>
+      </div>
+      <!-- Error Message -->
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <!-- Help Text -->
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """

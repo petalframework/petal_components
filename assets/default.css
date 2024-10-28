@@ -835,20 +835,62 @@
   @apply relative;
 }
 
-.pc-password-input {
+.pc-password-field-input {
   @apply pr-10;
 }
 
-.pc-password-toggle-button {
+.pc-password-field-toggle-button {
   @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500;
 }
 
-.pc-password-toggle-icon-container {
+.pc-password-field-toggle-icon-container {
   @apply flex items-center;
 }
 
-.pc-password-toggle-icon {
-  @apply w-5 h-5 text-gray-600 dark:text-gray-400;
+.pc-password-field-toggle-icon {
+  @apply w-5 h-5 text-gray-400;
+}
+
+/* Copyable Field Styles */
+.pc-copyable-field-wrapper {
+  @apply relative;
+}
+
+.pc-copyable-field-input {
+  @apply pr-10 cursor-text;
+}
+
+.pc-copyable-field-button {
+  @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+}
+
+.pc-copyable-field-icon-container {
+  @apply flex items-center;
+}
+
+.pc-copyable-field-icon {
+  @apply w-5 h-5 text-gray-400;
+}
+
+/* Clearable Field Styles */
+.pc-clearable-field-wrapper {
+  @apply relative;
+}
+
+.pc-clearable-field-input {
+  @apply pr-10;
+}
+
+.pc-clearable-field-button {
+  @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+}
+
+.pc-clearable-field-icon-container {
+  @apply flex items-center;
+}
+
+.pc-clearable-field-icon {
+  @apply w-5 h-5 text-gray-500 dark:text-gray-400;
 }
 
 /* Date and Time Field Styles */

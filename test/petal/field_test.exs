@@ -550,6 +550,91 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "data-extra"
   end
 
+  test "field with copyable" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          field={@form[:text]}
+          placeholder="This is just a placeholder"
+          value="https://example.com/invite/your-invite-code"
+          label="Copyable"
+          copyable
+        />
+      </.form>
+      """)
+
+    assert html =~ "<label"
+    assert html =~ "Copyable"
+    assert html =~ "<input"
+    assert html =~ ~s|type="text"|
+    assert html =~ "readonly"
+    assert html =~ ~s|value="https://example.com/invite/your-invite-code"|
+    assert html =~ "pc-copyable-field-button"
+    assert html =~ "clipboard-document-solid"
+    assert html =~ "pc-copyable-field-icon"
+    assert html =~ "x-data"
+    assert html =~ ~s|x-ref="copyInput"|
+    assert html =~ "@click"
+    assert html =~ "x-show"
+    assert html =~ "phx-feedback-for"
+  end
+
+  test "field with viewable" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="password"
+          field={@form[:password]}
+          label="Viewable"
+          placeholder="Placeholder"
+          viewable
+        />
+      </.form>
+      """)
+
+    assert html =~ "<label"
+    assert html =~ "Viewable"
+    assert html =~ "<input"
+    assert html =~ "x-bind:type"
+    assert html =~ "x-data"
+    assert html =~ "@click"
+    assert html =~ "x-show"
+    assert html =~ "pc-password-field-toggle-button"
+    assert html =~ "hero-eye-solid"
+    assert html =~ "pc-password-field-toggle-icon"
+    assert html =~ "phx-feedback-for"
+  end
+
+  test "field with clearable" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field field={@form[:text]} placeholder="Enter text" label="Clearable" type="text" clearable />
+      </.form>
+      """)
+
+    assert html =~ "<label"
+    assert html =~ "Clearable"
+    assert html =~ "<input"
+    assert html =~ ~s|type="text"|
+    assert html =~ "pc-clearable-field-button"
+    assert html =~ "hero-x-mark-solid"
+    assert html =~ "pc-clearable-field-icon"
+    assert html =~ "x-data"
+    assert html =~ "x-on:input"
+    assert html =~ "x-on:click"
+    assert html =~ "x-show"
+    assert html =~ "phx-feedback-for"
+  end
+
   test "field_help_text" do
     assigns = %{}
 
