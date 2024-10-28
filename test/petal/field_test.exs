@@ -411,34 +411,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
-  test "field radio-card" do
-    assigns = %{form: to_form(%{}, as: :user)}
-
-    html =
-      rendered_to_string(~H"""
-      <.form for={@form}>
-        <.field
-          class="custom-class"
-          type="radio-card"
-          field={@form[:roles]}
-          options={[
-            %{label: "Basic Plan", value: "basic", description: "Most popular choice"},
-            %{label: "Pro Plan", value: "pro", description: "Most popular choice"}
-          ]}
-        />
-      </.form>
-      """)
-
-    assert html =~ "radio"
-    assert html =~ "user[roles]"
-    assert html =~ "Basic Plan"
-    assert html =~ "phx-feedback-for"
-    assert html =~ "Pro Plan"
-    refute html =~ " checked "
-    assert html =~ "hidden"
-    assert html =~ "custom-class"
-  end
-
   test "field radio-group checked on form field" do
     assigns = %{form: to_form(%{"roles" => "write"}, as: :user)}
 
@@ -521,6 +493,136 @@ defmodule PetalComponents.FieldTest do
           type="radio-group"
           field={@form[:roles]}
           options={[{"Read", "read"}, {"Write", "write"}]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    refute html =~ "No options"
+  end
+
+  test "field radio-card" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          options={[
+            %{label: "Basic Plan", value: "basic"},
+            %{label: "Pro Plan", value: "pro", description: "Most popular choice"}
+          ]}
+        />
+      </.form>
+      """)
+
+    assert html =~ "radio"
+    assert html =~ "user[plans]"
+    assert html =~ "Basic Plan"
+    assert html =~ "phx-feedback-for"
+    assert html =~ "Pro Plan"
+    refute html =~ " checked "
+    assert html =~ "hidden"
+    assert html =~ "custom-class"
+  end
+
+  test "field radio-card checked on form field" do
+    assigns = %{form: to_form(%{"plans" => "pro"}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          options={[
+            %{label: "Basic Plan", value: "basic"},
+            %{label: "Pro Plan", value: "pro", description: "Most popular choice"}
+          ]}
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|value="pro" checked|
+
+    # Test when value is an integer
+    assigns = %{form: to_form(%{"plans" => 2}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          options={[
+            %{label: "Basic Plan", value: "1"},
+            %{label: "Pro Plan", value: "2", description: "Most popular choice"}
+          ]}
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|value="2" checked|
+  end
+
+  test "field radio-card checked attr" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          checked="pro"
+          options={[
+            %{label: "Basic Plan", value: "basic"},
+            %{label: "Pro Plan", value: "pro", description: "Most popular choice"}
+          ]}
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|value="pro" checked|
+  end
+
+  test "field radio-card empty options" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          options={[]}
+          empty_message="No options"
+        />
+      </.form>
+      """)
+
+    assert html =~ "No options"
+
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          class="custom-class"
+          type="radio-card"
+          field={@form[:plans]}
+          options={[
+            %{label: "Basic Plan", value: "basic"},
+            %{label: "Pro Plan", value: "pro", description: "Most popular choice"}
+          ]}
           empty_message="No options"
         />
       </.form>
