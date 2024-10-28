@@ -81,7 +81,7 @@ defmodule PetalComponents.TableTest do
       """)
 
     assert html =~ "<table"
-    assert html =~ "pc-table--surface"
+    assert html =~ "pc-table--basic"
   end
 
   test "Basic table (ghost variant)" do

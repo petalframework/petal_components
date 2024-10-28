@@ -36,7 +36,12 @@ defmodule PetalComponents.Field do
                range radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
-  attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+  attr :size, :string,
+    default: "md",
+    values: ~w(xs sm md lg xl),
+    doc: "the size of the switch or radio card"
+
+  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
   attr :viewable, :boolean,
     default: false,
@@ -81,9 +86,6 @@ defmodule PetalComponents.Field do
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   attr :label_class, :any, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
-
-  attr :size, :string, default: "md", doc: "sm, md or lg - used by radio-card"
-  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
   attr :required, :boolean,
     default: false,
