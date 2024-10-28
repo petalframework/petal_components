@@ -16,7 +16,7 @@ defmodule PetalComponents.Table do
   """
   attr :id, :string
   attr :class, :any, default: nil, doc: "CSS class"
-  attr :variant, :string, default: "surface", values: ["ghost", "surface"]
+  attr :variant, :string, default: "basic", values: ["ghost", "basic"]
   attr :rows, :list, default: [], doc: "the list of rows to render"
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"

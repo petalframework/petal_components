@@ -33,10 +33,15 @@ defmodule PetalComponents.Field do
     default: "text",
     values:
       ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
-               range radio-group search select switch tel text textarea time url week),
+               range radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
-  attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
+  attr :size, :string,
+    default: "md",
+    values: ~w(xs sm md lg xl),
+    doc: "the size of the switch or radio card"
+
+  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
   attr :viewable, :boolean,
     default: false,
@@ -302,6 +307,67 @@ defmodule PetalComponents.Field do
 
         <%= if @empty_message && Enum.empty?(@options) do %>
           <div class="pc-checkbox-group--empty-message">
+            <%= @empty_message %>
+          </div>
+        <% end %>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: "radio-card"} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:checked, fn -> nil end)
+      |> assign_new(:class, fn -> "" end)
+      |> assign_new(:options, fn -> [] end)
+      |> assign_new(:group_layout, fn -> "row" end)
+      |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class={[
+        "pc-radio-card-group",
+        "pc-radio-card-group--#{@group_layout}",
+        @class
+      ]}>
+        <input type="hidden" name={@name} value="" />
+        <%= for option <- @options do %>
+          <label class={[
+            "pc-radio-card",
+            "pc-radio-card--#{@size}",
+            "pc-radio-card--#{@variant}",
+            option[:disabled] && "pc-radio-card--disabled"
+          ]}>
+            <input
+              type="radio"
+              name={@name}
+              id={"#{@id_prefix}_#{option[:value]}"}
+              value={option[:value]}
+              disabled={option[:disabled]}
+              checked={
+                to_string(option[:value]) == to_string(@value) ||
+                  to_string(option[:value]) == to_string(@checked)
+              }
+              class="sr-only pc-radio-card__input"
+              {@rest}
+            />
+            <div class="pc-radio-card__fake-input"></div>
+            <div class="pc-radio-card__content">
+              <div class="pc-radio-card__label"><%= option[:label] %></div>
+              <div :if={option[:description]} class="pc-radio-card__description">
+                <%= option[:description] %>
+              </div>
+            </div>
+          </label>
+        <% end %>
+        <%= if @empty_message && Enum.empty?(@options) do %>
+          <div class="pc-radio-card-group--empty-message">
             <%= @empty_message %>
           </div>
         <% end %>

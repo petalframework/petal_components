@@ -722,7 +722,12 @@
 :not(.phx-no-feedback).pc-form-field-wrapper--error
   .pc-switch
   .pc-switch__fake-input {
-  @apply bg-danger-200 border-danger-500 dark:bg-danger-700;
+  @apply bg-danger-200 border-danger-500 dark:bg-danger-600 dark:border-danger-800;
+}
+:not(.phx-no-feedback).pc-form-field-wrapper--error
+  .pc-radio-card
+  .pc-radio-card__fake-input {
+  @apply bg-danger-200 dark:bg-danger-800 border-danger-500;
 }
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label,
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
@@ -968,6 +973,142 @@
 .pc-checkbox-group--empty-message,
 .pc-radio-group--empty-message {
   @apply text-sm;
+}
+
+/* Radio Card Styles */
+
+.pc-radio-card-group {
+  @apply flex gap-4;
+}
+
+.pc-radio-card-group--row {
+  @apply flex-col sm:flex-row;
+}
+
+.pc-radio-card-group--col {
+  @apply flex-col;
+}
+
+.pc-radio-card {
+  @apply relative transition-all cursor-pointer select-none;
+  @apply flex items-center justify-center text-left text-gray-900 dark:text-white;
+}
+
+/* Radio Card Size Styles */
+
+/* Apply padding to .pc-radio-card__content */
+.pc-radio-card--sm > .pc-radio-card__content {
+  @apply px-4 py-2;
+}
+
+.pc-radio-card--md > .pc-radio-card__content {
+  @apply px-8 py-4;
+}
+
+.pc-radio-card--lg > .pc-radio-card__content {
+  @apply px-12 py-6;
+}
+
+/* Adjust text size for labels */
+.pc-radio-card--sm .pc-radio-card__label {
+  @apply text-sm;
+}
+
+.pc-radio-card--md .pc-radio-card__label {
+  @apply text-base;
+}
+
+.pc-radio-card--lg .pc-radio-card__label {
+  @apply text-lg;
+}
+
+/* Adjust text size for descriptions */
+.pc-radio-card--sm .pc-radio-card__description {
+  @apply text-xs;
+}
+
+.pc-radio-card--md .pc-radio-card__description {
+  @apply text-sm;
+}
+
+.pc-radio-card--lg .pc-radio-card__description {
+  @apply text-base;
+}
+
+.pc-radio-card--outline .pc-radio-card__fake-input {
+  @apply bg-white border border-gray-300;
+  @apply dark:bg-gray-800 dark:border-gray-600;
+}
+
+.pc-radio-card--outline:hover .pc-radio-card__fake-input {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.pc-radio-card--classic .pc-radio-card__fake-input {
+  @apply bg-gray-100 border border-gray-100 dark:border-gray-800 dark:bg-gray-800;
+}
+
+.pc-radio-card--classic:hover .pc-radio-card__fake-input {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+/* Checked State Styles */
+.pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
+  @apply border-2 border-primary-500 bg-primary-50;
+  @apply dark:bg-gray-800;
+}
+
+/* Disabled State */
+.pc-radio-card--disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Input Styles */
+.pc-radio-card__input {
+  @apply sr-only;
+}
+
+/* Fake Input Styles */
+.pc-radio-card__fake-input {
+  @apply absolute inset-0 rounded-lg;
+}
+
+/* Content Styles */
+.pc-radio-card__content {
+  @apply relative pointer-events-none;
+}
+
+/* Label Styles */
+.pc-radio-card__label {
+  @apply font-semibold;
+}
+
+/* Description Styles */
+.pc-radio-card__description {
+  @apply text-sm font-normal text-gray-600;
+  @apply dark:text-gray-400;
+}
+
+/* Adjust Description Font Size Based on Size */
+.pc-radio-card--sm .pc-radio-card__description {
+  @apply text-xs;
+}
+
+.pc-radio-card--lg .pc-radio-card__description {
+  @apply text-base;
+}
+
+/* Apply styles when input is checked using peer-checked variants */
+.pc-radio-card.peer-checked\\:border-primary-500 {
+  @apply border-primary-500;
+}
+
+.pc-radio-card.peer-checked\\:bg-primary-50 {
+  @apply bg-primary-50;
+}
+
+.pc-radio-card.dark\\:peer-checked\\:bg-primary-700 {
+  @apply dark:bg-primary-700;
 }
 
 /* Dropdown */
@@ -1336,7 +1477,7 @@
 
 /* Table */
 
-.pc-table--surface {
+.pc-table--basic {
   @apply min-w-full overflow-hidden rounded-sm shadow table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
 }
 .pc-table--ghost {
