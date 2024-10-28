@@ -39,7 +39,7 @@ defmodule PetalComponents.Field do
   attr :size, :string,
     default: "md",
     values: ~w(xs sm md lg xl),
-    doc: "the size of the switch or radio card"
+    doc: "the size of the switch (xs, sm, md, lg or xl) or radio card (sm, md or lg)"
 
   attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
