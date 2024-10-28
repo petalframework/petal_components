@@ -531,6 +531,19 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field radio-card group_layout attr" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="radio-card" field={@form[:plans]} />
+      </.form>
+      """)
+
+    assert html =~ "pc-radio-card-group--row"
+  end
+
   test "field radio-card checked on form field" do
     assigns = %{form: to_form(%{"plans" => "pro"}, as: :user)}
 
