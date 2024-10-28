@@ -321,7 +321,6 @@ defmodule PetalComponents.Field do
     assigns =
       assigns
       |> assign_new(:checked, fn -> nil end)
-      |> assign_new(:class, fn -> "" end)
       |> assign_new(:options, fn -> [] end)
       |> assign_new(:group_layout, fn -> "row" end)
       |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
