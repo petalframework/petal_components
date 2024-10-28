@@ -116,7 +116,10 @@ defmodule PetalComponents.Button do
       disabled={@disabled}
       {@rest}
     >
-      <span class={["pc-icon-button__inner", @tooltip && "group/pc-icon-button pc-icon-button__inner--tooltip"]}>
+      <span class={[
+        "pc-icon-button__inner",
+        @tooltip && "group/pc-icon-button pc-icon-button__inner--tooltip"
+      ]}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={"pc-icon-button-spinner--#{@size}"} />
         <% else %>
