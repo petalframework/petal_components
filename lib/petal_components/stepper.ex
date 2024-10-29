@@ -1,6 +1,5 @@
 defmodule PetalComponents.Stepper do
   use Phoenix.Component
-  import Phoenix.HTML
   import PetalComponents.Icon
 
   attr :steps, :list, required: true
@@ -10,15 +9,19 @@ defmodule PetalComponents.Stepper do
 
   def stepper(assigns) do
     ~H"""
-    <div class={[
-      "pc-stepper",
-      "pc-stepper--#{@orientation}",
-      "pc-stepper--#{@size}",
-      @class
-    ]}>
+    <div
+      class={[
+        "pc-stepper",
+        "pc-stepper--#{@orientation}",
+        "pc-stepper--#{@size}",
+        @class
+      ]}
+      role="group"
+      aria-label="Progress steps"
+    >
       <div class="pc-stepper__container">
         <%= for {step, index} <- Enum.with_index(@steps) do %>
-          <div class="pc-stepper__item">
+          <div class="pc-stepper__item" role="listitem">
             <div class="pc-stepper__item-content">
               <div
                 class={[
@@ -28,8 +31,11 @@ defmodule PetalComponents.Stepper do
                 ]}
                 id={"step-#{index}"}
                 phx-click={step[:on_click]}
+                role="button"
+                aria-current={step.active? && "step"}
+                aria-label={"Step #{index + 1}: #{step.name}#{if step.complete?, do: " (completed)"}"}
               >
-                <div class="pc-stepper__indicator">
+                <div class="pc-stepper__indicator" aria-hidden="true">
                   <%= if step.complete? do %>
                     <.icon name="hero-check-solid" class="pc-stepper__check" />
                   <% else %>
@@ -39,11 +45,11 @@ defmodule PetalComponents.Stepper do
                   <% end %>
                 </div>
                 <div class="pc-stepper__content">
-                  <h3 class="pc-stepper__title">
+                  <h3 class="pc-stepper__title" id={"step-title-#{index}"}>
                     <%= step.name %>
                   </h3>
                   <%= if Map.get(step, :description) do %>
-                    <p class="pc-stepper__description">
+                    <p class="pc-stepper__description" id={"step-description-#{index}"}>
                       <%= step.description %>
                     </p>
                   <% end %>
@@ -51,7 +57,7 @@ defmodule PetalComponents.Stepper do
               </div>
             </div>
             <%= if index < length(@steps) - 1 do %>
-              <div class="pc-stepper__connector-wrapper">
+              <div class="pc-stepper__connector-wrapper" aria-hidden="true">
                 <div class={[
                   "pc-stepper__connector",
                   step.complete? && Enum.at(@steps, index + 1).complete? &&

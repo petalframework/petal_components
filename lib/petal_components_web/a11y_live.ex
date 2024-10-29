@@ -11,6 +11,7 @@ defmodule PetalComponentsWeb.A11yLive do
   """
   use Phoenix.LiveView, global_prefixes: ~w(x-)
   use PetalComponents
+  alias Phoenix.LiveView.JS
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -183,6 +184,34 @@ defmodule PetalComponentsWeb.A11yLive do
       <PetalComponents.Link.a link_type="a" to="/" label="Press me" phx-click="click_event" />
 
       <.spinner show={true} />
+
+      <.stepper
+        steps={[
+          %{
+            name: "Account Details",
+            description: "Basic information",
+            complete?: true,
+            active?: true,
+            on_click: JS.push("navigate", value: %{target_index: 0})
+          },
+          %{
+            name: "Preferences",
+            description: "Set preferences",
+            complete?: true,
+            active?: false,
+            on_click: JS.push("navigate", value: %{target_index: 1})
+          },
+          %{
+            name: "Confirmation",
+            description: "Review and confirm",
+            complete?: false,
+            active?: false,
+            on_click: JS.push("navigate", value: %{target_index: 2})
+          }
+        ]}
+        orientation="horizontal"
+        size="sm"
+      />
 
       <.vertical_menu
         menu_items={@main_menu_items}
