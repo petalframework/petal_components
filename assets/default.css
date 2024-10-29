@@ -2034,6 +2034,151 @@
   @apply p-5;
 }
 
+/* Stepper */
+.pc-stepper {
+  @apply w-full;
+}
+
+.pc-stepper__container {
+  @apply relative flex md:gap-4;
+}
+
+.pc-stepper--horizontal .pc-stepper__container {
+  @apply flex-col items-start md:flex-row md:items-center;
+}
+
+.pc-stepper--vertical .pc-stepper__container {
+  @apply flex-col items-start;
+}
+
+/* Item */
+.pc-stepper__item {
+  @apply relative flex w-full md:w-auto;
+}
+
+.pc-stepper--horizontal .pc-stepper__item {
+  @apply flex-col md:flex-row md:flex-1 md:items-center;
+}
+
+.pc-stepper--vertical .pc-stepper__item {
+  @apply flex-col pl-5;
+}
+
+/* Item Content */
+.pc-stepper__item-content {
+  @apply flex md:min-w-[180px] md:flex-1;
+}
+
+/* Node */
+.pc-stepper__node {
+  @apply flex items-center w-full gap-4 transition-all duration-200 cursor-pointer hover:opacity-90;
+}
+
+/* Indicator */
+.pc-stepper__indicator {
+  @apply grid flex-shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
+}
+
+.pc-stepper__node--complete .pc-stepper__indicator {
+  @apply bg-success-500;
+}
+
+.pc-stepper__node--active .pc-stepper__indicator {
+  @apply border-2 border-success-600;
+}
+
+/* Size variants for indicator */
+.pc-stepper--sm .pc-stepper__indicator {
+  @apply w-8 h-8;
+}
+
+.pc-stepper--md .pc-stepper__indicator {
+  @apply w-10 h-10;
+}
+
+.pc-stepper--lg .pc-stepper__indicator {
+  @apply w-12 h-12;
+}
+
+/* Check icon */
+.pc-stepper__check {
+  @apply text-white;
+}
+
+.pc-stepper--sm .pc-stepper__check {
+  @apply w-4 h-4;
+}
+
+.pc-stepper--md .pc-stepper__check {
+  @apply w-5 h-5;
+}
+
+.pc-stepper--lg .pc-stepper__check {
+  @apply w-6 h-6;
+}
+
+/* Number */
+.pc-stepper__number {
+  @apply font-semibold;
+}
+
+.pc-stepper--sm .pc-stepper__number {
+  @apply text-sm;
+}
+
+.pc-stepper--md .pc-stepper__number {
+  @apply text-base;
+}
+
+.pc-stepper--lg .pc-stepper__number {
+  @apply text-lg;
+}
+
+/* Content */
+.pc-stepper__content {
+  @apply flex flex-col flex-1 gap-1;
+}
+
+/* Title */
+.pc-stepper__title {
+  @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+}
+
+/* Description */
+.pc-stepper__description {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* Connector Wrapper */
+.pc-stepper__connector-wrapper {
+  @apply flex self-start pl-5 md:pl-0 md:self-center;
+}
+
+.pc-stepper--horizontal .pc-stepper__connector-wrapper {
+  @apply h-full md:w-full md:h-auto;
+}
+
+.pc-stepper--vertical .pc-stepper__connector-wrapper {
+  @apply w-10 h-full ml-5;
+}
+
+/* Connector */
+.pc-stepper__connector {
+  @apply flex-shrink bg-gray-200 dark:bg-gray-600;
+}
+
+.pc-stepper__connector--complete {
+  @apply bg-success-500 dark:bg-success-500;
+}
+
+.pc-stepper--horizontal .pc-stepper__connector {
+  @apply h-8 w-0.5 my-2 mx-auto md:h-0.5 md:w-full md:my-auto md:mx-0;
+}
+
+.pc-stepper--vertical .pc-stepper__connector {
+  @apply w-0.5 h-8 mx-auto;
+}
+
 /* Rating */
 
 .pc-rating__wrapper {

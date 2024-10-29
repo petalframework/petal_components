@@ -24,6 +24,7 @@ defmodule PetalComponents do
         Rating,
         Skeleton,
         SlideOver,
+        Stepper,
         Table,
         Tabs,
         Typography,
