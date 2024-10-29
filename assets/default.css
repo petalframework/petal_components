@@ -2066,7 +2066,7 @@
 
 /* Item Content */
 .pc-stepper__item-content {
-  @apply flex md:min-w-[180px] md:flex-1;
+  @apply flex md:flex-1 md:min-w-[180px];
 }
 
 /* Node */
@@ -2151,7 +2151,20 @@
 
 /* Connector Wrapper */
 .pc-stepper__connector-wrapper {
-  @apply flex self-start pl-5 md:pl-0 md:self-center;
+  @apply flex self-start md:self-center;
+}
+
+/* Size Variants */
+.pc-stepper--sm .pc-stepper__connector-wrapper {
+  @apply pl-4 md:pl-0; /* Adjust padding-left for small size */
+}
+
+.pc-stepper--md .pc-stepper__connector-wrapper {
+  @apply pl-5 md:pl-0; /* Adjust padding-left for medium size */
+}
+
+.pc-stepper--lg .pc-stepper__connector-wrapper {
+  @apply pl-6 md:pl-0; /* Adjust padding-left for large size */
 }
 
 .pc-stepper--horizontal .pc-stepper__connector-wrapper {
