@@ -2,7 +2,6 @@ defmodule PetalComponents.Stepper do
   use Phoenix.Component
   import Phoenix.HTML
   import PetalComponents.Icon
-  alias Phoenix.LiveView.JS
 
   attr :steps, :list, required: true
   attr :orientation, :string, default: "horizontal", values: ["horizontal", "vertical"]
@@ -28,7 +27,6 @@ defmodule PetalComponents.Stepper do
                   step.active? && "pc-stepper__node--active"
                 ]}
                 id={"step-#{index}"}
-                {%{"phx-target": assigns[:"phx-target"]}}
                 phx-click={step[:on_click]}
               >
                 <div class="pc-stepper__indicator">
