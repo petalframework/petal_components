@@ -2084,7 +2084,7 @@
 }
 
 .pc-stepper__node--active .pc-stepper__indicator {
-  @apply border-2 border-success-600;
+  @apply border-2 border-success-800 dark:border-success-100;
 }
 
 /* Size variants for indicator */
