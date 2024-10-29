@@ -16,7 +16,7 @@ defmodule PetalComponents.Stepper do
         "pc-stepper--#{@size}",
         @class
       ]}
-      role="group"
+      role="list"
       aria-label="Progress steps"
     >
       <div class="pc-stepper__container">

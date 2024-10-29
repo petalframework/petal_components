@@ -38,8 +38,9 @@ defmodule PetalComponents.StepperTest do
         """)
 
       assert html =~ "aria-label=\"Progress steps\""
-      assert html =~ "role=\"group\""
+      assert html =~ "role=\"list\""
       assert html =~ "aria-current=\"step\""
+      assert html =~ "role=\"listitem\""
     end
 
     test "renders correct number of steps" do
