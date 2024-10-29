@@ -136,6 +136,7 @@ defmodule PetalComponents.SlideOver do
         },
         to: "#slide-over-content"
       )
+      |> JS.hide(to: "#slide-over")
 
     if close_slide_over_target do
       JS.push(js, "close_slide_over", target: close_slide_over_target)
