@@ -22,7 +22,7 @@ defmodule PetalComponents.Stepper do
       <div class="pc-stepper__container">
         <%= for {step, index} <- Enum.with_index(@steps) do %>
           <div class="pc-stepper__item" role="listitem">
-            <div class="pc-stepper__item-content">
+            <button class="pc-stepper__item-content ring-0">
               <div
                 class={[
                   "pc-stepper__node",
@@ -31,7 +31,6 @@ defmodule PetalComponents.Stepper do
                 ]}
                 id={"step-#{index}"}
                 phx-click={step[:on_click]}
-                role="button"
                 aria-current={step.active? && "step"}
                 aria-label={"Step #{index + 1}: #{step.name}#{if step.complete?, do: " (completed)"}"}
               >
@@ -55,7 +54,7 @@ defmodule PetalComponents.Stepper do
                   <% end %>
                 </div>
               </div>
-            </div>
+            </button>
             <%= if index < length(@steps) - 1 do %>
               <div class="pc-stepper__connector-wrapper" aria-hidden="true">
                 <div class={[

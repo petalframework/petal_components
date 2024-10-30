@@ -211,11 +211,11 @@
 }
 
 .pc-icon-button__inner {
-  @apply flex flex-col items-center
+  @apply flex flex-col items-center;
 }
 
 .pc-icon-button__inner--tooltip {
-  @apply relative
+  @apply relative;
 }
 
 .pc-icon-button__tooltip {
@@ -2066,7 +2066,7 @@
 
 /* Item Content */
 .pc-stepper__item-content {
-  @apply flex md:flex-1 md:min-w-[180px];
+  @apply flex md:flex-1 md:min-w-[180px] focus:outline-none;
 }
 
 /* Node */
