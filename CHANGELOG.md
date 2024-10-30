@@ -1,4 +1,11 @@
 # Changelog
+### 2.5.0 - 2024-10-30 02:04:14
+
+- New Stepper component
+- New Radio Card field
+- Adds viewable icon to password field and upgrades date and time icons to heroicons for cleaner look and to facilitate dark mode better
+- Adds copyable and clearable functionality to respective fields
+
 ### 2.4.3 - 2024-10-24 00:45:20
 
 - bump default switch size to md
