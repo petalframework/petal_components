@@ -1,4 +1,9 @@
 # Changelog
+### 2.5.1 - 2024-10-31 05:48:51
+
+- update stepper with better responsiveness across vertical and horizontal orientations
+- update input to accept clearable, copyable and viewable
+
 ### 2.5.0 - 2024-10-30 02:04:14
 
 - New Stepper component
