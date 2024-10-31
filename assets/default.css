@@ -878,6 +878,11 @@
 }
 
 /* Clearable Field Styles */
+.pc-clearable-field-input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .pc-clearable-field-wrapper {
   @apply relative;
 }
@@ -909,7 +914,7 @@
 }
 
 .pc-date-input-icon {
-  @apply absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none;
+  @apply absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer hover:text-gray-500 dark:hover:text-gray-300;
 }
 
 .pc-date-picker-indicator {
@@ -2040,7 +2045,7 @@
 }
 
 .pc-stepper__container {
-  @apply relative flex md:gap-4;
+  @apply flex md:gap-4;
 }
 
 .pc-stepper--horizontal .pc-stepper__container {
@@ -2053,25 +2058,16 @@
 
 /* Item */
 .pc-stepper__item {
-  @apply relative flex w-full md:w-auto;
+  @apply flex-shrink-0;
 }
 
-.pc-stepper--horizontal .pc-stepper__item {
-  @apply flex-col md:flex-row md:flex-1 md:items-center;
-}
-
-.pc-stepper--vertical .pc-stepper__item {
-  @apply flex-col pl-5;
-}
-
-/* Item Content */
 .pc-stepper__item-content {
-  @apply flex md:flex-1 md:min-w-[180px] focus:outline-none;
+  @apply flex items-center gap-4 focus:outline-none ring-0;
 }
 
 /* Node */
 .pc-stepper__node {
-  @apply flex items-center w-full gap-4 transition-all duration-200 cursor-pointer hover:opacity-90;
+  @apply flex items-center gap-4 transition-all duration-200 cursor-pointer hover:opacity-90;
 }
 
 /* Indicator */
@@ -2136,7 +2132,7 @@
 
 /* Content */
 .pc-stepper__content {
-  @apply flex flex-col flex-1 gap-1;
+  @apply flex flex-col w-full gap-1 text-left grow;
 }
 
 /* Title */
@@ -2151,33 +2147,53 @@
 
 /* Connector Wrapper */
 .pc-stepper__connector-wrapper {
-  @apply flex self-start md:self-center;
+  @apply flex self-start shrink md:self-center;
 }
 
 /* Size Variants */
 .pc-stepper--sm .pc-stepper__connector-wrapper {
-  @apply pl-4 md:pl-0; /* Adjust padding-left for small size */
+  @apply pl-4 md:pl-0;
 }
 
 .pc-stepper--md .pc-stepper__connector-wrapper {
-  @apply pl-5 md:pl-0; /* Adjust padding-left for medium size */
+  @apply pl-5 md:pl-0;
 }
 
 .pc-stepper--lg .pc-stepper__connector-wrapper {
-  @apply pl-6 md:pl-0; /* Adjust padding-left for large size */
+  @apply pl-6 md:pl-0;
 }
 
 .pc-stepper--horizontal .pc-stepper__connector-wrapper {
-  @apply h-full md:w-full md:h-auto;
+  @apply flex h-full md:w-full md:h-auto;
 }
 
-.pc-stepper--vertical .pc-stepper__connector-wrapper {
-  @apply w-10 h-full ml-5;
+
+/* Vertical Orientation Connector Wrapper Adjustments */
+
+/* Small Size */
+.pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
+  @apply self-start;
+  @apply md:pl-4;
+}
+
+/* Medium Size */
+.pc-stepper--vertical.pc-stepper--md .pc-stepper__connector-wrapper {
+  @apply self-start;
+  @apply md:pl-5;
+}
+
+/* Large Size */
+.pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
+  @apply self-start;
+  @apply md:pl-6;
+}
+.pc-stepper--vertical .pc-stepper__container {
+  @apply md:gap-1;
 }
 
 /* Connector */
 .pc-stepper__connector {
-  @apply flex-shrink bg-gray-200 dark:bg-gray-600;
+  @apply bg-gray-200 shrink dark:bg-gray-600;
 }
 
 .pc-stepper__connector--complete {
@@ -2191,6 +2207,7 @@
 .pc-stepper--vertical .pc-stepper__connector {
   @apply w-0.5 h-8 mx-auto;
 }
+
 
 /* Rating */
 

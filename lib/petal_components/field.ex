@@ -472,13 +472,9 @@ defmodule PetalComponents.Field do
     """
   end
 
-  def field(%{clearable: true} = assigns) do
-    assigns =
-      assigns
-      |> assign(:class, [assigns.class, get_class_for_type(assigns.type || "text")])
-      |> assign_new(:value, fn ->
-        Phoenix.HTML.Form.normalize_value(assigns.type || "text", assigns.value) || ""
-      end)
+  def field(%{type: type, clearable: true} = assigns)
+      when type in ["text", "search", "url", "email", "tel"] do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
