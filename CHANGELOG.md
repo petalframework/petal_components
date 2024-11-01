@@ -1,4 +1,8 @@
 # Changelog
+### 2.5.2 - 2024-11-01 02:58:45
+
+- style icon better for cross browser support
+
 ### 2.5.1 - 2024-10-31 05:48:51
 
 - update stepper with better responsiveness across vertical and horizontal orientations
