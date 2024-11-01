@@ -914,7 +914,7 @@
 }
 
 .pc-date-input-icon {
-  @apply absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer hover:text-gray-500 dark:hover:text-gray-300;
+  @apply absolute inset-y-0 right-0 flex items-center my-1 mr-3 bg-white pointer-events-none dark:bg-gray-800;
 }
 
 .pc-date-picker-indicator {
