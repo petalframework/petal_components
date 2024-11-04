@@ -61,17 +61,20 @@ defmodule PetalComponents.ButtonGroup do
     doc: "class to customize the button border styles"
 
   # We mark validate_attrs false so passing phx-click etc. does not emit warnings
-  slot :button, required: true, validate_attrs: false do
-    attr :class, :string, doc: "classes in addition to those already configured"
-    attr :label, :string, doc: "a button label, rendered if you don't provide an inner block"
+  slot :button, required: true, validate_attrs: false
 
-    attr :kind, :string,
-      values: ["button", "link"],
-      doc: "determines whether we render a button or a <.link />"
+  # :button slot attributes. Thought they're commented out, they're still relevant. It's just
+  # that they can't be used in a do block with `validate_attrs: false`
+  #
+  # attr :class, :string, doc: "classes in addition to those already configured"
+  # attr :label, :string, doc: "a button label, rendered if you don't provide an inner block"
 
-    attr :disabled, :boolean,
-      doc: "disables the button - will turn an <a> into a <button> (<a> tags can't be disabled)"
-  end
+  # attr :kind, :string,
+  #   values: ["button", "link"],
+  #   doc: "determines whether we render a button or a <.link />"
+
+  # attr :disabled, :boolean,
+  #   doc: "disables the button - will turn an <a> into a <button> (<a> tags can't be disabled)"
 
   def button_group(assigns) do
     ~H"""
