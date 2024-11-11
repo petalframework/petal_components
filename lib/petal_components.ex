@@ -18,6 +18,7 @@ defmodule PetalComponents do
         Input,
         Link,
         Loading,
+        Marquee,
         Modal,
         Pagination,
         Progress,

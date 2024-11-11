@@ -1,5 +1,7 @@
 defmodule PetalComponents.Card do
   use Phoenix.Component
+  import PetalComponents.Avatar
+  import PetalComponents.Typography
 
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:variant, :string, default: "basic", values: ["basic", "outline"])
@@ -69,6 +71,32 @@ defmodule PetalComponents.Card do
     <div {@rest} class={["pc-card__footer", @class]}>
       <%= render_slot(@inner_block) %>
     </div>
+    """
+  end
+
+  attr(:name, :string, required: true, doc: "The reviewer's name")
+  attr(:username, :string, required: true, doc: "The reviewer's username")
+  attr(:img, :string, required: true, doc: "URL of the reviewer's avatar")
+  attr(:body, :string, required: true, doc: "The review text content")
+  attr(:class, :string, default: "", doc: "Additional classes")
+  attr(:rest, :global)
+
+  def review_card(assigns) do
+    ~H"""
+    <figure class={["pc-review-card", @class]} {@rest}>
+      <div class="pc-review-header">
+        <.avatar src={@img} alt={@name} size="md" />
+        <div class="pc-review-meta">
+          <figcaption>
+            <.h5 no_margin class="text-sm pc-review-name"><%= @name %></.h5>
+          </figcaption>
+          <p class="pc-review-username"><%= @username %></p>
+        </div>
+      </div>
+      <blockquote class="pc-review-body">
+        <.p class="text-sm" no_margin><%= @body %></.p>
+      </blockquote>
+    </figure>
     """
   end
 end
