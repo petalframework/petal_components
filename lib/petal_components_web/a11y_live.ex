@@ -219,6 +219,36 @@ defmodule PetalComponentsWeb.A11yLive do
         title={@sidebar_title}
       />
 
+      <.marquee pause_on_hover repeat={3}>
+        <%= for review <- [
+    %{
+      name: "Anne",
+      username: "@anne",
+      body: "I've never seen anything like this before. It's amazing.",
+      img: "https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg"
+    },
+    %{
+      name: "Jill",
+      username: "@jill",
+      body: "I don't know what to say. I'm speechless. This is amazing.",
+      img: "https://res.cloudinary.com/wickedsites/image/upload/v1636595188/dummy_data/avatar_1_lc8plf.png"
+    },
+    %{
+      name: "John",
+      username: "@john",
+      body: "I'm at a loss for words. This is amazing. I love it.",
+      img: "https://res.cloudinary.com/wickedsites/image/upload/v1636595188/dummy_data/avatar_2_jhs6ww.png"
+    }
+    ] do %>
+          <.review_card
+            name={review.name}
+            username={review.username}
+            body={review.body}
+            img={review.img}
+          />
+        <% end %>
+      </.marquee>
+
       <.modal max_width="sm" title="Modal">
         <div class="gap-5 text-sm">
           <.form_label label="Add some text here." />

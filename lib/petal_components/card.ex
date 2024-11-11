@@ -88,7 +88,7 @@ defmodule PetalComponents.Card do
         <.avatar src={@img} alt={@name} size="md" />
         <div class="pc-review-meta">
           <figcaption>
-            <.h5 no_margin class="text-sm pc-review-name"><%= @name %></.h5>
+            <.p no_margin class="text-sm pc-review-name"><%= @name %></.p>
           </figcaption>
           <p class="pc-review-username"><%= @username %></p>
         </div>

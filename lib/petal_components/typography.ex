@@ -100,12 +100,20 @@ defmodule PetalComponents.Typography do
   end
 
   attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from paragraph")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
   def p(assigns) do
     ~H"""
-    <p class={["pc-text", "pc-p--margin", @class]} {@rest}>
+    <p
+      class={[
+        "pc-text",
+        !@no_margin && "pc-p--margin",
+        @class
+      ]}
+      {@rest}
+    >
       <%= render_slot(@inner_block) %>
     </p>
     """

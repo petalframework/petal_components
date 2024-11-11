@@ -6,7 +6,7 @@ defmodule PetalComponents.Marquee do
     doc: "Pause the marquee when the user hovers over the cards"
   )
 
-  attr(:repeat, :integer, default: 1, doc: "Number of times to repeat the content")
+  attr(:repeat, :integer, default: 4, doc: "Number of times to repeat the content")
   attr(:vertical, :boolean, default: false, doc: "Display the marquee vertically")
   attr(:reverse, :boolean, default: false, doc: "Reverse the direction of the marquee")
   attr(:duration, :string, default: "30s", doc: "Animation duration")
