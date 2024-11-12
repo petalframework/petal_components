@@ -1,4 +1,11 @@
 # Changelog
+### 2.6.0 - 2024-11-12 02:47:23
+
+- Added Marquee component
+- Added review_card
+- add no_margin to p tags
+- add tests and a11y checks pass
+
 ### 2.5.2 - 2024-11-01 02:58:45
 
 - style icon better for cross browser support
