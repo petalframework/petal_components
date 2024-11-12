@@ -73,7 +73,7 @@ defmodule PetalComponents.Dropdown do
           <% end %>
 
           <%= if !@label && @trigger_element == [] do %>
-            <.icon name="hero-ellipsis-vertical-solid" class="h-5 w-5pc-dropdown__ellipsis" />
+            <.icon name="hero-ellipsis-vertical-solid" class="h-5 w-5 pc-dropdown__ellipsis" />
           <% end %>
         </button>
       </div>
