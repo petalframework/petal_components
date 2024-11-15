@@ -906,7 +906,7 @@
 /* Date and Time Field Styles */
 .pc-date-input {
   @apply pc-text-input;
-  @apply [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-black dark:[&::-webkit-date-and-time-value]:text-white;
+  @apply [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-black dark:[&::-webkit-date-and-time-value]:text-white pe-[40px];
 }
 
 .pc-date-input-wrapper {
