@@ -1,4 +1,9 @@
 # Changelog
+### 2.6.1 - 2024-11-18 02:16:57
+
+- Squashes button_group warnings
+- Fix the date inputs icon overlap in safari
+
 ### 2.6.0 - 2024-11-12 02:47:23
 
 - Added Marquee component
