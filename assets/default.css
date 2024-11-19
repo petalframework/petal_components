@@ -46,6 +46,31 @@
   @apply px-6 py-3 text-base leading-6;
 }
 
+/* Buttons - border radius */
+.pc-button--radius-none {
+  @apply rounded-none;
+}
+
+.pc-button--radius-sm {
+  @apply rounded;
+}
+
+.pc-button--radius-md {
+  @apply rounded-md;
+}
+
+.pc-button--radius-lg {
+  @apply rounded-lg;
+}
+
+.pc-button--radius-xl {
+  @apply rounded-xl;
+}
+
+.pc-button--radius-full {
+  @apply rounded-full;
+}
+
 /* Buttons - colors */
 
 .pc-button--primary {
@@ -249,7 +274,7 @@
 /* Icon Button */
 
 .pc-icon-button {
-  @apply inline-block p-2 rounded-full;
+  @apply inline-block p-2;
 }
 
 .pc-icon-button__inner {
@@ -336,6 +361,31 @@
 }
 .pc-icon-button--xl {
   @apply w-14 h-14;
+}
+
+/* Icon Buttons - border radius */
+.pc-icon-button--radius-none {
+  @apply rounded-none;
+}
+
+.pc-icon-button--radius-sm {
+  @apply rounded;
+}
+
+.pc-icon-button--radius-md {
+  @apply rounded-md;
+}
+
+.pc-icon-button--radius-lg {
+  @apply rounded-lg;
+}
+
+.pc-icon-button--radius-xl {
+  @apply rounded-xl;
+}
+
+.pc-icon-button--radius-full {
+  @apply rounded-full;
 }
 
 /* Icon Button - loading */

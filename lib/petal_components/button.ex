@@ -9,6 +9,11 @@ defmodule PetalComponents.Button do
 
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
 
+  attr :radius, :string,
+    default: "md",
+    values: ["none", "sm", "md", "lg", "xl", "full"],
+    doc: "button border radius"
+
   attr :variant, :string,
     default: "solid",
     values: ["solid", "light", "outline", "inverted", "shadow", "ghost"],
@@ -83,6 +88,11 @@ defmodule PetalComponents.Button do
       "gray"
     ]
 
+  attr :radius, :string,
+    default: "full",
+    values: ["none", "sm", "md", "lg", "xl", "full"],
+    doc: "button radius"
+
   attr :to, :string, default: nil, doc: "link path"
   attr :loading, :boolean, default: false, doc: "indicates a loading state"
   attr :disabled, :boolean, default: false, doc: "indicates a disabled state"
@@ -107,6 +117,7 @@ defmodule PetalComponents.Button do
       link_type={@link_type}
       class={[
         "pc-icon-button",
+        "pc-icon-button--radius-#{@radius}",
         @disabled && "pc-button--disabled",
         "pc-icon-button-bg--#{@color}",
         "pc-icon-button--#{@color}",
@@ -140,6 +151,7 @@ defmodule PetalComponents.Button do
   defp button_classes(opts) do
     opts = %{
       size: opts[:size] || "md",
+      radius: opts[:radius] || "md",
       variant: opts[:variant] || "solid",
       color: opts[:color] || "primary",
       loading: opts[:loading] || false,
@@ -152,6 +164,7 @@ defmodule PetalComponents.Button do
       "pc-button",
       "pc-button--#{String.replace(opts.color, "_", "-")}#{if opts.variant == "solid", do: "", else: "-#{opts.variant}"}",
       "pc-button--#{opts.size}",
+      "pc-button--radius-#{opts.radius}",
       opts.user_added_classes,
       opts.loading && "pc-button--loading",
       opts.disabled && "pc-button--disabled",
