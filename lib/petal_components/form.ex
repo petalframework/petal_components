@@ -102,10 +102,17 @@ defmodule PetalComponents.Form do
           nil
         end
       end)
-      |> assign(:wrapper_classes, [
-        "pc-form-field-wrapper",
-        assigns.no_margin && "pc-form-field-wrapper--no-margin"
-      ])
+      |> assign(
+        :wrapper_classes,
+        if assigns[:wrapper_classes] do
+          assigns.wrapper_classes
+        else
+          [
+            "pc-form-field-wrapper",
+            assigns.no_margin && "pc-form-field-wrapper--no-margin"
+          ]
+        end
+      )
 
     ~H"""
     <div class={@wrapper_classes} phx-feedback-for={Phoenix.HTML.Form.input_name(@form, @field)}>
