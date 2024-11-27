@@ -568,7 +568,7 @@
   @apply text-primary-800 bg-primary-100 border-primary-100 dark:bg-primary-200 dark:border-primary-200;
 }
 .pc-badge--primary-soft {
-  @apply text-primary-800 bg-primary-100 border-primary-100 dark:border-primary-900 dark:bg-blue-900 dark:text-blue-300;
+  @apply text-primary-800 bg-primary-100 border-primary-100 dark:border-primary-900 dark:bg-primary-900 dark:text-primary-300;
 }
 .pc-badge--primary-dark {
   @apply text-white bg-primary-600 border-primary-600;
@@ -1242,7 +1242,7 @@
   @apply flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
 }
 .pc-dropdown__trigger-button--with-label {
-  @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none;
+  @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-800 hover:dark:bg-gray-700 dark:border-gray-700 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none;
 }
 .pc-dropdown__trigger-button--with-label-and-trigger-element {
   @apply align-middle;
