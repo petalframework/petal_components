@@ -1,4 +1,11 @@
 # Changelog
+### 2.7.0 - 2024-11-27 07:50:55
+
+- Add ghost and light color variants to buttons
+- Adds radius opts to buttons and icon_buttons
+- Adds no_margin prop to field_wrapper
+- Fixes custom datetime and time icons bg color on error state
+
 ### 2.6.1 - 2024-11-18 02:16:57
 
 - Squashes button_group warnings
