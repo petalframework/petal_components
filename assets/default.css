@@ -22,7 +22,7 @@
   @apply px-4;
 }
 
-/* Buttons */
+/* Buttons (New) */
 
 .pc-button {
   @apply inline-flex items-center justify-center font-medium transition duration-150 ease-in-out border rounded-md focus:outline-none;
@@ -803,6 +803,11 @@
 .pc-form-field-wrapper {
   @apply mb-6;
 }
+
+.pc-form-field-wrapper--no-margin {
+  @apply mb-0;
+}
+
 :not(.phx-no-feedback).pc-form-field-wrapper--error input,
 :not(.phx-no-feedback).pc-form-field-wrapper--error select,
 :not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
@@ -1007,6 +1012,11 @@
 
 .pc-date-input-icon {
   @apply absolute inset-y-0 right-0 flex items-center my-1 mr-3 bg-white pointer-events-none dark:bg-gray-800;
+}
+
+/* Add error state styles */
+:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-date-input-icon {
+  @apply bg-danger-50 dark:bg-danger-900;
 }
 
 .pc-date-picker-indicator {
@@ -1783,13 +1793,21 @@
 
 /* Animations */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-100% - var(--gap))); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
 }
 
 @keyframes marquee-vertical {
-  from { transform: translateY(0); }
-  to { transform: translateY(calc(-100% - var(--gap))); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
 }
 
 .pc-gradient-overlay-left {
@@ -2380,7 +2398,6 @@
   @apply flex h-full md:w-full md:h-auto;
 }
 
-
 /* Vertical Orientation Connector Wrapper Adjustments */
 
 /* Small Size */
@@ -2420,7 +2437,6 @@
 .pc-stepper--vertical .pc-stepper__connector {
   @apply w-0.5 h-8 mx-auto;
 }
-
 
 /* Rating */
 

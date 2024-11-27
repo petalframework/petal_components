@@ -55,6 +55,8 @@ defmodule PetalComponents.Field do
     default: false,
     doc: "If true, adds a clear button to clear the field value"
 
+  attr :no_margin, :boolean, default: false, doc: "removes the margin from the field wrapper"
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -116,7 +118,7 @@ defmodule PetalComponents.Field do
       assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" />
         <input
@@ -141,7 +143,7 @@ defmodule PetalComponents.Field do
 
   def field(%{type: "select"} = assigns) do
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -164,7 +166,7 @@ defmodule PetalComponents.Field do
 
   def field(%{type: "textarea"} = assigns) do
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -188,7 +190,7 @@ defmodule PetalComponents.Field do
       |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" />
         <label class={["pc-switch", "pc-switch--#{@size}"]}>
@@ -229,7 +231,7 @@ defmodule PetalComponents.Field do
       end)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -276,7 +278,7 @@ defmodule PetalComponents.Field do
     assigns = assign_new(assigns, :checked, fn -> nil end)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -326,7 +328,7 @@ defmodule PetalComponents.Field do
       |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -394,7 +396,7 @@ defmodule PetalComponents.Field do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -427,7 +429,7 @@ defmodule PetalComponents.Field do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <!-- Field Label -->
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
@@ -477,7 +479,7 @@ defmodule PetalComponents.Field do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <!-- Field Label -->
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
@@ -536,7 +538,7 @@ defmodule PetalComponents.Field do
       )
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -565,7 +567,13 @@ defmodule PetalComponents.Field do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+    <.field_wrapper
+      errors={@errors}
+      name={@name}
+      class={@wrapper_class}
+      no_margin={@no_margin}
+      no_margin={@no_margin}
+    >
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
@@ -590,6 +598,10 @@ defmodule PetalComponents.Field do
   attr :rest, :global
   slot :inner_block, required: true
 
+  attr :no_margin, :boolean,
+    default: false,
+    doc: "removes the margin from the field wrapper"
+
   def field_wrapper(assigns) do
     ~H"""
     <div
@@ -598,6 +610,7 @@ defmodule PetalComponents.Field do
       class={[
         @class,
         "pc-form-field-wrapper",
+        @no_margin && "pc-form-field-wrapper--no-margin",
         @errors != [] && "pc-form-field-wrapper--error"
       ]}
     >
