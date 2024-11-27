@@ -1,4 +1,9 @@
 # Changelog
+### 2.7.1 - 2024-11-27 21:34:32
+
+- Add trigger_class prop to target dropdown_with_label base classes
+- Change default dropdown_with_label base classes for dark mode
+
 ### 2.7.0 - 2024-11-27 07:50:55
 
 - Add ghost and light color variants to buttons
