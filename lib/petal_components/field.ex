@@ -567,13 +567,7 @@ defmodule PetalComponents.Field do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
-    <.field_wrapper
-      errors={@errors}
-      name={@name}
-      class={@wrapper_class}
-      no_margin={@no_margin}
-      no_margin={@no_margin}
-    >
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         <%= @label %>
       </.field_label>
