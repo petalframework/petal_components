@@ -1,4 +1,8 @@
 # Changelog
+### 2.7.2 - 2024-11-29 02:26:37
+
+- fix icon backgrounds on disabled input
+
 ### 2.7.1 - 2024-11-27 21:34:32
 
 - Add trigger_class prop to target dropdown_with_label base classes
