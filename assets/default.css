@@ -1011,12 +1011,17 @@
 }
 
 .pc-date-input-icon {
-  @apply absolute inset-y-0 right-0 flex items-center my-1 mr-3 bg-white pointer-events-none dark:bg-gray-800 dark:disabled:bg-gray-700 disabled:bg-gray-100;
+  @apply absolute inset-y-0 right-0 flex items-center my-1 mr-3 bg-white pointer-events-none dark:bg-gray-800;
 }
 
 /* Add error state styles */
 :not(.phx-no-feedback).pc-form-field-wrapper--error .pc-date-input-icon {
   @apply bg-danger-50 dark:bg-danger-900;
+}
+
+/* Add disabled state styles */
+.pc-form-field-wrapper:has(input:disabled) .pc-date-input-icon {
+  @apply bg-gray-100 dark:bg-gray-700;
 }
 
 .pc-date-picker-indicator {

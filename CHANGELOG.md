@@ -1,4 +1,8 @@
 # Changelog
+### 2.7.3 - 2024-11-29 02:37:33
+
+- fix icon backgrounds on disabled input (finally fixed, whoops)
+
 ### 2.7.2 - 2024-11-29 02:26:37
 
 - fix icon backgrounds on disabled input
