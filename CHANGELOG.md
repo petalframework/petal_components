@@ -1,4 +1,9 @@
 # Changelog
+### 2.7.4 - 2024-12-04 20:57:07
+
+- Bumped LiveView to 1.0
+- Bumped other deps
+
 ### 2.7.3 - 2024-11-29 02:37:33
 
 - fix icon backgrounds on disabled input (finally fixed, whoops)
