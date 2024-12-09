@@ -716,7 +716,7 @@ defmodule PetalComponents.Form do
       |> assign(:translated_errors, generated_translated_errors(assigns.form, assigns.field))
 
     ~H"""
-    <%= if field_has_errors?(assigns) do %>
+    <%= if field_has_errors?(assigns) and used_input?(@form[@field]) do %>
       <div class={@class}>
         <%= for translated_error <- @translated_errors do %>
           <div
@@ -878,7 +878,7 @@ defmodule PetalComponents.Form do
   defp field_has_errors?(%{form: form, field: field}) when is_map(form) do
     case Keyword.get_values(form.errors || [], field) do
       [] -> false
-      _ -> used_input?(form[field])
+      _ -> true
     end
   end
 

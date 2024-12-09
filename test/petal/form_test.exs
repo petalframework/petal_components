@@ -222,7 +222,9 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            # Add params to simulate used input
+            params: %{"name" => ""}
           }
         }
       >
@@ -234,6 +236,43 @@ defmodule PetalComponents.FormTest do
     assert html =~ "phx-feedback-for"
     assert html =~ "blank"
     assert html =~ "too long"
+  end
+
+  test "form_field_error only shows errors for used fields" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={
+          %Ecto.Changeset{
+            action: :update,
+            data: %{email: "", password: ""},
+            errors: [
+              email: {"invalid email format", [validation: :format]},
+              password: {"can't be blank", [validation: :required]}
+            ],
+            # Simulate user only interacted with email field
+            params: %{
+              "email" => "invalid@",
+              "password" => "",
+              "_unused_password" => ""
+            }
+          }
+        }
+      >
+        <.form_field_error form={f} field={:email} />
+        <.form_field_error form={f} field={:password} />
+      </.form>
+      """)
+
+    # Email field (used) should show error
+    assert html =~ "invalid email format"
+
+    # Password field (unused) should not show error
+    refute html =~ "can't be blank"
   end
 
   test "form_help_text" do
@@ -284,7 +323,9 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            # Add params to simulate used input
+            params: %{"name" => ""}
           }
         }
       >
@@ -344,7 +385,9 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            # Add params to simulate used input
+            params: %{"name" => ""}
           }
         }
       >
