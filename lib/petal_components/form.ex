@@ -12,6 +12,10 @@ defmodule PetalComponents.Form do
   Everything related to forms: inputs, labels etc
 
   Deprecated in favor of field.ex and input.ex, which use the new `%Phoenix.HTML.FormField{}` struct.
+
+  Please note that since the release of Live View 1.0, Forms V1 error trapping will not behave correctly unless you install the
+  `phx-feedback-for` shim. For more information, please see the Phoenix Live View
+  [changelog](https://github.com/phoenixframework/phoenix_live_view/blob/v1.0.0/CHANGELOG.md)
   """
 
   attr(:form, :any, default: nil, doc: "")
@@ -29,11 +33,11 @@ defmodule PetalComponents.Form do
     ~H"""
     <%= if @form && @field do %>
       <%= Form.label @form, @field, [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest) do %>
-        <%= render_slot(@inner_block) || @label || Form.humanize(@field) %>
+        {render_slot(@inner_block) || @label || Form.humanize(@field)}
       <% end %>
     <% else %>
       <span class={@classes} {@rest}>
-        <%= render_slot(@inner_block) || @label || Form.humanize(@field) %>
+        {render_slot(@inner_block) || @label || Form.humanize(@field)}
       </span>
     <% end %>
     """
@@ -123,7 +127,7 @@ defmodule PetalComponents.Form do
             <div class={
               label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
             }>
-              <%= @label %>
+              {@label}
             </div>
           </label>
         <% "switch" -> %>
@@ -132,7 +136,7 @@ defmodule PetalComponents.Form do
             <div class={
               label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
             }>
-              <%= @label %>
+              {@label}
             </div>
           </label>
         <% "checkbox_group" -> %>
@@ -213,12 +217,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.text_input(
+    {Form.text_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -232,12 +236,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.email_input(
+    {Form.email_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -251,12 +255,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.number_input(
+    {Form.number_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -270,12 +274,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.password_input(
+    {Form.password_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -289,12 +293,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.search_input(
+    {Form.search_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -308,12 +312,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.telephone_input(
+    {Form.telephone_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -327,12 +331,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.url_input(
+    {Form.url_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -346,12 +350,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.time_input(
+    {Form.time_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -366,12 +370,12 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="pc-time-select">
-      <%= Form.time_select(
+      {Form.time_select(
         @form,
         @field,
         [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
           Map.to_list(@rest)
-      ) %>
+      )}
     </div>
     """
   end
@@ -386,12 +390,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.datetime_local_input(
+    {Form.datetime_local_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -406,12 +410,12 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="pc-datetime-select">
-      <%= Form.datetime_select(
+      {Form.datetime_select(
         @form,
         @field,
         [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
           Map.to_list(@rest)
-      ) %>
+      )}
     </div>
     """
   end
@@ -427,12 +431,12 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class="pc-date-select">
-      <%= Form.date_select(
+      {Form.date_select(
         @form,
         @field,
         [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
           Map.to_list(@rest)
-      ) %>
+      )}
     </div>
     """
   end
@@ -447,12 +451,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.date_input(
+    {Form.date_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -466,12 +470,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, color_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.color_input(
+    {Form.color_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -485,12 +489,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, file_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.file_input(
+    {Form.file_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -504,12 +508,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, range_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.range_input(
+    {Form.range_input(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -523,12 +527,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.textarea(
+    {Form.textarea(
       @form,
       @field,
       [class: @classes, rows: "4", phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -543,13 +547,13 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, select_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.select(
+    {Form.select(
       @form,
       @field,
       @options,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -566,12 +570,12 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, checkbox_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.checkbox(
+    {Form.checkbox(
       @form,
       @field,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -604,10 +608,10 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class={checkbox_group_layout_classes(%{layout: @layout})}>
-      <%= Form.hidden_input(@form, @field,
+      {Form.hidden_input(@form, @field,
         name: Phoenix.HTML.Form.input_name(@form, @field),
         value: ""
-      ) %>
+      )}
       <%= for {label, value} <- @options do %>
         <label class={checkbox_group_layout_item_classes(%{layout: @layout})}>
           <.checkbox
@@ -623,7 +627,7 @@ defmodule PetalComponents.Form do
             {@rest}
           />
           <div class={label_classes(%{form: @form, field: @field, type: "checkbox"})}>
-            <%= label %>
+            {label}
           </div>
         </label>
       <% end %>
@@ -643,14 +647,14 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <label class={["pc-switch", "pc-switch--#{@size}"]}>
-      <%= Form.checkbox(
+      {Form.checkbox(
         @form,
         @field,
         [
           class: @classes,
           phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)
         ] ++ Map.to_list(@rest)
-      ) %>
+      )}
       <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
       <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
     </label>
@@ -672,13 +676,13 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, radio_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.radio_button(
+    {Form.radio_button(
       @form,
       @field,
       @value,
       [class: @classes, phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++
         Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -700,7 +704,7 @@ defmodule PetalComponents.Form do
       <%= for {label, value} <- @options do %>
         <label class={radio_group_layout_item_classes(%{layout: @layout})}>
           <.radio form={@form} field={@field} value={value} {@rest} />
-          <div class={label_classes(%{form: @form, field: @field, type: "radio"})}><%= label %></div>
+          <div class={label_classes(%{form: @form, field: @field, type: "radio"})}>{label}</div>
         </label>
       <% end %>
     </div>
@@ -715,11 +719,11 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(field_has_errors?(assigns)))
 
     ~H"""
-    <%= Form.hidden_input(
+    {Form.hidden_input(
       @form,
       @field,
       [phx_feedback_for: Phoenix.HTML.Form.input_name(@form, @field)] ++ Map.to_list(@rest)
-    ) %>
+    )}
     """
   end
 
@@ -740,7 +744,7 @@ defmodule PetalComponents.Form do
             class="pc-form-field-error invalid-feedback"
             phx-feedback-for={Phoenix.HTML.Form.input_name(@form, @field)}
           >
-            <%= translated_error %>
+            {translated_error}
           </div>
         <% end %>
       </div>
@@ -756,7 +760,7 @@ defmodule PetalComponents.Form do
   def form_help_text(assigns) do
     ~H"""
     <div :if={render_slot(@inner_block) || @help_text} class={["pc-form-help-text", @class]} {@rest}>
-      <%= render_slot(@inner_block) || @help_text %>
+      {render_slot(@inner_block) || @help_text}
     </div>
     """
   end
