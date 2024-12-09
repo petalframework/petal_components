@@ -808,26 +808,22 @@
   @apply mb-0;
 }
 
-:not(.phx-no-feedback).pc-form-field-wrapper--error input,
-:not(.phx-no-feedback).pc-form-field-wrapper--error select,
-:not(.phx-no-feedback).pc-form-field-wrapper--error textarea {
+.pc-form-field-wrapper--error input,
+.pc-form-field-wrapper--error select,
+.pc-form-field-wrapper--error textarea {
   @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error input[type="checkbox"] {
+.pc-form-field-wrapper--error input[type="checkbox"] {
   @apply bg-danger-200 dark:bg-danger-700;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error
-  .pc-switch
-  .pc-switch__fake-input {
+.pc-form-field-wrapper--error .pc-switch .pc-switch__fake-input {
   @apply bg-danger-200 border-danger-500 dark:bg-danger-600 dark:border-danger-800;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error
-  .pc-radio-card
-  .pc-radio-card__fake-input {
+.pc-form-field-wrapper--error .pc-radio-card .pc-radio-card__fake-input {
   @apply bg-danger-200 dark:bg-danger-800 border-danger-500;
 }
-:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-label,
-:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-checkbox-label {
+.pc-form-field-wrapper--error .pc-label,
+.pc-form-field-wrapper--error .pc-checkbox-label {
   @apply !text-danger-600 dark:!text-danger-200;
 }
 .pc-checkbox-label {
@@ -844,18 +840,8 @@
   content: " *";
   display: inline;
 }
-.phx-no-feedback.pc-error,
-.phx-no-feedback .pc-error {
-  @apply hidden;
-}
 .pc-form-field-error {
   @apply mt-1 text-xs italic text-danger-500;
-}
-.phx-no-feedback.pc-form-field-error {
-  @apply hidden;
-}
-.phx-no-feedback .pc-form-field-error {
-  @apply hidden;
 }
 .pc-form-help-text {
   @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
@@ -1015,7 +1001,7 @@
 }
 
 /* Add error state styles */
-:not(.phx-no-feedback).pc-form-field-wrapper--error .pc-date-input-icon {
+.pc-form-field-wrapper--error .pc-date-input-icon {
   @apply bg-danger-50 dark:bg-danger-900;
 }
 
@@ -2531,17 +2517,21 @@
   @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
 }
 
-label.has-error:not(.phx-no-feedback) {
+label.has-error {
   @apply !text-danger-900 dark:!text-danger-200;
 }
 
-textarea.has-error:not(.phx-no-feedback),
-input.has-error:not(.phx-no-feedback):not(:checked),
-select.has-error:not(.phx-no-feedback) {
+span.has-error {
+  @apply !text-danger-900 dark:!text-danger-200;
+}
+
+textarea.has-error,
+input.has-error:not(:checked),
+select.has-error {
   @apply !border-danger-500 focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 dark:!text-danger-100 dark:!placeholder-danger-300 dark:!bg-danger-900 focus:!ring-danger-500;
 }
 
-input[type="file_input"].has-error:not(.phx-no-feedback) {
+input[type="file_input"].has-error {
   @apply !border-danger-500 !rounded-md focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 file:!border-none dark:!border-none dark:!bg-gray-950 dark:text-danger-400;
 }
 

@@ -274,7 +274,7 @@ defmodule PetalComponentsWeb.A11yLive do
       </.slide_over>
 
       <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
-        <:col :let={post} label="Name" class="col-class" row_class="row-class"><%= post.name %></:col>
+        <:col :let={post} label="Name" class="col-class" row_class="row-class">{post.name}</:col>
       </.table>
 
       <.tabs class="flex-col sm:flex-row space-x">

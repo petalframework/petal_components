@@ -89,7 +89,7 @@ defmodule PetalComponents.Accordion do
                   else: "pc-accordion-item__heading"
                 )
               }>
-                <%= current_item.heading %>
+                {current_item.heading}
               </span>
 
               <%= if @variant == "ghost" do %>
@@ -134,7 +134,7 @@ defmodule PetalComponents.Accordion do
                 ]
               )
             }>
-              <%= render_slot(current_item, current_item.entry) %>
+              {render_slot(current_item, current_item.entry)}
             </div>
           </div>
         </div>

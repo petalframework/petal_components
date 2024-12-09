@@ -51,7 +51,7 @@ defmodule PetalComponents.Table do
       <%= if length(@col) > 0 do %>
         <thead>
           <.tr>
-            <.th :for={col <- @col} class={col[:class]}><%= col[:label] %></.th>
+            <.th :for={col <- @col} class={col[:class]}>{col[:label]}</.th>
           </.tr>
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
@@ -62,7 +62,7 @@ defmodule PetalComponents.Table do
                 colspan={length(@col)}
                 class={empty_state[:row_class]}
               >
-                <%= render_slot(empty_state) %>
+                {render_slot(empty_state)}
               </.td>
             </.tr>
           <% end %>
@@ -80,12 +80,12 @@ defmodule PetalComponents.Table do
                 col[:row_class] && col[:row_class]
               ]}
             >
-              <%= render_slot(col, @row_item.(row)) %>
+              {render_slot(col, @row_item.(row))}
             </.td>
           </.tr>
         </tbody>
       <% else %>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       <% end %>
     </table>
     """
@@ -98,7 +98,7 @@ defmodule PetalComponents.Table do
   def th(assigns) do
     ~H"""
     <th class={["pc-table__th", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </th>
     """
   end
@@ -110,7 +110,7 @@ defmodule PetalComponents.Table do
   def tr(assigns) do
     ~H"""
     <tr class={["pc-table__tr", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </tr>
     """
   end
@@ -122,7 +122,7 @@ defmodule PetalComponents.Table do
   def td(assigns) do
     ~H"""
     <td class={["pc-table__td", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </td>
     """
   end
@@ -147,10 +147,10 @@ defmodule PetalComponents.Table do
 
         <div class="pc-table__user-inner-td__inner">
           <div class="pc-table__user-inner-td__label">
-            <%= @label %>
+            {@label}
           </div>
           <div class="pc-table__user-inner-td__sub-label">
-            <%= @sub_label %>
+            {@sub_label}
           </div>
         </div>
       </div>

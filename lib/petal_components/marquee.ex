@@ -54,7 +54,7 @@ defmodule PetalComponents.Marquee do
             ]}
             style={@reverse && "animation-direction: reverse;"}
           >
-            <%= render_slot(@inner_block) %>
+            {render_slot(@inner_block)}
           </div>
         <% end %>
       </div>

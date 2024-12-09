@@ -20,7 +20,7 @@ defmodule PetalComponents.Typography do
   def h1(assigns) do
     ~H"""
     <h1 class={get_heading_classes("pc-h1", @class, @color_class, @underline, @no_margin)} {@rest}>
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </h1>
     """
   end
@@ -36,7 +36,7 @@ defmodule PetalComponents.Typography do
   def h2(assigns) do
     ~H"""
     <h2 class={get_heading_classes("pc-h2", @class, @color_class, @underline, @no_margin)} {@rest}>
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </h2>
     """
   end
@@ -52,7 +52,7 @@ defmodule PetalComponents.Typography do
   def h3(assigns) do
     ~H"""
     <h3 class={get_heading_classes("pc-h3", @class, @color_class, @underline, @no_margin)} {@rest}>
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </h3>
     """
   end
@@ -68,7 +68,7 @@ defmodule PetalComponents.Typography do
   def h4(assigns) do
     ~H"""
     <h4 class={get_heading_classes("pc-h4", @class, @color_class, @underline, @no_margin)} {@rest}>
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </h4>
     """
   end
@@ -84,7 +84,7 @@ defmodule PetalComponents.Typography do
   def h5(assigns) do
     ~H"""
     <h5 class={get_heading_classes("pc-h5", @class, @color_class, @underline, @no_margin)} {@rest}>
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </h5>
     """
   end
@@ -114,7 +114,7 @@ defmodule PetalComponents.Typography do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end
@@ -126,7 +126,7 @@ defmodule PetalComponents.Typography do
   def prose(assigns) do
     ~H"""
     <div class={["prose dark:prose-invert", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -146,7 +146,7 @@ defmodule PetalComponents.Typography do
   def ul(assigns) do
     ~H"""
     <ul class={["pc-text", "list-disc list-inside", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </ul>
     """
   end
@@ -166,7 +166,7 @@ defmodule PetalComponents.Typography do
   def ol(assigns) do
     ~H"""
     <ol class={["pc-text", "list-decimal list-inside", @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </ol>
     """
   end

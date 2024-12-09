@@ -44,7 +44,7 @@ defmodule PetalComponents.Avatar do
             @class
           ]}
         >
-          <%= generate_initials(@name) %>
+          {generate_initials(@name)}
         </div>
       <% else %>
         <img

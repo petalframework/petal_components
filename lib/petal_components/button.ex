@@ -69,7 +69,7 @@ defmodule PetalComponents.Button do
         <% end %>
       <% end %>
 
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </Link.a>
     """
   end
@@ -134,11 +134,11 @@ defmodule PetalComponents.Button do
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={"pc-icon-button-spinner--#{@size}"} />
         <% else %>
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
 
           <div :if={@tooltip} role="tooltip" class="pc-icon-button__tooltip">
             <span class="pc-icon-button__tooltip__text">
-              <%= @tooltip %>
+              {@tooltip}
             </span>
             <div class="pc-icon-button__tooltip__arrow"></div>
           </div>

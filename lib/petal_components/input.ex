@@ -59,8 +59,8 @@ defmodule PetalComponents.Input do
   def input(%{type: "select"} = assigns) do
     ~H"""
     <select id={@id} name={@name} class={[@class, "pc-text-input"]} multiple={@multiple} {@rest}>
-      <option :if={@prompt} value=""><%= @prompt %></option>
-      <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+      <option :if={@prompt} value="">{@prompt}</option>
+      {Phoenix.HTML.Form.options_for_select(@options, @value)}
     </select>
     """
   end
