@@ -71,12 +71,12 @@ defmodule PetalComponents.Dropdown do
           <span class="sr-only">Open options</span>
 
           <%= if @label do %>
-            <%= @label %>
+            {@label}
             <.icon name="hero-chevron-down-solid" class="w-5 h-5 pc-dropdown__chevron" />
           <% end %>
 
           <%= if @trigger_element do %>
-            <%= render_slot(@trigger_element) %>
+            {render_slot(@trigger_element)}
           <% end %>
 
           <%= if !@label && @trigger_element == [] do %>
@@ -97,7 +97,7 @@ defmodule PetalComponents.Dropdown do
         aria-labelledby="options-menu"
       >
         <div class="py-1" role="none">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </div>
       </div>
     </div>
@@ -126,7 +126,7 @@ defmodule PetalComponents.Dropdown do
       role="menuitem"
       {@rest}
     >
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </Link.a>
     """
   end

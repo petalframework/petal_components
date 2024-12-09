@@ -176,7 +176,7 @@ defmodule PetalComponents.Menu do
     ~H"""
     <nav :if={@menu_items != []}>
       <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
-        <%= @title %>
+        {@title}
       </h3>
 
       <div class="pc-vertical-menu__menu-group__wrapper">
@@ -226,7 +226,7 @@ defmodule PetalComponents.Menu do
       class={menu_item_classes(@current_page, @name)}
     >
       <.menu_icon :if={@icon} icon={@icon} is_active={@current_page == @name} />
-      <div class="pc-vertical-menu-item__label"><%= @label %></div>
+      <div class="pc-vertical-menu-item__label">{@label}</div>
     </.a>
     """
   end
@@ -250,7 +250,7 @@ defmodule PetalComponents.Menu do
       >
         <.menu_icon icon={@icon} />
         <div class="pc-vertical-menu-item__toggle-label">
-          <%= @label %>
+          {@label}
         </div>
 
         <div class="pc-vertical-menu-item__toggle-chevron__wrapper">
@@ -279,13 +279,13 @@ defmodule PetalComponents.Menu do
     ~H"""
     <%= cond do %>
       <% is_function(@icon) -> %>
-        <%= Phoenix.LiveView.TagEngine.component(
+        {Phoenix.LiveView.TagEngine.component(
           @icon,
           [class: menu_icon_classes(@is_active)],
           {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
-        ) %>
+        )}
       <% is_binary(@icon) && String.match?(@icon, ~r/svg|img/) -> %>
-        <%= Phoenix.HTML.raw(@icon) %>
+        {Phoenix.HTML.raw(@icon)}
       <% true -> %>
         <.icon name={@icon} class={menu_icon_classes(@is_active)} />
     <% end %>

@@ -54,12 +54,12 @@ defmodule PetalComponents.Alert do
             <div>
               <%= if @heading do %>
                 <h2 id={@heading_id} class="pc-alert__heading">
-                  <%= @heading %>
+                  {@heading}
                 </h2>
               <% end %>
 
               <div id={@label_id} class="pc-alert__label">
-                <%= render_slot(@inner_block) || @label %>
+                {render_slot(@inner_block) || @label}
               </div>
             </div>
 

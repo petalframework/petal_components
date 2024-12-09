@@ -66,7 +66,7 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "page" do %>
             <li>
               <%= if item.current? do %>
-                <span class={get_box_class(item)}><%= item.number %></span>
+                <span class={get_box_class(item)}>{item.number}</span>
               <% else %>
                 <Link.a
                   phx-click={if @event, do: "goto-page"}
@@ -76,7 +76,7 @@ defmodule PetalComponents.Pagination do
                   to={if not @event, do: get_path(@path, item.number, @current_page)}
                   class={get_box_class(item)}
                 >
-                  <%= item.number %>
+                  {item.number}
                 </Link.a>
               <% end %>
             </li>

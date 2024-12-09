@@ -42,7 +42,7 @@ defmodule PetalComponents.Stepper do
                     <.icon name="hero-check-solid" class="pc-stepper__check" />
                   <% else %>
                     <span class="pc-stepper__number">
-                      <%= index + 1 %>
+                      {index + 1}
                     </span>
                   <% end %>
                 </div>
@@ -50,11 +50,11 @@ defmodule PetalComponents.Stepper do
               <!-- Content -->
               <div class="pc-stepper__content">
                 <h3 class="pc-stepper__title" id={"step-title-#{index}"}>
-                  <%= step.name %>
+                  {step.name}
                 </h3>
                 <%= if Map.get(step, :description) do %>
                   <p class="pc-stepper__description" id={"step-description-#{index}"}>
-                    <%= step.description %>
+                    {step.description}
                   </p>
                 <% end %>
               </div>

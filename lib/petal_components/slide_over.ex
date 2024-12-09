@@ -65,7 +65,7 @@ defmodule PetalComponents.SlideOver do
           <div class="pc-slideover__header">
             <div class="pc-slideover__header__container">
               <div class="pc-slideover__header__text">
-                <%= @title %>
+                {@title}
               </div>
 
               <button
@@ -82,7 +82,7 @@ defmodule PetalComponents.SlideOver do
           </div>
           <!-- Content -->
           <div class="pc-slideover__content">
-            <%= render_slot(@inner_block) %>
+            {render_slot(@inner_block)}
           </div>
         </div>
       </div>

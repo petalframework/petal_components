@@ -95,9 +95,9 @@ defmodule PetalComponents.ButtonGroup do
         {group_btn_assigns}
       >
         <%= if is_function(group_btn_assigns.inner_block) do %>
-          <%= render_slot(group_btn_assigns) %>
+          {render_slot(group_btn_assigns)}
         <% else %>
-          <%= group_btn_assigns.label %>
+          {group_btn_assigns.label}
         <% end %>
       </.group_button>
     </div>
@@ -129,7 +129,7 @@ defmodule PetalComponents.ButtonGroup do
       class={[@class | group_btn_class(assigns)]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -140,7 +140,7 @@ defmodule PetalComponents.ButtonGroup do
 
     ~H"""
     <button disabled aria-disabled class={[@class | group_btn_class(assigns)]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -148,7 +148,7 @@ defmodule PetalComponents.ButtonGroup do
   defp group_button(%{kind: "link"} = assigns) do
     ~H"""
     <.link class={[@class | group_btn_class(assigns)]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.link>
     """
   end

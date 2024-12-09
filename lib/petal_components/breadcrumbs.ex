@@ -39,7 +39,7 @@ defmodule PetalComponents.Breadcrumbs do
               <.icon name={link[:icon]} class={["pc-breadcrumb-icon", link[:icon_class]]} />
             <% end %>
             <%= if link[:label] do %>
-              <%= link.label %>
+              {link.label}
             <% end %>
           </div>
         </Link.a>

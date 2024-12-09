@@ -22,7 +22,7 @@ defmodule PetalComponents.TableTest do
       html =
         rendered_to_string(~H"""
         <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={@posts}>
-          <:col :let={post} label="Name" class="col-class" row_class="row-class"><%= post.name %></:col>
+          <:col :let={post} label="Name" class="col-class" row_class="row-class">{post.name}</:col>
         </.table>
         """)
 
@@ -42,7 +42,7 @@ defmodule PetalComponents.TableTest do
       html =
         rendered_to_string(~H"""
         <.table class="my-class" id="posts" row_id={fn post -> "row_#{post.id}" end} rows={[]}>
-          <:col :let={post} label="Name" class="col-class" row_class="row-class"><%= post.name %></:col>
+          <:col :let={post} label="Name" class="col-class" row_class="row-class">{post.name}</:col>
           <:empty_state row_class="empty-class">This table is empty</:empty_state>
         </.table>
         """)
@@ -60,7 +60,7 @@ defmodule PetalComponents.TableTest do
           rows={@posts}
           row_click={fn post -> Phoenix.LiveView.JS.navigate("/link_to_#{post.id}") end}
         >
-          <:col :let={post} label="Name"><%= post.name %></:col>
+          <:col :let={post} label="Name">{post.name}</:col>
         </.table>
         """)
 

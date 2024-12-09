@@ -11,7 +11,7 @@ defmodule PetalComponents.Tabs do
   def tabs(assigns) do
     ~H"""
     <nav {@rest} class={["pc-tabs", @underline && "pc-tabs--underline", @class]} role="tablist">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </nav>
     """
   end
@@ -45,13 +45,13 @@ defmodule PetalComponents.Tabs do
       {@rest}
     >
       <%= if @number do %>
-        <%= render_slot(@inner_block) || @label %>
+        {render_slot(@inner_block) || @label}
 
         <span class={get_tab_number_class(@is_active, @underline)}>
-          <%= @number %>
+          {@number}
         </span>
       <% else %>
-        <%= render_slot(@inner_block) || @label %>
+        {render_slot(@inner_block) || @label}
       <% end %>
     </Link.a>
     """

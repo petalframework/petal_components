@@ -72,7 +72,7 @@ defmodule PetalComponents.Modal do
           <div class="pc-modal__header">
             <div class="pc-modal__header__container">
               <div id={"pc-modal__header__text-#{@id}"} class="pc-modal__header__text">
-                <%= @title %>
+                {@title}
               </div>
               <%= unless @hide_close_button do %>
                 <button
@@ -88,7 +88,7 @@ defmodule PetalComponents.Modal do
           </div>
           <!-- Content -->
           <div class="pc-modal__content">
-            <%= render_slot(@inner_block) %>
+            {render_slot(@inner_block)}
           </div>
         </div>
       </div>
