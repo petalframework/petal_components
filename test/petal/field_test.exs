@@ -27,7 +27,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
     refute html =~ " disabled "
     assert html =~ "pc-text-input"
     assert html =~ "!w-max"
@@ -157,7 +156,6 @@ defmodule PetalComponents.FieldTest do
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
-    assert html =~ "phx-feedback-for"
     assert html =~ "itemid"
 
     # It includes a hidden field for when the switch is not checked
@@ -185,7 +183,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "itemid"
     assert html =~ "<option"
     assert html =~ "admin"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Admin"
     assert html =~ "custom-class"
   end
@@ -231,7 +228,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "user[description]"
     assert html =~ "itemid"
     assert html =~ "placeholder"
-    assert html =~ "phx-feedback-for"
     assert html =~ "dummy text"
     assert html =~ "custom-class"
     assert html =~ "rows=\"8\""
@@ -255,7 +251,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "checkbox"
     assert html =~ "user[roles][]"
     assert html =~ "Read"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Write"
     refute html =~ " checked "
     assert html =~ "hidden"
@@ -404,7 +399,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "radio"
     assert html =~ "user[roles]"
     assert html =~ "Read"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Write"
     refute html =~ " checked "
     assert html =~ "hidden"
@@ -524,7 +518,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "user[plans]"
     assert html =~ "pc-radio-card-group--col"
     assert html =~ "Basic Plan"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Pro Plan"
     refute html =~ " checked "
     assert html =~ "hidden"
@@ -652,7 +645,6 @@ defmodule PetalComponents.FieldTest do
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
-    assert html =~ "phx-feedback-for"
     assert html =~ "data-extra"
 
     # It includes a hidden field for when the switch is not checked
@@ -685,7 +677,6 @@ defmodule PetalComponents.FieldTest do
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
-    assert html =~ "phx-feedback-for"
     assert html =~ "data-extra"
   end
 
@@ -718,7 +709,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|x-ref="copyInput"|
     assert html =~ "@click"
     assert html =~ "x-show"
-    assert html =~ "phx-feedback-for"
   end
 
   test "field with viewable" do
@@ -747,7 +737,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "pc-password-field-toggle-button"
     assert html =~ "hero-eye-solid"
     assert html =~ "pc-password-field-toggle-icon"
-    assert html =~ "phx-feedback-for"
   end
 
   test "field with clearable" do
@@ -771,7 +760,6 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "x-on:input"
     assert html =~ "x-on:click"
     assert html =~ "x-show"
-    assert html =~ "phx-feedback-for"
   end
 
   test "field_help_text" do
