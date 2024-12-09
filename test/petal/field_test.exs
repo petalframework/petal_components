@@ -46,7 +46,9 @@ defmodule PetalComponents.FieldTest do
         value: "",
         field: :name,
         id: "name",
-        form: %Phoenix.HTML.Form{}
+        form: %Phoenix.HTML.Form{
+          params: %{"name" => ""}
+        }
       }
     }
 
