@@ -228,6 +228,68 @@ defmodule PetalComponents.FormTest do
     assert html =~ "too long"
   end
 
+  test "Unedited form_field with error does not show errors" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={
+          %Ecto.Changeset{
+            action: :update,
+            data: %{password: ""},
+            errors: [
+              password: {"can't be blank", [validation: :required]}
+            ],
+            # Simulate user only interacted with email field
+            params: %{
+              "_unused_password" => ""
+            }
+          }
+        }
+      >
+        <.form_field type="password_input" form={f} field={:password} />
+      </.form>
+      """)
+
+    # Password field (unused) should not show error
+    refute html =~ "has-error"
+    refute html =~ "can&#39;t be blank"
+  end
+
+  test "Edited form_field with error shows errors" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form
+        :let={f}
+        as={:user}
+        for={
+          %Ecto.Changeset{
+            action: :update,
+            data: %{password: ""},
+            errors: [
+              password: {"can't be blank", [validation: :required]}
+            ],
+            # Simulate user only interacted with email field
+            params: %{
+              "password" => ""
+            }
+          }
+        }
+      >
+        <.form_field type="password_input" form={f} field={:password} />
+      </.form>
+      """)
+
+    # Password field (unused) should not show error
+    assert html =~ "has-error"
+    assert html =~ "can&#39;t be blank"
+  end
+
   test "form_help_text" do
     assigns = %{}
 
