@@ -17,7 +17,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
     refute html =~ " disabled "
     assert html =~ "pc-text-input"
     assert html =~ "!w-max"
@@ -56,7 +55,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[description]"
     assert html =~ "itemid"
     assert html =~ "placeholder"
-    assert html =~ "phx-feedback-for"
     assert html =~ "dummy text"
   end
 
@@ -75,7 +73,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "itemid"
     assert html =~ "<option"
     assert html =~ "admin"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Admin"
   end
 
@@ -91,7 +88,6 @@ defmodule PetalComponents.FormTest do
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
-    assert html =~ "phx-feedback-for"
     assert html =~ "itemid"
   end
 
@@ -111,7 +107,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user_roles_write"
     assert html =~ "user[roles][]"
     assert html =~ "Read"
-    assert html =~ "phx-feedback-for"
     assert html =~ "Write"
     refute html =~ "checked"
 
@@ -143,7 +138,6 @@ defmodule PetalComponents.FormTest do
 
     assert html =~ "checkbox"
     assert html =~ "user[read_terms]"
-    assert html =~ "phx-feedback-for"
     assert html =~ "itemid"
     assert html =~ "sr-only"
     assert html =~ "peer"
@@ -163,7 +157,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[eye_color]"
     assert html =~ "green"
     assert html =~ "itemid"
-    assert html =~ "phx-feedback-for"
   end
 
   test "form_label" do
@@ -178,7 +171,6 @@ defmodule PetalComponents.FormTest do
 
     assert html =~ "label"
     assert html =~ "Name"
-    assert html =~ "phx-feedback-for"
     assert html =~ "text-pink-500"
 
     html =
@@ -222,7 +214,8 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            params: %{"name" => ""}
           }
         }
       >
@@ -231,7 +224,6 @@ defmodule PetalComponents.FormTest do
       """)
 
     assert html =~ "pc-form-field-error"
-    assert html =~ "phx-feedback-for"
     assert html =~ "blank"
     assert html =~ "too long"
   end
@@ -284,7 +276,8 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            params: %{"name" => ""}
           }
         }
       >
@@ -305,7 +298,7 @@ defmodule PetalComponents.FormTest do
     assert html =~ "John"
     assert html =~ "too long"
     assert html =~ "blank"
-    assert html =~ "<div class=\"wrapper-test\" phx-feedback-for=\"user[name]\">"
+    assert html =~ "<div class=\"wrapper-test\">"
     assert html =~ "Help!"
   end
 
@@ -337,7 +330,8 @@ defmodule PetalComponents.FormTest do
             errors: [
               name: {"can't be blank", [validation: :required]},
               name: {"too long", [validation: :required]}
-            ]
+            ],
+            params: %{"name" => ""}
           }
         }
       >
@@ -532,7 +526,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "email_input" do
@@ -550,7 +543,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "password_input" do
@@ -568,7 +560,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "search_input" do
@@ -586,7 +577,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "telephone_input" do
@@ -604,7 +594,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "url_input" do
@@ -622,7 +611,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "time_input" do
@@ -640,7 +628,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "time_select" do
@@ -672,7 +659,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "datetime_select" do
@@ -718,7 +704,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "color_input" do
@@ -736,7 +721,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "file_input" do
@@ -755,7 +739,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "itemid"
     assert html =~ "something"
     assert html =~ "pc-file-input"
-    assert html =~ "phx-feedback-for"
   end
 
   test "range_input" do
@@ -773,7 +756,6 @@ defmodule PetalComponents.FormTest do
     assert html =~ "user[name]"
     assert html =~ "itemid"
     assert html =~ "something"
-    assert html =~ "phx-feedback-for"
   end
 
   test "hidden_input" do

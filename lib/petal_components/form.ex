@@ -14,12 +14,15 @@ defmodule PetalComponents.Form do
   Deprecated in favor of field.ex and input.ex, which use the new `%Phoenix.HTML.FormField{}` struct.
   """
 
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, doc: "CSS classes to add to your label")
-  slot(:inner_block, required: false)
-  attr(:rest, :global, include: ~w(for))
+  attr :form, :any, default: nil, doc: ""
+  attr :field, :atom, default: nil, doc: ""
+  attr :label, :string, default: nil, doc: "labels your field"
+  attr :class, :any, doc: "CSS classes to add to your label"
+
+  attr :compound, :boolean, default: false, doc: "Avoid using label/for for compound inputs"
+
+  slot :inner_block, required: false
+  attr :rest, :global, include: ~w(for)
 
   def form_label(assigns) do
     assigns =
@@ -27,7 +30,7 @@ defmodule PetalComponents.Form do
       |> assign(:classes, label_classes(assigns))
 
     ~H"""
-    <%= if @form && @field do %>
+    <%= if @form && @field && !@compound do %>
       <%= Form.label @form, @field, [class: @classes] ++ Map.to_list(@rest) do %>
         {render_slot(@inner_block) || @label || Form.humanize(@field)}
       <% end %>
@@ -136,10 +139,22 @@ defmodule PetalComponents.Form do
             </div>
           </label>
         <% "checkbox_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label
+            form={@form}
+            field={@field}
+            label={@label}
+            class={@label_class}
+            compound={true}
+          />
           <.checkbox_group form={@form} field={@field} {@rest} />
         <% "radio_group" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label
+            form={@form}
+            field={@field}
+            label={@label}
+            class={@label_class}
+            compound={true}
+          />
           <.radio_group form={@form} field={@field} {@rest} />
         <% "text_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
@@ -166,16 +181,34 @@ defmodule PetalComponents.Form do
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.time_input form={@form} field={@field} {@rest} />
         <% "time_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label
+            form={@form}
+            field={@field}
+            label={@label}
+            class={@label_class}
+            compound={true}
+          />
           <.time_select form={@form} field={@field} {@rest} />
         <% "datetime_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label
+            form={@form}
+            field={@field}
+            label={@label}
+            class={@label_class}
+            compound={true}
+          />
           <.datetime_select form={@form} field={@field} {@rest} />
         <% "datetime_local_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.datetime_local_input form={@form} field={@field} {@rest} />
         <% "date_select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <.form_label
+            form={@form}
+            field={@field}
+            label={@label}
+            class={@label_class}
+            compound={true}
+          />
           <.date_select form={@form} field={@field} {@rest} />
         <% "date_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />

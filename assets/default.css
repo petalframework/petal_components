@@ -2521,6 +2521,10 @@ label.has-error {
   @apply !text-danger-900 dark:!text-danger-200;
 }
 
+span.has-error {
+  @apply !text-danger-900 dark:!text-danger-200;
+}
+
 textarea.has-error,
 input.has-error:not(:checked),
 select.has-error {
