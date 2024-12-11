@@ -12,7 +12,7 @@ defmodule PetalComponents.Card do
     ~H"""
     <div {@rest} class={["pc-card", "pc-card--#{@variant}", @class]}>
       <div class="pc-card__inner">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
     """
@@ -50,14 +50,14 @@ defmodule PetalComponents.Card do
     ~H"""
     <div {@rest} class={["pc-card__content", @class]}>
       <div :if={@category} class={["pc-card__category", @category_color_class]}>
-        <%= @category %>
+        {@category}
       </div>
 
       <div :if={@heading} class="pc-card__heading">
-        <%= @heading %>
+        {@heading}
       </div>
 
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </div>
     """
   end
@@ -69,7 +69,7 @@ defmodule PetalComponents.Card do
   def card_footer(assigns) do
     ~H"""
     <div {@rest} class={["pc-card__footer", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -88,13 +88,13 @@ defmodule PetalComponents.Card do
         <.avatar src={@img} alt={@name} size="md" />
         <div class="pc-review-meta">
           <figcaption>
-            <.p no_margin class="text-sm pc-review-name"><%= @name %></.p>
+            <.p no_margin class="text-sm pc-review-name">{@name}</.p>
           </figcaption>
-          <p class="pc-review-username"><%= @username %></p>
+          <p class="pc-review-username">{@username}</p>
         </div>
       </div>
       <blockquote class="pc-review-body">
-        <.p class="text-sm" no_margin><%= @body %></.p>
+        <.p class="text-sm" no_margin>{@body}</.p>
       </blockquote>
     </figure>
     """

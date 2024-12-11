@@ -90,7 +90,7 @@ defmodule PetalComponents.AccordionTest do
     html =
       rendered_to_string(~H"""
       <.accordion entries={@entries}>
-        <:item :let={entry}><%= entry.content %></:item>
+        <:item :let={entry}>{entry.content}</:item>
       </.accordion>
       """)
 

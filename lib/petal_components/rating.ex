@@ -43,7 +43,7 @@ defmodule PetalComponents.Rating do
 
       <%= if @include_label do %>
         <span class={["pc-rating__label", @label_class]}>
-          <%= @rating_as_float %> out of <%= @total %>
+          {@rating_as_float} out of {@total}
         </span>
       <% end %>
     </div>

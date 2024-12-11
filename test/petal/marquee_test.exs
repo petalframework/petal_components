@@ -12,7 +12,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -31,7 +31,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee repeat={3}>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -49,7 +49,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee repeat={0}>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -68,7 +68,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee vertical>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -89,7 +89,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee pause_on_hover>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -106,7 +106,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee reverse>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -123,7 +123,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee duration="50s" gap="2rem">
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -143,7 +143,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -161,7 +161,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee vertical>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -179,7 +179,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee overlay_gradient={false}>
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -198,7 +198,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee max_width="xl">
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -215,7 +215,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee max_height="lg">
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -234,7 +234,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee class="custom-class">
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)
@@ -251,7 +251,7 @@ defmodule PetalComponents.MarqueeTest do
         rendered_to_string(~H"""
         <.marquee data-test="marquee">
           <%= for item <- @items do %>
-            <div><%= item %></div>
+            <div>{item}</div>
           <% end %>
         </.marquee>
         """)

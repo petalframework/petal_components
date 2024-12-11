@@ -29,7 +29,7 @@ defmodule PetalComponents.Badge do
         @class
       ]}
     >
-      <%= render_slot(@inner_block) || @label %>
+      {render_slot(@inner_block) || @label}
     </badge>
     """
   end

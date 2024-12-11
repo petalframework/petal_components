@@ -31,7 +31,7 @@ defmodule PetalComponents.Progress do
       >
         <%= if @size == "xl" do %>
           <span class="pc-progress__label">
-            <%= @label %>
+            {@label}
           </span>
         <% end %>
       </span>
