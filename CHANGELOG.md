@@ -1,4 +1,9 @@
 # Changelog
+### 2.8.1 - 2024-12-17 01:12:12
+
+- Bumped LiveView to 1.0.1
+- Bumped Phoenix to 1.7.18
+
 ### 2.8.0 - 2024-12-11 00:28:11
 
 - Update for forms V1 and V2 to support LiveView 1.0 - https://github.com/petalframework/petal_components/pull/382 (thanks @joepstender for your contribution
