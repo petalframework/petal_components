@@ -2544,3 +2544,12 @@ input[type="file_input"].has-error {
 [x-cloak=""] {
   display: none;
 }
+
+/*
+  Needed for datetime inputs to have the correct size in Safari
+  See: https://github.com/twbs/bootstrap/issues/34433#issuecomment-1831467352
+*/
+input::-webkit-datetime-edit {
+  display: block;
+  padding: 0;
+}
