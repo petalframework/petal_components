@@ -2553,3 +2553,17 @@ input::-webkit-datetime-edit {
   display: block;
   padding: 0;
 }
+
+/*
+  Hide the calendar icon added by Petal in Firefox since Firefox includes one
+  and the onclick for the Petal one doesn't work.
+  See: https://css-tricks.com/snippets/css/css-hacks-targeting-firefox/
+*/
+@-moz-document url-prefix() {
+  .pc-date-input {
+    @apply pe-3;
+  }
+  .pc-date-input-icon {
+    @apply hidden;
+  }
+}
