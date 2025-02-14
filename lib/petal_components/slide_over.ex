@@ -46,7 +46,7 @@ defmodule PetalComponents.SlideOver do
       class="hidden pc-slide-over"
       id="slide-over"
     >
-      <div id="slide-over-overlay" class="pc-slideover__overlay" aria-hidden="true"></div>
+      <div id="slide-over-overlay" class="hidden pc-slideover__overlay" aria-hidden="true"></div>
 
       <div
         class={["pc-slideover__wrapper", get_margin_classes(@origin), @class]}
@@ -155,7 +155,7 @@ defmodule PetalComponents.SlideOver do
   end
 
   defp get_classes(max_width, origin, class) do
-    base_classes = "pc-slideover__box"
+    base_classes = "hidden pc-slideover__box"
 
     slide_over_classes =
       case origin do
