@@ -55,7 +55,7 @@ defmodule PetalComponents.Modal do
       {@rest}
       class="hidden pc-modal"
     >
-      <div class="pc-modal__overlay" aria-hidden="true"></div>
+      <div class="hidden pc-modal__overlay" aria-hidden="true"></div>
       <div
         class="pc-modal__wrapper"
         aria-labelledby={"pc-modal__header__text-#{@id}"}
@@ -153,7 +153,7 @@ defmodule PetalComponents.Modal do
       class: assigns[:class] || ""
     }
 
-    base_classes = "pc-modal__box"
+    base_classes = "hidden pc-modal__box"
     max_width_class = "pc-modal__box--#{opts.max_width}"
     custom_classes = opts.class
 
