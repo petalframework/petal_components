@@ -97,15 +97,13 @@ defmodule PetalComponents.SlideOver do
     |> JS.show(to: "#slide-over")
     |> JS.show(
       to: "#slide-over-overlay",
+      time: 300,
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
     )
     |> JS.show(
       to: "#slide-over-content",
-      transition: {
-        "transition-all transform ease-out duration-300",
-        start_class,
-        end_class
-      }
+      time: 300,
+      transition: {"transition-all transform ease-out duration-300", start_class, end_class}
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "#slide-over-content")
@@ -121,22 +119,14 @@ defmodule PetalComponents.SlideOver do
     js =
       JS.remove_class("overflow-hidden", to: "body")
       |> JS.hide(
-        transition: {
-          "ease-in duration-200",
-          "opacity-100",
-          "opacity-0"
-        },
+        transition: {"ease-in duration-200", "opacity-100", "opacity-0"},
         to: "#slide-over-overlay"
       )
       |> JS.hide(
-        transition: {
-          "ease-in duration-200",
-          start_class,
-          end_class
-        },
+        transition: {"ease-in duration-200", start_class, end_class},
         to: "#slide-over-content"
       )
-      |> JS.hide(to: "#slide-over")
+      |> JS.hide(to: "#slide-over", transition: {"duration-200", "", ""})
 
     if close_slide_over_target do
       JS.push(js, "close_slide_over", target: close_slide_over_target)
