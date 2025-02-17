@@ -1,4 +1,9 @@
 # Changelog
+### 2.8.2 - 2025-02-17 05:41:23
+
+- Workaround for Slide Over and Modal with LiveView 1.0.4
+- Bump to Phoenix LiveView 1.0.4
+
 ### 2.8.1 - 2024-12-17 01:12:12
 
 - Bumped LiveView to 1.0.1
