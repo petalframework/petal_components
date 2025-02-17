@@ -157,6 +157,6 @@ defmodule PetalComponents.Modal do
     max_width_class = "pc-modal__box--#{opts.max_width}"
     custom_classes = opts.class
 
-    [max_width_class, base_classes, custom_classes]
+    [base_classes, max_width_class, custom_classes]
   end
 end
