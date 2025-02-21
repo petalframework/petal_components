@@ -21,6 +21,10 @@ defmodule PetalComponents.SlideOverTest do
       </.slide_over>
       """)
 
+    assert html =~ "id=\"slide-over\""
+    assert html =~ "slide-over-overlay"
+    assert html =~ "slide-over-content"
+
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
     assert html =~ "translate-x-0"
@@ -79,6 +83,50 @@ defmodule PetalComponents.SlideOverTest do
     assert html =~ "data-phx-link"
     assert html =~ "phx-click"
     assert html =~ "fixed inset-x-0 bottom-0"
+  end
+
+  test "slide_over with default id" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button label="left" link_type="live_patch" to="/live" />
+
+      <.slide_over title="SlideOver" origin="left">
+        <div class="gap-5 text-sm">
+          <.form_label label="Add some text here." />
+          <div class="flex justify-end">
+            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("left")} />
+          </div>
+        </div>
+      </.slide_over>
+      """)
+
+    assert html =~ "id=\"slide-over\""
+    assert html =~ "slide-over-overlay"
+    assert html =~ "slide-over-content"
+  end
+
+  test "slide_over with custom id" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button label="left" link_type="live_patch" to="/live" />
+
+      <.slide_over id="bert" title="SlideOver" origin="left">
+        <div class="gap-5 text-sm">
+          <.form_label label="Add some text here." />
+          <div class="flex justify-end">
+            <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("left")} />
+          </div>
+        </div>
+      </.slide_over>
+      """)
+
+    assert html =~ "id=\"bert\""
+    assert html =~ "bert-overlay"
+    assert html =~ "bert-content"
   end
 
   test "dark mode" do
