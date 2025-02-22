@@ -1,4 +1,8 @@
 # Changelog
+### 2.8.4 - 2025-02-22 22:04:15
+
+- User Dropdown Menu - `avatar_src` and `current_user_name` are optional by @mitkins in https://github.com/petalframework/petal_components/pull/406
+
 ### 2.8.3 - 2025-02-21 22:12:41
 
 - Allow for multiple instances of the `slide_over` component by @mitkins in https://github.com/petalframework/petal_components/pull/404
