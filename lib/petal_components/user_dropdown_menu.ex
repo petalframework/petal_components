@@ -15,7 +15,7 @@ defmodule PetalComponents.UserDropdownMenu do
     <.dropdown :if={@user_menu_items != []}>
       <:trigger_element>
         <div class="inline-flex items-center justify-center w-full align-middle focus:outline-none">
-          <%= if @current_user_name || @avatar_src do %>
+          <%= if assigns[:current_user_name] || assigns[:avatar_src] do %>
             <.avatar name={@current_user_name} src={@avatar_src} size="sm" random_color />
           <% else %>
             <.avatar size="sm" />
