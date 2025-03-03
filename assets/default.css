@@ -1,3 +1,5 @@
+/* Container */
+
 @utility pc-container {
   @apply w-full mx-auto sm:px-6 lg:px-8;
 }
@@ -2541,4 +2543,13 @@ input[type="file_input"].has-error {
 /* Needed for Alpine JS */
 [x-cloak=""] {
   display: none;
+}
+
+/*
+  Needed for datetime inputs to have the correct size in Safari
+  See: https://github.com/twbs/bootstrap/issues/34433#issuecomment-1831467352
+*/
+input::-webkit-datetime-edit {
+  display: block;
+  padding: 0;
 }
