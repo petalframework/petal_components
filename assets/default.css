@@ -529,9 +529,6 @@
   .pc-heading--margin {
     @apply mb-3;
   }
-  .pc-heading--margin {
-    @apply mb-3;
-  }
   .pc-text {
     @apply leading-5 text-gray-700 dark:text-gray-300;
   }
