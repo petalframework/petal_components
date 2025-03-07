@@ -1285,7 +1285,7 @@
     @apply object-cover rounded-full;
   }
   .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 rounded-full dark:bg-gray-700;
+    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-700;
   }
   .pc-avatar--with-placeholder-initials {
     @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300;
