@@ -825,7 +825,7 @@
   }
   .pc-form-field-wrapper--error .pc-label,
   .pc-form-field-wrapper--error .pc-checkbox-label {
-    @apply !text-danger-600 dark:!text-danger-200;
+    @apply text-danger-600! dark:text-danger-200!;
   }
   .pc-checkbox-label {
     @apply inline-flex items-center gap-3 text-sm font-normal text-gray-900 cursor-pointer dark:text-gray-200;
@@ -834,7 +834,7 @@
     @apply block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200;
   }
   .pc-label--for-checkbox {
-    @apply !mb-0 font-normal;
+    @apply mb-0! font-normal;
   }
   .pc-label--required:after {
     color: #e32;
@@ -1663,10 +1663,10 @@
   }
 
   .pc-accordion-item__minus {
-    @apply !w-6 !h-6 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+    @apply w-6! h-6! text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__plus {
-    @apply !w-6 !h-6 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+    @apply w-6! h-6! text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
 
   .pc-accordion--ghost [x-cloak].pc-accordion-item__plus,
@@ -2529,21 +2529,21 @@
   }
 
   label.has-error {
-    @apply !text-danger-900 dark:!text-danger-200;
+    @apply text-danger-900! dark:text-danger-200!;
   }
 
   span.has-error {
-    @apply !text-danger-900 dark:!text-danger-200;
+    @apply text-danger-900! dark:text-danger-200!;
   }
 
   textarea.has-error,
   input.has-error:not(:checked),
   select.has-error {
-    @apply !border-danger-500 focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 dark:!text-danger-100 dark:!placeholder-danger-300 dark:!bg-danger-900 focus:!ring-danger-500;
+    @apply border-danger-500! focus:border-danger-500! text-danger-900! placeholder-danger-700! bg-danger-50! dark:text-danger-100! dark:placeholder-danger-300! dark:bg-danger-900! focus:ring-danger-500!;
   }
 
   input[type="file_input"].has-error {
-    @apply !border-danger-500 !rounded-md focus:!border-danger-500 !text-danger-900 !placeholder-danger-700 !bg-danger-50 file:!border-none dark:!border-none dark:!bg-gray-950 dark:text-danger-400;
+    @apply border-danger-500! rounded-md! focus:border-danger-500! text-danger-900! placeholder-danger-700! bg-danger-50! file:border-none! dark:border-none! dark:bg-gray-950! dark:text-danger-400;
   }
 
   /* If in tailwind.config.json, darkMode: 'class', use this: */
