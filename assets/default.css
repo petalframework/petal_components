@@ -796,7 +796,7 @@
   /* Alerts - with icon */
 
   .pc-alert__icon-container {
-    @apply self-start flex-shrink-0 pt-0.5 w-6 h-6;
+    @apply self-start shrink-0 pt-0.5 w-6 h-6;
   }
 
   /* Forms */
@@ -860,7 +860,7 @@
     @apply dark:text-white;
   }
   .pc-switch {
-    @apply relative inline-flex items-center justify-center flex-shrink-0 cursor-pointer;
+    @apply relative inline-flex items-center justify-center shrink-0 cursor-pointer;
   }
   .pc-switch--xs {
     @apply w-6 h-3;
@@ -1565,10 +1565,10 @@
   /* Cards - with media */
 
   .pc-card__image {
-    @apply flex-shrink-0 object-cover w-full;
+    @apply shrink-0 object-cover w-full;
   }
   .pc-card__image-placeholder {
-    @apply flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700;
+    @apply shrink-0 w-full bg-gray-300 dark:bg-gray-700;
   }
 
   /* Cards - footer */
@@ -1634,7 +1634,7 @@
     @apply text-base font-semibold;
   }
   .pc-accordion-item__chevron {
-    @apply flex-shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+    @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
     @apply p-5 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-900;
@@ -2291,7 +2291,7 @@
 
   /* Item */
   .pc-stepper__item {
-    @apply flex-shrink-0;
+    @apply shrink-0;
   }
 
   .pc-stepper__item-content {
@@ -2305,7 +2305,7 @@
 
   /* Indicator */
   .pc-stepper__indicator {
-    @apply grid flex-shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
+    @apply grid shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
   }
 
   .pc-stepper__node--complete .pc-stepper__indicator {
@@ -2465,7 +2465,7 @@
   }
 
   .pc-vertical-menu-item__icon {
-    @apply flex-shrink-0 w-5 h-5;
+    @apply shrink-0 w-5 h-5;
   }
 
   .pc-vertical-menu-item {
@@ -2514,11 +2514,11 @@
   }
 
   .pc-vertical-menu-item__icon--active {
-    @apply flex-shrink-0 w-5 h-5;
+    @apply shrink-0 w-5 h-5;
   }
 
   .pc-vertical-menu-item__icon--inactive {
-    @apply flex-shrink-0 w-5 h-5;
+    @apply shrink-0 w-5 h-5;
   }
 
   /* Other */
