@@ -26,7 +26,7 @@
   /* Buttons (New) */
 
   .pc-button {
-    @apply inline-flex items-center justify-center font-medium transition duration-150 ease-in-out border rounded-md focus:outline-none;
+    @apply inline-flex items-center justify-center font-medium transition duration-150 ease-in-out border rounded-md focus:outline-hidden;
   }
 
   /* Buttons - sizes */
@@ -111,7 +111,7 @@
     @apply bg-transparent border-transparent text-secondary-800 hover:bg-secondary-100 hover:text-secondary-800 active:bg-secondary-200 focus:bg-transparent dark:text-secondary-300 dark:hover:bg-secondary-900 dark:hover:text-secondary-300 dark:active:bg-secondary-700 dark:focus:bg-transparent;
   }
   .pc-button--white {
-    @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
+    @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
   }
   .pc-button--white-outline {
     @apply text-gray-600 border-gray-400 dark:border-gray-300 dark:active:border-gray-400 dark:active:bg-transparent dark:focus:bg-transparent dark:bg-transparent dark:hover:border-gray-200 dark:hover:text-gray-200 dark:hover:bg-transparent dark:text-gray-300 hover:border-gray-600 hover:text-gray-700 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600;
@@ -120,10 +120,10 @@
     @apply text-gray-600 border-gray-400 dark:border-white dark:hover:border-gray-700 dark:hover:text-black dark:hover:bg-white dark:text-gray-300 hover:border-gray-600 hover:text-black active:bg-gray-700 hover:bg-white focus:border-gray-700 focus:shadow-gray-500/50;
   }
   .pc-button--white-shadow {
-    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
+    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
   }
   .pc-button--pure-white {
-    @apply text-gray-700 bg-white border-transparent border-white hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-none focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
+    @apply text-gray-700 bg-white border-transparent border-white hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-hidden focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
   }
   .pc-button--info {
     @apply text-white border-transparent bg-info-600 hover:bg-info-700 active:bg-info-800 focus:bg-info-700;
@@ -216,7 +216,7 @@
     @apply text-gray-800 bg-transparent border-transparent hover:bg-gray-100 hover:text-gray-800 active:bg-gray-200 focus:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-300 dark:active:bg-gray-700 dark:focus:bg-transparent;
   }
   .pc-button--light {
-    @apply text-gray-900 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800;
+    @apply text-gray-900 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800;
   }
   .pc-button--light-outline {
     @apply text-gray-900 border-gray-300 dark:hover:bg-transparent hover:border-gray-400 active:bg-gray-100 hover:bg-gray-50 focus:bg-gray-50 focus:border-gray-500 active:border-gray-600 dark:text-white dark:border-gray-600 dark:active:border-gray-600 dark:hover:border-gray-500 dark:active:bg-transparent dark:focus:bg-transparent dark:bg-transparent;
@@ -225,10 +225,10 @@
     @apply text-gray-900 border-gray-300 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 focus:border-gray-700 focus:shadow-gray-500/50 dark:hover:text-black dark:hover:bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:border-white dark:active:bg-gray-300 dark:active:border-gray-300 dark:focus:shadow-gray-600/50;
   }
   .pc-button--light-shadow {
-    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 shadow-gray-500/30 dark:shadow-gray-600/30 dark:hover:shadow-gray-500/30 dark:focus:shadow-gray-500/30 dark:active:shadow-gray-600/30;
+    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 shadow-gray-500/30 dark:shadow-gray-600/30 dark:hover:shadow-gray-500/30 dark:focus:shadow-gray-500/30 dark:active:shadow-gray-600/30;
   }
   .pc-button--dark {
-    @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:focus:outline-none dark:focus:bg-gray-200 dark:focus:text-gray-900 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
+    @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:focus:outline-hidden dark:focus:bg-gray-200 dark:focus:text-gray-900 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
   }
   .pc-button--dark-outline {
     @apply bg-white dark:bg-gray-950 dark:border-white text-gray-950 border-gray-950 dark:hover:bg-gray-950 dark:hover:border-gray-300 dark:active:bg-gray-950 hover:bg-gray-50 dark:focus:bg-gray-950 dark:active:border-gray-400 dark:text-white active:border-gray-600 hover:border-gray-500 active:bg-gray-100 focus:bg-transparent;
@@ -291,7 +291,7 @@
   }
 
   .pc-icon-button__tooltip__text {
-    @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 rounded-sm shadow-lg whitespace-nowrap dark:bg-gray-700;
+    @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 rounded-xs shadow-lg whitespace-nowrap dark:bg-gray-700;
   }
 
   .pc-icon-button__tooltip__arrow {
@@ -430,7 +430,7 @@
   .pc-button-group__button--default-styles {
     @apply whitespace-nowrap;
     @apply focus:ring-gray-200 focus:z-10;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+    @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
     @apply disabled:pointer-events-none disabled:opacity-50;
   }
 
@@ -542,7 +542,7 @@
   /* Badges */
 
   .pc-badge {
-    @apply inline-flex items-center justify-center border rounded focus:outline-none;
+    @apply inline-flex items-center justify-center border rounded-sm focus:outline-hidden;
   }
 
   /* Badges - with icon */
@@ -665,7 +665,7 @@
     @apply flex items-start justify-between;
   }
   .pc-alert-base-classes {
-    @apply flex items-center w-full gap-3 px-4 py-2 text-sm rounded focus:outline-none;
+    @apply flex items-center w-full gap-3 px-4 py-2 text-sm rounded-sm focus:outline-hidden;
   }
   .pc-alert__heading {
     @apply pt-1 font-bold;
@@ -848,15 +848,15 @@
     @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
   }
   .pc-time-select {
-    @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+    @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
     @apply dark:text-white;
   }
   .pc-datetime-select {
-    @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+    @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
     @apply dark:text-white;
   }
   .pc-date-select {
-    @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+    @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
     @apply dark:text-white;
   }
   .pc-switch {
@@ -896,7 +896,7 @@
     @apply h-8 w-[3.75rem];
   }
   .pc-switch__fake-input-bg {
-    @apply absolute left-0 inline-block transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none ring-0;
+    @apply absolute left-0 inline-block transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow-sm pointer-events-none ring-0;
   }
   .pc-switch__fake-input-bg--xs {
     @apply w-3 h-3;
@@ -919,7 +919,7 @@
     @apply peer-checked:translate-x-7;
   }
   .pc-text-input {
-    @apply block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;
+    @apply block w-full border-gray-300 rounded-md shadow-xs focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-hidden;
   }
 
   /* Password Field Styles */
@@ -992,7 +992,7 @@
 
   /* Date and Time Field Styles */
   .pc-date-input {
-    @apply block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none;
+    @apply block w-full border-gray-300 rounded-md shadow-xs focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-hidden;
     @apply [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-black dark:[&::-webkit-date-and-time-value]:text-white pe-[40px];
   }
 
@@ -1025,10 +1025,10 @@
   }
 
   .pc-select {
-    @apply block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-md cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-none sm:text-sm dark:disabled:bg-gray-700 dark:text-gray-300 dark:bg-gray-800;
+    @apply block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-md cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed focus:outline-hidden sm:text-sm dark:disabled:bg-gray-700 dark:text-gray-300 dark:bg-gray-800;
   }
   .pc-file-input {
-    @apply text-sm rounded-md cursor-pointer focus:outline-none file:border-0 text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-primary-300 hover:dark:file:bg-primary-200;
+    @apply text-sm rounded-md cursor-pointer focus:outline-hidden file:border-0 text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-primary-300 hover:dark:file:bg-primary-200;
   }
   .pc-color-input {
     @apply border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
@@ -1037,7 +1037,7 @@
     @apply w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
   }
   .pc-checkbox {
-    @apply w-5 h-5 transition-all duration-150 ease-linear border-gray-300 rounded cursor-pointer text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
+    @apply w-5 h-5 transition-all duration-150 ease-linear border-gray-300 rounded-sm cursor-pointer text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
   }
   .pc-checkbox-group {
     @apply pt-2;
@@ -1222,7 +1222,7 @@
     @apply w-5 h-5 ml-2 -mr-1 dark:text-gray-100;
   }
   .pc-dropdown__menu-items-wrapper {
-    @apply absolute z-30 w-56 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800 ring-1 ring-black/5 focus:outline-none;
+    @apply absolute z-30 w-56 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800 ring-1 ring-black/5 focus:outline-hidden;
   }
   .pc-dropdown__menu-items-wrapper-placement--left {
     @apply right-0 origin-top-right;
@@ -1234,10 +1234,10 @@
     @apply flex items-center self-start justify-start w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 transition duration-150 ease-in-out dark:hover:bg-gray-700 dark:text-gray-300 dark:bg-gray-800 hover:bg-gray-100;
   }
   .pc-dropdown__trigger-button--no-label {
-    @apply flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
+    @apply flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
   }
   .pc-dropdown__trigger-button--with-label {
-    @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:text-gray-300 dark:bg-gray-800 hover:dark:bg-gray-700 dark:border-gray-700 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-none;
+    @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs dark:text-gray-300 dark:bg-gray-800 hover:dark:bg-gray-700 dark:border-gray-700 dark:focus:bg-gray-800 hover:bg-gray-50 focus:outline-hidden;
   }
   .pc-dropdown__trigger-button--with-label-and-trigger-element {
     @apply align-middle;
@@ -1351,7 +1351,7 @@
   /* Progress - sizes */
 
   .pc-progress--xs {
-    @apply h-1 rounded-sm;
+    @apply h-1 rounded-xs;
   }
   .pc-progress--sm {
     @apply h-2 rounded-md;
@@ -1432,14 +1432,14 @@
     @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700;
   }
   .pc-pagination__item__previous {
-    @apply mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
+    @apply mr-2 inline-flex items-center justify-center rounded-sm leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
   }
   .pc-pagination__item__previous__chevron {
     /* !important is needed because heroicon class overrides width and height */
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__next {
-    @apply ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
+    @apply ml-2 inline-flex items-center justify-center rounded-sm leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50;
   }
   .pc-pagination__item__next__chevron {
     /* !important is needed because heroicon class overrides width and height */
@@ -1580,7 +1580,7 @@
   /* Table */
 
   .pc-table--basic {
-    @apply min-w-full overflow-hidden rounded-sm shadow table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
+    @apply min-w-full overflow-hidden rounded-xs shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
   }
   .pc-table--ghost {
     @apply min-w-full overflow-hidden table-auto;
@@ -1926,7 +1926,7 @@
   }
 
   .pc-skeleton--image__image-placeholder {
-    @apply flex items-center justify-center w-full h-48 bg-gray-300 rounded sm:w-96 dark:bg-gray-700;
+    @apply flex items-center justify-center w-full h-48 bg-gray-300 rounded-sm sm:w-96 dark:bg-gray-700;
   }
 
   .pc-skeleton--image__icon {
@@ -2045,11 +2045,11 @@
   /* Card Skeleton */
   .pc-skeleton--card {
     @apply animate-pulse;
-    @apply max-w-sm p-4 border border-gray-200 rounded shadow md:p-6 dark:border-gray-700;
+    @apply max-w-sm p-4 border border-gray-200 rounded-sm shadow-sm md:p-6 dark:border-gray-700;
   }
 
   .pc-skeleton--card__image-placeholder {
-    @apply flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700;
+    @apply flex items-center justify-center h-48 mb-4 bg-gray-300 rounded-sm dark:bg-gray-700;
   }
 
   .pc-skeleton--card__icon {
@@ -2100,7 +2100,7 @@
 
   .pc-skeleton--widget {
     @apply animate-pulse;
-    @apply max-w-sm p-4 border border-gray-200 rounded shadow md:p-6 dark:border-gray-700;
+    @apply max-w-sm p-4 border border-gray-200 rounded-sm shadow-sm md:p-6 dark:border-gray-700;
   }
 
   .pc-skeleton--widget__header-line {
@@ -2147,7 +2147,7 @@
 
   .pc-skeleton--list {
     @apply animate-pulse;
-    @apply max-w-md p-4 space-y-4 border border-gray-200 divide-y divide-gray-200 rounded shadow md:p-6 dark:divide-gray-700 dark:border-gray-700;
+    @apply max-w-md p-4 space-y-4 border border-gray-200 divide-y divide-gray-200 rounded-sm shadow-sm md:p-6 dark:divide-gray-700 dark:border-gray-700;
   }
 
   .pc-skeleton--list__item {
@@ -2295,7 +2295,7 @@
   }
 
   .pc-stepper__item-content {
-    @apply flex items-center gap-4 focus:outline-none ring-0;
+    @apply flex items-center gap-4 focus:outline-hidden ring-0;
   }
 
   /* Node */
@@ -2525,7 +2525,7 @@
 
   /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
   .select-wrapper select {
-    @apply text-sm border-gray-300 rounded-md shadow-sm cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-none;
+    @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
   }
 
   label.has-error {

@@ -165,7 +165,7 @@ A: Yes! You can customize the components by overriding the CSS classes. For exam
 
 ```css
 .pc-button {
-  @apply inline-flex items-center justify-center font-semibold tracking-wider uppercase transition duration-150 ease-in-out border-2 rounded-none focus:outline-none;
+  @apply inline-flex items-center justify-center font-semibold tracking-wider uppercase transition duration-150 ease-in-out border-2 rounded-none focus:outline-hidden;
 }
 .pc-button--primary {
   @apply text-black border-black bg-primary-400 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-primary-500/50;
