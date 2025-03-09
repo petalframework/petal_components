@@ -10,17 +10,17 @@ defmodule PetalComponents.Skeleton do
   def skeleton(%{kind: :default} = assigns) do
     ~H"""
     <div role="status" data-skeleton="default" class="pc-skeleton--default">
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2.5 pc-skeleton--default__line--w-48 pc-skeleton--default__line--mb-4">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2.5] pc-skeleton--default__line--w-48 pc-skeleton--default__line--mb-[4]">
       </div>
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2 pc-skeleton--default__line--max-w-360px pc-skeleton--default__line--mb-2.5">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2] pc-skeleton--default__line--max-w-360px pc-skeleton--default__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2 pc-skeleton--default__line--mb-2.5">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2] pc-skeleton--default__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2 pc-skeleton--default__line--max-w-330px pc-skeleton--default__line--mb-2.5">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2] pc-skeleton--default__line--max-w-330px pc-skeleton--default__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2 pc-skeleton--default__line--max-w-300px pc-skeleton--default__line--mb-2.5">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2] pc-skeleton--default__line--max-w-300px pc-skeleton--default__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-2 pc-skeleton--default__line--max-w-360px">
+      <div class="pc-skeleton--default__line pc-skeleton--default__line--h-[2] pc-skeleton--default__line--max-w-360px">
       </div>
       <span class="sr-only">Loading...</span>
     </div>
@@ -42,17 +42,17 @@ defmodule PetalComponents.Skeleton do
         </svg>
       </div>
       <div class="pc-skeleton--image__content">
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2.5 pc-skeleton--image__line--w-48 pc-skeleton--image__line--mb-4">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2.5] pc-skeleton--image__line--w-48 pc-skeleton--image__line--mb-[4]">
         </div>
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2 pc-skeleton--image__line--max-w-480px pc-skeleton--image__line--mb-2.5">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2] pc-skeleton--image__line--max-w-480px pc-skeleton--image__line--mb-[2.5]">
         </div>
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2 pc-skeleton--image__line--mb-2.5">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2] pc-skeleton--image__line--mb-[2.5]">
         </div>
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2 pc-skeleton--image__line--max-w-440px pc-skeleton--image__line--mb-2.5">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2] pc-skeleton--image__line--max-w-440px pc-skeleton--image__line--mb-[2.5]">
         </div>
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2 pc-skeleton--image__line--max-w-460px pc-skeleton--image__line--mb-2.5">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2] pc-skeleton--image__line--max-w-460px pc-skeleton--image__line--mb-[2.5]">
         </div>
-        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-2 pc-skeleton--image__line--max-w-360px">
+        <div class="pc-skeleton--image__line pc-skeleton--image__line--h-[2] pc-skeleton--image__line--max-w-360px">
         </div>
       </div>
       <span class="sr-only">Loading...</span>
@@ -148,13 +148,13 @@ defmodule PetalComponents.Skeleton do
           <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
         </svg>
       </div>
-      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-2.5 pc-skeleton--card__line--w-48 pc-skeleton--card__line--mb-4">
+      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-[2.5] pc-skeleton--card__line--w-48 pc-skeleton--card__line--mb-[4]">
       </div>
-      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-2 pc-skeleton--card__line--mb-2.5">
+      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-[2] pc-skeleton--card__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-2 pc-skeleton--card__line--mb-2.5">
+      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-[2] pc-skeleton--card__line--mb-[2.5]">
       </div>
-      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-2"></div>
+      <div class="pc-skeleton--card__line pc-skeleton--card__line--h-[2]"></div>
       <div class="pc-skeleton--card__avatar">
         <svg
           class="pc-skeleton--card__avatar-icon"
@@ -206,7 +206,7 @@ defmodule PetalComponents.Skeleton do
       <!-- First List Item -->
       <div class="pc-skeleton--list__item">
         <div class="pc-skeleton--list__text-group">
-          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-2.5"></div>
+          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-[2.5]"></div>
           <div class="pc-skeleton--list__sub-text-line"></div>
         </div>
         <div class="pc-skeleton--list__button pc-skeleton--list__button--w-12"></div>
@@ -214,7 +214,7 @@ defmodule PetalComponents.Skeleton do
       <!-- Second List Item -->
       <div class="pc-skeleton--list__item pc-skeleton--list__item--pt-4">
         <div class="pc-skeleton--list__text-group">
-          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-2.5"></div>
+          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-[2.5]"></div>
           <div class="pc-skeleton--list__sub-text-line"></div>
         </div>
         <div class="pc-skeleton--list__button pc-skeleton--list__button--w-12"></div>
@@ -222,7 +222,7 @@ defmodule PetalComponents.Skeleton do
       <!-- Third List Item -->
       <div class="pc-skeleton--list__item pc-skeleton--list__item--pt-4">
         <div class="pc-skeleton--list__text-group">
-          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-2.5"></div>
+          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-[2.5]"></div>
           <div class="pc-skeleton--list__sub-text-line"></div>
         </div>
         <div class="pc-skeleton--list__button pc-skeleton--list__button--w-12"></div>
@@ -230,7 +230,7 @@ defmodule PetalComponents.Skeleton do
       <!-- Fourth List Item -->
       <div class="pc-skeleton--list__item pc-skeleton--list__item--pt-4">
         <div class="pc-skeleton--list__text-group">
-          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-2.5"></div>
+          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-[2.5]"></div>
           <div class="pc-skeleton--list__sub-text-line"></div>
         </div>
         <div class="pc-skeleton--list__button pc-skeleton--list__button--w-12"></div>
@@ -238,7 +238,7 @@ defmodule PetalComponents.Skeleton do
       <!-- Fifth List Item -->
       <div class="pc-skeleton--list__item pc-skeleton--list__item--pt-4">
         <div class="pc-skeleton--list__text-group">
-          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-2.5"></div>
+          <div class="pc-skeleton--list__text-line pc-skeleton--list__text-line--h-[2.5]"></div>
           <div class="pc-skeleton--list__sub-text-line"></div>
         </div>
         <div class="pc-skeleton--list__button pc-skeleton--list__button--w-12"></div>
@@ -252,9 +252,9 @@ defmodule PetalComponents.Skeleton do
   def skeleton(%{kind: :testimonial} = assigns) do
     ~H"""
     <div role="status" data-skeleton="testimonial" class="pc-skeleton--testimonial">
-      <div class="pc-skeleton--testimonial__line pc-skeleton--testimonial__line--h-2.5 pc-skeleton--testimonial__line--max-w-640px">
+      <div class="pc-skeleton--testimonial__line pc-skeleton--testimonial__line--h-[2.5] pc-skeleton--testimonial__line--max-w-640px">
       </div>
-      <div class="pc-skeleton--testimonial__line pc-skeleton--testimonial__line--h-2.5 pc-skeleton--testimonial__line--max-w-540px">
+      <div class="pc-skeleton--testimonial__line pc-skeleton--testimonial__line--h-[2.5] pc-skeleton--testimonial__line--max-w-540px">
       </div>
       <div class="pc-skeleton--testimonial__footer">
         <svg
