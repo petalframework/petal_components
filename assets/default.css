@@ -1351,7 +1351,7 @@
     @apply h-1 rounded-xs;
   }
   .pc-progress--sm {
-    @apply h-2 rounded-md;
+    @apply h-2 rounded-sm;
   }
   .pc-progress--md {
     @apply h-3 rounded-md;
