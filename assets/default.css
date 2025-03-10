@@ -506,10 +506,10 @@
   /* Typography */
 
   .pc-h1 {
-    @apply text-4xl font-extrabold leading-10 sm:text-5xl sm:tracking-tight lg:text-6xl;
+    @apply text-4xl font-extrabold leading-10 sm:leading-none sm:text-5xl sm:tracking-tight lg:text-6xl;
   }
   .pc-h2 {
-    @apply text-2xl font-extrabold leading-10 sm:text-3xl;
+    @apply text-2xl font-extrabold leading-9 sm:leading-10 sm:text-3xl;
   }
   .pc-h3 {
     @apply text-xl font-bold leading-7 sm:text-2xl;
