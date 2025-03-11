@@ -2543,7 +2543,7 @@
     @apply border-danger-500! rounded-md! focus:border-danger-500! text-danger-900! placeholder-danger-700! bg-danger-50! file:border-none! dark:border-none! dark:bg-gray-950! dark:text-danger-400;
   }
 
-  /* If in tailwind.config.json, darkMode: 'class', use this: */
+  /* If in tailwind config, darkMode: 'class', use this: */
   .dark ::-webkit-calendar-picker-indicator {
     filter: invert(1);
   }
