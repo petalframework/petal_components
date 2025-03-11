@@ -1,4 +1,14 @@
 # Changelog
+### 2.9.0 - 2025-03-11 03:36:55
+
+* Prepare Petal Components for Tailwind 4 by @mitkins in https://github.com/petalframework/petal_components/pull/415
+* Bump phoenix from 1.7.19 to 1.7.20 by @dependabot in https://github.com/petalframework/petal_components/pull/407
+* Bump phoenix_live_view from 1.0.4 to 1.0.5 by @dependabot in https://github.com/petalframework/petal_components/pull/413
+* Bump a11y_audit from 0.2.2 to 0.2.3 by @dependabot in https://github.com/petalframework/petal_components/pull/412
+* Bump ex_doc from 0.37.1 to 0.37.3 by @dependabot in https://github.com/petalframework/petal_components/pull/414
+* Hide the calendar icon in inputs in Firefox. by @r38y in https://github.com/petalframework/petal_components/pull/394
+* Fix hidden `checkbox-group` input name by @IdoLeshkowitz in https://github.com/petalframework/petal_components/pull/405
+
 ### 2.8.4 - 2025-02-22 22:04:15
 
 - User Dropdown Menu - `avatar_src` and `current_user_name` are optional by @mitkins in https://github.com/petalframework/petal_components/pull/406
