@@ -55,7 +55,7 @@ defmodule PetalComponents.Modal do
       {@rest}
       class="hidden pc-modal"
     >
-      <div class="pc-modal__overlay" aria-hidden="true"></div>
+      <div class="hidden pc-modal__overlay" aria-hidden="true"></div>
       <div
         class="pc-modal__wrapper"
         aria-labelledby={"pc-modal__header__text-#{@id}"}
@@ -116,13 +116,12 @@ defmodule PetalComponents.Modal do
     )
     |> JS.hide(
       to: "##{id} .pc-modal__box",
-      time: 200,
       transition:
         {"transition-all transform ease-in duration-200",
          "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
-    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
+    |> JS.hide(to: "##{id}", transition: {"block duration-200", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")
   end
 
@@ -133,10 +132,12 @@ defmodule PetalComponents.Modal do
     |> JS.show(to: "##{id}")
     |> JS.show(
       to: "##{id} .pc-modal__overlay",
+      time: 300,
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
     )
     |> JS.show(
       to: "##{id} .pc-modal__box",
+      time: 300,
       transition:
         {"transition-all transform ease-out duration-300",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
@@ -152,10 +153,10 @@ defmodule PetalComponents.Modal do
       class: assigns[:class] || ""
     }
 
-    base_classes = "pc-modal__box"
+    base_classes = "hidden pc-modal__box"
     max_width_class = "pc-modal__box--#{opts.max_width}"
     custom_classes = opts.class
 
-    [max_width_class, base_classes, custom_classes]
+    [base_classes, max_width_class, custom_classes]
   end
 end

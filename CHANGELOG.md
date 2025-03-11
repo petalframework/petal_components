@@ -1,4 +1,18 @@
 # Changelog
+### 2.8.4 - 2025-02-22 22:04:15
+
+- User Dropdown Menu - `avatar_src` and `current_user_name` are optional by @mitkins in https://github.com/petalframework/petal_components/pull/406
+
+### 2.8.3 - 2025-02-21 22:12:41
+
+- Allow for multiple instances of the `slide_over` component by @mitkins in https://github.com/petalframework/petal_components/pull/404
+- Bump ex_doc from 0.37.0 to 0.37.1 by @dependabot in https://github.com/petalframework/petal_components/pull/403
+
+### 2.8.2 - 2025-02-17 05:41:23
+
+- Workaround for Slide Over and Modal with LiveView 1.0.4
+- Bump to Phoenix LiveView 1.0.4
+
 ### 2.8.1 - 2024-12-17 01:12:12
 
 - Bumped LiveView to 1.0.1
