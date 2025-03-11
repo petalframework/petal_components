@@ -38,7 +38,7 @@ mix tailwind.install
 
 `tailwind.config.js` is now considered legacy and is no longer automatically loaded. However, it is still supported and you can manually load it by adding the following to your `app.css`:
 
-```CSS
+```css
 @config "../tailwind.config.js";
 ```
 
@@ -50,7 +50,7 @@ Here are some tips on how to integrate Petal Components if you are no longer usi
 
 To reference Petal Components CSS and include it as a source for Tailwind utility classes, use the `@source` and `@import` directives:
 
-```CSS
+```css
 @import "tailwindcss";
 
 @source "../../deps/petal_components/**/*.*ex";
@@ -59,13 +59,13 @@ To reference Petal Components CSS and include it as a source for Tailwind utilit
 
 The CSS file equivalent of `darkMode: 'class'` is:
 
-```CSS
+```css
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
 In Tailwind 4 buttons now use `cursor: default` instead of `cursor: pointer`. If you would like the old behaviour:
 
-```CSS
+```css
 @layer base {
   /* Use the pointer for buttons */
   button:not(:disabled),
@@ -77,13 +77,13 @@ In Tailwind 4 buttons now use `cursor: default` instead of `cursor: pointer`. If
 
 To configure Petal Component colours add an `@import`:
 
-```CSS
+```css
 @import "./colors.css";
 ```
 
 Then create the `colors.css` file:
 
-```CSS
+```css
 @theme inline {
   --color-primary-50: var(--color-blue-50);
   --color-primary-100: var(--color-blue-100);
@@ -173,14 +173,14 @@ Then create the `colors.css` file:
 
 To add the "typography" and "form" plug-ins:
 
-```CSS
+```css
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 ```
 
 To re-create the heroicons JavaScript:
 
-```CSS
+```css
 @plugin "./tailwind_heroicons.js";
 ```
 
