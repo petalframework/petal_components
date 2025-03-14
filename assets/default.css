@@ -1589,7 +1589,7 @@
     @apply border-b dark:border-gray-800 dark:bg-gray-900;
   }
   .pc-table__tr {
-    @apply bg-white border-b dark:border-gray-800 dark:bg-gray-900 last:border-none;
+    @apply bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 last:border-none;
   }
   .pc-table__tr--row-click {
     @apply hover:bg-gray-50 dark:hover:bg-gray-800;
