@@ -15,7 +15,7 @@ defmodule PetalComponents.Field.Extension do
         '''
       end
   """
-  @callback render(assigns :: map) :: map
+  @callback render(assigns :: map()) :: Phoenix.LiveView.Rendered.t()
 
   @doc """
   This callback function is used to get classes for the custom field.
@@ -25,7 +25,7 @@ defmodule PetalComponents.Field.Extension do
 
       def get_class_for_type("pretty_field"), do: "pc-text-input"
   """
-  @callback get_class_for_type(String.t) :: String.t
+  @callback get_class_for_type(String.t()) :: String.t()
 
   @optional_callbacks get_class_for_type: 1
 end
