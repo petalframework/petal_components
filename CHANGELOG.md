@@ -1,4 +1,9 @@
 # Changelog
+### 2.9.1 - 2025-03-14 06:16:15
+
+* Tailwind instructions for upgrade guide and README by @mitkins in https://github.com/petalframework/petal_components/pull/416
+* Address CSS anomolies after Tailwind 4 upgrade by @mitkins in https://github.com/petalframework/petal_components/pull/417
+
 ### 2.9.0 - 2025-03-11 03:36:55
 
 * Prepare Petal Components for Tailwind 4 by @mitkins in https://github.com/petalframework/petal_components/pull/415
