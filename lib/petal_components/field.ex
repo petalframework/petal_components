@@ -17,8 +17,8 @@ defmodule PetalComponents.Field do
 
   It's possible to support custom field types by using the `type={%{type="SomeCustomType", other_assigns...}}.`
   In order to define a custom field, a module that implements `PetalComponents.Field.Extension` behavior
-  needs to be implemented. Its `render/1` function needs to accept an assigns that will
-  be used for passing a map obtained by merging the assigns passed to this field with the
+  needs to be implemented. Its `render/1` function needs to accept an assigns argument
+  that will be used for passing a map obtained by merging the assigns given to this field with the
   assigns in the `other_assigns...` passed in the `type` field.
   See the example below:
 
@@ -32,7 +32,7 @@ defmodule PetalComponents.Field do
         @impl true
         def render(assigns) do
           ~H'''
-          <input id={@id} field={@name} value={@value} class={@class} datalist={@datalist} {@rest}/>
+          <input id={@id} name={@name} value={@value} class={@class} datalist={@datalist} {@rest}/>
           <datalist id={@datalist}>
             <option :for={{value, option} <- @options} value={value}><%= option %></option>
           </datalist>
@@ -643,7 +643,7 @@ defmodule PetalComponents.Field do
 
     module = field_type_extension(type)
     assigns = assign(assigns, :class, [assigns.class, get_class_for_type(module, type)])
-    {assigns, body} = render_body(module, assigns)
+    body = render_body(module, assigns)
     assigns = assign(assigns, :body, body)
     ~H"""
     <.field_wrapper id={"#{@id}-wr"} errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -824,32 +824,23 @@ defmodule PetalComponents.Field do
     end
   end
 
-  @spec render_body(nil|atom(), map()) :: {map(), Phoenix.LiveView.Rendered.t()}
+  @spec render_body(nil|atom(), map()) :: Phoenix.LiveView.Rendered.t()
 
   defp render_body(nil, assigns) do
-    {
-      assigns,
-      ~H"""
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={@class}
-        required={@required}
-        {@rest}
-      />
-      """
-    }
+    ~H"""
+    <input
+      type={@type}
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+      class={@class}
+      required={@required}
+      {@rest}
+    />
+    """
   end
 
-  defp render_body(mod, assigns) do
-    rest = assigns[:rest] || %{}
-    {extensions, rest} = Map.pop(rest, :extension, %{})
-    new_assigns = assign(assigns, :rest, rest)
-    assigns = Map.merge(new_assigns, extensions)
-    {new_assigns, mod.render(assigns)}
-  end
+  defp render_body(mod, assigns), do: mod.render(assigns)
 
   # Note: we use persistent term to avoid the overhead of calling Application.get_env/2.
   # Here is the corresponding performance benchmark:
