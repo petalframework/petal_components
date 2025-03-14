@@ -1,4 +1,8 @@
 # Changelog
+### 2.9.2 - 2025-03-14 06:46:59
+
+* Correct light button active colour by @mitkins in https://github.com/petalframework/petal_components/pull/418
+
 ### 2.9.1 - 2025-03-14 06:16:15
 
 * Tailwind instructions for upgrade guide and README by @mitkins in https://github.com/petalframework/petal_components/pull/416
