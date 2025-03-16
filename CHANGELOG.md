@@ -1,4 +1,10 @@
 # Changelog
+### 3.0.0 - 2025-03-16 07:38:08
+
+* Release for Tailwind 4
+
+Tailwind 4 introduces breaking changes - the `2.9.x` releases have been deprecated in favour of `v3.0.0`
+
 ### 2.9.2 - 2025-03-14 06:46:59
 
 * Correct light button active colour by @mitkins in https://github.com/petalframework/petal_components/pull/418
