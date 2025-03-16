@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## v2.8.4 to v2.9.0
+## v2.8.4 to v3.0.0
 
 Petal Components has been upgraded to Tailwind 4. Some utilities have been removed or renamed. See the [Tailwind upgrade guide](https://tailwindcss.com/docs/upgrade-guide) for more information.
 
