@@ -14,6 +14,7 @@ defmodule PetalComponents.Field do
       <.field field={@form[:email]} type="email" />
       <.field label="Name" value="" name="name" errors={["oh no!"]} />
   """
+  # Basic Attributes
   attr :id, :any,
     default: nil,
     doc: "the id of the input. If not passed, it will be generated automatically from the field"
@@ -32,8 +33,8 @@ defmodule PetalComponents.Field do
   attr :type, :string,
     default: "text",
     values:
-      ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
-               range radio-group radio-card search select switch tel text textarea time url week),
+      ~w(checkbox checkbox-group radio-card radio-group color date datetime-local email file hidden month number password
+         range range-dual range-numeric search select switch tel text textarea time url week),
     doc: "the type of input"
 
   attr :size, :string,
@@ -93,14 +94,35 @@ defmodule PetalComponents.Field do
     default: false,
     doc: "is this field required? is passed to the input and adds an asterisk next to the label"
 
+  # Range and Dual Range Specific Attributes
+  attr :range_min, :integer, default: 0, doc: "minimum value for range inputs"
+  attr :range_max, :integer, default: 100, doc: "maximum value for range inputs"
+  attr :step, :integer, default: 1, doc: "step value for range inputs"
+
+  attr :min_field, :map,
+    default: nil,
+    doc: "min field for dual range (required for range-dual and range-numeric)"
+
+  attr :max_field, :map,
+    default: nil,
+    doc: "max field for dual range (required for range-dual and range-numeric)"
+
+  attr :range_min_label, :string, default: nil, doc: "optional label for minimum range value"
+  attr :range_max_label, :string, default: nil, doc: "optional label for maximum range value"
+
+  attr :formatter, :any,
+    default: nil,
+    doc: "function to format range values (e.g., Money.to_string!)"
+
   attr :rest, :global,
     include:
       ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
-    pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept),
+         pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept),
     doc: "All other props go on the input"
 
+  # When a FormField struct is provided, normalize and delegate rendering.
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if used_input?(field), do: field.errors, else: []
+    errors = if pc_used_input?(field), do: field.errors, else: []
 
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
@@ -115,9 +137,12 @@ defmodule PetalComponents.Field do
     |> field()
   end
 
+  # Render a checkbox
   def field(%{type: "checkbox", value: value} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assign_new(assigns, :checked, fn ->
+        Phoenix.HTML.Form.normalize_value("checkbox", value)
+      end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -143,6 +168,120 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Range Numeric Input – Two numeric text fields
+  def field(%{type: "range-numeric"} = assigns) do
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <div class="flex flex-row gap-2">
+        <.field
+          type="text"
+          step={@step}
+          name={@min_field.name}
+          label={@label}
+          value={@min_field.value}
+          placeholder="No Min"
+          min={@range_min}
+          max={@max_field.value}
+          id={@id <> "_min"}
+          inputmode="numeric"
+          wrapper_class="w-full"
+        />
+        <div class="flex flex-col items-center justify-center">-</div>
+        <.field
+          type="text"
+          step={@step}
+          name={@max_field.name}
+          label=""
+          value={@max_field.value}
+          placeholder="No Max"
+          min={@min_field.value}
+          max={@range_max}
+          id={@id <> "_max"}
+          inputmode="numeric"
+          wrapper_class="w-full"
+        />
+      </div>
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  # Dual Range Slider Input – Two range inputs with a colored track
+  def field(%{type: "range-dual"} = assigns) do
+    formatter = assigns[:formatter] || (&format_range_value/1)
+
+    assigns =
+      assign(assigns,
+        class: [assigns.class, get_class_for_type(assigns.type)],
+        format_value: formatter
+      )
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label>{@label}</.field_label>
+      <div id={@id} class="relative h-12 mt-4">
+        <div class="flex flex-row items-center justify-center space-x-2">
+          <div class="relative w-full h-1">
+            <div class="pc-slider-track"></div>
+            <div
+              class="pc-slider-range"
+              data-slider-id={@id}
+              id={@id <> "_slider-range"}
+              style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+            >
+            </div>
+            <input
+              type="range"
+              min={@range_min}
+              max={@range_max}
+              step={@step}
+              name={@min_field.name}
+              value={@min_field.value}
+              class="pc-slider-input"
+              id={@id <> "_min-range"}
+              phx-hook="DualRangeSliderHook"
+              data-slider-id={@id}
+              data-slider-type="min"
+              data-range-min={@range_min}
+              data-range-max={@range_max}
+            />
+            <input
+              type="range"
+              min={@range_min}
+              max={@range_max}
+              step={@step}
+              name={@max_field.name}
+              value={@max_field.value}
+              class="pc-slider-input"
+              id={@id <> "_max-range"}
+              phx-hook="DualRangeSliderHook"
+              data-slider-id={@id}
+              data-slider-type="max"
+              data-range-min={@range_min}
+              data-range-max={@range_max}
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 mt-4 text-sm">
+          <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
+            {@range_min_label || @format_value.(@range_min)}
+          </span>
+          <span class="flex justify-center text-gray-600 dark:text-gray-300">
+            {@format_value.(@min_field.value) <> " - " <> @format_value.(@max_field.value)}
+          </span>
+          <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
+            {@range_max_label || @format_value.(@range_max)}
+          </span>
+        </div>
+      </div>
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  # Standard Select Input
   def field(%{type: "select"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -166,6 +305,7 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Textarea Input
   def field(%{type: "textarea"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -186,10 +326,13 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Switch Input
   def field(%{type: "switch", value: value} = assigns) do
     assigns =
       assigns
-      |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      |> assign_new(:checked, fn ->
+        Phoenix.HTML.Form.normalize_value("checkbox", value)
+      end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -206,7 +349,6 @@ defmodule PetalComponents.Field do
             class={["sr-only peer", @class]}
             {@rest}
           />
-
           <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
           <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
         </label>
@@ -218,18 +360,17 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Checkbox Group
   def field(%{type: "checkbox-group"} = assigns) do
     assigns =
       assigns
       |> assign_new(:checked, fn ->
-        values =
-          case assigns.value do
-            value when is_binary(value) -> [value]
-            value when is_list(value) -> value
-            _ -> []
-          end
-
-        Enum.map(values, &to_string/1)
+        case assigns.value do
+          value when is_binary(value) -> [value]
+          value when is_list(value) -> value
+          _ -> []
+        end
+        |> Enum.map(&to_string/1)
       end)
 
     ~H"""
@@ -237,7 +378,7 @@ defmodule PetalComponents.Field do
       <.field_label required={@required} class={@label_class}>
         {@label}
       </.field_label>
-      <input type="hidden" name={@name <> "[]"} value="" />
+      <input type="hidden" name={@name} value="" />
       <div class={[
         "pc-checkbox-group",
         @group_layout == "row" && "pc-checkbox-group--row",
@@ -258,12 +399,9 @@ defmodule PetalComponents.Field do
               disabled={value in @disabled_options}
               {@rest}
             />
-            <div>
-              {label}
-            </div>
+            <div>{label}</div>
           </label>
         <% end %>
-
         <%= if @empty_message && Enum.empty?(@options) do %>
           <div class="pc-checkbox-group--empty-message">
             {@empty_message}
@@ -276,6 +414,7 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Radio Group
   def field(%{type: "radio-group"} = assigns) do
     assigns = assign_new(assigns, :checked, fn -> nil end)
 
@@ -298,17 +437,15 @@ defmodule PetalComponents.Field do
               name={@name}
               value={value}
               checked={
-                to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
+                to_string(value) == to_string(@value) ||
+                  to_string(value) == to_string(@checked)
               }
               class="pc-radio"
               {@rest}
             />
-            <div>
-              {label}
-            </div>
+            <div>{label}</div>
           </label>
         <% end %>
-
         <%= if @empty_message && Enum.empty?(@options) do %>
           <div class="pc-checkbox-group--empty-message">
             {@empty_message}
@@ -321,6 +458,7 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Radio Card
   def field(%{type: "radio-card"} = assigns) do
     assigns =
       assigns
@@ -381,6 +519,7 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Hidden Input
   def field(%{type: "hidden"} = assigns) do
     ~H"""
     <input
@@ -394,6 +533,7 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Password with viewable toggle
   def field(%{type: "password", viewable: true} = assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
@@ -427,18 +567,16 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Copyable Input
   def field(%{type: type, copyable: true} = assigns) when type in ["text", "url", "email"] do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
-      <!-- Field Label -->
       <.field_label required={@required} for={@id} class={@label_class}>
         {@label}
       </.field_label>
-      <!-- Copyable Field Wrapper -->
       <div class="pc-copyable-field-wrapper" x-data="{ copied: false }">
-        <!-- Input Field -->
         <input
           x-ref="copyInput"
           type={@type || "text"}
@@ -449,7 +587,6 @@ defmodule PetalComponents.Field do
           readonly
           {@rest}
         />
-        <!-- Copy Button -->
         <button
           type="button"
           class="pc-copyable-field-button"
@@ -458,41 +595,35 @@ defmodule PetalComponents.Field do
             .then(() => { copied = true; setTimeout(() => copied = false, 2000); })
         "
         >
-          <!-- Copy Icon -->
           <span x-show="!copied" class="pc-copyable-field-icon-container">
             <.icon name="hero-clipboard-document-solid" class="pc-copyable-field-icon" />
           </span>
-          <!-- Copied Icon -->
           <span x-show="copied" class="pc-copyable-field-icon-container" style="display: none;">
             <.icon name="hero-clipboard-document-check-solid" class="pc-copyable-field-icon" />
           </span>
         </button>
       </div>
-      <!-- Error Message -->
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <!-- Help Text -->
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
 
+  # Clearable Input
   def field(%{type: type, clearable: true} = assigns)
       when type in ["text", "search", "url", "email", "tel"] do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
-      <!-- Field Label -->
       <.field_label required={@required} for={@id} class={@label_class}>
         {@label}
       </.field_label>
-      <!-- Clearable Field Wrapper -->
       <div
         class="pc-clearable-field-wrapper"
         x-data="{ showClearButton: false }"
         x-init="showClearButton = $refs.clearInput.value.length > 0"
       >
-        <!-- Input Field -->
         <input
           x-ref="clearInput"
           type={@type || "text"}
@@ -504,7 +635,6 @@ defmodule PetalComponents.Field do
           {@rest}
           x-on:input="showClearButton = $event.target.value.length > 0"
         />
-        <!-- Clear Button -->
         <button
           type="button"
           class="pc-clearable-field-button"
@@ -517,20 +647,18 @@ defmodule PetalComponents.Field do
           style="display: none;"
           aria-label="Clear input"
         >
-          <!-- Clear Icon -->
           <span class="pc-clearable-field-icon-container">
             <.icon name="hero-x-mark-solid" class="pc-clearable-field-icon" />
           </span>
         </button>
       </div>
-      <!-- Error Message -->
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <!-- Help Text -->
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
 
+  # Date/Time/Month/Week Inputs
   def field(%{type: type} = assigns)
       when type in ["date", "datetime-local", "time", "month", "week"] do
     assigns =
@@ -564,7 +692,34 @@ defmodule PetalComponents.Field do
     """
   end
 
-  # All other inputs (text, url, etc.) are handled here...
+  # Standard Single Range Slider
+  def field(%{type: "range"} = assigns) do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        {@label}
+      </.field_label>
+      <input
+        type="range"
+        name={@name}
+        id={@id}
+        value={Phoenix.HTML.Form.normalize_value("range", @value)}
+        min={@range_min}
+        max={@range_max}
+        step={@step}
+        class={@class}
+        required={@required}
+        {@rest}
+      />
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  # Fallback for all other inputs (text, url, etc.)
   def field(assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
@@ -587,6 +742,8 @@ defmodule PetalComponents.Field do
     </.field_wrapper>
     """
   end
+
+  # Wrapper and Label Helpers
 
   attr :class, :any, default: nil
   attr :errors, :list, default: []
@@ -663,10 +820,13 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # Utility Functions
+
   defp get_class_for_type("radio"), do: "pc-radio"
   defp get_class_for_type("checkbox"), do: "pc-checkbox"
   defp get_class_for_type("color"), do: "pc-color-input"
   defp get_class_for_type("file"), do: "pc-file-input"
+  defp get_class_for_type("range-dual"), do: "pc-slider-input"
   defp get_class_for_type("range"), do: "pc-range-input"
   defp get_class_for_type(_), do: "pc-text-input"
 
@@ -675,6 +835,37 @@ defmodule PetalComponents.Field do
   defp get_icon_for_type("month"), do: "hero-calendar"
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
+
+  # Helper functions for dual range slider
+  defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  if Code.ensure_loaded?(Money) do
+    defp calculate_slider_position(value, range_min, range_max) when is_struct(value, Money) do
+      int_value =
+        value
+        |> Money.to_decimal()
+        |> Decimal.round(0)
+        |> Decimal.to_integer()
+
+      round((int_value - range_min) / (range_max - range_min) * 100)
+    end
+
+    defp format_range_value(value) when is_struct(value, Money),
+      do: Money.to_string!(value, no_fraction_if_integer: true)
+  else
+    defp calculate_slider_position(value, _range_min, _range_max) when is_struct(value, Money),
+      do: 0
+
+    defp format_range_value(value) when is_struct(value, Money), do: "0"
+  end
+
+  defp format_range_value(value) when is_integer(value), do: Integer.to_string(value)
+  defp format_range_value(value) when is_float(value), do: Float.to_string(value)
+  defp format_range_value(_), do: "0"
 
   defp translate_error({msg, opts}) do
     config_translator = get_translator_from_config()
@@ -697,11 +888,9 @@ defmodule PetalComponents.Field do
             the fallback message translator for the form_field_error function cannot handle the given value.
 
             Hint: you can set up the `error_translator_function` to route all errors to your application helpers:
-
               config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
 
             Given value: #{inspect(value)}
-
             Exception: #{Exception.message(e)}
             """,
             __STACKTRACE__
@@ -717,5 +906,10 @@ defmodule PetalComponents.Field do
       {module, function} -> &apply(module, function, [&1])
       nil -> nil
     end
+  end
+
+  # Renamed helper to avoid conflict with Phoenix.Component.used_input?/1
+  defp pc_used_input?(field) do
+    field.errors != []
   end
 end
