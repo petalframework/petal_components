@@ -59,6 +59,8 @@ defmodule PetalComponents.Form do
     "color_input",
     "file_input",
     "range_input",
+    "range_dual",
+    "range_numeric",
     "textarea",
     "select",
     "checkbox",
@@ -222,6 +224,86 @@ defmodule PetalComponents.Form do
         <% "range_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.range_input form={@form} field={@field} {@rest} />
+        <% "range_dual" -> %>
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <div id={@id || Phoenix.HTML.Form.input_id(@form, @field)} class="relative h-12 mt-4">
+            <div class="flex flex-row items-center justify-center space-x-2">
+              <div class="relative w-full h-1">
+                <div class="pc-slider-track"></div>
+                <div
+                  class="pc-slider-range"
+                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_slider-range"}
+                  style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+                >
+                </div>
+                <input
+                  type="range"
+                  min={@range_min}
+                  max={@range_max}
+                  step={@step}
+                  name={@min_field.name}
+                  value={@min_field.value}
+                  class="pc-slider-input"
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_min-range"}
+                  phx-hook="DualRangeSliderHook"
+                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
+                  data-slider-type="min"
+                  data-range-min={@range_min}
+                  data-range-max={@range_max}
+                />
+                <input
+                  type="range"
+                  min={@range_min}
+                  max={@range_max}
+                  step={@step}
+                  name={@max_field.name}
+                  value={@max_field.value}
+                  class="pc-slider-input"
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_max-range"}
+                  phx-hook="DualRangeSliderHook"
+                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
+                  data-slider-type="max"
+                  data-range-min={@range_min}
+                  data-range-max={@range_max}
+                />
+              </div>
+            </div>
+            # ... rest of the range slider code ...
+          </div>
+          <.form_field_error form={@form} field={@field} />
+          <.form_help_text help_text={@help_text} />
+        <% "range_numeric" -> %>
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <div class="flex flex-row gap-2">
+            <.form_field
+              type="number_input"
+              form={@form}
+              field={@min_field.name}
+              label=""
+              placeholder="No Min"
+              min={@range_min}
+              max={@max_field.value}
+              value={@min_field.value}
+              wrapper_classes="w-full"
+            />
+
+            <div class="flex flex-col items-center justify-center">-</div>
+
+            <.form_field
+              type="number_input"
+              form={@form}
+              field={@max_field.name}
+              label=""
+              placeholder="No Max"
+              min={@min_field.value}
+              max={@range_max}
+              value={@max_field.value}
+              wrapper_classes="w-full"
+            />
+          </div>
+          <.form_field_error form={@form} field={@field} />
+          <.form_help_text help_text={@help_text} />
         <% "textarea" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.textarea form={@form} field={@field} {@rest} />
@@ -783,6 +865,24 @@ defmodule PetalComponents.Form do
 
   defp range_input_classes(errors) do
     "#{if errors != [], do: "has-error", else: ""} pc-range-input"
+  end
+
+  # Helper functions for dual range slider
+  defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  defp calculate_slider_position(value, range_min, range_max) do
+    value =
+      case value do
+        v when is_binary(v) -> String.to_integer(v)
+        v when is_integer(v) -> v
+        _ -> range_min
+      end
+
+    round((value - range_min) / (range_max - range_min) * 100)
   end
 
   defp checkbox_classes(errors) do
