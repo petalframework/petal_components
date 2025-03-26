@@ -13,8 +13,9 @@ defmodule PetalComponents.Input do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select switch tel text textarea time url week)
+    values:
+      ~w(checkbox color date datetime-local email file hidden month number password
+             range range-dual range-numeric radio search select switch tel text textarea time url week)
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
 
@@ -222,6 +223,98 @@ defmodule PetalComponents.Input do
     """
   end
 
+  def input(%{type: "range-dual"} = assigns) do
+    ~H"""
+    <div id={@id} class="relative h-12 mt-4">
+      <div class="flex flex-row items-center justify-center space-x-2">
+        <div class="relative w-full h-1">
+          <div class="pc-slider-track"></div>
+          <div
+            class="pc-slider-range"
+            data-slider-id={@id}
+            id={@id <> "_slider-range"}
+            style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+          >
+          </div>
+          <input
+            type="range"
+            min={@range_min}
+            max={@range_max}
+            step={@step}
+            name={@min_field.name}
+            value={@min_field.value}
+            class="pc-slider-input"
+            id={@id <> "_min-range"}
+            phx-hook="DualRangeSliderHook"
+            data-slider-id={@id}
+            data-slider-type="min"
+            data-range-min={@range_min}
+            data-range-max={@range_max}
+          />
+          <input
+            type="range"
+            min={@range_min}
+            max={@range_max}
+            step={@step}
+            name={@max_field.name}
+            value={@max_field.value}
+            class="pc-slider-input"
+            id={@id <> "_max-range"}
+            phx-hook="DualRangeSliderHook"
+            data-slider-id={@id}
+            data-slider-type="max"
+            data-range-min={@range_min}
+            data-range-max={@range_max}
+          />
+        </div>
+      </div>
+      <div class="grid grid-cols-3 mt-4 text-sm">
+        <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
+          {@range_min_label || @format_value.(@range_min)}
+        </span>
+        <span class="flex justify-center text-gray-600 dark:text-gray-300">
+          {@format_value.(@min_field.value) <> " - " <> @format_value.(@max_field.value)}
+        </span>
+        <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
+          {@range_max_label || @format_value.(@range_max)}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  def input(%{type: "range-numeric"} = assigns) do
+    ~H"""
+    <div class="flex flex-row gap-2">
+      <input
+        type="number"
+        step={@step}
+        name={@min_field.name}
+        value={@min_field.value}
+        placeholder="No Min"
+        min={@range_min}
+        max={@max_field.value}
+        id={@id <> "_min"}
+        inputmode="numeric"
+        class="w-full pc-text-input"
+      />
+      <div class="flex flex-col items-center justify-center">-</div>
+      <input
+        type="number"
+        step={@step}
+        name={@max_field.name}
+        value={@max_field.value}
+        placeholder="No Max"
+        min={@min_field.value}
+        max={@range_max}
+        id={@id <> "_max"}
+        inputmode="numeric"
+        class="w-full pc-text-input"
+      />
+    </div>
+    """
+  end
+
   def input(assigns) do
     ~H"""
     <input
@@ -247,4 +340,27 @@ defmodule PetalComponents.Input do
   defp get_icon_for_type("month"), do: "hero-calendar"
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
+
+  # Helper functions for input.ex
+  defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  defp calculate_slider_position(value, range_min, range_max) do
+    value =
+      case value do
+        v when is_binary(v) -> String.to_integer(v)
+        v when is_integer(v) -> v
+        _ -> range_min
+      end
+
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  # Add format_value function
+  defp format_value(value) when is_integer(value), do: Integer.to_string(value)
+  defp format_value(value) when is_float(value), do: Float.to_string(value)
+  defp format_value(_), do: "0"
 end
