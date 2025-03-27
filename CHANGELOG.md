@@ -1,4 +1,8 @@
 # Changelog
+### 3.0.1 - 2025-03-27 01:06:01
+
+- Bumps deps
+
 ### 3.0.0 - 2025-03-16 07:38:08
 
 * Release for Tailwind 4
