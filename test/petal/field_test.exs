@@ -892,4 +892,48 @@ defmodule PetalComponents.FieldTest do
     assert count_substring(html, "pc-label--required") == 0
     assert count_substring(html, " required") == 0
   end
+
+  defmodule Extension do
+    @behaviour PetalComponents.Field.Extension
+    @impl true
+    def render(assigns) do
+      ~H'''
+      <input id={@id} field={@name} value={@value} class={@class} datalist={@datalist} {@rest}/>
+      <datalist id={@datalist}>
+        <option :for={{value, option} <- @options} value={value}><%= option %></option>
+      </datalist>
+      '''
+    end
+
+    @impl true
+    def get_class_for_type("locale"), do: "pc--test--class"
+  end
+
+  test "extension field" do
+    Application.put_env(:petal_components, :field_type_extensions, locale: PetalComponents.FieldTest.Extension)
+
+    on_exit(fn ->
+      Application.delete_env(:petal_components, :field_type_extensions)
+    end)
+
+    assigns = %{form: to_form(%{}, as: :user)}
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          id="123"
+          type={%{type: "locale", datalist: "locales"}}
+          field={@form[:name]}
+          options={[]}
+          placeholder="eg. Sally"
+          class="!w-max"
+          itemid="something"
+          value="John"
+        />
+      </.form>
+      """)
+
+    assert count_substring(html, ~s(<input id="123" field="user[name]" value="John" class="!w-max pc--test--class" datalist="locales")) == 1
+    assert count_substring(html, ~s(<datalist id="locales">\n  \n</datalist>)) == 1
+  end
 end
