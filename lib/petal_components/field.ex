@@ -512,7 +512,7 @@ defmodule PetalComponents.Field do
           x-on:click="
             $refs.clearInput.value = '';
             showClearButton = false;
-            $refs.clearInput.dispatchEvent(new Event('input'));
+            $refs.clearInput.dispatchEvent(new Event('input', { bubbles: true }));
           "
           style="display: none;"
           aria-label="Clear input"
