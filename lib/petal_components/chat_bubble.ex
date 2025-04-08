@@ -129,7 +129,7 @@ defmodule PetalComponents.ChatBubble do
                                 </clipPath>
                             </defs>
                         </svg>
-                        Flowbite Terms & Conditions
+                        Petal Components Terms & Conditions
                     </span>
                     <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
                         12 Pages 
@@ -372,7 +372,7 @@ defmodule PetalComponents.ChatBubble do
                                 </clipPath>
                             </defs>
                         </svg>
-                        Flowbite Terms & Conditions
+                        Petal Components Terms & Conditions
                     </span>
                     <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
                         12 Pages 
@@ -527,7 +527,7 @@ defmodule PetalComponents.ChatBubble do
                 <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white"><a href="https://petal.build/components" class="text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all">https://petal.build/components</a></p>
                 <a href="#" class="bg-gray-50 dark:bg-gray-600 rounded-xl p-4 mb-2 hover:bg-gray-200 dark:hover:bg-gray-500">
                     <img src="https://petal.build/images/favicon.png" class="rounded-lg mb-2" />
-                    <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">GitHub - themesberg/flowbite: The most popular and open source libra ...</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">Check out this UI component library for Phoenix web applications using Tailwind...</span>
                     <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">github.com</span>
                 </a>
             </div>
@@ -656,7 +656,7 @@ defmodule PetalComponents.ChatBubble do
                                 </clipPath>
                             </defs>
                         </svg>
-                        Flowbite Terms & Conditions
+                        Petal Components Terms & Conditions
                     </span>
                     <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
                         12 Pages 
@@ -819,14 +819,14 @@ defmodule PetalComponents.ChatBubble do
             <img class="w-8 h-8 rounded-full" src="https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg" alt={@author <> " image"}>
             <div class="flex flex-col w-full max-w-[320px] leading-1.5">
                 <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">Megan Archer</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-white">Sarah Hill</span>
                     <span class="text-sm font-normal text-gray-500 dark:text-gray-400"><%= @time %></span>
                 </div>
                 <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">Check out this UI component library for Phoenix web applications using Tailwind CSS and AlpineJS:</p>
                 <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white"><a href="https://petal.build/components" class="text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all">https://petal.build/components</a></p>
                 <a href="#" class="bg-gray-50 dark:bg-gray-600 rounded-xl p-4 mb-2 hover:bg-gray-200 dark:hover:bg-gray-500">
                     <img src="https://petal.build/images/logo_dark.svg" class="rounded-lg mb-2" />
-                    <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">GitHub - themesberg/flowbite: The most popular and open source libra ...</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white mb-2">Check out this UI component library for Phoenix web applications using Tailwind...</span>
                     <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">github.com</span>
                 </a>
                 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
