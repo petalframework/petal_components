@@ -1,4 +1,8 @@
 # Changelog
+### 2.9.3 - 2025-04-13
+
+🚨 Versions 2.9.0 to 2.9.2 introduced breaking changes with Tailwind 4 and have been deprecated. Please upgrade to 2.9.3, which is compatible with ~> 2.8
+
 ### 2.8.4 - 2025-02-22 22:04:15
 
 - User Dropdown Menu - `avatar_src` and `current_user_name` are optional by @mitkins in https://github.com/petalframework/petal_components/pull/406
@@ -136,7 +140,7 @@
 
 ### 2.0.2 - 2024-09-20 04:06:05
 
-- Fixed: heroicon pattern matching is based on deps folder - rather than dependencies listed for petal_components 
+- Fixed: heroicon pattern matching is based on deps folder - rather than dependencies listed for petal_components
 - Improved error messages for incorrect heroicon names
 
 ### 2.0.1 - 2024-09-20 01:48:10
