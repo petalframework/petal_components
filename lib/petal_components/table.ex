@@ -48,24 +48,22 @@ defmodule PetalComponents.Table do
 
     ~H"""
     <table class={["pc-table--#{@variant}", @class]} {@rest}>
-      <%= if length(@col) > 0 do %>
+      <%= if @col != [] do %>
         <thead>
           <.tr>
             <.th :for={col <- @col} class={col[:class]}>{col[:label]}</.th>
           </.tr>
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
-          <%= if length(@empty_state) > 0 do %>
-            <.tr id={@id <> "-empty"} class="hidden only:table-row">
-              <.td
-                :for={empty_state <- @empty_state}
-                colspan={length(@col)}
-                class={empty_state[:row_class]}
-              >
-                {render_slot(empty_state)}
-              </.td>
-            </.tr>
-          <% end %>
+          <.tr :if={@empty_state != []} id={@id <> "-empty"} class="hidden only:table-row">
+            <.td
+              :for={empty_state <- @empty_state}
+              colspan={length(@col)}
+              class={empty_state[:row_class]}
+            >
+              {render_slot(empty_state)}
+            </.td>
+          </.tr>
           <.tr
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
