@@ -291,7 +291,7 @@
   }
 
   .pc-icon-button__tooltip__text {
-    @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 rounded-xs shadow-lg whitespace-nowrap dark:bg-gray-700;
+    @apply relative z-10 p-2 text-xs leading-none text-white bg-gray-900 shadow-lg rounded-xs whitespace-nowrap dark:bg-gray-700;
   }
 
   .pc-icon-button__tooltip__arrow {
@@ -857,7 +857,7 @@
     @apply dark:text-white;
   }
   .pc-switch {
-    @apply relative inline-flex items-center justify-center shrink-0 cursor-pointer;
+    @apply relative inline-flex items-center justify-center cursor-pointer shrink-0;
   }
   .pc-switch--xs {
     @apply w-6 h-3;
@@ -1285,7 +1285,7 @@
     @apply object-cover rounded-full;
   }
   .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-700;
+    @apply relative inline-block overflow-hidden text-gray-300 bg-gray-100 rounded-full dark:bg-gray-700;
   }
   .pc-avatar--with-placeholder-initials {
     @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300;
@@ -1562,10 +1562,10 @@
   /* Cards - with media */
 
   .pc-card__image {
-    @apply shrink-0 object-cover w-full;
+    @apply object-cover w-full shrink-0;
   }
   .pc-card__image-placeholder {
-    @apply shrink-0 w-full bg-gray-300 dark:bg-gray-700;
+    @apply w-full bg-gray-300 shrink-0 dark:bg-gray-700;
   }
 
   /* Cards - footer */
@@ -1577,7 +1577,7 @@
   /* Table */
 
   .pc-table--basic {
-    @apply min-w-full overflow-hidden rounded-xs shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
+    @apply min-w-full overflow-hidden shadow-sm table-auto rounded-xs ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
   }
   .pc-table--ghost {
     @apply min-w-full overflow-hidden table-auto;
@@ -1631,7 +1631,7 @@
     @apply text-base font-semibold;
   }
   .pc-accordion-item__chevron {
-    @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+    @apply w-6 h-6 ml-3 text-gray-400 duration-300 fill-current shrink-0 dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
     @apply p-5 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-900;
@@ -2302,7 +2302,7 @@
 
   /* Indicator */
   .pc-stepper__indicator {
-    @apply grid shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
+    @apply grid text-white transition-all duration-200 bg-gray-500 rounded-full shrink-0 place-items-center;
   }
 
   .pc-stepper__node--complete .pc-stepper__indicator {
@@ -2462,7 +2462,7 @@
   }
 
   .pc-vertical-menu-item__icon {
-    @apply shrink-0 w-5 h-5;
+    @apply w-5 h-5 shrink-0;
   }
 
   .pc-vertical-menu-item {
@@ -2511,11 +2511,11 @@
   }
 
   .pc-vertical-menu-item__icon--active {
-    @apply shrink-0 w-5 h-5;
+    @apply w-5 h-5 shrink-0;
   }
 
   .pc-vertical-menu-item__icon--inactive {
-    @apply shrink-0 w-5 h-5;
+    @apply w-5 h-5 shrink-0;
   }
 
   /* Other */
