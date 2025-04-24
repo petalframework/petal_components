@@ -204,10 +204,12 @@ defmodule PetalComponents.Carousel do
       </div>
     </div>
     
-    <.link :if={@navigate} to={@navigate} class="pc-carousel__link absolute inset-0 z-20">
-      <span class="sr-only">View slide details</span>
-    </.link>
-    <a :if={@href} href={@href} class="pc-carousel__link absolute inset-0 z-20">
+    <%= if @navigate do %>
+      <a href={@navigate} class="pc-carousel__link">
+        <span class="sr-only">View slide details</span>
+      </a>
+    <% end %>
+    <a :if={@href} href={@href} class="pc-carousel__link" target="_blank" rel="noopener noreferrer">
       <span class="sr-only">View external link</span>
     </a>
     """

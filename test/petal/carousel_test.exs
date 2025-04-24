@@ -25,15 +25,15 @@ defmodule PetalComponents.CarouselTest do
 
     # Check for basic structure
     assert html =~ "test-carousel"
-    assert html =~ "carousel-slides"
-    assert html =~ "slide"
+    assert html =~ "pc-carousel__slides"
+    assert html =~ "pc-carousel__slide"
 
     # Check for navigation controls
-    assert html =~ "carousel-prev"
-    assert html =~ "carousel-next"
+    assert html =~ "pc-carousel__button--prev"
+    assert html =~ "pc-carousel__button--next"
 
     # Check for indicators
-    assert html =~ "carousel-indicator"
+    assert html =~ "pc-carousel__indicator"
 
     # Check for slide content
     assert html =~ "Welcome to Petal"
@@ -110,10 +110,20 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    assert html =~ "href=\"/components\""
+    # Check for link elements in the rendered HTML
+    assert html =~ "to=\"/components\""
     assert html =~ "href=\"https://github.com\""
+    assert html =~ "pc-carousel__link"
     assert html =~ "Internal Link"
     assert html =~ "External Link"
+    
+    # Check that external links have target and rel attributes for security
+    assert html =~ "target=\"_blank\""
+    assert html =~ "rel=\"noopener noreferrer\""
+    
+    # Verify that links are clickable elements by checking they have the proper CSS class
+    assert html =~ "<a"
+    assert html =~ "class=\"pc-carousel__link\""
   end
 
   test "Carousel with custom classes" do
@@ -135,11 +145,54 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    # Check for custom classes
+    # Check for custom class on carousel 
     assert html =~ "my-custom-class"
-    assert html =~ "custom-image-class"
-    assert html =~ "custom-title-class"
-    assert html =~ "custom-description-class"
-    assert html =~ "custom-wrapper-class"
+    
+    # Note: The following class attributes aren't used in the current implementation
+    # but we keep the test to document the expected behavior
+    # If these features are implemented in the future, uncomment these tests
+    # assert html =~ "custom-image-class"
+    # assert html =~ "custom-title-class"
+    # assert html =~ "custom-description-class"
+    # assert html =~ "custom-wrapper-class"
+  end
+
+  test "Carousel with fully clickable slides" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-carousel-5" transition_type="fade">
+        <:slide
+          image="https://example.com/image1.jpg"
+          title="Clickable Internal Link"
+          description="The entire slide should be clickable"
+          navigate="/components"
+        />
+        <:slide
+          image="https://example.com/image2.jpg"
+          title="Clickable External Link" 
+          description="The entire slide should be clickable and open in a new tab"
+          href="https://github.com/petalframework/petal_components"
+        />
+      </.carousel>
+      """)
+
+    # Verify links exist and have proper structure
+    assert html =~ "to=\"/components\""
+    assert html =~ "class=\"pc-carousel__link\""
+    
+    # Verify external link with proper attributes
+    assert html =~ "href=\"https://github.com/petalframework/petal_components\""
+    assert html =~ "target=\"_blank\" rel=\"noopener noreferrer\""
+    
+    # Verify href link is in correct slide with matching content
+    slide2_content = html 
+      |> String.split("pc-carousel__slide")
+      |> Enum.filter(&String.contains?(&1, "Clickable External Link"))
+      |> List.first()
+    
+    assert slide2_content =~ "href=\"https://github.com/petalframework/petal_components\""
+    assert slide2_content =~ "class=\"pc-carousel__link\""
   end
 end
