@@ -135,7 +135,7 @@ defmodule PetalComponents.Carousel do
             navigate={slide[:navigate]}
             href={slide[:href]}
             image={slide[:image]}
-            title={slide[:title] || "Slide #{index + 1}"}
+            title={slide[:title]}
             description={slide[:description]}
           />
         </div>
@@ -202,7 +202,7 @@ defmodule PetalComponents.Carousel do
       </div>
       <div class="pc-carousel__content">
         <div class={"pc-carousel__content-wrapper #{@content_position_class}"}>
-          <div class="pc-carousel__title">
+          <div :if={!is_nil(@title)} class="pc-carousel__title">
             {@title}
           </div>
           <p :if={!is_nil(@description)} class="pc-carousel__description">

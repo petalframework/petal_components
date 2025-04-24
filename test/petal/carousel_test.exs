@@ -195,4 +195,77 @@ defmodule PetalComponents.CarouselTest do
     assert slide2_content =~ "href=\"https://github.com/petalframework/petal_components\""
     assert slide2_content =~ "class=\"pc-carousel__link\""
   end
+
+  test "Carousel with content positioning" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-carousel-7" transition_type="fade">
+        <:slide
+          content_position="start"
+          title="Left Aligned Content"
+          description="This content should be left-aligned"
+          image="https://example.com/image1.jpg"
+        />
+        <:slide
+          content_position="center"
+          title="Center Aligned Content"
+          description="This content should be centered"
+          image="https://example.com/image2.jpg"
+        />
+        <:slide
+          content_position="end"
+          title="Right Aligned Content"
+          description="This content should be right-aligned"
+          image="https://example.com/image3.jpg"
+        />
+      </.carousel>
+      """)
+
+    # Check for proper content position classes
+    assert html =~ "items-start justify-start text-left"
+    assert html =~ "items-center justify-center text-center"
+    assert html =~ "items-end justify-end text-right"
+
+    # Verify content is present
+    assert html =~ "Left Aligned Content"
+    assert html =~ "Center Aligned Content"
+    assert html =~ "Right Aligned Content"
+  end
+
+  test "Carousel with slide containing no title" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-carousel-6" transition_type="fade">
+        <:slide
+          image="https://example.com/image1.jpg"
+          description="This slide has a description but no title"
+        />
+        <:slide
+          image="https://example.com/image2.jpg"
+        />
+      </.carousel>
+      """)
+
+    # Check that image is present
+    assert html =~ "https://example.com/image1.jpg"
+    
+    # Check that description is present
+    assert html =~ "This slide has a description but no title"
+    
+    # Check that no default title is added (should not have "Slide 1" text)
+    refute html =~ "Slide 1"
+    refute html =~ "Slide 2"
+    
+    # The second slide should only have an image and no text content
+    slide2_content = html 
+      |> String.split("pc-carousel__slide")
+      |> Enum.at(2)
+    
+    assert slide2_content =~ "https://example.com/image2.jpg"
+    refute slide2_content =~ "pc-carousel__title"
+  end
 end
