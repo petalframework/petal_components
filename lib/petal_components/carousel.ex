@@ -17,6 +17,8 @@ defmodule PetalComponents.Carousel do
   use Phoenix.Component
   import PetalComponents.Icon, only: [icon: 1]
   import Phoenix.LiveView.Utils, only: [random_id: 0]
+  alias Phoenix.HTML.Link
+  import PetalComponents.Link
 
   @doc """
   The `carousel` component is used to create interactive carousels with customizable attributes
@@ -56,6 +58,9 @@ defmodule PetalComponents.Carousel do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
     attr :class, :string, doc: "Custom CSS class for additional styling"
+    attr :image, :string, doc: "URL of the image to display in the slide"
+    attr :navigate, :string, doc: "Internal route to navigate to when the slide is clicked"
+    attr :href, :string, doc: "External URL to navigate to when the slide is clicked"
   end
 
   def carousel(assigns) do
@@ -125,18 +130,15 @@ defmodule PetalComponents.Carousel do
             end
           }
         >
-          <div class="pc-carousel__slide-content">
-            <div class="pc-carousel__content">
-              <div class="pc-carousel__content-wrapper">
-                <div class="pc-carousel__title">
-                  {slide[:title] || "Slide #{index + 1}"}
-                </div>
-                <p :if={!is_nil(slide[:description])} class="pc-carousel__description">
-                  {slide[:description]}
-                </p>
-              </div>
-            </div>
-          </div>
+          <.slide_content
+            slide={slide}
+            index={index}
+            navigate={slide[:navigate]}
+            href={slide[:href]}
+            image={slide[:image]}
+            title={slide[:title] || "Slide #{index + 1}"}
+            description={slide[:description]}
+          />
         </div>
       </div>
 
@@ -183,4 +185,31 @@ defmodule PetalComponents.Carousel do
   defp text_position_class("center"), do: "[&_.description-wrapper]:text-center"
   defp text_position_class("end"), do: "[&_.description-wrapper]:text-end"
   defp text_position_class(_), do: ""
+  
+  defp slide_content(assigns) do
+    ~H"""
+    <div class="pc-carousel__slide-content">
+      <div :if={!is_nil(@image)} class="pc-carousel__image-wrapper">
+        <img src={@image} class="pc-carousel__image" />
+      </div>
+      <div class="pc-carousel__content">
+        <div class="pc-carousel__content-wrapper">
+          <div class="pc-carousel__title">
+            {@title}
+          </div>
+          <p :if={!is_nil(@description)} class="pc-carousel__description">
+            {@description}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <.link :if={@navigate} to={@navigate} class="pc-carousel__link absolute inset-0 z-20">
+      <span class="sr-only">View slide details</span>
+    </.link>
+    <a :if={@href} href={@href} class="pc-carousel__link absolute inset-0 z-20">
+      <span class="sr-only">View external link</span>
+    </a>
+    """
+  end
 end
