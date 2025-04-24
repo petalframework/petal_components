@@ -111,7 +111,7 @@ defmodule PetalComponents.CarouselTest do
       """)
 
     # Check for link elements in the rendered HTML
-    assert html =~ "to=\"/components\""
+    assert html =~ "href=\"/components\""
     assert html =~ "href=\"https://github.com\""
     assert html =~ "pc-carousel__link"
     assert html =~ "Internal Link"
@@ -179,7 +179,7 @@ defmodule PetalComponents.CarouselTest do
       """)
 
     # Verify links exist and have proper structure
-    assert html =~ "to=\"/components\""
+    assert html =~ "href=\"/components\""
     assert html =~ "class=\"pc-carousel__link\""
     
     # Verify external link with proper attributes
