@@ -17,8 +17,6 @@ defmodule PetalComponents.Carousel do
   use Phoenix.Component
   import PetalComponents.Icon, only: [icon: 1]
   import Phoenix.LiveView.Utils, only: [random_id: 0]
-  alias Phoenix.HTML.Link
-  import PetalComponents.Link
 
   @doc """
   The `carousel` component is used to create interactive carousels with customizable attributes
@@ -61,6 +59,7 @@ defmodule PetalComponents.Carousel do
     attr :image, :string, doc: "URL of the image to display in the slide"
     attr :navigate, :string, doc: "Internal route to navigate to when the slide is clicked"
     attr :href, :string, doc: "External URL to navigate to when the slide is clicked"
+    attr :content_position, :string, doc: "Position of content (start, center, end)"
   end
 
   def carousel(assigns) do
@@ -187,13 +186,22 @@ defmodule PetalComponents.Carousel do
   defp text_position_class(_), do: ""
   
   defp slide_content(assigns) do
+    content_position_class = case Map.get(assigns, :slide)[:content_position] do
+      "start" -> "items-start justify-start text-left"
+      "end" -> "items-end justify-end text-right"
+      "center" -> "items-center justify-center text-center"
+      _ -> "items-center justify-center text-center" # Default to center
+    end
+    
+    assigns = assign(assigns, :content_position_class, content_position_class)
+    
     ~H"""
     <div class="pc-carousel__slide-content">
       <div :if={!is_nil(@image)} class="pc-carousel__image-wrapper">
         <img src={@image} class="pc-carousel__image" />
       </div>
       <div class="pc-carousel__content">
-        <div class="pc-carousel__content-wrapper">
+        <div class={"pc-carousel__content-wrapper #{@content_position_class}"}>
           <div class="pc-carousel__title">
             {@title}
           </div>
