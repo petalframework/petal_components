@@ -2,11 +2,11 @@ defmodule PetalComponents.ChatBubble do
   use Phoenix.Component
 
   # Base chat bubble component
-  attr :author, :string, default: "Sarah Hill", doc: "author name for the chat message"
+  attr :author, :string, default: nil, doc: "author name for the chat message"
+  attr :time, :string, default: nil, doc: "timestamp for the message"
 
   attr :message, :string, default: "That's awesome. I think our users will really appreciate the improvements.", doc: "main message content"
 
-  attr :time, :string, default: "10:13", doc: "timestamp for the message"
   attr :avatar_src, :string, default: nil, doc: "hosted avatar URL"
   attr :avatar_alt, :string, default: nil, doc: "alt text for avatar image"
 
@@ -651,7 +651,7 @@ defmodule PetalComponents.ChatBubble do
                   {@file_type}
                 </span>
               </div>
-              <!-- Download button -->
+              <%!-- Download button --%>
               <div
                 class="relative inline-flex self-center items-center"
                 x-data="{ showTooltip: false }"
@@ -1138,7 +1138,7 @@ defmodule PetalComponents.ChatBubble do
                   @mouseleave="showTooltip = false"
                   class="inline-flex items-center justify-center rounded-full h-10 w-10 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
                 >
-                  <!-- Heroicons Download Icon -->
+                  <%!-- Heroicons Download Icon --%>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -1154,7 +1154,7 @@ defmodule PetalComponents.ChatBubble do
                     />
                   </svg>
                 </button>
-                <!-- Tooltip -->
+                <%!-- Tooltip --%>
                 <div
                   x-show="showTooltip"
                   x-transition
@@ -1195,9 +1195,9 @@ defmodule PetalComponents.ChatBubble do
           {render_header(assigns)}
           <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2">
-            <!-- Image Grid with Tooltips -->
+            <%!-- Image Grid with Tooltips --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
-              <!-- First 3 Images -->
+              <%!-- First 3 Images --%>
               <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
                 <div x-data="{ showTooltip: false }" class="group relative">
                   <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
@@ -1222,7 +1222,7 @@ defmodule PetalComponents.ChatBubble do
                         />
                       </svg>
                     </button>
-                    <!-- Alpine.js Tooltip -->
+                    <%!-- Alpine.js Tooltip --%>
                     <div
                       x-show="showTooltip"
                       x-transition
@@ -1236,7 +1236,7 @@ defmodule PetalComponents.ChatBubble do
                 </div>
               <% end %>
 
-    <!-- Extra Images Overlay -->
+              <%!-- Extra Images Overlay --%>
               <div x-data="{ showTooltip: false }" class="group relative">
                 <button
                   @mouseenter="showTooltip = true"
@@ -1355,9 +1355,9 @@ defmodule PetalComponents.ChatBubble do
 
   defp render_header(assigns) do
     ~H"""
-    <div class="flex items-center space-x-2 rtl:space-x-reverse">
-      <span class="text-sm font-semibold text-gray-900 dark:text-white">{@author}</span>
-      <span class="text-sm font-normal text-gray-500 dark:text-gray-400">{@time}</span>
+    <div :if={@author || @time} class="flex items-center space-x-2 rtl:space-x-reverse">
+      <span :if={@author} class="text-sm font-semibold text-gray-900 dark:text-white">{@author}</span>
+      <span :if={@time} class="text-sm font-normal text-gray-500 dark:text-gray-400">{@time}</span>
     </div>
     """
   end
