@@ -22,7 +22,7 @@ defmodule PetalComponents.ChatBubbleTest do
 
     html =
       rendered_to_string(~H"""
-      <.chat_bubble kind={:voicenote} author="Voice User" time="15:20" duration="2:15" />
+      <.chat_bubble kind={:voice_note} author="Voice User" time="15:20" duration="2:15" />
       """)
 
     assert html =~ "Voice User"
@@ -133,7 +133,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:outline_chat_bubble}
+        kind={:chat_bubble}
+        variant={:outline}
         author="Outline User"
         time="20:00"
         message="Outline message"
@@ -147,18 +148,24 @@ defmodule PetalComponents.ChatBubbleTest do
     assert html =~ "pc-chat-bubble--outline-chat-bubble"
   end
 
-  test "outline voicenote chat bubble" do
+  test "outline voice note chat bubble" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.chat_bubble kind={:outline_voicenote} author="Outline Voice User" time="23:00" duration="3:00" />
+      <.chat_bubble
+        kind={:voice_note}
+        variant={:outline}
+        author="Outline Voice User"
+        time="23:00"
+        duration="3:00"
+      />
       """)
 
     assert html =~ "Outline Voice User"
     assert html =~ "23:00"
     assert html =~ "3:00"
-    assert html =~ "pc-chat-bubble--outline-voicenote"
+    assert html =~ "pc-chat-bubble--outline-voice-note"
     assert html =~ ~s(<svg class="w-[145px] md:w-[185px] md:h-[40px]")
     assert html =~ ~s(<button class="inline-flex self-center items-center p-2)
   end
@@ -169,7 +176,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:outline_file_attachment}
+        kind={:file_attachment}
+        variant={:outline}
         author="Outline File User"
         time="00:00"
         file_name="Outline File.pdf"
@@ -195,7 +203,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:outline_image_attachment}
+        kind={:image_attachment}
+        variant={:outline}
         author="Outline Image User"
         time="01:00"
         image_src="https://example.com/outline_image.jpg"
@@ -216,7 +225,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:outline_image_gallery}
+        kind={:image_gallery}
+        variant={:outline}
         author="Outline Gallery User"
         time="01:00"
         images={[
@@ -243,7 +253,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:outline_url_preview_sharing}
+        kind={:url_preview_sharing}
+        variant={:outline}
         author="Outline URL User"
         time="22:00"
         url="https://example.com"
@@ -269,7 +280,13 @@ defmodule PetalComponents.ChatBubbleTest do
 
     html =
       rendered_to_string(~H"""
-      <.chat_bubble kind={:clean_chat_bubble} author="Clean User" time="21:00" message="Clean message" />
+      <.chat_bubble
+        kind={:chat_bubble}
+        variant={:clean}
+        author="Clean User"
+        time="21:00"
+        message="Clean message"
+      />
       """)
 
     assert html =~ "Clean User"
@@ -279,18 +296,24 @@ defmodule PetalComponents.ChatBubbleTest do
     assert html =~ "pc-chat-bubble--clean-chat-bubble"
   end
 
-  test "clean voicenote chat bubble" do
+  test "clean voice note chat bubble" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.chat_bubble kind={:clean_voicenote} author="Clean Voice User" time="23:00" duration="3:00" />
+      <.chat_bubble
+        kind={:voice_note}
+        variant={:clean}
+        author="Clean Voice User"
+        time="23:00"
+        duration="3:00"
+      />
       """)
 
     assert html =~ "Clean Voice User"
     assert html =~ "23:00"
     assert html =~ "3:00"
-    assert html =~ "pc-chat-bubble--clean-voicenote"
+    assert html =~ "pc-chat-bubble--clean-voice-note"
     assert html =~ ~s(<svg class="w-[145px] md:w-[185px] md:h-[40px]")
     assert html =~ ~s(<button class="inline-flex self-center items-center p-2)
   end
@@ -301,7 +324,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:clean_file_attachment}
+        kind={:file_attachment}
+        variant={:clean}
         author="Clean File User"
         time="00:00"
         file_name="Clean File.pdf"
@@ -327,7 +351,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:clean_image_attachment}
+        kind={:image_attachment}
+        variant={:clean}
         author="Clean Image User"
         time="02:00"
         image_src="https://example.com/clean_image.jpg"
@@ -348,7 +373,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:clean_image_gallery}
+        kind={:image_gallery}
+        variant={:clean}
         author="Clean Gallery User"
         time="03:00"
         images={[
@@ -375,7 +401,8 @@ defmodule PetalComponents.ChatBubbleTest do
     html =
       rendered_to_string(~H"""
       <.chat_bubble
-        kind={:clean_url_preview_sharing}
+        kind={:url_preview_sharing}
+        variant={:clean}
         author="Clean URL User"
         time="02:00"
         url="https://example.com"

@@ -101,7 +101,9 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+            {@message}
+          </p>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
       </div>
@@ -474,7 +476,9 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+            {@message}
+          </p>
           <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
             <a
               href={@url}
@@ -535,7 +539,9 @@ defmodule PetalComponents.ChatBubble do
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-            <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+            <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+              {@message}
+            </p>
           </div>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
@@ -555,7 +561,7 @@ defmodule PetalComponents.ChatBubble do
       |> assign(:rest, assigns[:rest])
 
     ~H"""
-    <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-voice_note", @class]}>
+    <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-voice-note", @class]}>
       <div class="flex items-start gap-2.5">
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[326px]">
@@ -780,7 +786,9 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
+          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">
+            {@message}
+          </p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <%!-- Image Grid --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
@@ -895,7 +903,9 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[320px]">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+            {@message}
+          </p>
           <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
               <a
@@ -957,7 +967,9 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+            {@message}
+          </p>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
       </div>
@@ -976,7 +988,7 @@ defmodule PetalComponents.ChatBubble do
       |> assign(:rest, assigns[:rest])
 
     ~H"""
-    <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-voice_note", @class]}>
+    <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-voice-note", @class]}>
       <div class="flex items-start gap-2.5">
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
@@ -1193,7 +1205,9 @@ defmodule PetalComponents.ChatBubble do
         <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
+          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">
+            {@message}
+          </p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2">
             <%!-- Image Grid with Tooltips --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
@@ -1310,7 +1324,9 @@ defmodule PetalComponents.ChatBubble do
         <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
-          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+            {@message}
+          </p>
           <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
             <a
               href={@url}
