@@ -5,7 +5,7 @@ defmodule PetalComponents.ChatBubble do
   attr :author, :string, default: nil, doc: "author name for the chat message"
   attr :time, :string, default: nil, doc: "timestamp for the message"
 
-  attr :message, :string, default: "That's awesome. I think our users will really appreciate the improvements.", doc: "main message content"
+  attr :message, :string, default: nil, doc: "main message content"
 
   attr :avatar_src, :string, default: nil, doc: "hosted avatar URL"
   attr :avatar_alt, :string, default: nil, doc: "alt text for avatar image"
@@ -101,7 +101,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
       </div>
@@ -288,7 +288,7 @@ defmodule PetalComponents.ChatBubble do
               <span class="text-sm font-semibold text-gray-900 dark:text-white">{@author}</span>
               <span class="text-sm font-normal text-gray-500 dark:text-gray-400">{@time}</span>
             </div>
-            <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
+            <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
 
             <div x-data="{ showTooltip: false }" class="group relative my-2.5">
               <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
@@ -356,7 +356,7 @@ defmodule PetalComponents.ChatBubble do
               <span class="text-sm font-semibold text-gray-900 dark:text-white">{@author}</span>
               <span class="text-sm font-normal text-gray-500 dark:text-gray-400">{@time}</span>
             </div>
-            <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
+            <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
 
             <%!-- Image Grid with Tooltips --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
@@ -474,7 +474,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
             <a
               href={@url}
@@ -535,7 +535,7 @@ defmodule PetalComponents.ChatBubble do
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-            <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+            <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           </div>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
@@ -714,7 +714,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[326px]">
           {render_header(assigns)}
-          <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
           <div class="flex flex-col w-full leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <div
               x-data="{ showTooltip: false }"
@@ -780,7 +780,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
-          <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
+          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <%!-- Image Grid --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
@@ -895,7 +895,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[320px]">
           {render_header(assigns)}
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
               <a
@@ -957,7 +957,7 @@ defmodule PetalComponents.ChatBubble do
         <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
       </div>
@@ -1128,7 +1128,7 @@ defmodule PetalComponents.ChatBubble do
         <div class="flex flex-col w-full max-w-[326px] leading-1.5">
           {render_header(assigns)}
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4">
-            <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
+            <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
           </div>
           <div class="my-2.5">
             <div x-data="{ showTooltip: false }" class="group relative">
@@ -1193,7 +1193,7 @@ defmodule PetalComponents.ChatBubble do
         <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
-          <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
+          <p :if={@message} class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2">
             <%!-- Image Grid with Tooltips --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
@@ -1310,7 +1310,7 @@ defmodule PetalComponents.ChatBubble do
         <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
+          <p :if={@message} class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
           <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
             <a
               href={@url}
