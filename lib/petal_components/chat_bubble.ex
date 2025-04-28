@@ -7,7 +7,7 @@ defmodule PetalComponents.ChatBubble do
   attr :message, :string, default: "That's awesome. I think our users will really appreciate the improvements.", doc: "main message content"
 
   attr :time, :string, default: "10:13", doc: "timestamp for the message"
-  attr :avatar_src, :string, default: "https://res.cloudinary.com/wickedsites/image/upload/v1604268092/unnamed_sagz0l.jpg", doc: "hosted avatar URL"
+  attr :avatar_src, :string, default: nil, doc: "hosted avatar URL"
   attr :avatar_alt, :string, default: nil, doc: "alt text for avatar image"
 
   attr :kind, :atom,
@@ -124,7 +124,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--voice-note", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
           {render_waveform(assigns)}
@@ -153,7 +153,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--file-attachment", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -220,7 +220,7 @@ defmodule PetalComponents.ChatBubble do
                   {@file_type}
                 </span>
               </div>
-              <!-- Download button -->
+              <%!-- Download button --%>
               <div
                 class="relative inline-flex self-center items-center"
                 x-data="{ showTooltip: false }"
@@ -246,7 +246,7 @@ defmodule PetalComponents.ChatBubble do
                     />
                   </svg>
                 </button>
-                <!-- Alpine.js Tooltip -->
+                <%!-- Alpine.js Tooltip --%>
                 <div
                   x-show="showTooltip"
                   x-transition
@@ -281,7 +281,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--image-attachment", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <div class="flex items-center space-x-2 rtl:space-x-reverse mb-2">
@@ -313,7 +313,7 @@ defmodule PetalComponents.ChatBubble do
                     />
                   </svg>
                 </button>
-                <!-- Tooltip -->
+                <%!-- Tooltip --%>
                 <div
                   x-show="showTooltip"
                   x-transition
@@ -349,7 +349,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--image-gallery", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
             <div class="flex items-center space-x-2 rtl:space-x-reverse mb-2">
@@ -358,9 +358,9 @@ defmodule PetalComponents.ChatBubble do
             </div>
             <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
 
-    <!-- Image Grid with Tooltips -->
+            <%!-- Image Grid with Tooltips --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
-              <!-- First 3 Images -->
+              <%!-- First 3 Images --%>
               <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
                 <div x-data="{ showTooltip: false }" class="group relative">
                   <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
@@ -385,7 +385,7 @@ defmodule PetalComponents.ChatBubble do
                         />
                       </svg>
                     </button>
-                    <!-- Alpine.js Tooltip -->
+                    <%!-- Alpine.js Tooltip --%>
                     <div
                       x-show="showTooltip"
                       x-transition
@@ -399,7 +399,7 @@ defmodule PetalComponents.ChatBubble do
                 </div>
               <% end %>
 
-    <!-- Extra Images Overlay -->
+              <%!-- Extra Images Overlay --%>
               <div x-data="{ showTooltip: false }" class="group relative">
                 <button
                   @mouseenter="showTooltip = true"
@@ -471,7 +471,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--url-preview", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           {render_header(assigns)}
           <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
@@ -531,7 +531,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-chat-bubble", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
@@ -557,7 +557,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-voice_note", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[326px]">
           {render_header(assigns)}
           <div class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
@@ -587,7 +587,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-file-attachment", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
           <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
@@ -711,7 +711,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-image-attachment", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[326px]">
           {render_header(assigns)}
           <p class="text-sm font-normal text-gray-900 dark:text-white">{@message}</p>
@@ -777,12 +777,12 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-image-gallery", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1">
           {render_header(assigns)}
           <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]">{@message}</p>
           <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-            <!-- Image Grid -->
+            <%!-- Image Grid --%>
             <div class="grid gap-4 grid-cols-2 my-2.5">
               <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
                 <div x-data="{ showTooltip: false }" class="group relative">
@@ -820,7 +820,7 @@ defmodule PetalComponents.ChatBubble do
                   <img src={img} class="rounded-lg" />
                 </div>
               <% end %>
-              <!-- Extra Images Overlay -->
+              <%!-- Extra Images Overlay --%>
               <div x-data="{ showTooltip: false }" class="group relative">
                 <button
                   @mouseenter="showTooltip = true"
@@ -892,7 +892,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-url-preview", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col gap-1 w-full max-w-[320px]">
           {render_header(assigns)}
           <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
@@ -954,7 +954,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-chat-bubble", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
           <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white">{@message}</p>
@@ -978,7 +978,7 @@ defmodule PetalComponents.ChatBubble do
     ~H"""
     <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-voice_note", @class]}>
       <div class="flex items-start gap-2.5">
-        <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
+        <img :if={@avatar_src} class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt} />
         <div class="flex flex-col w-full max-w-[320px] leading-1.5">
           {render_header(assigns)}
           {render_waveform(assigns)}
