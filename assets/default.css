@@ -1,4 +1,111 @@
 @layer components {
+
+  /* Carousel */
+
+  .pc-carousel {
+    @apply relative w-full h-[400px] overflow-hidden bg-transparent;
+  }
+
+  .pc-carousel__button {
+    @apply absolute inset-y-0 z-30 p-4 transition bg-black/10 hover:bg-black/30 focus:outline-none;
+  }
+
+  .pc-carousel__button--prev {
+    @apply left-0;
+  }
+
+  .pc-carousel__button--next {
+    @apply right-0;
+  }
+
+  .pc-carousel__icon {
+    @apply text-white size-7;
+  }
+
+  .pc-carousel__slides {
+    @apply relative w-full h-full;
+  }
+
+  .pc-carousel__slide {
+    @apply absolute top-0 left-0 w-full h-full bg-white;
+    will-change: transform, opacity;
+  }
+
+  .pc-carousel__slide--active {
+    @apply z-10 opacity-100;
+  }
+
+  .pc-carousel__slide--inactive {
+    @apply z-0 opacity-0;
+  }
+
+  /* Slide transition specific styles */
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
+    @apply overflow-hidden;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide {
+    @apply transition-transform duration-500 ease-in-out;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--active {
+    @apply translate-x-0;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--inactive {
+    @apply translate-x-full;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--inactive.prev {
+    @apply -translate-x-full;
+  }
+
+  /* Fade transition specific styles */
+  .pc-carousel[data-transition-type="fade"] .pc-carousel__slide {
+    @apply transition-opacity duration-500 ease-in-out;
+  }
+
+  .pc-carousel__slide-content {
+    @apply relative w-full h-full;
+  }
+
+  .pc-carousel__image-wrapper {
+    @apply absolute inset-0 z-0;
+  }
+
+  .pc-carousel__image {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-carousel__content {
+    @apply absolute inset-0 z-10 flex items-center justify-center;
+    background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+  }
+
+  .pc-carousel__content-wrapper {
+    @apply flex flex-col w-full gap-5 p-8 sm:p-24;
+  }
+
+  .pc-carousel__title {
+    @apply text-4xl font-bold text-white;
+  }
+
+  .pc-carousel__description {
+    @apply text-xl text-white;
+  }
+
+  .pc-carousel__link {
+    @apply absolute inset-0 z-20 block w-full h-full no-underline cursor-pointer;
+  }
+
+  .pc-carousel__indicators {
+    @apply absolute inset-x-0 bottom-0 z-10 flex justify-center gap-3 py-2.5;
+  }
+
+  .pc-carousel__indicator {
+    @apply w-6 h-1 transition-all duration-500 ease-in-out opacity-50 bg-gray-50 hover:opacity-100;
+  }
+
   /* Container */
 
   .pc-container {
