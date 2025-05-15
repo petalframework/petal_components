@@ -1051,24 +1051,6 @@
   .pc-checkbox-group__item--col {
     @apply inline-flex items-center gap-3 cursor-pointer;
   }
-  .pc-radio {
-    @apply w-4 h-4 border-gray-300 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
-  }
-  .pc-radio-group {
-    @apply pt-2;
-  }
-  .pc-radio-group--row {
-    @apply flex flex-row gap-4 mb-3;
-  }
-  .pc-radio-group--col {
-    @apply flex flex-col gap-4 mb-3;
-  }
-  .pc-radio-group__item--row {
-    @apply inline-flex items-center gap-2 cursor-pointer;
-  }
-  .pc-radio-group__item--col {
-    @apply inline-flex items-center gap-3 cursor-pointer;
-  }
   .pc-checkbox-group--empty-message,
   .pc-radio-group--empty-message {
     @apply text-sm;
@@ -2518,6 +2500,160 @@
     @apply shrink-0 w-5 h-5;
   }
 
+  /* Chat Bubble */
+
+  .pc-chat-bubble {
+    @apply flex items-start gap-2.5
+
+  }
+ .pc-chat-bubble__container {
+    @apply flex flex-col gap-1
+  }
+  .pc-chat-bubble__box {
+    @apply flex flex-col w-full max-w-[326px] leading-1.5 p-4  bg-gray-100 dark:bg-gray-700 rounded-e-xl rounded-es-xl;
+  }
+
+  /* Chat Bubble - Header */
+  .pc-chat-bubble__header {
+    @apply flex items-center space-x-2 rtl:space-x-reverse
+  }
+
+  .pc-chat-bubble__author {
+    @apply text-sm font-semibold text-gray-900 dark:text-white
+  }
+
+  .pc-chat-bubble__time {
+    @apply text-sm font-normal text-gray-500 dark:text-gray-400
+  }
+ 
+  .pc-chat-bubble__avatar {
+    @apply w-8 h-8 rounded-full
+  }
+
+  /* Chat Bubble - Message */
+  .pc-chat-bubble__message-text {
+    @apply text-sm font-normal py-2.5 text-gray-900 dark:text-white
+  }
+
+  .pc-chat-bubble__delivered {
+    @apply text-sm font-normal text-gray-500 dark:text-gray-400
+  }
+
+  /* Chat Bubble - File Attachment */
+  .pc-chat-bubble__file-container {
+    @apply flex items-start my-2.5 rounded-xl p-2 hover:bg-gray-200 dark:hover:bg-gray-600 
+  }
+
+  .pc-chat-bubble__file-content {
+    @apply me-2 
+  }
+
+  .pc-chat-bubble__file-name {
+    @apply flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white pb-2
+  }
+
+  .pc-chat-bubble__file-icon {
+    @apply w-5 h-5 shrink-0
+  }
+ 
+  .pc-chat-bubble__file-details {
+    @apply flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2
+  }
+  
+  .pc-chat-bubble__file-download-button {
+    @apply inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white;
+    svg {
+    @apply size-6;
+    }
+  }
+
+  .pc-chat-bubble__dot {
+    @apply self-center
+  }
+
+  /*Chat Bubble - Download Button */
+  .pc-chat-bubble__download-wrapper {
+    @apply relative inline-flex self-center items-center
+  }
+
+  .pc-chat-bubble__tooltip {
+    @apply absolute bottom-full mb-2 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700 whitespace-nowrap
+  }
+    /* Chat Bubble - Duration Element */
+  .pc-chat-bubble__duration {
+    @apply inline-flex self-center items-center p-2 text-sm font-medium text-gray-900 dark:text-white
+  }
+
+  /* Chat Bubble - URL Preview */
+  .pc-chat-bubble__url-preview-content {
+    @apply w-full p-2.5 bg-white dark:bg-gray-800;
+  }
+  
+  .pc-chat-bubble__url-preview-link {
+    @apply flex flex-col items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700;
+  }
+
+  .pc-chat-bubble__url-image {
+    @apply w-full h-auto object-cover;
+  }
+
+  .pc-chat-bubble__url-title {
+    @apply text-sm font-medium text-gray-900 dark:text-white;
+  }
+
+  .pc-chat-bubble__url-description {
+    @apply text-xs font-normal text-gray-500 dark:text-gray-400 my-1;
+  }
+
+  .pc-chat-bubble__url-domain {
+    @apply flex items-center text-xs font-normal text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat-bubble__url-domain-icon {
+    @apply w-3 h-3 me-1;
+  }
+
+  .pc-chat-bubble__url {
+    @apply text-sm font-normal pb-2.5 text-gray-900 dark:text-white;
+  }
+
+  .pc-chat-bubble__url a {
+    @apply text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all;
+  }
+
+  /* Chat Bubble - Gallery */
+  .pc-chat-bubble--gallery {
+    @apply flex flex-col w-full max-w-[326px] leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700;
+  }
+
+  .pc-chat-bubble__gallery-grid {
+    @apply grid grid-cols-2 gap-2 my-2.5;
+  }
+
+  .pc-chat-bubble__gallery-overlay {
+    @apply absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center;
+  }
+
+  .pc-chat-bubble__gallery-button {
+    @apply inline-flex items-center justify-center rounded-full h-8 w-8 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50;
+  }
+
+  /* Chat Bubble - Save All button and icon */
+  .pc-chat-bubble__save-button {
+    @apply text-sm text-blue-700 dark:text-blue-500 font-medium inline-flex items-center hover:underline whitespace-nowrap;
+  }
+
+  .pc-chat-bubble__gallery-tooltip {
+    @apply absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700;
+  }
+
+   /* Chat bubble Alpine.js tooltip */
+   [x-cloak] {
+    display: none;
+  }
+
+}
+
   /* Other */
 
   /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
@@ -2561,7 +2697,7 @@
     display: block;
     padding: 0;
   }
-}
+
 
 /*
   Hide the calendar icon added by Petal in Firefox since Firefox includes one

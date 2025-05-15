@@ -9,7 +9,9 @@ defmodule PetalComponents.ChatBubble do
   attr(:avatar_alt, :string, default: nil, doc: "alt text for avatar image")
   attr(:kind, :atom, default: :default_chat_bubble, 
     values: [
-      :default_chat_bubble, :voicenote, :file_attachment,
+      :default_chat_bubble,
+      :voicenote,
+      :file_attachment, 
       :image_attachment, :image_gallery, :url_preview_sharing,
       :outline_chat_bubble, :outline_voicenote, :outline_file_attachment,
       :outline_image_attachment, :outline_image_gallery, :outline_url_preview_sharing,
@@ -83,36 +85,11 @@ defmodule PetalComponents.ChatBubble do
     end
   end
 
-  defp render_header(assigns) do
+defp render_header(assigns) do
   ~H"""
-  <div class="flex items-center space-x-2 rtl:space-x-reverse">
-    <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @author %></span>
-    <span class="text-sm font-normal text-gray-500 dark:text-gray-400"><%= @time %></span>
-  </div>
-  """
-end
-  
-defp render_default_chat_bubble(assigns) do
-  assigns =
-    assigns
-    |> assign(:author, assigns[:author])
-    |> assign(:message, assigns[:message])
-    |> assign(:time, assigns[:time])
-    |> assign(:avatar_src, assigns[:avatar_src])
-    |> assign(:avatar_alt, assigns[:avatar_alt] || "#{assigns[:author]} image")
-    |> assign(:class, assigns[:class])
-    |> assign(:rest, assigns[:rest])
-
-  ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--default", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-        <%= render_header(assigns) %>
-        <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
-      </div>
-    </div>
+  <div class="pc-chat-bubble__header">
+    <span class="pc-chat-bubble__author"><%= @author %></span>
+    <span class="pc-chat-bubble__time"><%= @time %></span>
   </div>
   """
 end
@@ -160,6 +137,29 @@ defp render_waveform(assigns) do
   """
 end
 
+defp render_default_chat_bubble(assigns) do
+  assigns =
+    assigns
+    |> assign(:author, assigns[:author])
+    |> assign(:message, assigns[:message])
+    |> assign(:time, assigns[:time])
+    |> assign(:avatar_src, assigns[:avatar_src])
+    |> assign(:avatar_alt, assigns[:avatar_alt] || "#{assigns[:author]} image")
+    |> assign(:class, assigns[:class])
+    |> assign(:rest, assigns[:rest])
+
+  ~H"""
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__box">
+        <%= render_header(assigns) %>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
+        <span class="pc-chat-bubble__delivered ">Delivered</span>
+      </div>
+  </div>
+  """
+end
+
 defp render_voicenote(assigns) do
   assigns =
     assigns
@@ -173,15 +173,13 @@ defp render_voicenote(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--voice-note", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1 w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
         <%= render_header(assigns) %>
         <%= render_waveform(assigns) %>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
-    </div>
   </div>
   """
 end
@@ -202,74 +200,66 @@ defp render_file_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--file-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
-        <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <div class="flex items-center space-x-2 rtl:space-x-reverse">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @author %></span>
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400"><%= @time %></span>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+    <div class="pc-chat-bubble__box">
+      <%= render_header(assigns) %>
+      <div class="pc-chat-bubble__file-container hover:bg-gray-200 dark:hover:bg-gray-600 ">
+        <div class="pc-chat-bubble__file-content">
+          <span class="pc-chat-bubble__file-name">
+            <svg fill="none" aria-hidden="true" class="pc-chat-bubble__file-icon" viewBox="0 0 20 21">
+              <g clip-path="url(#clip0_3173_1381)">
+                <path fill="#E2E5E7" d="M5.024.5c-.688 0-1.25.563-1.25 1.25v17.5c0 .688.562 1.25 1.25 1.25h12.5c.687 0 1.25-.563 1.25-1.25V5.5l-5-5h-8.75z"/>
+                <path fill="#B0B7BD" d="M15.024 5.5h3.75l-5-5v3.75c0 .688.562 1.25 1.25 1.25z"/>
+                <path fill="#CAD1D8" d="M18.774 9.25l-3.75-3.75h3.75v3.75z"/>
+                <path fill="#F15642" d="M16.274 16.75a.627.627 0 01-.625.625H1.899a.627.627 0 01-.625-.625V10.5c0-.344.281-.625.625-.625h13.75c.344 0 .625.281.625.625v6.25z"/>
+                <path fill="#fff" d="M3.998 12.342c0-.165.13-.345.34-.345h1.154c.65 0 1.235.435 1.235 1.269 0 .79-.585 1.23-1.235 1.23h-.834v.66c0 .22-.14.344-.32.344a.337.337 0 01-.34-.344v-2.814zm.66.284v1.245h.834c.335 0 .6-.295.6-.605 0-.35-.265-.64-.6-.64h-.834zM7.706 15.5c-.165 0-.345-.09-.345-.31v-2.838c0-.18.18-.31.345-.31H8.85c2.284 0 2.234 3.458.045 3.458h-1.19zm.315-2.848v2.239h.83c1.349 0 1.409-2.24 0-2.24h-.83zM11.894 13.486h1.274c.18 0 .36.18.36.355 0 .165-.18.3-.36.3h-1.274v1.049c0 .175-.124.31-.3.31-.22 0-.354-.135-.354-.31v-2.839c0-.18.135-.31.355-.31h1.754c.22 0 .35.13.35.31 0 .16-.13.34-.35.34h-1.455v.795z"/>
+                <path fill="#CAD1D8" d="M15.649 17.375H3.774V18h11.875a.627.627 0 00.625-.625v-.625a.627.627 0 01-.625.625z"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_3173_1381">
+                  <path fill="#fff" d="M0 0h20v20H0z" transform="translate(0 .5)"/>
+                </clipPath>
+              </defs>
+            </svg>
+            <%= @file_name %>
+          </span>
+          <span class="pc-chat-bubble__file-details">
+            <%= @file_pages %>
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="pc-chat-bubble__dot" width="3" height="4" viewBox="0 0 3 4" fill="none">
+              <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
+            </svg>
+            <%= @file_size %>
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="pc-chat-bubble__dot" width="3" height="4" viewBox="0 0 3 4" fill="none">
+              <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
+            </svg>
+            <%= @file_type %>
+          </span>
+        </div>
+        <!-- Download button -->
+        <div class="pc-chat-bubble__download-wrapper" x-data="{ showTooltip: false }">
+          <button 
+            @mouseenter="showTooltip = true" 
+            @mouseleave="showTooltip = false"
+            class="pc-chat-bubble__file-download-button"
+            type="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </button> 
+          <div 
+            x-show="showTooltip"
+            x-cloak
+            x-transition
+            class="pc-chat-bubble__tooltip"
+            aria-label="Tooltip text"
+          >
+            Download file
           </div>
-          <div class="flex items-start my-2.5 bg-gray-50 dark:bg-gray-600 rounded-xl p-2">
-            <div class="me-2">
-              <span class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white pb-2">
-                <svg fill="none" aria-hidden="true" class="w-5 h-5 shrink-0" viewBox="0 0 20 21">
-                     <g clip-path="url(#clip0_3173_1381)">
-                        <path fill="#E2E5E7" d="M5.024.5c-.688 0-1.25.563-1.25 1.25v17.5c0 .688.562 1.25 1.25 1.25h12.5c.687 0 1.25-.563 1.25-1.25V5.5l-5-5h-8.75z"/>
-                        <path fill="#B0B7BD" d="M15.024 5.5h3.75l-5-5v3.75c0 .688.562 1.25 1.25 1.25z"/>
-                        <path fill="#CAD1D8" d="M18.774 9.25l-3.75-3.75h3.75v3.75z"/>
-                        <path fill="#F15642" d="M16.274 16.75a.627.627 0 01-.625.625H1.899a.627.627 0 01-.625-.625V10.5c0-.344.281-.625.625-.625h13.75c.344 0 .625.281.625.625v6.25z"/>
-                        <path fill="#fff" d="M3.998 12.342c0-.165.13-.345.34-.345h1.154c.65 0 1.235.435 1.235 1.269 0 .79-.585 1.23-1.235 1.23h-.834v.66c0 .22-.14.344-.32.344a.337.337 0 01-.34-.344v-2.814zm.66.284v1.245h.834c.335 0 .6-.295.6-.605 0-.35-.265-.64-.6-.64h-.834zM7.706 15.5c-.165 0-.345-.09-.345-.31v-2.838c0-.18.18-.31.345-.31H8.85c2.284 0 2.234 3.458.045 3.458h-1.19zm.315-2.848v2.239h.83c1.349 0 1.409-2.24 0-2.24h-.83zM11.894 13.486h1.274c.18 0 .36.18.36.355 0 .165-.18.3-.36.3h-1.274v1.049c0 .175-.124.31-.3.31-.22 0-.354-.135-.354-.31v-2.839c0-.18.135-.31.355-.31h1.754c.22 0 .35.13.35.31 0 .16-.13.34-.35.34h-1.455v.795z"/>
-                        <path fill="#CAD1D8" d="M15.649 17.375H3.774V18h11.875a.627.627 0 00.625-.625v-.625a.627.627 0 01-.625.625z"/>
-                     </g>
-                     <defs>
-                        <clipPath id="clip0_3173_1381">
-                           <path fill="#fff" d="M0 0h20v20H0z" transform="translate(0 .5)"/>
-                        </clipPath>
-                     </defs>
-                  </svg>
-                <%= @file_name %>
-              </span>
-              <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
-                <%= @file_pages %> 
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
-                  <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
-                </svg>
-                <%= @file_size %> 
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
-                  <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
-                </svg>
-                <%= @file_type %>
-              </span>
-            </div>
-            <!-- Download button -->
-            <div class="relative inline-flex self-center items-center" x-data="{ showTooltip: false }">
-              <button 
-                @mouseenter="showTooltip = true" 
-                @mouseleave="showTooltip = false"
-                class="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white"
-                type="button"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-</svg>
-
-              </button>
-              <!-- Alpine.js Tooltip -->
-              <div 
-                x-show="showTooltip"
-                x-transition
-                class="absolute bottom-full mb-2 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700 whitespace-nowrap"
-                aria-label="Tooltip text"
-              >
-                Download file
-              </div>
-            </div>
-          </div>
-          <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
         </div>
       </div>
+      <span class="pc-chat-bubble__delivered">Delivered</span>
     </div>
   </div>
   """
@@ -289,17 +279,15 @@ defp render_image_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--image-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container">
         <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           <div class="flex items-center space-x-2 rtl:space-x-reverse mb-2">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @author %></span>
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400"><%= @time %></span>
+            <span class="pc-chat-bubble__author"><%= @author %></span>
+            <span class="pc-chat-bubble__delivered"><%= @time %></span>
           </div>
-          <p class="text-sm font-normal text-gray-900 dark:text-white"><%= @message %></p>
-
+          <p class="pc-chat-bubble__message-text"><%= @message %></p>
           <div x-data="{ showTooltip: false }" class="group relative my-2.5">
             <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
               <button 
@@ -311,22 +299,22 @@ defp render_image_attachment(assigns) do
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
                 </svg>
               </button>
-              <!-- Tooltip -->
+                <!-- Tooltip -->
               <div 
-                x-show="showTooltip" 
-                x-transition 
-                class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
-                aria-label="Tooltip text"
-              >
-                Download image
+                  x-show="showTooltip" 
+                  x-cloak
+                  x-transition 
+                  class="pc-chat-bubble__tooltip"
+                  aria-label="Tooltip text"
+                >
+                  Download image
               </div>
             </div>
             <img src={@image_src} alt={@image_alt} class="rounded-lg" />
           </div>
-          <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+          <span class="pc-chat-bubble__delivered">Delivered</span>
         </div>
       </div>
-    </div>
   </div>
   """
 end
@@ -345,27 +333,26 @@ defp render_image_gallery(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--image-gallery", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container">
         <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           <div class="flex items-center space-x-2 rtl:space-x-reverse mb-2">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @author %></span>
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400"><%= @time %></span>
+            <span class="pc-chat-bubble__author"><%= @author %></span>
+            <span class="pc-chat-bubble__time"><%= @time %></span>
           </div>
-          <p class="text-sm font-normal text-gray-900 dark:text-white"><%= @message %></p>
+          <p class="pc-chat-bubble__message-text"><%= @message %></p>
           
           <!-- Image Grid with Tooltips -->
           <div class="grid gap-4 grid-cols-2 my-2.5">
             <!-- First 3 Images -->
-            <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
+              <%= for img <- Enum.take(@images, 3) do %>
               <div x-data="{ showTooltip: false }" class="group relative">
                 <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
                   <button 
                     @mouseenter="showTooltip = true" 
                     @mouseleave="showTooltip = false" 
-                    class="inline-flex items-center justify-center rounded-full h-8 w-8 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+                    class="pc-chat-bubble__gallery-button"
                   >
                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
                       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
@@ -373,9 +360,10 @@ defp render_image_gallery(assigns) do
                   </button>
                   <!-- Alpine.js Tooltip -->
                   <div 
-                    x-show="showTooltip"
-                    x-transition
-                    class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
+                    x-show="showTooltip" 
+                    x-cloak
+                    x-transition 
+                    class="pc-chat-bubble__tooltip"
                     aria-label="Tooltip text"
                   >
                     Download image
@@ -386,7 +374,7 @@ defp render_image_gallery(assigns) do
             <% end %>
             
             <!-- Extra Images Overlay -->
-            <div x-data="{ showTooltip: false }" class="group relative">
+            <div x-data="{ showTooltip: false }" class="relative">
               <button 
                 @mouseenter="showTooltip = true" 
                 @mouseleave="showTooltip = false"
@@ -394,10 +382,12 @@ defp render_image_gallery(assigns) do
               >
                 <span class="text-xl font-medium text-white">+<%= @extra_images_count %></span>
               </button>
+              <!-- Alpine.js Tooltip -->
               <div 
-                x-show="showTooltip"
-                x-transition
-                class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
+                x-show="showTooltip" 
+                x-cloak
+                x-transition 
+                class="pc-chat-bubble__tooltip"
                 aria-label="Tooltip text"
               >
                 View more
@@ -411,17 +401,16 @@ defp render_image_gallery(assigns) do
           </div>
 
           <div class="flex justify-between items-center">
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
-            <button class="text-sm text-blue-700 dark:text-blue-500 font-medium inline-flex items-center hover:underline">
+            <span class="pc-chat-bubble__delivered">Delivered</span>
+            <button class="pc-chat-bubble__save-button ">
               <svg class="w-3 h-3 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
-                </svg>
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
+              </svg>
               Save all
             </button>
           </div>
         </div>
       </div>
-    </div>
   </div>
   """
 end
@@ -443,31 +432,29 @@ defp render_url_preview_sharing(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--url-preview", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__box">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
-        <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
-          <a href={@url} class="text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all"><%= @url %></a>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
+        <p class="pc-chat-bubble__url">
+          <a href={@url} class="pc-chat-bubble__url a"><%= @url %></a>
         </p>
         <a href={@url} class="bg-gray-50 dark:bg-gray-600 rounded-xl p-4 mb-2 hover:bg-gray-200 dark:hover:bg-gray-500 cursor-pointer">
           <img src={@url_image} class="rounded-lg mb-2" />
-          <div class="w-full p-2.5 bg-white dark:bg-gray-800">
-            <p class="text-sm font-medium text-gray-900 dark:text-white"><%= @url_title %></p>
-            <p class="text-xs font-normal text-gray-500 dark:text-gray-400 my-1"><%= @url_description %></p>
-            <span class="flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-              <svg class="w-3 h-3 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <div class="pc-chat-bubble__url-preview-content">
+            <p class="pc-chat-bubble__url-title"><%= @url_title %></p>
+            <p class="pc-chat-bubble__url-description"><%= @url_description %></p>
+            <span class="pc-chat-bubble__url-domain">
+              <svg class="pc-chat-bubble__url-domain-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4.083 8.222L8.364 3.94a1.59 1.59 0 0 1 2.25 0l4.279 4.28a1.59 1.59 0 0 1 0 2.251l-4.28 4.28a1.59 1.59 0 0 1-2.25 0l-4.28-4.28a1.591 1.591 0 0 1 0-2.251z"/>
               </svg>
               <%= @url_domain %>
             </span>
           </div>
         </a>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
-    </div>
   </div>
   """
 end
@@ -484,17 +471,15 @@ defp render_outline_chat_bubble(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-chat-bubble", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container">
         <%= render_header(assigns) %>
         <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
+          <p class="pc-chat-bubble__message-text"><%= @message %></p>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
-    </div>
   </div>
   """
 end
@@ -510,17 +495,15 @@ defp render_outline_voicenote(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-voicenote", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1 w-full max-w-[326px]">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[326px]">
         <%= render_header(assigns) %>
         <div class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
           <%= render_waveform(assigns) %>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
-    </div>
   </div>
   """
 end
@@ -540,16 +523,15 @@ defp render_outline_file_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-file-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[326px]">
         <%= render_header(assigns) %>
-        <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <div class="flex items-start bg-gray-50 dark:bg-gray-600 rounded-xl p-2">
-            <div class="me-2">
-              <span class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white pb-2">
-                <svg fill="none" aria-hidden="true" class="w-5 h-5 shrink-0" viewBox="0 0 20 21">
+        <div class="flex flex-col w-full leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+        <div class="pc-chat-bubble__file-container p-2 hover:bg-gray-200 dark:hover:bg-gray-600 ">
+          <div class="pc-chat-bubble__file-content">
+            <span class="flex pc-chat-bubble__file-name">
+              <svg fill="none" aria-hidden="true" class="pc-chat-bubble__file-icon" viewBox="0 0 20 21">
                      <g clip-path="url(#clip0_3173_1381)">
                         <path fill="#E2E5E7" d="M5.024.5c-.688 0-1.25.563-1.25 1.25v17.5c0 .688.562 1.25 1.25 1.25h12.5c.687 0 1.25-.563 1.25-1.25V5.5l-5-5h-8.75z"/>
                         <path fill="#B0B7BD" d="M15.024 5.5h3.75l-5-5v3.75c0 .688.562 1.25 1.25 1.25z"/>
@@ -564,47 +546,47 @@ defp render_outline_file_attachment(assigns) do
                         </clipPath>
                      </defs>
                   </svg>
-                <%= @file_name %>
-              </span>
-              <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
-                <%= @file_pages %>
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
-                  <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
-                </svg>
-                <%= @file_size %>
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
-                  <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
-                </svg>
-                <%= @file_type %>
-              </span>
-            </div>
-            <!-- Download button -->
-            <div class="relative inline-flex self-center items-center" x-data="{ showTooltip: false }">
-              <button 
-                @mouseenter="showTooltip = true" 
-                @mouseleave="showTooltip = false"
-                class="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white"
-                type="button"
-              >
+              <%= @file_name %>
+            </span>
+            <span class="flex pc-chat-bubble__file-details">
+              <%= @file_pages %>
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
+                <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
+              </svg>
+              <%= @file_size %>
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
+                <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
+              </svg>
+              <%= @file_type %>
+            </span>
+          </div>
+          <div class="pc-chat-bubble__download-wrapper" x-data="{ showTooltip: false }">
+            <button 
+              @mouseenter="showTooltip = true" 
+              @mouseleave="showTooltip = false"
+              class="pc-chat-bubble__file-download-button"
+              type="button"
+            >
+              
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-</svg>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
 
-              </button>
-              <div 
-                x-show="showTooltip"
-                x-transition
-                class="absolute bottom-full mb-2 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700 whitespace-nowrap"
-                aria-label="Tooltip text"
-              >
-                Download file
-              </div>
+            </button>
+            <div 
+              x-show="showTooltip"
+              x-transition
+              x-cloak
+              class="pc-chat-bubble__tooltip"
+              aria-label="Tooltip text"
+            >
+              Download file
             </div>
           </div>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        </div>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
-    </div>
   </div>
   """
 end
@@ -623,37 +605,41 @@ defp render_outline_image_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-image-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1 w-full max-w-[326px]">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[326px]">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal text-gray-900 dark:text-white"><%= @message %></p>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
         <div class="flex flex-col w-full leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <div x-data="{ showTooltip: false }" class="group relative border-gray-200 bg-gray-100 p-2 rounded-lg dark:bg-gray-700">
-            <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+          <div x-data="{ showTooltip: false }" class="border-gray-200 bg-gray-100 p-2 rounded-lg dark:bg-gray-700">
+          <div class="group relative">
+            <div class="absolute inset-0 bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
               <button 
                 @mouseenter="showTooltip = true" 
                 @mouseleave="showTooltip = false" 
                 class="inline-flex items-center justify-center rounded-full h-10 w-10 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
               >
                 <svg class="w-5 h-5 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
-                </svg>
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
+                        </svg>
               </button>
               <div 
                 x-show="showTooltip" 
+                x-cloak
                 x-transition 
-                class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
-                    aria-label="Tooltip text"
+                class="pc-chat-bubble__tooltip"
+                aria-label="Tooltip text"
               >
                 Download image
               </div>
             </div>
-            <img src={@image_src} alt={@image_alt} class="rounded-lg" />
+            <img src={@image_src} alt={@image_alt} class="rounded-lg w-full" />
           </div>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+
+        </div>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -674,31 +660,34 @@ defp render_outline_image_gallery(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-image-gallery", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[326px]">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]"><%= @message %></p>
-        <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <!-- Image Grid -->
+        <p class="pc-chat-bubble__message-text max-w-[326px]"><%= @message %></p>
+        <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+          <!-- Image Grid with Tooltips -->
           <div class="grid gap-4 grid-cols-2 my-2.5">
-            <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
-              <div x-data="{ showTooltip: false }" class="group relative">
+            <!-- First 3 Images -->
+              <%= for img <- Enum.take(@images, 3) do %>
+                <div x-data="{ showTooltip: false }" class="group relative">
                 <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
                   <button 
                     @mouseenter="showTooltip = true" 
-                    @mouseleave="showTooltip = false"
-                    class="inline-flex items-center justify-center rounded-full h-8 w-8 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+                    @mouseleave="showTooltip = false" 
+                    class="pc-chat-bubble__gallery-button"
                   >
                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
                       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
                     </svg>
                   </button>
+                  <!-- Alpine.js Tooltip -->
                   <div 
-                    x-show="showTooltip"
-                    x-transition
-                    class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
+                    x-show="showTooltip" 
+                    x-cloak
+                    x-transition 
+                    class="pc-chat-bubble__tooltip"
                     aria-label="Tooltip text"
                   >
                     Download image
@@ -707,8 +696,9 @@ defp render_outline_image_gallery(assigns) do
                 <img src={img} class="rounded-lg" />
               </div>
             <% end %>
+            
             <!-- Extra Images Overlay -->
-            <div x-data="{ showTooltip: false }" class="group relative">
+            <div x-data="{ showTooltip: false }" class="relative">
               <button 
                 @mouseenter="showTooltip = true" 
                 @mouseleave="showTooltip = false"
@@ -716,12 +706,13 @@ defp render_outline_image_gallery(assigns) do
               >
                 <span class="text-xl font-medium text-white">+<%= @extra_images_count %></span>
               </button>
+              <!-- Alpine.js Tooltip -->
               <div 
-                x-show="showTooltip"
-                x-transition
-                class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
-                    aria-label="Tooltip text"
-
+                x-show="showTooltip" 
+                x-cloak
+                x-transition 
+                class="pc-chat-bubble__tooltip"
+                aria-label="Tooltip text"
               >
                 View more
               </div>
@@ -732,17 +723,17 @@ defp render_outline_image_gallery(assigns) do
               <% end %>
             </div>
           </div>
-
           
         <div class="flex justify-end items-center">
-            <button class="text-sm text-blue-700 dark:text-blue-500 font-medium inline-flex items-center hover:underline">
-                <svg class="w-3 h-3 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
-                </svg>
-            Save all</button>
+          <button class="pc-chat-bubble__save-button ">
+              <svg class="w-3 h-3 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
+              </svg>
+              Save all
+          </button>
          </div>
-          </div>
-          <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        </div>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -766,23 +757,23 @@ defp render_outline_url_preview_sharing(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--outline-url-preview", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1 w-full max-w-[320px]">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container w-full max-w-[320px]">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
         <div class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-          <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
-            <a href={@url} class="text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all"><%= @url %></a>
+          <p class="pc-chat-bubble__url">
+            <a href={@url} class="pc-chat-bubble__url a"><%= @url %></a>
           </p>
           <a href={@url} class="flex flex-col items-start hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-            <img class="w-full h-auto object-cover" src={@url_image} alt="">
-            <div class="w-full p-2.5 bg-white dark:bg-gray-800">
-              <p class="text-sm font-medium text-gray-900 dark:text-white"><%= @url_title %></p>
-              <p class="text-xs font-normal text-gray-500 dark:text-gray-400 my-1"><%= @url_description %></p>
-              <span class="flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                <svg class="w-3 h-3 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <img class="pc-chat-bubble__url-image" src={@url_image} alt="">
+            <div class="pc-chat-bubble__url-preview-content">
+              <p class="pc-chat-bubble__url-title"><%= @url_title %></p>
+              <p class="pc-chat-bubble__url-description"><%= @url_description %></p>
+              <span class="pc-chat-bubble__url-domain">
+                <svg class="pc-chat-bubble__url-domain-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M4.083 8.222L8.364 3.94a1.59 1.59 0 0 1 2.25 0l4.279 4.28a1.59 1.59 0 0 1 0 2.251l-4.28 4.28a1.59 1.59 0 0 1-2.25 0l-4.28-4.28a1.591 1.591 0 0 1 0-2.251z"/>
                 </svg>
                 <%= @url_domain %>
@@ -790,7 +781,7 @@ defp render_outline_url_preview_sharing(assigns) do
             </div>
           </a>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -809,13 +800,13 @@ defp render_clean_chat_bubble(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-chat-bubble", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
       <div class="flex flex-col w-full max-w-[320px] leading-1.5">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -833,13 +824,13 @@ defp render_clean_voicenote(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-voicenote", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
       <div class="flex flex-col w-full max-w-[320px] leading-1.5">
         <%= render_header(assigns) %>
         <%= render_waveform(assigns) %>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -861,15 +852,15 @@ defp render_clean_file_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-file-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
       <div class="flex flex-col w-full max-w-[326px] leading-1.5">
         <%= render_header(assigns) %>
-        <div class="flex items-start my-2.5 bg-gray-50 dark:bg-gray-600 rounded-xl p-2">
-          <div class="me-2">
-            <span class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white pb-2">
-              <svg fill="none" aria-hidden="true" class="w-5 h-5 shrink-0" viewBox="0 0 20 21">
+        <div class="pc-chat-bubble__file-container bg-white hover:bg-gray-50 dark:hover:bg-gray-600 ">
+          <div class="pc-chat-bubble__file-content">
+            <span class="flex pc-chat-bubble__file-name">
+              <svg fill="none" aria-hidden="true" class="pc-chat-bubble__file-icon" viewBox="0 0 20 21">
                      <g clip-path="url(#clip0_3173_1381)">
                         <path fill="#E2E5E7" d="M5.024.5c-.688 0-1.25.563-1.25 1.25v17.5c0 .688.562 1.25 1.25 1.25h12.5c.687 0 1.25-.563 1.25-1.25V5.5l-5-5h-8.75z"/>
                         <path fill="#B0B7BD" d="M15.024 5.5h3.75l-5-5v3.75c0 .688.562 1.25 1.25 1.25z"/>
@@ -886,7 +877,7 @@ defp render_clean_file_attachment(assigns) do
                   </svg>
               <%= @file_name %>
             </span>
-            <span class="flex text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
+            <span class="flex pc-chat-bubble__file-details">
               <%= @file_pages %>
               <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
                 <circle cx="1.5" cy="2" r="1.5" fill="#6B7280"/>
@@ -898,30 +889,31 @@ defp render_clean_file_attachment(assigns) do
               <%= @file_type %>
             </span>
           </div>
-          <div class="relative inline-flex self-center items-center" x-data="{ showTooltip: false }">
+          <div class="pc-chat-bubble__download-wrapper" x-data="{ showTooltip: false }">
             <button 
               @mouseenter="showTooltip = true" 
               @mouseleave="showTooltip = false"
-              class="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white"
+              class="pc-chat-bubble__file-download-button"
               type="button"
             >
               
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-</svg>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
 
             </button>
             <div 
               x-show="showTooltip"
               x-transition
-              class="absolute bottom-full mb-2 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700 whitespace-nowrap"
-                    aria-label="Tooltip text"
+              x-cloak
+              class="pc-chat-bubble__tooltip"
+              aria-label="Tooltip text"
             >
               Download file
             </div>
           </div>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -942,41 +934,42 @@ defp render_clean_image_attachment(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-image-attachment", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
       <div class="flex flex-col w-full max-w-[326px] leading-1.5">
         <%= render_header(assigns) %>
-        <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-4">
-          <p class="text-sm font-normal text-gray-900 dark:text-white"><%= @message %></p>
+        <div class="flex flex-col w-full max-w-[326px]">
+          <p class="pc-chat-bubble__message-text"><%= @message %></p>
         </div>
         <div class="my-2.5">
-          <div x-data="{ showTooltip: false }" class="group relative">
+          <div x-data="{ showTooltip: false }" class="relative inline-block group">
             <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
-  <button 
-    @mouseenter="showTooltip = true" 
-    @mouseleave="showTooltip = false" 
-    class="inline-flex items-center justify-center rounded-full h-10 w-10 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
-  >
-    <!-- Heroicons Download Icon -->
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-    </svg>
-  </button>
-  <!-- Tooltip -->
-  <div 
-    x-show="showTooltip" 
-    x-transition 
-    class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
-    aria-label="Tooltip text"
-  >
-    Download image
-  </div>
-</div>
+            <button 
+              @mouseenter="showTooltip = true" 
+              @mouseleave="showTooltip = false" 
+              class="inline-flex items-center justify-center rounded-full h-10 w-10 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+            >
+              <!-- Heroicons Download Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </button>
+                  <!-- Tooltip -->
+                  <div 
+                    x-show="showTooltip" 
+                    x-cloak
+                    x-transition 
+                    class="pc-chat-bubble__tooltip"
+                    aria-label="Tooltip text"
+                  >
+                    Download image
+                  </div>
+                </div>
             <img src={@image_src} alt={@image_alt} class="rounded-lg" />
           </div>
         </div>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
@@ -997,23 +990,23 @@ defp render_clean_image_gallery(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-image-gallery", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
-      <div class="flex flex-col gap-1">
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
+      <div class="pc-chat-bubble__container">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal text-gray-900 dark:text-white max-w-[326px]"><%= @message %></p>
+        <p class="pc-chat-bubble__message-text max-w-[326px]"><%= @message %></p>
         <div class="flex flex-col w-full max-w-[326px] leading-1.5 p-2">
           <!-- Image Grid with Tooltips -->
           <div class="grid gap-4 grid-cols-2 my-2.5">
             <!-- First 3 Images -->
-            <%= for {img, _index} <- Enum.with_index(Enum.take(@images, 3)) do %>
+              <%= for img <- Enum.take(@images, 3) do %>
               <div x-data="{ showTooltip: false }" class="group relative">
                 <div class="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
                   <button 
                     @mouseenter="showTooltip = true" 
                     @mouseleave="showTooltip = false" 
-                    class="inline-flex items-center justify-center rounded-full h-8 w-8 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
+                    class="pc-chat-bubble__gallery-button"
                   >
                     <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
                       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
@@ -1021,9 +1014,10 @@ defp render_clean_image_gallery(assigns) do
                   </button>
                   <!-- Alpine.js Tooltip -->
                   <div 
-                    x-show="showTooltip"
-                    x-transition
-                    class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
+                    x-show="showTooltip" 
+                    x-cloak
+                    x-transition 
+                    class="pc-chat-bubble__tooltip"
                     aria-label="Tooltip text"
                   >
                     Download image
@@ -1034,7 +1028,7 @@ defp render_clean_image_gallery(assigns) do
             <% end %>
             
             <!-- Extra Images Overlay -->
-            <div x-data="{ showTooltip: false }" class="group relative">
+            <div x-data="{ showTooltip: false }" class="relative">
               <button 
                 @mouseenter="showTooltip = true" 
                 @mouseleave="showTooltip = false"
@@ -1042,10 +1036,12 @@ defp render_clean_image_gallery(assigns) do
               >
                 <span class="text-xl font-medium text-white">+<%= @extra_images_count %></span>
               </button>
+              <!-- Alpine.js Tooltip -->
               <div 
-                x-show="showTooltip"
-                x-transition
-                class="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700"
+                x-show="showTooltip" 
+                x-cloak
+                x-transition 
+                class="pc-chat-bubble__tooltip"
                 aria-label="Tooltip text"
               >
                 View more
@@ -1058,15 +1054,14 @@ defp render_clean_image_gallery(assigns) do
             </div>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
-            <button class="text-sm text-blue-700 dark:text-blue-500 font-medium inline-flex items-center hover:underline">
+            <span class="pc-chat-bubble__delivered">Delivered</span>
+            <button class="pc-chat-bubble__save-button ">
               <svg class="w-3 h-3 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
-                </svg>
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
+              </svg>
               Save all
             </button>
           </div>
-        
         </div>
       </div>
     </div>
@@ -1091,29 +1086,29 @@ defp render_clean_url_preview_sharing(assigns) do
     |> assign(:rest, assigns[:rest])
 
   ~H"""
-  <div {@rest} class={["pc-chat-bubble", "pc-chat-bubble--clean-url-preview", @class]}>
-    <div class="flex items-start gap-2.5">
-      <img class="w-8 h-8 rounded-full" src={@avatar_src} alt={@avatar_alt}>
+  <div {@rest} class={["pc-chat-bubble", @class]}>
+    <div class="pc-chat-bubble">
+      <img class="pc-chat-bubble__avatar" src={@avatar_src} alt={@avatar_alt}>
       <div class="flex flex-col w-full max-w-[320px] leading-1.5">
         <%= render_header(assigns) %>
-        <p class="text-sm font-normal py-2.5 text-gray-900 dark:text-white"><%= @message %></p>
-        <p class="text-sm font-normal pb-2.5 text-gray-900 dark:text-white">
-          <a href={@url} class="text-blue-700 dark:text-blue-500 underline hover:no-underline font-medium break-all"><%= @url %></a>
+        <p class="pc-chat-bubble__message-text"><%= @message %></p>
+        <p class="pc-chat-bubble__url">
+          <a href={@url} class="pc-chat-bubble__url a"><%= @url %></a>
         </p>
         <a href={@url} class="flex flex-col items-start my-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-          <img class="w-full h-auto object-cover" src={@url_image} alt="">
-          <div class="w-full p-2.5 bg-white dark:bg-gray-800">
-            <p class="text-sm font-medium text-gray-900 dark:text-white"><%= @url_title %></p>
-            <p class="text-xs font-normal text-gray-500 dark:text-gray-400 my-1"><%= @url_description %></p>
-            <span class="flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-              <svg class="w-3 h-3 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <img class="pc-chat-bubble__url-image" src={@url_image} alt="">
+          <div class="pc-chat-bubble__url-preview-content">
+            <p class="pc-chat-bubble__url-title"><%= @url_title %></p>
+            <p class="pc-chat-bubble__url-description"><%= @url_description %></p>
+            <span class="pc-chat-bubble__url-domain">
+              <svg class="pc-chat-bubble__url-domain-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4.083 8.222L8.364 3.94a1.59 1.59 0 0 1 2.25 0l4.279 4.28a1.59 1.59 0 0 1 0 2.251l-4.28 4.28a1.59 1.59 0 0 1-2.25 0l-4.28-4.28a1.591 1.591 0 0 1 0-2.251z"/>
               </svg>
               <%= @url_domain %>
             </span>
           </div>
         </a>
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Delivered</span>
+        <span class="pc-chat-bubble__delivered">Delivered</span>
       </div>
     </div>
   </div>
