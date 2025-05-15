@@ -1051,6 +1051,24 @@
   .pc-checkbox-group__item--col {
     @apply inline-flex items-center gap-3 cursor-pointer;
   }
+  .pc-radio {
+    @apply w-4 h-4 border-gray-300 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
+  }
+  .pc-radio-group {
+    @apply pt-2;
+  }
+  .pc-radio-group--row {
+    @apply flex flex-row gap-4 mb-3;
+  }
+  .pc-radio-group--col {
+    @apply flex flex-col gap-4 mb-3;
+  }
+  .pc-radio-group__item--row {
+    @apply inline-flex items-center gap-2 cursor-pointer;
+  }
+  .pc-radio-group__item--col {
+    @apply inline-flex items-center gap-3 cursor-pointer;
+  }
   .pc-checkbox-group--empty-message,
   .pc-radio-group--empty-message {
     @apply text-sm;
@@ -2499,7 +2517,7 @@
   .pc-vertical-menu-item__icon--inactive {
     @apply shrink-0 w-5 h-5;
   }
-
+  
   /* Chat Bubble */
 
   .pc-chat-bubble {
@@ -2647,13 +2665,6 @@
     @apply absolute -top-10 left-1/2 transform -translate-x-1/2 z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-xs dark:bg-gray-700;
   }
 
-   /* Chat bubble Alpine.js tooltip */
-   [x-cloak] {
-    display: none;
-  }
-
-}
-
   /* Other */
 
   /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
@@ -2697,7 +2708,7 @@
     display: block;
     padding: 0;
   }
-
+}
 
 /*
   Hide the calendar icon added by Petal in Firefox since Firefox includes one
