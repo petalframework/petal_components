@@ -117,17 +117,6 @@ defmodule PetalComponents.Carousel do
             ),
             slide[:class]
           ]}
-          style={
-            if @transition_type == "fade" do
-              if index == @active_index,
-                do: "opacity: 1; z-index: 10;",
-                else: "opacity: 0; z-index: 0;"
-            else
-              if index == @active_index,
-                do: "opacity: 1; z-index: 10; transform: translateX(0);",
-                else: "opacity: 0; z-index: 0; transform: translateX(100%);"
-            end
-          }
         >
           <.slide_content
             slide={slide}
@@ -184,17 +173,19 @@ defmodule PetalComponents.Carousel do
   defp text_position_class("center"), do: "[&_.description-wrapper]:text-center"
   defp text_position_class("end"), do: "[&_.description-wrapper]:text-end"
   defp text_position_class(_), do: ""
-  
+
   defp slide_content(assigns) do
-    content_position_class = case Map.get(assigns, :slide)[:content_position] do
-      "start" -> "items-start justify-start text-left"
-      "end" -> "items-end justify-end text-right"
-      "center" -> "items-center justify-center text-center"
-      _ -> "items-center justify-center text-center" # Default to center
-    end
-    
+    content_position_class =
+      case Map.get(assigns, :slide)[:content_position] do
+        "start" -> "items-start justify-start text-left"
+        "end" -> "items-end justify-end text-right"
+        "center" -> "items-center justify-center text-center"
+        # Default to center
+        _ -> "items-center justify-center text-center"
+      end
+
     assigns = assign(assigns, :content_position_class, content_position_class)
-    
+
     ~H"""
     <div class="pc-carousel__slide-content">
       <div :if={!is_nil(@image)} class="pc-carousel__image-wrapper">
@@ -211,7 +202,7 @@ defmodule PetalComponents.Carousel do
         </div>
       </div>
     </div>
-    
+
     <%= if @navigate do %>
       <a href={@navigate} class="pc-carousel__link">
         <span class="sr-only">View slide details</span>

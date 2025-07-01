@@ -27,7 +27,7 @@
   }
 
   .pc-carousel__slide {
-    @apply absolute top-0 left-0 w-full h-full bg-white;
+    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out bg-white;
     will-change: transform, opacity;
   }
 
@@ -36,28 +36,32 @@
   }
 
   .pc-carousel__slide--inactive {
-    @apply z-0 opacity-0;
+    @apply z-0;
   }
 
-  /* Slide transition specific styles */
+  /* Slide transition specific styles - CSS Scroll Snap approach */
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
-    @apply overflow-hidden;
+    @apply flex overflow-auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    column-gap: 0;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
   }
 
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slide {
-    @apply transition-transform duration-500 ease-in-out;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    width: 100%;
   }
 
-  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--active {
-    @apply translate-x-0;
-  }
-
-  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--inactive {
-    @apply translate-x-full;
-  }
-
-  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide--inactive.prev {
-    @apply -translate-x-full;
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
+    scroll-behavior: smooth;
   }
 
   /* Fade transition specific styles */
