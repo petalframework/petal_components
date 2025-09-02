@@ -49,6 +49,7 @@ defmodule PetalComponents.MixProject do
       {:wallaby, "~> 0.30.9", runtime: false, only: :test},
       {:phoenix, "~> 1.7"},
       {:phoenix_live_view, "~> 1.0"},
+      {:lazy_html, ">= 0.0.0", only: :test},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:jason, "~> 1.2", only: [:dev, :test]},
