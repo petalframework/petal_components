@@ -18,7 +18,7 @@ defmodule PetalComponents.Badge do
 
   def badge(assigns) do
     ~H"""
-    <badge
+    <span
       {@rest}
       role={@role}
       class={[
@@ -30,7 +30,7 @@ defmodule PetalComponents.Badge do
       ]}
     >
       {render_slot(@inner_block) || @label}
-    </badge>
+    </span>
     """
   end
 end
