@@ -416,27 +416,31 @@ defmodule PetalComponents.FormTest do
     assigns = %{}
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} as={:user} for={%{}}>
         <.form_field type="text_input" form={f} field={:name} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='text']") != []
+    assert LazyHTML.query(html, "label.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='text']") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="time_input" form={f} field={:name} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='time']") != []
+    assert LazyHTML.query(html, "label.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='time']") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field
           type="checkbox_group"
@@ -445,13 +449,15 @@ defmodule PetalComponents.FormTest do
           options={[{"Read", "read"}, {"Write", "write"}]}
         />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "span.pc-label") != []
-    assert Floki.find(html, "input[type='checkbox']") != []
+    assert LazyHTML.query(html, "span.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='checkbox']") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field
           type="radio_group"
@@ -460,61 +466,73 @@ defmodule PetalComponents.FormTest do
           options={[{"Read", "read"}, {"Write", "write"}]}
         />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "span.pc-label") != []
-    assert Floki.find(html, "input[type='radio']") != []
+    assert LazyHTML.query(html, "span.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='radio']") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="time_select" form={f} field={:time} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "span.pc-label") != []
-    html =~ "<select"
+    assert LazyHTML.query(html, "span.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "select") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="datetime_select" form={f} field={:date_time} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "span.pc-label") != []
-    html =~ "<select"
+    assert LazyHTML.query(html, "span.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "select") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="datetime_local_input" form={f} field={:date_time} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='datetime-local']") != []
+    assert LazyHTML.query(html, "label.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='datetime-local']") |> Enum.any?()
 
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="date_select" form={f} field={:date} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "span.pc-label") != []
-    html =~ "<select"
+    assert LazyHTML.query(html, "span.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "select") |> Enum.any?()
 
     # Date input
     html =
-      rendered_to_string(~H"""
+      ~H"""
       <.form :let={f} for={%{}} as={:user}>
         <.form_field type="date_input" form={f} field={:date} />
       </.form>
-      """)
+      """
+      |> rendered_to_string()
+      |> LazyHTML.from_fragment()
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='date']") != []
+    assert LazyHTML.query(html, "label.pc-label") |> Enum.any?()
+    assert LazyHTML.query(html, "input[type='date']") |> Enum.any?()
   end
 
   test "form_field checkbox_group label" do

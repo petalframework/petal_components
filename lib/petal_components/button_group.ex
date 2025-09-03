@@ -94,7 +94,7 @@ defmodule PetalComponents.ButtonGroup do
         button_border_class={@button_border_class}
         {group_btn_assigns}
       >
-        <%= if is_function(group_btn_assigns.inner_block) do %>
+        <%= if group_btn_assigns[:inner_block] do %>
           {render_slot(group_btn_assigns)}
         <% else %>
           {group_btn_assigns.label}

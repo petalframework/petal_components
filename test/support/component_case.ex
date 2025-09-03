@@ -17,12 +17,28 @@ defmodule ComponentCase do
         string |> String.split(substring) |> Enum.count() |> Kernel.-(1)
       end
 
+      defp find_icon(html) when is_binary(html) do
+        LazyHTML.from_fragment(html)
+        |> LazyHTML.query("span[class^=hero]")
+        |> Enum.any?()
+      end
+
       defp find_icon(html) do
-        Floki.find(html, "span[class^=hero]") != []
+        html
+        |> LazyHTML.query("span[class^=hero]")
+        |> Enum.any?()
+      end
+
+      defp find_icon(html, class) when is_binary(html) do
+        LazyHTML.from_fragment(html)
+        |> LazyHTML.query("span.#{class}")
+        |> Enum.any?()
       end
 
       defp find_icon(html, class) do
-        Floki.find(html, "span.#{class}") != []
+        html
+        |> LazyHTML.query("span.#{class}")
+        |> Enum.any?()
       end
     end
   end
