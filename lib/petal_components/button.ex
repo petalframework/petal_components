@@ -5,8 +5,6 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Link
   import PetalComponents.Icon
 
-  require Logger
-
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
 
   attr :radius, :string,
@@ -148,27 +146,28 @@ defmodule PetalComponents.Button do
     """
   end
 
-  defp button_classes(opts) do
-    opts = %{
-      size: opts[:size] || "md",
-      radius: opts[:radius] || "md",
-      variant: opts[:variant] || "solid",
-      color: opts[:color] || "primary",
-      loading: opts[:loading] || false,
-      disabled: opts[:disabled] || false,
-      with_icon: opts[:with_icon] || opts[:icon] || false,
-      user_added_classes: opts[:class] || ""
-    }
+  defp button_classes(assigns) do
+    size = assigns[:size] || "md"
+    radius = assigns[:radius] || "md"
+    variant = assigns[:variant] || "solid"
+    color = assigns[:color] || "primary"
+    loading = assigns[:loading] || false
+    disabled = assigns[:disabled] || false
+    with_icon = assigns[:with_icon] || assigns[:icon] || false
+    user_classes = assigns[:class] || ""
+
+    color_class = "pc-button--#{String.replace(color, "_", "-")}"
+    variant_suffix = if variant == "solid", do: "", else: "-#{variant}"
 
     [
       "pc-button",
-      "pc-button--#{String.replace(opts.color, "_", "-")}#{if opts.variant == "solid", do: "", else: "-#{opts.variant}"}",
-      "pc-button--#{opts.size}",
-      "pc-button--radius-#{opts.radius}",
-      opts.user_added_classes,
-      opts.loading && "pc-button--loading",
-      opts.disabled && "pc-button--disabled",
-      opts.with_icon && "pc-button--with-icon"
+      "#{color_class}#{variant_suffix}",
+      "pc-button--#{size}",
+      "pc-button--radius-#{radius}",
+      user_classes,
+      loading && "pc-button--loading",
+      disabled && "pc-button--disabled",
+      with_icon && "pc-button--with-icon"
     ]
   end
 end
