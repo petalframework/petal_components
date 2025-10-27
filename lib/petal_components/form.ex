@@ -119,121 +119,185 @@ defmodule PetalComponents.Form do
 
     ~H"""
     <div class={@wrapper_classes}>
-      <%= case @type do %>
-        <% "checkbox" -> %>
-          <label class="pc-checkbox-label">
-            <.checkbox form={@form} field={@field} {@rest} />
-            <div class={
-              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
-            }>
-              {@label}
-            </div>
-          </label>
-        <% "switch" -> %>
-          <label class="pc-checkbox-label">
-            <.switch form={@form} field={@field} {@rest} />
-            <div class={
-              label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
-            }>
-              {@label}
-            </div>
-          </label>
-        <% "checkbox_group" -> %>
-          <.form_label
-            form={@form}
-            field={@field}
-            label={@label}
-            class={@label_class}
-            compound={true}
-          />
-          <.checkbox_group form={@form} field={@field} {@rest} />
-        <% "radio_group" -> %>
-          <.form_label
-            form={@form}
-            field={@field}
-            label={@label}
-            class={@label_class}
-            compound={true}
-          />
-          <.radio_group form={@form} field={@field} {@rest} />
-        <% "text_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.text_input form={@form} field={@field} {@rest} />
-        <% "email_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.email_input form={@form} field={@field} {@rest} />
-        <% "number_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.number_input form={@form} field={@field} {@rest} />
-        <% "password_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.password_input form={@form} field={@field} {@rest} />
-        <% "search_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.search_input form={@form} field={@field} {@rest} />
-        <% "telephone_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.telephone_input form={@form} field={@field} {@rest} />
-        <% "url_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.url_input form={@form} field={@field} {@rest} />
-        <% "time_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.time_input form={@form} field={@field} {@rest} />
-        <% "time_select" -> %>
-          <.form_label
-            form={@form}
-            field={@field}
-            label={@label}
-            class={@label_class}
-            compound={true}
-          />
-          <.time_select form={@form} field={@field} {@rest} />
-        <% "datetime_select" -> %>
-          <.form_label
-            form={@form}
-            field={@field}
-            label={@label}
-            class={@label_class}
-            compound={true}
-          />
-          <.datetime_select form={@form} field={@field} {@rest} />
-        <% "datetime_local_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.datetime_local_input form={@form} field={@field} {@rest} />
-        <% "date_select" -> %>
-          <.form_label
-            form={@form}
-            field={@field}
-            label={@label}
-            class={@label_class}
-            compound={true}
-          />
-          <.date_select form={@form} field={@field} {@rest} />
-        <% "date_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.date_input form={@form} field={@field} {@rest} />
-        <% "color_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.color_input form={@form} field={@field} {@rest} />
-        <% "file_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.file_input form={@form} field={@field} {@rest} />
-        <% "range_input" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.range_input form={@form} field={@field} {@rest} />
-        <% "textarea" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.textarea form={@form} field={@field} {@rest} />
-        <% "select" -> %>
-          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <.select form={@form} field={@field} {@rest} />
-      <% end %>
-
+      <.render_form_field_by_type {assigns} />
       <.form_field_error form={@form} field={@field} />
       <.form_help_text help_text={@help_text} />
     </div>
     """
+  end
+
+  defp render_form_field_by_type(%{type: "checkbox"} = assigns) do
+    ~H"""
+    <label class="pc-checkbox-label">
+      <.checkbox form={@form} field={@field} {@rest} />
+      <div class={
+        label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+      }>
+        {@label}
+      </div>
+    </label>
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "switch"} = assigns) do
+    ~H"""
+    <label class="pc-checkbox-label">
+      <.switch form={@form} field={@field} {@rest} />
+      <div class={
+        label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
+      }>
+        {@label}
+      </div>
+    </label>
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "checkbox_group"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} compound={true} />
+    <.checkbox_group form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "radio_group"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} compound={true} />
+    <.radio_group form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "time_select"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} compound={true} />
+    <.time_select form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "datetime_select"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} compound={true} />
+    <.datetime_select form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "date_select"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} compound={true} />
+    <.date_select form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "text_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.text_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "email_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.email_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "number_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.number_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "password_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.password_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "search_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.search_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "telephone_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.telephone_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "url_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.url_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "time_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.time_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "datetime_local_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.datetime_local_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "date_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.date_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "color_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.color_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "file_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.file_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "range_input"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.range_input form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "textarea"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.textarea form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_form_field_by_type(%{type: "select"} = assigns) do
+    ~H"""
+    <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+    <.select form={@form} field={@field} {@rest} />
+    """
+  end
+
+  defp render_basic_input(form_function, %{form: form, field: field} = assigns) do
+    errors = used_input_errors(assigns)
+    classes = [text_input_classes(errors), assigns[:class]]
+    rest = Map.get(assigns, :rest, %{})
+
+    form_function.(form, field, [class: classes] ++ Map.to_list(rest))
   end
 
   attr(:form, :any, default: nil, doc: "")
@@ -243,101 +307,44 @@ defmodule PetalComponents.Form do
   attr(:rest, :global, include: @form_attrs)
 
   def text_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.text_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.text_input/3, assigns)}
     """
   end
-
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
 
   def email_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.email_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.email_input/3, assigns)}
     """
   end
-
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
 
   def number_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.number_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.number_input/3, assigns)}
     """
   end
-
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
 
   def password_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.password_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.password_input/3, assigns)}
     """
   end
-
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
 
   def search_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.search_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.search_input/3, assigns)}
     """
   end
-
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
 
   def telephone_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.telephone_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.telephone_input/3, assigns)}
     """
   end
 
-  attr(:form, :any, default: nil, doc: "")
-  attr(:field, :atom, default: nil, doc: "")
-  attr(:label, :string, default: nil, doc: "labels your field")
-  attr(:class, :any, default: nil, doc: "extra classes for the text input")
-  attr(:rest, :global, include: @form_attrs)
-
   def url_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.url_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.url_input/3, assigns)}
     """
   end
 
@@ -352,7 +359,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, text_input_classes(errors))
 
     ~H"""
-    {Form.time_input(@form, @field, [class: @classes, bob: "yo"] ++ Map.to_list(@rest))}
+    {Form.time_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
     """
   end
 
@@ -380,11 +387,8 @@ defmodule PetalComponents.Form do
   attr(:rest, :global, include: @form_attrs)
 
   def datetime_local_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.datetime_local_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.datetime_local_input/3, assigns)}
     """
   end
 
@@ -429,11 +433,8 @@ defmodule PetalComponents.Form do
   attr(:rest, :global, include: @form_attrs)
 
   def date_input(assigns) do
-    errors = used_input_errors(assigns)
-    assigns = assign_defaults(assigns, text_input_classes(errors))
-
     ~H"""
-    {Form.date_input(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
+    {render_basic_input(&Form.date_input/3, assigns)}
     """
   end
 
@@ -710,8 +711,6 @@ defmodule PetalComponents.Form do
   end
 
   defp translate_error({msg, opts}) do
-    # Because the error messages we show in our forms and APIs
-    # are defined inside Ecto, we need to translate them dynamically.
     Enum.reduce(opts, msg, fn {key, value}, acc ->
       try do
         String.replace(acc, "%{#{key}}", to_string(value))
