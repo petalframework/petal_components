@@ -15,6 +15,8 @@ defmodule PetalComponents.Progress do
   attr(:rest, :global)
 
   def progress(assigns) do
+    assigns = assign(assigns, :percentage, calculate_percentage(assigns.value, assigns.max))
+
     ~H"""
     <div
       {@rest}
@@ -27,7 +29,7 @@ defmodule PetalComponents.Progress do
     >
       <span
         class={["pc-progress__inner--#{@color}", "pc-progress__inner"]}
-        style={"width: #{Float.round(@value/@max*100, 2)}%"}
+        style={"width: #{@percentage}%"}
       >
         <%= if @size == "xl" do %>
           <span class="pc-progress__label">
@@ -37,5 +39,10 @@ defmodule PetalComponents.Progress do
       </span>
     </div>
     """
+  end
+
+  defp calculate_percentage(_value, 0), do: 0.0
+  defp calculate_percentage(value, max) when max > 0 do
+    Float.round(value / max * 100, 2)
   end
 end
