@@ -50,10 +50,10 @@ defmodule PetalComponents.Rating do
     """
   end
 
-  def to_float(value) when is_integer(value), do: value + 0.0
-  def to_float(value) when is_float(value), do: value
+  defp to_float(value) when is_integer(value), do: value + 0.0
+  defp to_float(value) when is_float(value), do: value
 
-  def round_to_half(number) do
+  defp round_to_half(number) do
     round(number * 2) / 2
   end
 
