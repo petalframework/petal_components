@@ -13,7 +13,7 @@ defmodule PetalComponents.Icon do
 
     {:heroicons,
       github: "tailwindlabs/heroicons",
-      tag: "v2.1.5",
+      tag: "v2.2.0",
       app: false,
       compile: false,
       sparse: "optimized"}
