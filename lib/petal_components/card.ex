@@ -57,7 +57,7 @@ defmodule PetalComponents.Card do
         {@heading}
       </div>
 
-      {render_slot(@inner_block) || @label}
+      {render_slot(@inner_block)}
     </div>
     """
   end
