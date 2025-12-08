@@ -25,8 +25,18 @@ defmodule PetalComponents.Carousel do
 
   ## Examples
 
+  ### Basic carousel with bar indicators (default)
   ```elixir
   <.carousel id="carousel-test-one" transition_type="fade" indicator={true}>
+    <:slide title="Slide 1" />
+    <:slide title="Slide 2" />
+    <:slide title="Slide 3" />
+  </.carousel>
+  ```
+
+  ### Carousel with circular dot indicators
+  ```elixir
+  <.carousel id="carousel-test-two" transition_type="slide" indicator={true} indicator_style="dots">
     <:slide title="Slide 1" />
     <:slide title="Slide 2" />
     <:slide title="Slide 3" />
@@ -41,6 +51,11 @@ defmodule PetalComponents.Carousel do
   attr :text_position, :string, default: "center", doc: "Determines the element's text position"
   attr :rest, :global, doc: "Global attributes can define defaults"
   attr :indicator, :boolean, default: false, doc: "Specifies whether to show element indicators"
+
+  attr :indicator_style, :string,
+    default: "bars",
+    doc: "Style of indicators: 'bars' (horizontal bars) or 'dots' (circular dots)"
+
   attr :control, :boolean, default: true, doc: "Determines whether to show navigation controls"
   attr :active_index, :integer, default: 0, doc: "Index of the active slide (starts at 0)"
   attr :autoplay, :boolean, default: false, doc: "Enable or disable autoplay functionality"
@@ -165,7 +180,7 @@ defmodule PetalComponents.Carousel do
           </div>
         </div>
 
-        <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} />
+        <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} style={@indicator_style} />
       </div>
 
       <div :if={@control && @button_style == "below"} class="pc-carousel__controls pc-carousel__controls--below">
@@ -199,13 +214,17 @@ defmodule PetalComponents.Carousel do
   end
 
   defp slide_indicators(assigns) do
+    indicator_class = indicator_style_class(assigns.style)
+
+    assigns = assign(assigns, :indicator_class, indicator_class)
+
     ~H"""
     <div id={"#{@id}-carousel-slide-indicator"} class="pc-carousel__indicators">
       <button
         :for={indicator_item <- 1..@count}
         id={"#{@id}-carousel-indicator-#{indicator_item}"}
         data-indicator-index={"#{indicator_item - 1}"}
-        class="pc-carousel__indicator"
+        class={["pc-carousel__indicator", @indicator_class]}
         aria-label={"Slide #{indicator_item}"}
       />
     </div>
@@ -256,6 +275,11 @@ defmodule PetalComponents.Carousel do
   defp slide_rounded_class("3xl"), do: "rounded-3xl"
   defp slide_rounded_class("full"), do: "rounded-full"
   defp slide_rounded_class(_), do: ""
+
+  defp indicator_style_class("dots"), do: "pc-carousel__indicator--dots"
+  defp indicator_style_class("circles"), do: "pc-carousel__indicator--dots"
+  defp indicator_style_class("bars"), do: "pc-carousel__indicator--bars"
+  defp indicator_style_class(_), do: "pc-carousel__indicator--bars"
 
   defp slide_content(assigns) do
     content_position_class =

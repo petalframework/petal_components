@@ -341,7 +341,9 @@ defmodule PetalComponents.CarouselTest do
         </.carousel>
         """)
 
-      assert html =~ "[&amp;_.pc-carousel__image]:rounded-#{rounded}"
+      # Check that the rounded class is applied to the slide-content div
+      assert html =~ "rounded-#{rounded}"
+      assert html =~ "pc-carousel__slide-content"
     end)
   end
 
@@ -438,7 +440,7 @@ defmodule PetalComponents.CarouselTest do
   test "Carousel indicators" do
     assigns = %{}
 
-    # With indicators
+    # With indicators (default bars style)
     html =
       rendered_to_string(~H"""
       <.carousel id="test-ind" indicator={true}>
@@ -449,6 +451,7 @@ defmodule PetalComponents.CarouselTest do
 
     assert html =~ "pc-carousel__indicators"
     assert html =~ "pc-carousel__indicator"
+    assert html =~ "pc-carousel__indicator--bars"
 
     # Without indicators
     html =
@@ -459,6 +462,45 @@ defmodule PetalComponents.CarouselTest do
       """)
 
     refute html =~ "pc-carousel__indicators"
+  end
+
+  test "Carousel indicator styles" do
+    assigns = %{}
+
+    # Bar indicators (default)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-ind-bars" indicator={true} indicator_style="bars">
+        <:slide image="https://example.com/image1.jpg" />
+        <:slide image="https://example.com/image2.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__indicator--bars"
+    refute html =~ "pc-carousel__indicator--dots"
+
+    # Dot indicators
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-ind-dots" indicator={true} indicator_style="dots">
+        <:slide image="https://example.com/image1.jpg" />
+        <:slide image="https://example.com/image2.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__indicator--dots"
+    refute html =~ "pc-carousel__indicator--bars"
+
+    # Circles (should map to dots)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-ind-circles" indicator={true} indicator_style="circles">
+        <:slide image="https://example.com/image1.jpg" />
+        <:slide image="https://example.com/image2.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__indicator--dots"
   end
 
   # Hook and Transition Tests

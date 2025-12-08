@@ -77,7 +77,7 @@
   }
 
   .pc-carousel__slide {
-    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out bg-white;
+    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out;
     will-change: transform, opacity;
   }
 
@@ -175,7 +175,15 @@
   }
 
   .pc-carousel__indicator {
-    @apply w-6 h-1 transition-all duration-500 ease-in-out opacity-50 bg-gray-50 hover:opacity-100;
+    @apply transition-all duration-500 ease-in-out opacity-50 bg-gray-50 hover:opacity-100;
+  }
+
+  .pc-carousel__indicator--bars {
+    @apply w-6 h-1;
+  }
+
+  .pc-carousel__indicator--dots {
+    @apply w-2.5 h-2.5 rounded-full;
   }
 
   /* Container */
