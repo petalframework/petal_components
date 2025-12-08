@@ -606,6 +606,130 @@ defmodule PetalComponents.CarouselTest do
     assert html =~ "[&amp;_.pc-carousel__slide]:transition-transform"
   end
 
+  # Vertical Orientation Tests
+  test "Carousel with vertical orientation" do
+    assigns = %{}
+
+    # Vertical orientation with default settings
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-vertical" orientation="vertical">
+        <:slide image="https://example.com/image1.jpg" title="Slide 1" />
+        <:slide image="https://example.com/image2.jpg" title="Slide 2" />
+      </.carousel>
+      """)
+
+    # Check for vertical orientation classes
+    assert html =~ "pc-carousel--vertical"
+    assert html =~ "pc-carousel-wrapper--vertical"
+
+    # Check for vertical button icons (chevron-up and chevron-down)
+    assert html =~ "hero-chevron-up"
+    assert html =~ "hero-chevron-down"
+    refute html =~ "hero-chevron-left"
+    refute html =~ "hero-chevron-right"
+
+    # Check for vertical aria-labels
+    assert html =~ "Previous slide (up)"
+    assert html =~ "Next slide (down)"
+    refute html =~ "aria-label=\"Previous slide\""
+    refute html =~ "aria-label=\"Next slide\""
+  end
+
+  test "Carousel with vertical orientation and overlay gradient" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-vertical-gradient" orientation="vertical" overlay_gradient={true}>
+        <:slide image="https://example.com/image1.jpg" />
+        <:slide image="https://example.com/image2.jpg" />
+      </.carousel>
+      """)
+
+    # Check for vertical gradient overlays (top/bottom instead of left/right)
+    assert html =~ "pc-gradient-overlay-top"
+    assert html =~ "pc-gradient-overlay-bottom"
+    refute html =~ "pc-gradient-overlay-left"
+    refute html =~ "pc-gradient-overlay-right"
+  end
+
+  test "Carousel vertical orientation with different button styles" do
+    assigns = %{}
+
+    # Vertical with overlay buttons
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-vert-overlay" orientation="vertical" button_style="overlay">
+        <:slide image="https://example.com/image1.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__button--overlay"
+    assert html =~ "hero-chevron-up"
+    assert html =~ "hero-chevron-down"
+
+    # Vertical with below buttons
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-vert-below" orientation="vertical" button_style="below">
+        <:slide image="https://example.com/image1.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__button--below"
+    assert html =~ "hero-chevron-up"
+    assert html =~ "hero-chevron-down"
+
+    # Vertical with sides buttons
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-vert-sides" orientation="vertical" button_style="sides">
+        <:slide image="https://example.com/image1.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__button--sides"
+    assert html =~ "pc-carousel-wrapper--vertical"
+    assert html =~ "hero-chevron-up"
+    assert html =~ "hero-chevron-down"
+  end
+
+  test "Carousel horizontal orientation (default)" do
+    assigns = %{}
+
+    # Default horizontal orientation
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-horizontal">
+        <:slide image="https://example.com/image1.jpg" title="Slide 1" />
+      </.carousel>
+      """)
+
+    # Should NOT have vertical classes
+    refute html =~ "pc-carousel--vertical"
+    refute html =~ "pc-carousel-wrapper--vertical"
+
+    # Should have horizontal button icons
+    assert html =~ "hero-chevron-left"
+    assert html =~ "hero-chevron-right"
+    refute html =~ "hero-chevron-up"
+    refute html =~ "hero-chevron-down"
+
+    # Check for horizontal gradient overlays (when enabled)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-horiz-gradient" orientation="horizontal" overlay_gradient={true}>
+        <:slide image="https://example.com/image1.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-gradient-overlay-left"
+    assert html =~ "pc-gradient-overlay-right"
+    refute html =~ "pc-gradient-overlay-top"
+    refute html =~ "pc-gradient-overlay-bottom"
+  end
+
   # Edge Cases
   test "Carousel edge cases" do
     assigns = %{}

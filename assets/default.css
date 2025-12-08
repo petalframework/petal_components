@@ -23,6 +23,11 @@
     @apply flex-1;
   }
 
+  /* Vertical carousel with sides buttons should maintain fixed height */
+  .pc-carousel-wrapper--vertical.pc-carousel-wrapper--sides .pc-carousel {
+    @apply flex-none h-96;
+  }
+
   /* Overlay button styles - inspired by Embla Carousel */
   .pc-carousel__button--overlay {
     @apply absolute top-1/2 -translate-y-1/2 z-[100] w-14 h-14 rounded-full;
@@ -135,6 +140,38 @@
   /* When showing multiple slides, add gaps and adjust sizing */
   .pc-carousel--sides-buttons[data-transition-type="slide"] .pc-carousel__slides {
     gap: var(--carousel-gap, 1rem);
+  }
+
+  /* Vertical orientation */
+  .pc-carousel--vertical {
+    @apply h-96 w-full;
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides {
+    @apply flex-col overflow-y-auto;
+    scroll-snap-type: y mandatory;
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slide {
+    @apply min-h-full;
+    min-width: auto;
+  }
+
+  /* Vertical fade transition needs explicit dimensions */
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slides {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slide {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel-wrapper--vertical {
+    @apply flex flex-col;
+  }
+
+  .pc-carousel-wrapper--vertical .pc-carousel__button--sides {
+    @apply relative mx-auto my-2;
   }
 
   .pc-carousel__slide-content {

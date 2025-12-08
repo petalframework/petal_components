@@ -91,6 +91,11 @@ defmodule PetalComponents.Carousel do
     default: false,
     doc: "Add gradient overlay at edges (especially useful for multi-slide views)"
 
+  attr :orientation, :string,
+    default: "horizontal",
+    values: ["horizontal", "vertical"],
+    doc: "Orientation of the carousel: 'horizontal' (default) or 'vertical'"
+
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
@@ -106,16 +111,17 @@ defmodule PetalComponents.Carousel do
       assigns
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
+      |> assign_new(:is_vertical, fn -> assigns.orientation == "vertical" end)
 
     ~H"""
-    <div class={["pc-carousel-wrapper", button_wrapper_class(@button_style)]}>
+    <div class={["pc-carousel-wrapper", button_wrapper_class(@button_style), @is_vertical && "pc-carousel-wrapper--vertical"]}>
       <button
         :if={@control && @button_style == "sides"}
         id={"#{@id}-carousel-prev"}
         class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--sides"
-        aria-label="Previous slide"
+        aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
       >
-        <.icon name="hero-chevron-left" class="w-4 h-4" />
+        <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-4 h-4" />
       </button>
 
       <div
@@ -137,6 +143,7 @@ defmodule PetalComponents.Carousel do
           padding_class(@padding),
           text_position_class(@text_position),
           button_style_class(@button_style),
+          @is_vertical && "pc-carousel--vertical",
           @class
         ]}
       >
@@ -144,18 +151,18 @@ defmodule PetalComponents.Carousel do
           :if={@control && @button_style == "overlay"}
           id={"#{@id}-carousel-prev"}
           class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--overlay"
-          aria-label="Previous slide"
+          aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
         >
-          <.icon name="hero-chevron-left" class="w-6 h-6" />
+          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-6 h-6" />
         </button>
 
         <button
           :if={@control && @button_style == "overlay"}
           id={"#{@id}-carousel-next"}
           class="pc-carousel__button pc-carousel__button--next pc-carousel__button--overlay"
-          aria-label="Next slide"
+          aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
         >
-          <.icon name="hero-chevron-right" class="w-6 h-6" />
+          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-6 h-6" />
         </button>
 
         <div class="pc-carousel__slides">
@@ -187,8 +194,13 @@ defmodule PetalComponents.Carousel do
         <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} style={@indicator_style} />
 
         <%= if @overlay_gradient do %>
-          <div class="pc-gradient-overlay-left"></div>
-          <div class="pc-gradient-overlay-right"></div>
+          <%= if @is_vertical do %>
+            <div class="pc-gradient-overlay-top"></div>
+            <div class="pc-gradient-overlay-bottom"></div>
+          <% else %>
+            <div class="pc-gradient-overlay-left"></div>
+            <div class="pc-gradient-overlay-right"></div>
+          <% end %>
         <% end %>
       </div>
 
@@ -196,17 +208,17 @@ defmodule PetalComponents.Carousel do
         <button
           id={"#{@id}-carousel-prev"}
           class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--below"
-          aria-label="Previous slide"
+          aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
         >
-          <.icon name="hero-chevron-left" class="w-4 h-4" />
+          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-4 h-4" />
         </button>
 
         <button
           id={"#{@id}-carousel-next"}
           class="pc-carousel__button pc-carousel__button--next pc-carousel__button--below"
-          aria-label="Next slide"
+          aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
         >
-          <.icon name="hero-chevron-right" class="w-4 h-4" />
+          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-4 h-4" />
         </button>
       </div>
 
@@ -214,9 +226,9 @@ defmodule PetalComponents.Carousel do
         :if={@control && @button_style == "sides"}
         id={"#{@id}-carousel-next"}
         class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
-        aria-label="Next slide"
+        aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
       >
-        <.icon name="hero-chevron-right" class="w-4 h-4" />
+        <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-4 h-4" />
       </button>
     </div>
     """
