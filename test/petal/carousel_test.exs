@@ -425,6 +425,34 @@ defmodule PetalComponents.CarouselTest do
     assert html =~ ~s{data-swipe="false"}
   end
 
+  test "Carousel with overlay gradient" do
+    assigns = %{}
+
+    # With overlay gradient
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-gradient" overlay_gradient={true} slides_per_view={3}>
+        <:slide image="https://example.com/image1.jpg" />
+        <:slide image="https://example.com/image2.jpg" />
+        <:slide image="https://example.com/image3.jpg" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-gradient-overlay-left"
+    assert html =~ "pc-gradient-overlay-right"
+
+    # Without overlay gradient
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-no-gradient" overlay_gradient={false}>
+        <:slide image="https://example.com/image1.jpg" />
+      </.carousel>
+      """)
+
+    refute html =~ "pc-gradient-overlay-left"
+    refute html =~ "pc-gradient-overlay-right"
+  end
+
   # Autoplay Tests
   test "Carousel autoplay configuration" do
     assigns = %{}
