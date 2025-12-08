@@ -18,11 +18,13 @@ defmodule ComponentCase do
       end
 
       defp find_icon(html) do
-        Floki.find(html, "span[class^=hero]") != []
+        parsed = Floki.parse_document!(html)
+        Floki.find(parsed, "span[class^=hero]") != []
       end
 
       defp find_icon(html, class) do
-        Floki.find(html, "span.#{class}") != []
+        parsed = Floki.parse_document!(html)
+        Floki.find(parsed, "span.#{class}") != []
       end
     end
   end

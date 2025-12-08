@@ -422,8 +422,9 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='text']") != []
+    parsed = Floki.parse_document!(html)
+    assert Floki.find(parsed, "label.pc-label") != []
+    assert Floki.find(parsed, "input[type='text']") != []
 
     html =
       rendered_to_string(~H"""
@@ -432,8 +433,8 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='time']") != []
+    assert Floki.find(Floki.parse_document!(html), "label.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "input[type='time']") != []
 
     html =
       rendered_to_string(~H"""
@@ -447,8 +448,8 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "span.pc-label") != []
-    assert Floki.find(html, "input[type='checkbox']") != []
+    assert Floki.find(Floki.parse_document!(html), "span.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "input[type='checkbox']") != []
 
     html =
       rendered_to_string(~H"""
@@ -462,8 +463,8 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "span.pc-label") != []
-    assert Floki.find(html, "input[type='radio']") != []
+    assert Floki.find(Floki.parse_document!(html), "span.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "input[type='radio']") != []
 
     html =
       rendered_to_string(~H"""
@@ -472,7 +473,7 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "span.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "span.pc-label") != []
     html =~ "<select"
 
     html =
@@ -482,7 +483,7 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "span.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "span.pc-label") != []
     html =~ "<select"
 
     html =
@@ -492,8 +493,8 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='datetime-local']") != []
+    assert Floki.find(Floki.parse_document!(html), "label.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "input[type='datetime-local']") != []
 
     html =
       rendered_to_string(~H"""
@@ -502,7 +503,7 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "span.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "span.pc-label") != []
     html =~ "<select"
 
     # Date input
@@ -513,8 +514,8 @@ defmodule PetalComponents.FormTest do
       </.form>
       """)
 
-    assert Floki.find(html, "label.pc-label") != []
-    assert Floki.find(html, "input[type='date']") != []
+    assert Floki.find(Floki.parse_document!(html), "label.pc-label") != []
+    assert Floki.find(Floki.parse_document!(html), "input[type='date']") != []
   end
 
   test "form_field checkbox_group label" do
