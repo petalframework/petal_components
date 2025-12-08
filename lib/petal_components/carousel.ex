@@ -87,7 +87,6 @@ defmodule PetalComponents.Carousel do
       assigns
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
-      |> assign_new(:rounded_class, fn -> rounded_class(assigns.rounded) end)
 
     ~H"""
     <div class={["pc-carousel-wrapper", button_wrapper_class(@button_style)]}>
@@ -119,7 +118,6 @@ defmodule PetalComponents.Carousel do
           padding_class(@padding),
           text_position_class(@text_position),
           button_style_class(@button_style),
-          @rounded_class,
           @class
         ]}
       >
@@ -162,6 +160,7 @@ defmodule PetalComponents.Carousel do
               image={slide[:image]}
               title={slide[:title]}
               description={slide[:description]}
+              rounded={@rounded}
             />
           </div>
         </div>
@@ -248,15 +247,15 @@ defmodule PetalComponents.Carousel do
   defp button_wrapper_class("sides"), do: "pc-carousel-wrapper--sides"
   defp button_wrapper_class(_), do: ""
 
-  defp rounded_class(nil), do: ""
-  defp rounded_class("sm"), do: "[&_.pc-carousel__image]:rounded-sm"
-  defp rounded_class("md"), do: "[&_.pc-carousel__image]:rounded-md"
-  defp rounded_class("lg"), do: "[&_.pc-carousel__image]:rounded-lg"
-  defp rounded_class("xl"), do: "[&_.pc-carousel__image]:rounded-xl"
-  defp rounded_class("2xl"), do: "[&_.pc-carousel__image]:rounded-2xl"
-  defp rounded_class("3xl"), do: "[&_.pc-carousel__image]:rounded-3xl"
-  defp rounded_class("full"), do: "[&_.pc-carousel__image]:rounded-full"
-  defp rounded_class(_), do: ""
+  defp slide_rounded_class(nil), do: ""
+  defp slide_rounded_class("sm"), do: "rounded-sm"
+  defp slide_rounded_class("md"), do: "rounded-md"
+  defp slide_rounded_class("lg"), do: "rounded-lg"
+  defp slide_rounded_class("xl"), do: "rounded-xl"
+  defp slide_rounded_class("2xl"), do: "rounded-2xl"
+  defp slide_rounded_class("3xl"), do: "rounded-3xl"
+  defp slide_rounded_class("full"), do: "rounded-full"
+  defp slide_rounded_class(_), do: ""
 
   defp slide_content(assigns) do
     content_position_class =
@@ -268,10 +267,15 @@ defmodule PetalComponents.Carousel do
         _ -> "items-center justify-center text-center"
       end
 
-    assigns = assign(assigns, :content_position_class, content_position_class)
+    rounded_class = slide_rounded_class(Map.get(assigns, :rounded))
+
+    assigns =
+      assigns
+      |> assign(:content_position_class, content_position_class)
+      |> assign(:rounded_class, rounded_class)
 
     ~H"""
-    <div class="pc-carousel__slide-content">
+    <div class={["pc-carousel__slide-content", @rounded_class]}>
       <div :if={!is_nil(@image)} class="pc-carousel__image-wrapper">
         <img src={@image} class="pc-carousel__image" />
       </div>

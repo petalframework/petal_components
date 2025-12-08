@@ -131,9 +131,6 @@
   }
 
   /* Multi-slide view styles */
-  .pc-carousel--sides-buttons .pc-carousel__slide {
-    @apply rounded-lg overflow-hidden;
-  }
 
   /* When showing multiple slides, add gaps and adjust sizing */
   .pc-carousel--sides-buttons[data-transition-type="slide"] .pc-carousel__slides {
@@ -141,7 +138,7 @@
   }
 
   .pc-carousel__slide-content {
-    @apply relative w-full h-full;
+    @apply relative w-full h-full overflow-hidden;
   }
 
   .pc-carousel__image-wrapper {
