@@ -87,6 +87,10 @@ defmodule PetalComponents.Carousel do
     default: true,
     doc: "Enable touch swipe navigation on mobile devices (only applies to slide transitions)"
 
+  attr :overlay_gradient, :boolean,
+    default: false,
+    doc: "Add gradient overlay at edges (especially useful for multi-slide views)"
+
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
@@ -181,6 +185,11 @@ defmodule PetalComponents.Carousel do
         </div>
 
         <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} style={@indicator_style} />
+
+        <%= if @overlay_gradient do %>
+          <div class="pc-gradient-overlay-left"></div>
+          <div class="pc-gradient-overlay-right"></div>
+        <% end %>
       </div>
 
       <div :if={@control && @button_style == "below"} class="pc-carousel__controls pc-carousel__controls--below">
@@ -316,13 +325,21 @@ defmodule PetalComponents.Carousel do
     </div>
 
     <%= if @navigate do %>
+      <div class="pc-carousel__link-indicator" aria-hidden="true">
+        <.icon name="hero-arrow-right" class="w-5 h-5" />
+      </div>
       <a href={@navigate} class="pc-carousel__link">
-        <span class="sr-only">View slide details</span>
+        <span class="sr-only">Navigate to {@navigate}</span>
       </a>
     <% end %>
-    <a :if={@href} href={@href} class="pc-carousel__link" target="_blank" rel="noopener noreferrer">
-      <span class="sr-only">View external link</span>
-    </a>
+    <%= if @href do %>
+      <div class="pc-carousel__link-indicator" aria-hidden="true">
+        <.icon name="hero-arrow-top-right-on-square" class="w-5 h-5" />
+      </div>
+      <a href={@href} class="pc-carousel__link" target="_blank" rel="noopener noreferrer">
+        <span class="sr-only">Open external link (opens in new tab)</span>
+      </a>
+    <% end %>
     """
   end
 end

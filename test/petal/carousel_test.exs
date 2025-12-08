@@ -116,14 +116,23 @@ defmodule PetalComponents.CarouselTest do
     assert html =~ "pc-carousel__link"
     assert html =~ "Internal Link"
     assert html =~ "External Link"
-    
+
     # Check that external links have target and rel attributes for security
     assert html =~ "target=\"_blank\""
     assert html =~ "rel=\"noopener noreferrer\""
-    
+
     # Verify that links are clickable elements by checking they have the proper CSS class
     assert html =~ "<a"
     assert html =~ "class=\"pc-carousel__link\""
+
+    # Check for link indicators
+    assert html =~ "pc-carousel__link-indicator"
+
+    # Check for internal navigation icon (arrow-right)
+    assert html =~ "hero-arrow-right"
+
+    # Check for external link icon (arrow-top-right-on-square)
+    assert html =~ "hero-arrow-top-right-on-square"
   end
 
   test "Carousel with custom classes" do
@@ -171,7 +180,7 @@ defmodule PetalComponents.CarouselTest do
         />
         <:slide
           image="https://example.com/image2.jpg"
-          title="Clickable External Link" 
+          title="Clickable External Link"
           description="The entire slide should be clickable and open in a new tab"
           href="https://github.com/petalframework/petal_components"
         />
@@ -181,19 +190,60 @@ defmodule PetalComponents.CarouselTest do
     # Verify links exist and have proper structure
     assert html =~ "href=\"/components\""
     assert html =~ "class=\"pc-carousel__link\""
-    
+
     # Verify external link with proper attributes
     assert html =~ "href=\"https://github.com/petalframework/petal_components\""
     assert html =~ "target=\"_blank\" rel=\"noopener noreferrer\""
-    
+
     # Verify href link is in correct slide with matching content
-    slide2_content = html 
+    slide2_content = html
       |> String.split("pc-carousel__slide")
       |> Enum.filter(&String.contains?(&1, "Clickable External Link"))
       |> List.first()
-    
+
     assert slide2_content =~ "href=\"https://github.com/petalframework/petal_components\""
     assert slide2_content =~ "class=\"pc-carousel__link\""
+
+    # Verify link indicators are present for clickable slides
+    assert html =~ "pc-carousel__link-indicator"
+  end
+
+  test "Carousel link indicators" do
+    assigns = %{}
+
+    # Test that slides without links don't have indicators
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-no-link">
+        <:slide image="https://example.com/image1.jpg" title="No Link" />
+      </.carousel>
+      """)
+
+    refute html =~ "pc-carousel__link-indicator"
+
+    # Test internal link indicator
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-internal">
+        <:slide navigate="/test" image="https://example.com/image1.jpg" title="Internal" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__link-indicator"
+    assert html =~ "hero-arrow-right"
+    refute html =~ "hero-arrow-top-right-on-square"
+
+    # Test external link indicator
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-external">
+        <:slide href="https://example.com" image="https://example.com/image1.jpg" title="External" />
+      </.carousel>
+      """)
+
+    assert html =~ "pc-carousel__link-indicator"
+    assert html =~ "hero-arrow-top-right-on-square"
+    refute html =~ "hero-arrow-right"
   end
 
   test "Carousel with content positioning" do

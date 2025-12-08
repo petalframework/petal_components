@@ -168,6 +168,26 @@
 
   .pc-carousel__link {
     @apply absolute inset-0 z-20 block w-full h-full no-underline cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .pc-carousel__link:hover {
+    @apply bg-black/20;
+  }
+
+  .pc-carousel__link-indicator {
+    @apply absolute top-4 right-4 z-30 w-10 h-10 flex items-center justify-center;
+    @apply bg-white dark:bg-gray-800 rounded-full shadow-lg;
+    @apply text-gray-700 dark:text-gray-200;
+    @apply transition-all duration-300;
+    @apply border-2 border-gray-200 dark:border-gray-600;
+    @apply pointer-events-none;
+  }
+
+  .pc-carousel__link:hover + .pc-carousel__link-indicator,
+  .pc-carousel__slide:has(.pc-carousel__link:hover) .pc-carousel__link-indicator {
+    @apply shadow-2xl ring-2 ring-white/50 dark:ring-gray-400/50;
+    @apply bg-white dark:bg-gray-700;
   }
 
   .pc-carousel__indicators {
