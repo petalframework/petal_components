@@ -148,13 +148,21 @@
   }
 
   .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides {
-    @apply flex-col overflow-y-auto;
+    @apply flex-col overflow-y-auto overflow-x-hidden;
     scroll-snap-type: y mandatory;
+    touch-action: pan-y; /* Enable vertical swipe, disable horizontal scroll */
+    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
   }
 
   .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slide {
-    @apply min-h-full;
+    @apply min-h-full w-full;
     min-width: auto;
+    scroll-snap-align: center;
   }
 
   /* Vertical fade transition needs explicit dimensions */
