@@ -2,24 +2,54 @@
 
   /* Carousel */
 
+  .pc-carousel-wrapper {
+    @apply relative w-full;
+  }
+
+  .pc-carousel-wrapper--below {
+    @apply flex flex-col items-center gap-3;
+  }
+
   .pc-carousel {
     @apply relative w-full h-[400px] overflow-hidden bg-transparent;
   }
 
-  .pc-carousel__button {
-    @apply absolute inset-y-0 z-30 p-4 transition bg-black/10 hover:bg-black/30 focus:outline-none;
+  /* Overlay button styles - inspired by Embla Carousel */
+  .pc-carousel__button--overlay {
+    @apply absolute top-1/2 -translate-y-1/2 z-[100] w-14 h-14 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply bg-white/90 text-gray-800 shadow-lg;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-white hover:scale-110 hover:shadow-xl;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+    @apply border-0;
   }
 
-  .pc-carousel__button--prev {
-    @apply left-0;
+  .pc-carousel__button--overlay.pc-carousel__button--prev {
+    @apply left-4;
   }
 
-  .pc-carousel__button--next {
-    @apply right-0;
+  .pc-carousel__button--overlay.pc-carousel__button--next {
+    @apply right-4;
+  }
+
+  /* Below button styles - smaller, minimal */
+  .pc-carousel__button--below {
+    @apply w-10 h-10 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply bg-white text-gray-700 shadow-md;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:shadow-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300;
+    @apply border border-gray-200;
+  }
+
+  .pc-carousel__controls--below {
+    @apply flex items-center justify-center gap-3 mt-4;
   }
 
   .pc-carousel__icon {
-    @apply text-white size-7;
+    @apply text-current;
   }
 
   .pc-carousel__slides {
@@ -45,6 +75,8 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none; /* Firefox */
     column-gap: 0;
+    max-width: 100%;
+    height: 100%;
   }
 
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
@@ -55,9 +87,10 @@
     position: relative !important;
     top: auto !important;
     left: auto !important;
-    flex: 0 0 auto;
+    flex: 0 0 100%;
     scroll-snap-align: center;
-    width: 100%;
+    min-width: 100%;
+    height: 100%;
   }
 
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {

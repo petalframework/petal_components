@@ -52,6 +52,14 @@ defmodule PetalComponents.Carousel do
 
   attr :transition_duration, :integer, default: 500, doc: "Duration of transition in milliseconds"
 
+  attr :button_style, :string,
+    default: "overlay",
+    doc: "Button style: 'overlay' (on sides), 'below' (under carousel), or 'none'"
+
+  attr :rounded, :string,
+    default: nil,
+    doc: "Border radius for images: 'sm', 'md', 'lg', 'xl', '2xl', '3xl', or 'full'"
+
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
@@ -67,70 +75,93 @@ defmodule PetalComponents.Carousel do
       assigns
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
+      |> assign_new(:rounded_class, fn -> rounded_class(assigns.rounded) end)
 
     ~H"""
-    <div
-      id={@id}
-      phx-hook="CarouselHook"
-      phx-update="ignore"
-      data-active-index={@active_index}
-      data-autoplay={to_string(@autoplay)}
-      data-autoplay-interval={@autoplay_interval}
-      data-transition-type={@transition_type}
-      data-transition-duration={@transition_duration}
-      class={[
-        "pc-carousel",
-        @transition_class,
-        size_class(@size),
-        padding_class(@padding),
-        text_position_class(@text_position),
-        @class
-      ]}
-    >
-      <button
-        :if={@control}
-        id={"#{@id}-carousel-prev"}
-        class="pc-carousel__button pc-carousel__button--prev"
-        aria-label="Previous slide"
+    <div class={["pc-carousel-wrapper", button_wrapper_class(@button_style)]}>
+      <div
+        id={@id}
+        phx-hook="CarouselHook"
+        phx-update="ignore"
+        data-active-index={@active_index}
+        data-autoplay={to_string(@autoplay)}
+        data-autoplay-interval={@autoplay_interval}
+        data-transition-type={@transition_type}
+        data-transition-duration={@transition_duration}
+        class={[
+          "pc-carousel",
+          @transition_class,
+          size_class(@size),
+          padding_class(@padding),
+          text_position_class(@text_position),
+          button_style_class(@button_style),
+          @rounded_class,
+          @class
+        ]}
       >
-        <.icon name="hero-chevron-left-solid" class="pc-carousel__icon" />
-      </button>
-
-      <button
-        :if={@control}
-        id={"#{@id}-carousel-next"}
-        class="pc-carousel__button pc-carousel__button--next"
-        aria-label="Next slide"
-      >
-        <.icon name="hero-chevron-right-solid" class="pc-carousel__icon" />
-      </button>
-
-      <div class="pc-carousel__slides">
-        <div
-          :for={{slide, index} <- Enum.with_index(@slide)}
-          id={"#{@id}-carousel-slide-#{index}"}
-          class={[
-            "pc-carousel__slide",
-            if(index == @active_index,
-              do: "pc-carousel__slide--active",
-              else: "pc-carousel__slide--inactive"
-            ),
-            slide[:class]
-          ]}
+        <button
+          :if={@control && @button_style == "overlay"}
+          id={"#{@id}-carousel-prev"}
+          class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--overlay"
+          aria-label="Previous slide"
         >
-          <.slide_content
-            slide={slide}
-            index={index}
-            navigate={slide[:navigate]}
-            href={slide[:href]}
-            image={slide[:image]}
-            title={slide[:title]}
-            description={slide[:description]}
-          />
+          <.icon name="hero-chevron-left" class="w-6 h-6" />
+        </button>
+
+        <button
+          :if={@control && @button_style == "overlay"}
+          id={"#{@id}-carousel-next"}
+          class="pc-carousel__button pc-carousel__button--next pc-carousel__button--overlay"
+          aria-label="Next slide"
+        >
+          <.icon name="hero-chevron-right" class="w-6 h-6" />
+        </button>
+
+        <div class="pc-carousel__slides">
+          <div
+            :for={{slide, index} <- Enum.with_index(@slide)}
+            id={"#{@id}-carousel-slide-#{index}"}
+            class={[
+              "pc-carousel__slide",
+              if(index == @active_index,
+                do: "pc-carousel__slide--active",
+                else: "pc-carousel__slide--inactive"
+              ),
+              slide[:class]
+            ]}
+          >
+            <.slide_content
+              slide={slide}
+              index={index}
+              navigate={slide[:navigate]}
+              href={slide[:href]}
+              image={slide[:image]}
+              title={slide[:title]}
+              description={slide[:description]}
+            />
+          </div>
         </div>
+
+        <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} />
       </div>
 
-      <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} />
+      <div :if={@control && @button_style == "below"} class="pc-carousel__controls pc-carousel__controls--below">
+        <button
+          id={"#{@id}-carousel-prev"}
+          class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--below"
+          aria-label="Previous slide"
+        >
+          <.icon name="hero-chevron-left" class="w-4 h-4" />
+        </button>
+
+        <button
+          id={"#{@id}-carousel-next"}
+          class="pc-carousel__button pc-carousel__button--next pc-carousel__button--below"
+          aria-label="Next slide"
+        >
+          <.icon name="hero-chevron-right" class="w-4 h-4" />
+        </button>
+      </div>
     </div>
     """
   end
@@ -173,6 +204,24 @@ defmodule PetalComponents.Carousel do
   defp text_position_class("center"), do: "[&_.description-wrapper]:text-center"
   defp text_position_class("end"), do: "[&_.description-wrapper]:text-end"
   defp text_position_class(_), do: ""
+
+  defp button_style_class("overlay"), do: "pc-carousel--overlay-buttons"
+  defp button_style_class("below"), do: "pc-carousel--below-buttons"
+  defp button_style_class("none"), do: ""
+  defp button_style_class(_), do: "pc-carousel--overlay-buttons"
+
+  defp button_wrapper_class("below"), do: "pc-carousel-wrapper--below"
+  defp button_wrapper_class(_), do: ""
+
+  defp rounded_class(nil), do: ""
+  defp rounded_class("sm"), do: "[&_.pc-carousel__image]:rounded-sm"
+  defp rounded_class("md"), do: "[&_.pc-carousel__image]:rounded-md"
+  defp rounded_class("lg"), do: "[&_.pc-carousel__image]:rounded-lg"
+  defp rounded_class("xl"), do: "[&_.pc-carousel__image]:rounded-xl"
+  defp rounded_class("2xl"), do: "[&_.pc-carousel__image]:rounded-2xl"
+  defp rounded_class("3xl"), do: "[&_.pc-carousel__image]:rounded-3xl"
+  defp rounded_class("full"), do: "[&_.pc-carousel__image]:rounded-full"
+  defp rounded_class(_), do: ""
 
   defp slide_content(assigns) do
     content_position_class =
