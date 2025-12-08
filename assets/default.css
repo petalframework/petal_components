@@ -10,8 +10,17 @@
     @apply flex flex-col items-center gap-3;
   }
 
+  .pc-carousel-wrapper--sides {
+    @apply flex items-center gap-4 w-full;
+  }
+
   .pc-carousel {
     @apply relative w-full h-[400px] overflow-hidden bg-transparent;
+  }
+
+  /* When using sides buttons, carousel should flex to fit between buttons */
+  .pc-carousel-wrapper--sides .pc-carousel {
+    @apply flex-1;
   }
 
   /* Overlay button styles - inspired by Embla Carousel */
@@ -46,6 +55,17 @@
 
   .pc-carousel__controls--below {
     @apply flex items-center justify-center gap-3 mt-4;
+  }
+
+  /* Side button styles - same as below but positioned in wrapper */
+  .pc-carousel__button--sides {
+    @apply w-10 h-10 rounded-full flex-shrink-0;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
+    @apply focus:outline-none;
+    @apply border border-gray-200 dark:border-gray-600;
   }
 
   .pc-carousel__icon {
@@ -100,6 +120,16 @@
   /* Fade transition specific styles */
   .pc-carousel[data-transition-type="fade"] .pc-carousel__slide {
     @apply transition-opacity duration-500 ease-in-out;
+  }
+
+  /* Multi-slide view styles */
+  .pc-carousel--sides-buttons .pc-carousel__slide {
+    @apply rounded-lg overflow-hidden;
+  }
+
+  /* When showing multiple slides, add gaps and adjust sizing */
+  .pc-carousel--sides-buttons[data-transition-type="slide"] .pc-carousel__slides {
+    gap: var(--carousel-gap, 1rem);
   }
 
   .pc-carousel__slide-content {

@@ -54,11 +54,19 @@ defmodule PetalComponents.Carousel do
 
   attr :button_style, :string,
     default: "overlay",
-    doc: "Button style: 'overlay' (on sides), 'below' (under carousel), or 'none'"
+    doc: "Button style: 'overlay' (on sides), 'below' (under carousel), 'sides' (outside carousel), or 'none'"
 
   attr :rounded, :string,
     default: nil,
     doc: "Border radius for images: 'sm', 'md', 'lg', 'xl', '2xl', '3xl', or 'full'"
+
+  attr :slides_per_view, :integer,
+    default: 1,
+    doc: "Number of slides visible at once (1 for single slide, 3 for multi-slide gallery view)"
+
+  attr :gap, :string,
+    default: "1rem",
+    doc: "Gap between slides when slides_per_view > 1"
 
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
@@ -79,6 +87,15 @@ defmodule PetalComponents.Carousel do
 
     ~H"""
     <div class={["pc-carousel-wrapper", button_wrapper_class(@button_style)]}>
+      <button
+        :if={@control && @button_style == "sides"}
+        id={"#{@id}-carousel-prev"}
+        class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--sides"
+        aria-label="Previous slide"
+      >
+        <.icon name="hero-chevron-left" class="w-4 h-4" />
+      </button>
+
       <div
         id={@id}
         phx-hook="CarouselHook"
@@ -88,6 +105,8 @@ defmodule PetalComponents.Carousel do
         data-autoplay-interval={@autoplay_interval}
         data-transition-type={@transition_type}
         data-transition-duration={@transition_duration}
+        data-slides-per-view={@slides_per_view}
+        data-gap={@gap}
         class={[
           "pc-carousel",
           @transition_class,
@@ -162,6 +181,15 @@ defmodule PetalComponents.Carousel do
           <.icon name="hero-chevron-right" class="w-4 h-4" />
         </button>
       </div>
+
+      <button
+        :if={@control && @button_style == "sides"}
+        id={"#{@id}-carousel-next"}
+        class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
+        aria-label="Next slide"
+      >
+        <.icon name="hero-chevron-right" class="w-4 h-4" />
+      </button>
     </div>
     """
   end
@@ -207,10 +235,12 @@ defmodule PetalComponents.Carousel do
 
   defp button_style_class("overlay"), do: "pc-carousel--overlay-buttons"
   defp button_style_class("below"), do: "pc-carousel--below-buttons"
+  defp button_style_class("sides"), do: "pc-carousel--sides-buttons"
   defp button_style_class("none"), do: ""
   defp button_style_class(_), do: "pc-carousel--overlay-buttons"
 
   defp button_wrapper_class("below"), do: "pc-carousel-wrapper--below"
+  defp button_wrapper_class("sides"), do: "pc-carousel-wrapper--sides"
   defp button_wrapper_class(_), do: ""
 
   defp rounded_class(nil), do: ""
