@@ -97,6 +97,14 @@
     column-gap: 0;
     max-width: 100%;
     height: 100%;
+    touch-action: pan-x; /* Enable horizontal swipe, disable vertical scroll */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Disable swipe when data-swipe="false" */
+  .pc-carousel[data-transition-type="slide"][data-swipe="false"] .pc-carousel__slides {
+    touch-action: none;
+    overflow: hidden;
   }
 
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {

@@ -68,6 +68,10 @@ defmodule PetalComponents.Carousel do
     default: "1rem",
     doc: "Gap between slides when slides_per_view > 1"
 
+  attr :swipe, :boolean,
+    default: true,
+    doc: "Enable touch swipe navigation on mobile devices (only applies to slide transitions)"
+
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
@@ -107,6 +111,7 @@ defmodule PetalComponents.Carousel do
         data-transition-duration={@transition_duration}
         data-slides-per-view={@slides_per_view}
         data-gap={@gap}
+        data-swipe={to_string(@swipe)}
         class={[
           "pc-carousel",
           @transition_class,
