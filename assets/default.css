@@ -18,10 +18,10 @@
   .pc-carousel__button--overlay {
     @apply absolute top-1/2 -translate-y-1/2 z-[100] w-14 h-14 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
-    @apply bg-white/90 text-gray-800 shadow-lg;
+    @apply shadow-lg text-gray-800/70 bg-white/50 dark:text-gray-200/70 dark:bg-gray-800/50;
     @apply transition-all duration-200 ease-in-out;
-    @apply hover:bg-white hover:scale-110 hover:shadow-xl;
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+    @apply hover:bg-white/75 hover:shadow-xl dark:hover:bg-gray-700/75 dark:hover:shadow-xl;
+    @apply focus:outline-none;
     @apply border-0;
   }
 
@@ -37,11 +37,11 @@
   .pc-carousel__button--below {
     @apply w-10 h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
-    @apply bg-white text-gray-700 shadow-md;
+    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
     @apply transition-all duration-200 ease-in-out;
-    @apply hover:bg-gray-50 hover:shadow-lg;
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300;
-    @apply border border-gray-200;
+    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
+    @apply focus:outline-none;
+    @apply border border-gray-200 dark:border-gray-600;
   }
 
   .pc-carousel__controls--below {
