@@ -87,6 +87,10 @@ defmodule PetalComponents.Carousel do
     default: true,
     doc: "Enable touch swipe navigation on mobile devices (only applies to slide transitions)"
 
+  attr :loop, :boolean,
+    default: true,
+    doc: "Enable infinite looping (when false, carousel has definitive start/end)"
+
   attr :overlay_gradient, :boolean,
     default: false,
     doc: "Add gradient overlay at edges (especially useful for multi-slide views)"
@@ -136,6 +140,7 @@ defmodule PetalComponents.Carousel do
         data-slides-per-view={@slides_per_view}
         data-gap={@gap}
         data-swipe={to_string(@swipe)}
+        data-loop={to_string(@loop)}
         class={[
           "pc-carousel",
           @transition_class,

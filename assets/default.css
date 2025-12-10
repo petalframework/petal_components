@@ -73,6 +73,15 @@
     @apply border border-gray-200 dark:border-gray-600;
   }
 
+  /* Disabled button states (when loop is disabled and at boundary) */
+  .pc-carousel__button:disabled,
+  .pc-carousel__button--overlay:disabled,
+  .pc-carousel__button--below:disabled,
+  .pc-carousel__button--sides:disabled {
+    @apply opacity-40 cursor-not-allowed;
+    @apply hover:bg-white hover:shadow-md dark:hover:bg-gray-800 dark:hover:shadow-md;
+  }
+
   .pc-carousel__icon {
     @apply text-current;
   }

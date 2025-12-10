@@ -730,6 +730,52 @@ defmodule PetalComponents.CarouselTest do
     refute html =~ "pc-gradient-overlay-bottom"
   end
 
+  # Loop Feature Tests
+  test "Carousel with loop enabled (default)" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-loop-default" transition_type="slide">
+        <:slide image="https://example.com/image1.jpg" title="Slide 1" />
+        <:slide image="https://example.com/image2.jpg" title="Slide 2" />
+      </.carousel>
+      """)
+
+    # Check that loop is enabled by default
+    assert html =~ ~s{data-loop="true"}
+  end
+
+  test "Carousel with loop disabled" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-loop-disabled" transition_type="slide" loop={false}>
+        <:slide image="https://example.com/image1.jpg" title="Slide 1" />
+        <:slide image="https://example.com/image2.jpg" title="Slide 2" />
+      </.carousel>
+      """)
+
+    # Check that loop is disabled
+    assert html =~ ~s{data-loop="false"}
+  end
+
+  test "Carousel with loop explicitly enabled" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-loop-enabled" transition_type="fade" loop={true}>
+        <:slide image="https://example.com/image1.jpg" title="Slide 1" />
+        <:slide image="https://example.com/image2.jpg" title="Slide 2" />
+      </.carousel>
+      """)
+
+    # Check that loop is enabled
+    assert html =~ ~s{data-loop="true"}
+  end
+
   # Edge Cases
   test "Carousel edge cases" do
     assigns = %{}
