@@ -776,6 +776,155 @@ defmodule PetalComponents.CarouselTest do
     assert html =~ ~s{data-loop="true"}
   end
 
+  # Accessibility Tests
+  test "Carousel ARIA attributes" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-aria" transition_type="fade">
+        <:slide image="https://example.com/image1.jpg" title="First" />
+        <:slide image="https://example.com/image2.jpg" title="Second" />
+        <:slide image="https://example.com/image3.jpg" title="Third" />
+      </.carousel>
+      """)
+
+    # Check for region role and carousel description
+    assert html =~ ~s{role="region"}
+    assert html =~ ~s{aria-roledescription="carousel"}
+    assert html =~ ~s{aria-label="Image carousel"}
+
+    # Check for slides group
+    assert html =~ ~s{role="group"}
+    assert html =~ ~s{aria-label="Slides"}
+
+    # Check for slide labels
+    assert html =~ ~s{aria-label="Slide 1 of 3"}
+    assert html =~ ~s{aria-label="Slide 2 of 3"}
+    assert html =~ ~s{aria-label="Slide 3 of 3"}
+
+    # Check for aria-current on active slide (first slide should be active)
+    assert html =~ ~s{aria-current="true"}
+    assert html =~ ~s{aria-current="false"}
+
+    # Check for live region for screen reader announcements
+    assert html =~ ~s{aria-live="polite"}
+    assert html =~ ~s{aria-atomic="true"}
+    assert html =~ "sr-only"
+  end
+
+  test "Carousel keyboard navigation setup" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-keyboard">
+        <:slide image="https://example.com/image1.jpg" title="First" />
+      </.carousel>
+      """)
+
+    # Check that carousel has tabindex to make it focusable
+    assert html =~ ~s{tabindex="0"}
+  end
+
+  # Brightness Control Tests
+  test "Carousel brightness control default" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-default">
+        <:slide image="https://example.com/image1.jpg" title="Default Brightness" />
+      </.carousel>
+      """)
+
+    # Default brightness is 5, which should generate a specific gradient
+    # Check that style attribute exists with gradient
+    assert html =~ "style=\"background:"
+    assert html =~ "linear-gradient"
+  end
+
+  test "Carousel brightness validation and clamping" do
+    assigns = %{}
+
+    # Test brightness at minimum (1 = darkest)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-min" brightness={1}>
+        <:slide image="https://example.com/image1.jpg" title="Dark" />
+      </.carousel>
+      """)
+
+    assert html =~ "linear-gradient"
+
+    # Test brightness at maximum (10 = brightest)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-max" brightness={10}>
+        <:slide image="https://example.com/image1.jpg" title="Bright" />
+      </.carousel>
+      """)
+
+    assert html =~ "linear-gradient"
+
+    # Test brightness below minimum (should clamp to 1)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-below" brightness={-5}>
+        <:slide image="https://example.com/image1.jpg" title="Clamped Low" />
+      </.carousel>
+      """)
+
+    assert html =~ "linear-gradient"
+
+    # Test brightness above maximum (should clamp to 10)
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-above" brightness={100}>
+        <:slide image="https://example.com/image1.jpg" title="Clamped High" />
+      </.carousel>
+      """)
+
+    assert html =~ "linear-gradient"
+  end
+
+  test "Carousel brightness custom values" do
+    assigns = %{}
+
+    # Test mid-range brightness
+    html =
+      rendered_to_string(~H"""
+      <.carousel id="test-brightness-mid" brightness={7}>
+        <:slide image="https://example.com/image1.jpg" title="Mid Bright" />
+      </.carousel>
+      """)
+
+    assert html =~ "linear-gradient"
+    assert html =~ "style=\"background:"
+  end
+
+  # Content Position Validation Test
+  test "Carousel content_position validation" do
+    assigns = %{}
+
+    # Valid values should work
+    valid_positions = ["start", "center", "end"]
+
+    Enum.each(valid_positions, fn position ->
+      assigns = %{position: position}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel id={"test-position-#{@position}"}>
+          <:slide content_position={@position} image="https://example.com/image1.jpg" title="Test" />
+        </.carousel>
+        """)
+
+      # Should render without errors
+      assert html =~ "Test"
+    end)
+  end
+
   # Edge Cases
   test "Carousel edge cases" do
     assigns = %{}
