@@ -147,7 +147,7 @@
   /* Multi-slide view styles */
 
   /* When showing multiple slides, add gaps and adjust sizing */
-  .pc-carousel--sides-buttons[data-transition-type="slide"] .pc-carousel__slides {
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
     gap: var(--carousel-gap, 1rem);
   }
 
