@@ -79,7 +79,6 @@
   .pc-carousel__button--below:disabled,
   .pc-carousel__button--sides:disabled {
     @apply opacity-40 cursor-default;
-    @apply hover:bg-white hover:shadow-md;
   }
 
   .pc-carousel__icon {
