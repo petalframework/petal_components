@@ -78,7 +78,7 @@
   .pc-carousel__button--overlay:disabled,
   .pc-carousel__button--below:disabled,
   .pc-carousel__button--sides:disabled {
-    @apply opacity-40 cursor-not-allowed;
+    @apply opacity-40 cursor-default;
     @apply hover:bg-white hover:shadow-md dark:hover:bg-gray-800 dark:hover:shadow-md;
   }
 
