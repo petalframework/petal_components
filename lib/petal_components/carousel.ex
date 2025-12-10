@@ -122,6 +122,7 @@ defmodule PetalComponents.Carousel do
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
       |> assign_new(:is_vertical, fn -> assigns.orientation == "vertical" end)
+      |> assign(:brightness, max(1, min(10, Map.get(assigns, :brightness, 5))))
 
     ~H"""
     <div class={[
@@ -145,6 +146,9 @@ defmodule PetalComponents.Carousel do
         id={@id}
         phx-hook="CarouselHook"
         phx-update="ignore"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Image carousel"
         data-active-index={@active_index}
         data-autoplay={to_string(@autoplay)}
         data-autoplay-interval={@autoplay_interval}
@@ -189,10 +193,14 @@ defmodule PetalComponents.Carousel do
           />
         </button>
 
-        <div class="pc-carousel__slides">
+        <div class="pc-carousel__slides" role="group" aria-label="Slides">
           <div
             :for={{slide, index} <- Enum.with_index(@slide)}
             id={"#{@id}-carousel-slide-#{index}"}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={"Slide #{index + 1} of #{length(@slide)}"}
+            aria-current={if index == @active_index, do: "true", else: "false"}
             class={[
               "pc-carousel__slide",
               if(index == @active_index,
@@ -214,6 +222,15 @@ defmodule PetalComponents.Carousel do
               brightness={@brightness}
             />
           </div>
+        </div>
+
+        <!-- Screen reader announcement region -->
+        <div
+          id={"#{@id}-live-region"}
+          class="sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+        >
         </div>
 
         <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} style={@indicator_style} />
