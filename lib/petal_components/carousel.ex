@@ -125,7 +125,7 @@ defmodule PetalComponents.Carousel do
         class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--sides"
         aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
       >
-        <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-4 h-4" />
+        <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-3 h-3 md:w-4 md:h-4" />
       </button>
 
       <div
@@ -158,7 +158,7 @@ defmodule PetalComponents.Carousel do
           class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--overlay"
           aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
         >
-          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-6 h-6" />
+          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-4 h-4 md:w-6 md:h-6" />
         </button>
 
         <button
@@ -167,7 +167,7 @@ defmodule PetalComponents.Carousel do
           class="pc-carousel__button pc-carousel__button--next pc-carousel__button--overlay"
           aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
         >
-          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-6 h-6" />
+          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-4 h-4 md:w-6 md:h-6" />
         </button>
 
         <div class="pc-carousel__slides">
@@ -215,7 +215,7 @@ defmodule PetalComponents.Carousel do
           class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--below"
           aria-label={@is_vertical && "Previous slide (up)" || "Previous slide"}
         >
-          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-4 h-4" />
+          <.icon name={@is_vertical && "hero-chevron-up" || "hero-chevron-left"} class="w-3 h-3 md:w-4 md:h-4" />
         </button>
 
         <button
@@ -223,7 +223,7 @@ defmodule PetalComponents.Carousel do
           class="pc-carousel__button pc-carousel__button--next pc-carousel__button--below"
           aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
         >
-          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-4 h-4" />
+          <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-3 h-3 md:w-4 md:h-4" />
         </button>
       </div>
 
@@ -233,7 +233,7 @@ defmodule PetalComponents.Carousel do
         class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
         aria-label={@is_vertical && "Next slide (down)" || "Next slide"}
       >
-        <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-4 h-4" />
+        <.icon name={@is_vertical && "hero-chevron-down" || "hero-chevron-right"} class="w-3 h-3 md:w-4 md:h-4" />
       </button>
     </div>
     """

@@ -11,11 +11,11 @@
   }
 
   .pc-carousel-wrapper--sides {
-    @apply flex items-center w-full gap-4;
+    @apply flex items-center w-full gap-3 md:gap-4;
   }
 
   .pc-carousel {
-    @apply relative w-full h-[400px] overflow-hidden bg-transparent;
+    @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
   }
 
   /* When using sides buttons, carousel should flex to fit between buttons */
@@ -30,7 +30,7 @@
 
   /* Overlay button styles - inspired by Embla Carousel */
   .pc-carousel__button--overlay {
-    @apply absolute top-1/2 -translate-y-1/2 z-[100] w-14 h-14 rounded-full;
+    @apply absolute top-1/2 -translate-y-1/2 z-[100] w-10 h-10 md:w-14 md:h-14 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
     @apply shadow-lg text-gray-800/70 bg-white/50 dark:text-gray-200/70 dark:bg-gray-800/50;
     @apply transition-all duration-200 ease-in-out;
@@ -40,16 +40,16 @@
   }
 
   .pc-carousel__button--overlay.pc-carousel__button--prev {
-    @apply left-4;
+    @apply left-2 md:left-4;
   }
 
   .pc-carousel__button--overlay.pc-carousel__button--next {
-    @apply right-4;
+    @apply right-2 md:right-4;
   }
 
   /* Below button styles - smaller, minimal */
   .pc-carousel__button--below {
-    @apply w-10 h-10 rounded-full;
+    @apply w-8 h-8 md:w-10 md:h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
     @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
     @apply transition-all duration-200 ease-in-out;
@@ -64,7 +64,7 @@
 
   /* Side button styles - same as below but positioned in wrapper */
   .pc-carousel__button--sides {
-    @apply flex-shrink-0 w-10 h-10 rounded-full;
+    @apply flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
     @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
     @apply transition-all duration-200 ease-in-out;
