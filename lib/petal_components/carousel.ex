@@ -113,7 +113,10 @@ defmodule PetalComponents.Carousel do
     attr :image, :string, doc: "URL of the image to display in the slide"
     attr :navigate, :string, doc: "Internal route to navigate to when the slide is clicked"
     attr :href, :string, doc: "External URL to navigate to when the slide is clicked"
-    attr :content_position, :string, doc: "Position of content (start, center, end)"
+
+    attr :content_position, :string,
+      values: ["start", "center", "end"],
+      doc: "Position of content within the slide (defaults to 'center' if not specified)"
   end
 
   def carousel(assigns) do
