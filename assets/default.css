@@ -205,7 +205,7 @@
 
   .pc-carousel__content {
     @apply absolute inset-0 z-10 flex items-center justify-center;
-    background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+    /* Background gradient is now applied dynamically via inline style based on brightness attribute */
   }
 
   .pc-carousel__content-wrapper {
