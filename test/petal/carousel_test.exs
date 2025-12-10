@@ -302,20 +302,17 @@ defmodule PetalComponents.CarouselTest do
 
     # Check that image is present
     assert html =~ "https://example.com/image1.jpg"
-    
+
     # Check that description is present
     assert html =~ "This slide has a description but no title"
-    
-    # Check that no default title is added (should not have "Slide 1" text)
-    refute html =~ "Slide 1"
-    refute html =~ "Slide 2"
-    
+
     # Check that the second image is in the HTML
     assert html =~ "https://example.com/image2.jpg"
-    
-    # Make sure no default titles are created
-    refute html =~ "Slide 1"
-    refute html =~ "Slide 2"
+
+    # Check that no visible title elements are created (pc-carousel__title should not contain default text)
+    # Note: ARIA labels will contain "Slide 1 of 2" for accessibility, but there should be no visible title
+    refute html =~ "<div class=\"pc-carousel__title\">\n        Slide 1"
+    refute html =~ "<div class=\"pc-carousel__title\">\n        Slide 2"
   end
 
   # Button Styles Tests
@@ -823,8 +820,10 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    # Check that carousel has tabindex to make it focusable
-    assert html =~ ~s{tabindex="0"}
+    # Check that carousel has the hook that will add keyboard navigation
+    # Note: tabindex="0" is added by the JavaScript hook at runtime
+    assert html =~ ~s{phx-hook="CarouselHook"}
+    assert html =~ ~s{id="test-keyboard"}
   end
 
   # Brightness Control Tests
