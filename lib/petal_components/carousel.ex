@@ -240,11 +240,11 @@ defmodule PetalComponents.Carousel do
 
         <%= if @overlay_gradient do %>
           <%= if @is_vertical do %>
-            <div class="pc-gradient-overlay-top"></div>
-            <div class="pc-gradient-overlay-bottom"></div>
+            <div class="pc-carousel-gradient-overlay-top"></div>
+            <div class="pc-carousel-gradient-overlay-bottom"></div>
           <% else %>
-            <div class="pc-gradient-overlay-left"></div>
-            <div class="pc-gradient-overlay-right"></div>
+            <div class="pc-carousel-gradient-overlay-left"></div>
+            <div class="pc-carousel-gradient-overlay-right"></div>
           <% end %>
         <% end %>
       </div>

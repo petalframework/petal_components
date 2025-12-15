@@ -435,8 +435,8 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    assert html =~ "pc-gradient-overlay-left"
-    assert html =~ "pc-gradient-overlay-right"
+    assert html =~ "pc-carousel-gradient-overlay-left"
+    assert html =~ "pc-carousel-gradient-overlay-right"
 
     # Without overlay gradient
     html =
@@ -446,8 +446,8 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    refute html =~ "pc-gradient-overlay-left"
-    refute html =~ "pc-gradient-overlay-right"
+    refute html =~ "pc-carousel-gradient-overlay-left"
+    refute html =~ "pc-carousel-gradient-overlay-right"
   end
 
   # Autoplay Tests
@@ -645,10 +645,10 @@ defmodule PetalComponents.CarouselTest do
       """)
 
     # Check for vertical gradient overlays (top/bottom instead of left/right)
-    assert html =~ "pc-gradient-overlay-top"
-    assert html =~ "pc-gradient-overlay-bottom"
-    refute html =~ "pc-gradient-overlay-left"
-    refute html =~ "pc-gradient-overlay-right"
+    assert html =~ "pc-carousel-gradient-overlay-top"
+    assert html =~ "pc-carousel-gradient-overlay-bottom"
+    refute html =~ "pc-carousel-gradient-overlay-left"
+    refute html =~ "pc-carousel-gradient-overlay-right"
   end
 
   test "Carousel vertical orientation with different button styles" do
@@ -721,10 +721,10 @@ defmodule PetalComponents.CarouselTest do
       </.carousel>
       """)
 
-    assert html =~ "pc-gradient-overlay-left"
-    assert html =~ "pc-gradient-overlay-right"
-    refute html =~ "pc-gradient-overlay-top"
-    refute html =~ "pc-gradient-overlay-bottom"
+    assert html =~ "pc-carousel-gradient-overlay-left"
+    assert html =~ "pc-carousel-gradient-overlay-right"
+    refute html =~ "pc-carousel-gradient-overlay-top"
+    refute html =~ "pc-carousel-gradient-overlay-bottom"
   end
 
   # Loop Feature Tests
