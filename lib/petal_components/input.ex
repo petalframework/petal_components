@@ -40,6 +40,15 @@ defmodule PetalComponents.Input do
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :any, default: nil, doc: "the class to add to the input"
 
+  # Dual range slider attributes
+  attr :min_field, Phoenix.HTML.FormField, doc: "form field for minimum value in range-dual"
+  attr :max_field, Phoenix.HTML.FormField, doc: "form field for maximum value in range-dual"
+  attr :range_min, :integer, default: 0, doc: "minimum value for range-dual slider"
+  attr :range_max, :integer, default: 100, doc: "maximum value for range-dual slider"
+  attr :range_min_label, :string, default: nil, doc: "label for minimum value in range-dual"
+  attr :range_max_label, :string, default: nil, doc: "label for maximum value in range-dual"
+  attr :format_value, :any, default: nil, doc: "function to format displayed values in range-dual"
+
   attr :rest, :global,
     include:
       ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
@@ -224,6 +233,16 @@ defmodule PetalComponents.Input do
   end
 
   def input(%{type: "range-dual"} = assigns) do
+    assigns = assign_new(assigns, :format_value, fn -> &to_string/1 end)
+    assigns = assign_new(assigns, :step, fn -> 1 end)
+
+    # Set default values if nil
+    min_value = assigns.min_field.value || assigns.range_min
+    max_value = assigns.max_field.value || assigns.range_max
+
+    assigns = assign(assigns, :min_value, min_value)
+    assigns = assign(assigns, :max_value, max_value)
+
     ~H"""
     <div id={@id} class="relative h-12 mt-4">
       <div class="flex flex-row items-center justify-center space-x-2">
@@ -233,7 +252,7 @@ defmodule PetalComponents.Input do
             class="pc-slider-range"
             data-slider-id={@id}
             id={@id <> "_slider-range"}
-            style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+            style={"left: #{calculate_slider_position(@min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_value, @range_min, @range_max)}%;"}
           >
           </div>
           <input
@@ -242,7 +261,7 @@ defmodule PetalComponents.Input do
             max={@range_max}
             step={@step}
             name={@min_field.name}
-            value={@min_field.value}
+            value={@min_value}
             class="pc-slider-input"
             id={@id <> "_min-range"}
             phx-hook="DualRangeSliderHook"
@@ -257,7 +276,7 @@ defmodule PetalComponents.Input do
             max={@range_max}
             step={@step}
             name={@max_field.name}
-            value={@max_field.value}
+            value={@max_value}
             class="pc-slider-input"
             id={@id <> "_max-range"}
             phx-hook="DualRangeSliderHook"
@@ -273,7 +292,7 @@ defmodule PetalComponents.Input do
           {@range_min_label || @format_value.(@range_min)}
         </span>
         <span class="flex justify-center text-gray-600 dark:text-gray-300">
-          {@format_value.(@min_field.value) <> " - " <> @format_value.(@max_field.value)}
+          {@format_value.(@min_value) <> " - " <> @format_value.(@max_value)}
         </span>
         <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
           {@range_max_label || @format_value.(@range_max)}
