@@ -222,7 +222,7 @@ defmodule PetalComponents.Field do
       <.field_label>{@label}</.field_label>
       <div id={@id} class="relative h-12 mt-4">
         <div class="flex flex-row items-center justify-center space-x-2">
-          <div class="relative w-full h-1">
+          <div class="relative w-full h-1.5">
             <div class="pc-slider-track"></div>
             <div
               class="pc-slider-range"
