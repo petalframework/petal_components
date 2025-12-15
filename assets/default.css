@@ -1100,11 +1100,11 @@
   }
 
   .pc-slider-input::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 bg-success-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
+    @apply appearance-none w-5 h-5 bg-primary-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
   }
 
   .pc-slider-input::-moz-range-thumb {
-    @apply w-5 h-5 bg-success-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
+    @apply w-5 h-5 bg-primary-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
   }
 
   .pc-slider-track {
@@ -1112,7 +1112,7 @@
   }
 
   .pc-slider-range {
-    @apply absolute z-0 h-1 rounded bg-success-500;
+    @apply absolute z-0 h-1 rounded bg-primary-500;
   }
 
   /* Customization options for different sizes */
@@ -1134,19 +1134,19 @@
 
   /* Hover and focus states for slider thumbs */
   .pc-slider-input:hover::-webkit-slider-thumb {
-    @apply bg-success-600;
+    @apply bg-primary-600;
   }
 
   .pc-slider-input:focus::-webkit-slider-thumb {
-    @apply ring-2 ring-success-200 ring-offset-2;
+    @apply ring-2 ring-primary-200 ring-offset-2;
   }
 
   .pc-slider-input:hover::-moz-range-thumb {
-    @apply bg-success-600;
+    @apply bg-primary-600;
   }
 
   .pc-slider-input:focus::-moz-range-thumb {
-    @apply ring-2 ring-success-200 ring-offset-2;
+    @apply ring-2 ring-primary-200 ring-offset-2;
   }
 
 
