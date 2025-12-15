@@ -1100,53 +1100,53 @@
   }
 
   .pc-slider-input::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 bg-primary-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
+    @apply appearance-none w-6 h-6 bg-primary-500 rounded-full border-[3px] border-white dark:border-gray-800 pointer-events-auto cursor-pointer shadow-lg relative z-20 translate-y-0.5 transition-transform duration-150 ease-in-out;
   }
 
   .pc-slider-input::-moz-range-thumb {
-    @apply w-5 h-5 bg-primary-500 rounded-full border-0 pointer-events-auto cursor-pointer shadow relative z-20 translate-y-0.5;
+    @apply w-6 h-6 bg-primary-500 rounded-full border-[3px] border-white dark:border-gray-800 pointer-events-auto cursor-pointer shadow-lg relative z-20 translate-y-0.5 transition-transform duration-150 ease-in-out;
   }
 
   .pc-slider-track {
-    @apply absolute z-0 w-full h-1 bg-gray-200 rounded dark:bg-gray-700;
+    @apply absolute z-0 w-full h-1.5 bg-gray-200 rounded-full dark:bg-gray-700;
   }
 
   .pc-slider-range {
-    @apply absolute z-0 h-1 rounded bg-primary-500;
+    @apply absolute z-0 h-1.5 rounded-full bg-primary-500;
   }
 
   /* Customization options for different sizes */
   .pc-slider-input--sm::-webkit-slider-thumb {
-    @apply w-4 h-4;
+    @apply w-5 h-5 border-2;
   }
 
   .pc-slider-input--sm::-moz-range-thumb {
-    @apply w-4 h-4;
+    @apply w-5 h-5 border-2;
   }
 
   .pc-slider-input--lg::-webkit-slider-thumb {
-    @apply w-6 h-6;
+    @apply w-7 h-7 border-4;
   }
 
   .pc-slider-input--lg::-moz-range-thumb {
-    @apply w-6 h-6;
+    @apply w-7 h-7 border-4;
   }
 
   /* Hover and focus states for slider thumbs */
   .pc-slider-input:hover::-webkit-slider-thumb {
-    @apply bg-primary-600;
+    @apply bg-primary-600 scale-110;
   }
 
   .pc-slider-input:focus::-webkit-slider-thumb {
-    @apply ring-2 ring-primary-200 ring-offset-2;
+    @apply ring-4 ring-primary-200 dark:ring-primary-500/30 ring-offset-0 scale-110;
   }
 
   .pc-slider-input:hover::-moz-range-thumb {
-    @apply bg-primary-600;
+    @apply bg-primary-600 scale-110;
   }
 
   .pc-slider-input:focus::-moz-range-thumb {
-    @apply ring-2 ring-primary-200 ring-offset-2;
+    @apply ring-4 ring-primary-200 dark:ring-primary-500/30 ring-offset-0 scale-110;
   }
 
 
