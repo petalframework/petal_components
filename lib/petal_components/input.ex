@@ -425,6 +425,10 @@ defmodule PetalComponents.Input do
   # Helper functions for input.ex
   defp calculate_slider_position(nil, _range_min, _range_max), do: 0
 
+  defp calculate_slider_position(_value, range_min, range_max)
+       when range_min == range_max,
+       do: 0
+
   defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
     round((value - range_min) / (range_max - range_min) * 100)
   end
