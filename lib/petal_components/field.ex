@@ -217,49 +217,112 @@ defmodule PetalComponents.Field do
         format_value: formatter
       )
 
+    # Set default values if nil
+    min_value = assigns.min_field.value || assigns.range_min
+    max_value = assigns.max_field.value || assigns.range_max
+
+    # Get sample formatted value to detect format pattern (e.g., "$50")
+    sample_formatted = assigns.format_value.(min_value)
+
+    assigns =
+      assign(assigns,
+        min_value: min_value,
+        max_value: max_value,
+        sample_formatted: sample_formatted
+      )
+
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label>{@label}</.field_label>
-      <div id={@id} class="relative h-12 mt-4">
+      <div
+        id={@id}
+        class="relative h-12 mt-4"
+        phx-update="ignore"
+        x-data={"{
+          rangeMin: #{@range_min},
+          rangeMax: #{@range_max},
+          minValue: #{@min_value},
+          maxValue: #{@max_value},
+
+          init() {
+            this.$nextTick(() => {
+              this.updateRange();
+            });
+          },
+
+          updateMinValue(value) {
+            this.minValue = parseInt(value);
+            if (this.minValue > this.maxValue) {
+              this.minValue = this.maxValue;
+              this.$refs.minSlider.value = this.minValue;
+            }
+            this.updateRange();
+          },
+
+          updateMaxValue(value) {
+            this.maxValue = parseInt(value);
+            if (this.maxValue < this.minValue) {
+              this.maxValue = this.minValue;
+              this.$refs.maxSlider.value = this.maxValue;
+            }
+            this.updateRange();
+          },
+
+          updateRange() {
+            if (this.rangeMax === this.rangeMin) {
+              this.$refs.rangeTrack.style.left = '0%';
+              this.$refs.rangeTrack.style.right = '0%';
+              return;
+            }
+            const leftPercent = ((this.minValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+            const rightPercent = 100 - ((this.maxValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+
+            this.$refs.rangeTrack.style.left = leftPercent + '%';
+            this.$refs.rangeTrack.style.right = rightPercent + '%';
+          },
+
+          formatValue(val) {
+            const sample = #{Jason.encode!(@sample_formatted)};
+            if (sample.includes('$')) {
+              return '$' + val;
+            }
+            return val.toString();
+          }
+        }"}
+      >
         <div class="flex flex-row items-center justify-center space-x-2">
           <div class="relative w-full h-1.5">
             <div class="pc-slider-track"></div>
             <div
+              x-ref="rangeTrack"
               class="pc-slider-range"
-              data-slider-id={@id}
               id={@id <> "_slider-range"}
-              style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+              style={"left: #{calculate_slider_position(@min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_value, @range_min, @range_max)}%;"}
             >
             </div>
             <input
+              x-ref="minSlider"
               type="range"
               min={@range_min}
               max={@range_max}
               step={@step}
               name={@min_field.name}
-              value={@min_field.value}
+              value={@min_value}
               class="pc-slider-input"
               id={@id <> "_min-range"}
-              phx-hook="DualRangeSliderHook"
-              data-slider-id={@id}
-              data-slider-type="min"
-              data-range-min={@range_min}
-              data-range-max={@range_max}
+              @input="updateMinValue($event.target.value)"
             />
             <input
+              x-ref="maxSlider"
               type="range"
               min={@range_min}
               max={@range_max}
               step={@step}
               name={@max_field.name}
-              value={@max_field.value}
+              value={@max_value}
               class="pc-slider-input"
               id={@id <> "_max-range"}
-              phx-hook="DualRangeSliderHook"
-              data-slider-id={@id}
-              data-slider-type="max"
-              data-range-min={@range_min}
-              data-range-max={@range_max}
+              @input="updateMaxValue($event.target.value)"
             />
           </div>
         </div>
@@ -267,8 +330,11 @@ defmodule PetalComponents.Field do
           <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
             {@range_min_label || @format_value.(@range_min)}
           </span>
-          <span class="flex justify-center text-gray-600 dark:text-gray-300">
-            {@format_value.(@min_field.value) <> " - " <> @format_value.(@max_field.value)}
+          <span
+            class="flex justify-center text-gray-600 dark:text-gray-300"
+            x-text="formatValue(minValue) + ' - ' + formatValue(maxValue)"
+          >
+            {@format_value.(@min_value) <> " - " <> @format_value.(@max_value)}
           </span>
           <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
             {@range_max_label || @format_value.(@range_max)}
@@ -838,6 +904,10 @@ defmodule PetalComponents.Field do
 
   # Helper functions for dual range slider
   defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  defp calculate_slider_position(_value, range_min, range_max)
+       when range_min == range_max,
+       do: 0
 
   defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
     round((value - range_min) / (range_max - range_min) * 100)

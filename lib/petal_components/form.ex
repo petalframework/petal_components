@@ -226,50 +226,123 @@ defmodule PetalComponents.Form do
           <.range_input form={@form} field={@field} {@rest} />
         <% "range_dual" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
-          <div id={@id || Phoenix.HTML.Form.input_id(@form, @field)} class="relative h-12 mt-4">
+          <%
+            # Set default values if nil
+            min_value = @min_field.value || @range_min
+            max_value = @max_field.value || @range_max
+
+            # Get formatter function
+            formatter = assigns[:formatter] || (&to_string/1)
+
+            # Get sample formatted value to detect format pattern (e.g., "$50")
+            sample_formatted = formatter.(min_value)
+          %>
+          <div
+            id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
+            class="relative h-12 mt-4"
+            phx-update="ignore"
+            x-data={"{
+              rangeMin: #{@range_min},
+              rangeMax: #{@range_max},
+              minValue: #{min_value},
+              maxValue: #{max_value},
+
+              init() {
+                this.$nextTick(() => {
+                  this.updateRange();
+                });
+              },
+
+              updateMinValue(value) {
+                this.minValue = parseInt(value);
+                if (this.minValue > this.maxValue) {
+                  this.minValue = this.maxValue;
+                  this.$refs.minSlider.value = this.minValue;
+                }
+                this.updateRange();
+              },
+
+              updateMaxValue(value) {
+                this.maxValue = parseInt(value);
+                if (this.maxValue < this.minValue) {
+                  this.maxValue = this.minValue;
+                  this.$refs.maxSlider.value = this.maxValue;
+                }
+                this.updateRange();
+              },
+
+              updateRange() {
+                if (this.rangeMax === this.rangeMin) {
+                  this.$refs.rangeTrack.style.left = '0%';
+                  this.$refs.rangeTrack.style.right = '0%';
+                  return;
+                }
+                const leftPercent = ((this.minValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+                const rightPercent = 100 - ((this.maxValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+
+                this.$refs.rangeTrack.style.left = leftPercent + '%';
+                this.$refs.rangeTrack.style.right = rightPercent + '%';
+              },
+
+              formatValue(val) {
+                const sample = #{Jason.encode!(sample_formatted)};
+                if (sample.includes('$')) {
+                  return '$' + val;
+                }
+                return val.toString();
+              }
+            }"}
+          >
             <div class="flex flex-row items-center justify-center space-x-2">
               <div class="relative w-full h-1">
                 <div class="pc-slider-track"></div>
                 <div
+                  x-ref="rangeTrack"
                   class="pc-slider-range"
-                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
                   id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_slider-range"}
-                  style={"left: #{calculate_slider_position(@min_field.value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_field.value, @range_min, @range_max)}%;"}
+                  style={"left: #{calculate_slider_position(min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(max_value, @range_min, @range_max)}%;"}
                 >
                 </div>
                 <input
+                  x-ref="minSlider"
                   type="range"
                   min={@range_min}
                   max={@range_max}
                   step={@step}
                   name={@min_field.name}
-                  value={@min_field.value}
+                  value={min_value}
                   class="pc-slider-input"
                   id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_min-range"}
-                  phx-hook="DualRangeSliderHook"
-                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
-                  data-slider-type="min"
-                  data-range-min={@range_min}
-                  data-range-max={@range_max}
+                  @input="updateMinValue($event.target.value)"
                 />
                 <input
+                  x-ref="maxSlider"
                   type="range"
                   min={@range_min}
                   max={@range_max}
                   step={@step}
                   name={@max_field.name}
-                  value={@max_field.value}
+                  value={max_value}
                   class="pc-slider-input"
                   id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_max-range"}
-                  phx-hook="DualRangeSliderHook"
-                  data-slider-id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
-                  data-slider-type="max"
-                  data-range-min={@range_min}
-                  data-range-max={@range_max}
+                  @input="updateMaxValue($event.target.value)"
                 />
               </div>
             </div>
-            # ... rest of the range slider code ...
+            <div class="grid grid-cols-3 mt-4 text-sm">
+              <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
+                {assigns[:range_min_label] || formatter.(@range_min)}
+              </span>
+              <span
+                class="flex justify-center text-gray-600 dark:text-gray-300"
+                x-text="formatValue(minValue) + ' - ' + formatValue(maxValue)"
+              >
+                {formatter.(min_value) <> " - " <> formatter.(max_value)}
+              </span>
+              <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
+                {assigns[:range_max_label] || formatter.(@range_max)}
+              </span>
+            </div>
           </div>
           <.form_field_error form={@form} field={@field} />
           <.form_help_text help_text={@help_text} />

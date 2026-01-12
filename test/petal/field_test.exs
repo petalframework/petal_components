@@ -892,4 +892,120 @@ defmodule PetalComponents.FieldTest do
     assert count_substring(html, "pc-label--required") == 0
     assert count_substring(html, " required") == 0
   end
+
+  test "dual range slider field renders with Alpine.js" do
+    assigns = %{form: to_form(%{}, as: :filter)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="range-dual"
+          id="price_filter"
+          label="Price Range"
+          range_min={0}
+          range_max={1000}
+          step={10}
+          min_field={%{name: "min_price", value: 100}}
+          max_field={%{name: "max_price", value: 500}}
+          field={@form[:price]}
+          help_text="Select your price range"
+        />
+      </.form>
+      """)
+
+    # Check for label
+    assert html =~ "Price Range"
+
+    # Check for Alpine.js directives
+    assert html =~ "x-data"
+    assert html =~ "x-ref"
+
+    # Check for phx-update="ignore" to prevent LiveView conflicts
+    assert html =~ ~s|phx-update="ignore"|
+
+    # Check for range inputs
+    assert html =~ ~s|name="min_price"|
+    assert html =~ ~s|name="max_price"|
+    assert html =~ ~s|type="range"|
+
+    # Check for values
+    assert html =~ ~s|value="100"|
+    assert html =~ ~s|value="500"|
+
+    # Check for help text
+    assert html =~ "Select your price range"
+
+    # Check for slider classes
+    assert html =~ "pc-slider-input"
+    assert html =~ "pc-slider-range"
+  end
+
+  test "dual range slider field with errors" do
+    assigns = %{
+      field: %Phoenix.HTML.FormField{
+        errors: [{"must be selected", [validation: :required]}],
+        name: "price_range",
+        value: nil,
+        field: :price_range,
+        id: "price_range",
+        form: %Phoenix.HTML.Form{
+          params: %{},
+          source: %{},
+          impl: Phoenix.HTML.FormData.Ecto.Changeset,
+          name: "filter"
+        }
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.field
+        type="range-dual"
+        id="price_filter"
+        label="Price Range"
+        range_min={0}
+        range_max={1000}
+        min_field={%{name: "min_price", value: nil}}
+        max_field={%{name: "max_price", value: nil}}
+        field={@field}
+      />
+      """)
+
+    # Check for error message
+    assert html =~ "must be selected"
+
+    # Check that component still renders
+    assert html =~ "x-data"
+    assert html =~ "Price Range"
+  end
+
+  test "dual range slider handles edge case when range_min equals range_max" do
+    assigns = %{form: to_form(%{}, as: :filter)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="range-dual"
+          id="edge_case_range"
+          label="Edge Case Range"
+          range_min={50}
+          range_max={50}
+          min_field={%{name: "min_val", value: 50}}
+          max_field={%{name: "max_val", value: 50}}
+          field={@form[:edge_case]}
+        />
+      </.form>
+      """)
+
+    # Should render without crashing
+    assert html =~ "Edge Case Range"
+    assert html =~ "x-data"
+    assert html =~ ~s|min="50"|
+    assert html =~ ~s|max="50"|
+
+    # Should have guard clause to prevent division by zero
+    assert html =~ "if (this.rangeMax === this.rangeMin)"
+  end
 end
