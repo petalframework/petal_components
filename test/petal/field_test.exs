@@ -950,7 +950,7 @@ defmodule PetalComponents.FieldTest do
         field: :price_range,
         id: "price_range",
         form: %Phoenix.HTML.Form{
-          params: %{},
+          params: %{"price_range" => nil},
           source: %{},
           impl: Phoenix.HTML.FormData.Ecto.Changeset,
           name: "filter"

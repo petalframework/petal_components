@@ -122,7 +122,7 @@ defmodule PetalComponents.Field do
 
   # When a FormField struct is provided, normalize and delegate rendering.
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if pc_used_input?(field), do: field.errors, else: []
+    errors = if used_input?(field), do: field.errors, else: []
 
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
@@ -978,8 +978,4 @@ defmodule PetalComponents.Field do
     end
   end
 
-  # Renamed helper to avoid conflict with Phoenix.Component.used_input?/1
-  defp pc_used_input?(field) do
-    field.errors != []
-  end
 end
