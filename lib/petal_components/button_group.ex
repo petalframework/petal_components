@@ -94,10 +94,10 @@ defmodule PetalComponents.ButtonGroup do
         button_border_class={@button_border_class}
         {group_btn_assigns}
       >
-        <%= if group_btn_assigns[:inner_block] do %>
+        <%= if Map.has_key?(group_btn_assigns, :inner_block) && group_btn_assigns.inner_block != nil do %>
           {render_slot(group_btn_assigns)}
         <% else %>
-          {group_btn_assigns.label}
+          {Map.get(group_btn_assigns, :label, "")}
         <% end %>
       </.group_button>
     </div>

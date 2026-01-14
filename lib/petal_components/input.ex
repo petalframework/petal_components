@@ -13,8 +13,9 @@ defmodule PetalComponents.Input do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select switch tel text textarea time url week)
+    values:
+      ~w(checkbox color date datetime-local email file hidden month number password
+             range range-dual range-numeric radio search select switch tel text textarea time url week)
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
 
@@ -38,6 +39,16 @@ defmodule PetalComponents.Input do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :any, default: nil, doc: "the class to add to the input"
+
+  # Dual range slider attributes
+  attr :min_field, Phoenix.HTML.FormField, doc: "form field for minimum value in range-dual"
+  attr :max_field, Phoenix.HTML.FormField, doc: "form field for maximum value in range-dual"
+  attr :range_min, :integer, default: 0, doc: "minimum value for range-dual slider"
+  attr :range_max, :integer, default: 100, doc: "maximum value for range-dual slider"
+  attr :range_min_label, :string, default: nil, doc: "label for minimum value in range-dual"
+  attr :range_max_label, :string, default: nil, doc: "label for maximum value in range-dual"
+  attr :format_value, :any, default: nil, doc: "function to format displayed values in range-dual"
+  attr :step, :any, default: 1, doc: "step value for range and numeric inputs"
 
   attr :rest, :global,
     include:
@@ -222,6 +233,169 @@ defmodule PetalComponents.Input do
     """
   end
 
+  def input(%{type: "range-dual"} = assigns) do
+    format_fn = assigns[:format_value] || (&to_string/1)
+    step = assigns[:step] || 1
+
+    # Set default values if nil
+    min_value = assigns.min_field.value || assigns.range_min
+    max_value = assigns.max_field.value || assigns.range_max
+
+    assigns =
+      assigns
+      |> assign(:format_value, format_fn)
+      |> assign(:step, step)
+      |> assign(:min_value, min_value)
+      |> assign(:max_value, max_value)
+
+    # Get sample formatted value to detect format pattern (e.g., "$50")
+    sample_formatted = format_fn.(assigns.min_value)
+
+    assigns = assign(assigns, :sample_formatted, sample_formatted)
+
+    ~H"""
+    <div
+      id={@id}
+      class="relative h-12 mt-4"
+      phx-update="ignore"
+      x-data={"{
+        rangeMin: #{@range_min},
+        rangeMax: #{@range_max},
+        minValue: #{@min_value},
+        maxValue: #{@max_value},
+
+        init() {
+          this.$nextTick(() => {
+            this.updateRange();
+          });
+        },
+
+        updateMinValue(value) {
+          this.minValue = parseInt(value);
+          if (this.minValue > this.maxValue) {
+            this.minValue = this.maxValue;
+            this.$refs.minSlider.value = this.minValue;
+          }
+          this.updateRange();
+        },
+
+        updateMaxValue(value) {
+          this.maxValue = parseInt(value);
+          if (this.maxValue < this.minValue) {
+            this.maxValue = this.minValue;
+            this.$refs.maxSlider.value = this.maxValue;
+          }
+          this.updateRange();
+        },
+
+        updateRange() {
+          if (this.rangeMax === this.rangeMin) {
+            this.$refs.rangeTrack.style.left = '0%';
+            this.$refs.rangeTrack.style.right = '0%';
+            return;
+          }
+          const leftPercent = ((this.minValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+          const rightPercent = 100 - ((this.maxValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+
+          this.$refs.rangeTrack.style.left = leftPercent + '%';
+          this.$refs.rangeTrack.style.right = rightPercent + '%';
+        },
+
+        formatValue(val) {
+          const sample = #{Jason.encode!(@sample_formatted)};
+          if (sample.includes('$')) {
+            return '$' + val;
+          }
+          return val.toString();
+        }
+      }"}
+    >
+      <div class="flex flex-row items-center justify-center space-x-2">
+        <div class="relative w-full h-1">
+          <div class="pc-slider-track"></div>
+          <div
+            x-ref="rangeTrack"
+            class="pc-slider-range"
+            id={@id <> "_slider-range"}
+            style={"left: #{calculate_slider_position(@min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_value, @range_min, @range_max)}%;"}
+          >
+          </div>
+          <input
+            x-ref="minSlider"
+            type="range"
+            min={@range_min}
+            max={@range_max}
+            step={@step}
+            name={@min_field.name}
+            value={@min_value}
+            class="pc-slider-input"
+            id={@id <> "_min-range"}
+            @input="updateMinValue($event.target.value)"
+          />
+          <input
+            x-ref="maxSlider"
+            type="range"
+            min={@range_min}
+            max={@range_max}
+            step={@step}
+            name={@max_field.name}
+            value={@max_value}
+            class="pc-slider-input"
+            id={@id <> "_max-range"}
+            @input="updateMaxValue($event.target.value)"
+          />
+        </div>
+      </div>
+      <div class="grid grid-cols-3 mt-4 text-sm">
+        <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
+          {@range_min_label || @format_value.(@range_min)}
+        </span>
+        <span
+          class="flex justify-center text-gray-600 dark:text-gray-300"
+          x-text="formatValue(minValue) + ' - ' + formatValue(maxValue)"
+        >
+          {@format_value.(@min_value) <> " - " <> @format_value.(@max_value)}
+        </span>
+        <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
+          {@range_max_label || @format_value.(@range_max)}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  def input(%{type: "range-numeric"} = assigns) do
+    ~H"""
+    <div class="flex flex-row gap-2">
+      <input
+        type="number"
+        step={@step}
+        name={@min_field.name}
+        value={@min_field.value}
+        placeholder="No Min"
+        min={@range_min}
+        max={@max_field.value}
+        id={@id <> "_min"}
+        inputmode="numeric"
+        class="w-full pc-text-input"
+      />
+      <div class="flex flex-col items-center justify-center">-</div>
+      <input
+        type="number"
+        step={@step}
+        name={@max_field.name}
+        value={@max_field.value}
+        placeholder="No Max"
+        min={@min_field.value}
+        max={@range_max}
+        id={@id <> "_max"}
+        inputmode="numeric"
+        class="w-full pc-text-input"
+      />
+    </div>
+    """
+  end
+
   def input(assigns) do
     ~H"""
     <input
@@ -247,4 +421,26 @@ defmodule PetalComponents.Input do
   defp get_icon_for_type("month"), do: "hero-calendar"
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
+
+  # Helper functions for input.ex
+  defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  defp calculate_slider_position(_value, range_min, range_max)
+       when range_min == range_max,
+       do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  defp calculate_slider_position(value, range_min, range_max) do
+    value =
+      case value do
+        v when is_binary(v) -> String.to_integer(v)
+        v when is_integer(v) -> v
+        _ -> range_min
+      end
+
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
 end

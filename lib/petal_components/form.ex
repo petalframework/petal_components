@@ -59,6 +59,8 @@ defmodule PetalComponents.Form do
     "color_input",
     "file_input",
     "range_input",
+    "range_dual",
+    "range_numeric",
     "textarea",
     "select",
     "checkbox",
@@ -70,6 +72,7 @@ defmodule PetalComponents.Form do
 
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
+  attr(:id, :string, default: nil, doc: "the id of the input")
   attr(:label, :string, doc: "labels your field")
   attr(:label_class, :any, default: nil, doc: "extra CSS for your label")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
@@ -85,6 +88,26 @@ defmodule PetalComponents.Form do
   attr :no_margin, :boolean,
     default: false,
     doc: "removes the bottom margin from the field wrapper"
+
+  # Range and Dual Range Specific Attributes
+  attr :range_min, :integer, default: 0, doc: "minimum value for range inputs"
+  attr :range_max, :integer, default: 100, doc: "maximum value for range inputs"
+  attr :step, :integer, default: 1, doc: "step value for range inputs"
+
+  attr :min_field, :map,
+    default: nil,
+    doc: "min field for dual range (required for range-dual and range-numeric)"
+
+  attr :max_field, :map,
+    default: nil,
+    doc: "max field for dual range (required for range-dual and range-numeric)"
+
+  attr :range_min_label, :string, default: nil, doc: "optional label for minimum range value"
+  attr :range_max_label, :string, default: nil, doc: "optional label for maximum range value"
+
+  attr :formatter, :any,
+    default: nil,
+    doc: "function to format range values (e.g., Money.to_string!)"
 
   attr :rest, :global, include: @form_attrs
 
@@ -222,6 +245,159 @@ defmodule PetalComponents.Form do
         <% "range_input" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.range_input form={@form} field={@field} {@rest} />
+        <% "range_dual" -> %>
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <%
+            # Set default values if nil
+            min_value = @min_field.value || @range_min
+            max_value = @max_field.value || @range_max
+
+            # Get formatter function
+            formatter = assigns[:formatter] || (&to_string/1)
+
+            # Get sample formatted value to detect format pattern (e.g., "$50")
+            sample_formatted = formatter.(min_value)
+          %>
+          <div
+            id={@id || Phoenix.HTML.Form.input_id(@form, @field)}
+            class="relative h-12 mt-4"
+            phx-update="ignore"
+            x-data={"{
+              rangeMin: #{@range_min},
+              rangeMax: #{@range_max},
+              minValue: #{min_value},
+              maxValue: #{max_value},
+
+              init() {
+                this.$nextTick(() => {
+                  this.updateRange();
+                });
+              },
+
+              updateMinValue(value) {
+                this.minValue = parseInt(value);
+                if (this.minValue > this.maxValue) {
+                  this.minValue = this.maxValue;
+                  this.$refs.minSlider.value = this.minValue;
+                }
+                this.updateRange();
+              },
+
+              updateMaxValue(value) {
+                this.maxValue = parseInt(value);
+                if (this.maxValue < this.minValue) {
+                  this.maxValue = this.minValue;
+                  this.$refs.maxSlider.value = this.maxValue;
+                }
+                this.updateRange();
+              },
+
+              updateRange() {
+                if (this.rangeMax === this.rangeMin) {
+                  this.$refs.rangeTrack.style.left = '0%';
+                  this.$refs.rangeTrack.style.right = '0%';
+                  return;
+                }
+                const leftPercent = ((this.minValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+                const rightPercent = 100 - ((this.maxValue - this.rangeMin) / (this.rangeMax - this.rangeMin)) * 100;
+
+                this.$refs.rangeTrack.style.left = leftPercent + '%';
+                this.$refs.rangeTrack.style.right = rightPercent + '%';
+              },
+
+              formatValue(val) {
+                const sample = #{Jason.encode!(sample_formatted)};
+                if (sample.includes('$')) {
+                  return '$' + val;
+                }
+                return val.toString();
+              }
+            }"}
+          >
+            <div class="flex flex-row items-center justify-center space-x-2">
+              <div class="relative w-full h-1">
+                <div class="pc-slider-track"></div>
+                <div
+                  x-ref="rangeTrack"
+                  class="pc-slider-range"
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_slider-range"}
+                  style={"left: #{calculate_slider_position(min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(max_value, @range_min, @range_max)}%;"}
+                >
+                </div>
+                <input
+                  x-ref="minSlider"
+                  type="range"
+                  min={@range_min}
+                  max={@range_max}
+                  step={@step}
+                  name={@min_field.name}
+                  value={min_value}
+                  class="pc-slider-input"
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_min-range"}
+                  @input="updateMinValue($event.target.value)"
+                />
+                <input
+                  x-ref="maxSlider"
+                  type="range"
+                  min={@range_min}
+                  max={@range_max}
+                  step={@step}
+                  name={@max_field.name}
+                  value={max_value}
+                  class="pc-slider-input"
+                  id={@id || Phoenix.HTML.Form.input_id(@form, @field) <> "_max-range"}
+                  @input="updateMaxValue($event.target.value)"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-3 mt-4 text-sm">
+              <span class="flex items-start justify-start text-gray-500 dark:text-gray-400">
+                {assigns[:range_min_label] || formatter.(@range_min)}
+              </span>
+              <span
+                class="flex justify-center text-gray-600 dark:text-gray-300"
+                x-text="formatValue(minValue) + ' - ' + formatValue(maxValue)"
+              >
+                {formatter.(min_value) <> " - " <> formatter.(max_value)}
+              </span>
+              <span class="flex items-end justify-end text-gray-500 dark:text-gray-400">
+                {assigns[:range_max_label] || formatter.(@range_max)}
+              </span>
+            </div>
+          </div>
+          <.form_field_error form={@form} field={@field} />
+          <.form_help_text help_text={@help_text} />
+        <% "range_numeric" -> %>
+          <.form_label form={@form} field={@field} label={@label} class={@label_class} />
+          <div class="flex flex-row gap-2">
+            <.form_field
+              type="number_input"
+              form={@form}
+              field={@min_field.name}
+              label=""
+              placeholder="No Min"
+              min={@range_min}
+              max={@max_field.value}
+              value={@min_field.value}
+              wrapper_classes="w-full"
+            />
+
+            <div class="flex flex-col items-center justify-center">-</div>
+
+            <.form_field
+              type="number_input"
+              form={@form}
+              field={@max_field.name}
+              label=""
+              placeholder="No Max"
+              min={@min_field.value}
+              max={@range_max}
+              value={@max_field.value}
+              wrapper_classes="w-full"
+            />
+          </div>
+          <.form_field_error form={@form} field={@field} />
+          <.form_help_text help_text={@help_text} />
         <% "textarea" -> %>
           <.form_label form={@form} field={@field} label={@label} class={@label_class} />
           <.textarea form={@form} field={@field} {@rest} />
@@ -783,6 +959,29 @@ defmodule PetalComponents.Form do
 
   defp range_input_classes(errors) do
     "#{if errors != [], do: "has-error", else: ""} pc-range-input"
+  end
+
+  # Helper functions for dual range slider
+  defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  # Guard against division by zero when range_min == range_max
+  defp calculate_slider_position(_value, range_min, range_max)
+       when range_min == range_max,
+       do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  defp calculate_slider_position(value, range_min, range_max) do
+    value =
+      case value do
+        v when is_binary(v) -> String.to_integer(v)
+        v when is_integer(v) -> v
+        _ -> range_min
+      end
+
+    round((value - range_min) / (range_max - range_min) * 100)
   end
 
   defp checkbox_classes(errors) do

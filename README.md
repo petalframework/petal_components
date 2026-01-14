@@ -115,7 +115,21 @@ We’ve released an [official Figma UI kit for Petal](https://www.figma.com/comm
 ## FAQ
 
 **Q: Do I need Alpine JS?**
-A: No we have designed the components to use either Alpine JS or LiveView.JS.
+A: Most components work with either Alpine JS or LiveView.JS. However, some components like the dual range slider require Alpine.js for client-side interactivity. If you're using these components, you'll need to include Alpine.js in your project.
+
+To add Alpine.js via CDN:
+```html
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+```
+
+Or via npm:
+```bash
+npm install alpinejs
+```
+
+**Components that require Alpine.js:**
+- Dual range slider (`type="range-dual"`)
+- Some dropdown variants
 
 **Q: What if I want to use my own components too?**
 A: You can install this library and import only the components you need.
