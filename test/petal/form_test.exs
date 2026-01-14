@@ -855,4 +855,282 @@ defmodule PetalComponents.FormTest do
     assert html =~ "itemid"
     assert html =~ "something"
   end
+
+  test "dual range slider (range_dual) renders with Alpine.js" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:price}
+          label="Price Range"
+          range_min={0}
+          range_max={1000}
+          step={10}
+          min_field={%{name: "min_price", value: 100}}
+          max_field={%{name: "max_price", value: 500}}
+        />
+      </.form>
+      """)
+
+    # Check for label
+    assert html =~ "Price Range"
+
+    # Check for Alpine.js directives
+    assert html =~ "x-data"
+    assert html =~ "x-ref"
+    assert html =~ "rangeMin: 0"
+    assert html =~ "rangeMax: 1000"
+    assert html =~ "minValue: 100"
+    assert html =~ "maxValue: 500"
+
+    # Check for phx-update="ignore"
+    assert html =~ ~s|phx-update="ignore"|
+
+    # Check for range inputs
+    assert html =~ ~s|name="min_price"|
+    assert html =~ ~s|name="max_price"|
+    assert html =~ ~s|type="range"|
+
+    # Check for values
+    assert html =~ ~s|value="100"|
+    assert html =~ ~s|value="500"|
+
+    # Check for min/max/step attributes
+    assert html =~ ~s|min="0"|
+    assert html =~ ~s|max="1000"|
+    assert html =~ ~s|step="10"|
+
+    # Check for slider classes
+    assert html =~ "pc-slider-input"
+    assert html =~ "pc-slider-track"
+    assert html =~ "pc-slider-range"
+
+    # Check for Alpine event handlers
+    assert html =~ "@input"
+    assert html =~ "updateMinValue"
+    assert html =~ "updateMaxValue"
+  end
+
+  test "dual range slider with nil values uses range_min/range_max as defaults" do
+    assigns = %{
+      min_field: %{name: "min_price", value: nil},
+      max_field: %{name: "max_price", value: nil}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:price}
+          range_min={0}
+          range_max={1000}
+          min_field={@min_field}
+          max_field={@max_field}
+        />
+      </.form>
+      """)
+
+    # Should use range_min/range_max as defaults when values are nil
+    assert html =~ "minValue: 0"
+    assert html =~ "maxValue: 1000"
+    assert html =~ ~s|value="0"|
+    assert html =~ ~s|value="1000"|
+  end
+
+  test "dual range slider with negative ranges" do
+    assigns = %{
+      min_field: %{name: "min_temp", value: -50},
+      max_field: %{name: "max_temp", value: 50}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:temperature}
+          range_min={-100}
+          range_max={100}
+          min_field={@min_field}
+          max_field={@max_field}
+        />
+      </.form>
+      """)
+
+    assert html =~ "rangeMin: -100"
+    assert html =~ "rangeMax: 100"
+    assert html =~ "minValue: -50"
+    assert html =~ "maxValue: 50"
+    assert html =~ ~s|min="-100"|
+    assert html =~ ~s|max="100"|
+    assert html =~ ~s|value="-50"|
+    assert html =~ ~s|value="50"|
+  end
+
+  test "dual range slider with custom formatter" do
+    assigns = %{
+      formatter: fn value -> "$#{value}" end,
+      min_field: %{name: "min_price", value: 100},
+      max_field: %{name: "max_price", value: 500}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:price}
+          range_min={0}
+          range_max={1000}
+          min_field={@min_field}
+          max_field={@max_field}
+          formatter={@formatter}
+        />
+      </.form>
+      """)
+
+    # Check that formatter is applied to labels
+    assert html =~ "$0"
+    assert html =~ "$100"
+    assert html =~ "$500"
+    assert html =~ "$1000"
+
+    # Check that formatValue detects $ pattern in sample (HTML escaped)
+    assert html =~ ~s|sample.includes(&#39;$&#39;)|
+  end
+
+  test "dual range slider with custom labels" do
+    assigns = %{
+      min_field: %{name: "min_price", value: 100},
+      max_field: %{name: "max_price", value: 500}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:price}
+          range_min={0}
+          range_max={1000}
+          min_field={@min_field}
+          max_field={@max_field}
+          range_min_label="Min"
+          range_max_label="Max"
+        />
+      </.form>
+      """)
+
+    assert html =~ "Min"
+    assert html =~ "Max"
+  end
+
+  test "dual range slider handles edge case when range_min equals range_max" do
+    assigns = %{
+      min_field: %{name: "min_price", value: 100},
+      max_field: %{name: "max_price", value: 100}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_dual"
+          form={f}
+          field={:price}
+          range_min={100}
+          range_max={100}
+          min_field={@min_field}
+          max_field={@max_field}
+        />
+      </.form>
+      """)
+
+    # Check that component still renders with guard clause
+    assert html =~ "x-data"
+    assert html =~ "if (this.rangeMax === this.rangeMin)"
+    assert html =~ "rangeMin: 100"
+    assert html =~ "rangeMax: 100"
+  end
+
+  test "range_numeric renders with number inputs" do
+    assigns = %{
+      min_field: %{name: "min_price", value: 100},
+      max_field: %{name: "max_price", value: 500}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_numeric"
+          form={f}
+          field={:price}
+          label="Price Range"
+          range_min={0}
+          range_max={1000}
+          min_field={@min_field}
+          max_field={@max_field}
+        />
+      </.form>
+      """)
+
+    # Check for label
+    assert html =~ "Price Range"
+
+    # Check for number inputs (form_field wraps them, so they become number inputs)
+    assert html =~ ~s|type="number"|
+    refute html =~ ~s|type="range"|
+
+    # Check for field names (form_field namespaces them)
+    assert html =~ ~s|name="filter[min_price]"|
+    assert html =~ ~s|name="filter[max_price]"|
+
+    # Check for placeholders
+    assert html =~ "No Min"
+    assert html =~ "No Max"
+
+    # Check for min/max constraints
+    assert html =~ ~s|min="0"|
+    assert html =~ ~s|max="1000"|
+
+    # Check for separator
+    assert html =~ "-"
+  end
+
+  test "range_numeric with nil values" do
+    assigns = %{
+      min_field: %{name: "min_price", value: nil},
+      max_field: %{name: "max_price", value: nil}
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:filter}>
+        <.form_field
+          type="range_numeric"
+          form={f}
+          field={:price}
+          range_min={0}
+          range_max={1000}
+          min_field={@min_field}
+          max_field={@max_field}
+        />
+      </.form>
+      """)
+
+    # Should render with placeholders for nil values
+    assert html =~ "No Min"
+    assert html =~ "No Max"
+    assert html =~ ~s|type="number"|
+  end
 end

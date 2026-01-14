@@ -72,6 +72,7 @@ defmodule PetalComponents.Form do
 
   attr(:form, :any, doc: "the form object", required: true)
   attr(:field, :atom, doc: "field in changeset / form", required: true)
+  attr(:id, :string, default: nil, doc: "the id of the input")
   attr(:label, :string, doc: "labels your field")
   attr(:label_class, :any, default: nil, doc: "extra CSS for your label")
   attr(:help_text, :string, default: nil, doc: "context/help for your field")
@@ -87,6 +88,26 @@ defmodule PetalComponents.Form do
   attr :no_margin, :boolean,
     default: false,
     doc: "removes the bottom margin from the field wrapper"
+
+  # Range and Dual Range Specific Attributes
+  attr :range_min, :integer, default: 0, doc: "minimum value for range inputs"
+  attr :range_max, :integer, default: 100, doc: "maximum value for range inputs"
+  attr :step, :integer, default: 1, doc: "step value for range inputs"
+
+  attr :min_field, :map,
+    default: nil,
+    doc: "min field for dual range (required for range-dual and range-numeric)"
+
+  attr :max_field, :map,
+    default: nil,
+    doc: "max field for dual range (required for range-dual and range-numeric)"
+
+  attr :range_min_label, :string, default: nil, doc: "optional label for minimum range value"
+  attr :range_max_label, :string, default: nil, doc: "optional label for maximum range value"
+
+  attr :formatter, :any,
+    default: nil,
+    doc: "function to format range values (e.g., Money.to_string!)"
 
   attr :rest, :global, include: @form_attrs
 
@@ -942,6 +963,11 @@ defmodule PetalComponents.Form do
 
   # Helper functions for dual range slider
   defp calculate_slider_position(nil, _range_min, _range_max), do: 0
+
+  # Guard against division by zero when range_min == range_max
+  defp calculate_slider_position(_value, range_min, range_max)
+       when range_min == range_max,
+       do: 0
 
   defp calculate_slider_position(value, range_min, range_max) when is_integer(value) do
     round((value - range_min) / (range_max - range_min) * 100)
