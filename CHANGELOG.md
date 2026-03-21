@@ -1,4 +1,8 @@
 # Changelog
+### Unreleased
+
+- fix(container): scope mobile padding to small screens only — `pc-container--mobile-padded` was overriding responsive `sm:px-6`/`lg:px-8` rules due to Tailwind v4 cascade ordering
+
 ### 3.0.1 - 2025-03-27 01:06:01
 
 - Bumps deps

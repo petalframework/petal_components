@@ -20,7 +20,7 @@
     @apply max-w-full;
   }
   .pc-container--mobile-padded {
-    @apply px-4;
+    @apply max-sm:px-4;
   }
 
   /* Buttons (New) */
