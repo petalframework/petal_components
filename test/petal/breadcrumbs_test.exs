@@ -20,7 +20,7 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "href"
     assert html =~ "text-md"
     assert html =~ "hero-home"
-    assert find_icon(html, "hero-home")
+    assert has_icon?(html, "hero-home")
   end
 
   test "breadcrumbs with no label" do
@@ -40,7 +40,7 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "href"
     assert html =~ "text-md"
     assert html =~ "hero-home"
-    assert find_icon(html, "hero-home")
+    assert has_icon?(html, "hero-home")
   end
 
   test "breadcrumb_patch" do
@@ -149,6 +149,6 @@ defmodule PetalComponents.BreadcrumbsTest do
       """)
 
     assert html =~ "pc-breadcrumbs__separator-chevron"
-    assert find_icon(html, "hero-chevron-right-solid")
+    assert has_icon?(html, "hero-chevron-right-solid")
   end
 end

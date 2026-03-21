@@ -22,7 +22,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
-      assert find_icon(html, "hero-key")
+      assert has_icon?(html, "hero-key")
       assert html =~ "Path"
       assert html =~ "/path"
       assert html =~ "blah"
@@ -100,7 +100,7 @@ defmodule PetalComponents.MenuTest do
         <.vertical_menu menu_items={@main_menu_items} current_page={@current_page} title={@sidebar_title} />
         """)
 
-      assert find_icon(html, "hero-home")
+      assert has_icon?(html, "hero-home")
       assert html =~ "Home"
       assert html =~ "School"
     end
@@ -176,12 +176,12 @@ defmodule PetalComponents.MenuTest do
         """)
 
       assert html =~ "Home"
-      assert find_icon(html, "hero-home")
-      assert find_icon(html, "hero-chevron-right")
+      assert has_icon?(html, "hero-home")
+      assert has_icon?(html, "hero-chevron-right")
 
       assert html =~ "Sign in"
       assert html =~ "/sign-in"
-      assert find_icon(html, "hero-key")
+      assert has_icon?(html, "hero-key")
     end
 
     test "Icon implemented as user function" do

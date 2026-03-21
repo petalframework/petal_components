@@ -43,10 +43,10 @@ defmodule PetalComponents.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:a11y_audit, "~> 0.3.0", only: :test},
+      {:a11y_audit, "~> 0.3.0", only: :test, optional: true},
       {:phoenix_playground, "~> 0.1.4", only: [:dev, :test]},
       {:websock_adapter, "~> 0.5.7"},
-      {:wallaby, "~> 0.30.9", runtime: false, only: :test},
+      {:wallaby, "~> 0.30.9", runtime: false, only: :test, optional: true},
       {:phoenix, "~> 1.7"},
       {:phoenix_live_view, "~> 1.0"},
       {:lazy_html, ">= 0.0.0", only: [:dev, :test]},

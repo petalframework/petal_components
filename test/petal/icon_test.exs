@@ -10,7 +10,7 @@ defmodule PetalComponents.IconTest do
       <.icon name="hero-arrow-right" class="text-gray-300" />
       """)
 
-    assert find_icon(html, "hero-arrow-right")
+    assert has_icon?(html, "hero-arrow-right")
     assert html =~ "text-gray-300"
   end
 

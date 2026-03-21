@@ -16,7 +16,7 @@ defmodule PetalComponents.AccordionTest do
 
     assert html =~ "x-data"
     assert html =~ "x-show"
-    assert find_icon(html)
+    assert has_icon?(html)
     assert html =~ "pc-accordion-item"
 
     # Test js_lib option

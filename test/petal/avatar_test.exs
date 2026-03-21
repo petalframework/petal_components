@@ -21,7 +21,7 @@ defmodule PetalComponents.AvatarTest do
       <.avatar />
       """)
 
-    assert find_icon(html)
+    assert has_icon?(html)
   end
 
   test "it renders a group of avatars with images" do
@@ -75,7 +75,7 @@ defmodule PetalComponents.AvatarTest do
       <.avatar />
       """)
 
-    assert find_icon(html)
+    assert has_icon?(html)
   end
 
   test "should include additional assigns" do

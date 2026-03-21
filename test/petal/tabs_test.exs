@@ -139,8 +139,8 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
-    assert find_icon(html, "hero-home")
-    assert find_icon(html, "hero-building-office")
+    assert has_icon?(html, "hero-home")
+    assert has_icon?(html, "hero-building-office")
   end
 
   test "dark mode" do
@@ -161,8 +161,8 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "<a"
     assert html =~ "href="
     assert html =~ "phx-click"
-    assert find_icon(html, "hero-home")
-    assert find_icon(html, "hero-building-office")
+    assert has_icon?(html, "hero-home")
+    assert has_icon?(html, "hero-building-office")
     assert html =~ "pc-tab__underline--is-active"
   end
 
