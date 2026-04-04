@@ -171,6 +171,58 @@ defmodule PetalComponents.AccordionTest do
 
     # Additional assertions for the content panels
     assert html =~ ~s{id="acc-content-panel-test_accordion-1"}
-    assert Regex.match?(~r{id="acc-content-panel-test_accordion-1".*?x-show="expanded"}s, html)
+    assert Regex.match?(~r{id="acc-content-panel-test_accordion-1".*?x-show="active === 1"}s, html)
+  end
+
+  test "accordion with multiple mode" do
+    assigns = %{container_id: "multi_accordion"}
+
+    html =
+      rendered_to_string(~H"""
+      <.accordion container_id={@container_id} multiple open_index={0}>
+        <:item heading="Section A">Content A</:item>
+        <:item heading="Section B">Content B</:item>
+        <:item heading="Section C">Content C</:item>
+      </.accordion>
+      """)
+
+    # Multiple mode uses array-based state
+    assert html =~ ~s|x-data="{ active: [0] }"|
+
+    # x-show uses includes() for array check
+    assert html =~ ~s|x-show="active.includes(0)"|
+    assert html =~ ~s|x-show="active.includes(1)"|
+
+    # Click expression uses array toggle
+    assert html =~ "active.includes(0) ? active = active.filter"
+    assert html =~ "[...active, 0]"
+  end
+
+  test "accordion multiple mode without open_index" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.accordion multiple>
+        <:item heading="A">Content A</:item>
+        <:item heading="B">Content B</:item>
+      </.accordion>
+      """)
+
+    # Empty array when no open_index
+    assert html =~ ~s|x-data="{ active: [] }"|
+  end
+
+  test "accordion live_view_js with phx-update ignore" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.accordion js_lib="live_view_js">
+        <:item heading="A">Content A</:item>
+      </.accordion>
+      """)
+
+    assert html =~ ~s|phx-update="ignore"|
   end
 end

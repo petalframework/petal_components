@@ -16,6 +16,12 @@ defmodule PetalComponents.Accordion do
   )
 
   attr(:open_index, :integer, default: nil, doc: "Index of item to be open at render")
+
+  attr(:multiple, :boolean,
+    default: false,
+    doc: "When true, multiple sections can be expanded simultaneously"
+  )
+
   attr(:rest, :global)
 
   slot :item, required: true, doc: "CSS class for parent container" do
@@ -53,12 +59,12 @@ defmodule PetalComponents.Accordion do
         if(@variant == "ghost", do: "pc-accordion--ghost")
       ]}
       {@rest}
-      {js_attributes("container", @js_lib, @container_id, nil, nil, @open_index, @variant)}
+      {js_attributes("container", @js_lib, @container_id, nil, nil, @open_index, @variant, @multiple)}
     >
       <%= for {current_item, i} <- Enum.with_index(@item) do %>
         <% is_open = i == @open_index %>
         <div
-          {js_attributes("item", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+          {js_attributes("item", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
           data-i={i}
           data-open={if is_open, do: "true", else: "false"}
           class={if(@variant == "ghost", do: "pc-accordion-item--ghost")}
@@ -66,7 +72,7 @@ defmodule PetalComponents.Accordion do
           <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
-              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
               class={
                 if @variant == "ghost" do
                   "pc-accordion-item__button--ghost"
@@ -99,27 +105,27 @@ defmodule PetalComponents.Accordion do
                     class="pc-accordion-item__plus"
                     x-cloak={@js_lib == "alpine_js"}
                     data-js-loading={@js_lib == "live_view_js"}
-                    {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+                    {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                   <.icon
                     name="hero-minus-mini"
                     class="pc-accordion-item__minus"
                     x-cloak={@js_lib == "alpine_js"}
                     data-js-loading={@js_lib == "live_view_js"}
-                    {js_attributes("icon_minus", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+                    {js_attributes("icon_minus", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                 </span>
               <% else %>
                 <.icon
                   name="hero-chevron-down-solid"
                   class={["pc-accordion-item__chevron", if(is_open, do: "rotate-180")]}
-                  {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+                  {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
                 />
               <% end %>
             </button>
           </h2>
           <div
-            {js_attributes("content_container", @js_lib, @container_id, i, length(@item), is_open, @variant)}
+            {js_attributes("content_container", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
             class="accordion-content-container"
           >
             <div class={
@@ -149,107 +155,115 @@ defmodule PetalComponents.Accordion do
       });
         window.addEventListener("click_accordion", e => {
         let i = e.detail.index;
-        let l = e.detail.length
+        let l = e.detail.length;
+        let isMultiple = !!e.detail.multiple;
         let clickedAccordionItem = e.target;
-        let currentlyOpenAccordionItem = document.querySelector("[data-open='true']")
-        let isClosingClickedAccordionItem = !!currentlyOpenAccordionItem && currentlyOpenAccordionItem == clickedAccordionItem;
+        let container = clickedAccordionItem.closest("[id^='accordion_']");
+        let currentlyOpenAccordionItem = container.querySelector("[data-open='true']");
+        let isClosingClickedAccordionItem = clickedAccordionItem.dataset.open === "true";
         let isLastAccordionItem = i == l - 1;
-        let isGhostVariant = clickedAccordionItem.closest("[id^='accordion_']").classList.contains("pc-accordion--ghost");
+        let isGhostVariant = container.classList.contains("pc-accordion--ghost");
 
-        // Close open accordion item
-        if(currentlyOpenAccordionItem) {
-          currentlyOpenAccordionItem.dataset.open = false;
+        function closeItem(item) {
+          item.dataset.open = "false";
           if (isGhostVariant) {
-            let plusIcon = currentlyOpenAccordionItem.querySelector(".pc-accordion-item__plus");
-            let minusIcon = currentlyOpenAccordionItem.querySelector(".pc-accordion-item__minus");
+            let plusIcon = item.querySelector(".pc-accordion-item__plus");
+            let minusIcon = item.querySelector(".pc-accordion-item__minus");
             if (plusIcon && minusIcon) {
               plusIcon.classList.remove("hidden");
               minusIcon.classList.add("hidden");
             }
           } else {
-            currentlyOpenAccordionItem.querySelector("span.hero-chevron-down-solid").classList.remove("rotate-180");
-            currentlyOpenAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
-            if(isLastAccordionItem){
-              clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion-item--last--closed");
+            let chevron = item.querySelector("span.hero-chevron-down-solid");
+            if (chevron) chevron.classList.remove("rotate-180");
+            let btn = item.querySelector(".accordion-button");
+            if (btn) btn.classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+            if (isLastAccordionItem && item === clickedAccordionItem) {
+              let btn2 = item.querySelector(".accordion-button");
+              if (btn2) btn2.classList.add("pc-accordion-item--last--closed");
             }
           }
-          currentlyOpenAccordionItem.querySelector(`.accordion-content-container`).style.display = "none";
+          item.querySelector(".accordion-content-container").style.display = "none";
         }
 
-        // Open clicked accordion item (if not already open)
-        if (!isClosingClickedAccordionItem) {
-          clickedAccordionItem.dataset.open = true;
+        function openItem(item) {
+          item.dataset.open = "true";
           if (isGhostVariant) {
-            let plusIcon = clickedAccordionItem.querySelector(".pc-accordion-item__plus");
-            let minusIcon = clickedAccordionItem.querySelector(".pc-accordion-item__minus");
+            let plusIcon = item.querySelector(".pc-accordion-item__plus");
+            let minusIcon = item.querySelector(".pc-accordion-item__minus");
             if (plusIcon && minusIcon) {
               plusIcon.classList.add("hidden");
               minusIcon.classList.remove("hidden");
             }
           } else {
-            clickedAccordionItem.querySelector("span.hero-chevron-down-solid").classList.add("rotate-180");
-            clickedAccordionItem.querySelector(`.accordion-button`).classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
-            if(isLastAccordionItem){
-              clickedAccordionItem.querySelector(`.accordion-button`).classList.remove("pc-accordion-item--last--closed");
+            let chevron = item.querySelector("span.hero-chevron-down-solid");
+            if (chevron) chevron.classList.add("rotate-180");
+            let btn = item.querySelector(".accordion-button");
+            if (btn) btn.classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+            if (isLastAccordionItem) {
+              let btn2 = item.querySelector(".accordion-button");
+              if (btn2) btn2.classList.remove("pc-accordion-item--last--closed");
             }
           }
-          clickedAccordionItem.querySelector(`.accordion-content-container`).style.display = "block";
+          item.querySelector(".accordion-content-container").style.display = "block";
+        }
+
+        // In single mode, close the currently open item (if different from clicked)
+        if (!isMultiple && currentlyOpenAccordionItem && currentlyOpenAccordionItem !== clickedAccordionItem) {
+          closeItem(currentlyOpenAccordionItem);
+        }
+
+        // Toggle clicked item
+        if (isClosingClickedAccordionItem) {
+          closeItem(clickedAccordionItem);
+        } else {
+          // In single mode, also close the currently open item if it's the same
+          if (!isMultiple && currentlyOpenAccordionItem === clickedAccordionItem) {
+            closeItem(clickedAccordionItem);
+          }
+          openItem(clickedAccordionItem);
         }
         })
     </script>
     """
   end
 
-  defp js_attributes(type, js_lib, container_id, i, l, open, variant) do
+  defp js_attributes(type, js_lib, container_id, i, l, open, variant, multiple) do
     case {type, js_lib} do
       {"container", "alpine_js"} ->
-        %{"x-data": "{ active: #{open || "null"}, isGhost: #{variant == "ghost"} }"}
+        init_value =
+          if multiple do
+            if open, do: "[#{open}]", else: "[]"
+          else
+            "#{open || "null"}"
+          end
+
+        %{"x-data": "{ active: #{init_value} }"}
 
       {"item", "alpine_js"} ->
-        %{
-          "x-data": "{
-            id: #{i},
-            get expanded() {
-              return this.active === this.id
-            },
-            set expanded(value) {
-              this.active = value ? this.id : null
-            },
-          }"
-        }
-
-      {"button", "alpine_js"} when i == l - 1 ->
-        if variant == "ghost" do
-          %{
-            "x-on:click": "expanded = !expanded",
-            ":aria-expanded": "expanded",
-            "aria-controls": content_panel_id(container_id, i)
-          }
-        else
-          %{
-            "x-on:click": "expanded = !expanded",
-            ":class":
-              "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'",
-            ":aria-expanded": "expanded",
-            "aria-controls": content_panel_id(container_id, i)
-          }
-        end
+        %{}
 
       {"button", "alpine_js"} ->
+        click_expr = alpine_click_expr(i, multiple)
+        expanded_expr = alpine_expanded_expr(i, multiple)
+
+        base = %{
+          "x-on:click": click_expr,
+          ":aria-expanded": expanded_expr,
+          "aria-controls": content_panel_id(container_id, i)
+        }
+
         if variant == "ghost" do
-          %{
-            "x-on:click": "expanded = !expanded",
-            ":aria-expanded": "expanded",
-            "aria-controls": content_panel_id(container_id, i)
-          }
+          base
         else
-          %{
-            "x-on:click": "expanded = !expanded",
-            ":class":
-              "expanded ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''",
-            ":aria-expanded": "expanded",
-            "aria-controls": content_panel_id(container_id, i)
-          }
+          class_expr =
+            if i == l - 1 do
+              "#{expanded_expr} ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'"
+            else
+              "#{expanded_expr} ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''"
+            end
+
+          Map.put(base, ":class", class_expr)
         end
 
       {"content_container", "alpine_js"} ->
@@ -257,55 +271,44 @@ defmodule PetalComponents.Accordion do
           id: content_panel_id(container_id, i),
           role: "region",
           "aria-labelledby": content_panel_header_id(container_id, i),
-          "x-show": "expanded",
+          "x-show": alpine_expanded_expr(i, multiple),
           "x-cloak": true,
-          "x-collapse": true
+          style: if(open, do: "", else: "display: none;")
         }
 
       {"icon", "alpine_js"} ->
+        expanded = alpine_expanded_expr(i, multiple)
+
         if variant == "ghost" do
-          %{
-            "x-show": "!expanded"
-          }
+          %{"x-show": "!(#{expanded})"}
         else
-          %{
-            ":class": "{ 'rotate-180': expanded }"
-          }
+          %{":class": "{ 'rotate-180': #{expanded} }"}
         end
 
       {"icon_minus", "alpine_js"} ->
-        %{
-          "x-show": "expanded"
-        }
+        %{"x-show": alpine_expanded_expr(i, multiple)}
 
       {"container", "live_view_js"} ->
-        %{}
+        %{"phx-update": "ignore"}
 
       {"item", "live_view_js"} ->
         %{}
 
       {"button", "live_view_js"} ->
-        if variant == "ghost" do
-          %{
-            "phx-click":
-              JS.dispatch("click_accordion",
-                to: "##{container_id} [data-i='#{i}']",
-                detail: %{container_id: container_id, index: i, length: l, variant: "ghost"}
-              ),
-            "aria-controls": content_panel_id(container_id, i),
-            "aria-expanded": "#{open}"
-          }
-        else
-          %{
-            "phx-click":
-              JS.dispatch("click_accordion",
-                to: "##{container_id} [data-i='#{i}']",
-                detail: %{container_id: container_id, index: i, length: l}
-              ),
-            "aria-controls": content_panel_id(container_id, i),
-            "aria-expanded": "#{open}"
-          }
-        end
+        detail =
+          %{container_id: container_id, index: i, length: l}
+          |> then(fn d -> if variant == "ghost", do: Map.put(d, :variant, "ghost"), else: d end)
+          |> then(fn d -> if multiple, do: Map.put(d, :multiple, true), else: d end)
+
+        %{
+          "phx-click":
+            JS.dispatch("click_accordion",
+              to: "##{container_id} [data-i='#{i}']",
+              detail: detail
+            ),
+          "aria-controls": content_panel_id(container_id, i),
+          "aria-expanded": "#{open}"
+        }
 
       {"content_container", "live_view_js"} ->
         %{
@@ -317,24 +320,29 @@ defmodule PetalComponents.Accordion do
 
       {"icon", "live_view_js"} ->
         if variant == "ghost" do
-          %{
-            class: if(open, do: "hidden")
-          }
+          %{class: if(open, do: "hidden")}
         else
-          %{
-            class: if(open, do: "rotate-180")
-          }
+          %{class: if(open, do: "rotate-180")}
         end
 
       {"icon_minus", "live_view_js"} ->
-        %{
-          class: if(open, do: "", else: "hidden")
-        }
+        %{class: if(open, do: "", else: "hidden")}
 
       _ ->
         %{}
     end
   end
+
+  defp alpine_click_expr(i, true = _multiple) do
+    "active.includes(#{i}) ? active = active.filter(x => x !== #{i}) : active = [...active, #{i}]"
+  end
+
+  defp alpine_click_expr(i, _multiple) do
+    "active = active === #{i} ? null : #{i}"
+  end
+
+  defp alpine_expanded_expr(i, true = _multiple), do: "active.includes(#{i})"
+  defp alpine_expanded_expr(i, _multiple), do: "active === #{i}"
 
   defp content_panel_header_id(container_id, idx) do
     "acc-header-#{container_id}-#{idx}"
