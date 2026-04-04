@@ -151,7 +151,6 @@ defmodule PetalComponents.Dropdown do
   defp js_attributes("button", "alpine_js", _options_container_id) do
     %{
       "@click": "open = !open",
-      "@click.outside": "open = false",
       "x-bind:aria-expanded": "open.toString()"
     }
   end
@@ -160,6 +159,7 @@ defmodule PetalComponents.Dropdown do
     %{
       "x-cloak": true,
       "x-show": "open",
+      style: "display: none;",
       "x-transition:enter": @transition_in_base,
       "x-transition:enter-start": @transition_in_start,
       "x-transition:enter-end": @transition_in_end,
