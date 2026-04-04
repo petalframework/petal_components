@@ -27,6 +27,10 @@ defmodule PetalComponents.Modal do
     default: false,
     doc: "whether or not the modal should have a close button in the header"
 
+  attr :on_open, JS,
+    default: %JS{},
+    doc: "additional JS commands to run when the modal opens"
+
   attr :on_cancel, JS,
     default: JS.exec("data-cancel-default"),
     doc:
@@ -48,7 +52,7 @@ defmodule PetalComponents.Modal do
     ~H"""
     <div
       id={@id}
-      phx-mounted={!@hide && show_modal(@id)}
+      phx-mounted={!@hide && show_modal(@on_open, @id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       data-cancel-default={push_close_modal_event(@close_modal_target)}

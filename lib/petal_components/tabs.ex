@@ -1,6 +1,7 @@
 defmodule PetalComponents.Tabs do
   use Phoenix.Component
 
+  alias Phoenix.LiveView.JS
   alias PetalComponents.Link
 
   attr(:underline, :boolean, default: false, doc: "underlines your tabs")
@@ -29,10 +30,22 @@ defmodule PetalComponents.Tabs do
   attr(:underline, :boolean, default: false, doc: "underlines your tab")
   attr(:is_active, :boolean, default: false, doc: "indicates the current tab")
   attr(:disabled, :boolean, default: false, doc: "disables your tab")
+
+  attr :on_change, JS,
+    default: %JS{},
+    doc: "JS commands to run when this tab is selected"
+
   attr(:rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type))
   slot(:inner_block, required: false)
 
   def tab(assigns) do
+    assigns =
+      if assigns.on_change.ops != [] do
+        update(assigns, :rest, fn rest -> Map.put(rest, :"phx-click", assigns.on_change) end)
+      else
+        assigns
+      end
+
     ~H"""
     <Link.a
       link_type={@link_type}

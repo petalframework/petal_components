@@ -2,6 +2,7 @@ defmodule PetalComponents.Menu do
   use Phoenix.Component, global_prefixes: ~w(x-)
   import PetalComponents.Link
   import PetalComponents.Icon
+  import PetalComponents.Helpers, only: [compose_js: 2]
 
   alias Phoenix.LiveView.JS
 
@@ -134,6 +135,10 @@ defmodule PetalComponents.Menu do
     doc: "javascript library used for toggling"
   )
 
+  attr :on_toggle, JS,
+    default: %JS{},
+    doc: "additional JS commands to run when a submenu is toggled (LiveView.JS only)"
+
   def vertical_menu(%{menu_items: []} = assigns) do
     ~H"""
     """
@@ -149,6 +154,7 @@ defmodule PetalComponents.Menu do
           title={menu_group[:title]}
           menu_items={menu_group.menu_items}
           current_page={@current_page}
+          on_toggle={@on_toggle}
         />
       </div>
     <% else %>
@@ -157,6 +163,7 @@ defmodule PetalComponents.Menu do
         title={@title}
         menu_items={@menu_items}
         current_page={@current_page}
+        on_toggle={@on_toggle}
       />
     <% end %>
     """
@@ -172,6 +179,8 @@ defmodule PetalComponents.Menu do
     doc: "javascript library used for toggling"
   )
 
+  attr :on_toggle, JS, default: %JS{}
+
   def menu_group(assigns) do
     ~H"""
     <nav :if={@menu_items != []}>
@@ -186,6 +195,7 @@ defmodule PetalComponents.Menu do
             js_lib={@js_lib}
             all_menu_items={@menu_items}
             current_page={@current_page}
+            on_toggle={@on_toggle}
             {menu_item}
           />
         </div>
@@ -209,6 +219,8 @@ defmodule PetalComponents.Menu do
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
+
+  attr :on_toggle, JS, default: %JS{}
 
   def vertical_menu_item(%{menu_items: nil} = assigns) do
     current_item = find_item(assigns.name, assigns.all_menu_items)
@@ -246,7 +258,7 @@ defmodule PetalComponents.Menu do
       <button
         type="button"
         class={menu_item_classes(@current_page, @name)}
-        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id})}
+        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id, on_toggle: @on_toggle})}
       >
         <.menu_icon icon={@icon} />
         <div class="pc-vertical-menu-item__toggle-label">
@@ -371,19 +383,26 @@ defmodule PetalComponents.Menu do
     %{}
   end
 
-  defp js_attributes("button", "live_view_js", %{submenu_id: submenu_id, icon_id: icon_id}) do
+  defp js_attributes("button", "live_view_js", %{
+         submenu_id: submenu_id,
+         icon_id: icon_id,
+         on_toggle: on_toggle
+       }) do
     click =
-      JS.toggle(
-        to: "##{submenu_id}",
-        display: "block"
-      )
-      |> JS.remove_class(
-        "rotate-90",
-        to: "##{icon_id}.rotate-90"
-      )
-      |> JS.add_class(
-        "rotate-90",
-        to: "##{icon_id}:not(.rotate-90)"
+      compose_js(
+        on_toggle,
+        JS.toggle(
+          to: "##{submenu_id}",
+          display: "block"
+        )
+        |> JS.remove_class(
+          "rotate-90",
+          to: "##{icon_id}.rotate-90"
+        )
+        |> JS.add_class(
+          "rotate-90",
+          to: "##{icon_id}:not(.rotate-90)"
+        )
       )
 
     %{

@@ -3,6 +3,18 @@ defmodule PetalComponents.Helpers do
   For any helper functions used across multiple components. Ideally we keep this empty - components should be copy-pastable.
   """
 
+  alias Phoenix.LiveView.JS
+
+  @doc """
+  Composes two `Phoenix.LiveView.JS` structs by concatenating their operations.
+  User JS operations execute first, followed by component JS operations.
+  """
+  def compose_js(%JS{ops: []}, component_js), do: component_js
+  def compose_js(user_js, %JS{ops: []}), do: user_js
+
+  def compose_js(%JS{ops: user_ops}, %JS{ops: component_ops}),
+    do: %JS{ops: user_ops ++ component_ops}
+
   @doc """
   Generates a unique HTML ID based on the given string or iodata.
 

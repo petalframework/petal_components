@@ -1,5 +1,6 @@
 defmodule PetalComponents.Alert do
   use Phoenix.Component
+  alias Phoenix.LiveView.JS
   alias PetalComponents.Helpers
   import PetalComponents.Icon
 
@@ -25,6 +26,11 @@ defmodule PetalComponents.Alert do
     doc: "a list of properties passed to the close button"
   )
 
+  attr :on_dismiss, JS,
+    default: %JS{},
+    doc:
+      "JS commands to run when the alert is dismissed. Automatically adds a close button with built-in hide behavior."
+
   slot(:inner_block)
 
   def alert(assigns) do
@@ -33,11 +39,13 @@ defmodule PetalComponents.Alert do
       |> assign(:classes, alert_classes(assigns))
       |> assign(:heading_id, Helpers.uniq_id(assigns.heading || "alert-heading"))
       |> assign(:label_id, Helpers.uniq_id(assigns.label || "alert-label"))
+      |> assign_new(:alert_id, fn -> "alert-#{System.unique_integer([:positive])}" end)
 
     ~H"""
     <%= unless label_blank?(@label, @inner_block) do %>
       <div
         {@rest}
+        id={@alert_id}
         class={@classes}
         role="dialog"
         aria-labelledby={(@heading && @heading_id) || @label_id}
@@ -63,13 +71,31 @@ defmodule PetalComponents.Alert do
               </div>
             </div>
 
-            <%= if @close_button_properties do %>
+            <%= if @on_dismiss.ops != [] do %>
               <button
                 class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
-                {@close_button_properties}
+                phx-click={
+                  Helpers.compose_js(
+                    @on_dismiss,
+                    JS.hide(
+                      to: "##{@alert_id}",
+                      transition:
+                        {"ease-out duration-300", "opacity-100", "opacity-0"}
+                    )
+                  )
+                }
               >
                 <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
               </button>
+            <% else %>
+              <%= if @close_button_properties do %>
+                <button
+                  class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
+                  {@close_button_properties}
+                >
+                  <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
+                </button>
+              <% end %>
             <% end %>
           </div>
         </div>

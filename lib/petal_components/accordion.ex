@@ -1,8 +1,8 @@
 defmodule PetalComponents.Accordion do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
-
   import PetalComponents.Icon
+  import PetalComponents.Helpers, only: [compose_js: 2]
 
   attr(:container_id, :string)
   attr(:class, :any, default: nil, doc: "CSS class for parent container")
@@ -21,6 +21,10 @@ defmodule PetalComponents.Accordion do
     default: false,
     doc: "When true, multiple sections can be expanded simultaneously"
   )
+
+  attr :on_toggle, JS,
+    default: %JS{},
+    doc: "additional JS commands to run when an accordion section is toggled (LiveView.JS only)"
 
   attr(:rest, :global)
 
@@ -72,7 +76,7 @@ defmodule PetalComponents.Accordion do
           <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
-              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple, @on_toggle)}
               class={
                 if @variant == "ghost" do
                   "pc-accordion-item__button--ghost"
@@ -228,7 +232,7 @@ defmodule PetalComponents.Accordion do
     """
   end
 
-  defp js_attributes(type, js_lib, container_id, i, l, open, variant, multiple) do
+  defp js_attributes(type, js_lib, container_id, i, l, open, variant, multiple, on_toggle \\ %JS{}) do
     case {type, js_lib} do
       {"container", "alpine_js"} ->
         init_value =
@@ -300,12 +304,17 @@ defmodule PetalComponents.Accordion do
           |> then(fn d -> if variant == "ghost", do: Map.put(d, :variant, "ghost"), else: d end)
           |> then(fn d -> if multiple, do: Map.put(d, :multiple, true), else: d end)
 
-        %{
-          "phx-click":
+        click =
+          compose_js(
+            on_toggle,
             JS.dispatch("click_accordion",
               to: "##{container_id} [data-i='#{i}']",
               detail: detail
-            ),
+            )
+          )
+
+        %{
+          "phx-click": click,
           "aria-controls": content_panel_id(container_id, i),
           "aria-expanded": "#{open}"
         }

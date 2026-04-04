@@ -1,6 +1,7 @@
 defmodule PetalComponents.SlideOver do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
+  import PetalComponents.Helpers, only: [compose_js: 2]
 
   attr :id, :string, default: "slide-over"
 
@@ -34,6 +35,12 @@ defmodule PetalComponents.SlideOver do
     doc: "sets container max-width"
   )
 
+  attr :on_open, JS, default: %JS{}, doc: "additional JS commands to run when the slide over opens"
+
+  attr :on_close, JS,
+    default: %JS{},
+    doc: "additional JS commands to run when the slide over closes"
+
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:hide, :boolean, default: false, doc: "slideover is hidden")
   attr(:rest, :global)
@@ -43,8 +50,8 @@ defmodule PetalComponents.SlideOver do
     ~H"""
     <div
       {@rest}
-      phx-mounted={!@hide && show_slide_over(@origin, @id)}
-      phx-remove={hide_slide_over(@origin, @id, @close_slide_over_target)}
+      phx-mounted={!@hide && show_slide_over(@on_open, @origin, @id)}
+      phx-remove={compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))}
       class="hidden pc-slide-over"
       id={@id}
     >
@@ -60,10 +67,12 @@ defmodule PetalComponents.SlideOver do
           id={"#{@id}-content"}
           class={get_classes(@max_width, @origin, @class)}
           phx-click-away={
-            @close_on_click_away && hide_slide_over(@origin, @id, @close_slide_over_target)
+            @close_on_click_away &&
+              compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))
           }
           phx-window-keydown={
-            @close_on_escape && hide_slide_over(@origin, @id, @close_slide_over_target)
+            @close_on_escape &&
+              compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))
           }
           phx-key="escape"
         >
@@ -76,7 +85,7 @@ defmodule PetalComponents.SlideOver do
 
               <button
                 type="button"
-                phx-click={hide_slide_over(@origin, @id, @close_slide_over_target)}
+                phx-click={compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))}
                 class="pc-slideover__header__button"
               >
                 <div class="sr-only">Close</div>
@@ -96,10 +105,16 @@ defmodule PetalComponents.SlideOver do
     """
   end
 
-  def show_slide_over(origin, id \\ "slide-over") do
+  def show_slide_over(origin, id) when is_binary(origin) and is_binary(id),
+    do: show_slide_over(%JS{}, origin, id)
+
+  def show_slide_over(origin) when is_binary(origin),
+    do: show_slide_over(%JS{}, origin, "slide-over")
+
+  def show_slide_over(js, origin, id) do
     {start_class, end_class} = get_transition_classes(origin)
 
-    %JS{}
+    js
     |> JS.show(to: "##{id}")
     |> JS.show(
       to: "##{id}-overlay",
