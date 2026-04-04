@@ -65,18 +65,27 @@ defmodule Dev.PlaygroundLive do
     global_prefixes: ~w(x-)
 
   use PetalComponents
-  # JS alias available for component demos that need it
-  # alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.JS
+
+  @avatar_src "https://avatars.githubusercontent.com/u/82628117?v=4"
 
   @impl true
   def mount(_params, _session, socket) do
+    changeset = build_changeset()
+
     {:ok,
      assign(socket,
        page_title: "Petal Components Playground",
        count: 0,
-       form: to_form(%{}, as: :user),
+       form: to_form(changeset, as: :user),
        active_tab: "buttons",
-       group_size: "md"
+       group_size: "md",
+       avatar_src: @avatar_src,
+       user_menu_items: [
+         %{path: "/", icon: "hero-user", label: "My Profile"},
+         %{path: "/", icon: "hero-cog-6-tooth", label: "Settings"},
+         %{path: "/", icon: "hero-arrow-right-on-rectangle", label: "Sign out", method: :delete}
+       ]
      )}
   end
 
@@ -90,7 +99,68 @@ defmodule Dev.PlaygroundLive do
   def handle_event("switch_tab", %{"tab" => tab}, socket),
     do: {:noreply, assign(socket, :active_tab, tab)}
 
+  def handle_event("validate", %{"user" => user_params}, socket) do
+    changeset =
+      user_params
+      |> build_changeset()
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, form: to_form(changeset, as: :user))}
+  end
+
+  def handle_event("submit", %{"user" => user_params}, socket) do
+    changeset = build_changeset(user_params)
+
+    case Ecto.Changeset.apply_action(changeset, :validate) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> put_flash(:success, "Form submitted successfully!")
+          |> assign(form: to_form(changeset, as: :user))
+
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset, as: :user))}
+    end
+  end
+
   def handle_event(_event, _params, socket), do: {:noreply, socket}
+
+  defp build_changeset(params \\ %{}) do
+    data = %{}
+
+    types = %{
+      name: :string,
+      email: :string,
+      number: :integer,
+      password: :string,
+      search: :string,
+      tel: :string,
+      url: :string,
+      time: :time,
+      date: :date,
+      week: :string,
+      month: :string,
+      datetime: :naive_datetime,
+      color: :string,
+      file: :string,
+      range: :integer,
+      textarea: :string,
+      select: :string,
+      switch: :boolean,
+      checkbox: :boolean,
+      checkbox_group: {:array, :string},
+      radio_group: :string,
+      radio_card: :string
+    }
+
+    {data, types}
+    |> Ecto.Changeset.cast(params, Map.keys(types))
+    |> Ecto.Changeset.validate_required([:name, :email])
+    |> Ecto.Changeset.validate_length(:name, min: 2, max: 50)
+    |> Ecto.Changeset.validate_format(:email, ~r/@/)
+  end
 
   @impl true
   def render(assigns) do
@@ -137,31 +207,31 @@ defmodule Dev.PlaygroundLive do
         </button>
       </div>
 
-      <%!-- Buttons --%>
-      <div :if={@active_tab == "buttons"} class="space-y-8">
+      <%!-- ============================================================ --%>
+      <%!-- BUTTONS TAB                                                  --%>
+      <%!-- ============================================================ --%>
+      <div :if={@active_tab == "buttons"} class="space-y-10">
+        <%!-- All Colors --%>
         <section>
-          <.h2 class="mb-4">Buttons</.h2>
+          <.h2 class="mb-4">All Colors</.h2>
           <div class="flex flex-wrap gap-3">
             <.button color="primary" label="Primary" />
             <.button color="secondary" label="Secondary" />
+            <.button color="white" label="White" />
+            <.button color="pure_white" label="Pure White" />
             <.button color="info" label="Info" />
             <.button color="success" label="Success" />
             <.button color="warning" label="Warning" />
             <.button color="danger" label="Danger" />
+            <.button color="gray" label="Gray" />
+            <.button color="light" label="Light" />
+            <.button color="dark" label="Dark" />
           </div>
         </section>
 
+        <%!-- Sizes --%>
         <section>
-          <.h3 class="mb-4">Button Variants</.h3>
-          <div class="flex flex-wrap gap-3">
-            <.button variant="outline" label="Outline" />
-            <.button variant="shadow" label="Shadow" />
-            <.button variant="inverted" label="Inverted" />
-          </div>
-        </section>
-
-        <section>
-          <.h3 class="mb-4">Button Sizes</.h3>
+          <.h3 class="mb-4">Sizes</.h3>
           <div class="flex flex-wrap items-center gap-3">
             <.button size="xs" label="Extra Small" />
             <.button size="sm" label="Small" />
@@ -171,6 +241,94 @@ defmodule Dev.PlaygroundLive do
           </div>
         </section>
 
+        <%!-- Variant: Light --%>
+        <section>
+          <.h3 class="mb-4">Variant: Light</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button variant="light" color="primary" label="Primary" />
+            <.button variant="light" color="secondary" label="Secondary" />
+            <.button variant="light" color="info" label="Info" />
+            <.button variant="light" color="success" label="Success" />
+            <.button variant="light" color="warning" label="Warning" />
+            <.button variant="light" color="danger" label="Danger" />
+          </div>
+        </section>
+
+        <%!-- Variant: Outline --%>
+        <section>
+          <.h3 class="mb-4">Variant: Outline</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button variant="outline" color="primary" label="Primary" />
+            <.button variant="outline" color="secondary" label="Secondary" />
+            <.button variant="outline" color="info" label="Info" />
+            <.button variant="outline" color="success" label="Success" />
+            <.button variant="outline" color="warning" label="Warning" />
+            <.button variant="outline" color="danger" label="Danger" />
+          </div>
+        </section>
+
+        <%!-- Variant: Inverted --%>
+        <section>
+          <.h3 class="mb-4">Variant: Inverted</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button variant="inverted" color="primary" label="Primary" />
+            <.button variant="inverted" color="secondary" label="Secondary" />
+            <.button variant="inverted" color="info" label="Info" />
+            <.button variant="inverted" color="success" label="Success" />
+            <.button variant="inverted" color="warning" label="Warning" />
+            <.button variant="inverted" color="danger" label="Danger" />
+          </div>
+        </section>
+
+        <%!-- Variant: Ghost --%>
+        <section>
+          <.h3 class="mb-4">Variant: Ghost</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button variant="ghost" color="primary" label="Primary" />
+            <.button variant="ghost" color="secondary" label="Secondary" />
+            <.button variant="ghost" color="info" label="Info" />
+            <.button variant="ghost" color="success" label="Success" />
+            <.button variant="ghost" color="danger" label="Danger" />
+          </div>
+        </section>
+
+        <%!-- Variant: Shadow --%>
+        <section>
+          <.h3 class="mb-4">Variant: Shadow</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button variant="shadow" color="primary" label="Primary" />
+            <.button variant="shadow" color="secondary" label="Secondary" />
+            <.button variant="shadow" color="info" label="Info" />
+            <.button variant="shadow" color="success" label="Success" />
+            <.button variant="shadow" color="danger" label="Danger" />
+          </div>
+        </section>
+
+        <%!-- Radius Options --%>
+        <section>
+          <.h3 class="mb-4">Radius Options</.h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <.button radius="none" label="none" />
+            <.button radius="sm" label="sm" />
+            <.button radius="md" label="md" />
+            <.button radius="lg" label="lg" />
+            <.button radius="xl" label="xl" />
+            <.button radius="full" label="full" />
+          </div>
+        </section>
+
+        <%!-- Disabled & Loading --%>
+        <section>
+          <.h3 class="mb-4">Disabled & Loading States</.h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <.button disabled label="Disabled" />
+            <.button disabled color="danger" label="Disabled Danger" />
+            <.button loading label="Loading" />
+            <.button loading color="success" label="Loading Success" />
+          </div>
+        </section>
+
+        <%!-- Button with Icon --%>
         <section>
           <.h3 class="mb-4">Button with Icon</.h3>
           <div class="flex flex-wrap gap-3">
@@ -180,6 +338,38 @@ defmodule Dev.PlaygroundLive do
           </div>
         </section>
 
+        <%!-- Icon Buttons --%>
+        <section>
+          <.h3 class="mb-4">Icon Buttons</.h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <.icon_button size="xs" tooltip="Extra small">
+              <.icon name="hero-heart" class="w-3 h-3" />
+            </.icon_button>
+            <.icon_button size="sm" tooltip="Small">
+              <.icon name="hero-heart" class="w-4 h-4" />
+            </.icon_button>
+            <.icon_button size="md" color="primary" tooltip="Medium primary">
+              <.icon name="hero-heart" class="w-5 h-5" />
+            </.icon_button>
+            <.icon_button size="lg" color="danger" tooltip="Large danger">
+              <.icon name="hero-trash" class="w-5 h-5" />
+            </.icon_button>
+            <.icon_button size="xl" color="success" tooltip="Extra large success">
+              <.icon name="hero-check" class="w-6 h-6" />
+            </.icon_button>
+          </div>
+        </section>
+
+        <%!-- Button as Link --%>
+        <section>
+          <.h3 class="mb-4">Button as Link</.h3>
+          <div class="flex flex-wrap gap-3">
+            <.button link_type="a" to="/" label="link_type=a" />
+            <.button link_type="a" to="/" color="secondary" label="Secondary Link" />
+          </div>
+        </section>
+
+        <%!-- Button Group --%>
         <section>
           <.h3 class="mb-4">Button Group</.h3>
           <.button_group aria_label="Size options" size={@group_size}>
@@ -192,6 +382,7 @@ defmodule Dev.PlaygroundLive do
           <.p class="mt-2 text-sm text-gray-500">Current size: {@group_size}</.p>
         </section>
 
+        <%!-- Counter --%>
         <section>
           <.h3 class="mb-4">Counter (LiveView Interaction)</.h3>
           <div class="flex items-center gap-4">
@@ -202,37 +393,190 @@ defmodule Dev.PlaygroundLive do
         </section>
       </div>
 
-      <%!-- Forms --%>
-      <div :if={@active_tab == "forms"} class="space-y-8">
+      <%!-- ============================================================ --%>
+      <%!-- FORMS TAB                                                    --%>
+      <%!-- ============================================================ --%>
+      <div :if={@active_tab == "forms"} class="space-y-10">
+        <%!-- Form with Changeset Validation --%>
         <section>
-          <.h2 class="mb-4">Form Fields</.h2>
-          <.form for={@form} class="space-y-4 max-w-md">
-            <.field field={@form[:name]} type="text" label="Name" placeholder="eg. Sally" />
-            <.field field={@form[:email]} type="email" label="Email" placeholder="sally@example.com" />
-            <.field field={@form[:password]} type="password" label="Password" />
-            <.field field={@form[:bio]} type="textarea" label="Bio" placeholder="Tell us about yourself..." />
+          <.h2 class="mb-4">Form with Validation</.h2>
+          <.form for={@form} phx-submit="submit" phx-change="validate" class="space-y-4 max-w-lg">
             <.field
-              field={@form[:role]}
+              field={@form[:name]}
+              type="text"
+              label="Name"
+              placeholder="eg. Sally"
+              help_text="Must be between 2 and 50 characters"
+              phx-debounce="blur"
+              required
+            />
+            <.field
+              field={@form[:email]}
+              type="email"
+              label="Email"
+              placeholder="sally@example.com"
+              help_text="Must contain an @ symbol"
+              phx-debounce="blur"
+              required
+            />
+            <.field
+              field={@form[:number]}
+              type="number"
+              label="Number"
+              placeholder="42"
+            />
+            <.field
+              field={@form[:password]}
+              type="password"
+              label="Password"
+              placeholder="Enter password"
+            />
+            <.field
+              field={@form[:search]}
+              type="search"
+              label="Search"
+              placeholder="Search..."
+              clearable
+            />
+            <.field
+              field={@form[:tel]}
+              type="tel"
+              label="Phone"
+              placeholder="+1 555 000 0000"
+              clearable
+            />
+            <.field
+              field={@form[:url]}
+              type="url"
+              label="URL"
+              placeholder="https://example.com"
+            />
+            <.field
+              field={@form[:time]}
+              type="time"
+              label="Time"
+            />
+            <.field
+              field={@form[:date]}
+              type="date"
+              label="Date"
+            />
+            <.field
+              field={@form[:week]}
+              type="week"
+              label="Week"
+            />
+            <.field
+              field={@form[:month]}
+              type="month"
+              label="Month"
+            />
+            <.field
+              field={@form[:datetime]}
+              type="datetime-local"
+              label="Date & Time"
+            />
+            <.field
+              field={@form[:color]}
+              type="color"
+              label="Favorite Color"
+            />
+            <.field
+              field={@form[:file]}
+              type="file"
+              label="File Upload"
+            />
+            <.field
+              field={@form[:range]}
+              type="range"
+              label="Volume"
+            />
+            <.field
+              field={@form[:textarea]}
+              type="textarea"
+              label="Bio"
+              placeholder="Tell us about yourself..."
+              rows="3"
+              help_text="Optional but appreciated"
+            />
+
+            <%!-- Select --%>
+            <.field
+              field={@form[:select]}
               type="select"
               label="Role"
               options={["Admin", "Editor", "Viewer"]}
             />
-            <.field field={@form[:remember]} type="checkbox" label="Remember me" />
+
+            <%!-- Switch --%>
+            <.field field={@form[:switch]} type="switch" label="Enable notifications" />
+
+            <%!-- Checkbox --%>
+            <.field field={@form[:checkbox]} type="checkbox" label="I agree to the terms" />
+
+            <%!-- Checkbox Group (Column) --%>
             <.field
-              field={@form[:plan]}
+              field={@form[:checkbox_group]}
+              type="checkbox-group"
+              label="Interests (column layout)"
+              group_layout="col"
+              options={[{"Elixir", "elixir"}, {"Phoenix", "phoenix"}, {"LiveView", "liveview"}]}
+            />
+
+            <%!-- Checkbox Group (Row) --%>
+            <.field
+              field={@form[:checkbox_group]}
+              type="checkbox-group"
+              label="Interests (row layout)"
+              group_layout="row"
+              options={[{"Elixir", "elixir"}, {"Phoenix", "phoenix"}, {"LiveView", "liveview"}]}
+            />
+
+            <%!-- Radio Group (Column) --%>
+            <.field
+              field={@form[:radio_group]}
               type="radio-group"
-              label="Plan"
+              label="Plan (column layout)"
+              group_layout="col"
               options={[{"Free", "free"}, {"Pro", "pro"}, {"Enterprise", "enterprise"}]}
             />
-            <.field field={@form[:start_date]} type="date" label="Start Date" />
-            <.field field={@form[:color]} type="color" label="Favorite Color" />
-            <.field field={@form[:volume]} type="range" label="Volume" />
-            <.button type="submit" label="Submit" />
+
+            <%!-- Radio Group (Row) --%>
+            <.field
+              field={@form[:radio_group]}
+              type="radio-group"
+              label="Plan (row layout)"
+              group_layout="row"
+              options={[{"Free", "free"}, {"Pro", "pro"}, {"Enterprise", "enterprise"}]}
+            />
+
+            <%!-- Radio Card --%>
+            <.field
+              field={@form[:radio_card]}
+              type="radio-card"
+              label="Server Size"
+              options={[
+                %{label: "8-core CPU", value: "high", description: "32 GB RAM"},
+                %{label: "6-core CPU", value: "mid", description: "24 GB RAM"},
+                %{label: "4-core CPU", value: "low", description: "16 GB RAM", disabled: true}
+              ]}
+              size="md"
+              variant="outline"
+              group_layout="row"
+              help_text="Choose your server configuration"
+              required
+            />
+
+            <div class="flex justify-end">
+              <.button type="submit" label="Submit" />
+            </div>
           </.form>
         </section>
       </div>
 
-      <%!-- Feedback --%>
+      <%!-- ============================================================ --%>
+      <%!-- FEEDBACK TAB                                                 --%>
+      <%!-- ============================================================ --%>
       <div :if={@active_tab == "feedback"} class="space-y-8">
         <section>
           <.h2 class="mb-4">Alerts</.h2>
@@ -312,8 +656,11 @@ defmodule Dev.PlaygroundLive do
         </section>
       </div>
 
-      <%!-- Data Display --%>
+      <%!-- ============================================================ --%>
+      <%!-- DATA DISPLAY TAB                                             --%>
+      <%!-- ============================================================ --%>
       <div :if={@active_tab == "data"} class="space-y-8">
+        <%!-- Table --%>
         <section>
           <.h2 class="mb-4">Table</.h2>
           <.table
@@ -330,40 +677,120 @@ defmodule Dev.PlaygroundLive do
           </.table>
         </section>
 
+        <%!-- Card with Media and Footer --%>
         <section>
           <.h2 class="mb-4">Card</.h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
             <.card>
+              <.card_media src="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=600&h=400&fit=crop" />
               <.card_content category="Guide" heading="Getting Started">
                 <.p class="mt-2 text-sm text-gray-500">
                   Learn how to install and configure Petal Components in your Phoenix project.
                 </.p>
               </.card_content>
+              <.card_footer>
+                <div class="flex justify-between items-center w-full">
+                  <span class="text-sm text-gray-500">5 min read</span>
+                  <.button size="xs" variant="ghost" label="Read more" />
+                </div>
+              </.card_footer>
             </.card>
             <.card>
+              <.card_media src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop" />
               <.card_content category="Reference" heading="Component API">
                 <.p class="mt-2 text-sm text-gray-500">
                   Browse the full list of available components and their props.
                 </.p>
               </.card_content>
+              <.card_footer>
+                <div class="flex justify-between items-center w-full">
+                  <span class="text-sm text-gray-500">10 min read</span>
+                  <.button size="xs" variant="ghost" label="Read more" />
+                </div>
+              </.card_footer>
             </.card>
           </div>
         </section>
 
+        <%!-- Avatar with Image --%>
         <section>
-          <.h2 class="mb-4">Avatar</.h2>
+          <.h2 class="mb-4">Avatar (with image)</.h2>
           <div class="flex gap-3 items-center">
-            <.avatar size="sm" src="https://avatars.githubusercontent.com/u/82628117?v=4" />
-            <.avatar size="md" src="https://avatars.githubusercontent.com/u/82628117?v=4" />
-            <.avatar size="lg" src="https://avatars.githubusercontent.com/u/82628117?v=4" />
+            <.avatar size="xs" src={@avatar_src} />
+            <.avatar size="sm" src={@avatar_src} />
+            <.avatar size="md" src={@avatar_src} />
+            <.avatar size="lg" src={@avatar_src} />
+            <.avatar size="xl" src={@avatar_src} />
           </div>
         </section>
 
+        <%!-- Avatar with Initials --%>
+        <section>
+          <.h2 class="mb-4">Avatar (with initials)</.h2>
+          <div class="flex gap-3 items-center">
+            <.avatar size="sm" name="John Doe" random_color />
+            <.avatar size="md" name="Jane Smith" random_color />
+            <.avatar size="lg" name="Bob Wilson" random_color />
+            <.avatar size="xl" name="Alice Brown" random_color />
+          </div>
+        </section>
+
+        <%!-- Avatar Group --%>
+        <section>
+          <.h2 class="mb-4">Avatar Group</.h2>
+          <.avatar_group
+            size="md"
+            avatars={[
+              @avatar_src,
+              "https://i.pravatar.cc/150?img=32",
+              "https://i.pravatar.cc/150?img=12",
+              "https://i.pravatar.cc/150?img=5",
+              "https://i.pravatar.cc/150?img=8"
+            ]}
+          />
+        </section>
+
+        <%!-- Skeleton Variants --%>
+        <section>
+          <.h2 class="mb-4">Skeleton Variants</.h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <.h4 class="mb-2">Image</.h4>
+              <.skeleton kind={:image} />
+            </div>
+            <div>
+              <.h4 class="mb-2">Video</.h4>
+              <.skeleton kind={:video} />
+            </div>
+            <div>
+              <.h4 class="mb-2">Text</.h4>
+              <.skeleton kind={:text} />
+            </div>
+            <div>
+              <.h4 class="mb-2">Card</.h4>
+              <.skeleton kind={:card} />
+            </div>
+            <div>
+              <.h4 class="mb-2">Widget</.h4>
+              <.skeleton kind={:widget} />
+            </div>
+            <div>
+              <.h4 class="mb-2">List</.h4>
+              <.skeleton kind={:list} />
+            </div>
+            <div>
+              <.h4 class="mb-2">Testimonial</.h4>
+              <.skeleton kind={:testimonial} />
+            </div>
+          </div>
+        </section>
+
+        <%!-- Accordion --%>
         <section>
           <.h2 class="mb-4">Accordion</.h2>
           <.accordion>
             <:item heading="What is Petal Components?">
-              A set of HEEX components for Phoenix developers — like Shadcn, but for LiveView.
+              A set of HEEX components for Phoenix developers -- like Shadcn, but for LiveView.
             </:item>
             <:item heading="How do I install it?">
               Add <code>petal_components</code> to your mix.exs dependencies and follow the setup guide.
@@ -375,10 +802,33 @@ defmodule Dev.PlaygroundLive do
         </section>
       </div>
 
-      <%!-- Navigation --%>
+      <%!-- ============================================================ --%>
+      <%!-- NAVIGATION TAB                                               --%>
+      <%!-- ============================================================ --%>
       <div :if={@active_tab == "navigation"} class="space-y-8">
+        <%!-- Tabs Component --%>
         <section>
-          <.h2 class="mb-4">Breadcrumbs</.h2>
+          <.h2 class="mb-4">Tabs (pill style)</.h2>
+          <.tabs>
+            <.tab is_active link_type="a" to="/" label="Dashboard" />
+            <.tab link_type="a" to="/" label="Settings" />
+            <.tab link_type="a" to="/" label="Users" />
+            <.tab link_type="a" to="/" label="Billing" disabled />
+          </.tabs>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Tabs (underline style)</.h2>
+          <.tabs underline>
+            <.tab underline is_active link_type="a" to="/" label="Overview" number={12} />
+            <.tab underline link_type="a" to="/" label="Activity" number={5} />
+            <.tab underline link_type="a" to="/" label="Settings" />
+          </.tabs>
+        </section>
+
+        <%!-- Breadcrumbs --%>
+        <section>
+          <.h2 class="mb-4">Breadcrumbs (slash separator)</.h2>
           <.breadcrumbs links={[
             %{label: "Home", to: "/", icon: "hero-home"},
             %{label: "Components", to: "/"},
@@ -387,10 +837,45 @@ defmodule Dev.PlaygroundLive do
         </section>
 
         <section>
+          <.h2 class="mb-4">Breadcrumbs (chevron separator)</.h2>
+          <.breadcrumbs
+            separator="chevron"
+            links={[
+              %{label: "Home", to: "/", icon: "hero-home"},
+              %{label: "Projects", to: "/"},
+              %{label: "Petal Components", to: "/"},
+              %{label: "Settings", to: "/"}
+            ]}
+          />
+        </section>
+
+        <%!-- User Dropdown Menu --%>
+        <section>
+          <.h2 class="mb-4">User Dropdown Menu</.h2>
+          <.user_dropdown_menu
+            current_user_name="Matt Platts"
+            avatar_src={@avatar_src}
+            user_menu_items={@user_menu_items}
+          />
+        </section>
+
+        <%!-- Pagination --%>
+        <section>
           <.h2 class="mb-4">Pagination</.h2>
           <.pagination link_type="live_patch" path="/" current_page={3} total_pages={10} />
         </section>
 
+        <%!-- Links --%>
+        <section>
+          <.h2 class="mb-4">Links</.h2>
+          <div class="flex flex-wrap gap-4">
+            <.a to="/" link_type="a" label="Standard link (a)" />
+            <.a to="/" link_type="live_patch" label="Live Patch link" />
+            <.a to="/" link_type="live_redirect" label="Live Redirect link" />
+          </div>
+        </section>
+
+        <%!-- Stepper --%>
         <section>
           <.h2 class="mb-4">Stepper</.h2>
           <.stepper
@@ -404,6 +889,7 @@ defmodule Dev.PlaygroundLive do
           />
         </section>
 
+        <%!-- Dropdown --%>
         <section>
           <.h2 class="mb-4">Dropdown</.h2>
           <.dropdown label="Options">
@@ -419,6 +905,7 @@ defmodule Dev.PlaygroundLive do
           </.dropdown>
         </section>
 
+        <%!-- Vertical Menu --%>
         <section>
           <.h2 class="mb-4">Vertical Menu</.h2>
           <div class="max-w-xs">
@@ -435,7 +922,9 @@ defmodule Dev.PlaygroundLive do
         </section>
       </div>
 
-      <%!-- Layout --%>
+      <%!-- ============================================================ --%>
+      <%!-- LAYOUT TAB                                                   --%>
+      <%!-- ============================================================ --%>
       <div :if={@active_tab == "layout"} class="space-y-8">
         <section>
           <.h2 class="mb-4">Typography</.h2>
@@ -487,17 +976,24 @@ defmodule Dev.PlaygroundLive do
           </.prose>
         </section>
 
+        <%!-- Container with all max_width variants --%>
         <section>
-          <.h2 class="mb-4">Container</.h2>
+          <.h2 class="mb-4">Container (max_width variants)</.h2>
           <div class="space-y-3">
-            <.container max_width="sm" class="bg-gray-100 p-4 rounded">
-              <.p class="text-sm text-gray-600">max_width="sm"</.p>
+            <.container max_width="full" class="bg-gray-100 p-4 rounded">
+              <.p class="text-sm text-gray-600">max_width="full"</.p>
+            </.container>
+            <.container max_width="xl" class="bg-gray-100 p-4 rounded">
+              <.p class="text-sm text-gray-600">max_width="xl"</.p>
+            </.container>
+            <.container max_width="lg" class="bg-gray-100 p-4 rounded">
+              <.p class="text-sm text-gray-600">max_width="lg"</.p>
             </.container>
             <.container max_width="md" class="bg-gray-100 p-4 rounded">
               <.p class="text-sm text-gray-600">max_width="md"</.p>
             </.container>
-            <.container max_width="lg" class="bg-gray-100 p-4 rounded">
-              <.p class="text-sm text-gray-600">max_width="lg"</.p>
+            <.container max_width="sm" class="bg-gray-100 p-4 rounded">
+              <.p class="text-sm text-gray-600">max_width="sm"</.p>
             </.container>
           </div>
         </section>
