@@ -1,4 +1,14 @@
 # Changelog
+### 3.2.0 - 2026-04-04 23:07:17
+
+- Added composable JS hook attrs to components (modal, slide over, dropdown, accordion, menu, alert, tabs) so users can compose additional JS commands onto component lifecycle events (#239)
+- Added `compose_js/2` helper for combining user and component JS structs
+- Added `on_open` to modal and slide over
+- Added `on_close` to slide over and dropdown
+- Added `on_toggle` to accordion and menu
+- Added `on_dismiss` to alert (with built-in hide behavior)
+- Added `on_change` to tabs
+
 ### 3.1.0 - 2026-04-04 07:22:03
 
 - Added smooth transitions and easing to interactive components (buttons, tabs, accordion, dropdown, table rows, pagination, menu items, checkboxes, file inputs, alert dismiss)
