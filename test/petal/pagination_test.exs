@@ -555,4 +555,19 @@ defmodule PetalComponents.PaginationTest do
     assert html =~ "filter=test"
     assert html =~ "page=2"
   end
+
+  test "prev/next arrows are wrapped in <li> elements" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.pagination path="/page/:page" total_pages={10} current_page={5} />
+      """)
+
+    # Prev and next should be wrapped in <li>, not <div>
+    assert html =~ ~r{<li>\s*<a[^>]*class="pc-pagination__item__previous"}s
+    assert html =~ ~r{<li>\s*<a[^>]*class="pc-pagination__item__next"}s
+    refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__previous"}s
+    refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__next"}s
+  end
 end

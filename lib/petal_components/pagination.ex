@@ -48,7 +48,7 @@ defmodule PetalComponents.Pagination do
       <ul class="pc-pagination__inner">
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
-            <div>
+            <li>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
                 phx-target={if @event, do: @target}
@@ -60,7 +60,7 @@ defmodule PetalComponents.Pagination do
               >
                 <.icon name="hero-chevron-left-solid" class="pc-pagination__item__previous__chevron" />
               </Link.a>
-            </div>
+            </li>
           <% end %>
 
           <%= if item.type == "page" do %>
@@ -91,7 +91,7 @@ defmodule PetalComponents.Pagination do
           <% end %>
 
           <%= if item.type == "next" and (item.enabled? or @show_boundary_chevrons) do %>
-            <div>
+            <li>
               <Link.a
                 phx-click={if @event, do: "goto-page"}
                 phx-target={if @event, do: @target}
@@ -103,7 +103,7 @@ defmodule PetalComponents.Pagination do
               >
                 <.icon name="hero-chevron-right-solid" class="pc-pagination__item__next__chevron" />
               </Link.a>
-            </div>
+            </li>
           <% end %>
         <% end %>
       </ul>
