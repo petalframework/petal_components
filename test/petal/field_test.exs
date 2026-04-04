@@ -892,4 +892,66 @@ defmodule PetalComponents.FieldTest do
     assert count_substring(html, "pc-label--required") == 0
     assert count_substring(html, " required") == 0
   end
+
+  test "field with copyable and custom icons" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          field={@form[:text]}
+          value="test"
+          label="Custom Icons"
+          copyable
+          copy_icon="hero-document-duplicate"
+          copied_icon="hero-check"
+        />
+      </.form>
+      """)
+
+    assert html =~ "hero-document-duplicate"
+    assert html =~ "hero-check"
+    refute html =~ "hero-clipboard-document-solid"
+    refute html =~ "hero-clipboard-document-check-solid"
+  end
+
+  test "multiple select renders hidden input for used_input?" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          field={@form[:roles]}
+          type="select"
+          multiple
+          options={["admin", "user", "editor"]}
+          label="Roles"
+        />
+      </.form>
+      """)
+
+    assert html =~ ~s|type="hidden"|
+    assert html =~ ~s|name="user[roles][]"|
+    assert html =~ "multiple"
+  end
+
+  test "single select does not render hidden input" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          field={@form[:role]}
+          type="select"
+          options={["admin", "user"]}
+          label="Role"
+        />
+      </.form>
+      """)
+
+    refute html =~ ~s|type="hidden"|
+  end
 end

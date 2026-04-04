@@ -51,6 +51,14 @@ defmodule PetalComponents.Field do
     default: false,
     doc: "If true, adds a copy button to the field and disables the input"
 
+  attr :copy_icon, :string,
+    default: "hero-clipboard-document-solid",
+    doc: "Icon name for the copy button"
+
+  attr :copied_icon, :string,
+    default: "hero-clipboard-document-check-solid",
+    doc: "Icon name shown after copying"
+
   attr :clearable, :boolean,
     default: false,
     doc: "If true, adds a clear button to clear the field value"
@@ -149,6 +157,7 @@ defmodule PetalComponents.Field do
       <.field_label required={@required} for={@id} class={@label_class}>
         {@label}
       </.field_label>
+      <input :if={@multiple} type="hidden" name={@name} value="" />
       <select
         id={@id}
         name={@name}
@@ -460,11 +469,11 @@ defmodule PetalComponents.Field do
         >
           <!-- Copy Icon -->
           <span x-show="!copied" class="pc-copyable-field-icon-container">
-            <.icon name="hero-clipboard-document-solid" class="pc-copyable-field-icon" />
+            <.icon name={@copy_icon} class="pc-copyable-field-icon" />
           </span>
           <!-- Copied Icon -->
           <span x-show="copied" class="pc-copyable-field-icon-container" style="display: none;">
-            <.icon name="hero-clipboard-document-check-solid" class="pc-copyable-field-icon" />
+            <.icon name={@copied_icon} class="pc-copyable-field-icon" />
           </span>
         </button>
       </div>
