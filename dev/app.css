@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@source "../lib/**/*.ex";
+@import "../assets/default.css";
+@import "./colors.css";
+
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@variant phx-click-loading ([".phx-click-loading&", ".phx-click-loading &"]);
+@variant phx-submit-loading ([".phx-submit-loading&", ".phx-submit-loading &"]);
+@variant phx-change-loading ([".phx-change-loading&", ".phx-change-loading &"]);
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility phx-click-loading {
+  opacity: 0.5;
+  transition: opacity 1s ease-out;
+}
+
+@utility phx-loading {
+  cursor: wait;
+}

@@ -172,9 +172,31 @@ A: Yes! You can customize the components by overriding the CSS classes. For exam
 
 If you have a suggestion for a new component, you can add it here on [our roadmap](https://petal.build/components/roadmap).
 
+## Local Development
+
+You can run a standalone dev server directly from the `petal_components` repo — no umbrella app needed.
+
+```bash
+git clone https://github.com/petalframework/petal_components.git
+cd petal_components
+mix deps.get
+mix tailwind.install
+iex -S mix run dev.exs
+```
+
+This starts a playground at [localhost:4000](http://localhost:4000) with all components rendered using proper Tailwind v4 CSS. Changes to files in `lib/` trigger live reload automatically.
+
+To run tests:
+
+```bash
+mix test
+```
+
 ## Contributing
 
-If you'd like to help out we've got a [Phoenix umbrella app](https://github.com/petalframework/petal_development) that allows you to easily contribute to Petal Components (which is installed as a git submodule). If you create a new component then feel free to submit a PR. Ideally one from the roadmap but we're open to any new components that would benefit others!
+If you'd like to help out, clone the repo, run the dev server above, and submit a PR. We're open to any new components that would benefit others! Check the roadmap for ideas.
+
+Alternatively, there's a [Phoenix umbrella app](https://github.com/petalframework/petal_development) that includes `petal_components` as a git submodule with a full Phoenix boilerplate for more integrated testing.
 
 ## Community, Updates & Support
 
