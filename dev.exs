@@ -580,10 +580,62 @@ defmodule Dev.Endpoint do
   plug Dev.Router
 end
 
+# -- Heroicon CSS generator ----------------------------------------------------
+
+defmodule Dev.HeroiconsCSS do
+  @icons_dir Path.expand("deps/heroicons/optimized", __DIR__)
+  @output Path.expand("dev/heroicons.css", __DIR__)
+
+  @variants [
+    {"", "24/outline", "1.5rem"},
+    {"-solid", "24/solid", "1.5rem"},
+    {"-mini", "20/solid", "1.25rem"},
+    {"-micro", "16/solid", "1rem"}
+  ]
+
+  def generate do
+    if File.dir?(@icons_dir) do
+      rules =
+        for {suffix, dir, size} <- @variants,
+            full_dir = Path.join(@icons_dir, dir),
+            File.dir?(full_dir),
+            file <- File.ls!(full_dir) |> Enum.sort(),
+            String.ends_with?(file, ".svg") do
+          name = Path.basename(file, ".svg") <> suffix
+          svg = File.read!(Path.join(full_dir, file)) |> String.replace(~r/\r?\n|\r/, "")
+
+          """
+          .hero-#{name} {
+            --hero-#{name}: url('data:image/svg+xml;utf8,#{svg}');
+            -webkit-mask: var(--hero-#{name});
+            mask: var(--hero-#{name});
+            mask-repeat: no-repeat;
+            background-color: currentColor;
+            vertical-align: middle;
+            display: inline-block;
+            width: #{size};
+            height: 1lh;
+          }
+          """
+        end
+
+      css = "/* Auto-generated heroicon CSS — do not edit */\n" <> Enum.join(rules, "\n")
+      File.write!(@output, css)
+      IO.puts("Generated #{length(rules)} heroicon CSS rules")
+    else
+      IO.puts("Warning: heroicons dep not found, skipping icon CSS generation")
+      File.write!(@output, "/* heroicons not available */")
+    end
+  end
+end
+
 # -- Start the server ---------------------------------------------------------
 
 # Ensure output directory exists for compiled CSS
 File.mkdir_p!("priv/static/assets")
+
+# Generate heroicon CSS from SVG files, then build Tailwind
+Dev.HeroiconsCSS.generate()
 
 # Pre-configure endpoint (PhoenixPlayground merges on top of this)
 Application.put_env(:phoenix_playground, Dev.Endpoint,

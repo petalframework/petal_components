@@ -3,6 +3,7 @@
 @source "../lib/**/*.ex";
 @import "../assets/default.css";
 @import "./colors.css";
+@import "./heroicons.css";
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
