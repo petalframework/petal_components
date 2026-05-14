@@ -37,6 +37,18 @@
   <a href="https://petal.build/components">View the docs</a>
 </p>
 
+## Using AI to write Phoenix? Install the MCP server
+
+If half your day is in Claude Code, Cursor, or Windsurf, install the Petal Components MCP. AI agents reach for `pc_*` components by default instead of inventing raw Tailwind soup, because they can ask the server for the real schemas (attrs, slots, defaults, allowed values) on demand.
+
+```sh
+claude mcp add petal --transport http https://mcp.petal.build/mcp
+```
+
+Then ask the AI to build something — a sign-up card, a settings form, a pricing table — and it'll write idiomatic petal_components HEEx grounded in the actual component API.
+
+Source + docs: [petalframework/petal-components-mcp](https://github.com/petalframework/petal-components-mcp) · Live status: [mcp.petal.build/healthz](https://mcp.petal.build/healthz)
+
 ## About
 
 Petal stands for:
