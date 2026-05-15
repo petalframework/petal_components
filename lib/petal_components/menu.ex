@@ -355,9 +355,10 @@ defmodule PetalComponents.Menu do
     }
   end
 
-  defp js_attributes("button", "alpine_js", _args) do
+  defp js_attributes("button", "alpine_js", %{submenu_id: submenu_id} = _args) do
     %{
-      "@click.prevent": "open = !open"
+      "@click.prevent":
+        "open = !open; if(open) $nextTick(() => { let el = document.getElementById('#{submenu_id}'); if(el) { let a = el.querySelector('a'); if(a) a.focus(); } })"
     }
   end
 
@@ -403,6 +404,7 @@ defmodule PetalComponents.Menu do
           "rotate-90",
           to: "##{icon_id}:not(.rotate-90)"
         )
+        |> JS.focus_first(to: "##{submenu_id}")
       )
 
     %{
