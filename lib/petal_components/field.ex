@@ -130,7 +130,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
-        <input type="hidden" name={@name} value="false" />
+        <input :if={!@rest[:disabled]} type="hidden" name={@name} value="false" />
         <input
           type="checkbox"
           id={@id}
@@ -203,7 +203,7 @@ defmodule PetalComponents.Field do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
-        <input type="hidden" name={@name} value="false" />
+        <input :if={!@rest[:disabled]} type="hidden" name={@name} value="false" />
         <label class={["pc-switch", "pc-switch--#{@size}"]}>
           <input
             type="checkbox"
@@ -246,7 +246,7 @@ defmodule PetalComponents.Field do
       <.field_label required={@required} class={@label_class}>
         {@label}
       </.field_label>
-      <input type="hidden" name={@name <> "[]"} value="" />
+      <input :if={!@rest[:disabled]} type="hidden" name={@name <> "[]"} value="" />
       <div class={[
         "pc-checkbox-group",
         @group_layout == "row" && "pc-checkbox-group--row",

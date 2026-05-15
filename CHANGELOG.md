@@ -1,4 +1,8 @@
 # Changelog
+### 3.2.1 - 2026-05-15 21:30:12
+
+- Fixed disabled `checkbox`, `switch`, and `checkbox-group` fields still submitting a value via their hidden companion input (#483). Native HTML form behavior excludes disabled fields from submission; the hidden input is now omitted when `disabled` is set.
+
 ### 3.2.0 - 2026-04-04 23:07:17
 
 - Added composable JS hook attrs to components (modal, slide over, dropdown, accordion, menu, alert, tabs) so users can compose additional JS commands onto component lifecycle events (#239)

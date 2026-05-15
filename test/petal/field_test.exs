@@ -193,6 +193,55 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
   end
 
+  test "field checkbox disabled omits the hidden false input" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="checkbox" field={@form[:read_terms]} disabled />
+      </.form>
+      """)
+
+    assert html =~ ~s(type="checkbox")
+    assert html =~ "disabled"
+    refute html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
+  end
+
+  test "field switch disabled omits the hidden false input" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="switch" field={@form[:read_terms]} disabled />
+      </.form>
+      """)
+
+    assert html =~ ~s(type="checkbox")
+    assert html =~ "disabled"
+    refute html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
+  end
+
+  test "field checkbox-group disabled omits the hidden empty input" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="checkbox-group"
+          field={@form[:roles]}
+          options={[{"Admin", "admin"}, {"User", "user"}]}
+          disabled
+        />
+      </.form>
+      """)
+
+    assert html =~ "disabled"
+    refute html =~ ~s|<input type="hidden" name="user[roles][]" value="">|
+  end
+
   test "field select" do
     assigns = %{form: to_form(%{}, as: :user)}
 
