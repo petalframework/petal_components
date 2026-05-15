@@ -1,194 +1,175 @@
 <p align="center">
-  <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752721/petal/logo_rh2ras.png" height="128">
-
-  <h1 align="center">Petal Components</h1>
-
-<p align="center">
-  <a href="https://petal.build">petal.build</a>
+  <img src="https://res.cloudinary.com/wickedsites/image/upload/v1635752721/petal/logo_rh2ras.png" height="96">
 </p>
 
-  <p align="center">
-    Petal is a set of HEEX components that makes it easy for Phoenix developers to build beautiful web apps. Think Bootstrap or MUI, but written in HEEX using Tailwind CSS classes. Work in both live and dead (controller) views.
-  </p>
+<h1 align="center">Petal Components</h1>
+
+<p align="center">
+  <strong>Shadcn-style Phoenix components that AI assistants can actually use.</strong>
 </p>
 
 <p align="center">
-  <a href="https://hex.pm/packages/petal_components">
-    <img alt="Hex Version" src="https://img.shields.io/hexpm/v/petal_components.svg">
-  </a>
-  <a href="https://hexdocs.pm/petal_components">
-    <img alt="Hex Docs" src="https://img.shields.io/hexpm/dt/petal_components.svg?style=flat">
-  </a>
-  <a href="https://opensource.org/licenses/MIT" alt="MIT">
-    <img src="https://img.shields.io/badge/license-MIT-green" />
-  </a>
+  <a href="https://hex.pm/packages/petal_components"><img alt="Hex Version" src="https://img.shields.io/hexpm/v/petal_components.svg"></a>
+  <a href="https://hexdocs.pm/petal_components"><img alt="Hex Docs" src="https://img.shields.io/hexpm/dt/petal_components.svg?style=flat"></a>
+  <a href="https://opensource.org/licenses/MIT"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
 <p align="center">
-  <a href="https://petal-components-demo.fly.dev">
-    <img src="https://res.cloudinary.com/nhobes/image/upload/v1664493810/Petal_Components/Xnapper-2022-09-30-09.22.58_qufkq8.png" height="300" />
-  </a>
-  <a href="https://petal-components-demo.fly.dev">
-    <img src="https://res.cloudinary.com/nhobes/image/upload/v1664493101/Petal_Components/Xnapper-2022-09-30-09.02.10_q5hkri.png" height="300" />
-  </a>
+  <a href="https://petal.build/components">Live docs</a> ·
+  <a href="https://mcp.petal.build">MCP server</a> ·
+  <a href="./rules.md">Rules for AI tools</a> ·
+  <a href="https://petal.build/petal-components/vs-shadcn">vs shadcn</a>
 </p>
 
-<p align="center">
-  <a href="https://petal.build/components">View the docs</a>
-</p>
+---
 
-## Using AI to write Phoenix? Install the MCP server
+## The 30-second pitch
 
-If half your day is in Claude Code, Cursor, or Windsurf, install the Petal Components MCP. AI agents reach for `pc_*` components by default instead of inventing raw Tailwind soup, because they can ask the server for the real schemas (attrs, slots, defaults, allowed values) on demand.
+Petal Components gives Phoenix LiveView apps a shadcn-style set of HEEx components: buttons, forms, modals, tables, cards, and more. They are built with Tailwind v4 and work in live or dead views.
 
-```sh
-claude mcp add petal --transport http https://mcp.petal.build/mcp
-```
+The companion piece is a hosted MCP server at `mcp.petal.build` that exposes every component's real schema to AI coding tools. Install it once and Claude Code, Cursor, Codex, and Windsurf reach for the existing components instead of inventing raw Tailwind markup from training data.
 
-Then ask the AI to build something — a sign-up card, a settings form, a pricing table — and it'll write idiomatic petal_components HEEx grounded in the actual component API.
+If you have used shadcn in React, you already know the shape. Same idea, composable primitives, you own the patterns, AI tools read the schema and call it correctly. We just write HEEx, not JSX.
 
-Source + docs: [petalframework/petal-components-mcp](https://github.com/petalframework/petal-components-mcp) · Live status: [mcp.petal.build/healthz](https://mcp.petal.build/healthz)
+## Install
 
-## About
+### Phoenix app
 
-Petal stands for:
-
-* [Phoenix](https://www.phoenixframework.org/)
-* [Elixir](https://elixir-lang.org/)
-* [Tailwind CSS](https://tailwindcss.com/)
-* [Alpine JS](https://alpinejs.dev/) (optional)
-* [Live View (HEEX)](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
-
-Some components like Dropdowns require Javascript to work. We default to Alpine JS (17kb) but you can choose to use `Phoenix.LiveView.JS` as an alternative (though this will only work in live environments like live views or live components).
-
-## Documentation
-
-For full documentation, visit [petal.build](https://petal.build/components).
-
-## Try it out
-
-We have a fresh [Phoenix boilerplate template](https://github.com/petalframework/petal_boilerplate) with Petal Components ready to go if you would like to get your hands dirty.
-
-## VSCode Snippets Extension
-
-Install our [VSCode extension](https://marketplace.visualstudio.com/items?itemName=petalframework.vscode-petal-components-snippets&ssr=false#overview) to gain access to 65+ snippets for all of the components.
-
-## Official Figma UI kit
-
-We’ve released an [official Figma UI kit for Petal](https://www.figma.com/community/file/1374192831096114078/official-petal-ui-kit). This kit includes all the open source and pro components you need to design your app in Figma.
-
-## Roadmap
-
-### Layout
-- [x] container
-
-### Form components
-- [x] text input
-- [x] select dropdown
-- [x] textarea
-- [x] checkbox
-- [x] radios
-- [x] errors
-- [x] labels
-- [x] file upload
-- [x] text variants (email, password, tel)
-- [x] color input
-- [x] range input
-- [x] time, datetime, & date input
-- [x] multiple select (see checkbox group)
-- [x] switch
-- [x] input help text
-- [ ] input prefix and postfix
-
-### Buttons
-- [x] basic button
-- [x] change size
-- [x] change color
-- [x] loading state (with spinner)
-- [x] filled vs outline
-- [x] button group
-
-### Misc
-- [x] menu dropdown
-- [x] avatar
-- [x] alerts
-- [x] tables
-- [x] cards
-- [x] breadcrumbs
-- [x] modal
-- [x] slide over
-- [x] spinners
-- [x] accordion
-- [x] pagination
-- [x] badges
-- [x] progress
-- [x] links
-
-## FAQ
-
-**Q: Do I need Alpine JS?**
-A: No we have designed the components to use either Alpine JS or LiveView.JS.
-
-**Q: What if I want to use my own components too?**
-A: You can install this library and import only the components you need.
+Add to your `mix.exs`:
 
 ```elixir
-# The recommended option is to import every single component
-use PetalComponents
-
-# But you can get more granular. eg.
-
-# Import Button so you can now create `<.button>` components
-import PetalComponents.Button
-
-# Or just alias if you already have a `def button` HEEX component. With alias you now write the Petal component like this: `<Button.button>`
-alias PetalComponents.Button
+def deps do
+  [
+    {:petal_components, "~> 3.2"}
+  ]
+end
 ```
 
-**Q: Does this increase my CSS filesize?**
-A: Tailwind will scan any folders you specify and hoover up CSS classes from files to include in your final CSS file. You specify the folders in `assets/app.css`. By default, we instruct you to just scan the whole Petal Components library:
+Then in `assets/css/app.css`:
 
 ```css
 @import "tailwindcss";
-
 @source "../deps/petal_components/**/*.*ex";
 @import "../deps/petal_components/assets/default.css";
-
-... rest of file omitted
 ```
 
-You might be worried that if you don't use every component you'll have unused CSS classes. But we believe it's so small it won't matter. Our petal.build site's CSS file totals just 25kb.
+In your `MyAppWeb` module:
 
-If you really want to you can instruct Tailwind to just scan the components you use:
-
-```css
-@source "../deps/petal_components/lib/button.ex",
-@source "../deps/petal_components/lib/alert.ex",
+```elixir
+def html do
+  quote do
+    use PetalComponents
+    # ... your other imports
+  end
+end
 ```
 
-**Q: Can I customize the components?**
-A: Yes! You can customize the components by overriding the CSS classes. For example, if you want to change the color of the button you can do this:
+### AI coding tools (MCP server)
 
-```css
-@layer components {
-  .pc-button {
-    @apply inline-flex items-center justify-center font-semibold tracking-wider uppercase transition duration-150 ease-in-out border-2 rounded-none focus:outline-hidden;
-  }
-  .pc-button--primary {
-    @apply text-black border-black bg-primary-400 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-primary-500/50;
-  }
-}
+```sh
+# Claude Code
+claude mcp add petal --transport http https://mcp.petal.build/mcp
 ```
 
-## Suggestions
+Cursor, Windsurf, Continue, Codex, and Cline have their own MCP install steps - see https://petal.build/petal-components for setup snippets per tool.
 
-If you have a suggestion for a new component, you can add it here on [our roadmap](https://petal.build/components/roadmap).
+Once installed, the agent can call `list_components` and `get_component` to ground its output in the real petal_components schema. No more `<div class="rounded-lg shadow ...">` fallbacks for things we already ship.
 
-## Local Development
+## For AI coding tools
 
-You can run a standalone dev server directly from the `petal_components` repo — no umbrella app needed.
+If you are a Cursor, Claude Code, Codex, Continue, Windsurf, or Cline user (or you maintain one of those tools), drop [`rules.md`](./rules.md) into your rules system. It is the canonical instruction set:
 
-```bash
+- Always reach for an existing petal_components tag before hand-rolling HEEx
+- The component naming map (HEEx tag form, module path, CSS class prefix)
+- How to discover components via the MCP
+- Common patterns (form-in-card, modal-with-form, table-with-actions)
+- When in doubt: call `list_components`, then `get_component`
+
+You can also fetch it at https://petal.build/petal-components/rules.md.
+
+## Component catalogue
+
+30+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:
+
+**Layout & content**: `<.container>`, `<.card>`, `<.h1>`, `<.p>`, `<.accordion>`, `<.tabs>`, `<.stepper>`, `<.skeleton>`
+
+**Forms**: `<.field>`, `<.text_input>`, `<.select>`, `<.checkbox>`, `<.radio_group>`, `<.switch>`, `<.textarea>`, `<.date_input>`, `<.file_input>` (full list in `lib/petal_components/form.ex`)
+
+**Actions**: `<.button>`, `<.button_group>`, `<.dropdown>`, `<.menu>`, `<.user_dropdown_menu>`
+
+**Feedback**: `<.alert>`, `<.modal>`, `<.slide_over>`, `<.progress>`, `<.spinner>`, `<.rating>`
+
+**Data display**: `<.table>`, `<.pagination>`, `<.breadcrumbs>`, `<.badge>`, `<.avatar>`, `<.marquee>`, `<.icon>`, `<.link>`
+
+A visual grid is at https://petal.build/components. A live playground is at https://petal-components-demo.fly.dev.
+
+## Examples
+
+### Form in a card
+
+```heex
+<.card>
+  <.card_content>
+    <.form for={@form} phx-submit="save">
+      <.field field={@form[:name]} label="Name" />
+      <.field field={@form[:email]} type="email" label="Email" />
+      <.button type="submit">Save</.button>
+    </.form>
+  </.card_content>
+</.card>
+```
+
+### Modal with a form
+
+```heex
+<.modal title="Edit user" max_width="md">
+  <.form for={@form} phx-submit="save">
+    <.field field={@form[:name]} label="Name" />
+    <.button type="submit">Save</.button>
+  </.form>
+</.modal>
+```
+
+### Table with row actions
+
+```heex
+<.table rows={@users}>
+  <:col :let={user} label="Name">{user.name}</:col>
+  <:col :let={user} label="Email">{user.email}</:col>
+  <:col :let={user} label="">
+    <.button size="xs" variant="outline" phx-click="edit" phx-value-id={user.id}>
+      Edit
+    </.button>
+  </:col>
+</.table>
+```
+
+### Loading button
+
+```heex
+<.button loading={@saving} phx-click="save">Save</.button>
+```
+
+## Compared to shadcn
+
+If you like the shadcn workflow in React, this is the Phoenix version of that idea:
+
+- **Same philosophy**: composable primitives, you own the patterns, no monolithic theme system to fight.
+- **Same AI-tool integration**: an MCP server so the agent reads the real schema instead of hallucinating attrs.
+- **Different runtime**: HEEx, not JSX. Tailwind v4, not Tailwind 3 + CSS variables. Works in LiveView and dead views.
+- **Different distribution**: a Hex package, not a CLI that copies files into your repo. Update with `mix deps.update`.
+
+Full comparison with code samples side by side: https://petal.build/petal-components/vs-shadcn.
+
+## petal_pro
+
+[petal_pro](https://petal.build/petal-pro) is the production SaaS boilerplate built on petal_components - auth, multi-tenancy, Stripe billing, background jobs, the full set. It is the best reference for real-world composition of these components.
+
+## Local development
+
+Standalone dev server, no umbrella needed:
+
+```sh
 git clone https://github.com/petalframework/petal_components.git
 cd petal_components
 mix deps.get
@@ -196,20 +177,27 @@ mix tailwind.install
 iex -S mix run dev.exs
 ```
 
-This starts a playground at [localhost:4000](http://localhost:4000) with all components rendered using proper Tailwind v4 CSS. Changes to files in `lib/` trigger live reload automatically.
+Playground at http://localhost:4000 with every component rendered. Live reload on edits to `lib/`.
 
-To run tests:
+Tests:
 
-```bash
+```sh
 mix test
 ```
 
 ## Contributing
 
-If you'd like to help out, clone the repo, run the dev server above, and submit a PR. We're open to any new components that would benefit others! Check the roadmap for ideas.
+Suggest a component on the [public roadmap](https://petal.build/components/roadmap). PRs welcome - clone the repo, run the dev server above, and submit.
 
-Alternatively, there's a [Phoenix umbrella app](https://github.com/petalframework/petal_development) that includes `petal_components` as a git submodule with a full Phoenix boilerplate for more integrated testing.
+There is also a [Phoenix umbrella app](https://github.com/petalframework/petal_development) with `petal_components` as a submodule alongside a boilerplate Phoenix app for integrated testing.
 
-## Community, Updates & Support
+## Companion projects
 
-Looking to talk Petal with fellow devs? [Join our great community](https://discord.com/invite/exbwVbjAct) over at our discord. For regular updates, consider signing up to [petal.build](https://petal.build/) and if you have any questions feel free to reach out to us at <support@petal.build>.
+- [petal-components-mcp](https://github.com/petalframework/petal-components-mcp) - the MCP server. Source for the schema introspector and the TypeScript MCP service.
+- [petal_boilerplate](https://github.com/petalframework/petal_boilerplate) - a fresh Phoenix install with petal_components wired up.
+- [Figma UI kit](https://www.figma.com/community/file/1374192831096114078/official-petal-ui-kit) - official Figma kit for designing against petal_components.
+- [VSCode snippets](https://marketplace.visualstudio.com/items?itemName=petalframework.vscode-petal-components-snippets) - 65+ snippets for the components.
+
+## License
+
+MIT.
