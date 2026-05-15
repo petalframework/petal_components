@@ -1,4 +1,10 @@
 # Changelog
+### 3.2.2 - 2026-05-15 23:11:12
+
+- Fix submenu keyboard focus: when a menu toggle is activated with Space or Enter, focus now moves to the first link inside the expanded submenu instead of staying on the toggle button. Matches the WAI-ARIA disclosure menu pattern. Affects both the Alpine.js and Phoenix.LiveView.JS variants.
+- Fixed Firefox's native time picker icon overlapping AM/PM text in `field type="time"` (#377). Time inputs now get extra right padding under Firefox to make room for the native picker indicator.
+- Fixed white button variants (`white`, `white-shadow`, `pure-white`) having no visible focus state in dark mode (#315). The focus state now shifts the background to gray-200, matching the dark hover state.
+
 ### 3.2.1 - 2026-05-15 21:30:12
 
 - Fixed disabled `checkbox`, `switch`, and `checkbox-group` fields still submitting a value via their hidden companion input (#483). Native HTML form behavior excludes disabled fields from submission; the hidden input is now omitted when `disabled` is set.
