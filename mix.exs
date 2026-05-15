@@ -70,7 +70,7 @@ defmodule PetalComponents.MixProject do
 
   defp description() do
     """
-    Petal is a set of HEEX components that makes it easy for Phoenix developers to start building beautiful web apps.
+    Shadcn-style Phoenix LiveView components that AI assistants can actually use. Pair with the MCP server so AI coding tools can inspect the real component API.
     """
   end
 
@@ -78,8 +78,14 @@ defmodule PetalComponents.MixProject do
     [
       maintainers: ["Matt Platts", "Nic Hoban"],
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
-      files: ~w(mix.exs priv lib assets README.md LICENSE.md CHANGELOG.md)
+      links: %{
+        "GitHub" => @source_url,
+        "Docs" => "https://petal.build/components",
+        "MCP server" => "https://mcp.petal.build",
+        "Rules for AI tools" => "https://petal.build/petal-components/rules.md",
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
+      },
+      files: ~w(mix.exs priv lib assets README.md LICENSE.md CHANGELOG.md rules.md)
     ]
   end
 
@@ -91,7 +97,7 @@ defmodule PetalComponents.MixProject do
       source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/petal_components",
       source_url: @source_url,
-      extras: ["README.md"]
+      extras: ["README.md", "rules.md"]
     ]
   end
 end
