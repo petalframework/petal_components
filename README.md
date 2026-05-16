@@ -33,9 +33,26 @@ If you have used shadcn in React, you already know the shape. Same idea, composa
 
 ## Install
 
-### Phoenix app
+### The two-step way (recommended)
 
-Add to your `mix.exs`:
+```sh
+# 1. Install the MCP server once
+claude mcp add petal --transport http https://mcp.petal.build/mcp
+```
+
+Then in any Phoenix project:
+
+```
+2. Tell your AI: "install petal_components"
+```
+
+The agent calls `get_install_instructions` on the MCP, applies the changes to your `mix.exs`, runs `mix deps.get`, patches `assets/css/app.css`, and adds `use PetalComponents` to your web module. Works in umbrella apps and standard Phoenix projects. The AI handles project shape variance the install would otherwise have to special-case.
+
+Cursor, Windsurf, Continue, Codex, and Cline have their own MCP install commands - see https://petal.build/petal-components for snippets per tool.
+
+### The manual way
+
+If you'd rather install yourself, in `mix.exs`:
 
 ```elixir
 def deps do
@@ -45,7 +62,7 @@ def deps do
 end
 ```
 
-Then in `assets/css/app.css`:
+In `assets/css/app.css`:
 
 ```css
 @import "tailwindcss";
@@ -64,16 +81,7 @@ def html do
 end
 ```
 
-### AI coding tools (MCP server)
-
-```sh
-# Claude Code
-claude mcp add petal --transport http https://mcp.petal.build/mcp
-```
-
-Cursor, Windsurf, Continue, Codex, and Cline have their own MCP install steps - see https://petal.build/petal-components for setup snippets per tool.
-
-Once installed, the agent can call `list_components` and `get_component` to ground its output in the real petal_components schema. No more `<div class="rounded-lg shadow ...">` fallbacks for things we already ship.
+Run `mix deps.get`, then `mix compile` to verify.
 
 ## For AI coding tools
 
