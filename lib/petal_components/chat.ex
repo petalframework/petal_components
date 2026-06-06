@@ -8,7 +8,7 @@ defmodule PetalComponents.Chat do
 
     * `conversation/1`  — scrollable thread container (slot-driven)
     * `chat_message/1`  — a single message bubble (user or assistant)
-    * `streaming_text/1` — token-by-token output via `phx-update="stream"`, no JS hook
+    * `streaming_text/1` — token-by-token output via the `PetalChatStream` JS hook
     * `prompt_input/1`   — the composer (textarea + send)
 
   ## Streaming
