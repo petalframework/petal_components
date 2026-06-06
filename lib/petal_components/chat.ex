@@ -182,6 +182,15 @@ defmodule PetalComponents.Chat do
       <.chat_message role="assistant"><.markdown content={msg.text} /></.chat_message>
 
   Output is sanitized server-side — model text is never rendered as live markup.
+
+  > #### Markdown is rendered faithfully {: .info}
+  >
+  > Code blocks come from the model's own fences. If a model wraps an example
+  > that itself contains a ` ``` ` fence inside another same-length ` ``` ` fence,
+  > that is invalid CommonMark and renders broken (the outer fence closes early) —
+  > every CommonMark renderer behaves this way. Steer the model with a system
+  > prompt: "when showing example markdown that contains code fences, wrap the
+  > outer block in MORE backticks than the inner fence."
   """
   attr :content, :string, required: true
   attr :id, :string, default: nil, doc: "pass a unique id to enable per-code-block copy buttons"
