@@ -112,16 +112,32 @@ defmodule PetalComponents.Chat do
   """
   attr :id, :string, required: true
   attr :event, :string, default: "pc-chat-token", doc: "push_event name the hook listens for"
+
+  attr :format, :string,
+    default: "text",
+    values: ["text", "markdown"],
+    doc: ~s|"text" appends raw token deltas; "markdown" replaces innerHTML with rendered HTML you push (see `to_html/1`)|
+
   attr :class, :any, default: nil
 
   def streaming_text(assigns) do
-    # NB: the inner spans are deliberately adjacent with no whitespace between
+    # NB: the inner nodes are deliberately adjacent with no whitespace between
     # them — the bubble uses `whitespace-pre-wrap`, so any newline/indentation
     # here would render as blank lines and balloon the empty bubble's height.
     ~H"""
-    <span id={@id} phx-hook="PetalChatStream" phx-update="ignore" data-event={@event} class={["pc-chat__stream", @class]}><span class="pc-chat__typing" aria-hidden="true"><span></span><span></span><span></span></span><span data-pc-stream-text class="pc-chat__stream-text"></span><span class="pc-chat__caret" aria-hidden="true"></span></span>
+    <span id={@id} phx-hook="PetalChatStream" phx-update="ignore" data-event={@event} class={["pc-chat__stream", @class]}><span class="pc-chat__typing" aria-hidden="true"><span></span><span></span><span></span></span><span :if={@format == "text"} data-pc-stream-text class="pc-chat__stream-text"></span><span :if={@format == "text"} class="pc-chat__caret" aria-hidden="true"></span><div :if={@format == "markdown"} data-pc-stream-html class="pc-chat__markdown"></div></span>
     """
   end
+
+  @doc """
+  Render markdown to sanitized, syntax-highlighted HTML using the same engine
+  the `markdown/1` component uses. Use it to live-stream markdown: throttle calls
+  on your growing buffer and `push_event` the result to a `format="markdown"`
+  `streaming_text/1`:
+
+      socket = push_event(socket, "pc-chat-token", %{id: "answer", html: PetalComponents.Chat.to_html(buffer)})
+  """
+  def to_html(content), do: render_markdown(content)
 
   @doc """
   A tool-call card — the chrome around a generative-UI widget.

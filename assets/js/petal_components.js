@@ -15,6 +15,7 @@
 export const PetalChatStream = {
   mounted() {
     this.textEl = this.el.querySelector("[data-pc-stream-text]");
+    this.htmlEl = this.el.querySelector("[data-pc-stream-html]");
     const event = this.el.dataset.event || "pc-chat-token";
 
     // Anchor the new turn near the TOP of the viewport (so the answer starts at
@@ -26,7 +27,13 @@ export const PetalChatStream = {
     this.handleEvent(event, (payload) => {
       if (payload.id && payload.id !== this.el.id) return;
       this.el.dataset.started = "";
-      this.textEl.textContent += payload.text;
+      // markdown mode: replace innerHTML with pre-rendered HTML.
+      // text mode: append the raw token delta.
+      if (payload.html !== undefined && this.htmlEl) {
+        this.htmlEl.innerHTML = payload.html;
+      } else if (payload.text !== undefined && this.textEl) {
+        this.textEl.textContent += payload.text;
+      }
     });
   },
 

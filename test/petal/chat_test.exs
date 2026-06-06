@@ -104,6 +104,27 @@ defmodule PetalComponents.ChatTest do
 
       assert html =~ ~s{data-event="my-tokens"}
     end
+
+    test "markdown format renders an html target instead of a text node" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.streaming_text id="answer" format="markdown" />
+        """)
+
+      assert html =~ "data-pc-stream-html"
+      assert_has_class(html, "pc-chat__markdown")
+      refute html =~ "data-pc-stream-text"
+    end
+  end
+
+  describe "to_html/1" do
+    test "renders sanitized markdown html" do
+      assert PetalComponents.Chat.to_html("# Hi\n\n**bold**") =~ "<h1>Hi</h1>"
+      assert PetalComponents.Chat.to_html("**bold**") =~ "<strong>bold</strong>"
+      refute PetalComponents.Chat.to_html("<script>x</script>\n\nok") =~ "<script>"
+    end
   end
 
   describe "tool_call/1" do
