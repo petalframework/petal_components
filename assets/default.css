@@ -2817,6 +2817,15 @@
   }
 }
 
+/* Respect users who prefer reduced motion: keep the chat indicators static. */
+@media (prefers-reduced-motion: reduce) {
+  .pc-chat__typing > span,
+  .pc-chat__caret,
+  .pc-chat__tool-spinner {
+    animation: none;
+  }
+}
+
 /*
   Hide the calendar icon added by Petal in Firefox since Firefox includes one
   and the onclick for the Petal one doesn't work.

@@ -46,13 +46,15 @@ defmodule PetalComponents.Chat do
         </:footer>
       </.conversation>
   """
-  attr :id, :string, default: "conversation"
+  attr :id, :string, doc: "defaults to a generated id so multiple threads can coexist"
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
   slot :footer, doc: "pinned below the scroll area, e.g. a prompt_input"
 
   def conversation(assigns) do
+    assigns = assign_new(assigns, :id, fn -> "pc-chat-#{Ecto.UUID.generate()}" end)
+
     ~H"""
     <div class={["pc-chat", @class]} {@rest}>
       <div class="pc-chat__viewport">
@@ -339,10 +341,12 @@ defmodule PetalComponents.Chat do
   and the send button becomes a stop button that pushes `on_stop` — wire it to
   cancel your generation task.
   """
-  attr :id, :string, default: "pc-chat-composer"
+  attr :id, :string, doc: "defaults to a generated id so multiple composers can coexist"
+
   attr :name, :string, default: "prompt"
   attr :value, :string, default: ""
   attr :placeholder, :string, default: "Send a message..."
+  attr :aria_label, :string, default: "Message", doc: "accessible label for the textarea"
   attr :loading, :boolean, default: false
 
   attr :on_stop, :string,
@@ -355,12 +359,15 @@ defmodule PetalComponents.Chat do
   slot :actions, doc: "extra controls left of the send button"
 
   def prompt_input(assigns) do
+    assigns = assign_new(assigns, :id, fn -> "pc-chat-composer-#{Ecto.UUID.generate()}" end)
+
     ~H"""
     <form id={@id} phx-hook="PetalChatComposer" class={["pc-chat__composer", @class]} {@rest}>
       <textarea
         name={@name}
         rows="1"
         placeholder={@placeholder}
+        aria-label={@aria_label}
         autocomplete="off"
         class="pc-chat__composer-input"
       >{@value}</textarea>

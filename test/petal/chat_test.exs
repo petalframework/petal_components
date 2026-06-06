@@ -22,12 +22,26 @@ defmodule PetalComponents.ChatTest do
       assert html =~ "footer-here"
     end
 
+    test "generates a unique id when none is given (so multiple threads coexist)" do
+      assigns = %{}
+      [_, id1] = Regex.run(~r/id="(pc-chat-[^"]+)"/, rendered_to_string(~H|<.conversation>
+  <div>x</div>
+</.conversation>|))
+      [_, id2] = Regex.run(~r/id="(pc-chat-[^"]+)"/, rendered_to_string(~H|<.conversation>
+  <div>x</div>
+</.conversation>|))
+
+      refute id1 == id2
+    end
+
     test "omits the footer wrapper when no footer slot is given" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
-        <.conversation><div>only body</div></.conversation>
+        <.conversation>
+          <div>only body</div>
+        </.conversation>
         """)
 
       refute html =~ "pc-chat__footer"
@@ -161,12 +175,9 @@ defmodule PetalComponents.ChatTest do
 
   describe "markdown/1" do
     test "renders markdown as html (headings, bold, code)" do
-      assigns = %{}
+      assigns = %{md: "# Title\n\nsome **bold** and `code`"}
 
-      html =
-        rendered_to_string(~H"""
-        <.markdown content={"# Title\n\nsome **bold** and `code`"} />
-        """)
+      html = rendered_to_string(~H|<.markdown content={@md} />|)
 
       assert_has_class(html, "pc-chat__markdown")
       assert html =~ "<h1>Title</h1>"
@@ -175,12 +186,9 @@ defmodule PetalComponents.ChatTest do
     end
 
     test "sanitizes dangerous html" do
-      assigns = %{}
+      assigns = %{md: "Hello\n\n<script>alert('x')</script>\n\nworld"}
 
-      html =
-        rendered_to_string(~H"""
-        <.markdown content={"Hello\n\n<script>alert('x')</script>\n\nworld"} />
-        """)
+      html = rendered_to_string(~H|<.markdown content={@md} />|)
 
       refute html =~ "<script>"
       assert html =~ "Hello"
@@ -197,16 +205,13 @@ defmodule PetalComponents.ChatTest do
   describe "rich_text/1" do
     test "interleaves markdown prose with a widget directive" do
       assigns = %{
-        rw: fn name, args -> Phoenix.HTML.raw(~s|<span class="w">#{name}:#{args["city"]}</span>|) end
+        rw: fn name, args ->
+          Phoenix.HTML.raw(~s|<span class="w">#{name}:#{args["city"]}</span>|)
+        end,
+        md: "Before text\n\n```widget:weather\n{\"city\":\"Paris\"}\n```\n\nAfter text"
       }
 
-      html =
-        rendered_to_string(~H"""
-        <.rich_text
-          content={"Before text\n\n```widget:weather\n{\"city\":\"Paris\"}\n```\n\nAfter text"}
-          render_widget={@rw}
-        />
-        """)
+      html = rendered_to_string(~H|<.rich_text content={@md} render_widget={@rw} />|)
 
       assert html =~ "Before text"
       assert html =~ "After text"
@@ -217,12 +222,9 @@ defmodule PetalComponents.ChatTest do
     end
 
     test "leaves normal code fences as code blocks" do
-      assigns = %{}
+      assigns = %{md: "```elixir\nx = 1\n```"}
 
-      html =
-        rendered_to_string(~H"""
-        <.rich_text content={"```elixir\nx = 1\n```"} />
-        """)
+      html = rendered_to_string(~H|<.rich_text content={@md} />|)
 
       assert html =~ "<pre"
       assert html =~ "language-elixir"
@@ -331,6 +333,12 @@ defmodule PetalComponents.ChatTest do
       assert html =~ ~s{name="prompt"}
       assert html =~ "draft text"
       assert html =~ "Go"
+    end
+
+    test "labels the textarea for screen readers" do
+      assigns = %{}
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" />|)
+      assert html =~ ~s{aria-label="Message"}
     end
 
     test "shows a stop button (not a disabled input) while loading with on_stop" do
