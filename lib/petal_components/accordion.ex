@@ -154,7 +154,7 @@ defmodule PetalComponents.Accordion do
         let l = e.detail.length;
         let isMultiple = !!e.detail.multiple;
         let clickedAccordionItem = e.target;
-        let container = clickedAccordionItem.closest("[id^='accordion_']");
+        let container = document.getElementById(e.detail.container_id) || clickedAccordionItem.closest("[data-i]").parentElement;
         let currentlyOpenAccordionItem = container.querySelector("[data-open='true']");
         let isClosingClickedAccordionItem = clickedAccordionItem.dataset.open === "true";
         let isLastAccordionItem = i == l - 1;
