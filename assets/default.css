@@ -2561,6 +2561,218 @@
     display: block;
     padding: 0;
   }
+
+  /* Chat / AI (New) */
+
+  .pc-chat {
+    /* Theme tokens — override these to reskin without touching markup. */
+    --pc-chat-radius: 1rem;
+    --pc-chat-user-bg: var(--color-primary-600, #2563eb);
+    --pc-chat-user-fg: #ffffff;
+    --pc-chat-assistant-bg: var(--color-gray-100, #f3f4f6);
+    --pc-chat-assistant-fg: var(--color-gray-900, #111827);
+    @apply flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
+  }
+  .pc-chat__thread {
+    @apply flex flex-1 flex-col gap-3 overflow-y-auto p-4;
+    /* Override --pc-chat-thread-max-height (e.g. 100% / 70vh) to fit a full-page
+       chat; set it to none to grow unbounded. */
+    max-height: var(--pc-chat-thread-max-height, 28rem);
+  }
+  .pc-chat__footer {
+    @apply border-t border-gray-200 p-3 dark:border-gray-700;
+  }
+  .pc-chat__row {
+    @apply flex items-start gap-2;
+  }
+  .pc-chat__row--user {
+    @apply justify-end;
+  }
+  .pc-chat__avatar {
+    @apply flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm;
+  }
+  .pc-chat__bubble {
+    @apply max-w-[80%] px-4 py-2 text-sm leading-relaxed;
+    border-radius: var(--pc-chat-radius);
+    /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
+    overflow-wrap: anywhere;
+  }
+  /* Preserve newlines ONLY on leaf text nodes — never on the bubble itself, or
+     structural whitespace (and dev HEEx debug comments) renders as blank lines
+     and balloons the bubble. Wrap plain message text in this. */
+  .pc-chat__text {
+    white-space: pre-wrap;
+  }
+  .pc-chat__bubble--user {
+    background-color: var(--pc-chat-user-bg);
+    color: var(--pc-chat-user-fg);
+  }
+  .pc-chat__bubble--assistant,
+  .pc-chat__bubble--system {
+    background-color: var(--pc-chat-assistant-bg);
+    color: var(--pc-chat-assistant-fg);
+  }
+  .pc-chat__stream {
+    @apply inline;
+  }
+  .pc-chat__stream-text {
+    @apply inline whitespace-pre-wrap;
+  }
+  /* Before the first token: show the typing dots, hide text + caret. */
+  .pc-chat__stream:not([data-started]) .pc-chat__stream-text,
+  .pc-chat__stream:not([data-started]) .pc-chat__caret {
+    @apply hidden;
+  }
+  /* After the first token: hide the typing dots. */
+  .pc-chat__stream[data-started] .pc-chat__typing {
+    @apply hidden;
+  }
+  .pc-chat__typing {
+    @apply inline-flex items-center gap-0.5 align-middle;
+  }
+  .pc-chat__typing > span {
+    @apply inline-block h-1 w-1 rounded-full;
+    background-color: currentColor;
+    opacity: 0.4;
+    animation: pc-chat-bounce 1.2s ease-in-out infinite;
+  }
+  .pc-chat__typing > span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .pc-chat__typing > span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .pc-chat__caret {
+    @apply ml-0.5 inline-block h-4 w-1.5 align-middle;
+    background-color: currentColor;
+    opacity: 0.6;
+    animation: pc-chat-blink 1s steps(2, start) infinite;
+  }
+
+  /* Rendered markdown (committed assistant messages). Block content, so reset
+     the bubble's pre-wrap and apply prose spacing. */
+  .pc-chat__markdown {
+    white-space: normal;
+    @apply text-sm leading-relaxed;
+  }
+  .pc-chat__markdown > :first-child {
+    @apply mt-0;
+  }
+  .pc-chat__markdown > :last-child {
+    @apply mb-0;
+  }
+  .pc-chat__markdown p {
+    @apply my-2;
+  }
+  .pc-chat__markdown h1 {
+    @apply mt-4 mb-2 text-lg font-semibold;
+  }
+  .pc-chat__markdown h2 {
+    @apply mt-4 mb-2 text-base font-semibold;
+  }
+  .pc-chat__markdown h3 {
+    @apply mt-3 mb-1 text-sm font-semibold;
+  }
+  .pc-chat__markdown ul {
+    @apply my-2 list-disc space-y-1 ps-5;
+  }
+  .pc-chat__markdown ol {
+    @apply my-2 list-decimal space-y-1 ps-5;
+  }
+  .pc-chat__markdown a {
+    @apply font-medium underline underline-offset-2;
+  }
+  .pc-chat__markdown blockquote {
+    @apply my-2 border-s-2 border-gray-300 ps-3 text-gray-600 italic dark:border-gray-600 dark:text-gray-400;
+  }
+  /* Inline code (code blocks carry their own theme colours from the highlighter). */
+  .pc-chat__markdown :not(pre) > code {
+    @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-white/10;
+  }
+  .pc-chat__markdown pre {
+    @apply my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
+  }
+  .pc-chat__markdown table {
+    @apply my-2 w-full border-collapse text-left;
+  }
+  .pc-chat__markdown th,
+  .pc-chat__markdown td {
+    @apply border border-gray-200 px-2 py-1 dark:border-gray-700;
+  }
+  .pc-chat__markdown th {
+    @apply bg-black/5 font-semibold dark:bg-white/10;
+  }
+  /* Tool-call card (generative-UI widgets) */
+  .pc-chat__tool {
+    @apply my-1 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
+  }
+  .pc-chat__tool-header {
+    @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300;
+  }
+  .pc-chat__tool-name {
+    @apply font-mono;
+  }
+  .pc-chat__tool-check {
+    @apply text-green-600 dark:text-green-400;
+  }
+  .pc-chat__tool-error {
+    @apply flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white;
+  }
+  .pc-chat__tool-spinner {
+    @apply inline-block h-3.5 w-3.5 rounded-full border-2 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
+    animation: pc-chat-spin 0.6s linear infinite;
+  }
+  .pc-chat__tool-body {
+    @apply border-t border-gray-100 p-3 dark:border-gray-800;
+  }
+
+  .pc-chat__composer {
+    @apply flex items-end gap-2;
+  }
+  .pc-chat__composer-input {
+    @apply flex-1 resize-none overflow-y-hidden rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none disabled:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
+    field-sizing: content;
+  }
+  .pc-chat__composer-send {
+    @apply rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40;
+    background-color: var(--pc-chat-user-bg);
+  }
+  .pc-chat__composer-stop {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white;
+    background-color: var(--pc-chat-user-bg);
+  }
+  .pc-chat__stop-icon {
+    @apply h-3 w-3 rounded-[2px] bg-white;
+  }
+}
+
+@keyframes pc-chat-blink {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pc-chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pc-chat-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 0.9;
+  }
 }
 
 /*

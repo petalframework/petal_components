@@ -10,6 +10,7 @@ defmodule PetalComponents do
         Button,
         ButtonGroup,
         Card,
+        Chat,
         Container,
         Dropdown,
         Field,
