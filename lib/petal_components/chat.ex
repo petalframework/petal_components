@@ -139,6 +139,20 @@ defmodule PetalComponents.Chat do
   """
   def to_html(content), do: render_markdown(content)
 
+  defp ensure_mdex! do
+    if Code.ensure_loaded?(MDEx) do
+      :ok
+    else
+      raise """
+      PetalComponents.Chat markdown rendering requires the optional :mdex dependency.
+
+      Add it to your deps:
+
+          {:mdex, "~> 0.12"}
+      """
+    end
+  end
+
   @doc """
   A tool-call card — the chrome around a generative-UI widget.
 
@@ -435,6 +449,8 @@ defmodule PetalComponents.Chat do
   defp render_markdown(nil), do: ""
 
   defp render_markdown(content) do
+    ensure_mdex!()
+
     case MDEx.to_html(content, @markdown_opts) do
       {:ok, html} -> external_links(html)
       {:error, _} -> content |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()

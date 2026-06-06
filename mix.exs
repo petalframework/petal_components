@@ -53,7 +53,7 @@ defmodule PetalComponents.MixProject do
       {:lazy_html, ">= 0.0.0", only: [:dev, :test]},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
-      {:mdex, "~> 0.12"},
+      {:mdex, "~> 0.12", optional: true},
       {:jason, "~> 1.2"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},
