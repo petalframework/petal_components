@@ -2690,7 +2690,10 @@
     @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-white/10;
   }
   .pc-chat__markdown pre {
-    @apply my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
+    @apply relative my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
+  }
+  .pc-chat__code-copy {
+    @apply absolute right-2 top-2 rounded bg-white/10 px-2 py-0.5 text-[11px] text-white/80 hover:bg-white/20;
   }
   .pc-chat__markdown table {
     @apply my-2 w-full border-collapse text-left;
@@ -2724,6 +2727,55 @@
   }
   .pc-chat__tool-body {
     @apply border-t border-gray-100 p-3 dark:border-gray-800;
+  }
+
+  /* Viewport wraps the thread so the scroll-to-bottom button can sit over it. */
+  .pc-chat__viewport {
+    @apply relative flex min-h-0 flex-1 flex-col;
+  }
+  .pc-chat__scroll-btn {
+    @apply absolute bottom-3 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-md transition-opacity dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200;
+  }
+  .pc-chat__scroll-btn--hidden {
+    @apply pointer-events-none opacity-0;
+  }
+
+  /* Reasoning / thinking block */
+  .pc-chat__reasoning {
+    @apply my-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs dark:border-gray-700;
+  }
+  .pc-chat__reasoning-summary {
+    @apply cursor-pointer list-none font-medium text-gray-500 select-none dark:text-gray-400;
+  }
+  .pc-chat__reasoning-body {
+    @apply mt-1.5 border-s-2 border-gray-200 ps-2 whitespace-pre-wrap text-gray-600 dark:border-gray-700 dark:text-gray-400;
+  }
+
+  /* Message actions (copy / regenerate / feedback) */
+  .pc-chat__actions {
+    @apply mt-1 flex items-center gap-1;
+  }
+  .pc-chat__action {
+    @apply rounded px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200;
+  }
+
+  /* Prompt suggestion chips */
+  .pc-chat__suggestions {
+    @apply flex flex-wrap gap-2;
+  }
+  .pc-chat__suggestion {
+    @apply rounded-full border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800;
+  }
+
+  /* Error notice */
+  .pc-chat__error {
+    @apply my-1 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300;
+  }
+  .pc-chat__error-text {
+    @apply flex-1;
+  }
+  .pc-chat__retry {
+    @apply rounded-md border border-red-300 px-2 py-1 text-xs font-medium hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-900/40;
   }
 
   .pc-chat__composer {

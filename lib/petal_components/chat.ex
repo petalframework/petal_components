@@ -55,8 +55,18 @@ defmodule PetalComponents.Chat do
   def conversation(assigns) do
     ~H"""
     <div class={["pc-chat", @class]} {@rest}>
-      <div id={@id} data-pc-scroll role="log" aria-live="polite" class="pc-chat__thread">
-        {render_slot(@inner_block)}
+      <div class="pc-chat__viewport">
+        <div id={@id} data-pc-scroll phx-hook="PetalChatScroll" role="log" aria-live="polite" class="pc-chat__thread">
+          {render_slot(@inner_block)}
+        </div>
+        <button
+          type="button"
+          data-pc-scroll-btn
+          class="pc-chat__scroll-btn pc-chat__scroll-btn--hidden"
+          aria-label="Scroll to latest"
+        >
+          ↓
+        </button>
       </div>
       <div :if={@footer != []} class="pc-chat__footer">
         {render_slot(@footer)}
@@ -158,13 +168,14 @@ defmodule PetalComponents.Chat do
   Output is sanitized server-side — model text is never rendered as live markup.
   """
   attr :content, :string, required: true
+  attr :id, :string, default: nil, doc: "pass a unique id to enable per-code-block copy buttons"
   attr :class, :any, default: nil
 
   def markdown(assigns) do
     assigns = assign(assigns, :html, render_markdown(assigns.content))
 
     ~H"""
-    <div class={["pc-chat__markdown", @class]}>{Phoenix.HTML.raw(@html)}</div>
+    <div id={@id} phx-hook={@id && "PetalCodeCopy"} class={["pc-chat__markdown", @class]}>{Phoenix.HTML.raw(@html)}</div>
     """
   end
 
@@ -282,6 +293,117 @@ defmodule PetalComponents.Chat do
       </button>
       <button :if={@loading && !@on_stop} type="button" disabled class="pc-chat__composer-send">…</button>
     </form>
+    """
+  end
+
+  @doc """
+  A collapsible "thinking" / reasoning block for reasoning-model output. Native
+  `<details>`, so no JS.
+
+      <.reasoning>Chain of thought here...</.reasoning>
+      <.reasoning label="Thought for 3s" open>...</.reasoning>
+  """
+  attr :label, :string, default: "Reasoning"
+  attr :open, :boolean, default: false
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def reasoning(assigns) do
+    ~H"""
+    <details class={["pc-chat__reasoning", @class]} open={@open}>
+      <summary class="pc-chat__reasoning-summary">{@label}</summary>
+      <div class="pc-chat__reasoning-body">{render_slot(@inner_block)}</div>
+    </details>
+    """
+  end
+
+  @doc """
+  A row of actions under a message (copy, regenerate, feedback). Compose with
+  `copy_button/1` and your own `phx-click` buttons using the `pc-chat__action`
+  class.
+
+      <.message_actions>
+        <.copy_button id={"copy-\#{@id}"} text={@text} />
+        <button class="pc-chat__action" phx-click="regenerate">Regenerate</button>
+      </.message_actions>
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def message_actions(assigns) do
+    ~H"""
+    <div class={["pc-chat__actions", @class]}>{render_slot(@inner_block)}</div>
+    """
+  end
+
+  @doc """
+  A copy-to-clipboard button (via the `PetalCopy` hook). Shows brief "Copied!"
+  feedback. Requires a unique `id`.
+  """
+  attr :id, :string, required: true
+  attr :text, :string, required: true, doc: "the text to copy"
+  attr :label, :string, default: "Copy"
+  attr :class, :any, default: nil
+
+  def copy_button(assigns) do
+    ~H"""
+    <button
+      id={@id}
+      type="button"
+      phx-hook="PetalCopy"
+      data-copy-text={@text}
+      data-copied-label="Copied!"
+      class={["pc-chat__action", @class]}
+    >
+      <span data-pc-copy-label>{@label}</span>
+    </button>
+    """
+  end
+
+  @doc """
+  Clickable prompt-starter chips for an empty state. Each pushes `on_select`
+  with `phx-value-prompt` set to the suggestion.
+
+      <.suggestions items={["Summarise this", "Write tests"]} on_select="suggest" />
+  """
+  attr :items, :list, required: true
+  attr :on_select, :string, default: "suggestion", doc: "event pushed with phx-value-prompt"
+  attr :class, :any, default: nil
+
+  def suggestions(assigns) do
+    ~H"""
+    <div class={["pc-chat__suggestions", @class]}>
+      <button
+        :for={item <- @items}
+        type="button"
+        phx-click={@on_select}
+        phx-value-prompt={item}
+        class="pc-chat__suggestion"
+      >
+        {item}
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
+  An error notice with an optional retry button.
+
+      <.chat_error on_retry="retry">Something went wrong.</.chat_error>
+  """
+  attr :on_retry, :string, default: nil
+  attr :retry_label, :string, default: "Retry"
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def chat_error(assigns) do
+    ~H"""
+    <div class={["pc-chat__error", @class]} role="alert">
+      <span class="pc-chat__error-text">{render_slot(@inner_block)}</span>
+      <button :if={@on_retry} type="button" phx-click={@on_retry} class="pc-chat__retry">
+        {@retry_label}
+      </button>
+    </div>
     """
   end
 

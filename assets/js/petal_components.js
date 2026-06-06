@@ -79,4 +79,75 @@ export const PetalChatComposer = {
   },
 };
 
-export default { PetalChatStream, PetalChatComposer };
+// Copy arbitrary text (data-copy-text) to the clipboard with brief feedback.
+export const PetalCopy = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      navigator.clipboard?.writeText(this.el.dataset.copyText || "");
+      const label = this.el.querySelector("[data-pc-copy-label]");
+      if (!label) return;
+      const original = label.textContent;
+      label.textContent = this.el.dataset.copiedLabel || "Copied!";
+      setTimeout(() => {
+        label.textContent = original;
+      }, 1500);
+    });
+  },
+};
+
+// Inject a "Copy" button into every <pre> code block inside a markdown render.
+export const PetalCodeCopy = {
+  mounted() {
+    this.enhance();
+  },
+  updated() {
+    this.enhance();
+  },
+  enhance() {
+    this.el.querySelectorAll("pre").forEach((pre) => {
+      if (pre.querySelector("[data-pc-code-copy]")) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.pcCodeCopy = "";
+      btn.className = "pc-chat__code-copy";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", () => {
+        const code = pre.querySelector("code");
+        navigator.clipboard?.writeText(code ? code.innerText : pre.innerText);
+        btn.textContent = "Copied!";
+        setTimeout(() => {
+          btn.textContent = "Copy";
+        }, 1500);
+      });
+      pre.appendChild(btn);
+    });
+  },
+};
+
+// Show a "scroll to latest" button when the user has scrolled up.
+export const PetalChatScroll = {
+  mounted() {
+    this.btn = this.el.parentElement?.querySelector("[data-pc-scroll-btn]");
+    this.onScroll = () => this.toggle();
+    this.el.addEventListener("scroll", this.onScroll, { passive: true });
+    if (this.btn) {
+      this.btn.addEventListener("click", () => {
+        this.el.scrollTop = this.el.scrollHeight;
+      });
+    }
+    this.toggle();
+  },
+  updated() {
+    this.toggle();
+  },
+  destroyed() {
+    this.el.removeEventListener("scroll", this.onScroll);
+  },
+  toggle() {
+    if (!this.btn) return;
+    const slack = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
+    this.btn.classList.toggle("pc-chat__scroll-btn--hidden", slack < 80);
+  },
+};
+
+export default { PetalChatStream, PetalChatComposer, PetalCopy, PetalCodeCopy, PetalChatScroll };

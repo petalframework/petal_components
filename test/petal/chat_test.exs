@@ -208,6 +208,93 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  describe "reasoning/1" do
+    test "renders a collapsible details block" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.reasoning label="Thought for 2s" open>step one</.reasoning>
+        """)
+
+      assert_has_class(html, "pc-chat__reasoning")
+      assert html =~ "<details"
+      assert html =~ "open"
+      assert html =~ "Thought for 2s"
+      assert html =~ "step one"
+    end
+  end
+
+  describe "copy_button/1 and message_actions/1" do
+    test "copy_button carries the text and copy hook" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.copy_button id="c1" text="hello world" />
+        """)
+
+      assert html =~ ~s{phx-hook="PetalCopy"}
+      assert html =~ ~s{data-copy-text="hello world"}
+      assert_has_class(html, "pc-chat__action")
+    end
+
+    test "message_actions wraps its children" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.message_actions><button>x</button></.message_actions>
+        """)
+
+      assert_has_class(html, "pc-chat__actions")
+      assert html =~ "<button>x</button>"
+    end
+  end
+
+  describe "suggestions/1" do
+    test "renders a chip per item pushing the select event with the prompt" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.suggestions items={["Alpha", "Beta"]} on_select="pick" />
+        """)
+
+      assert_has_class(html, "pc-chat__suggestions")
+      assert html =~ ~s{phx-click="pick"}
+      assert html =~ ~s{phx-value-prompt="Alpha"}
+      assert html =~ "Beta"
+    end
+  end
+
+  describe "chat_error/1" do
+    test "renders an alert with an optional retry button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.chat_error on_retry="retry">It broke</.chat_error>
+        """)
+
+      assert_has_class(html, "pc-chat__error")
+      assert html =~ ~s{role="alert"}
+      assert html =~ "It broke"
+      assert html =~ ~s{phx-click="retry"}
+    end
+
+    test "omits the retry button when on_retry is nil" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.chat_error>It broke</.chat_error>
+        """)
+
+      refute html =~ "pc-chat__retry"
+    end
+  end
+
   describe "prompt_input/1" do
     test "renders a form with a named textarea and send button" do
       assigns = %{}
