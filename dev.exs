@@ -190,7 +190,8 @@ defmodule Dev.PlaygroundLive do
               {"Feedback", "feedback"},
               {"Data Display", "data"},
               {"Navigation", "navigation"},
-              {"Layout", "layout"}
+              {"Layout", "layout"},
+              {"Chat", "chat"}
             ]
           }
           phx-click="switch_tab"
@@ -1018,6 +1019,81 @@ defmodule Dev.PlaygroundLive do
               <span>Open Source</span>
             </div>
           </.marquee>
+        </section>
+      </div>
+
+      <%!-- ============================================================ --%>
+      <%!-- CHAT TAB                                                     --%>
+      <%!-- ============================================================ --%>
+      <div :if={@active_tab == "chat"} class="space-y-10">
+        <section>
+          <.h2 class="mb-4">Conversation</.h2>
+          <.p class="mb-4">
+            AI chat / conversation components. Streaming is driven by the bundled
+            <code>PetalChatStream</code>
+            hook (not interactive in this static playground).
+          </.p>
+          <.conversation id="dev-chat" class="max-w-xl">
+            <.chat_message role="assistant">
+              <:avatar>
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white">
+                  ✦
+                </div>
+              </:avatar>
+              <.markdown content="Hi! I support **bold**, `inline code`, and [links](https://petal.build)." />
+            </.chat_message>
+            <.chat_message role="user">
+              <span class="pc-chat__text">What's the weather in Tokyo?</span>
+            </.chat_message>
+            <.tool_call name="get_weather" status={:complete}>
+              <div class="flex items-center justify-between rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-3 text-white">
+                <div>
+                  <div class="text-sm font-medium opacity-90">Tokyo</div>
+                  <div class="text-2xl font-bold">21°C</div>
+                </div>
+                <div class="text-4xl">☀️</div>
+              </div>
+            </.tool_call>
+            <.chat_message role="assistant">
+              <:avatar>
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white">
+                  ✦
+                </div>
+              </:avatar>
+              <.streaming_text id="dev-stream" />
+            </.chat_message>
+            <:footer>
+              <.prompt_input phx-submit="noop" placeholder="Send a message..." />
+            </:footer>
+          </.conversation>
+        </section>
+
+        <section>
+          <.h3 class="mb-4">Reasoning</.h3>
+          <.reasoning label="Thought for 2s">
+            First I considered the user's location, then looked up the current conditions.
+          </.reasoning>
+        </section>
+
+        <section>
+          <.h3 class="mb-4">Message actions</.h3>
+          <.message_actions>
+            <.copy_button id="dev-copy" text="Copied text" />
+            <button type="button" class="pc-chat__action" phx-click="noop">Regenerate</button>
+          </.message_actions>
+        </section>
+
+        <section>
+          <.h3 class="mb-4">Suggestions</.h3>
+          <.suggestions
+            items={["What is Phoenix LiveView?", "Show me a markdown demo", "Write a haiku"]}
+            on_select="noop"
+          />
+        </section>
+
+        <section>
+          <.h3 class="mb-4">Error</.h3>
+          <.chat_error on_retry="noop">Something went wrong generating a response.</.chat_error>
         </section>
       </div>
     </.container>

@@ -57,7 +57,9 @@ If you'd rather install yourself, in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:petal_components, "~> 3.2"}
+    {:petal_components, "~> 4.0"},
+    # optional — only needed for the chat markdown components (<.markdown>, <.rich_text>)
+    {:mdex, "~> 0.12"}
   ]
 end
 ```
@@ -79,6 +81,17 @@ def html do
     # ... your other imports
   end
 end
+```
+
+Register the bundled JS hooks in `assets/js/app.js` (needed for the password/copyable/clearable inputs and the chat components — the rest of the library is CSS + LiveView.JS only):
+
+```js
+import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
+
+const liveSocket = new LiveSocket("/live", Socket, {
+  params: { _csrf_token: csrfToken },
+  hooks: { ...PetalComponents }, // merge with your own hooks if you have any
+})
 ```
 
 Run `mix deps.get`, then `mix compile` to verify.

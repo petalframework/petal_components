@@ -86,7 +86,7 @@ defmodule PetalComponents.MixProject do
         "Rules for AI tools" => "https://petal.build/petal-components/rules.md",
         "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
       },
-      files: ~w(mix.exs priv lib assets README.md LICENSE.md CHANGELOG.md rules.md)
+      files: ~w(mix.exs priv lib assets guides README.md LICENSE.md CHANGELOG.md rules.md UPGRADE_GUIDE.md)
     ]
   end
 
@@ -98,7 +98,7 @@ defmodule PetalComponents.MixProject do
       source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/petal_components",
       source_url: @source_url,
-      extras: ["README.md", "rules.md"]
+      extras: ["README.md", "guides/streaming_chat.md", "rules.md", "UPGRADE_GUIDE.md"]
     ]
   end
 end
