@@ -17,24 +17,28 @@ export const PetalChatStream = {
     this.textEl = this.el.querySelector("[data-pc-stream-text]");
     const event = this.el.dataset.event || "pc-chat-token";
 
-    // The bubble just appeared after the user sent — scroll it into view
-    // (force, even if they'd scrolled up) so the loading indicator is visible.
-    this.scrollToBottom(true);
+    // Anchor the new turn near the TOP of the viewport (so the answer starts at
+    // the top and there's room to read it), then DON'T auto-follow — the user
+    // scrolls down at their own pace. Avoids the "keeps yanking to the bottom"
+    // problem. The scroll-to-bottom button handles jumping back down.
+    this.anchorTop();
 
     this.handleEvent(event, (payload) => {
       if (payload.id && payload.id !== this.el.id) return;
       this.el.dataset.started = "";
       this.textEl.textContent += payload.text;
-      this.scrollToBottom();
     });
   },
 
-  scrollToBottom(force = false) {
+  anchorTop() {
     const scroller = this.el.closest("[data-pc-scroll]");
     if (!scroller) return;
-    // While streaming, only auto-follow if the user is already near the bottom.
-    const slack = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
-    if (force || slack < 120) scroller.scrollTop = scroller.scrollHeight;
+    // Prefer the user's question (so it sits at the top with the answer below);
+    // fall back to this answer's own row.
+    const userRows = scroller.querySelectorAll(".pc-chat__row--user");
+    const target = userRows[userRows.length - 1] || this.el.closest(".pc-chat__row") || this.el;
+    const delta = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
+    scroller.scrollTop += delta;
   },
 };
 
