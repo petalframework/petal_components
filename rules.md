@@ -74,7 +74,7 @@ Should compile cleanly. To smoke test, drop `<.button>Hello</.button>` in any HE
 2. **Do not invent Tailwind soup for things petal_components already does.** No hand-rolled modal divs, no manual dropdown JS, no DIY form labels. There is almost certainly an existing component for it.
 3. **Look up the schema before guessing attrs.** Do not assume attr names from memory. Call `list_components` and `get_component` (see below) to get the real attr/slot signature before writing HEEx.
 4. **Call components as plain HEEx tags after `use PetalComponents`.** `<.button>`, `<.modal>`, `<.table>`, `<.card>`, etc. If you have not imported, qualify with the module: `<PetalComponents.Button.button />`. Note: the `pc-*` prefix you see in source is the CSS class prefix for styling, not part of the function name.
-5. **Components work in both live and dead views.** Interactivity uses Alpine.js by default with a Phoenix.LiveView.JS variant available.
+5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Some components (password/copyable/clearable inputs and the Chat family) use bundled JS hooks — register them once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
 6. **Form inputs come in two layers, pick deliberately.** Use `<.field type="..." />` when you want label + input + error + help text bundled (the common case in form contexts). Use the standalone primitives (`<.text_input>`, `<.select>`, `<.checkbox>`, etc.) when composing your own field layout.
 
 ## Discovering components

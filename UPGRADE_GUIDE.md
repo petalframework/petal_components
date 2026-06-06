@@ -1,5 +1,51 @@
 # Upgrade Guide
 
+## v3.x to v4.0.0
+
+Petal Components v4 **removes Alpine.js**. Every component is now Phoenix.LiveView.JS only, and the library ships its own JS hooks. Markdown rendering (used by the new Chat components) is an optional dependency.
+
+### 1. Register the bundled JS hooks
+
+Petal Components now ships JS hooks (for password toggles, copyable/clearable inputs, and the Chat components). Import and register them in your `assets/js/app.js`:
+
+```diff
++ import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
+
+  const liveSocket = new LiveSocket("/live", Socket, {
+    params: { _csrf_token: csrfToken },
+-   hooks: MyHooks,
++   hooks: { ...MyHooks, ...PetalComponents },
+  })
+```
+
+If you don't register them, the password-visibility toggle, copyable/clearable inputs, and the Chat family won't be interactive. The overlay components (dropdown, accordion, menu, modal, slide over) use Phoenix.LiveView.JS commands and need no hook.
+
+### 2. Remove Alpine.js (if you only had it for Petal Components)
+
+Petal Components no longer needs Alpine. If nothing else in your app uses it, drop `alpinejs` from `assets/package.json` and remove the Alpine setup from `app.js` (the `import Alpine`, `window.Alpine = Alpine`, `Alpine.start()`, and the `dom: { onBeforeElUpdated }` Alpine-clone block in your LiveSocket).
+
+### 3. Remove the `js_lib` attribute
+
+`js_lib` has been removed from `<.dropdown>`, `<.accordion>`, and the vertical menu components. Delete it from your call sites:
+
+```diff
+- <.dropdown label="Menu" js_lib="live_view_js">
++ <.dropdown label="Menu">
+```
+
+`PetalComponents.default_js_lib/0` is deprecated; it always returns `"live_view_js"`.
+
+### 4. Add MDEx if you use Chat markdown
+
+The new `<.markdown>` / `Chat.to_html/1` need the optional `:mdex` dependency:
+
+```diff
+  {:petal_components, "~> 4.0"},
++ {:mdex, "~> 0.12"},
+```
+
+Calling `markdown/1` without it raises a clear error. The rest of the library has no new required dependencies.
+
 ## v2.8.4 to v3.0.0
 
 Petal Components has been upgraded to Tailwind 4. Some utilities have been removed or renamed. See the [Tailwind upgrade guide](https://tailwindcss.com/docs/upgrade-guide) for more information.
