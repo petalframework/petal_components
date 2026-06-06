@@ -93,9 +93,9 @@ export const PetalChatComposer = {
 // Copy arbitrary text (data-copy-text) to the clipboard with brief feedback.
 export const PetalCopy = {
   mounted() {
+    const label = this.el.querySelector("[data-pc-copy-label]");
     this.el.addEventListener("click", () => {
       navigator.clipboard?.writeText(this.el.dataset.copyText || "");
-      const label = this.el.querySelector("[data-pc-copy-label]");
       if (!label) return;
       const original = label.textContent;
       label.textContent = this.el.dataset.copiedLabel || "Copied!";

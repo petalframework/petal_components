@@ -56,7 +56,14 @@ defmodule PetalComponents.Chat do
     ~H"""
     <div class={["pc-chat", @class]} {@rest}>
       <div class="pc-chat__viewport">
-        <div id={@id} data-pc-scroll phx-hook="PetalChatScroll" role="log" aria-live="polite" class="pc-chat__thread">
+        <div
+          id={@id}
+          data-pc-scroll
+          phx-hook="PetalChatScroll"
+          role="log"
+          aria-live="polite"
+          class="pc-chat__thread"
+        >
           {render_slot(@inner_block)}
         </div>
         <button
@@ -116,16 +123,28 @@ defmodule PetalComponents.Chat do
   attr :format, :string,
     default: "text",
     values: ["text", "markdown"],
-    doc: ~s|"text" appends raw token deltas; "markdown" replaces innerHTML with rendered HTML you push (see `to_html/1`)|
+    doc:
+      ~s|"text" appends raw token deltas; "markdown" replaces innerHTML with rendered HTML you push (see `to_html/1`)|
 
   attr :class, :any, default: nil
 
   def streaming_text(assigns) do
-    # NB: the inner nodes are deliberately adjacent with no whitespace between
-    # them — the bubble uses `whitespace-pre-wrap`, so any newline/indentation
-    # here would render as blank lines and balloon the empty bubble's height.
     ~H"""
-    <span id={@id} phx-hook="PetalChatStream" phx-update="ignore" data-event={@event} class={["pc-chat__stream", @class]}><span class="pc-chat__typing" aria-hidden="true"><span></span><span></span><span></span></span><span :if={@format == "text"} data-pc-stream-text class="pc-chat__stream-text"></span><span :if={@format == "text"} class="pc-chat__caret" aria-hidden="true"></span><div :if={@format == "markdown"} data-pc-stream-html class="pc-chat__markdown"></div></span>
+    <span
+      id={@id}
+      phx-hook="PetalChatStream"
+      phx-update="ignore"
+      data-event={@event}
+      class={["pc-chat__stream", @class]}
+    >
+      <span class="pc-chat__typing" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span :if={@format == "text"} data-pc-stream-text class="pc-chat__stream-text"></span><span
+        :if={@format == "text"}
+        class="pc-chat__caret"
+        aria-hidden="true"
+      ></span>
+      <div :if={@format == "markdown"} data-pc-stream-html class="pc-chat__markdown"></div>
+    </span>
     """
   end
 
@@ -178,15 +197,24 @@ defmodule PetalComponents.Chat do
     ~H"""
     <div class={["pc-chat__tool", "pc-chat__tool--#{@status}", @class]}>
       <div class="pc-chat__tool-header">
-        <span :if={@status == :running} class="pc-chat__tool-spinner" aria-hidden="true"></span>
-        <span :if={@status == :complete} class="pc-chat__tool-check" aria-hidden="true">✓</span>
-        <span :if={@status == :error} class="pc-chat__tool-error" aria-hidden="true">!</span>
+        <.tool_status_icon status={@status} />
         <span class="pc-chat__tool-name">{@label || @name}</span>
       </div>
       <div :if={@inner_block != []} class="pc-chat__tool-body">{render_slot(@inner_block)}</div>
     </div>
     """
   end
+
+  attr :status, :atom, required: true
+
+  defp tool_status_icon(%{status: :running} = assigns),
+    do: ~H|<span class="pc-chat__tool-spinner" aria-hidden="true"></span>|
+
+  defp tool_status_icon(%{status: :error} = assigns),
+    do: ~H|<span class="pc-chat__tool-error" aria-hidden="true">!</span>|
+
+  defp tool_status_icon(assigns),
+    do: ~H|<span class="pc-chat__tool-check" aria-hidden="true">✓</span>|
 
   @doc """
   Renders markdown as sanitized, syntax-highlighted HTML (via MDEx). Use it for
@@ -214,7 +242,9 @@ defmodule PetalComponents.Chat do
     assigns = assign(assigns, :html, render_markdown(assigns.content))
 
     ~H"""
-    <div id={@id} phx-hook={@id && "PetalCodeCopy"} class={["pc-chat__markdown", @class]}>{Phoenix.HTML.raw(@html)}</div>
+    <div id={@id} phx-hook={@id && "PetalCodeCopy"} class={["pc-chat__markdown", @class]}>
+      {Phoenix.HTML.raw(@html)}
+    </div>
     """
   end
 
@@ -247,7 +277,11 @@ defmodule PetalComponents.Chat do
   @widget_fence ~r/```widget:([a-zA-Z0-9_-]+)\s*\n(.*?)\n```/s
 
   attr :content, :string, required: true
-  attr :render_widget, :any, default: nil, doc: "fn(name :: String.t(), args :: map) -> rendered | nil"
+
+  attr :render_widget, :any,
+    default: nil,
+    doc: "fn(name :: String.t(), args :: map) -> rendered | nil"
+
   attr :class, :any, default: nil
 
   def rich_text(assigns) do
@@ -255,7 +289,14 @@ defmodule PetalComponents.Chat do
 
     ~H"""
     <div class={["pc-chat__markdown", @class]}>
-      <%= for seg <- @segments do %><%= case seg do %><% {:html, html} -> %>{Phoenix.HTML.raw(html)}<% {:widget, name, args} -> %>{@render_widget && @render_widget.(name, args)}<% end %><% end %>
+      <%= for seg <- @segments do %>
+        <%= case seg do %>
+          <% {:html, html} -> %>
+            {Phoenix.HTML.raw(html)}
+          <% {:widget, name, args} -> %>
+            {@render_widget && @render_widget.(name, args)}
+        <% end %>
+      <% end %>
     </div>
     """
   end
@@ -303,7 +344,11 @@ defmodule PetalComponents.Chat do
   attr :value, :string, default: ""
   attr :placeholder, :string, default: "Send a message..."
   attr :loading, :boolean, default: false
-  attr :on_stop, :string, default: nil, doc: "event pushed when the stop button is clicked while loading"
+
+  attr :on_stop, :string,
+    default: nil,
+    doc: "event pushed when the stop button is clicked while loading"
+
   attr :submit_label, :string, default: "Send"
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
@@ -330,7 +375,9 @@ defmodule PetalComponents.Chat do
       >
         <span class="pc-chat__stop-icon" aria-hidden="true"></span>
       </button>
-      <button :if={@loading && !@on_stop} type="button" disabled class="pc-chat__composer-send">…</button>
+      <button :if={@loading && !@on_stop} type="button" disabled class="pc-chat__composer-send">
+        …
+      </button>
     </form>
     """
   end
