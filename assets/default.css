@@ -1666,11 +1666,6 @@
     @apply w-6! h-6! text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
 
-  .pc-accordion--ghost [x-cloak].pc-accordion-item__plus,
-  .pc-accordion--ghost [x-cloak].pc-accordion-item__minus {
-    display: none !important;
-  }
-
   .pc-accordion-item__heading--ghost {
     @apply text-base font-semibold leading-7;
   }
@@ -2546,11 +2541,6 @@
   /* If in tailwind config, darkMode: 'class', use this: */
   .dark ::-webkit-calendar-picker-indicator {
     filter: invert(1);
-  }
-
-  /* Needed for Alpine JS */
-  [x-cloak=""] {
-    display: none;
   }
 
   /*

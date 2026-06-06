@@ -404,16 +404,20 @@ defmodule PetalComponents.Field do
   end
 
   def field(%{type: "password", viewable: true} = assigns) do
-    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+    assigns =
+      assigns
+      |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
+      |> assign_new(:wrapper_id, fn -> "pc-pw-#{Ecto.UUID.generate()}" end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         {@label}
       </.field_label>
-      <div class="pc-password-field-wrapper" x-data="{ show: false }">
+      <div class="pc-password-field-wrapper" id={@wrapper_id} phx-hook="PetalPasswordToggle">
         <input
-          x-bind:type="show ? 'text' : 'password'"
+          type="password"
+          data-pc-password-input
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
@@ -421,11 +425,11 @@ defmodule PetalComponents.Field do
           required={@required}
           {@rest}
         />
-        <button type="button" class="pc-password-field-toggle-button" @click="show = !show">
-          <span x-show="!show" class="pc-password-field-toggle-icon-container">
+        <button type="button" class="pc-password-field-toggle-button" data-pc-password-toggle>
+          <span data-pc-icon-show class="pc-password-field-toggle-icon-container">
             <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
           </span>
-          <span x-show="show" class="pc-password-field-toggle-icon-container" style="display: none;">
+          <span data-pc-icon-hide class="pc-password-field-toggle-icon-container hidden">
             <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
           </span>
         </button>
@@ -437,7 +441,10 @@ defmodule PetalComponents.Field do
   end
 
   def field(%{type: type, copyable: true} = assigns) when type in ["text", "url", "email"] do
-    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+    assigns =
+      assigns
+      |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
+      |> assign_new(:wrapper_id, fn -> "pc-copy-#{Ecto.UUID.generate()}" end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -446,10 +453,10 @@ defmodule PetalComponents.Field do
         {@label}
       </.field_label>
       <!-- Copyable Field Wrapper -->
-      <div class="pc-copyable-field-wrapper" x-data="{ copied: false }">
+      <div class="pc-copyable-field-wrapper" id={@wrapper_id} phx-hook="PetalCopyInput">
         <!-- Input Field -->
         <input
-          x-ref="copyInput"
+          data-pc-copy-input
           type={@type || "text"}
           name={@name}
           id={@id}
@@ -459,20 +466,13 @@ defmodule PetalComponents.Field do
           {@rest}
         />
         <!-- Copy Button -->
-        <button
-          type="button"
-          class="pc-copyable-field-button"
-          @click="
-          navigator.clipboard.writeText($refs.copyInput.value)
-            .then(() => { copied = true; setTimeout(() => copied = false, 2000); })
-        "
-        >
+        <button type="button" class="pc-copyable-field-button" data-pc-copy-btn>
           <!-- Copy Icon -->
-          <span x-show="!copied" class="pc-copyable-field-icon-container">
+          <span data-pc-copy-default class="pc-copyable-field-icon-container">
             <.icon name={@copy_icon} class="pc-copyable-field-icon" />
           </span>
           <!-- Copied Icon -->
-          <span x-show="copied" class="pc-copyable-field-icon-container" style="display: none;">
+          <span data-pc-copy-done class="pc-copyable-field-icon-container hidden">
             <.icon name={@copied_icon} class="pc-copyable-field-icon" />
           </span>
         </button>
@@ -487,7 +487,10 @@ defmodule PetalComponents.Field do
 
   def field(%{type: type, clearable: true} = assigns)
       when type in ["text", "search", "url", "email", "tel"] do
-    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+    assigns =
+      assigns
+      |> assign(class: [assigns.class, get_class_for_type(assigns.type)])
+      |> assign_new(:wrapper_id, fn -> "pc-clear-#{Ecto.UUID.generate()}" end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -496,14 +499,10 @@ defmodule PetalComponents.Field do
         {@label}
       </.field_label>
       <!-- Clearable Field Wrapper -->
-      <div
-        class="pc-clearable-field-wrapper"
-        x-data="{ showClearButton: false }"
-        x-init="showClearButton = $refs.clearInput.value.length > 0"
-      >
+      <div class="pc-clearable-field-wrapper" id={@wrapper_id} phx-hook="PetalClearableInput">
         <!-- Input Field -->
         <input
-          x-ref="clearInput"
+          data-pc-clear-input
           type={@type || "text"}
           name={@name}
           id={@id}
@@ -511,19 +510,12 @@ defmodule PetalComponents.Field do
           class={[@class, "pc-clearable-field-input"]}
           required={@required}
           {@rest}
-          x-on:input="showClearButton = $event.target.value.length > 0"
         />
         <!-- Clear Button -->
         <button
           type="button"
-          class="pc-clearable-field-button"
-          x-show="showClearButton"
-          x-on:click="
-            $refs.clearInput.value = '';
-            showClearButton = false;
-            $refs.clearInput.dispatchEvent(new Event('input', { bubbles: true }));
-          "
-          style="display: none;"
+          class="pc-clearable-field-button hidden"
+          data-pc-clear-btn
           aria-label="Clear input"
         >
           <!-- Clear Icon -->

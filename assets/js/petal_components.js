@@ -161,4 +161,75 @@ export const PetalChatScroll = {
   },
 };
 
-export default { PetalChatStream, PetalChatComposer, PetalCopy, PetalCodeCopy, PetalChatScroll };
+// Password field: toggle the input between password/text and swap the eye icon.
+export const PetalPasswordToggle = {
+  mounted() {
+    const input = this.el.querySelector("[data-pc-password-input]");
+    const btn = this.el.querySelector("[data-pc-password-toggle]");
+    const eye = this.el.querySelector("[data-pc-icon-show]");
+    const eyeOff = this.el.querySelector("[data-pc-icon-hide]");
+    if (!input || !btn) return;
+
+    btn.addEventListener("click", () => {
+      input.type = input.type === "text" ? "password" : "text";
+      const revealed = input.type === "text";
+      if (eye) eye.classList.toggle("hidden", revealed);
+      if (eyeOff) eyeOff.classList.toggle("hidden", !revealed);
+    });
+  },
+};
+
+// Copyable field: copy the (readonly) input value, flip the icon for 2s.
+export const PetalCopyInput = {
+  mounted() {
+    const input = this.el.querySelector("[data-pc-copy-input]");
+    const btn = this.el.querySelector("[data-pc-copy-btn]");
+    const def = this.el.querySelector("[data-pc-copy-default]");
+    const done = this.el.querySelector("[data-pc-copy-done]");
+    if (!input || !btn) return;
+
+    btn.addEventListener("click", () => {
+      navigator.clipboard?.writeText(input.value);
+      if (def) def.classList.add("hidden");
+      if (done) done.classList.remove("hidden");
+      setTimeout(() => {
+        if (def) def.classList.remove("hidden");
+        if (done) done.classList.add("hidden");
+      }, 2000);
+    });
+  },
+};
+
+// Clearable field: show the clear button only when there's a value; clear resets
+// the input and dispatches an input event so LiveView/forms see the change.
+export const PetalClearableInput = {
+  mounted() {
+    this.input = this.el.querySelector("[data-pc-clear-input]");
+    this.btn = this.el.querySelector("[data-pc-clear-btn]");
+    if (!this.input || !this.btn) return;
+
+    this.sync = () => this.btn.classList.toggle("hidden", this.input.value.length === 0);
+    this.input.addEventListener("input", this.sync);
+    this.btn.addEventListener("click", () => {
+      this.input.value = "";
+      this.input.dispatchEvent(new Event("input", { bubbles: true }));
+      this.input.focus();
+      this.sync();
+    });
+    this.sync();
+  },
+  updated() {
+    if (this.sync) this.sync();
+  },
+};
+
+export default {
+  PetalChatStream,
+  PetalChatComposer,
+  PetalCopy,
+  PetalCodeCopy,
+  PetalChatScroll,
+  PetalPasswordToggle,
+  PetalCopyInput,
+  PetalClearableInput,
+};

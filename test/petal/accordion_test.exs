@@ -14,12 +14,12 @@ defmodule PetalComponents.AccordionTest do
       </.accordion>
       """)
 
-    assert html =~ "x-data"
-    assert html =~ "x-show"
+    refute html =~ "x-data"
+    refute html =~ "x-show"
+    assert html =~ "phx-click"
     assert has_icon?(html)
     assert html =~ "pc-accordion-item"
 
-    # Test js_lib option
     html =
       rendered_to_string(~H"""
       <.accordion variant="ghost">
@@ -30,19 +30,7 @@ defmodule PetalComponents.AccordionTest do
       """)
 
     assert html =~ "pc-accordion--ghost"
-
-    # Test js_lib option
-    html =
-      rendered_to_string(~H"""
-      <.accordion js_lib="live_view_js">
-        <:item heading="Accordion">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis. Ut enim ad minim veniam quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        </:item>
-      </.accordion>
-      """)
-
     refute html =~ "x-data"
-    assert html =~ "phx-click"
   end
 
   test "rest works" do
@@ -169,9 +157,13 @@ defmodule PetalComponents.AccordionTest do
       end
     end
 
-    # Additional assertions for the content panels
+    # The open panel (index 1) is shown
     assert html =~ ~s{id="acc-content-panel-test_accordion-1"}
-    assert Regex.match?(~r{id="acc-content-panel-test_accordion-1".*?x-show="active === 1"}s, html)
+
+    assert Regex.match?(
+             ~r{id="acc-content-panel-test_accordion-1"[^>]*style="display: block;"}s,
+             html
+           )
   end
 
   test "accordion with multiple mode" do
@@ -186,16 +178,12 @@ defmodule PetalComponents.AccordionTest do
       </.accordion>
       """)
 
-    # Multiple mode uses array-based state
-    assert html =~ ~s|x-data="{ active: [0] }"|
-
-    # x-show uses includes() for array check
-    assert html =~ ~s|x-show="active.includes(0)"|
-    assert html =~ ~s|x-show="active.includes(1)"|
-
-    # Click expression uses array toggle
-    assert html =~ "active.includes(0) ? active = active.filter"
-    assert html =~ "[...active, 0]"
+    # Multiple mode dispatches with multiple: true so the JS keeps sections independent
+    assert html =~ ~s{multiple&quot;:true}
+    # The open item (index 0) renders expanded
+    assert html =~ ~s{data-open="true"}
+    assert html =~ "phx-click"
+    refute html =~ "x-data"
   end
 
   test "accordion multiple mode without open_index" do
@@ -209,16 +197,18 @@ defmodule PetalComponents.AccordionTest do
       </.accordion>
       """)
 
-    # Empty array when no open_index
-    assert html =~ ~s|x-data="{ active: [] }"|
+    # Nothing open: both items render collapsed
+    assert html =~ ~s{data-open="false"}
+    refute html =~ ~s{data-open="true"}
+    refute html =~ "x-data"
   end
 
-  test "accordion live_view_js with phx-update ignore" do
+  test "accordion uses phx-update ignore" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.accordion js_lib="live_view_js">
+      <.accordion>
         <:item heading="A">Content A</:item>
       </.accordion>
       """)

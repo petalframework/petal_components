@@ -1,5 +1,5 @@
 defmodule PetalComponents.Menu do
-  use Phoenix.Component, global_prefixes: ~w(x-)
+  use Phoenix.Component
   import PetalComponents.Link
   import PetalComponents.Icon
   import PetalComponents.Helpers, only: [compose_js: 2]
@@ -129,12 +129,6 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom, required: true
   attr :title, :string, default: nil
 
-  attr(:js_lib, :string,
-    default: PetalComponents.default_js_lib(),
-    values: ["alpine_js", "live_view_js"],
-    doc: "javascript library used for toggling"
-  )
-
   attr :on_toggle, JS,
     default: %JS{},
     doc: "additional JS commands to run when a submenu is toggled (LiveView.JS only)"
@@ -150,7 +144,6 @@ defmodule PetalComponents.Menu do
       <div class="pc-vertical-menu">
         <.menu_group
           :for={menu_group <- @menu_items}
-          js_lib={@js_lib}
           title={menu_group[:title]}
           menu_items={menu_group.menu_items}
           current_page={@current_page}
@@ -159,7 +152,6 @@ defmodule PetalComponents.Menu do
       </div>
     <% else %>
       <.menu_group
-        js_lib={@js_lib}
         title={@title}
         menu_items={@menu_items}
         current_page={@current_page}
@@ -172,12 +164,6 @@ defmodule PetalComponents.Menu do
   attr :current_page, :atom
   attr :menu_items, :list
   attr :title, :string
-
-  attr(:js_lib, :string,
-    default: PetalComponents.default_js_lib(),
-    values: ["alpine_js", "live_view_js"],
-    doc: "javascript library used for toggling"
-  )
 
   attr :on_toggle, JS, default: %JS{}
 
@@ -192,7 +178,6 @@ defmodule PetalComponents.Menu do
         <div class="pc-vertical-menu__menu-group">
           <.vertical_menu_item
             :for={menu_item <- @menu_items}
-            js_lib={@js_lib}
             all_menu_items={@menu_items}
             current_page={@current_page}
             on_toggle={@on_toggle}
@@ -213,12 +198,6 @@ defmodule PetalComponents.Menu do
   attr :all_menu_items, :list, default: nil
   attr :patch_group, :atom, default: nil
   attr :link_type, :string, default: "live_redirect"
-
-  attr(:js_lib, :string,
-    default: PetalComponents.default_js_lib(),
-    values: ["alpine_js", "live_view_js"],
-    doc: "javascript library used for toggling"
-  )
 
   attr :on_toggle, JS, default: %JS{}
 
@@ -253,12 +232,12 @@ defmodule PetalComponents.Menu do
     <div
       phx-update="ignore"
       id={"dropdown_#{@label |> String.downcase() |> String.replace(" ", "_")}"}
-      {js_attributes("container", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
+      {js_attributes("container", %{name: @name, current_page: @current_page, menu_items: @menu_items})}
     >
       <button
         type="button"
         class={menu_item_classes(@current_page, @name)}
-        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id, on_toggle: @on_toggle})}
+        {js_attributes("button", %{submenu_id: @submenu_id, icon_id: @icon_id, on_toggle: @on_toggle})}
       >
         <.menu_icon icon={@icon} />
         <div class="pc-vertical-menu-item__toggle-label">
@@ -269,14 +248,14 @@ defmodule PetalComponents.Menu do
           <.icon
             name="hero-chevron-right"
             id={@icon_id}
-            {js_attributes("icon", @js_lib, %{class: "pc-vertical-menu-item__toggle-chevron__icon", name: @name, current_page: @current_page, menu_items: @menu_items})}
+            {js_attributes("icon", %{class: "pc-vertical-menu-item__toggle-chevron__icon", name: @name, current_page: @current_page, menu_items: @menu_items})}
           />
         </div>
       </button>
       <div
         id={@submenu_id}
         class="pc-vertical-menu-item__submenu-wrapper"
-        {js_attributes("submenu", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
+        {js_attributes("submenu", %{name: @name, current_page: @current_page, menu_items: @menu_items})}
       >
         <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
       </div>
@@ -345,46 +324,11 @@ defmodule PetalComponents.Menu do
 
   defp find_item(_, _), do: nil
 
-  defp js_attributes("container", "alpine_js", %{
-         name: name,
-         current_page: current_page,
-         menu_items: menu_items
-       }) do
-    %{
-      "x-data": "{ open: #{menu_item_active?(name, current_page, menu_items)}}"
-    }
-  end
-
-  defp js_attributes("button", "alpine_js", %{submenu_id: submenu_id} = _args) do
-    %{
-      "@click.prevent":
-        "open = !open; if(open) $nextTick(() => { let el = document.getElementById('#{submenu_id}'); if(el) { let a = el.querySelector('a'); if(a) a.focus(); } })"
-    }
-  end
-
-  defp js_attributes("icon", "alpine_js", %{class: class}) do
-    %{
-      class: class,
-      "x-bind:class": "{ 'rotate-90': open }"
-    }
-  end
-
-  defp js_attributes("submenu", "alpine_js", %{
-         name: name,
-         current_page: current_page,
-         menu_items: menu_items
-       }) do
-    %{
-      "x-show": "open",
-      "x-cloak": "#{!menu_item_active?(name, current_page, menu_items)}"
-    }
-  end
-
-  defp js_attributes("container", "live_view_js", _args) do
+  defp js_attributes("container", _args) do
     %{}
   end
 
-  defp js_attributes("button", "live_view_js", %{
+  defp js_attributes("button", %{
          submenu_id: submenu_id,
          icon_id: icon_id,
          on_toggle: on_toggle
@@ -412,7 +356,7 @@ defmodule PetalComponents.Menu do
     }
   end
 
-  defp js_attributes("icon", "live_view_js", %{
+  defp js_attributes("icon", %{
          class: class,
          name: name,
          current_page: current_page,
@@ -425,7 +369,7 @@ defmodule PetalComponents.Menu do
     }
   end
 
-  defp js_attributes("submenu", "live_view_js", %{
+  defp js_attributes("submenu", %{
          name: name,
          current_page: current_page,
          menu_items: menu_items

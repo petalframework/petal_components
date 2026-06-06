@@ -25,11 +25,6 @@ defmodule PetalComponents.Dropdown do
     default: nil,
     doc: "any extra CSS class for menu item wrapper container"
 
-  attr :js_lib, :string,
-    default: PetalComponents.default_js_lib(),
-    values: ["alpine_js", "live_view_js"],
-    doc: "javascript library used for toggling"
-
   attr :on_close, JS,
     default: %JS{},
     doc: "additional JS commands to run when the dropdown closes (LiveView.JS only)"
@@ -41,7 +36,7 @@ defmodule PetalComponents.Dropdown do
   slot :inner_block, required: false
 
   @doc """
-    <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
+    <.dropdown label="Dropdown">
       <.dropdown_menu_item link_type="button">
         <.icon name="hero-home" class="w-5 h-5 text-gray-500" />
         Button item with icon
@@ -60,7 +55,7 @@ defmodule PetalComponents.Dropdown do
     ~H"""
     <div
       {@rest}
-      {js_attributes("container", @js_lib, @options_container_id, @on_close)}
+      {js_attributes("container", @options_container_id, @on_close)}
       class={[@class, "pc-dropdown"]}
     >
       <div>
@@ -70,7 +65,7 @@ defmodule PetalComponents.Dropdown do
             trigger_button_classes(@label, @trigger_element),
             @trigger_class
           ]}
-          {js_attributes("button", @js_lib, @options_container_id)}
+          {js_attributes("button", @options_container_id)}
           aria-haspopup="true"
         >
           <span class="sr-only">Open options</span>
@@ -90,7 +85,7 @@ defmodule PetalComponents.Dropdown do
         </button>
       </div>
       <div
-        {js_attributes("options_container", @js_lib, @options_container_id)}
+        {js_attributes("options_container", @options_container_id)}
         class={[
           placement_class(@placement),
           @menu_items_wrapper_class,
@@ -145,38 +140,9 @@ defmodule PetalComponents.Dropdown do
   defp trigger_button_classes(_label, _trigger_element),
     do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
 
-  defp js_attributes(type, js_lib, options_container_id, on_close \\ %JS{})
+  defp js_attributes(type, options_container_id, on_close \\ %JS{})
 
-  defp js_attributes("container", "alpine_js", _options_container_id, _on_close) do
-    %{
-      "x-data": "{open: false}",
-      "@keydown.escape.stop": "open = false",
-      "@click.outside": "open = false"
-    }
-  end
-
-  defp js_attributes("button", "alpine_js", _options_container_id, _on_close) do
-    %{
-      "@click": "open = !open",
-      "x-bind:aria-expanded": "open.toString()"
-    }
-  end
-
-  defp js_attributes("options_container", "alpine_js", _options_container_id, _on_close) do
-    %{
-      "x-cloak": true,
-      "x-show": "open",
-      style: "display: none;",
-      "x-transition:enter": @transition_in_base,
-      "x-transition:enter-start": @transition_in_start,
-      "x-transition:enter-end": @transition_in_end,
-      "x-transition:leave": @transition_out_base,
-      "x-transition:leave-start": @transition_out_start,
-      "x-transition:leave-end": @transition_out_end
-    }
-  end
-
-  defp js_attributes("container", "live_view_js", options_container_id, on_close) do
+  defp js_attributes("container", options_container_id, on_close) do
     hide =
       compose_js(
         on_close,
@@ -193,7 +159,7 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  defp js_attributes("button", "live_view_js", options_container_id, _on_close) do
+  defp js_attributes("button", options_container_id, _on_close) do
     %{
       "phx-click":
         JS.toggle(
@@ -205,7 +171,7 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  defp js_attributes("options_container", "live_view_js", _options_container_id, _on_close) do
+  defp js_attributes("options_container", _options_container_id, _on_close) do
     %{
       style: "display: none;"
     }

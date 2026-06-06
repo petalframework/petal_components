@@ -75,22 +75,10 @@ defmodule PetalComponents.DropdownTest do
       %{assigns: default_assigns()}
     end
 
-    test "uses Alpine.js by default with x-data and x-show", %{assigns: assigns} do
+    test "uses LiveView.JS (no Alpine)", %{assigns: assigns} do
       html =
         rendered_to_string(~H"""
         <.dropdown label="Dropdown">
-          <.dropdown_menu_item label="Option" />
-        </.dropdown>
-        """)
-
-      assert_attribute(html, "x-data")
-      assert html =~ "x-show"
-    end
-
-    test "uses LiveView JS when js_lib is live_view_js", %{assigns: assigns} do
-      html =
-        rendered_to_string(~H"""
-        <.dropdown label="Dropdown" js_lib="live_view_js">
           <.dropdown_menu_item label="Option" />
         </.dropdown>
         """)
@@ -140,7 +128,8 @@ defmodule PetalComponents.DropdownTest do
     end
 
     test "renders all placement options" do
-      ~w(left right) |> Enum.each(fn placement ->
+      ~w(left right)
+      |> Enum.each(fn placement ->
         assigns = %{placement: placement}
 
         html =
@@ -357,8 +346,7 @@ defmodule PetalComponents.DropdownTest do
     test "handles empty dropdown with no items", %{assigns: assigns} do
       html =
         rendered_to_string(~H"""
-        <.dropdown label="Empty Dropdown">
-        </.dropdown>
+        <.dropdown label="Empty Dropdown"></.dropdown>
         """)
 
       assert html =~ "Empty Dropdown"
@@ -422,16 +410,6 @@ defmodule PetalComponents.DropdownTest do
   describe "dropdown/1 - negative cases" do
     setup do
       %{assigns: default_assigns()}
-    end
-
-    test "invalid js_lib raises error", %{assigns: assigns} do
-      assert_raise FunctionClauseError, fn ->
-        rendered_to_string(~H"""
-        <.dropdown label="Menu" js_lib="invalid">
-          <.dropdown_menu_item label="Item" />
-        </.dropdown>
-        """)
-      end
     end
 
     test "invalid placement raises error", %{assigns: assigns} do

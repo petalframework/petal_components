@@ -9,12 +9,6 @@ defmodule PetalComponents.Accordion do
   attr(:entries, :list, default: [%{}])
   attr(:variant, :string, default: "default", values: ["default", "ghost"])
 
-  attr(:js_lib, :string,
-    default: PetalComponents.default_js_lib(),
-    values: ["alpine_js", "live_view_js"],
-    doc: "JavaScript library used for toggling"
-  )
-
   attr(:open_index, :integer, default: nil, doc: "Index of item to be open at render")
 
   attr(:multiple, :boolean,
@@ -63,12 +57,12 @@ defmodule PetalComponents.Accordion do
         if(@variant == "ghost", do: "pc-accordion--ghost")
       ]}
       {@rest}
-      {js_attributes("container", @js_lib, @container_id, nil, nil, @open_index, @variant, @multiple)}
+      {js_attributes("container", @container_id, nil, nil, @open_index, @variant, @multiple)}
     >
       <%= for {current_item, i} <- Enum.with_index(@item) do %>
         <% is_open = i == @open_index %>
         <div
-          {js_attributes("item", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+          {js_attributes("item", @container_id, i, length(@item), is_open, @variant, @multiple)}
           data-i={i}
           data-open={if is_open, do: "true", else: "false"}
           class={if(@variant == "ghost", do: "pc-accordion-item--ghost")}
@@ -76,7 +70,7 @@ defmodule PetalComponents.Accordion do
           <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
-              {js_attributes("button", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple, @on_toggle)}
+              {js_attributes("button", @container_id, i, length(@item), is_open, @variant, @multiple, @on_toggle)}
               class={
                 if @variant == "ghost" do
                   "pc-accordion-item__button--ghost"
@@ -87,7 +81,7 @@ defmodule PetalComponents.Accordion do
                     unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
                     if(i == length(@item) - 1,
                       do:
-                        "pc-accordion-item--last #{if @js_lib == "live_view_js" and !is_open, do: "pc-accordion-item--last--closed"}"
+                        "pc-accordion-item--last #{if !is_open, do: "pc-accordion-item--last--closed"}"
                     )
                   ]
                 end
@@ -107,29 +101,27 @@ defmodule PetalComponents.Accordion do
                   <.icon
                     name="hero-plus-mini"
                     class="pc-accordion-item__plus"
-                    x-cloak={@js_lib == "alpine_js"}
-                    data-js-loading={@js_lib == "live_view_js"}
-                    {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+                    data-js-loading={true}
+                    {js_attributes("icon", @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                   <.icon
                     name="hero-minus-mini"
                     class="pc-accordion-item__minus"
-                    x-cloak={@js_lib == "alpine_js"}
-                    data-js-loading={@js_lib == "live_view_js"}
-                    {js_attributes("icon_minus", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+                    data-js-loading={true}
+                    {js_attributes("icon_minus", @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                 </span>
               <% else %>
                 <.icon
                   name="hero-chevron-down-solid"
                   class={["pc-accordion-item__chevron", if(is_open, do: "rotate-180")]}
-                  {js_attributes("icon", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+                  {js_attributes("icon", @container_id, i, length(@item), is_open, @variant, @multiple)}
                 />
               <% end %>
             </button>
           </h2>
           <div
-            {js_attributes("content_container", @js_lib, @container_id, i, length(@item), is_open, @variant, @multiple)}
+            {js_attributes("content_container", @container_id, i, length(@item), is_open, @variant, @multiple)}
             class="accordion-content-container"
           >
             <div class={
@@ -232,73 +224,15 @@ defmodule PetalComponents.Accordion do
     """
   end
 
-  defp js_attributes(type, js_lib, container_id, i, l, open, variant, multiple, on_toggle \\ %JS{}) do
-    case {type, js_lib} do
-      {"container", "alpine_js"} ->
-        init_value =
-          if multiple do
-            if open, do: "[#{open}]", else: "[]"
-          else
-            "#{open || "null"}"
-          end
-
-        %{"x-data": "{ active: #{init_value} }"}
-
-      {"item", "alpine_js"} ->
-        %{}
-
-      {"button", "alpine_js"} ->
-        click_expr = alpine_click_expr(i, multiple)
-        expanded_expr = alpine_expanded_expr(i, multiple)
-
-        base = %{
-          "x-on:click": click_expr,
-          ":aria-expanded": expanded_expr,
-          "aria-controls": content_panel_id(container_id, i)
-        }
-
-        if variant == "ghost" do
-          base
-        else
-          class_expr =
-            if i == l - 1 do
-              "#{expanded_expr} ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : 'pc-accordion-item--last--closed'"
-            else
-              "#{expanded_expr} ? 'pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes' : ''"
-            end
-
-          Map.put(base, ":class", class_expr)
-        end
-
-      {"content_container", "alpine_js"} ->
-        %{
-          id: content_panel_id(container_id, i),
-          role: "region",
-          "aria-labelledby": content_panel_header_id(container_id, i),
-          "x-show": alpine_expanded_expr(i, multiple),
-          "x-cloak": true,
-          style: if(open, do: "", else: "display: none;")
-        }
-
-      {"icon", "alpine_js"} ->
-        expanded = alpine_expanded_expr(i, multiple)
-
-        if variant == "ghost" do
-          %{"x-show": "!(#{expanded})"}
-        else
-          %{":class": "{ 'rotate-180': #{expanded} }"}
-        end
-
-      {"icon_minus", "alpine_js"} ->
-        %{"x-show": alpine_expanded_expr(i, multiple)}
-
-      {"container", "live_view_js"} ->
+  defp js_attributes(type, container_id, i, l, open, variant, multiple, on_toggle \\ %JS{}) do
+    case type do
+      "container" ->
         %{"phx-update": "ignore"}
 
-      {"item", "live_view_js"} ->
+      "item" ->
         %{}
 
-      {"button", "live_view_js"} ->
+      "button" ->
         detail =
           %{container_id: container_id, index: i, length: l}
           |> then(fn d -> if variant == "ghost", do: Map.put(d, :variant, "ghost"), else: d end)
@@ -319,7 +253,7 @@ defmodule PetalComponents.Accordion do
           "aria-expanded": "#{open}"
         }
 
-      {"content_container", "live_view_js"} ->
+      "content_container" ->
         %{
           id: content_panel_id(container_id, i),
           role: "region",
@@ -327,31 +261,20 @@ defmodule PetalComponents.Accordion do
           style: if(open, do: "display: block;", else: "display: none;")
         }
 
-      {"icon", "live_view_js"} ->
+      "icon" ->
         if variant == "ghost" do
           %{class: if(open, do: "hidden")}
         else
           %{class: if(open, do: "rotate-180")}
         end
 
-      {"icon_minus", "live_view_js"} ->
+      "icon_minus" ->
         %{class: if(open, do: "", else: "hidden")}
 
       _ ->
         %{}
     end
   end
-
-  defp alpine_click_expr(i, true = _multiple) do
-    "active.includes(#{i}) ? active = active.filter(x => x !== #{i}) : active = [...active, #{i}]"
-  end
-
-  defp alpine_click_expr(i, _multiple) do
-    "active = active === #{i} ? null : #{i}"
-  end
-
-  defp alpine_expanded_expr(i, true = _multiple), do: "active.includes(#{i})"
-  defp alpine_expanded_expr(i, _multiple), do: "active === #{i}"
 
   defp content_panel_header_id(container_id, idx) do
     "acc-header-#{container_id}-#{idx}"

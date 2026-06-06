@@ -785,10 +785,10 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "pc-copyable-field-button"
     assert html =~ "clipboard-document-solid"
     assert html =~ "pc-copyable-field-icon"
-    assert html =~ "x-data"
-    assert html =~ ~s|x-ref="copyInput"|
-    assert html =~ "@click"
-    assert html =~ "x-show"
+    assert html =~ ~s|phx-hook="PetalCopyInput"|
+    assert html =~ "data-pc-copy-input"
+    assert html =~ "data-pc-copy-btn"
+    refute html =~ "x-data"
   end
 
   test "field with viewable" do
@@ -810,10 +810,10 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "<label"
     assert html =~ "Viewable"
     assert html =~ "<input"
-    assert html =~ "x-bind:type"
-    assert html =~ "x-data"
-    assert html =~ "@click"
-    assert html =~ "x-show"
+    assert html =~ ~s|phx-hook="PetalPasswordToggle"|
+    assert html =~ "data-pc-password-input"
+    assert html =~ "data-pc-password-toggle"
+    refute html =~ "x-data"
     assert html =~ "pc-password-field-toggle-button"
     assert html =~ "hero-eye-solid"
     assert html =~ "pc-password-field-toggle-icon"
@@ -836,10 +836,10 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "pc-clearable-field-button"
     assert html =~ "hero-x-mark-solid"
     assert html =~ "pc-clearable-field-icon"
-    assert html =~ "x-data"
-    assert html =~ "x-on:input"
-    assert html =~ "x-on:click"
-    assert html =~ "x-show"
+    assert html =~ ~s|phx-hook="PetalClearableInput"|
+    assert html =~ "data-pc-clear-input"
+    assert html =~ "data-pc-clear-btn"
+    refute html =~ "x-data"
   end
 
   test "field_help_text" do
