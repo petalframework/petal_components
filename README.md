@@ -58,7 +58,7 @@ If you'd rather install yourself, in `mix.exs`:
 def deps do
   [
     {:petal_components, "~> 4.0"},
-    # optional — only needed for the chat markdown components (<.markdown>, <.rich_text>)
+    # optional — only needed for the chat markdown components (<Chat.markdown>, <Chat.rich_text>)
     {:mdex, "~> 0.12"}
   ]
 end

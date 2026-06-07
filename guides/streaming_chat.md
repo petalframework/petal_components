@@ -19,6 +19,17 @@ in your own OpenAI/Anthropic/Gemini client.
 
 - For rendered markdown replies, the optional `{:mdex, "~> 0.12"}` dependency.
 
+> #### Chat is opt-in {: .info}
+>
+> Unlike the core components, the `Chat` family is **not** pulled in by
+> `use PetalComponents` — it defines generic names like `markdown/1` that would
+> clash with your own helpers. Bring it in explicitly and call it namespaced:
+>
+> ```elixir
+> alias PetalComponents.Chat
+> # then <Chat.conversation>, <Chat.chat_message>, <Chat.markdown>, …
+> ```
+
 ## The shape
 
 The component family is composition-first:
@@ -37,6 +48,8 @@ so you push token deltas straight to it and LiveView never clobbers them.
 ```elixir
 defmodule MyAppWeb.ChatLive do
   use MyAppWeb, :live_view
+
+  alias PetalComponents.Chat
 
   @stream_id "answer"
 
@@ -103,17 +116,17 @@ defmodule MyAppWeb.ChatLive do
 
   def render(assigns) do
     ~H"""
-    <.conversation id="chat">
-      <.chat_message :for={msg <- @messages} role={msg.role}>
+    <Chat.conversation id="chat">
+      <Chat.chat_message :for={msg <- @messages} role={msg.role}>
         <span class="pc-chat__text">{msg.text}</span>
-      </.chat_message>
+      </Chat.chat_message>
 
-      <.chat_message :if={@streaming?} role="assistant">
-        <.streaming_text id={@stream_id} />
-      </.chat_message>
+      <Chat.chat_message :if={@streaming?} role="assistant">
+        <Chat.streaming_text id={@stream_id} />
+      </Chat.chat_message>
 
       <:footer>
-        <.prompt_input
+        <Chat.prompt_input
           phx-submit="send"
           phx-change="draft"
           value={@draft}
@@ -121,7 +134,7 @@ defmodule MyAppWeb.ChatLive do
           on_stop="stop"
         />
       </:footer>
-    </.conversation>
+    </Chat.conversation>
     """
   end
 end
@@ -137,10 +150,10 @@ Assistant replies are usually markdown. Render the **committed** message with
 `markdown/1` (sanitized + syntax-highlighted via MDEx):
 
 ```heex
-<.chat_message :for={msg <- @messages} role={msg.role}>
-  <.markdown :if={msg.role == "assistant"} content={msg.text} />
+<Chat.chat_message :for={msg <- @messages} role={msg.role}>
+  <Chat.markdown :if={msg.role == "assistant"} content={msg.text} />
   <span :if={msg.role != "assistant"} class="pc-chat__text">{msg.text}</span>
-</.chat_message>
+</Chat.chat_message>
 ```
 
 ### Streaming markdown live
@@ -151,7 +164,7 @@ text. `PetalComponents.Chat.to_html/1` uses the same engine as `markdown/1`:
 
 ```elixir
 # in render
-<.streaming_text id={@stream_id} format="markdown" />
+<Chat.streaming_text id={@stream_id} format="markdown" />
 
 # accumulate tokens, then render the buffer on a throttle (~100ms)
 def handle_info({:llm_delta, text}, %{assigns: %{streaming?: true}} = socket) do
@@ -194,9 +207,9 @@ When your model supports function calling, render the result as a real Phoenix
 component inside a `tool_call/1` card — the model emits *data*, you map it to UI:
 
 ```heex
-<.tool_call name="get_weather" status={:complete}>
+<Chat.tool_call name="get_weather" status={:complete}>
   <.weather_card city={@city} temp={@temp} />
-</.tool_call>
+</Chat.tool_call>
 ```
 
 Because the widget is a LiveView component, it can have its own `phx-click`,

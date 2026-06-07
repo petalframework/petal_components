@@ -1,4 +1,21 @@
 defmodule PetalComponents do
+  @moduledoc """
+  Importing `use PetalComponents` brings the core component set into scope as
+  unqualified function components (`<.button>`, `<.modal>`, `<.table>`, …).
+
+  The `PetalComponents.Chat` family (`conversation`, `chat_message`, `markdown`,
+  `tool_call`, …) is intentionally **not** part of this import. It defines
+  generically-named functions like `markdown/1` that would clash with an app's
+  own helpers, so you opt into it explicitly and call it namespaced:
+
+      alias PetalComponents.Chat
+
+      <Chat.conversation id="chat">
+        <Chat.chat_message role="assistant"><Chat.markdown content={@text} /></Chat.chat_message>
+      </Chat.conversation>
+
+  See the [streaming chat guide](streaming_chat.html) for the full setup.
+  """
   defmacro __using__(_) do
     quote do
       import PetalComponents.{
@@ -10,7 +27,6 @@ defmodule PetalComponents do
         Button,
         ButtonGroup,
         Card,
-        Chat,
         Container,
         Dropdown,
         Field,

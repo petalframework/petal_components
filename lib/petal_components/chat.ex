@@ -11,6 +11,20 @@ defmodule PetalComponents.Chat do
     * `streaming_text/1` — token-by-token output via the `PetalChatStream` JS hook
     * `prompt_input/1`   — the composer (textarea + send)
 
+  ## Importing
+
+  Unlike the core components, `Chat` is **not** brought in by `use PetalComponents`
+  — it defines generic names (`markdown/1`, `reasoning/1`, …) that would clash with
+  your app's own helpers. Alias it and call it namespaced:
+
+      alias PetalComponents.Chat
+
+      <Chat.conversation id="chat">
+        <Chat.chat_message role="assistant"><Chat.markdown content={@text} /></Chat.chat_message>
+      </Chat.conversation>
+
+  The examples below use that `Chat.` prefix.
+
   ## Streaming
 
   `streaming_text/1` is driven by the bundled `PetalChatStream` JS hook. The
@@ -19,7 +33,7 @@ defmodule PetalComponents.Chat do
       # per Gemini/OpenAI delta:
       socket = push_event(socket, "pc-chat-token", %{id: "answer", text: delta})
 
-      <.streaming_text id="answer" />
+      <Chat.streaming_text id="answer" />
 
   Register the hooks once in your LiveSocket:
 
@@ -39,12 +53,12 @@ defmodule PetalComponents.Chat do
   A scrollable conversation thread. Composition-first: drop `chat_message/1`,
   `streaming_text/1`, or your own markup inside.
 
-      <.conversation>
-        <.chat_message :for={msg <- @messages} role={msg.role}>{msg.text}</.chat_message>
+      <Chat.conversation>
+        <Chat.chat_message :for={msg <- @messages} role={msg.role}>{msg.text}</Chat.chat_message>
         <:footer>
-          <.prompt_input phx-submit="send" loading={@streaming?} />
+          <Chat.prompt_input phx-submit="send" loading={@streaming?} />
         </:footer>
-      </.conversation>
+      </Chat.conversation>
   """
   attr :id, :string, doc: "defaults to a generated id so multiple threads can coexist"
   attr :class, :any, default: nil
@@ -113,7 +127,7 @@ defmodule PetalComponents.Chat do
 
       socket = push_event(socket, "pc-chat-token", %{id: "answer", text: delta})
 
-      <.streaming_text id="answer" />
+      <Chat.streaming_text id="answer" />
 
   Until the first token lands it shows a typing indicator; on the first token it
   swaps to live text with a blinking caret. The element owns its own DOM
@@ -182,9 +196,9 @@ defmodule PetalComponents.Chat do
   registered Phoenix components, and render it inside this card. The widget is a
   real LiveView component — it can have its own `phx-click`, forms, streams.
 
-      <.tool_call name="get_weather" status={:complete}>
+      <Chat.tool_call name="get_weather" status={:complete}>
         <.weather_card city={@args["city"]} temp={@result.temp} />
-      </.tool_call>
+      </Chat.tool_call>
 
   `status` drives the header affordance: `:running` shows a spinner, `:complete`
   a check, `:error` a warning.
@@ -223,7 +237,7 @@ defmodule PetalComponents.Chat do
   committed assistant messages so headings, lists, tables and code blocks render
   properly:
 
-      <.chat_message role="assistant"><.markdown content={msg.text} /></.chat_message>
+      <Chat.chat_message role="assistant"><Chat.markdown content={msg.text} /></Chat.chat_message>
 
   Output is sanitized server-side — model text is never rendered as live markup.
 
@@ -258,7 +272,7 @@ defmodule PetalComponents.Chat do
   markdown (normal code fences like ` ```elixir ` are untouched). You supply a
   `render_widget` function that maps a name + args to a rendered component:
 
-      <.rich_text
+      <Chat.rich_text
         content={@text}
         render_widget={fn
           "weather", args -> ~H"<.weather_card city={args["city"]} .../>"
@@ -335,7 +349,7 @@ defmodule PetalComponents.Chat do
   The composer. Wraps a form; pass `phx-submit` (and optionally `phx-change`)
   through the global attrs.
 
-      <.prompt_input phx-submit="send" phx-change="draft" value={@draft} loading={@streaming?} on_stop="stop" />
+      <Chat.prompt_input phx-submit="send" phx-change="draft" value={@draft} loading={@streaming?} on_stop="stop" />
 
   While `loading`, the input stays editable (so you can draft your next message)
   and the send button becomes a stop button that pushes `on_stop` — wire it to
@@ -393,8 +407,8 @@ defmodule PetalComponents.Chat do
   A collapsible "thinking" / reasoning block for reasoning-model output. Native
   `<details>`, so no JS.
 
-      <.reasoning>Chain of thought here...</.reasoning>
-      <.reasoning label="Thought for 3s" open>...</.reasoning>
+      <Chat.reasoning>Chain of thought here...</Chat.reasoning>
+      <Chat.reasoning label="Thought for 3s" open>...</Chat.reasoning>
   """
   attr :label, :string, default: "Reasoning"
   attr :open, :boolean, default: false
@@ -415,10 +429,10 @@ defmodule PetalComponents.Chat do
   `copy_button/1` and your own `phx-click` buttons using the `pc-chat__action`
   class.
 
-      <.message_actions>
-        <.copy_button id={"copy-\#{@id}"} text={@text} />
+      <Chat.message_actions>
+        <Chat.copy_button id={"copy-\#{@id}"} text={@text} />
         <button class="pc-chat__action" phx-click="regenerate">Regenerate</button>
-      </.message_actions>
+      </Chat.message_actions>
   """
   attr :class, :any, default: nil
   slot :inner_block, required: true
@@ -457,7 +471,7 @@ defmodule PetalComponents.Chat do
   Clickable prompt-starter chips for an empty state. Each pushes `on_select`
   with `phx-value-prompt` set to the suggestion.
 
-      <.suggestions items={["Summarise this", "Write tests"]} on_select="suggest" />
+      <Chat.suggestions items={["Summarise this", "Write tests"]} on_select="suggest" />
   """
   attr :items, :list, required: true
   attr :on_select, :string, default: "suggestion", doc: "event pushed with phx-value-prompt"
@@ -482,7 +496,7 @@ defmodule PetalComponents.Chat do
   @doc """
   An error notice with an optional retry button.
 
-      <.chat_error on_retry="retry">Something went wrong.</.chat_error>
+      <Chat.chat_error on_retry="retry">Something went wrong.</Chat.chat_error>
   """
   attr :on_retry, :string, default: nil
   attr :retry_label, :string, default: "Retry"

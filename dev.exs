@@ -65,6 +65,7 @@ defmodule Dev.PlaygroundLive do
     global_prefixes: ~w(x-)
 
   use PetalComponents
+  alias PetalComponents.Chat
   alias Phoenix.LiveView.JS
 
   @avatar_src "https://avatars.githubusercontent.com/u/82628117?v=4"
@@ -1033,19 +1034,19 @@ defmodule Dev.PlaygroundLive do
             <code>PetalChatStream</code>
             hook (not interactive in this static playground).
           </.p>
-          <.conversation id="dev-chat" class="max-w-xl">
-            <.chat_message role="assistant">
+          <Chat.conversation id="dev-chat" class="max-w-xl">
+            <Chat.chat_message role="assistant">
               <:avatar>
                 <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white">
                   ✦
                 </div>
               </:avatar>
-              <.markdown content="Hi! I support **bold**, `inline code`, and [links](https://petal.build)." />
-            </.chat_message>
-            <.chat_message role="user">
+              <Chat.markdown content="Hi! I support **bold**, `inline code`, and [links](https://petal.build)." />
+            </Chat.chat_message>
+            <Chat.chat_message role="user">
               <span class="pc-chat__text">What's the weather in Tokyo?</span>
-            </.chat_message>
-            <.tool_call name="get_weather" status={:complete}>
+            </Chat.chat_message>
+            <Chat.tool_call name="get_weather" status={:complete}>
               <div class="flex items-center justify-between rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-3 text-white">
                 <div>
                   <div class="text-sm font-medium opacity-90">Tokyo</div>
@@ -1053,39 +1054,39 @@ defmodule Dev.PlaygroundLive do
                 </div>
                 <div class="text-4xl">☀️</div>
               </div>
-            </.tool_call>
-            <.chat_message role="assistant">
+            </Chat.tool_call>
+            <Chat.chat_message role="assistant">
               <:avatar>
                 <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white">
                   ✦
                 </div>
               </:avatar>
-              <.streaming_text id="dev-stream" />
-            </.chat_message>
+              <Chat.streaming_text id="dev-stream" />
+            </Chat.chat_message>
             <:footer>
-              <.prompt_input phx-submit="noop" placeholder="Send a message..." />
+              <Chat.prompt_input phx-submit="noop" placeholder="Send a message..." />
             </:footer>
-          </.conversation>
+          </Chat.conversation>
         </section>
 
         <section>
           <.h3 class="mb-4">Reasoning</.h3>
-          <.reasoning label="Thought for 2s">
+          <Chat.reasoning label="Thought for 2s">
             First I considered the user's location, then looked up the current conditions.
-          </.reasoning>
+          </Chat.reasoning>
         </section>
 
         <section>
           <.h3 class="mb-4">Message actions</.h3>
-          <.message_actions>
-            <.copy_button id="dev-copy" text="Copied text" />
+          <Chat.message_actions>
+            <Chat.copy_button id="dev-copy" text="Copied text" />
             <button type="button" class="pc-chat__action" phx-click="noop">Regenerate</button>
-          </.message_actions>
+          </Chat.message_actions>
         </section>
 
         <section>
           <.h3 class="mb-4">Suggestions</.h3>
-          <.suggestions
+          <Chat.suggestions
             items={["What is Phoenix LiveView?", "Show me a markdown demo", "Write a haiku"]}
             on_select="noop"
           />
@@ -1093,7 +1094,7 @@ defmodule Dev.PlaygroundLive do
 
         <section>
           <.h3 class="mb-4">Error</.h3>
-          <.chat_error on_retry="noop">Something went wrong generating a response.</.chat_error>
+          <Chat.chat_error on_retry="noop">Something went wrong generating a response.</Chat.chat_error>
         </section>
       </div>
     </.container>

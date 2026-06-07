@@ -16,7 +16,7 @@ Open `mix.exs`. In the `deps/0` function, add this line if it's not already ther
 {:petal_components, "~> 4.0"}
 ```
 
-If the user wants the chat markdown components (`<.markdown>`, `<.rich_text>`), also add the optional `{:mdex, "~> 0.12"}`. The rest of the library needs no extra deps.
+If the user wants the chat components (`PetalComponents.Chat` — `<Chat.conversation>`, `<Chat.markdown>`, `<Chat.rich_text>`, …), also add the optional `{:mdex, "~> 0.12"}`. The rest of the library needs no extra deps. Note the `Chat` family is not pulled in by `use PetalComponents` — `alias PetalComponents.Chat` and call it namespaced.
 
 ### 2. Fetch dependencies
 
