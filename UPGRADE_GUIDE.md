@@ -6,7 +6,7 @@ Petal Components v4 **removes Alpine.js**. Every component is now Phoenix.LiveVi
 
 ### 1. Register the bundled JS hooks
 
-Petal Components now ships JS hooks (for password toggles, copyable/clearable inputs, and the Chat components). Import and register them in your `assets/js/app.js`:
+Petal Components now ships JS (for password toggles, copyable/clearable inputs, the accordion, and the Chat components). Import and register it in your `assets/js/app.js`:
 
 ```diff
 + import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
@@ -18,7 +18,7 @@ Petal Components now ships JS hooks (for password toggles, copyable/clearable in
   })
 ```
 
-If you don't register them, the password-visibility toggle, copyable/clearable inputs, and the Chat family won't be interactive. The overlay components (dropdown, accordion, menu, modal, slide over) use Phoenix.LiveView.JS commands and need no hook.
+If you don't register it, the password-visibility toggle, copyable/clearable inputs, the accordion, and the Chat family won't be interactive. The other overlay components (dropdown, menu, modal, slide over) use Phoenix.LiveView.JS commands and need nothing extra.
 
 ### 2. Remove Alpine.js (if you only had it for Petal Components)
 

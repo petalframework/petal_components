@@ -223,6 +223,100 @@ export const PetalClearableInput = {
   },
 };
 
+// Accordion toggling.
+//
+// This lives in the bundle (registered once with your app.js) rather than in a
+// per-instance inline <script>, because LiveView does NOT execute inline scripts
+// injected via live navigation — so an accordion reached by a `navigate` link
+// would be dead. One global listener handles every accordion on the page; it
+// resolves the target container from the dispatched event's detail and bails if
+// the container is gone (which prevented a stale-node `classList` error).
+if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
+  window.__petalComponentsAccordionInit = true;
+
+  window.addEventListener("click_accordion", (e) => {
+    if (!e.detail) return;
+
+    const i = e.detail.index;
+    const l = e.detail.length;
+    const isMultiple = !!e.detail.multiple;
+    const clickedAccordionItem = e.target;
+    const container =
+      document.getElementById(e.detail.container_id) ||
+      (clickedAccordionItem.closest("[data-i]") || {}).parentElement;
+
+    if (!container) return;
+
+    const currentlyOpenAccordionItem = container.querySelector("[data-open='true']");
+    const isClosingClickedAccordionItem = clickedAccordionItem.dataset.open === "true";
+    const isLastAccordionItem = i == l - 1;
+    const isGhostVariant = container.classList.contains("pc-accordion--ghost");
+
+    function setContentDisplay(item, value) {
+      const content = item.querySelector(".accordion-content-container");
+      if (content) content.style.display = value;
+    }
+
+    function closeItem(item) {
+      item.dataset.open = "false";
+      if (isGhostVariant) {
+        const plusIcon = item.querySelector(".pc-accordion-item__plus");
+        const minusIcon = item.querySelector(".pc-accordion-item__minus");
+        if (plusIcon && minusIcon) {
+          plusIcon.classList.remove("hidden");
+          minusIcon.classList.add("hidden");
+        }
+      } else {
+        const chevron = item.querySelector("span.hero-chevron-down-solid");
+        if (chevron) chevron.classList.remove("rotate-180");
+        const btn = item.querySelector(".accordion-button");
+        if (btn) btn.classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+        if (isLastAccordionItem && item === clickedAccordionItem) {
+          const btn2 = item.querySelector(".accordion-button");
+          if (btn2) btn2.classList.add("pc-accordion-item--last--closed");
+        }
+      }
+      setContentDisplay(item, "none");
+    }
+
+    function openItem(item) {
+      item.dataset.open = "true";
+      if (isGhostVariant) {
+        const plusIcon = item.querySelector(".pc-accordion-item__plus");
+        const minusIcon = item.querySelector(".pc-accordion-item__minus");
+        if (plusIcon && minusIcon) {
+          plusIcon.classList.add("hidden");
+          minusIcon.classList.remove("hidden");
+        }
+      } else {
+        const chevron = item.querySelector("span.hero-chevron-down-solid");
+        if (chevron) chevron.classList.add("rotate-180");
+        const btn = item.querySelector(".accordion-button");
+        if (btn) btn.classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+        if (isLastAccordionItem) {
+          const btn2 = item.querySelector(".accordion-button");
+          if (btn2) btn2.classList.remove("pc-accordion-item--last--closed");
+        }
+      }
+      setContentDisplay(item, "block");
+    }
+
+    // In single mode, close the currently open item (if different from clicked)
+    if (!isMultiple && currentlyOpenAccordionItem && currentlyOpenAccordionItem !== clickedAccordionItem) {
+      closeItem(currentlyOpenAccordionItem);
+    }
+
+    if (isClosingClickedAccordionItem) {
+      closeItem(clickedAccordionItem);
+    } else {
+      if (!isMultiple && currentlyOpenAccordionItem === clickedAccordionItem) {
+        closeItem(clickedAccordionItem);
+      }
+      openItem(clickedAccordionItem);
+    }
+  });
+}
+
 export default {
   PetalChatStream,
   PetalChatComposer,

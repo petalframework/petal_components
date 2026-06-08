@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.4 - 2026-06-08 14:03:58
+
+#### Fixed
+
+- **Accordion now works after LiveView live navigation.** The accordion's toggle behaviour lived in a per-instance inline `<script>`. LiveView does not execute inline scripts injected via live navigation, so an accordion reached through a `navigate` link was dead (clicks did nothing), and stale listeners from earlier full page loads could throw `Cannot read properties of null`. The behaviour now lives in the shipped JS bundle (`assets/js/petal_components.js`), registered once and surviving navigation. **You must import that bundle** (the same `import PetalComponents ...` step already needed for the input and Chat components) for the accordion to be interactive. Added a regression test asserting the component emits no inline `<script>`.
+
 ### 4.0.3 - 2026-06-08 13:12:01
 
 #### Fixed

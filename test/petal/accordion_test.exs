@@ -16,6 +16,9 @@ defmodule PetalComponents.AccordionTest do
 
     refute html =~ "x-data"
     refute html =~ "x-show"
+    # Behaviour lives in the bundled JS, not an inline <script> (which LiveView
+    # does not execute on live navigation - that left accordions dead).
+    refute html =~ "<script"
     assert html =~ "phx-click"
     assert has_icon?(html)
     assert html =~ "pc-accordion-item"
