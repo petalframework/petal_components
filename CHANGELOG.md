@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.1 - 2026-06-08 12:07:39
+
+#### Fixed
+
+- **MDEx is now genuinely optional again.** v4.0.0 referenced `MDEx.Document.default_sanitize_options/0` in a module attribute, which is evaluated at compile time — so `petal_components` failed to compile unless the consumer also added `:mdex`, defeating the optional dependency. The markdown options are now built at call time, behind the existing runtime guard, so apps that don't use the Chat markdown components compile without `:mdex`.
+
 ### 4.0.0 - 2026-06-08 11:58:49
 
 Petal Components v4 drops Alpine.js, adds an AI chat component family, and makes markdown rendering an optional dependency. See the [Upgrade Guide](UPGRADE_GUIDE.md) for migration steps.

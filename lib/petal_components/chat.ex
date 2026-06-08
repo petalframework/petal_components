@@ -339,11 +339,16 @@ defmodule PetalComponents.Chat do
     end)
   end
 
-  @markdown_opts [
-    extension: [strikethrough: true, table: true, autolink: true, tasklist: true],
-    syntax_highlight: [formatter: :html_inline],
-    sanitize: MDEx.Document.default_sanitize_options()
-  ]
+  # Built at runtime (not as a module attribute) so MDEx stays a truly optional
+  # dependency — referencing MDEx.Document here at compile time would force every
+  # consumer to pull in :mdex just to compile, even if they never call markdown/1.
+  defp markdown_opts do
+    [
+      extension: [strikethrough: true, table: true, autolink: true, tasklist: true],
+      syntax_highlight: [formatter: :html_inline],
+      sanitize: MDEx.Document.default_sanitize_options()
+    ]
+  end
 
   @doc """
   The composer. Wraps a form; pass `phx-submit` (and optionally `phx-change`)
@@ -519,7 +524,7 @@ defmodule PetalComponents.Chat do
   defp render_markdown(content) do
     ensure_mdex!()
 
-    case MDEx.to_html(content, @markdown_opts) do
+    case MDEx.to_html(content, markdown_opts()) do
       {:ok, html} -> external_links(html)
       {:error, _} -> content |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
     end
