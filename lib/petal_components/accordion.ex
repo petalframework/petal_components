@@ -101,13 +101,11 @@ defmodule PetalComponents.Accordion do
                   <.icon
                     name="hero-plus-mini"
                     class="pc-accordion-item__plus"
-                    data-js-loading={true}
                     {js_attributes("icon", @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                   <.icon
                     name="hero-minus-mini"
                     class="pc-accordion-item__minus"
-                    data-js-loading={true}
                     {js_attributes("icon_minus", @container_id, i, length(@item), is_open, @variant, @multiple)}
                   />
                 </span>
@@ -144,12 +142,7 @@ defmodule PetalComponents.Accordion do
     </div>
 
     <script>
-      window.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll('[data-js-loading]').forEach(el => {
-      el.removeAttribute('data-js-loading');
-      });
-      });
-        window.addEventListener("click_accordion", e => {
+      window.addEventListener("click_accordion", e => {
         let i = e.detail.index;
         let l = e.detail.length;
         let isMultiple = !!e.detail.multiple;

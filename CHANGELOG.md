@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.2 - 2026-06-08 12:58:42
+
+#### Fixed
+
+- **Ghost accordion +/- icons no longer disappear on LiveView pages.** The ghost variant hid both icons behind a `data-js-loading` attribute removed once on `DOMContentLoaded`. On a LiveView page the connected render re-applied the attribute after that one-shot removal, so the +/- icons stayed hidden. The server already renders the correct icon (plus when closed, minus when open), so the hide-until-JS gate was both redundant and the cause of the bug. Removed it; icons now render correctly with or without JS.
+
 ### 4.0.1 - 2026-06-08 12:07:39
 
 #### Fixed

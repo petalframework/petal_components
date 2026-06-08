@@ -1678,12 +1678,6 @@
     @apply pr-12 my-2;
   }
 
-  /* Hide icons by default for LiveView */
-  .pc-accordion-item__plus[data-js-loading],
-  .pc-accordion-item__minus[data-js-loading] {
-    display: none;
-  }
-
   /* Marquee Container */
   .pc-marquee-container {
     @apply relative flex p-2 overflow-hidden;
