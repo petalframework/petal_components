@@ -26,3 +26,29 @@ jobs:
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
           ./codecov
+
+  # :mdex is an OPTIONAL dependency (only needed for the Chat markdown
+  # components). The library must compile without it. v4.0.0 shipped a
+  # regression where a module attribute called MDEx.Document at compile time,
+  # forcing every consumer to add :mdex just to compile. This job removes mdex
+  # and compiles, so that class of bug fails CI instead of a release.
+  #
+  # NOTE: no --warnings-as-errors here — with mdex absent the runtime MDEx.*
+  # calls correctly emit "undefined" warnings; only a *compile-time* reference
+  # turns into a hard compile error, which is exactly what we want to catch.
+  compile-without-optional-deps:
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          version-type: strict
+          version-file: .tool-versions
+      - name: Install deps
+        run: mix deps.get
+      - name: Remove the optional :mdex dependency
+        run: mix deps.clean mdex --build
+      - name: Compile without :mdex (must succeed)
+        run: mix compile --force
