@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.3 - 2026-06-08 13:12:01
+
+#### Fixed
+
+- **Ghost accordion now shows exactly one icon per item.** Completes the 4.0.2 fix. The conditional `hidden` class for the +/- icons was passed via an attribute spread that conflicted with the icons' explicit `class` and was silently dropped, so the server never hid the inactive icon - 4.0.1 masked this by hiding both behind `data-js-loading`, and 4.0.2 (which removed that gate) showed both. The `hidden` class is now part of the icon's own class list (the same pattern the chevron variant already used), so each item renders the correct single icon server-side, with or without JS. Added a regression test.
+
 ### 4.0.2 - 2026-06-08 12:58:42
 
 #### Fixed

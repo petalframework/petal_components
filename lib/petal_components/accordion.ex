@@ -100,13 +100,11 @@ defmodule PetalComponents.Accordion do
                 <span class="pc-accordion-item__icon-container--ghost">
                   <.icon
                     name="hero-plus-mini"
-                    class="pc-accordion-item__plus"
-                    {js_attributes("icon", @container_id, i, length(@item), is_open, @variant, @multiple)}
+                    class={["pc-accordion-item__plus", if(is_open, do: "hidden")]}
                   />
                   <.icon
                     name="hero-minus-mini"
-                    class="pc-accordion-item__minus"
-                    {js_attributes("icon_minus", @container_id, i, length(@item), is_open, @variant, @multiple)}
+                    class={["pc-accordion-item__minus", if(is_open, do: nil, else: "hidden")]}
                   />
                 </span>
               <% else %>
