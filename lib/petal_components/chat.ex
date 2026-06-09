@@ -529,8 +529,8 @@ defmodule PetalComponents.Chat do
         external_links(html)
 
       :lumis_not_enabled ->
-        # Lumis NIF unavailable — fall back to class-based highlighting (no inline styles)
-        fallback = Keyword.put(markdown_opts(), :syntax_highlight, [formatter: :html_class])
+        # Lumis NIF unavailable — render without syntax highlighting
+        fallback = Keyword.delete(markdown_opts(), :syntax_highlight)
 
         case MDEx.to_html(content, fallback) do
           {:ok, html} -> external_links(html)

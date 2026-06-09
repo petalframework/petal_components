@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.7 - 2026-06-09
+
+#### Fixed
+
+- **Chat markdown Lumis fallback no longer raises `NimbleOptions.ValidationError`.** The 4.0.6 fallback used `formatter: :html_class`, which is not a valid Lumis formatter option (only `:html_inline` exists). The fallback now removes `syntax_highlight` entirely so MDEx renders code blocks without colours rather than crashing.
+
 ### 4.0.6 - 2026-06-09
 
 #### Fixed
