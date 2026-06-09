@@ -2597,7 +2597,7 @@
     color: var(--pc-chat-assistant-fg);
   }
   .pc-chat__stream {
-    @apply block;
+    @apply block text-left;
   }
   .pc-chat__stream-text {
     @apply inline whitespace-pre-wrap;
@@ -2612,7 +2612,7 @@
     @apply hidden;
   }
   .pc-chat__typing {
-    @apply flex items-center gap-0.5;
+    @apply inline-flex items-center gap-0.5 align-middle;
   }
   .pc-chat__typing > span {
     @apply inline-block h-1 w-1 rounded-full;

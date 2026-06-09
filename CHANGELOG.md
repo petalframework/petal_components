@@ -1,9 +1,15 @@
 # Changelog
+### 4.0.9 - 2026-06-09
+
+#### Fixed
+
+- **Streaming chat typing dots now align left inside the bubble.** `pc-chat__stream` now resets `text-align: left`, preventing any inherited right-alignment from pushing the `inline-flex` typing indicator to the right edge of the bubble. The 4.0.8 approach (changing `pc-chat__typing` to `display: flex`) caused the dot spans to stretch, so the typing indicator is back to `inline-flex` with the fix applied at the stream level instead.
+
 ### 4.0.8 - 2026-06-09
 
 #### Fixed
 
-- **Streaming chat typing dots now align left inside the bubble.** `pc-chat__typing` was `display: inline-flex`, which participates in the inline formatting context and is pushed to the right edge by inherited `text-align: right` or similar parent styles. Changed to `display: flex` (block-level), so the typing indicator establishes its own block context and dots always render at the left.
+- **Streaming chat typing dots now align left inside the bubble.** `pc-chat__typing` changed from `inline-flex` to `flex` to prevent inherited `text-align` from pushing dots right. (Superseded by 4.0.9 which reverts this and fixes at the stream level instead.)
 
 ### 4.0.7 - 2026-06-09
 
