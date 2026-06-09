@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.6 - 2026-06-09
+
+#### Fixed
+
+- **Chat markdown no longer crashes when Lumis NIF is unavailable.** `MDEx.to_html/2` returns `:lumis_not_enabled` when the Lumis NIF (required for `formatter: :html_inline` syntax highlighting) is not loaded. The case in `render_markdown/1` didn't handle this atom, causing a `CaseClauseError`. It now falls back to class-based syntax highlighting (`formatter: :html_class`), and if that also fails, falls back to escaped plain text.
+
 ### 4.0.5 - 2026-06-09
 
 #### Fixed

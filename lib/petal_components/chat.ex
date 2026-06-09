@@ -525,8 +525,20 @@ defmodule PetalComponents.Chat do
     ensure_mdex!()
 
     case MDEx.to_html(content, markdown_opts()) do
-      {:ok, html} -> external_links(html)
-      {:error, _} -> content |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+      {:ok, html} ->
+        external_links(html)
+
+      :lumis_not_enabled ->
+        # Lumis NIF unavailable — fall back to class-based highlighting (no inline styles)
+        fallback = Keyword.put(markdown_opts(), :syntax_highlight, [formatter: :html_class])
+
+        case MDEx.to_html(content, fallback) do
+          {:ok, html} -> external_links(html)
+          _ -> content |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+        end
+
+      {:error, _} ->
+        content |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
     end
   end
 
