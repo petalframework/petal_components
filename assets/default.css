@@ -2612,7 +2612,7 @@
     @apply hidden;
   }
   .pc-chat__typing {
-    @apply inline-flex items-center gap-0.5 align-middle;
+    @apply flex items-center gap-0.5;
   }
   .pc-chat__typing > span {
     @apply inline-block h-1 w-1 rounded-full;
