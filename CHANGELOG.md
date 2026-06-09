@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.5 - 2026-06-09
+
+#### Fixed
+
+- **Streaming chat typing dots now appear on the left of the bubble.** `pc-chat__stream` was `display: inline`, which could cause its inline formatting context to flow to the right side of the bubble in certain parent layouts (e.g. the docs page). Changed to `display: block` so the typing indicator always anchors to the left edge of the bubble, regardless of inherited text-alignment or flex context.
+
 ### 4.0.4 - 2026-06-08 14:03:58
 
 #### Fixed
