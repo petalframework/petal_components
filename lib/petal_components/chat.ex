@@ -524,12 +524,19 @@ defmodule PetalComponents.Chat do
   defp render_markdown(content) do
     ensure_mdex!()
 
-    case MDEx.to_html(content, markdown_opts()) do
+    result =
+      try do
+        MDEx.to_html(content, markdown_opts())
+      rescue
+        ArgumentError -> :lumis_unavailable
+      end
+
+    case result do
       {:ok, html} ->
         external_links(html)
 
-      :lumis_not_enabled ->
-        # Lumis NIF unavailable — render without syntax highlighting
+      reason when reason in [:lumis_not_enabled, :lumis_unavailable] ->
+        # Lumis NIF unavailable or not configured — render without syntax highlighting
         fallback = Keyword.delete(markdown_opts(), :syntax_highlight)
 
         case MDEx.to_html(content, fallback) do

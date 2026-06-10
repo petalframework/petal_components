@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.11 - 2026-06-10
+
+#### Fixed
+
+- **Chat markdown no longer crashes with MDEx 0.13.0.** MDEx 0.13.0 changed from returning `:lumis_not_enabled` to raising `ArgumentError` when Lumis is not configured. The `render_markdown/1` fallback now rescues `ArgumentError` in addition to matching on `:lumis_not_enabled`, and retries without syntax highlighting in either case.
+
 ### 4.0.10 - 2026-06-10
 
 #### Fixed
