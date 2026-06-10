@@ -1033,6 +1033,88 @@
   .pc-range-input {
     @apply w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
   }
+
+  /* ---- Dual Range Slider -------------------------------------------- */
+
+  .pc-dual-range {
+    @apply relative select-none;
+  }
+
+  .pc-dual-range--disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+
+  /* Stacking context for the overlapping inputs and track */
+  .pc-dual-range__track-wrapper {
+    @apply relative flex items-center h-5;
+  }
+
+  /* Full-width grey background track */
+  .pc-dual-range__track {
+    @apply absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700;
+  }
+
+  /* Primary-coloured highlight between the two thumbs — position set server-side
+     initially and updated live by the PetalDualRangeSlider hook */
+  .pc-dual-range__range {
+    @apply absolute h-1.5 rounded-full bg-primary-500;
+  }
+
+  /* Zero-height inputs stacked on top of the track; pointer-events disabled on the
+     element itself so only the visible thumb thumb captures clicks */
+  .pc-dual-range__thumb {
+    @apply absolute w-full appearance-none bg-transparent outline-none pointer-events-none;
+    height: 0;
+  }
+
+  .pc-dual-range__thumb::-webkit-slider-thumb {
+    @apply appearance-none w-5 h-5 rounded-full pointer-events-auto cursor-pointer;
+    @apply bg-primary-500 border-[3px] border-white dark:border-gray-900;
+    @apply shadow shadow-black/25;
+    @apply transition-transform duration-100 ease-out;
+  }
+
+  .pc-dual-range__thumb::-moz-range-thumb {
+    @apply w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    border: 3px solid white;
+  }
+
+  .pc-dual-range__thumb:hover::-webkit-slider-thumb {
+    @apply scale-110;
+  }
+
+  .pc-dual-range__thumb:focus-visible::-webkit-slider-thumb {
+    @apply scale-110 ring-4 ring-primary-300 dark:ring-primary-800 ring-offset-0;
+  }
+
+  .pc-dual-range__thumb:hover::-moz-range-thumb {
+    transform: scale(1.1);
+  }
+
+  .pc-dual-range__thumb:focus-visible::-moz-range-thumb {
+    transform: scale(1.1);
+    outline: none;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-300) 50%, transparent);
+  }
+
+  /* Three-column label row: bound | current values | bound */
+  .pc-dual-range__labels {
+    @apply grid grid-cols-3 mt-2.5 text-sm;
+  }
+
+  .pc-dual-range__bound {
+    @apply text-gray-400 dark:text-gray-500 tabular-nums;
+  }
+
+  .pc-dual-range__bound--end {
+    @apply text-right;
+  }
+
+  .pc-dual-range__display {
+    @apply text-center font-medium text-gray-700 dark:text-gray-200 tabular-nums;
+  }
+
+  /* -------------------------------------------------------------------- */
   .pc-checkbox {
     @apply w-5 h-5 transition-all duration-200 ease-out border-gray-300 rounded-sm cursor-pointer text-primary-700 dark:bg-gray-800 dark:border-gray-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed;
   }

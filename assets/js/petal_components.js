@@ -223,6 +223,93 @@ export const PetalClearableInput = {
   },
 };
 
+// Dual range slider: two stacked <input type="range"> thumbs sharing a coloured track.
+//
+// Attrs read from the container element (set server-side in input.ex):
+//   data-range-min / data-range-max  — absolute bounds of the slider
+//   data-value-prefix / data-value-suffix — e.g. "$" / "%" for the display label
+//
+// Inner elements discovered by data-role markers:
+//   [data-pc-range-min]     — the minimum range input
+//   [data-pc-range-max]     — the maximum range input
+//   [data-pc-range-track]   — the primary-coloured highlight div
+//   [data-pc-range-display] — the centre label showing current min–max values
+export const PetalDualRangeSlider = {
+  mounted() {
+    this.trackEl = this.el.querySelector("[data-pc-range-track]");
+    this.minInput = this.el.querySelector("[data-pc-range-min]");
+    this.maxInput = this.el.querySelector("[data-pc-range-max]");
+    this.display = this.el.querySelector("[data-pc-range-display]");
+    this.rangeMin = parseFloat(this.el.dataset.rangeMin);
+    this.rangeMax = parseFloat(this.el.dataset.rangeMax);
+    this.prefix = this.el.dataset.valuePrefix || "";
+    this.suffix = this.el.dataset.valueSuffix || "";
+
+    this.onMinInput = () => this.handleMin();
+    this.onMaxInput = () => this.handleMax();
+    this.minInput.addEventListener("input", this.onMinInput);
+    this.maxInput.addEventListener("input", this.onMaxInput);
+
+    this.syncTrack();
+  },
+
+  destroyed() {
+    this.minInput?.removeEventListener("input", this.onMinInput);
+    this.maxInput?.removeEventListener("input", this.onMaxInput);
+  },
+
+  handleMin() {
+    let min = parseFloat(this.minInput.value);
+    const max = parseFloat(this.maxInput.value);
+    if (min > max) {
+      min = max;
+      this.minInput.value = min;
+    }
+    // When thumbs meet, lift the min thumb so the user can drag it left to separate them.
+    this.minInput.style.zIndex = min >= max ? "20" : "";
+    this.maxInput.style.zIndex = "";
+    this.syncTrack(min, max);
+    this.syncDisplay(min, max);
+  },
+
+  handleMax() {
+    let max = parseFloat(this.maxInput.value);
+    const min = parseFloat(this.minInput.value);
+    if (max < min) {
+      max = min;
+      this.maxInput.value = max;
+    }
+    // When thumbs meet, lift the max thumb so the user can drag it right to separate them.
+    this.maxInput.style.zIndex = max <= min ? "20" : "";
+    this.minInput.style.zIndex = "";
+    this.syncTrack(min, max);
+    this.syncDisplay(min, max);
+  },
+
+  syncTrack(min, max) {
+    min = min !== undefined ? min : parseFloat(this.minInput.value);
+    max = max !== undefined ? max : parseFloat(this.maxInput.value);
+    const span = this.rangeMax - this.rangeMin;
+    if (span === 0) {
+      this.trackEl.style.left = "0%";
+      this.trackEl.style.right = "0%";
+      return;
+    }
+    const left = ((min - this.rangeMin) / span) * 100;
+    const right = 100 - ((max - this.rangeMin) / span) * 100;
+    this.trackEl.style.left = `${left}%`;
+    this.trackEl.style.right = `${right}%`;
+  },
+
+  syncDisplay(min, max) {
+    if (!this.display) return;
+    // parseFloat strips trailing zeros (50.0 → "50"), keeping labels clean.
+    const fmt = (v) => parseFloat(v.toFixed(10));
+    this.display.textContent =
+      `${this.prefix}${fmt(min)}${this.suffix} – ${this.prefix}${fmt(max)}${this.suffix}`;
+  },
+};
+
 // Accordion toggling.
 //
 // This lives in the bundle (registered once with your app.js) rather than in a
@@ -326,4 +413,5 @@ export default {
   PetalPasswordToggle,
   PetalCopyInput,
   PetalClearableInput,
+  PetalDualRangeSlider,
 };
