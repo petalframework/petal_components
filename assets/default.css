@@ -2576,7 +2576,7 @@
     @apply flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm;
   }
   .pc-chat__bubble {
-    @apply max-w-[80%] px-4 py-2 text-sm leading-relaxed;
+    @apply min-w-min max-w-[80%] px-4 py-2 text-sm leading-relaxed;
     border-radius: var(--pc-chat-radius);
     /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
     overflow-wrap: anywhere;

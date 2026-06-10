@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.10 - 2026-06-10
+
+#### Fixed
+
+- **Streaming chat typing dots now align left in all layout contexts.** Root cause: when `<Chat.conversation>` is placed in a flex container that sizes itself to content (e.g. `justify-content: center` wrappers), the chat collapses to ~48px wide. The bubble's `max-width: 80%` then resolves to ~38px, which is narrower than the typing indicator (16px dots + 32px padding). The dots overflowed into the right padding area, appearing at the right side of the bubble. Fixed by adding `min-width: min-content` to `pc-chat__bubble` so the bubble can never be narrower than its own content.
+
 ### 4.0.9 - 2026-06-09
 
 #### Fixed
