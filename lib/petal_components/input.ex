@@ -250,7 +250,7 @@ defmodule PetalComponents.Input do
       |> assign(:max_value, max_value)
       |> assign(:step, step)
       |> assign(:disabled, disabled)
-      |> assign_new(:id, fn -> "pc-dual-range-#{Ecto.UUID.generate()}" end)
+      |> assign(:id, assigns.id || "pc-dual-range-#{Ecto.UUID.generate()}")
 
     ~H"""
     <div
