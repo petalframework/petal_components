@@ -33,7 +33,7 @@ defmodule PetalComponents.Field do
     default: "text",
     values:
       ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
-               range radio-group radio-card search select switch tel text textarea time url week),
+               range range-dual radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
   attr :size, :string,
@@ -100,6 +100,31 @@ defmodule PetalComponents.Field do
   attr :required, :boolean,
     default: false,
     doc: "is this field required? is passed to the input and adds an asterisk next to the label"
+
+  # Dual range slider — requires min_field + max_field instead of the standard field attr.
+  attr :min_field, Phoenix.HTML.FormField,
+    doc: "form field for the minimum value; required for type=\"range-dual\""
+
+  attr :max_field, Phoenix.HTML.FormField,
+    doc: "form field for the maximum value; required for type=\"range-dual\""
+
+  attr :range_min, :any, default: 0,
+    doc: "absolute lower bound of the range; used with type=\"range-dual\""
+
+  attr :range_max, :any, default: 100,
+    doc: "absolute upper bound of the range; used with type=\"range-dual\""
+
+  attr :range_min_label, :string, default: nil,
+    doc: "override label for the lower bound; defaults to the formatted range_min value"
+
+  attr :range_max_label, :string, default: nil,
+    doc: "override label for the upper bound; defaults to the formatted range_max value"
+
+  attr :value_prefix, :string, default: "",
+    doc: ~s(string prepended to displayed values, e.g. "$"; used with type="range-dual")
+
+  attr :value_suffix, :string, default: "",
+    doc: ~s(string appended to displayed values, e.g. "%"; used with type="range-dual")
 
   attr :rest, :global,
     include:
@@ -559,6 +584,48 @@ defmodule PetalComponents.Field do
           <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
         </div>
       </div>
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: "range-dual"} = assigns) do
+    min_errors =
+      if used_input?(assigns.min_field),
+        do: Enum.map(assigns.min_field.errors, &translate_error(&1)),
+        else: []
+
+    max_errors =
+      if used_input?(assigns.max_field),
+        do: Enum.map(assigns.max_field.errors, &translate_error(&1)),
+        else: []
+
+    assigns =
+      assigns
+      |> assign(:errors, Enum.uniq(min_errors ++ max_errors))
+      |> assign_new(:label, fn -> PhoenixHTMLHelpers.Form.humanize(assigns.min_field.field) end)
+      |> assign(:id, assigns.id || assigns.min_field.id)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@min_field.name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label class={@label_class}>
+        {@label}
+      </.field_label>
+      <PetalComponents.Input.input
+        type="range-dual"
+        min_field={@min_field}
+        max_field={@max_field}
+        range_min={@range_min}
+        range_max={@range_max}
+        range_min_label={@range_min_label}
+        range_max_label={@range_max_label}
+        value_prefix={@value_prefix}
+        value_suffix={@value_suffix}
+        id={@id}
+        class={@class}
+        {@rest}
+      />
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>

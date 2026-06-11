@@ -1003,4 +1003,168 @@ defmodule PetalComponents.FieldTest do
 
     refute html =~ ~s|type="hidden"|
   end
+
+  test "range-dual field renders with label and slider" do
+    assigns = %{form: to_form(%{"price_min" => 20, "price_max" => 80}, as: :filters)}
+
+    html =
+      rendered_to_string(~H"""
+      <.field
+        type="range-dual"
+        min_field={@form[:price_min]}
+        max_field={@form[:price_max]}
+        range_min={0}
+        range_max={100}
+      />
+      """)
+
+    assert html =~ "pc-dual-range"
+    assert html =~ "pc-form-field-wrapper"
+    assert html =~ "pc-label"
+    assert html =~ "Price min"
+    assert html =~ "filters[price_min]"
+    assert html =~ "filters[price_max]"
+  end
+
+  test "range-dual field with explicit label" do
+    assigns = %{form: to_form(%{}, as: :filters)}
+
+    html =
+      rendered_to_string(~H"""
+      <.field
+        type="range-dual"
+        label="Price Range"
+        min_field={@form[:price_min]}
+        max_field={@form[:price_max]}
+      />
+      """)
+
+    assert html =~ "Price Range"
+    refute html =~ "Price min"
+  end
+
+  test "range-dual field shows no errors when field has not been used" do
+    assigns = %{
+      min_field: %Phoenix.HTML.FormField{
+        errors: [{"must be >= 0", [validation: :number]}],
+        name: "filters[price_min]",
+        value: "",
+        field: :price_min,
+        id: "filters_price_min",
+        form: %Phoenix.HTML.Form{params: %{"_unused_filters_price_min" => ""}}
+      },
+      max_field: %Phoenix.HTML.FormField{
+        errors: [],
+        name: "filters[price_max]",
+        value: "",
+        field: :price_max,
+        id: "filters_price_max",
+        form: %Phoenix.HTML.Form{params: %{}}
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="range-dual" min_field={@min_field} max_field={@max_field} />
+      """)
+
+    refute html =~ "pc-form-field-error"
+    refute html =~ "must be >= 0"
+  end
+
+  test "range-dual field shows errors from min_field when touched" do
+    assigns = %{
+      min_field: %Phoenix.HTML.FormField{
+        errors: [{"must be >= 0", [validation: :number]}],
+        name: "filters[price_min]",
+        value: "-5",
+        field: :price_min,
+        id: "filters_price_min",
+        form: %Phoenix.HTML.Form{params: %{"price_min" => "-5"}}
+      },
+      max_field: %Phoenix.HTML.FormField{
+        errors: [],
+        name: "filters[price_max]",
+        value: "80",
+        field: :price_max,
+        id: "filters_price_max",
+        form: %Phoenix.HTML.Form{params: %{}}
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="range-dual" min_field={@min_field} max_field={@max_field} />
+      """)
+
+    assert html =~ "pc-form-field-error"
+    assert html =~ html_escape("must be >= 0")
+  end
+
+  test "range-dual field shows errors from both fields, deduplicated" do
+    assigns = %{
+      min_field: %Phoenix.HTML.FormField{
+        errors: [{"invalid range", []}],
+        name: "filters[price_min]",
+        value: "",
+        field: :price_min,
+        id: "filters_price_min",
+        form: %Phoenix.HTML.Form{params: %{"price_min" => ""}}
+      },
+      max_field: %Phoenix.HTML.FormField{
+        errors: [{"invalid range", []}, {"too large", []}],
+        name: "filters[price_max]",
+        value: "",
+        field: :price_max,
+        id: "filters_price_max",
+        form: %Phoenix.HTML.Form{params: %{"price_max" => ""}}
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="range-dual" min_field={@min_field} max_field={@max_field} />
+      """)
+
+    assert html =~ "invalid range"
+    assert html =~ "too large"
+    assert length(String.split(html, "invalid range")) == 2
+  end
+
+  test "range-dual field renders help text" do
+    assigns = %{form: to_form(%{}, as: :filters)}
+
+    html =
+      rendered_to_string(~H"""
+      <.field
+        type="range-dual"
+        min_field={@form[:price_min]}
+        max_field={@form[:price_max]}
+        help_text="Drag to set your price range"
+      />
+      """)
+
+    assert html =~ "Drag to set your price range"
+    assert html =~ "pc-form-help-text"
+  end
+
+  test "range-dual field passes prefix and suffix to input" do
+    assigns = %{form: to_form(%{"price_min" => 10, "price_max" => 90}, as: :filters)}
+
+    html =
+      rendered_to_string(~H"""
+      <.field
+        type="range-dual"
+        min_field={@form[:price_min]}
+        max_field={@form[:price_max]}
+        range_min={0}
+        range_max={100}
+        value_prefix="$"
+        value_suffix="%"
+      />
+      """)
+
+    assert html =~ ~s|data-value-prefix="$"|
+    assert html =~ ~s|data-value-suffix="%"|
+  end
 end

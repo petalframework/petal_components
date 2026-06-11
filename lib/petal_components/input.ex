@@ -14,7 +14,7 @@ defmodule PetalComponents.Input do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select switch tel text textarea time url week)
+               range range-dual radio search select switch tel text textarea time url week)
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch"
 
@@ -38,6 +38,33 @@ defmodule PetalComponents.Input do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :any, default: nil, doc: "the class to add to the input"
+
+  # Dual range slider — requires min_field + max_field instead of the standard field attr.
+  # Needs the PetalDualRangeSlider hook registered in your LiveSocket (included in the
+  # petal_components JS bundle via `import PetalComponents from ".../petal_components"`).
+  attr :min_field, Phoenix.HTML.FormField,
+    doc: "form field for the minimum value; required for type=\"range-dual\""
+
+  attr :max_field, Phoenix.HTML.FormField,
+    doc: "form field for the maximum value; required for type=\"range-dual\""
+
+  attr :range_min, :any, default: 0,
+    doc: "absolute lower bound of the range; used with type=\"range-dual\""
+
+  attr :range_max, :any, default: 100,
+    doc: "absolute upper bound of the range; used with type=\"range-dual\""
+
+  attr :range_min_label, :string, default: nil,
+    doc: "override label for the lower bound; defaults to the formatted range_min value"
+
+  attr :range_max_label, :string, default: nil,
+    doc: "override label for the upper bound; defaults to the formatted range_max value"
+
+  attr :value_prefix, :string, default: "",
+    doc: ~s(string prepended to displayed values, e.g. "$"; used with type="range-dual")
+
+  attr :value_suffix, :string, default: "",
+    doc: ~s(string appended to displayed values, e.g. "%"; used with type="range-dual")
 
   attr :rest, :global,
     include:
@@ -211,6 +238,86 @@ defmodule PetalComponents.Input do
     """
   end
 
+  def input(%{type: "range-dual"} = assigns) do
+    min_value = coerce_range_value(assigns.min_field.value, assigns.range_min)
+    max_value = coerce_range_value(assigns.max_field.value, assigns.range_max)
+    step = assigns.rest[:step] || 1
+    disabled = assigns.rest[:disabled] || false
+
+    assigns =
+      assigns
+      |> assign(:min_value, min_value)
+      |> assign(:max_value, max_value)
+      |> assign(:step, step)
+      |> assign(:disabled, disabled)
+      |> assign(:id, assigns.id || "pc-dual-range-#{Ecto.UUID.generate()}")
+
+    ~H"""
+    <div
+      id={@id}
+      class={["pc-dual-range", @disabled && "pc-dual-range--disabled", @class]}
+      phx-hook="PetalDualRangeSlider"
+      phx-update="ignore"
+      data-range-min={@range_min}
+      data-range-max={@range_max}
+      data-value-prefix={@value_prefix}
+      data-value-suffix={@value_suffix}
+    >
+      <div class="pc-dual-range__track-wrapper">
+        <div class="pc-dual-range__track"></div>
+        <div
+          class="pc-dual-range__range"
+          data-pc-range-track
+          style={"left: #{calculate_slider_position(@min_value, @range_min, @range_max)}%; right: #{100 - calculate_slider_position(@max_value, @range_min, @range_max)}%;"}
+        ></div>
+        <input
+          type="range"
+          min={@range_min}
+          max={@range_max}
+          step={@step}
+          name={@min_field.name}
+          value={@min_value}
+          id={@id <> "_min"}
+          class="pc-dual-range__thumb"
+          data-pc-range-min
+          disabled={@disabled}
+          aria-label="Minimum"
+          aria-valuemin={@range_min}
+          aria-valuemax={@range_max}
+          aria-valuenow={@min_value}
+        />
+        <input
+          type="range"
+          min={@range_min}
+          max={@range_max}
+          step={@step}
+          name={@max_field.name}
+          value={@max_value}
+          id={@id <> "_max"}
+          class="pc-dual-range__thumb"
+          data-pc-range-max
+          disabled={@disabled}
+          aria-label="Maximum"
+          aria-valuemin={@range_min}
+          aria-valuemax={@range_max}
+          aria-valuenow={@max_value}
+        />
+      </div>
+      <div class="pc-dual-range__labels">
+        <span class="pc-dual-range__bound">
+          {@range_min_label || "#{@value_prefix}#{@range_min}#{@value_suffix}"}
+        </span>
+        <span class="pc-dual-range__display" data-pc-range-display>
+          {@value_prefix}{@min_value}{@value_suffix} – {@value_prefix}{@max_value}{@value_suffix}
+        </span>
+        <span class="pc-dual-range__bound pc-dual-range__bound--end">
+          {@range_max_label || "#{@value_prefix}#{@range_max}#{@value_suffix}"}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
   def input(assigns) do
     ~H"""
     <input
@@ -236,4 +343,34 @@ defmodule PetalComponents.Input do
   defp get_icon_for_type("month"), do: "hero-calendar"
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
+
+  # Normalise a raw form field value (string, integer, float, or nil) to a number,
+  # falling back to `default` when the value is absent or unparseable.
+  defp coerce_range_value(nil, default), do: default
+  defp coerce_range_value(v, _default) when is_integer(v) or is_float(v), do: v
+
+  defp coerce_range_value(v, default) when is_binary(v) do
+    case Integer.parse(v) do
+      {int, ""} ->
+        int
+
+      _ ->
+        case Float.parse(v) do
+          {float, ""} -> float
+          _ -> default
+        end
+    end
+  end
+
+  defp coerce_range_value(_, default), do: default
+
+  # Returns the percentage position (0–100) of `value` within [range_min, range_max].
+  # Used to set the server-rendered initial left/right style on the range highlight.
+  defp calculate_slider_position(_value, range_min, range_max) when range_max == range_min,
+    do: 0
+
+  defp calculate_slider_position(value, range_min, range_max) do
+    value = coerce_range_value(value, range_min)
+    round((value - range_min) / (range_max - range_min) * 100)
+  end
 end
