@@ -1,4 +1,10 @@
 # Changelog
+### 4.0.12 - 2026-06-11
+
+#### Added
+
+- **`range-dual` dual-handle range slider.** A new `type="range-dual"` for both `<.input>` and `<.field>` renders two stacked `<input type="range">` thumbs sharing a coloured track. Requires the `PetalDualRangeSlider` hook (included in the JS bundle). Attrs: `min_field`, `max_field`, `range_min`, `range_max`, `range_min_label`, `range_max_label`, `value_prefix`, `value_suffix`. Works without Alpine.js — pure LiveView hook.
+
 ### 4.0.11 - 2026-06-10
 
 #### Fixed
