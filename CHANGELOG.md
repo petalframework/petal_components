@@ -1,4 +1,24 @@
 # Changelog
+### 4.1.0 - 2026-06-12
+
+Seven new components. One closes the biggest functional gap (a real navigation menu), the other six open a lane no Phoenix component library covers: landing-page "special effects" in the MagicUI style, built for server rendering — most are pure CSS, the rest ship as hooks in the JS bundle.
+
+#### Added
+
+- **`navigation_menu` flyout / mega menu.** `<.navigation_menu>` renders a horizontal nav where each `:item` is either a plain link or a disclosure trigger opening a rich flyout panel — compose panels from `<.navigation_menu_link>` rows (icon + title + description), an optional `<.navigation_menu_footer>` CTA strip, or any markup. Follows the W3C disclosure navigation pattern (`aria-expanded`/`aria-controls`, Escape and click-away close, `aria-current` on the active item), 100% LiveView.JS — no Alpine, no hooks. Set `full_width` on an item for a mega menu spanning your header. Panel widths: `sm`–`xl`.
+- **`border_beam` animated border.** A beam of light travels along the container border. Pure CSS (`offset-path`). Attrs: `color_from`, `color_to`, `duration`, `size`, `border_radius`.
+- **`meteors` background effect.** A meteor shower for hero sections and dark cards. Pure CSS — positions, delays and durations are generated server-side and are deterministic per `seed`, so LiveView re-renders never make meteors jump. Attrs: `count`, `seed`.
+- **`gradient_text`, `shimmer_text`, `word_rotate`, `typing_effect` text animations.** Gradient sweep and shimmer are pure CSS; word rotate and the typewriter ship as `PetalWordRotate` / `PetalTypingEffect` hooks. All four render their full text server-side, so they degrade gracefully without JavaScript and stay visible to search engines.
+- **`number_ticker` animated counter.** Counts up when scrolled into view (IntersectionObserver) and re-animates the delta whenever the LiveView assign changes — built for stats sections and live dashboards. Locale-aware formatting via `Intl.NumberFormat`. Attrs: `value`, `start_value`, `duration`, `decimal_places`, `prefix`, `suffix`, `locale`. Requires the `PetalNumberTicker` hook.
+- **`confetti` celebration bursts.** Zero-dependency canvas confetti. Fire from the server with `push_event(socket, "pc-confetti", %{})` (optionally targeting an `id`) or from the client with `JS.dispatch("pc:confetti", to: "#id")` — no round trip. Options: `particle_count`, `spread`, `angle`, `velocity`, `colors`, `origin`. Requires the `PetalConfetti` hook.
+- **`spotlight_card` hover glow.** A radial glow follows the cursor across the card. Attrs: `spotlight_color`, `spotlight_size`. Requires the (tiny) `PetalSpotlight` hook.
+- All animated components respect `prefers-reduced-motion`: decorative animation is disabled or hidden, informative content stays static and readable.
+- Playground: new **Effects** tab and a navigation menu showcase in `dev.exs`, which now loads the bundled hooks as an ES module (so hook-based components work out of the box when contributing).
+
+#### Fixed
+
+- The `dev.exs` playground no longer crashes with `CompileError` ("module is currently being defined") when two requests arrive concurrently (e.g. `curl -I` alongside a browser tab) — code reloads are now serialized behind a global lock.
+
 ### 4.0.12 - 2026-06-11
 
 #### Added
