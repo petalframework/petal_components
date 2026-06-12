@@ -2919,3 +2919,298 @@
     @apply hidden;
   }
 }
+
+@layer components {
+  /* Navigation Menu (flyout / mega menu) */
+  .pc-nav-menu__list {
+    @apply flex items-center gap-x-1 list-none m-0 p-0;
+  }
+
+  .pc-nav-menu__link-item,
+  .pc-nav-menu__trigger {
+    @apply inline-flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white;
+  }
+
+  .pc-nav-menu__link-item[aria-current="page"] {
+    @apply text-primary-600 dark:text-primary-400;
+  }
+
+  .pc-nav-menu__trigger[aria-expanded="true"] {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white;
+  }
+
+  .pc-nav-menu__chevron {
+    @apply h-4 w-4 text-gray-400 transition-transform duration-200;
+  }
+
+  .pc-nav-menu__trigger[aria-expanded="true"] .pc-nav-menu__chevron {
+    @apply rotate-180;
+  }
+
+  .pc-nav-menu__panel {
+    @apply absolute left-1/2 top-full z-20 mt-3 w-screen -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10;
+  }
+
+  .pc-nav-menu__panel--sm {
+    @apply max-w-sm;
+  }
+
+  .pc-nav-menu__panel--md {
+    @apply max-w-md;
+  }
+
+  .pc-nav-menu__panel--lg {
+    @apply max-w-lg;
+  }
+
+  .pc-nav-menu__panel--xl {
+    @apply max-w-xl;
+  }
+
+  /* Mega menu: spans the nearest positioned ancestor (give your header `relative`) */
+  .pc-nav-menu__panel--full {
+    @apply left-0 right-0 mt-0 w-auto max-w-none translate-x-0 rounded-none border-t border-gray-100 p-6 dark:border-gray-700;
+  }
+
+  .pc-nav-menu__link {
+    @apply flex gap-x-4 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50;
+  }
+
+  .pc-nav-menu__link-icon {
+    @apply flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 transition-colors group-hover:bg-white dark:bg-gray-700 dark:group-hover:bg-gray-600;
+  }
+
+  .pc-nav-menu__link-icon-svg {
+    @apply h-6 w-6 text-gray-600 group-hover:text-primary-600 dark:text-gray-300 dark:group-hover:text-primary-400;
+  }
+
+  .pc-nav-menu__link-body {
+    @apply flex flex-col;
+  }
+
+  .pc-nav-menu__link-title {
+    @apply text-sm font-semibold text-gray-900 dark:text-white;
+  }
+
+  .pc-nav-menu__link-description {
+    @apply mt-0.5 text-sm text-gray-600 dark:text-gray-400;
+  }
+
+  /* Footer: negative margins escape the panel's p-4 (p-6 when full) for a full-bleed strip */
+  .pc-nav-menu__footer {
+    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-900/5 bg-gray-50 dark:divide-white/10 dark:bg-gray-900/40;
+  }
+
+  .pc-nav-menu__panel--full .pc-nav-menu__footer {
+    @apply -mx-6 -mb-6 mt-6;
+  }
+
+  .pc-nav-menu__footer-link {
+    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700/60;
+  }
+
+  .pc-nav-menu__footer-link-icon {
+    @apply h-5 w-5 flex-none text-gray-400;
+  }
+
+  /* Border Beam */
+  .pc-border-beam {
+    @apply relative border border-gray-200 dark:border-gray-700;
+    border-radius: var(--pc-beam-radius, 0.75rem);
+  }
+
+  /* The beam layer is masked to the 1px border ring, so the travelling
+     gradient square only ever paints over the border itself. */
+  .pc-border-beam__beam {
+    @apply pointer-events-none absolute inset-0 border border-transparent;
+    border-radius: inherit;
+    -webkit-mask: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
+    mask: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
+    -webkit-mask-composite: source-in, xor;
+    mask-composite: intersect;
+    mask-clip: padding-box, border-box;
+  }
+
+  .pc-border-beam__beam::after {
+    content: "";
+    display: block;
+    width: var(--pc-beam-size, 150px);
+    aspect-ratio: 1 / 1;
+    offset-path: rect(0 auto auto 0 round calc(var(--pc-beam-radius, 0.75rem) * 12));
+    offset-anchor: 90% 50%;
+    background: linear-gradient(
+      to left,
+      var(--pc-beam-from, #ffaa40),
+      var(--pc-beam-to, #9c40ff),
+      transparent
+    );
+    animation: pc-border-beam var(--pc-beam-duration, 8s) linear infinite;
+  }
+
+  /* Meteors */
+  .pc-meteors {
+    @apply pointer-events-none absolute inset-0 overflow-hidden;
+  }
+
+  .pc-meteor {
+    @apply absolute h-0.5 w-0.5 rounded-full opacity-0;
+    background-color: #64748b;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1);
+    transform: rotate(215deg);
+    animation: pc-meteor linear infinite;
+  }
+
+  .pc-meteor::before {
+    content: "";
+    @apply absolute top-1/2 h-px w-[50px] -translate-y-1/2;
+    background: linear-gradient(90deg, #64748b, transparent);
+  }
+
+  /* Gradient Text */
+  .pc-gradient-text {
+    @apply inline-block bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      to right,
+      var(--pc-gradient-from, #ffaa40),
+      var(--pc-gradient-to, #9c40ff),
+      var(--pc-gradient-from, #ffaa40)
+    );
+    background-size: 300% 100%;
+    animation: pc-gradient-sweep var(--pc-gradient-duration, 8s) linear infinite;
+  }
+
+  /* Shimmer Text */
+  .pc-shimmer-text {
+    @apply inline-block bg-clip-text text-transparent [--pc-shimmer-base:#6b7280] [--pc-shimmer-shine:#111827] dark:[--pc-shimmer-base:#9ca3af] dark:[--pc-shimmer-shine:#ffffff];
+    background-image: linear-gradient(
+      110deg,
+      var(--pc-shimmer-base) 35%,
+      var(--pc-shimmer-shine) 50%,
+      var(--pc-shimmer-base) 65%
+    );
+    background-size: 200% 100%;
+    animation: pc-shimmer var(--pc-shimmer-duration, 2.5s) linear infinite;
+  }
+
+  /* Word Rotate */
+  .pc-word-rotate {
+    @apply inline-flex overflow-hidden align-bottom;
+  }
+
+  .pc-word-rotate__word {
+    @apply inline-block transition-all duration-200 ease-out;
+  }
+
+  .pc-word-rotate__word--out {
+    @apply -translate-y-full opacity-0;
+  }
+
+  .pc-word-rotate__word--pre {
+    @apply translate-y-full opacity-0;
+    transition: none;
+  }
+
+  /* Typing Effect */
+  .pc-typing-effect__cursor {
+    @apply ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] bg-current;
+    animation: pc-cursor-blink 1s step-end infinite;
+  }
+
+  /* Number Ticker */
+  .pc-number-ticker {
+    @apply inline-block tabular-nums;
+  }
+
+  /* Confetti mount point */
+  .pc-confetti {
+    @apply hidden;
+  }
+
+  /* Spotlight Card */
+  .pc-spotlight-card {
+    @apply relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800;
+  }
+
+  .pc-spotlight-card__glow {
+    @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: radial-gradient(
+      var(--pc-spotlight-size, 350px) circle at var(--pc-spotlight-x, 50%) var(--pc-spotlight-y, 50%),
+      var(--pc-spotlight-color, rgb(120 119 198 / 0.18)),
+      transparent 80%
+    );
+  }
+
+  .pc-spotlight-card:hover .pc-spotlight-card__glow {
+    @apply opacity-100;
+  }
+
+  .pc-spotlight-card__content {
+    @apply relative;
+  }
+}
+
+@keyframes pc-border-beam {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes pc-meteor {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(215deg) translateX(-500px);
+    opacity: 0;
+  }
+}
+
+@keyframes pc-gradient-sweep {
+  from {
+    background-position: 0% center;
+  }
+  to {
+    background-position: 300% center;
+  }
+}
+
+@keyframes pc-shimmer {
+  from {
+    background-position: 200% center;
+  }
+  to {
+    background-position: -200% center;
+  }
+}
+
+@keyframes pc-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: hide purely decorative animation, keep informative content static. */
+@media (prefers-reduced-motion: reduce) {
+  .pc-border-beam__beam,
+  .pc-meteor {
+    display: none;
+  }
+
+  .pc-gradient-text,
+  .pc-shimmer-text,
+  .pc-typing-effect__cursor {
+    animation: none;
+  }
+
+  .pc-word-rotate__word {
+    transition: none;
+  }
+}

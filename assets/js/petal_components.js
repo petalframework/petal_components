@@ -310,6 +310,317 @@ export const PetalDualRangeSlider = {
   },
 };
 
+// Number ticker: counts up to data-value when the element scrolls into view,
+// and re-animates from the previous value whenever data-value changes (so a
+// LiveView assign update animates the delta). Formatting via Intl.NumberFormat.
+export const PetalNumberTicker = {
+  mounted() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      this.reducedMotion = true;
+      return; // leave the server-rendered final value in place
+    }
+    this.lastTarget = this.target();
+    // Show the start value until the element becomes visible.
+    this.render(parseFloat(this.el.dataset.startValue || "0"));
+    const start = () => this.animate(parseFloat(this.el.dataset.startValue || "0"));
+    if ("IntersectionObserver" in window) {
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            this.observer.disconnect();
+            this.observer = null;
+            start();
+          }
+        },
+        { threshold: 0.3 }
+      );
+      this.observer.observe(this.el);
+    } else {
+      start();
+    }
+  },
+
+  updated() {
+    if (this.reducedMotion) return;
+    const target = this.target();
+    if (target !== this.lastTarget) {
+      const from = this.current !== undefined ? this.current : this.lastTarget;
+      this.lastTarget = target;
+      this.animate(from);
+    } else if (this.current !== undefined) {
+      // LiveView re-rendered the final value mid/post animation; restore ours.
+      this.render(this.current);
+    }
+  },
+
+  destroyed() {
+    this.observer?.disconnect();
+    if (this.frame) cancelAnimationFrame(this.frame);
+  },
+
+  target() {
+    return parseFloat(this.el.dataset.value || "0");
+  },
+
+  animate(from) {
+    if (this.frame) cancelAnimationFrame(this.frame);
+    const target = this.target();
+    const duration = parseInt(this.el.dataset.duration || "1500", 10);
+    const t0 = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - t0) / duration, 1);
+      const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p); // easeOutExpo
+      this.current = from + (target - from) * eased;
+      this.render(this.current);
+      if (p < 1) {
+        this.frame = requestAnimationFrame(tick);
+      } else {
+        this.frame = null;
+        this.current = target;
+        this.render(target);
+      }
+    };
+    this.frame = requestAnimationFrame(tick);
+  },
+
+  render(value) {
+    const decimals = parseInt(this.el.dataset.decimalPlaces || "0", 10);
+    const fmt = new Intl.NumberFormat(this.el.dataset.locale || undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+    this.el.textContent =
+      (this.el.dataset.prefix || "") + fmt.format(value) + (this.el.dataset.suffix || "");
+  },
+};
+
+// Confetti cannon. Zero dependencies — bursts are drawn on a temporary
+// full-screen canvas that is removed once every particle has faded.
+//
+// Fire from the server:  push_event(socket, "pc-confetti", %{id: ..., ...opts})
+// Fire from the client:  JS.dispatch("pc:confetti", to: "#my-confetti")
+// Options: particle_count, spread, angle, velocity, colors, origin {x, y} (0..1).
+export const PetalConfetti = {
+  defaultColors: ["#26ccff", "#a25afd", "#ff5e7e", "#88ff5a", "#fcff42", "#ffa62d", "#ff36ff"],
+
+  mounted() {
+    this.particles = [];
+    this.onDispatch = (e) => this.fire(e.detail || {});
+    this.el.addEventListener("pc:confetti", this.onDispatch);
+    this.handleEvent("pc-confetti", (payload) => {
+      payload = payload || {};
+      if (payload.id && payload.id !== this.el.id) return;
+      this.fire(payload);
+    });
+  },
+
+  destroyed() {
+    this.el.removeEventListener("pc:confetti", this.onDispatch);
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.canvas?.remove();
+  },
+
+  fire(opts) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let dataColors = null;
+    try {
+      dataColors = JSON.parse(this.el.dataset.colors || "null");
+    } catch (_e) {}
+
+    const count = opts.particle_count || parseInt(this.el.dataset.particleCount || "100", 10);
+    const spread = opts.spread || parseInt(this.el.dataset.spread || "70", 10);
+    const angle = opts.angle !== undefined ? opts.angle : 90;
+    const velocity = opts.velocity || 45;
+    const colors = opts.colors || dataColors || this.defaultColors;
+    const origin = opts.origin || { x: 0.5, y: 0.6 };
+
+    const originX = origin.x * window.innerWidth;
+    const originY = origin.y * window.innerHeight;
+    const radAngle = (angle * Math.PI) / 180;
+    const radSpread = (spread * Math.PI) / 180;
+
+    for (let i = 0; i < count; i++) {
+      this.particles.push({
+        x: originX,
+        y: originY,
+        angle2D: -radAngle + (0.5 * radSpread - Math.random() * radSpread),
+        velocity: velocity * 0.5 + Math.random() * velocity,
+        decay: 0.9,
+        gravity: 3,
+        drift: (Math.random() - 0.5) * 0.6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        tick: 0,
+        totalTicks: 150 + Math.floor(Math.random() * 60),
+        wobble: Math.random() * 10,
+        wobbleSpeed: 0.05 + Math.random() * 0.06,
+        tiltAngle: Math.random() * Math.PI,
+        scalar: 0.8 + Math.random() * 0.6,
+      });
+    }
+
+    this.ensureCanvas();
+    if (!this.frame) this.loop();
+  },
+
+  ensureCanvas() {
+    if (this.canvas) return;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.style.cssText =
+      "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999;";
+    document.body.appendChild(canvas);
+    this.canvas = canvas;
+    this.resize();
+  },
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = window.innerWidth * dpr;
+    this.canvas.height = window.innerHeight * dpr;
+    this.ctx = this.canvas.getContext("2d");
+    this.ctx.scale(dpr, dpr);
+  },
+
+  loop() {
+    this.frame = requestAnimationFrame(() => {
+      this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      this.particles = this.particles.filter((p) => {
+        p.x += Math.cos(p.angle2D) * p.velocity + p.drift;
+        p.y += Math.sin(p.angle2D) * p.velocity + p.gravity;
+        p.velocity *= p.decay;
+        p.wobble += p.wobbleSpeed;
+        p.tiltAngle += 0.1;
+        p.tick += 1;
+
+        const progress = p.tick / p.totalTicks;
+        if (progress >= 1) return false;
+
+        const wobbleX = p.x + 10 * p.scalar * Math.cos(p.wobble);
+        const wobbleY = p.y + 10 * p.scalar * Math.sin(p.wobble);
+        const tilt = Math.sin(p.tiltAngle) * 6 * p.scalar;
+
+        this.ctx.globalAlpha = 1 - progress;
+        this.ctx.fillStyle = p.color;
+        this.ctx.beginPath();
+        this.ctx.moveTo(p.x, p.y);
+        this.ctx.lineTo(wobbleX, p.y + tilt);
+        this.ctx.lineTo(wobbleX + tilt, wobbleY);
+        this.ctx.lineTo(p.x + tilt, wobbleY);
+        this.ctx.closePath();
+        this.ctx.fill();
+        return true;
+      });
+
+      this.ctx.globalAlpha = 1;
+
+      if (this.particles.length > 0) {
+        this.loop();
+      } else {
+        this.frame = null;
+        this.canvas?.remove();
+        this.canvas = null;
+      }
+    });
+  },
+};
+
+// Spotlight card: tracks the cursor into CSS variables; the glow itself is
+// pure CSS (see .pc-spotlight-card__glow).
+export const PetalSpotlight = {
+  mounted() {
+    this.onMove = (e) => {
+      const rect = this.el.getBoundingClientRect();
+      this.el.style.setProperty("--pc-spotlight-x", `${e.clientX - rect.left}px`);
+      this.el.style.setProperty("--pc-spotlight-y", `${e.clientY - rect.top}px`);
+    };
+    this.el.addEventListener("mousemove", this.onMove);
+  },
+  destroyed() {
+    this.el.removeEventListener("mousemove", this.onMove);
+  },
+};
+
+// Word rotate: cycles through data-words with a roll-up transition. The exit
+// transition runs (200ms), then the word swaps and slides in from below.
+export const PetalWordRotate = {
+  mounted() {
+    this.wordEl = this.el.querySelector(".pc-word-rotate__word");
+    let words = [];
+    try {
+      words = JSON.parse(this.el.dataset.words || "[]");
+    } catch (_e) {}
+    if (!this.wordEl || words.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    this.words = words;
+    this.index = 0;
+    const interval = parseInt(this.el.dataset.interval || "2500", 10);
+    this.timer = setInterval(() => this.rotate(), interval);
+  },
+
+  destroyed() {
+    clearInterval(this.timer);
+    clearTimeout(this.swapTimer);
+  },
+
+  rotate() {
+    this.index = (this.index + 1) % this.words.length;
+    const next = this.words[this.index];
+    this.wordEl.classList.add("pc-word-rotate__word--out");
+    this.swapTimer = setTimeout(() => {
+      this.wordEl.textContent = next;
+      // Jump below the line without transitioning, then animate back up.
+      this.wordEl.classList.add("pc-word-rotate__word--pre");
+      this.wordEl.classList.remove("pc-word-rotate__word--out");
+      void this.wordEl.offsetWidth;
+      this.wordEl.classList.remove("pc-word-rotate__word--pre");
+    }, 200);
+  },
+};
+
+// Typing effect: replays the server-rendered text character by character.
+// Unicode-safe (Array.from keeps emoji/surrogate pairs intact). With
+// data-loop, deletes and types again forever.
+export const PetalTypingEffect = {
+  mounted() {
+    this.textEl = this.el.querySelector(".pc-typing-effect__text");
+    if (!this.textEl) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    this.chars = Array.from(this.el.dataset.text || "");
+    if (this.chars.length === 0) return;
+    this.speed = parseInt(this.el.dataset.speed || "60", 10);
+    this.loop = this.el.dataset.loop === "true";
+    const delay = parseInt(this.el.dataset.startDelay || "0", 10);
+
+    this.textEl.textContent = "";
+    this.timer = setTimeout(() => this.type(1), delay);
+  },
+
+  destroyed() {
+    clearTimeout(this.timer);
+  },
+
+  type(i) {
+    this.textEl.textContent = this.chars.slice(0, i).join("");
+    if (i < this.chars.length) {
+      this.timer = setTimeout(() => this.type(i + 1), this.speed);
+    } else if (this.loop) {
+      this.timer = setTimeout(() => this.erase(this.chars.length - 1), 1800);
+    }
+  },
+
+  erase(i) {
+    this.textEl.textContent = this.chars.slice(0, i).join("");
+    if (i > 0) {
+      this.timer = setTimeout(() => this.erase(i - 1), Math.max(this.speed / 2, 15));
+    } else {
+      this.timer = setTimeout(() => this.type(1), 400);
+    }
+  },
+};
+
 // Accordion toggling.
 //
 // This lives in the bundle (registered once with your app.js) rather than in a
@@ -414,4 +725,9 @@ export default {
   PetalCopyInput,
   PetalClearableInput,
   PetalDualRangeSlider,
+  PetalNumberTicker,
+  PetalConfetti,
+  PetalSpotlight,
+  PetalWordRotate,
+  PetalTypingEffect,
 };

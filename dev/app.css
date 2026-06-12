@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @source "../lib/**/*.ex";
+@source "../dev.exs";
 @import "../assets/default.css";
 @import "./colors.css";
 @import "./heroicons.css";

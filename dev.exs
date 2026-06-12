@@ -38,11 +38,13 @@ defmodule Dev.Layouts do
         </script>
         <script src="/assets/phoenix_live_view/phoenix_live_view.js">
         </script>
-        <script>
-          window.hooks = {}
-          window.uploaders = {}
-          let liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {hooks, uploaders})
-          liveSocket.connect()
+        <script type="module">
+          import PetalComponents from "/assets/js/petal_components.js";
+          window.liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {
+            hooks: { ...PetalComponents },
+            uploaders: {},
+          });
+          window.liveSocket.connect();
         </script>
         {@inner_content}
       </body>
@@ -78,6 +80,7 @@ defmodule Dev.PlaygroundLive do
      assign(socket,
        page_title: "Petal Components Playground",
        count: 0,
+       stars: 5200,
        form: to_form(changeset, as: :user),
        active_tab: "buttons",
        group_size: "md",
@@ -99,6 +102,12 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("switch_tab", %{"tab" => tab}, socket),
     do: {:noreply, assign(socket, :active_tab, tab)}
+
+  def handle_event("randomize_stars", _, socket),
+    do: {:noreply, assign(socket, :stars, Enum.random(3_000..9_999))}
+
+  def handle_event("celebrate", _, socket),
+    do: {:noreply, push_event(socket, "pc-confetti", %{})}
 
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
@@ -147,6 +156,8 @@ defmodule Dev.PlaygroundLive do
       color: :string,
       file: :string,
       range: :integer,
+      price_min: :integer,
+      price_max: :integer,
       textarea: :string,
       select: :string,
       switch: :boolean,
@@ -192,6 +203,7 @@ defmodule Dev.PlaygroundLive do
               {"Data Display", "data"},
               {"Navigation", "navigation"},
               {"Layout", "layout"},
+              {"Effects", "effects"},
               {"Chat", "chat"}
             ]
           }
@@ -569,6 +581,50 @@ defmodule Dev.PlaygroundLive do
               required
             />
 
+            <%!-- Dual Range Slider --%>
+            <div>
+              <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Price Range</p>
+              <.input
+                type="range-dual"
+                id="price-range"
+                min_field={@form[:price_min]}
+                max_field={@form[:price_max]}
+                range_min={0}
+                range_max={1000}
+                value_prefix="$"
+                step={10}
+              />
+            </div>
+
+            <%!-- Dual Range Slider — percentage --%>
+            <div>
+              <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Match Score</p>
+              <.input
+                type="range-dual"
+                id="score-range"
+                min_field={@form[:price_min]}
+                max_field={@form[:price_max]}
+                range_min={0}
+                range_max={100}
+                value_suffix="%"
+              />
+            </div>
+
+            <%!-- Dual Range Slider — disabled --%>
+            <div>
+              <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disabled slider</p>
+              <.input
+                type="range-dual"
+                id="disabled-range"
+                min_field={@form[:price_min]}
+                max_field={@form[:price_max]}
+                range_min={0}
+                range_max={500}
+                value_prefix="$"
+                disabled
+              />
+            </div>
+
             <div class="flex justify-end">
               <.button type="submit" label="Submit" />
             </div>
@@ -808,6 +864,72 @@ defmodule Dev.PlaygroundLive do
       <%!-- NAVIGATION TAB                                               --%>
       <%!-- ============================================================ --%>
       <div :if={@active_tab == "navigation"} class="space-y-8">
+        <%!-- Navigation Menu (flyout) --%>
+        <section>
+          <.h2 class="mb-4">Navigation Menu (flyout)</.h2>
+          <.p class="mb-4 text-sm text-gray-500">
+            Click a trigger to open its panel. Escape or clicking away closes it.
+          </.p>
+          <div class="rounded-xl border border-gray-200 bg-white px-4 py-2">
+            <.navigation_menu id="demo-nav">
+              <:item label="Products" width="md">
+                <.navigation_menu_link
+                  to="#"
+                  icon="hero-chart-bar"
+                  title="Analytics"
+                  description="Get a better understanding of your traffic"
+                />
+                <.navigation_menu_link
+                  to="#"
+                  icon="hero-cursor-arrow-rays"
+                  title="Engagement"
+                  description="Speak directly to your customers"
+                />
+                <.navigation_menu_link
+                  to="#"
+                  icon="hero-shield-check"
+                  title="Security"
+                  description="Your customers' data is safe and secure"
+                />
+                <.navigation_menu_footer>
+                  <.navigation_menu_footer_link to="#" icon="hero-play-circle" label="Watch demo" />
+                  <.navigation_menu_footer_link to="#" icon="hero-phone" label="Contact sales" />
+                </.navigation_menu_footer>
+              </:item>
+              <:item label="Solutions" width="xl">
+                <div class="grid grid-cols-2 gap-1">
+                  <.navigation_menu_link
+                    to="#"
+                    icon="hero-building-storefront"
+                    title="E-commerce"
+                    description="Sell products online"
+                  />
+                  <.navigation_menu_link
+                    to="#"
+                    icon="hero-users"
+                    title="SaaS"
+                    description="Multi-tenant apps"
+                  />
+                  <.navigation_menu_link
+                    to="#"
+                    icon="hero-newspaper"
+                    title="Content"
+                    description="Blogs and publications"
+                  />
+                  <.navigation_menu_link
+                    to="#"
+                    icon="hero-chart-pie"
+                    title="Dashboards"
+                    description="Internal tools and admin"
+                  />
+                </div>
+              </:item>
+              <:item label="Pricing" to="#" />
+              <:item label="Docs" to="#" current />
+            </.navigation_menu>
+          </div>
+        </section>
+
         <%!-- Tabs Component --%>
         <section>
           <.h2 class="mb-4">Tabs (pill style)</.h2>
@@ -1024,6 +1146,153 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <%!-- ============================================================ --%>
+      <%!-- EFFECTS TAB                                                  --%>
+      <%!-- ============================================================ --%>
+      <div :if={@active_tab == "effects"} class="space-y-10">
+        <section>
+          <.h2 class="mb-4">Text Animations</.h2>
+          <div class="space-y-8">
+            <div>
+              <.h4 class="mb-2">Gradient Text</.h4>
+              <.gradient_text class="text-4xl font-bold">Build beautiful Phoenix apps</.gradient_text>
+            </div>
+            <div>
+              <.h4 class="mb-2">Shimmer Text</.h4>
+              <.shimmer_text class="text-lg font-medium">
+                ✨ Introducing Petal Components
+              </.shimmer_text>
+            </div>
+            <div>
+              <.h4 class="mb-2">Word Rotate</.h4>
+              <span class="text-3xl font-bold">
+                Petal makes your app
+                <.word_rotate
+                  id="effects-word-rotate"
+                  words={["beautiful.", "fast.", "accessible.", "consistent."]}
+                  class="text-primary-600"
+                />
+              </span>
+            </div>
+            <div>
+              <.h4 class="mb-2">Typing Effect</.h4>
+              <.typing_effect
+                id="effects-typing"
+                text="mix igniter.install petal_components"
+                loop
+                class="font-mono text-lg"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Number Ticker</.h2>
+          <div class="flex flex-wrap items-end gap-8">
+            <div>
+              <.number_ticker id="effects-ticker-stars" value={@stars} class="text-4xl font-bold" />
+              <.p class="text-sm text-gray-500">GitHub stars</.p>
+            </div>
+            <div>
+              <.number_ticker
+                id="effects-ticker-mrr"
+                value={12480}
+                prefix="$"
+                class="text-4xl font-bold"
+              />
+              <.p class="text-sm text-gray-500">MRR</.p>
+            </div>
+            <div>
+              <.number_ticker
+                id="effects-ticker-uptime"
+                value={99.98}
+                decimal_places={2}
+                suffix="%"
+                class="text-4xl font-bold"
+              />
+              <.p class="text-sm text-gray-500">Uptime</.p>
+            </div>
+            <.button size="sm" variant="outline" label="Update value" phx-click="randomize_stars" />
+          </div>
+          <.p class="mt-2 text-sm text-gray-500">
+            Counts up when scrolled into view. Updating the assign animates from the old value to the new one.
+          </.p>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Border Beam</.h2>
+          <div class="grid max-w-3xl gap-6 md:grid-cols-2">
+            <.border_beam>
+              <div class="p-8">
+                <.h4>Default beam</.h4>
+                <.p class="text-sm text-gray-500">An animated beam travels along the border.</.p>
+              </div>
+            </.border_beam>
+            <.border_beam color_from="#38bdf8" color_to="#818cf8" duration="5s">
+              <div class="p-8">
+                <.h4>Custom colors</.h4>
+                <.p class="text-sm text-gray-500">color_from, color_to, duration, size.</.p>
+              </div>
+            </.border_beam>
+          </div>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Meteors</.h2>
+          <div class="relative max-w-3xl overflow-hidden rounded-xl bg-gray-950 px-8 py-16">
+            <.meteors count={25} />
+            <div class="relative text-center">
+              <.h3 class="text-white">Ship faster with Petal</.h3>
+              <.p class="text-gray-400">Pure CSS — meteor positions are generated server-side.</.p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Spotlight Cards</.h2>
+          <div class="grid max-w-4xl gap-4 md:grid-cols-3">
+            <.spotlight_card id="spotlight-1">
+              <div class="p-6">
+                <.icon name="hero-bolt" class="mb-3 h-6 w-6 text-primary-600" />
+                <.h5>Fast by default</.h5>
+                <.p class="text-sm text-gray-500">Server-rendered, minimal JS.</.p>
+              </div>
+            </.spotlight_card>
+            <.spotlight_card id="spotlight-2">
+              <div class="p-6">
+                <.icon name="hero-swatch" class="mb-3 h-6 w-6 text-primary-600" />
+                <.h5>Themeable</.h5>
+                <.p class="text-sm text-gray-500">Tailwind v4 with pc-* overrides.</.p>
+              </div>
+            </.spotlight_card>
+            <.spotlight_card id="spotlight-3" spotlight_color="rgb(56 189 248 / 0.25)">
+              <div class="p-6">
+                <.icon name="hero-cursor-arrow-ripple" class="mb-3 h-6 w-6 text-primary-600" />
+                <.h5>Custom glow</.h5>
+                <.p class="text-sm text-gray-500">Move your cursor over this card.</.p>
+              </div>
+            </.spotlight_card>
+          </div>
+        </section>
+
+        <section>
+          <.h2 class="mb-4">Confetti</.h2>
+          <.confetti id="effects-confetti" />
+          <div class="flex flex-wrap gap-3">
+            <.button label="Server burst 🎉" phx-click="celebrate" />
+            <.button
+              variant="outline"
+              label="Client burst (no round trip)"
+              phx-click={JS.dispatch("pc:confetti", to: "#effects-confetti")}
+            />
+          </div>
+          <.p class="mt-2 text-sm text-gray-500">
+            Fire from the server with <code>push_event(socket, "pc-confetti", %{})</code>
+            or from the client with <code>JS.dispatch("pc:confetti")</code>.
+          </.p>
+        </section>
+      </div>
+
+      <%!-- ============================================================ --%>
       <%!-- CHAT TAB                                                     --%>
       <%!-- ============================================================ --%>
       <div :if={@active_tab == "chat"} class="space-y-10">
@@ -1123,6 +1392,20 @@ defmodule Dev.Router do
   end
 end
 
+# -- Serialized code reloader --------------------------------------------------
+
+defmodule Dev.Reloader do
+  # phoenix_playground's reloader re-evaluates this whole file on every
+  # request. Two concurrent requests (e.g. a HEAD + GET from tooling like curl
+  # or browser prefetch) race the compiler and crash with "module is currently
+  # being defined", so serialize reloads behind a global lock.
+  def reload(endpoint, opts) do
+    :global.trans({__MODULE__, self()}, fn ->
+      PhoenixPlayground.CodeReloader.reload(endpoint, opts)
+    end)
+  end
+end
+
 # -- Custom endpoint with Plug.Static for compiled CSS ------------------------
 
 defmodule Dev.Endpoint do
@@ -1136,6 +1419,9 @@ defmodule Dev.Endpoint do
   plug Plug.Static, from: {:phoenix, "priv/static"}, at: "/assets/phoenix"
   plug Plug.Static, from: {:phoenix_live_view, "priv/static"}, at: "/assets/phoenix_live_view"
 
+  # Petal Components hook bundle (loaded as an ES module by the root layout)
+  plug Plug.Static, from: Path.expand("assets/js", __DIR__), at: "/assets/js"
+
   # Compiled Tailwind CSS
   plug Plug.Static,
     from: Path.expand("priv/static", __DIR__),
@@ -1143,7 +1429,7 @@ defmodule Dev.Endpoint do
 
   socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
   plug Phoenix.LiveReloader
-  plug Phoenix.CodeReloader, reloader: &PhoenixPlayground.CodeReloader.reload/2
+  plug Phoenix.CodeReloader, reloader: &Dev.Reloader.reload/2
 
   plug Plug.Session,
     store: :cookie,
@@ -1220,7 +1506,8 @@ Mix.Task.run("tailwind", ["petal_dev"])
 
 PhoenixPlayground.start(
   endpoint: Dev.Endpoint,
-  open_browser: true,
+  # OPEN_BROWSER=false for headless runs (CI, agents)
+  open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
   live_reload: true,
   endpoint_options: [
     debug_errors: true,
