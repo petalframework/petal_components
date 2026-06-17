@@ -2947,29 +2947,40 @@
     @apply rotate-180;
   }
 
+  /* Mobile: a full-width sheet pinned to the viewport gutters, so the panel can
+     never be clipped no matter where its trigger sits. Desktop (sm+): anchored
+     under the trigger at its start edge, opening rightward into the page. */
   .pc-nav-menu__panel {
-    @apply absolute left-1/2 top-full z-20 mt-3 w-screen -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10;
+    @apply fixed inset-x-2 z-20 mt-2 max-h-[80vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10 sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:mt-3 sm:max-h-none sm:overflow-hidden;
   }
 
+  /* Widths apply on desktop only (mobile spans the viewport). Each is clamped to
+     the viewport so a wide panel shrinks instead of overflowing. */
   .pc-nav-menu__panel--sm {
-    @apply max-w-sm;
+    @apply sm:w-[min(24rem,calc(100vw-1rem))];
   }
 
   .pc-nav-menu__panel--md {
-    @apply max-w-md;
+    @apply sm:w-[min(28rem,calc(100vw-1rem))];
   }
 
   .pc-nav-menu__panel--lg {
-    @apply max-w-lg;
+    @apply sm:w-[min(32rem,calc(100vw-1rem))];
   }
 
   .pc-nav-menu__panel--xl {
-    @apply max-w-xl;
+    @apply sm:w-[min(36rem,calc(100vw-1rem))];
   }
 
-  /* Mega menu: spans the nearest positioned ancestor (give your header `relative`) */
+  /* Anchor the panel to the trigger's end edge (opens leftward). Use for
+     triggers near the right of the nav so the panel stays on screen. */
+  .pc-nav-menu__panel--end {
+    @apply sm:left-auto sm:right-0;
+  }
+
+  /* Mega menu: spans the nearest positioned ancestor (give your header `relative`). */
   .pc-nav-menu__panel--full {
-    @apply left-0 right-0 mt-0 w-auto max-w-none translate-x-0 rounded-none border-t border-gray-100 p-6 dark:border-gray-700;
+    @apply sm:inset-x-0 sm:mt-0 sm:w-auto sm:max-w-none sm:rounded-none sm:border-t sm:border-gray-100 sm:p-6 sm:dark:border-gray-700;
   }
 
   .pc-nav-menu__link {

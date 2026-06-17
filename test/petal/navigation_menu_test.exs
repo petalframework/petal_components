@@ -64,6 +64,26 @@ defmodule PetalComponents.NavigationMenuTest do
       assert html =~ "pc-nav-menu__panel--lg"
     end
 
+    test "align=end anchors the panel to the trigger's end edge" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.navigation_menu id="nav">
+          <:item label="Start">
+            <div>A</div>
+          </:item>
+          <:item label="End" align="end">
+            <div>B</div>
+          </:item>
+        </.navigation_menu>
+        """)
+
+      assert html =~ "pc-nav-menu__panel--end"
+      # only the end item gets the modifier
+      assert count_substring(html, "pc-nav-menu__panel--end") == 1
+    end
+
     test "full_width renders a mega panel and drops the item's relative positioning" do
       assigns = %{}
 
@@ -181,6 +201,25 @@ defmodule PetalComponents.NavigationMenuTest do
       refute html =~ "pc-nav-menu__link-icon"
       refute html =~ "pc-nav-menu__link-description"
       assert html =~ "Bare"
+    end
+
+    test "forwards anchor attributes (target, rel, referrerpolicy)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.navigation_menu_link
+          to="/x"
+          title="External"
+          target="_blank"
+          rel="noopener"
+          referrerpolicy="no-referrer"
+        />
+        """)
+
+      assert html =~ ~s(target="_blank")
+      assert html =~ ~s(rel="noopener")
+      assert html =~ ~s(referrerpolicy="no-referrer")
     end
   end
 

@@ -187,7 +187,8 @@ defmodule Dev.PlaygroundLive do
       <div class="mb-8">
         <.h1>Petal Components Playground</.h1>
         <.p class="text-gray-500">
-          Edit components in <code class="text-sm bg-gray-100 px-1.5 py-0.5 rounded">lib/petal_components/</code>
+          Edit components in
+          <code class="text-sm bg-gray-100 px-1.5 py-0.5 rounded">lib/petal_components/</code>
           and see changes live.
         </.p>
       </div>
@@ -640,8 +641,18 @@ defmodule Dev.PlaygroundLive do
           <.h2 class="mb-4">Alerts</.h2>
           <div class="space-y-3">
             <.alert with_icon color="info" label="This is an info alert." heading="Info" />
-            <.alert with_icon color="success" label="Operation completed successfully." heading="Success" />
-            <.alert with_icon color="warning" label="Please review before continuing." heading="Warning" />
+            <.alert
+              with_icon
+              color="success"
+              label="Operation completed successfully."
+              heading="Success"
+            />
+            <.alert
+              with_icon
+              color="warning"
+              label="Please review before continuing."
+              heading="Warning"
+            />
             <.alert with_icon color="danger" label="Something went wrong." heading="Error" />
           </div>
         </section>
@@ -701,7 +712,10 @@ defmodule Dev.PlaygroundLive do
 
         <section>
           <.h2 class="mb-4">Slide Over</.h2>
-          <.button phx-click={PetalComponents.SlideOver.show_slide_over("right", "slide-over")} label="Open Slide Over" />
+          <.button
+            phx-click={PetalComponents.SlideOver.show_slide_over("right", "slide-over")}
+            label="Open Slide Over"
+          />
           <.slide_over title="Example Slide Over" origin="right" hide>
             <.p>Content goes here.</.p>
             <div class="flex justify-end mt-4">
@@ -851,7 +865,8 @@ defmodule Dev.PlaygroundLive do
               A set of HEEX components for Phoenix developers -- like Shadcn, but for LiveView.
             </:item>
             <:item heading="How do I install it?">
-              Add <code>petal_components</code> to your mix.exs dependencies and follow the setup guide.
+              Add <code>petal_components</code>
+              to your mix.exs dependencies and follow the setup guide.
             </:item>
             <:item heading="Is it free?">
               Yes! Petal Components is open source and MIT licensed.
@@ -870,64 +885,88 @@ defmodule Dev.PlaygroundLive do
           <.p class="mb-4 text-sm text-gray-500">
             Click a trigger to open its panel. Escape or clicking away closes it.
           </.p>
-          <div class="rounded-xl border border-gray-200 bg-white px-4 py-2">
-            <.navigation_menu id="demo-nav">
-              <:item label="Products" width="md">
-                <.navigation_menu_link
-                  to="#"
-                  icon="hero-chart-bar"
-                  title="Analytics"
-                  description="Get a better understanding of your traffic"
-                />
-                <.navigation_menu_link
-                  to="#"
-                  icon="hero-cursor-arrow-rays"
-                  title="Engagement"
-                  description="Speak directly to your customers"
-                />
-                <.navigation_menu_link
-                  to="#"
-                  icon="hero-shield-check"
-                  title="Security"
-                  description="Your customers' data is safe and secure"
-                />
-                <.navigation_menu_footer>
-                  <.navigation_menu_footer_link to="#" icon="hero-play-circle" label="Watch demo" />
-                  <.navigation_menu_footer_link to="#" icon="hero-phone" label="Contact sales" />
-                </.navigation_menu_footer>
-              </:item>
-              <:item label="Solutions" width="xl">
-                <div class="grid grid-cols-2 gap-1">
+          <%!-- Triggers pushed to the right edge to stress-test screen-boundary handling. --%>
+          <div class="rounded-xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-900">
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-lg font-bold text-gray-900 dark:text-white">Acme</span>
+              <.navigation_menu id="demo-nav">
+                <:item label="Pricing" to="#" />
+                <:item label="Products" width="md">
                   <.navigation_menu_link
                     to="#"
-                    icon="hero-building-storefront"
-                    title="E-commerce"
-                    description="Sell products online"
+                    icon="hero-chart-bar"
+                    title="Analytics"
+                    description="Get a better understanding of your traffic"
                   />
                   <.navigation_menu_link
                     to="#"
-                    icon="hero-users"
-                    title="SaaS"
-                    description="Multi-tenant apps"
+                    icon="hero-cursor-arrow-rays"
+                    title="Engagement"
+                    description="Speak directly to your customers"
                   />
                   <.navigation_menu_link
                     to="#"
-                    icon="hero-newspaper"
-                    title="Content"
-                    description="Blogs and publications"
+                    icon="hero-shield-check"
+                    title="Security"
+                    description="Your customers' data is safe and secure"
+                  />
+                  <.navigation_menu_footer>
+                    <.navigation_menu_footer_link to="#" icon="hero-play-circle" label="Watch demo" />
+                    <.navigation_menu_footer_link to="#" icon="hero-phone" label="Contact sales" />
+                  </.navigation_menu_footer>
+                </:item>
+                <:item label="Solutions" width="lg" align="end">
+                  <div class="grid grid-cols-2 gap-1">
+                    <.navigation_menu_link
+                      to="#"
+                      icon="hero-building-storefront"
+                      title="E-commerce"
+                      description="Sell products online"
+                    />
+                    <.navigation_menu_link
+                      to="#"
+                      icon="hero-users"
+                      title="SaaS"
+                      description="Multi-tenant apps"
+                    />
+                    <.navigation_menu_link
+                      to="#"
+                      icon="hero-newspaper"
+                      title="Content"
+                      description="Blogs and publications"
+                    />
+                    <.navigation_menu_link
+                      to="#"
+                      icon="hero-chart-pie"
+                      title="Dashboards"
+                      description="Internal tools and admin"
+                    />
+                  </div>
+                </:item>
+                <:item label="Resources" width="lg" align="end">
+                  <.navigation_menu_link
+                    to="#"
+                    icon="hero-book-open"
+                    title="Docs"
+                    description="Guides and API reference"
                   />
                   <.navigation_menu_link
                     to="#"
-                    icon="hero-chart-pie"
-                    title="Dashboards"
-                    description="Internal tools and admin"
+                    icon="hero-academic-cap"
+                    title="Tutorials"
+                    description="Learn by building"
                   />
-                </div>
-              </:item>
-              <:item label="Pricing" to="#" />
-              <:item label="Docs" to="#" current />
-            </.navigation_menu>
+                </:item>
+                <:item label="Docs" to="#" current />
+              </.navigation_menu>
+            </div>
           </div>
+          <.p class="mt-3 text-xs text-gray-400">
+            Panels anchor to the trigger's left edge by default (opening rightward). Triggers near
+            the right edge set <code>align="end"</code> (as on "Solutions" and "Resources") so the
+            panel opens leftward and stays on screen. Every panel is width-clamped to the viewport,
+            and on mobile becomes a full-width sheet.
+          </.p>
         </section>
 
         <%!-- Tabs Component --%>
@@ -1363,7 +1402,9 @@ defmodule Dev.PlaygroundLive do
 
         <section>
           <.h3 class="mb-4">Error</.h3>
-          <Chat.chat_error on_retry="noop">Something went wrong generating a response.</Chat.chat_error>
+          <Chat.chat_error on_retry="noop">
+            Something went wrong generating a response.
+          </Chat.chat_error>
         </section>
       </div>
     </.container>
@@ -1497,9 +1538,7 @@ File.mkdir_p!("priv/static/assets")
 Dev.HeroiconsCSS.generate()
 
 # Pre-configure endpoint (PhoenixPlayground merges on top of this)
-Application.put_env(:phoenix_playground, Dev.Endpoint,
-  secret_key_base: String.duplicate("a", 64)
-)
+Application.put_env(:phoenix_playground, Dev.Endpoint, secret_key_base: String.duplicate("a", 64))
 
 # Run initial Tailwind build before starting the server
 Mix.Task.run("tailwind", ["petal_dev"])

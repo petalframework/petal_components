@@ -69,6 +69,21 @@ defmodule PetalComponents.ATest do
     assert html =~ "data-method"
   end
 
+  test "link forwards target and rel attributes" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <Link.a to="/x" target="_blank" rel="noopener">
+        Press me
+      </Link.a>
+      """)
+
+    assert html =~ "Press me"
+    assert html =~ ~s(target="_blank")
+    assert html =~ ~s(rel="noopener")
+  end
+
   test "link as a disabled button" do
     assigns = %{}
 

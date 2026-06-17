@@ -10,7 +10,7 @@ defmodule PetalComponents.Link do
     default: false,
     doc: "disables the link. This will turn an <a> into a <button> (<a> tags can't be disabled)"
 
-  attr :rest, :global, include: ~w(method download)
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type)
   slot :inner_block, required: false
 
   def a(%{link_type: "button", disabled: true} = assigns) do

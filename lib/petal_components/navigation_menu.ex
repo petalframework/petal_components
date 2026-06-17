@@ -14,6 +14,16 @@ defmodule PetalComponents.NavigationMenu do
   (icon + title + description), an optional `navigation_menu_footer/1` CTA
   strip, or any markup you like.
 
+  ## Staying on screen
+
+  Flyout panels anchor to their trigger's start edge and open rightward into
+  the page (so a left-most trigger never opens back under a sidebar). For a
+  trigger near the right edge, set `align="end"` on the item so its panel opens
+  leftward instead and stays on screen. Panel widths are clamped to the
+  viewport, and on small screens every panel becomes a full-width sheet pinned
+  to the viewport gutters, so nothing is clipped regardless of where the trigger
+  sits.
+
   ## Full-width (mega menu) panels
 
   Set `full_width` on an item and the panel spans the nearest positioned
@@ -42,6 +52,10 @@ defmodule PetalComponents.NavigationMenu do
       doc: ~s|for plain links: "a" (default), "live_patch" or "live_redirect"|
 
     attr :width, :string, doc: ~s|flyout panel width: "sm", "md" (default), "lg" or "xl"|
+
+    attr :align, :string,
+      doc:
+        ~s|which edge of the trigger the flyout panel anchors to: "start" (default, opens rightward) or "end" (opens leftward). Use "end" for triggers near the right edge so the panel stays on screen.|
 
     attr :full_width, :boolean,
       doc: "span the panel across the nearest positioned ancestor (mega menu)"
@@ -124,6 +138,7 @@ defmodule PetalComponents.NavigationMenu do
               class={[
                 "pc-nav-menu__panel",
                 panel_width_class(item[:width]),
+                item[:align] == "end" && "pc-nav-menu__panel--end",
                 item[:full_width] && "pc-nav-menu__panel--full"
               ]}
               style="display: none;"
@@ -148,7 +163,7 @@ defmodule PetalComponents.NavigationMenu do
     values: ["a", "live_patch", "live_redirect"]
 
   attr :class, :any, default: nil
-  attr :rest, :global, include: ~w(target rel method download)
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type)
 
   @doc """
   A flyout panel row: icon in a tinted square, bold title, muted one-line
@@ -192,7 +207,7 @@ defmodule PetalComponents.NavigationMenu do
     default: "a",
     values: ["a", "live_patch", "live_redirect"]
 
-  attr :rest, :global, include: ~w(target rel method download)
+  attr :rest, :global, include: ~w(method download hreflang ping referrerpolicy rel target type)
 
   @doc """
   A compact centered CTA for `navigation_menu_footer/1`.
