@@ -19,10 +19,9 @@ defmodule PetalComponents.NavigationMenu do
   Flyout panels anchor to their trigger's start edge and open rightward into
   the page (so a left-most trigger never opens back under a sidebar). For a
   trigger near the right edge, set `align="end"` on the item so its panel opens
-  leftward instead and stays on screen. Panel widths are clamped to the
-  viewport, and on small screens every panel becomes a full-width sheet pinned
-  to the viewport gutters, so nothing is clipped regardless of where the trigger
-  sits.
+  leftward instead and stays on screen. Panel widths are clamped to the viewport
+  so a wide panel shrinks to fit instead of overflowing on a phone, and a panel
+  taller than the screen scrolls rather than being cut off at the bottom.
 
   ## Full-width (mega menu) panels
 
