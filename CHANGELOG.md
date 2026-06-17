@@ -1,4 +1,10 @@
 # Changelog
+### 4.1.2 - 2026-06-17
+
+#### Fixed
+
+- **`navigation_menu` flyout panels now open on small screens.** 4.1.1 positioned panels with `position: fixed` below the `sm` breakpoint, which on real phones placed the panel at the wrong spot (often off-screen), so tapping a trigger looked like it did nothing. It worked in landscape only because that width uses the desktop layout. Panels now use `position: absolute` at every breakpoint, the same positioning that already worked on desktop: anchored under the trigger, width-clamped to the viewport, and scrollable if taller than the screen. Use `align="end"` for triggers near the right edge.
+
 ### 4.1.1 - 2026-06-17
 
 #### Added
