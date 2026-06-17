@@ -1,4 +1,16 @@
 # Changelog
+### 4.1.1 - 2026-06-17
+
+#### Added
+
+- **`navigation_menu` flyout panels stay on screen.** Each `:item` now takes an `align` attr (`"start"`, the default, or `"end"`). Panels anchor to the trigger's start edge and open rightward by default, so a left-most trigger no longer opens back under a sidebar; set `align="end"` on a trigger near the right edge so its panel opens leftward instead. Panel widths are clamped to the viewport, and on small screens every panel becomes a full-width sheet pinned to the viewport gutters.
+
+#### Fixed
+
+- **`navigation_menu` flyout panels no longer overflow the viewport.** Panels were centred on their trigger at `width: 100vw` before being clamped, so a trigger near a screen edge (or any trigger on mobile) pushed the panel off-screen where it was clipped. They now edge-anchor and clamp to the viewport (see the `align` attr above).
+- **`<.a>` now forwards `target`, `rel` and the other anchor attributes.** The `:rest` global on `<.a>` only allowed `method` and `download`, so writing `<.a target="_blank">` raised a compile warning and the attribute was silently dropped at runtime (the link opened in the same tab instead of a new one). The include list now matches `<.button>`, `<.dropdown_menu_item>` and `<.tabs>`: `method download hreflang ping referrerpolicy rel target type`. Because `<.dropdown_menu_item>` renders through `<.a>`, this also restores attribute forwarding for dropdown menu items.
+- **`navigation_menu_link` and `navigation_menu_footer_link` use the same canonical anchor include list.** They already forwarded `target`/`rel`, but now also pass `hreflang`, `ping`, `referrerpolicy` and `type` for consistency with the other link-rendering components.
+
 ### 4.1.0 - 2026-06-12
 
 Seven new components. One closes the biggest functional gap (a real navigation menu), the other six open a lane no Phoenix component library covers: landing-page "special effects" in the MagicUI style, built for server rendering — most are pure CSS, the rest ship as hooks in the JS bundle.

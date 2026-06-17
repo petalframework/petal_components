@@ -2,7 +2,7 @@ defmodule PetalComponents.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/petalframework/petal_components"
-  @version "4.1.0"
+  @version "4.1.1"
 
   def project do
     [
@@ -86,7 +86,8 @@ defmodule PetalComponents.MixProject do
         "Rules for AI tools" => "https://petal.build/petal-components/rules.md",
         "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
       },
-      files: ~w(mix.exs priv lib assets guides README.md LICENSE.md CHANGELOG.md rules.md UPGRADE_GUIDE.md)
+      files:
+        ~w(mix.exs priv lib assets guides README.md LICENSE.md CHANGELOG.md rules.md UPGRADE_GUIDE.md)
     ]
   end
 
