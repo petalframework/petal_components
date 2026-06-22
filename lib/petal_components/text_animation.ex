@@ -127,7 +127,7 @@ defmodule PetalComponents.TextAnimation do
   A typewriter effect. The full text is rendered server-side (visible without
   JavaScript); the `PetalTypingEffect` hook replays it character by character.
 
-      <.typing_effect id="typing" text="mix igniter.install petal_components" class="font-mono" />
+      <.typing_effect id="typing" text="shadcn for Phoenix" class="font-mono" />
   """
   def typing_effect(assigns) do
     ~H"""

@@ -1216,7 +1216,7 @@ defmodule Dev.PlaygroundLive do
               <.h4 class="mb-2">Typing Effect</.h4>
               <.typing_effect
                 id="effects-typing"
-                text="mix igniter.install petal_components"
+                text="shadcn for Phoenix"
                 loop
                 class="font-mono text-lg"
               />
