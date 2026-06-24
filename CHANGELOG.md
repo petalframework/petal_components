@@ -7,7 +7,8 @@
 
 #### Changed
 
-- **Refined the typography scale.** More readable body line-height, tighter heading tracking, softened the heaviest heading weights, and `h5` is now sized distinctly from `h4`. Existing `h1`-`h5` and `p` will look slightly different (a deliberate polish pass) — no API changes.
+- **Refined the typography scale.** More readable body line-height, tighter heading tracking with balanced multi-line headings (`text-wrap: balance`), softened the heaviest heading weights, and `h5` is now sized distinctly from `h4`. Existing `h1`-`h5` and `p` will look slightly different (a deliberate polish pass) — no API changes.
+- **`ul` / `ol` lists now look considered out of the box.** Markers sit outside with consistent indentation (ordered and unordered match), and there is built-in vertical spacing between items, so a list reads well without adding spacing utilities yourself.
 
 ### 4.1.2 - 2026-06-17
 

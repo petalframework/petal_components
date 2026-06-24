@@ -1100,8 +1100,11 @@ defmodule Dev.PlaygroundLive do
             </.lead>
             <.p>
               Petal Components gives you a refined set of headings, body copy and inline elements
-              out of the box. Drop in a <.inline_code>&lt;.button&gt;</.inline_code> or a
-              <.inline_code>&lt;.modal&gt;</.inline_code> and it already matches.
+              out of the box. Drop in a
+              <.inline_code>&lt;.button&gt;</.inline_code>
+              or a
+              <.inline_code>&lt;.modal&gt;</.inline_code>
+              and it already matches.
             </.p>
 
             <.h2 class="mt-10">Built for reading</.h2>
@@ -1116,18 +1119,36 @@ defmodule Dev.PlaygroundLive do
             </.blockquote>
 
             <.h3 class="mt-8">What you get</.h3>
-            <.ul class="my-4 space-y-1">
-              <li>Headings from <.inline_code>h1</.inline_code> to <.inline_code>h5</.inline_code></li>
+            <.ul>
+              <li>
+                Headings from
+                <.inline_code>h1</.inline_code>
+                to
+                <.inline_code>h5</.inline_code>
+              </li>
               <li>Lead, body, blockquote and inline code</li>
               <li>Muted, large and small text helpers</li>
             </.ul>
 
             <.h4 class="mt-8">Three steps</.h4>
-            <.ol class="my-4 space-y-1">
+            <.ol>
               <li>Add the dependency</li>
               <li>Import the styles</li>
               <li>Start composing</li>
             </.ol>
+
+            <.h4 class="mt-8">A table, too</.h4>
+            <.table
+              id="typography-table"
+              rows={[
+                %{tier: "Puns", price: "5 gold coins"},
+                %{tier: "Jokes", price: "10 gold coins"},
+                %{tier: "One-liners", price: "20 gold coins"}
+              ]}
+            >
+              <:col :let={row} label="Joke tier">{row.tier}</:col>
+              <:col :let={row} label="Tax">{row.price}</:col>
+            </.table>
 
             <.hr />
 

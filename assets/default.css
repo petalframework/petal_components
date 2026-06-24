@@ -506,16 +506,16 @@
   /* Typography */
 
   .pc-h1 {
-    @apply text-4xl font-extrabold tracking-tight leading-tight sm:text-5xl lg:text-6xl;
+    @apply text-4xl font-extrabold tracking-tight text-balance leading-tight sm:text-5xl lg:text-6xl;
   }
   .pc-h2 {
-    @apply text-3xl font-bold tracking-tight leading-tight;
+    @apply text-3xl font-bold tracking-tight text-balance leading-tight;
   }
   .pc-h3 {
-    @apply text-2xl font-bold tracking-tight leading-snug;
+    @apply text-2xl font-bold tracking-tight text-balance leading-snug;
   }
   .pc-h4 {
-    @apply text-xl font-semibold tracking-tight leading-snug;
+    @apply text-xl font-semibold tracking-tight text-balance leading-snug;
   }
   .pc-h5 {
     @apply text-base font-semibold leading-snug;

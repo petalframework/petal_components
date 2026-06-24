@@ -145,7 +145,7 @@ defmodule PetalComponents.Typography do
 
   def ul(assigns) do
     ~H"""
-    <ul class={["pc-text", "list-disc list-inside", @class]} {@rest}>
+    <ul class={["pc-text", "my-4 ml-6 list-disc [&>li]:mt-2", @class]} {@rest}>
       {render_slot(@inner_block)}
     </ul>
     """
@@ -165,7 +165,7 @@ defmodule PetalComponents.Typography do
 
   def ol(assigns) do
     ~H"""
-    <ol class={["pc-text", "list-decimal list-inside", @class]} {@rest}>
+    <ol class={["pc-text", "my-4 ml-6 list-decimal [&>li]:mt-2", @class]} {@rest}>
       {render_slot(@inner_block)}
     </ol>
     """
