@@ -506,19 +506,19 @@
   /* Typography */
 
   .pc-h1 {
-    @apply text-4xl font-extrabold tracking-tight text-balance leading-tight sm:text-5xl lg:text-6xl;
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight text-balance leading-tight sm:text-5xl lg:text-6xl;
   }
   .pc-h2 {
-    @apply text-3xl font-bold tracking-tight text-balance leading-tight;
+    @apply scroll-m-20 text-3xl font-semibold tracking-tight text-balance leading-tight;
   }
   .pc-h3 {
-    @apply text-2xl font-bold tracking-tight text-balance leading-snug;
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight text-balance leading-snug;
   }
   .pc-h4 {
-    @apply text-xl font-semibold tracking-tight text-balance leading-snug;
+    @apply scroll-m-20 text-xl font-semibold tracking-tight text-balance leading-snug;
   }
   .pc-h5 {
-    @apply text-base font-semibold leading-snug;
+    @apply scroll-m-20 text-base font-semibold leading-snug;
   }
   .pc-heading--color {
     @apply text-gray-900 dark:text-white;
@@ -533,7 +533,7 @@
     @apply text-base leading-7 text-gray-700 dark:text-gray-300;
   }
   .pc-p--margin {
-    @apply mb-4;
+    @apply mb-6;
   }
 
   /* Extended typography */
