@@ -1,4 +1,14 @@
 # Changelog
+### Unreleased (targeting 4.2.0)
+
+#### Added
+
+- **Typography: `lead`, `blockquote`, `inline_code`, `text_muted` / `text_large` / `text_small`, and `hr`.** Rounds out the type set so a full article composes without dropping to raw HTML.
+
+#### Changed
+
+- **Refined the typography scale.** More readable body line-height, tighter heading tracking, softened the heaviest heading weights, and `h5` is now sized distinctly from `h4`. Existing `h1`-`h5` and `p` will look slightly different (a deliberate polish pass) — no API changes.
+
 ### 4.1.2 - 2026-06-17
 
 #### Fixed
