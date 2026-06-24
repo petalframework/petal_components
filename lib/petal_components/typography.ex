@@ -170,4 +170,92 @@ defmodule PetalComponents.Typography do
     </ol>
     """
   end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc """
+  A larger, muted introductory paragraph for the top of a page or section.
+
+      <.lead>Petal Components is a set of HEEx components for Phoenix.</.lead>
+  """
+  def lead(assigns) do
+    ~H"""
+    <p class={["pc-lead", @class]} {@rest}>{render_slot(@inner_block)}</p>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc """
+  A styled blockquote with a left border.
+
+      <.blockquote>"This library shipped our marketing site in a weekend."</.blockquote>
+  """
+  def blockquote(assigns) do
+    ~H"""
+    <blockquote class={["pc-blockquote", @class]} {@rest}>{render_slot(@inner_block)}</blockquote>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc """
+  Inline code styling for snippets within a sentence.
+
+      Run <.inline_code>mix deps.get</.inline_code> to install.
+  """
+  def inline_code(assigns) do
+    ~H"""
+    <code class={["pc-inline-code", @class]} {@rest}>{render_slot(@inner_block)}</code>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc "Muted secondary text, e.g. a caption or helper line."
+  def text_muted(assigns) do
+    ~H"""
+    <p class={["pc-text-muted", @class]} {@rest}>{render_slot(@inner_block)}</p>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc "Slightly larger, emphasised body text."
+  def text_large(assigns) do
+    ~H"""
+    <div class={["pc-text-large", @class]} {@rest}>{render_slot(@inner_block)}</div>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+  slot(:inner_block, required: false)
+
+  @doc "Small, tight label text."
+  def text_small(assigns) do
+    ~H"""
+    <small class={["pc-text-small", @class]} {@rest}>{render_slot(@inner_block)}</small>
+    """
+  end
+
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+
+  @doc "A horizontal rule with sensible vertical spacing."
+  def hr(assigns) do
+    ~H"""
+    <hr class={["pc-hr", @class]} {@rest} />
+    """
+  end
 end
