@@ -161,4 +161,46 @@ defmodule PetalComponents.TypographyTest do
     assert html =~ "pc-text"
     assert html =~ "random-attribute"
   end
+
+  test ".lead" do
+    assigns = %{}
+    html = rendered_to_string(~H"<.lead>Intro</.lead>")
+    assert html =~ "Intro"
+    assert html =~ "pc-lead"
+    assert html =~ "<p class="
+  end
+
+  test ".blockquote" do
+    assigns = %{}
+    html = rendered_to_string(~H"<.blockquote>A quote</.blockquote>")
+    assert html =~ "A quote"
+    assert html =~ "pc-blockquote"
+    assert html =~ "<blockquote"
+  end
+
+  test ".inline_code" do
+    assigns = %{}
+    html = rendered_to_string(~H"<.inline_code>mix deps.get</.inline_code>")
+    assert html =~ "mix deps.get"
+    assert html =~ "pc-inline-code"
+    assert html =~ "<code"
+  end
+
+  test ".text_muted / .text_large / .text_small" do
+    assigns = %{}
+    assert rendered_to_string(~H"<.text_muted>m</.text_muted>") =~ "pc-text-muted"
+    assert rendered_to_string(~H"<.text_large>l</.text_large>") =~ "pc-text-large"
+
+    small = rendered_to_string(~H"<.text_small>s</.text_small>")
+    assert small =~ "pc-text-small"
+    assert small =~ "<small"
+  end
+
+  test ".hr" do
+    assigns = %{}
+    html = rendered_to_string(~H|<.hr class="mt-10" />|)
+    assert html =~ "<hr"
+    assert html =~ "pc-hr"
+    assert html =~ "mt-10"
+  end
 end

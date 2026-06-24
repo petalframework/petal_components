@@ -506,34 +506,57 @@
   /* Typography */
 
   .pc-h1 {
-    @apply text-4xl font-extrabold leading-10 sm:leading-none sm:text-5xl sm:tracking-tight lg:text-6xl;
+    @apply text-4xl font-extrabold tracking-tight leading-tight sm:text-5xl lg:text-6xl;
   }
   .pc-h2 {
-    @apply text-2xl font-extrabold leading-9 sm:leading-10 sm:text-3xl;
+    @apply text-3xl font-bold tracking-tight leading-tight;
   }
   .pc-h3 {
-    @apply text-xl font-bold leading-7 sm:text-2xl;
+    @apply text-2xl font-bold tracking-tight leading-snug;
   }
   .pc-h4 {
-    @apply text-lg font-bold leading-6;
+    @apply text-xl font-semibold tracking-tight leading-snug;
   }
   .pc-h5 {
-    @apply text-lg font-medium leading-6;
+    @apply text-base font-semibold leading-snug;
   }
   .pc-heading--color {
     @apply text-gray-900 dark:text-white;
   }
   .pc-heading--underline {
-    @apply pb-2 border-b border-gray-200;
+    @apply pb-2 border-b border-gray-200 dark:border-gray-800;
   }
   .pc-heading--margin {
     @apply mb-3;
   }
   .pc-text {
-    @apply leading-5 text-gray-700 dark:text-gray-300;
+    @apply text-base leading-7 text-gray-700 dark:text-gray-300;
   }
   .pc-p--margin {
-    @apply mb-2;
+    @apply mb-4;
+  }
+
+  /* Extended typography */
+  .pc-lead {
+    @apply text-xl leading-relaxed text-gray-600 dark:text-gray-400;
+  }
+  .pc-blockquote {
+    @apply mt-4 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-700 dark:text-gray-300;
+  }
+  .pc-inline-code {
+    @apply relative rounded bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100;
+  }
+  .pc-text-muted {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-text-large {
+    @apply text-lg font-semibold text-gray-900 dark:text-white;
+  }
+  .pc-text-small {
+    @apply text-sm font-medium leading-none text-gray-900 dark:text-white;
+  }
+  .pc-hr {
+    @apply my-8 border-gray-200 dark:border-gray-800;
   }
 
   /* Badges */

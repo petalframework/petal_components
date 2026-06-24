@@ -1089,16 +1089,55 @@ defmodule Dev.PlaygroundLive do
       <%!-- LAYOUT TAB                                                   --%>
       <%!-- ============================================================ --%>
       <div :if={@active_tab == "layout"} class="space-y-8">
-        <section>
-          <.h2 class="mb-4">Typography</.h2>
-          <div class="space-y-2">
-            <.h1>Heading 1</.h1>
-            <.h2>Heading 2</.h2>
-            <.h3>Heading 3</.h3>
-            <.h4>Heading 4</.h4>
-            <.h5>Heading 5</.h5>
-            <.p>A paragraph of text. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</.p>
-          </div>
+        <%!-- Realistic article showing every element in context (the example bar). --%>
+        <section class="max-w-2xl">
+          <.h2 class="mb-6">Typography</.h2>
+          <article>
+            <.h1>The quiet power of Phoenix</.h1>
+            <.lead>
+              A considered type scale does more for "looks finished" than any single component.
+              Here is every element, in the kind of context you would actually ship.
+            </.lead>
+            <.p>
+              Petal Components gives you a refined set of headings, body copy and inline elements
+              out of the box. Drop in a <.inline_code>&lt;.button&gt;</.inline_code> or a
+              <.inline_code>&lt;.modal&gt;</.inline_code> and it already matches.
+            </.p>
+
+            <.h2 class="mt-10">Built for reading</.h2>
+            <.p>
+              Body text uses a comfortable line height and a sensible measure, so paragraphs are
+              actually pleasant to read rather than cramped. Headings carry tight tracking and
+              balanced weight.
+            </.p>
+
+            <.blockquote class="my-6">
+              "We shipped our marketing site in a weekend. The defaults just look right."
+            </.blockquote>
+
+            <.h3 class="mt-8">What you get</.h3>
+            <.ul class="my-4 space-y-1">
+              <li>Headings from <.inline_code>h1</.inline_code> to <.inline_code>h5</.inline_code></li>
+              <li>Lead, body, blockquote and inline code</li>
+              <li>Muted, large and small text helpers</li>
+            </.ul>
+
+            <.h4 class="mt-8">Three steps</.h4>
+            <.ol class="my-4 space-y-1">
+              <li>Add the dependency</li>
+              <li>Import the styles</li>
+              <li>Start composing</li>
+            </.ol>
+
+            <.hr />
+
+            <div class="space-y-2">
+              <.text_large>Large — emphasised body text.</.text_large>
+              <.p>Default — the standard paragraph.</.p>
+              <.text_muted>Muted — captions, hints and metadata.</.text_muted>
+              <.text_small>Small — tight label text.</.text_small>
+            </div>
+          </article>
         </section>
 
         <section>
