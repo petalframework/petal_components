@@ -199,6 +199,7 @@ defmodule Dev.PlaygroundLive do
           :for={
             {label, key} <- [
               {"Buttons", "buttons"},
+              {"Typography", "typography"},
               {"Forms", "forms"},
               {"Feedback", "feedback"},
               {"Data Display", "data"},
@@ -1088,7 +1089,7 @@ defmodule Dev.PlaygroundLive do
       <%!-- ============================================================ --%>
       <%!-- LAYOUT TAB                                                   --%>
       <%!-- ============================================================ --%>
-      <div :if={@active_tab == "layout"} class="space-y-8">
+      <div :if={@active_tab == "typography"} class="space-y-16">
         <%!-- Realistic article showing every element in context (the example bar). --%>
         <section class="max-w-2xl">
           <.h2 class="mb-6">Typography</.h2>
@@ -1107,7 +1108,7 @@ defmodule Dev.PlaygroundLive do
               and it already matches.
             </.p>
 
-            <.h2 class="mt-10">Built for reading</.h2>
+            <.h2>Built for reading</.h2>
             <.p>
               Body text uses a comfortable line height and a sensible measure, so paragraphs are
               actually pleasant to read rather than cramped. Headings carry tight tracking and
@@ -1118,7 +1119,7 @@ defmodule Dev.PlaygroundLive do
               "We shipped our marketing site in a weekend. The defaults just look right."
             </.blockquote>
 
-            <.h3 class="mt-8">What you get</.h3>
+            <.h3>What you get</.h3>
             <.ul>
               <li>
                 Headings from
@@ -1130,14 +1131,14 @@ defmodule Dev.PlaygroundLive do
               <li>Muted, large and small text helpers</li>
             </.ul>
 
-            <.h4 class="mt-8">Three steps</.h4>
+            <.h4>Three steps</.h4>
             <.ol>
               <li>Add the dependency</li>
               <li>Import the styles</li>
               <li>Start composing</li>
             </.ol>
 
-            <.h4 class="mt-8">A table, too</.h4>
+            <.h4>A table, too</.h4>
             <.table
               id="typography-table"
               rows={[
@@ -1159,6 +1160,78 @@ defmodule Dev.PlaygroundLive do
               <.text_small>Small — tight label text.</.text_small>
             </div>
           </article>
+        </section>
+
+        <%!-- The scale, as a specimen --%>
+        <section>
+          <div class="mb-6 font-mono text-xs uppercase tracking-widest text-gray-400">Type scale</div>
+          <div class="space-y-6 border-l-2 border-gray-100 pl-6 dark:border-gray-800">
+            <div>
+              <div class="font-mono text-xs text-gray-400">h1 · display</div>
+              <.h1 no_margin>The joke tax</.h1>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-gray-400">h2 · section</div>
+              <.h2 no_margin>The people of the kingdom</.h2>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-gray-400">h3 · subsection</div>
+              <.h3 no_margin>The king's decree</.h3>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-gray-400">h4 · minor heading</div>
+              <.h4 no_margin>A note on rates</.h4>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-gray-400">h5 · label</div>
+              <.h5 no_margin>Fine print</.h5>
+            </div>
+          </div>
+        </section>
+
+        <%!-- Every style, labelled with the component that renders it --%>
+        <section>
+          <div class="mb-6 font-mono text-xs uppercase tracking-widest text-gray-400">Every style</div>
+          <div class="space-y-10">
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">&lt;.lead&gt;</div>
+              <.lead>
+                A lead paragraph opens a page with a little more size and a softer colour, setting
+                the tone before the body begins.
+              </.lead>
+            </div>
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">&lt;.p&gt;</div>
+              <.p>
+                The standard paragraph, set at a comfortable measure and line height so longer
+                passages stay easy on the eye.
+              </.p>
+            </div>
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">&lt;.blockquote&gt;</div>
+              <.blockquote>
+                "The defaults just look right, so we shipped the marketing site in a weekend."
+              </.blockquote>
+            </div>
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">&lt;.inline_code&gt;</div>
+              <.p>Install with <.inline_code>mix deps.get</.inline_code>, then import the styles.</.p>
+            </div>
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">
+                &lt;.text_large&gt; · &lt;.text_muted&gt; · &lt;.text_small&gt;
+              </div>
+              <div class="space-y-1">
+                <.text_large>Large — an emphasised line of body text.</.text_large>
+                <.text_muted>Muted — captions, hints and metadata.</.text_muted>
+                <.text_small>Small — tight label text.</.text_small>
+              </div>
+            </div>
+            <div>
+              <div class="mb-2 font-mono text-xs text-gray-400">&lt;.hr&gt;</div>
+              <.hr />
+            </div>
+          </div>
         </section>
 
         <section>
@@ -1199,6 +1272,12 @@ defmodule Dev.PlaygroundLive do
           </.prose>
         </section>
 
+      </div>
+
+      <%!-- ============================================================ --%>
+      <%!-- LAYOUT TAB                                                  --%>
+      <%!-- ============================================================ --%>
+      <div :if={@active_tab == "layout"} class="space-y-8">
         <%!-- Container with all max_width variants --%>
         <section>
           <.h2 class="mb-4">Container (max_width variants)</.h2>

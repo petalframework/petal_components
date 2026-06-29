@@ -1,14 +1,31 @@
 # Changelog
-### Unreleased (targeting 4.2.0)
+### 4.2.0 - 2026-06-29
+
+A typography pass. The heading and body scale got a proper going-over, and the type set is now complete enough to lay out a full article from components alone. Everything here is additive or a restyle, with no breaking API changes (see Upgrading for the visual shifts).
 
 #### Added
 
-- **Typography: `lead`, `blockquote`, `inline_code`, `text_muted` / `text_large` / `text_small`, and `hr`.** Rounds out the type set so a full article composes without dropping to raw HTML.
+- **Seven typography components: `lead`, `blockquote`, `inline_code`, `text_large`, `text_muted`, `text_small` and `hr`.** Rounds out the type set so a full page composes without dropping to raw HTML. `lead` is the larger intro paragraph, `blockquote` a bordered quote, `inline_code` for snippets inside a sentence, `text_large` / `text_muted` / `text_small` for emphasis and secondary copy, and `hr` a spaced divider.
 
 #### Changed
 
-- **Refined the typography scale.** More readable body line-height, tighter heading tracking with balanced multi-line headings (`text-wrap: balance`), softened the heaviest heading weights, and `h5` is now sized distinctly from `h4`. Existing `h1`-`h5` and `p` will look slightly different (a deliberate polish pass) — no API changes.
-- **`ul` / `ol` lists now look considered out of the box.** Markers sit outside with consistent indentation (ordered and unordered match), and there is built-in vertical spacing between items, so a list reads well without adding spacing utilities yourself.
+- **Refined the type scale.** Headings now carry tight tracking, balanced multi-line wrapping (`text-wrap: balance`) and a `scroll-margin` so anchor links don't tuck under a sticky header. Weights are normalised to `semibold` (only `h1` stays heavier), and the sizes were re-stepped for a cleaner ramp: `h2`/`h3`/`h4` are a touch larger and lighter than before, and `h5` is smaller and now clearly distinct from `h4`. Body copy gained a more comfortable line height and roomier paragraph spacing. And text contrast is now systematic: every element sits on one of three emphasis tiers (strong / default / muted) that hold consistently across light *and* dark, so headings, body, inline code and table data all read at the right level in both modes, with no element drifting brighter or dimmer than its peers.
+- **`ul` / `ol` lists look considered out of the box.** Markers sit outside the text with consistent indentation (ordered and unordered line up), and there's built-in vertical spacing between items, so a list reads well without adding spacing utilities yourself.
+- **Typography self-composes now.** Headings carry an automatic top margin (`first:mt-0` zeroes the first one), `lead` and `blockquote` have proper surrounding space, and lists match the paragraph rhythm, so a full article has correct vertical spacing from components alone with no manual `mt-*`. Body copy also uses `text-wrap: pretty` (fewer orphans and widows), and `<.table>` cells use tabular figures so columns of numbers line up.
+
+#### Fixed
+
+- A table user-cell sub-label (the secondary line under a name, e.g. an email) was missing its dark-mode colour, so on dark backgrounds it rendered too faint and dropped below the WCAG contrast floor. It now uses a readable muted tone in dark mode.
+
+#### Upgrading
+
+No code changes are required. Everything is additive or a CSS restyle, so nothing in your templates breaks. But after `mix deps.update petal_components`, existing `h1`-`h5`, `<.p>` and lists will *look* different (that's the point of the pass). If you've tuned layouts around the old metrics, here's what moved and how to pin the old look:
+
+- **Headings are re-sized and lighter.** `h2`-`h4` are slightly larger (most noticeably on small screens) and use `font-semibold` instead of `bold` / `extrabold`; `h5` is now `text-base`. To keep a previous look on a specific heading, pass `class` (it's appended last, so it wins), e.g. `<.h2 class="text-2xl font-extrabold">`.
+- **Headings now carry a top margin** (`h2` 3rem, `h3` / `h4` 2rem, `h5` 1.5rem) so sections self-space, with `first:mt-0` zeroing it for the first element in a container. For a heading used as a tight label in UI, drop it with `<.h2 no_margin>`. Internally the per-heading margin class is now per level (e.g. `pc-h2--margin`), which only matters if you overrode `pc-heading--margin` directly.
+- **Paragraph rhythm is roomier.** Body line height went from `leading-5` to `leading-7`, and the gap after a paragraph from `mb-2` to `mb-6`. If that's too airy in a dense layout, drop the margin per element with `<.p no_margin>`, or set it globally by redefining the class after your import: `.pc-p--margin { @apply mb-4; }`.
+- **Lists indent and space their items.** They moved from inside to outside markers, with `ml-6` and spacing between items. Override per list by passing `class`.
+- **Headings gained `scroll-margin`.** Anchor links now land below a sticky header cleanly. If you already set your own `scroll-margin-top`, the more specific rule still wins.
 
 ### 4.1.2 - 2026-06-17
 

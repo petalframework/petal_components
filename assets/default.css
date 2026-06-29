@@ -526,11 +526,23 @@
   .pc-heading--underline {
     @apply pb-2 border-b border-gray-200 dark:border-gray-800;
   }
-  .pc-heading--margin {
+  .pc-h1--margin {
     @apply mb-3;
   }
+  .pc-h2--margin {
+    @apply mt-12 mb-3 first:mt-0;
+  }
+  .pc-h3--margin {
+    @apply mt-8 mb-3 first:mt-0;
+  }
+  .pc-h4--margin {
+    @apply mt-8 mb-3 first:mt-0;
+  }
+  .pc-h5--margin {
+    @apply mt-6 mb-3 first:mt-0;
+  }
   .pc-text {
-    @apply text-base leading-7 text-gray-700 dark:text-gray-300;
+    @apply text-base leading-7 text-pretty text-gray-700 dark:text-gray-100;
   }
   .pc-p--margin {
     @apply mb-6;
@@ -538,13 +550,13 @@
 
   /* Extended typography */
   .pc-lead {
-    @apply text-xl leading-relaxed text-gray-600 dark:text-gray-400;
+    @apply mb-6 text-xl leading-relaxed text-gray-500 dark:text-gray-400;
   }
   .pc-blockquote {
-    @apply mt-4 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-700 dark:text-gray-300;
+    @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-700 dark:text-gray-100;
   }
   .pc-inline-code {
-    @apply relative rounded bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100;
+    @apply rounded bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-100;
   }
   .pc-text-muted {
     @apply text-sm text-gray-500 dark:text-gray-400;
@@ -1688,7 +1700,7 @@
     @apply min-w-full overflow-hidden table-auto;
   }
   .pc-table__th {
-    @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-gray-300;
+    @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-400;
   }
   .pc-table thead {
     @apply border-b dark:border-gray-800 dark:bg-gray-900;
@@ -1700,7 +1712,7 @@
     @apply hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150;
   }
   .pc-table__td {
-    @apply px-6 py-4 text-sm text-gray-500 dark:text-gray-400;
+    @apply px-6 py-4 text-sm text-gray-700 dark:text-gray-100 tabular-nums;
   }
   .pc-table__td--first-col {
     @apply font-semibold;
@@ -1715,10 +1727,10 @@
     @apply flex flex-col overflow-hidden;
   }
   .pc-table__user-inner-td__label {
-    @apply overflow-hidden font-medium text-gray-900 whitespace-nowrap text-ellipsis dark:text-gray-300;
+    @apply overflow-hidden font-medium text-gray-700 whitespace-nowrap text-ellipsis dark:text-gray-100;
   }
   .pc-table__user-inner-td__sub-label {
-    @apply overflow-hidden font-normal text-gray-500 whitespace-nowrap text-ellipsis;
+    @apply overflow-hidden font-normal text-gray-500 dark:text-gray-400 whitespace-nowrap text-ellipsis;
   }
 
   /* Accordion */

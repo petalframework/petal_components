@@ -95,7 +95,7 @@ defmodule PetalComponents.Typography do
       custom_classes,
       color_class || "pc-heading--color",
       underline && "pc-heading--underline",
-      !no_margin && "pc-heading--margin"
+      !no_margin && "#{base_classes}--margin"
     ]
   end
 
@@ -145,7 +145,7 @@ defmodule PetalComponents.Typography do
 
   def ul(assigns) do
     ~H"""
-    <ul class={["pc-text", "my-4 ml-6 list-disc [&>li]:mt-2", @class]} {@rest}>
+    <ul class={["pc-text", "my-6 ml-6 list-disc [&>li]:mt-2", @class]} {@rest}>
       {render_slot(@inner_block)}
     </ul>
     """
@@ -165,7 +165,7 @@ defmodule PetalComponents.Typography do
 
   def ol(assigns) do
     ~H"""
-    <ol class={["pc-text", "my-4 ml-6 list-decimal [&>li]:mt-2", @class]} {@rest}>
+    <ol class={["pc-text", "my-6 ml-6 list-decimal [&>li]:mt-2", @class]} {@rest}>
       {render_slot(@inner_block)}
     </ol>
     """
