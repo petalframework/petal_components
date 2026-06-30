@@ -1795,7 +1795,7 @@
     @apply min-w-full overflow-hidden table-auto;
   }
   .pc-table__th {
-    @apply px-6 py-3 text-sm font-semibold tracking-wider text-left text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-400;
+    @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-white;
   }
   .pc-table thead {
     @apply border-b dark:border-gray-800 dark:bg-gray-900;
