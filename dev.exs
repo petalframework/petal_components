@@ -69,72 +69,169 @@ defmodule Dev.PlaygroundLive do
 
   use PetalComponents
 
+  # Update by hand occasionally; formatted as "1k" style in the header.
+  @stars 1037
+
   @nav [
     %{group: "Foundations",
       items: [
-        %{slug: "typography", name: "Typography", icon: "hero-language", ready: false},
-        %{slug: "colors", name: "Colours", icon: "hero-swatch", ready: false}
+        %{slug: "typography", name: "Typography", ready: false},
+        %{slug: "colors", name: "Colours", ready: false}
       ]},
     %{group: "Inputs",
       items: [
-        %{slug: "button", name: "Button", icon: "hero-cursor-arrow-rays", ready: true},
-        %{slug: "input", name: "Input", icon: "hero-pencil-square", ready: false},
-        %{slug: "checkbox", name: "Checkbox", icon: "hero-check-circle", ready: false},
-        %{slug: "select", name: "Select", icon: "hero-chevron-up-down", ready: false}
+        %{slug: "button", name: "Button", ready: true},
+        %{slug: "input", name: "Input", ready: false},
+        %{slug: "checkbox", name: "Checkbox", ready: false},
+        %{slug: "select", name: "Select", ready: false}
       ]},
     %{group: "Feedback",
       items: [
-        %{slug: "alert", name: "Alert", icon: "hero-exclamation-triangle", ready: false},
-        %{slug: "badge", name: "Badge", icon: "hero-tag", ready: false},
-        %{slug: "progress", name: "Progress", icon: "hero-bars-3-bottom-left", ready: false}
+        %{slug: "alert", name: "Alert", ready: false},
+        %{slug: "badge", name: "Badge", ready: false},
+        %{slug: "progress", name: "Progress", ready: false}
       ]},
     %{group: "Overlay",
       items: [
-        %{slug: "modal", name: "Modal", icon: "hero-window", ready: false},
-        %{slug: "dropdown", name: "Dropdown", icon: "hero-chevron-down", ready: false}
+        %{slug: "modal", name: "Modal", ready: false},
+        %{slug: "dropdown", name: "Dropdown", ready: false}
       ]},
     %{group: "Effects",
       items: [
-        %{slug: "border-beam", name: "Border beam", icon: "hero-sparkles", ready: false},
-        %{slug: "meteors", name: "Meteors", icon: "hero-star", ready: false}
+        %{slug: "border-beam", name: "Border beam", ready: false},
+        %{slug: "meteors", name: "Meteors", ready: false}
       ]}
   ]
+
+  @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+
+  # {name, rail swatch css}. Neutral adapts to the mode, hence the split dot.
+  @accents [
+    {"neutral", "linear-gradient(135deg,#18181b 50%,#e4e4e7 50%)"},
+    {"blue", "#2563eb"},
+    {"indigo", "#4f46e5"},
+    {"violet", "#7c3aed"},
+    {"emerald", "#059669"},
+    {"rose", "#e11d48"},
+    {"amber", "#d97706"}
+  ]
+  @accent_names Enum.map(@accents, &elem(&1, 0))
+
+  @radii ~w(none sm md lg full)
 
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
        nav: @nav,
-       active: "button",
-       dark: false,
+       accents: @accents,
+       radii: @radii,
+       stars: @stars,
        variant: "solid",
        size: "md",
+       icon: false,
+       loading: false,
+       disabled: false,
        show_code: false
      )}
   end
 
-  def handle_event("select", %{"slug" => slug}, socket),
-    do: {:noreply, assign(socket, active: slug, show_code: false)}
+  # Theme state lives in the URL, so any look is shareable / screenshotable.
+  def handle_params(params, _uri, socket) do
+    {:noreply,
+     socket
+     |> assign(:active, allow(params["c"], @slugs, "button"))
+     |> assign(:accent, allow(params["accent"], @accent_names, "neutral"))
+     |> assign(:radius, allow(params["radius"], @radii ++ ["xl"], "md"))
+     |> assign(:dark, params["dark"] == "1")}
+  end
 
-  def handle_event("toggle_dark", _, socket),
-    do: {:noreply, update(socket, :dark, &(!&1))}
+  def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
+  def handle_event("set_accent", %{"accent" => a}, socket), do: patch_theme(socket, %{accent: a})
+  def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
+  def handle_event("toggle_dark", _params, socket), do: patch_theme(socket, %{dark: !socket.assigns.dark})
 
-  def handle_event("set", %{"k" => k, "v" => v}, socket),
-    do: {:noreply, assign(socket, String.to_existing_atom(k), v)}
+  def handle_event("ctl_variant", %{"v" => v}, socket) when v in ~w(solid light outline ghost),
+    do: {:noreply, assign(socket, :variant, v)}
 
-  def handle_event("toggle_code", _, socket),
-    do: {:noreply, update(socket, :show_code, &(!&1))}
+  def handle_event("ctl_size", %{"v" => v}, socket) when v in ~w(xs sm md lg xl),
+    do: {:noreply, assign(socket, :size, v)}
+
+  def handle_event("flip", %{"k" => "icon"}, socket), do: {:noreply, update(socket, :icon, &(!&1))}
+  def handle_event("flip", %{"k" => "loading"}, socket), do: {:noreply, update(socket, :loading, &(!&1))}
+  def handle_event("flip", %{"k" => "disabled"}, socket), do: {:noreply, update(socket, :disabled, &(!&1))}
+  def handle_event("flip", %{"k" => "show_code"}, socket), do: {:noreply, update(socket, :show_code, &(!&1))}
 
   def handle_event(_event, _params, socket), do: {:noreply, socket}
 
+  defp patch_theme(socket, delta) do
+    theme =
+      socket.assigns
+      |> Map.take([:active, :accent, :radius, :dark])
+      |> Map.merge(delta)
+
+    {:noreply, push_patch(socket, to: theme_path(theme))}
+  end
+
+  defp theme_path(t) do
+    []
+    |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
+    |> then(&if t.radius != "md", do: [{"radius", t.radius} | &1], else: &1)
+    |> then(&if t.accent != "neutral", do: [{"accent", t.accent} | &1], else: &1)
+    |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
+    |> case do
+      [] -> "/"
+      q -> "/?" <> URI.encode_query(q)
+    end
+  end
+
+  defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
+
+  defp fmt_stars(n) when n >= 1000 do
+    k = Float.round(n / 1000, 1)
+    if k == trunc(k), do: "#{trunc(k)}k", else: "#{k}k"
+  end
+
+  defp fmt_stars(n), do: "#{n}"
+
+  defp button_snippet(a) do
+    attrs =
+      [
+        a.variant != "solid" && ~s(variant="#{a.variant}"),
+        a.size != "md" && ~s(size="#{a.size}"),
+        a.radius != "md" && ~s(radius="#{a.radius}"),
+        a.icon && ~s(icon="hero-rocket-launch"),
+        a.loading && "loading",
+        a.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    case attrs do
+      [] -> "<.button>Get started</.button>"
+      _ -> "<.button #{Enum.join(attrs, " ")}>Get started</.button>"
+    end
+  end
+
   def render(assigns) do
     ~H"""
-    <div class={[
-      "flex flex-col h-screen bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50",
-      @dark && "dark"
-    ]}>
+    <div
+      class={[
+        "flex flex-col h-screen bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50",
+        @dark && "dark"
+      ]}
+      data-accent={@accent}
+    >
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-zinc-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
-          <.icon name="hero-sparkles" class="w-5 h-5 text-primary-600" /> petal
+          <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
+            <path d="M230.003 125.876C240.013 163.648 236.787 202.614 225.872 222.08C205.825 218.645 165.131 177.459 154.643 142.091C146.575 114.884 141.211 61.5546 163.147 42.9603C181.2 48.0856 206.638 59.5304 230.003 125.876Z" fill="#7C3AED" />
+            <path d="M131.821 194.829C174.63 205.417 202.334 225.678 214.021 244.543C201.178 260.41 145.154 276.223 109.043 268.435C81.2645 262.444 31.9419 241.573 26.4252 213.497C39.7695 200.183 86.0939 184.721 131.821 194.829Z" fill="#8C3CE1" />
+            <path d="M134.395 304.982C169.081 273.136 202.487 268.276 224.626 270.582C229.181 290.377 206.903 344.143 178.354 367.829C156.393 386.049 109.322 412.156 83.7427 399.371C81.5135 380.738 93.3967 339.963 134.395 304.982Z" fill="#9C3ED6" />
+            <path d="M231.851 387.183C232.759 332.248 238.002 310.308 252.007 292.916C271.176 299.651 304.367 347.093 308.781 383.753C312.177 411.953 308.543 465.487 283.829 480.18C266.907 472.108 231.642 429.293 231.851 387.183Z" fill="#AD40C9" />
+            <path d="M334.122 361.502C304.16 336.45 293.796 314.74 291.865 296.983C306.635 289.867 352.611 297.682 376.032 315.802C394.047 329.74 422.5 361.935 416.786 384.265C402.535 389.351 361.449 384.351 334.122 361.502Z" fill="#BA42BF" />
+            <path d="M403.327 299.046C368.688 285.832 356.017 277.465 348.32 264.596C357.161 254.009 395.173 243.911 419.486 249.551C438.188 253.889 471.288 268.507 474.721 287.534C465.567 296.391 438.764 306.747 403.327 299.046Z" fill="#CB44B2" />
+            <path d="M434.34 229.57C407.147 225.737 396.619 221.79 388.943 213.786C393.589 204.711 419.385 191.202 437.873 191.274C452.095 191.33 478.408 196.427 484.016 209.566C478.86 217.447 461.203 229.303 434.34 229.57Z" fill="#D445AB" />
+          </svg>
+          petal
           <span class="font-normal text-gray-400 dark:text-zinc-500">playground</span>
         </div>
         <div class="flex items-center gap-1.5">
@@ -143,24 +240,80 @@ defmodule Dev.PlaygroundLive do
             <span>Search components</span>
             <kbd class="ml-auto text-[11px] px-1.5 py-0.5 rounded border border-gray-200 dark:border-zinc-700">⌘K</kbd>
           </button>
-          <a href="https://github.com/petalframework/petal_components" target="_blank" class="flex items-center h-8 gap-1.5 px-2.5 text-sm rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900">
+          <a
+            href="https://github.com/petalframework/petal_components"
+            target="_blank"
+            class="flex items-center h-8 gap-1.5 px-2.5 text-sm rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+          >
             <svg viewBox="0 0 438.549 438.549" class="w-4 h-4" fill="currentColor"><path d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z" /></svg>
-            <span class="text-xs tabular-nums">1,037</span>
+            <span class="text-xs tabular-nums">{fmt_stars(@stars)}</span>
           </a>
-          <a href="https://discord.com/invite/exbwVbjAct" target="_blank" aria-label="Discord" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900">
+          <a
+            href="https://discord.com/invite/exbwVbjAct"
+            target="_blank"
+            aria-label="Discord"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+          >
             <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z" /></svg>
           </a>
-          <a href="https://x.com/PetalFramework" target="_blank" aria-label="X" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900">
+          <a
+            href="https://x.com/PetalFramework"
+            target="_blank"
+            aria-label="X"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+          >
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </a>
-          <button phx-click="toggle_dark" aria-label="Toggle dark mode" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900">
-            <.icon name={if @dark, do: "hero-sun", else: "hero-moon"} class="w-4 h-4" />
+          <button
+            phx-click="toggle_dark"
+            aria-label="Toggle dark mode"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+          >
+            <.icon :if={@dark} name="hero-sun" class="w-4 h-4" />
+            <.icon :if={!@dark} name="hero-moon" class="w-3.5 h-3.5" />
           </button>
         </div>
       </header>
 
+      <div class="flex items-center flex-none h-11 gap-5 px-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/60 dark:bg-zinc-900/30">
+        <div class="flex items-center gap-2.5">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">accent</span>
+          <div class="flex items-center gap-1.5">
+            <button
+              :for={{name, css} <- @accents}
+              phx-click="set_accent"
+              phx-value-accent={name}
+              aria-label={name}
+              class={[
+                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                @accent == name &&
+                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
+              ]}
+              style={"background:#{css}"}
+            >
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">radius</span>
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <button
+              :for={r <- @radii}
+              phx-click="set_radius"
+              phx-value-radius={r}
+              class={seg(@radius == r)}
+            >
+              {r}
+            </button>
+          </div>
+        </div>
+        <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-zinc-600 sm:block">
+          theme is in the URL, share the look
+        </span>
+      </div>
+
       <div class="flex flex-1 min-h-0">
-        <nav class="flex-none w-56 p-3 overflow-y-auto border-r border-gray-200 dark:border-zinc-800">
+        <nav class="flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-zinc-800">
           <div :for={grp <- @nav}>
             <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-zinc-500">
               {grp.group}
@@ -170,19 +323,16 @@ defmodule Dev.PlaygroundLive do
               phx-click="select"
               phx-value-slug={it.slug}
               class={[
-                "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm text-left",
-                (@active == it.slug && "bg-primary-600 text-white") ||
-                  "text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-900"
+                "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
+                (@active == it.slug &&
+                   "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-50 font-medium") ||
+                  "text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-900 hover:text-gray-900 dark:hover:text-zinc-100"
               ]}
             >
-              <.icon name={it.icon} class="w-4 h-4 shrink-0" />
               {it.name}
               <span
                 :if={not it.ready}
-                class={[
-                  "ml-auto text-[10px] px-1.5 py-0.5 rounded",
-                  (@active == it.slug && "bg-white/20") || "bg-gray-100 dark:bg-zinc-800 text-gray-400"
-                ]}
+                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800/80 text-gray-400 dark:text-zinc-500"
               >
                 soon
               </span>
@@ -203,25 +353,34 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Button</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Triggers an action. Reach for the core four; the full colour range is there when you need it.
+        Triggers an action. Four core variants, plus a semantic range for when the action carries meaning.
+        Accent and radius follow the rail above.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-16 bg-gray-50 dark:bg-zinc-900/40">
-          <.button variant={@variant} color="primary" size={@size} label="Get started" />
+        <div class="flex items-center justify-center px-6 bg-gray-50 py-14 dark:bg-zinc-900/40">
+          <.button
+            variant={@variant}
+            size={@size}
+            radius={@radius}
+            icon={if @icon, do: "hero-rocket-launch"}
+            loading={@loading}
+            disabled={@disabled}
+          >
+            Get started
+          </.button>
         </div>
-        <div class="flex flex-wrap gap-8 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={v <- ~w(solid outline ghost)}
-                phx-click="set"
-                phx-value-k="variant"
+                :for={{label, v} <- [{"solid", "solid"}, {"soft", "light"}, {"outline", "outline"}, {"ghost", "ghost"}]}
+                phx-click="ctl_variant"
                 phx-value-v={v}
                 class={seg(@variant == v)}
               >
-                {v}
+                {label}
               </button>
             </div>
           </div>
@@ -229,9 +388,8 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={s <- ~w(sm md lg)}
-                phx-click="set"
-                phx-value-k="size"
+                :for={s <- ~w(xs sm md lg xl)}
+                phx-click="ctl_size"
                 phx-value-v={s}
                 class={seg(@size == s)}
               >
@@ -239,11 +397,20 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="flip" phx-value-k="icon" class={tog(@icon)}>icon</button>
+              <button phx-click="flip" phx-value-k="loading" class={tog(@loading)}>loading</button>
+              <button phx-click="flip" phx-value-k="disabled" class={tog(@disabled)}>disabled</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <button
-        phx-click="toggle_code"
+        phx-click="flip"
+        phx-value-k="show_code"
         class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
@@ -251,20 +418,42 @@ defmodule Dev.PlaygroundLive do
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl"
-      ><code>{"<.button variant=\"#{@variant}\" size=\"#{@size}\">Get started</.button>"}</code></pre>
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{button_snippet(assigns)}</code></pre>
 
-      <div class="mt-12 text-[11px] font-medium tracking-wide text-gray-400">the four you'll reach for</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 mt-2 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
-        <.button label="Get started" />
-        <.button variant="outline" label="Outline" />
-        <.button variant="ghost" label="Ghost" />
-        <.button color="danger" label="Delete" />
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
+        <.button radius={@radius}>Solid</.button>
+        <.button variant="light" radius={@radius}>Soft</.button>
+        <.button variant="outline" radius={@radius}>Outline</.button>
+        <.button variant="ghost" radius={@radius}>Ghost</.button>
+        <.button color="danger" radius={@radius}>Destructive</.button>
       </div>
 
-      <div class="mt-8 text-[11px] font-medium tracking-wide text-gray-400">the full colour range, kept but demoted</div>
-      <div class="flex flex-wrap gap-2 mt-3">
-        <.button :for={c <- ~w(primary secondary info success warning danger gray dark)} variant="outline" size="xs" color={c} label={c} />
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
+        <.button color="info" variant="light" size="sm" radius={@radius}>Info</.button>
+        <.button color="success" variant="light" size="sm" radius={@radius}>Success</.button>
+        <.button color="warning" variant="light" size="sm" radius={@radius}>Warning</.button>
+        <.button color="danger" variant="light" size="sm" radius={@radius}>Danger</.button>
+        <.button color="danger" variant="outline" size="sm" radius={@radius}>Destructive outline</.button>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
+        <.button size="xs" radius={@radius}>Extra small</.button>
+        <.button size="sm" radius={@radius}>Small</.button>
+        <.button size="md" radius={@radius}>Medium</.button>
+        <.button size="lg" radius={@radius}>Large</.button>
+        <.button size="xl" radius={@radius}>Extra large</.button>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
+        <.button radius={@radius}>Default</.button>
+        <.button icon="hero-rocket-launch" radius={@radius}>With icon</.button>
+        <.button loading radius={@radius}>Loading</.button>
+        <.button disabled radius={@radius}>Disabled</.button>
       </div>
     </div>
     """
@@ -275,15 +464,24 @@ defmodule Dev.PlaygroundLive do
     <div class="flex flex-col items-center justify-center h-full px-8 text-center">
       <.icon name="hero-cube-transparent" class="w-10 h-10 text-gray-300 dark:text-zinc-700" />
       <p class="mt-4 text-lg font-medium capitalize">{@active}</p>
-      <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400 max-w-sm">
+      <p class="max-w-sm mt-1 text-sm text-gray-500 dark:text-zinc-400">
         This page gets the same treatment next. We're locking the shell and the pattern on Button first.
       </p>
     </div>
     """
   end
 
-  defp seg(true), do: "px-3 py-1.5 text-xs bg-primary-600 text-white"
-  defp seg(false), do: "px-3 py-1.5 text-xs text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+  defp seg(true), do: "px-2.5 py-1 text-xs font-medium bg-primary-600 text-(--pc-button-solid-fg)"
+
+  defp seg(false),
+    do: "px-2.5 py-1 text-xs text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+
+  defp tog(true),
+    do: "px-2.5 py-1 text-xs font-medium rounded-lg border border-transparent bg-primary-600 text-(--pc-button-solid-fg)"
+
+  defp tog(false),
+    do:
+      "px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
 end
 
 defmodule Dev.Router do

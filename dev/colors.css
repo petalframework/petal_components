@@ -1,15 +1,25 @@
+/* Playground colour mapping.
+ *
+ * `primary` routes through the --pg-accent-* runtime layer below, so the
+ * playground's accent rail can restyle the whole page live (no rebuild).
+ * The default accent is `neutral`: near-black solids in light mode, white
+ * solids in dark mode (via light-dark(), driven by color-scheme). Classic
+ * petal blue is one swatch away. This is the seed of the 4.3 token work —
+ * user apps still map primary to a plain ramp exactly as before.
+ */
+
 @theme inline {
-  --color-primary-50: var(--color-blue-50);
-  --color-primary-100: var(--color-blue-100);
-  --color-primary-200: var(--color-blue-200);
-  --color-primary-300: var(--color-blue-300);
-  --color-primary-400: var(--color-blue-400);
-  --color-primary-500: var(--color-blue-500);
-  --color-primary-600: var(--color-blue-600);
-  --color-primary-700: var(--color-blue-700);
-  --color-primary-800: var(--color-blue-800);
-  --color-primary-900: var(--color-blue-900);
-  --color-primary-950: var(--color-blue-950);
+  --color-primary-50: var(--pg-accent-50);
+  --color-primary-100: var(--pg-accent-100);
+  --color-primary-200: var(--pg-accent-200);
+  --color-primary-300: var(--pg-accent-300);
+  --color-primary-400: var(--pg-accent-400);
+  --color-primary-500: var(--pg-accent-500);
+  --color-primary-600: var(--pg-accent-600);
+  --color-primary-700: var(--pg-accent-700);
+  --color-primary-800: var(--pg-accent-800);
+  --color-primary-900: var(--pg-accent-900);
+  --color-primary-950: var(--pg-accent-950);
 
   --color-secondary-50: var(--color-pink-50);
   --color-secondary-100: var(--color-pink-100);
@@ -82,4 +92,119 @@
   --color-gray-800: var(--color-zinc-800);
   --color-gray-900: var(--color-zinc-900);
   --color-gray-950: var(--color-zinc-950);
+}
+
+/* light-dark() resolves off color-scheme; dark mode is class-based here. */
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+
+/* Accent: neutral (default) — black button in light, white button in dark. */
+:root,
+[data-accent="neutral"] {
+  --pg-accent-50: light-dark(#fafafa, #18181b);
+  --pg-accent-100: light-dark(#f4f4f5, #3f3f46);
+  --pg-accent-200: light-dark(#e4e4e7, #27272a);
+  --pg-accent-300: light-dark(#d4d4d8, #3f3f46);
+  --pg-accent-400: light-dark(#a1a1aa, #52525b);
+  --pg-accent-500: light-dark(#52525b, #a1a1aa);
+  --pg-accent-600: light-dark(#18181b, #fafafa);
+  --pg-accent-700: light-dark(#27272a, #e4e4e7);
+  --pg-accent-800: light-dark(#3f3f46, #d4d4d8);
+  --pg-accent-900: light-dark(#18181b, #f4f4f5);
+  --pg-accent-950: light-dark(#09090b, #fafafa);
+  --pc-button-solid-fg: light-dark(#ffffff, #18181b);
+}
+
+[data-accent="blue"] {
+  --pg-accent-50: #eff6ff;
+  --pg-accent-100: #dbeafe;
+  --pg-accent-200: #bfdbfe;
+  --pg-accent-300: #93c5fd;
+  --pg-accent-400: #60a5fa;
+  --pg-accent-500: #3b82f6;
+  --pg-accent-600: #2563eb;
+  --pg-accent-700: #1d4ed8;
+  --pg-accent-800: #1e40af;
+  --pg-accent-900: #1e3a8a;
+  --pg-accent-950: #172554;
+  --pc-button-solid-fg: #ffffff;
+}
+
+[data-accent="indigo"] {
+  --pg-accent-50: #eef2ff;
+  --pg-accent-100: #e0e7ff;
+  --pg-accent-200: #c7d2fe;
+  --pg-accent-300: #a5b4fc;
+  --pg-accent-400: #818cf8;
+  --pg-accent-500: #6366f1;
+  --pg-accent-600: #4f46e5;
+  --pg-accent-700: #4338ca;
+  --pg-accent-800: #3730a3;
+  --pg-accent-900: #312e81;
+  --pg-accent-950: #1e1b4b;
+  --pc-button-solid-fg: #ffffff;
+}
+
+[data-accent="violet"] {
+  --pg-accent-50: #f5f3ff;
+  --pg-accent-100: #ede9fe;
+  --pg-accent-200: #ddd6fe;
+  --pg-accent-300: #c4b5fd;
+  --pg-accent-400: #a78bfa;
+  --pg-accent-500: #8b5cf6;
+  --pg-accent-600: #7c3aed;
+  --pg-accent-700: #6d28d9;
+  --pg-accent-800: #5b21b6;
+  --pg-accent-900: #4c1d95;
+  --pg-accent-950: #2e1065;
+  --pc-button-solid-fg: #ffffff;
+}
+
+[data-accent="emerald"] {
+  --pg-accent-50: #ecfdf5;
+  --pg-accent-100: #d1fae5;
+  --pg-accent-200: #a7f3d0;
+  --pg-accent-300: #6ee7b9;
+  --pg-accent-400: #34d399;
+  --pg-accent-500: #10b981;
+  --pg-accent-600: #059669;
+  --pg-accent-700: #047857;
+  --pg-accent-800: #065f46;
+  --pg-accent-900: #064e3b;
+  --pg-accent-950: #022c22;
+  --pc-button-solid-fg: #ffffff;
+}
+
+[data-accent="rose"] {
+  --pg-accent-50: #fff1f2;
+  --pg-accent-100: #ffe4e6;
+  --pg-accent-200: #fecdd3;
+  --pg-accent-300: #fda4af;
+  --pg-accent-400: #fb7185;
+  --pg-accent-500: #f43f5e;
+  --pg-accent-600: #e11d48;
+  --pg-accent-700: #be123c;
+  --pg-accent-800: #9f1239;
+  --pg-accent-900: #881337;
+  --pg-accent-950: #4c0519;
+  --pc-button-solid-fg: #ffffff;
+}
+
+[data-accent="amber"] {
+  --pg-accent-50: #fffbeb;
+  --pg-accent-100: #fef3c7;
+  --pg-accent-200: #fde68a;
+  --pg-accent-300: #fcd34d;
+  --pg-accent-400: #fbbf24;
+  --pg-accent-500: #f59e0b;
+  --pg-accent-600: #d97706;
+  --pg-accent-700: #b45309;
+  --pg-accent-800: #92400e;
+  --pg-accent-900: #78350f;
+  --pg-accent-950: #451a03;
+  --pc-button-solid-fg: #ffffff;
 }
