@@ -591,6 +591,29 @@ defmodule PetalComponents.FormTest do
     assert html =~ "Something else"
   end
 
+  test "form_field switch label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} />
+      </.form>
+      """)
+
+    assert html =~ "Name"
+    assert html =~ "pc-switch"
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} label="Something else" />
+      </.form>
+      """)
+
+    assert html =~ "Something else"
+  end
+
   test "number_input" do
     assigns = %{}
 
