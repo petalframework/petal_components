@@ -1,4 +1,10 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **`email_input`, `number_input`, `password_input`, `search_input`, `telephone_input` and `url_input` forward global attributes again** (`value`, `placeholder`, `phx-*` bindings, etc.). A 3.0.2 refactor left these six without their own `attr :rest, :global` declarations, and since `attr` only applies to the function directly below it, only `text_input` kept forwarding. Fixes [#488](https://github.com/petalframework/petal_components/issues/488).
+
 ### 4.2.0 - 2026-06-29
 
 A typography pass. The heading and body scale got a proper going-over, and the type set is now complete enough to lay out a full article from components alone. Everything here is additive or a restyle, with no breaking API changes (see Upgrading for the visual shifts).

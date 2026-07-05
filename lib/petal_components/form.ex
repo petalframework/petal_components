@@ -130,9 +130,7 @@ defmodule PetalComponents.Form do
     ~H"""
     <label class="pc-checkbox-label">
       <.checkbox form={@form} field={@field} {@rest} />
-      <div class={
-        label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
-      }>
+      <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
         {@label}
       </div>
     </label>
@@ -143,9 +141,7 @@ defmodule PetalComponents.Form do
     ~H"""
     <label class="pc-checkbox-label">
       <.switch form={@form} field={@field} {@rest} />
-      <div class={
-        label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})
-      }>
+      <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
         {@label}
       </div>
     </label>
@@ -312,11 +308,23 @@ defmodule PetalComponents.Form do
     """
   end
 
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
+
   def email_input(assigns) do
     ~H"""
     {render_basic_input(&Form.email_input/3, assigns)}
     """
   end
+
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
 
   def number_input(assigns) do
     ~H"""
@@ -324,11 +332,23 @@ defmodule PetalComponents.Form do
     """
   end
 
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
+
   def password_input(assigns) do
     ~H"""
     {render_basic_input(&Form.password_input/3, assigns)}
     """
   end
+
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
 
   def search_input(assigns) do
     ~H"""
@@ -336,11 +356,23 @@ defmodule PetalComponents.Form do
     """
   end
 
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
+
   def telephone_input(assigns) do
     ~H"""
     {render_basic_input(&Form.telephone_input/3, assigns)}
     """
   end
+
+  attr(:form, :any, default: nil, doc: "")
+  attr(:field, :atom, default: nil, doc: "")
+  attr(:label, :string, default: nil, doc: "labels your field")
+  attr(:class, :any, default: nil, doc: "extra classes for the text input")
+  attr(:rest, :global, include: @form_attrs)
 
   def url_input(assigns) do
     ~H"""
