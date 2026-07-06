@@ -47,6 +47,10 @@
   .pc-button--xl {
     @apply px-6 py-3 text-base leading-6;
   }
+  /* Square icon-only button; matches md button height. */
+  .pc-button--icon {
+    @apply p-2;
+  }
 
   /* Buttons - border radius */
   .pc-button--radius-none {

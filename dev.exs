@@ -46,6 +46,12 @@ defmodule Dev.Layouts do
             uploaders: {},
           });
           window.liveSocket.connect();
+          window.addEventListener("pg:theme-switch", () => {
+            const style = document.createElement("style");
+            style.textContent = "* { transition: none !important; }";
+            document.head.appendChild(style);
+            setTimeout(() => style.remove(), 250);
+          });
         </script>
         {@inner_content}
       </body>
@@ -68,6 +74,8 @@ defmodule Dev.PlaygroundLive do
     global_prefixes: ~w(x-)
 
   use PetalComponents
+
+  alias Phoenix.LiveView.JS
 
   # Update by hand occasionally; formatted as "1k" style in the header.
   @stars 1037
@@ -284,7 +292,7 @@ defmodule Dev.PlaygroundLive do
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </a>
           <button
-            phx-click="toggle_dark"
+            phx-click={JS.dispatch("pg:theme-switch") |> JS.push("toggle_dark")}
             aria-label="Toggle dark mode"
             class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
           >
@@ -446,16 +454,14 @@ defmodule Dev.PlaygroundLive do
         <.button variant="light">Soft</.button>
         <.button variant="outline">Outline</.button>
         <.button variant="ghost">Ghost</.button>
-        <.button color="danger">Destructive</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.button color="info" variant="light" size="sm">Info</.button>
-        <.button color="success" variant="light" size="sm">Success</.button>
-        <.button color="warning" variant="light" size="sm">Warning</.button>
-        <.button color="danger" variant="light" size="sm">Danger</.button>
-        <.button color="danger" variant="outline" size="sm">Destructive outline</.button>
+        <.button color="info">Info</.button>
+        <.button color="success">Success</.button>
+        <.button color="warning">Warning</.button>
+        <.button color="danger">Danger</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
@@ -477,13 +483,15 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Icon button</div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.button variant="outline">Button</.button>
-        <.icon_button tooltip="Submit">
+        <.button size="icon" aria-label="Submit">
           <.icon name="hero-arrow-up" class="w-5 h-5" />
-        </.icon_button>
-        <.icon_button color="gray" tooltip="Settings">
+        </.button>
+        <.button variant="outline" size="icon" aria-label="Add">
+          <.icon name="hero-plus" class="w-5 h-5" />
+        </.button>
+        <.button variant="ghost" size="icon" aria-label="Settings">
           <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
-        </.icon_button>
+        </.button>
       </div>
     </div>
     """

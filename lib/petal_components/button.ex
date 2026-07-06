@@ -5,7 +5,10 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Link
   import PetalComponents.Icon
 
-  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
+  attr :size, :string,
+    default: "md",
+    values: ["xs", "sm", "md", "lg", "xl", "icon"],
+    doc: "button sizes; icon renders a square, md-height icon button (pair with an aria-label)"
 
   attr :radius, :string,
     default: nil,
