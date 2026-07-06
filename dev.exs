@@ -32,6 +32,7 @@ defmodule Dev.Layouts do
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
         <.live_title>Petal Components Playground</.live_title>
+        <meta name="pg-rev" content="alert-badge-1" />
         <link rel="stylesheet" href="/assets/app.css" />
       </head>
       <body class="bg-white antialiased">
@@ -95,8 +96,8 @@ defmodule Dev.PlaygroundLive do
       ]},
     %{group: "Feedback",
       items: [
-        %{slug: "alert", name: "Alert", ready: false},
-        %{slug: "badge", name: "Badge", ready: false},
+        %{slug: "alert", name: "Alert", ready: true},
+        %{slug: "badge", name: "Badge", ready: true},
         %{slug: "progress", name: "Progress", ready: false}
       ]},
     %{group: "Overlay",
@@ -136,6 +137,10 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
+  @alert_colors ~w(info success warning danger)
+  @badge_colors ~w(primary secondary info success warning danger gray)
+  @tint_variants ~w(light soft dark outline)
+
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
@@ -148,7 +153,9 @@ defmodule Dev.PlaygroundLive do
        icon: false,
        loading: false,
        disabled: false,
-       show_code: false
+       show_code: false,
+       alert: %{color: "info", variant: "light", icon: true, heading: false},
+       badge: %{color: "primary", variant: "light", size: "md", icon: false}
      )}
   end
 
@@ -177,6 +184,30 @@ defmodule Dev.PlaygroundLive do
   def handle_event("flip", %{"k" => "loading"}, socket), do: {:noreply, update(socket, :loading, &(!&1))}
   def handle_event("flip", %{"k" => "disabled"}, socket), do: {:noreply, update(socket, :disabled, &(!&1))}
   def handle_event("flip", %{"k" => "show_code"}, socket), do: {:noreply, update(socket, :show_code, &(!&1))}
+
+  def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
+    do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
+
+  def handle_event("ctl_alert", %{"k" => "variant", "v" => v}, socket) when v in @tint_variants,
+    do: {:noreply, update(socket, :alert, &%{&1 | variant: v})}
+
+  def handle_event("ctl_alert", %{"k" => "icon"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | icon: !&1.icon})}
+
+  def handle_event("ctl_alert", %{"k" => "heading"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | heading: !&1.heading})}
+
+  def handle_event("ctl_badge", %{"k" => "color", "v" => v}, socket) when v in @badge_colors,
+    do: {:noreply, update(socket, :badge, &%{&1 | color: v})}
+
+  def handle_event("ctl_badge", %{"k" => "variant", "v" => v}, socket) when v in @tint_variants,
+    do: {:noreply, update(socket, :badge, &%{&1 | variant: v})}
+
+  def handle_event("ctl_badge", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
+    do: {:noreply, update(socket, :badge, &%{&1 | size: v})}
+
+  def handle_event("ctl_badge", %{"k" => "icon"}, socket),
+    do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
 
   def handle_event(_event, _params, socket), do: {:noreply, socket}
 
@@ -234,6 +265,39 @@ defmodule Dev.PlaygroundLive do
     case attrs do
       [] -> "<.button>Get started</.button>"
       _ -> "<.button #{Enum.join(attrs, " ")}>Get started</.button>"
+    end
+  end
+
+  defp alert_snippet(a) do
+    attrs =
+      [
+        a.color != "info" && ~s(color="#{a.color}"),
+        a.variant != "light" && ~s(variant="#{a.variant}"),
+        a.icon && "with_icon",
+        a.heading && ~s(heading="Heads up")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.alert" | attrs], " ")
+    open <> ">Your subscription renews on 12 August.</.alert>"
+  end
+
+  defp badge_snippet(b) do
+    attrs =
+      [
+        b.color != "primary" && ~s(color="#{b.color}"),
+        b.variant != "light" && ~s(variant="#{b.variant}"),
+        b.size != "md" && ~s(size="#{b.size}"),
+        b.icon && "with_icon"
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.badge" | attrs], " ")
+
+    if b.icon do
+      open <> ~s|>\n  <.icon name="hero-sparkles" class="w-3 h-3" /> New\n</.badge>|
+    else
+      open <> ~s( label="New" />)
     end
   end
 
@@ -492,6 +556,209 @@ defmodule Dev.PlaygroundLive do
         <.button variant="ghost" size="icon" aria-label="Settings">
           <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
         </.button>
+      </div>
+    </div>
+    """
+  end
+
+
+  defp render_page(%{active: "alert"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Alert</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A prominent message tied to state: information, success, caution or failure.
+        Radius follows the rail above.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-xl">
+            <.alert
+              color={@alert.color}
+              variant={@alert.variant}
+              with_icon={@alert.icon}
+              heading={if @alert.heading, do: "Heads up"}
+            >
+              Your subscription renews on 12 August.
+            </.alert>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(info success warning danger)}
+                phx-click="ctl_alert"
+                phx-value-k="color"
+                phx-value-v={c}
+                class={seg(@alert.color == c)}
+              >
+                {c}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={v <- ~w(light soft dark outline)}
+                phx-click="ctl_alert"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@alert.variant == v)}
+              >
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_alert" phx-value-k="icon" class={tog(@alert.icon)}>icon</button>
+              <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{alert_snippet(@alert)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.alert color="info" with_icon>A new version of this page is available.</.alert>
+        <.alert color="success" with_icon>Your changes were saved.</.alert>
+        <.alert color="warning" with_icon>Your trial ends in 3 days.</.alert>
+        <.alert color="danger" with_icon>Payment failed. Check your card details.</.alert>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
+      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.alert color="info" variant="light" with_icon>Light, the default.</.alert>
+        <.alert color="info" variant="soft" with_icon>Soft, a quieter tint.</.alert>
+        <.alert color="info" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
+        <.alert color="info" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Dismissible (click the cross)
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.alert color="success" with_icon heading="Invite sent" close_button_properties={[]}>
+          We emailed Ana a link to join your workspace.
+        </.alert>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "badge"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Badge</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A small label for counts, statuses and categories. Radius follows the rail above.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.badge color={@badge.color} variant={@badge.variant} size={@badge.size} with_icon={@badge.icon}>
+            <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
+          </.badge>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(primary secondary info success warning danger gray)}
+                phx-click="ctl_badge"
+                phx-value-k="color"
+                phx-value-v={c}
+                class={seg(@badge.color == c)}
+              >
+                {c}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={v <- ~w(light soft dark outline)}
+                phx-click="ctl_badge"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@badge.variant == v)}
+              >
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={z <- ~w(xs sm md lg xl)}
+                phx-click="ctl_badge"
+                phx-value-k="size"
+                phx-value-v={z}
+                class={seg(@badge.size == z)}
+              >
+                {z}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_badge" phx-value-k="icon" class={tog(@badge.icon)}>icon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{badge_snippet(@badge)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.badge label="Light" />
+        <.badge variant="soft" label="Soft" />
+        <.badge variant="dark" label="Dark" />
+        <.badge variant="outline" label="Outline" />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.badge :for={c <- ~w(primary secondary info success warning danger gray)} color={c} label={c} />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
       </div>
     </div>
     """

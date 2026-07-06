@@ -582,7 +582,8 @@
   /* Badges */
 
   .pc-badge {
-    @apply inline-flex items-center justify-center border rounded-sm focus:outline-hidden;
+    @apply inline-flex items-center justify-center border focus:outline-hidden;
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Badges - with icon */
@@ -606,94 +607,95 @@
   /* Badges - colors */
 
   .pc-badge--primary-light {
-    @apply text-primary-800 bg-primary-100 border-primary-100 dark:bg-primary-200 dark:border-primary-200;
+    @apply text-primary-800 bg-primary-100 border-primary-100 dark:bg-primary-500/15 dark:border-transparent dark:text-primary-300;
   }
   .pc-badge--primary-soft {
-    @apply text-primary-800 bg-primary-100 border-primary-100 dark:border-primary-900 dark:bg-primary-900 dark:text-primary-300;
+    @apply text-primary-800 bg-primary-100 border-primary-200 dark:bg-primary-500/15 dark:border-primary-500/30 dark:text-primary-300;
   }
   .pc-badge--primary-dark {
-    @apply text-white bg-primary-600 border-primary-600;
+    @apply border-transparent bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
   }
   .pc-badge--primary-outline {
-    @apply text-primary-600 border-primary-600 dark:text-primary-400 dark:border-primary-400;
+    @apply border text-primary-700 border-primary-300 dark:text-primary-400 dark:border-primary-500/40;
   }
 
   .pc-badge--secondary-light {
-    @apply text-secondary-800 bg-secondary-100 border-secondary-100 dark:bg-secondary-200 dark:border-secondary-200;
+    @apply text-secondary-800 bg-secondary-100 border-secondary-100 dark:bg-secondary-500/15 dark:border-transparent dark:text-secondary-300;
   }
   .pc-badge--secondary-soft {
-    @apply text-secondary-800 bg-secondary-100 border-secondary-100 dark:border-secondary-900 dark:bg-secondary-800 dark:text-secondary-300;
+    @apply text-secondary-800 bg-secondary-100 border-secondary-200 dark:bg-secondary-500/15 dark:border-secondary-500/30 dark:text-secondary-300;
   }
   .pc-badge--secondary-dark {
     @apply text-white bg-secondary-600 border-secondary-600;
   }
   .pc-badge--secondary-outline {
-    @apply border text-secondary-600 border-secondary-600 dark:text-secondary-400 dark:border-secondary-400;
+    @apply border text-secondary-700 border-secondary-300 dark:text-secondary-400 dark:border-secondary-500/40;
   }
 
   .pc-badge--info-light {
-    @apply text-info-800 bg-info-100 border-info-100 dark:bg-info-200 dark:border-info-200;
+    @apply text-info-800 bg-info-100 border-info-100 dark:bg-info-500/15 dark:border-transparent dark:text-info-300;
   }
   .pc-badge--info-soft {
-    @apply text-info-800 bg-info-100 border-info-100 dark:border-info-900 dark:bg-info-900 dark:text-info-300;
+    @apply text-info-800 bg-info-100 border-info-200 dark:bg-info-500/15 dark:border-info-500/30 dark:text-info-300;
   }
   .pc-badge--info-dark {
     @apply text-white bg-info-600 border-info-600;
   }
   .pc-badge--info-outline {
-    @apply border text-info-600 border-info-600 dark:text-info-400 dark:border-info-400;
+    @apply border text-info-700 border-info-300 dark:text-info-400 dark:border-info-500/40;
   }
 
   .pc-badge--success-light {
-    @apply text-success-800 bg-success-100 border-success-100 dark:bg-success-200 dark:border-success-200;
+    @apply text-success-800 bg-success-100 border-success-100 dark:bg-success-500/15 dark:border-transparent dark:text-success-300;
   }
   .pc-badge--success-soft {
-    @apply text-success-800 bg-success-100 border-success-100 dark:border-success-900 dark:bg-success-900 dark:text-success-300;
+    @apply text-success-800 bg-success-100 border-success-200 dark:bg-success-500/15 dark:border-success-500/30 dark:text-success-300;
   }
   .pc-badge--success-dark {
     @apply text-white bg-success-600 border-success-600;
   }
   .pc-badge--success-outline {
-    @apply border text-success-600 border-success-600 dark:text-success-400 dark:border-success-400;
+    @apply border text-success-700 border-success-300 dark:text-success-400 dark:border-success-500/40;
   }
 
   .pc-badge--warning-light {
-    @apply text-warning-800 bg-warning-100 border-warning-100 dark:bg-warning-200 dark:border-warning-200;
+    @apply text-warning-800 bg-warning-100 border-warning-100 dark:bg-warning-500/15 dark:border-transparent dark:text-warning-300;
   }
   .pc-badge--warning-soft {
-    @apply text-warning-800 bg-warning-100 border-warning-100 dark:border-warning-900 dark:bg-warning-900 dark:text-warning-300;
+    @apply text-warning-800 bg-warning-100 border-warning-200 dark:bg-warning-500/15 dark:border-warning-500/30 dark:text-warning-300;
   }
   .pc-badge--warning-dark {
     @apply text-white bg-warning-600 border-warning-600;
   }
   .pc-badge--warning-outline {
-    @apply border text-warning-600 border-warning-600 dark:text-warning-400 dark:border-warning-400;
+    @apply border text-warning-700 border-warning-300 dark:text-warning-400 dark:border-warning-500/40;
   }
 
   .pc-badge--danger-light {
-    @apply text-danger-800 bg-danger-100 border-danger-100 dark:bg-danger-200 dark:border-danger-200;
+    @apply text-danger-800 bg-danger-100 border-danger-100 dark:bg-danger-500/15 dark:border-transparent dark:text-danger-300;
   }
   .pc-badge--danger-soft {
-    @apply text-danger-800 bg-danger-100 border-danger-100 dark:border-danger-900 dark:bg-danger-900 dark:text-danger-300;
+    @apply text-danger-800 bg-danger-100 border-danger-200 dark:bg-danger-500/15 dark:border-danger-500/30 dark:text-danger-300;
   }
   .pc-badge--danger-dark {
     @apply text-white bg-danger-600 border-danger-600;
   }
   .pc-badge--danger-outline {
-    @apply border text-danger-600 border-danger-600 dark:text-danger-400 dark:border-danger-400;
+    @apply border text-danger-700 border-danger-300 dark:text-danger-400 dark:border-danger-500/40;
   }
 
   .pc-badge--gray-light {
-    @apply text-gray-800 bg-gray-100 border-gray-100 dark:bg-gray-200 dark:border-gray-200;
+    @apply text-gray-800 bg-gray-100 border-gray-100 dark:bg-gray-500/15 dark:border-transparent dark:text-gray-300;
   }
   .pc-badge--gray-soft {
-    @apply text-gray-800 bg-gray-100 border-gray-100 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300;
+    @apply text-gray-800 bg-gray-100 border-gray-200 dark:bg-gray-500/15 dark:border-gray-500/30 dark:text-gray-300;
   }
   .pc-badge--gray-dark {
     @apply text-white bg-gray-600 border-gray-600 dark:bg-gray-700 dark:border-gray-700;
   }
   .pc-badge--gray-outline {
-    @apply text-gray-600 border border-gray-600 dark:text-gray-400 dark:border-gray-400;
+    @apply border text-gray-700 border-gray-300 dark:text-gray-400 dark:border-gray-500/40;
   }
 
   /* Alerts */
@@ -705,7 +707,8 @@
     @apply flex items-start justify-between;
   }
   .pc-alert-base-classes {
-    @apply flex items-center w-full gap-3 px-4 py-2 text-sm rounded-sm focus:outline-hidden;
+    @apply flex items-center w-full gap-3 px-4 py-3 text-sm focus:outline-hidden;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-alert__heading {
     @apply pt-1 font-bold;
@@ -721,58 +724,58 @@
 
   /* Info variants */
   .pc-alert--info-light {
-    @apply text-info-800 bg-info-100 dark:bg-info-200 dark:text-info-800;
+    @apply text-info-800 bg-info-100 dark:bg-info-500/15 dark:text-info-300;
   }
   .pc-alert--info-soft {
-    @apply text-info-800 bg-info-100 dark:bg-info-900 dark:text-info-300 dark:border dark:border-info-800;
+    @apply text-info-800 bg-info-100 border border-info-200 dark:bg-info-500/15 dark:border-info-500/30 dark:text-info-300;
   }
   .pc-alert--info-dark {
     @apply text-white bg-info-600;
   }
   .pc-alert--info-outline {
-    @apply bg-white border text-info-600 dark:bg-transparent border-info-600 dark:text-info-400 dark:border-info-400;
+    @apply bg-white border text-info-700 border-info-300 dark:bg-transparent dark:text-info-400 dark:border-info-500/40;
   }
 
   /* Success variants */
   .pc-alert--success-light {
-    @apply text-success-800 bg-success-100 dark:bg-success-200 dark:text-success-800;
+    @apply text-success-800 bg-success-100 dark:bg-success-500/15 dark:text-success-300;
   }
   .pc-alert--success-soft {
-    @apply text-success-800 bg-success-100 dark:bg-success-900 dark:text-success-300 dark:border dark:border-success-800;
+    @apply text-success-800 bg-success-100 border border-success-200 dark:bg-success-500/15 dark:border-success-500/30 dark:text-success-300;
   }
   .pc-alert--success-dark {
     @apply text-white bg-success-600;
   }
   .pc-alert--success-outline {
-    @apply bg-white border text-success-600 dark:bg-transparent border-success-600 dark:text-success-400 dark:border-success-400;
+    @apply bg-white border text-success-700 border-success-300 dark:bg-transparent dark:text-success-400 dark:border-success-500/40;
   }
 
   /* Warning variants */
   .pc-alert--warning-light {
-    @apply text-warning-800 bg-warning-100 dark:bg-warning-200 dark:text-warning-800;
+    @apply text-warning-800 bg-warning-100 dark:bg-warning-500/15 dark:text-warning-300;
   }
   .pc-alert--warning-soft {
-    @apply text-warning-800 bg-warning-100 dark:bg-warning-900 dark:text-warning-300 dark:border dark:border-warning-800;
+    @apply text-warning-800 bg-warning-100 border border-warning-200 dark:bg-warning-500/15 dark:border-warning-500/30 dark:text-warning-300;
   }
   .pc-alert--warning-dark {
     @apply text-white bg-warning-600;
   }
   .pc-alert--warning-outline {
-    @apply bg-white border text-warning-600 dark:bg-transparent border-warning-600 dark:text-warning-400 dark:border-warning-400;
+    @apply bg-white border text-warning-700 border-warning-300 dark:bg-transparent dark:text-warning-400 dark:border-warning-500/40;
   }
 
   /* Danger variants */
   .pc-alert--danger-light {
-    @apply text-danger-800 bg-danger-100 dark:bg-danger-200 dark:text-danger-800;
+    @apply text-danger-800 bg-danger-100 dark:bg-danger-500/15 dark:text-danger-300;
   }
   .pc-alert--danger-soft {
-    @apply text-danger-800 bg-danger-100 dark:bg-danger-900 dark:text-danger-300 dark:border dark:border-danger-800;
+    @apply text-danger-800 bg-danger-100 border border-danger-200 dark:bg-danger-500/15 dark:border-danger-500/30 dark:text-danger-300;
   }
   .pc-alert--danger-dark {
     @apply text-white bg-danger-600;
   }
   .pc-alert--danger-outline {
-    @apply bg-white border text-danger-600 dark:bg-transparent border-danger-600 dark:text-danger-400 dark:border-danger-400;
+    @apply bg-white border text-danger-700 border-danger-300 dark:bg-transparent dark:text-danger-400 dark:border-danger-500/40;
   }
 
   /* Alerts - dismiss button variants */

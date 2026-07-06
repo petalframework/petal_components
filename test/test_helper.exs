@@ -15,6 +15,7 @@ if Code.ensure_loaded?(Wallaby) && System.get_env("SKIP_A11Y") == nil do
 
   {:ok, phx_playground_pid} =
     PhoenixPlayground.start(
+  port: 4009,
       live: PetalComponentsWeb.A11yLive,
       open_browser: false,
       live_reload: false
