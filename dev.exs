@@ -653,8 +653,9 @@ Mix.Task.run("tailwind", ["petal_dev"])
 
 PhoenixPlayground.start(
   endpoint: Dev.Endpoint,
-  # OPEN_BROWSER=false for headless runs (CI, agents)
+  # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
+  port: String.to_integer(System.get_env("PORT", "4000")),
   live_reload: true,
   endpoint_options: [
     debug_errors: true,
