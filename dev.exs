@@ -1804,7 +1804,7 @@ PhoenixPlayground.start(
   # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
   port:
     case Integer.parse(System.get_env("PORT") || "") do
-      {port, ""} -> port
+      {port, ""} when port in 1..65_535 -> port
       _ -> 4000
     end,
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
