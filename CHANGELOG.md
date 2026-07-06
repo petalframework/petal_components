@@ -1,4 +1,15 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`tooltip` - a pure-CSS tooltip primitive.** Appears on hover and keyboard focus, four placements (`top`/`bottom`/`left`/`right`), optional arrow, rich content via a `:content` slot, and a `disabled` attr. Toggle at runtime by adding the `pc-tooltip--suppressed` class on the wrapper (e.g. only show tooltips while a sidebar is collapsed). No JavaScript, no dependencies.
+- **`popover` - a click-triggered anchored panel.** Opens on click, closes on click-away or Escape, 12 placements (side plus `-start`/`-end` alignment), rich slot content. Built on the same CSS technique as `dropdown` - zero npm dependencies. Pass `top_layer` to render the panel in the browser top layer via the native HTML popover attribute, so it escapes `overflow: hidden` containers (collapsed sidebars, table cells) - positioning handled by the new `PetalPopover` hook with side-flipping and viewport clamping.
+
+#### Playground
+
+- Deep-linkable tabs (`?tab=navigation`), a `PORT` env override, and HEAD request support - all for CI and agent workflows.
+
 ### 4.2.1 - 2026-07-06
 
 #### Fixed

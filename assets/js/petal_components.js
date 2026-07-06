@@ -715,6 +715,74 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
   });
 }
 
+// Positions a top-layer popover (<div popover>) next to its trigger.
+// The browser handles open/close and light-dismiss via the popover attribute;
+// this hook only computes fixed coordinates, flipping to the opposite side
+// and clamping to the viewport when space runs out.
+export const PetalPopover = {
+  mounted() {
+    this.reposition = () => this.position();
+    this.onToggle = (e) => {
+      if (e.newState === "open") {
+        this.position();
+        window.addEventListener("scroll", this.reposition, true);
+        window.addEventListener("resize", this.reposition);
+      } else {
+        window.removeEventListener("scroll", this.reposition, true);
+        window.removeEventListener("resize", this.reposition);
+      }
+    };
+    this.el.addEventListener("toggle", this.onToggle);
+  },
+  destroyed() {
+    this.el.removeEventListener("toggle", this.onToggle);
+    window.removeEventListener("scroll", this.reposition, true);
+    window.removeEventListener("resize", this.reposition);
+  },
+  position() {
+    const trigger = document.querySelector(`[popovertarget="${CSS.escape(this.el.id)}"]`);
+    if (!trigger) return;
+
+    const gap = 8;
+    const pad = 8;
+    const t = trigger.getBoundingClientRect();
+    const p = this.el.getBoundingClientRect();
+    const [side, align] = (this.el.dataset.placement || "bottom").split("-");
+
+    const space = {
+      top: t.top,
+      bottom: window.innerHeight - t.bottom,
+      left: t.left,
+      right: window.innerWidth - t.right,
+    };
+
+    let s = side;
+    if (side === "bottom" && space.bottom < p.height + gap && space.top > space.bottom) s = "top";
+    if (side === "top" && space.top < p.height + gap && space.bottom > space.top) s = "bottom";
+    if (side === "right" && space.right < p.width + gap && space.left > space.right) s = "left";
+    if (side === "left" && space.left < p.width + gap && space.right > space.left) s = "right";
+
+    let top, left;
+    if (s === "top" || s === "bottom") {
+      top = s === "top" ? t.top - p.height - gap : t.bottom + gap;
+      if (align === "start") left = t.left;
+      else if (align === "end") left = t.right - p.width;
+      else left = t.left + t.width / 2 - p.width / 2;
+    } else {
+      left = s === "left" ? t.left - p.width - gap : t.right + gap;
+      if (align === "start") top = t.top;
+      else if (align === "end") top = t.bottom - p.height;
+      else top = t.top + t.height / 2 - p.height / 2;
+    }
+
+    left = Math.max(pad, Math.min(left, window.innerWidth - p.width - pad));
+    top = Math.max(pad, Math.min(top, window.innerHeight - p.height - pad));
+
+    this.el.style.top = `${top}px`;
+    this.el.style.left = `${left}px`;
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -730,4 +798,5 @@ export default {
   PetalSpotlight,
   PetalWordRotate,
   PetalTypingEffect,
+  PetalPopover,
 };
