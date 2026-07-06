@@ -108,7 +108,7 @@
   --pg-accent-50: light-dark(#fafafa, #18181b);
   --pg-accent-100: light-dark(#f4f4f5, #3f3f46);
   --pg-accent-200: light-dark(#e4e4e7, #27272a);
-  --pg-accent-300: light-dark(#d4d4d8, #3f3f46);
+  --pg-accent-300: light-dark(#d4d4d8, #d4d4d8);
   --pg-accent-400: light-dark(#a1a1aa, #52525b);
   --pg-accent-500: light-dark(#52525b, #a1a1aa);
   --pg-accent-600: light-dark(#18181b, #fafafa);
