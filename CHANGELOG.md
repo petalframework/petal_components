@@ -1,14 +1,22 @@
 # Changelog
-### Unreleased
+### 4.3.0 - 2026-07-07
 
 #### Added
 
 - **`tooltip` - a pure-CSS tooltip primitive.** Appears on hover and keyboard focus, four placements (`top`/`bottom`/`left`/`right`), optional arrow, rich content via a `:content` slot, and a `disabled` attr. The bubble carries a stable `id` so the trigger can reference it with `aria-describedby` for screen readers. Toggle at runtime by adding the `pc-tooltip--suppressed` class on the wrapper (e.g. only show tooltips while a sidebar is collapsed). No JavaScript, no dependencies.
 - **`popover` - a click-triggered anchored panel.** Opens on click, closes on click-away or Escape, 12 placements (side plus `-start`/`-end` alignment), rich slot content. Built on the same CSS technique as `dropdown` - zero npm dependencies. The trigger toggles `aria-expanded`, and Escape closes the panel and returns focus to the trigger. Pass `top_layer` to render the panel in the browser top layer via the native HTML popover attribute, so it escapes `overflow: hidden` containers (collapsed sidebars, table cells) - positioning handled by the new `PetalPopover` hook with side-flipping and viewport clamping.
 
+#### Changed
+
+- **Table headers read as proper labels.** `<.table>` header cells were muted (`gray-500`/`gray-400`) with extra letter-spacing, which rendered faint and loose. They now use the prominent text tone (`gray-900`/white) and normal tracking, matching the type scale from the 4.2.0 typography pass and how shadcn styles its table headers.
+
 #### Playground
 
 - Deep-linkable tabs (`?tab=navigation`), a `PORT` env override, and HEAD request support - all for CI and agent workflows.
+
+#### Upgrading
+
+No code changes are required - everything is additive or a CSS restyle. The one visual shift: `<.table>` headers are darker and no longer letter-spaced. To keep the old look on a specific table, pass `class` to override, or redefine `.pc-table__th` after your import.
 
 ### 4.2.1 - 2026-07-06
 
