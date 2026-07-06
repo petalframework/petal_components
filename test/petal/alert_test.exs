@@ -68,7 +68,8 @@ defmodule PetalComponents.AlertTest do
     end
 
     test "renders all color variants correctly" do
-      ~w(info warning danger success) |> Enum.each(fn color ->
+      ~w(info warning danger success gray)
+      |> Enum.each(fn color ->
         assigns = %{color: color}
 
         html =
@@ -78,6 +79,18 @@ defmodule PetalComponents.AlertTest do
 
         assert_has_class(html, alert_class(color))
       end)
+    end
+
+    test "renders gray with icon without raising" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="gray" with_icon label="Neutral note" />
+        """)
+
+      assert_has_class(html, alert_class("gray"))
+      assert html =~ "hero-information-circle"
     end
   end
 
@@ -142,7 +155,8 @@ defmodule PetalComponents.AlertTest do
     end
 
     test "renders all variant styles correctly" do
-      ~w(light dark soft outline) |> Enum.each(fn variant ->
+      ~w(light dark soft outline)
+      |> Enum.each(fn variant ->
         assigns = %{variant: variant}
 
         html =
@@ -162,7 +176,8 @@ defmodule PetalComponents.AlertTest do
     end
 
     test "renders dismiss button with proper color classes for all colors and default variant" do
-      ~w(info warning danger success) |> Enum.each(fn color ->
+      ~w(info warning danger success)
+      |> Enum.each(fn color ->
         assigns = %{color: color}
 
         html =
@@ -180,9 +195,10 @@ defmodule PetalComponents.AlertTest do
     end
 
     test "renders dismiss button with variant-specific classes" do
-      test_cases = for color <- ~w(info warning danger success),
-                        variant <- ~w(dark soft outline),
-                        do: {color, variant}
+      test_cases =
+        for color <- ~w(info warning danger success),
+            variant <- ~w(dark soft outline),
+            do: {color, variant}
 
       Enum.each(test_cases, fn {color, variant} ->
         assigns = %{color: color, variant: variant}

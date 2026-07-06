@@ -17,8 +17,8 @@ defmodule PetalComponents.Button do
 
   attr :variant, :string,
     default: "solid",
-    values: ["solid", "light", "outline", "inverted", "shadow", "ghost"],
-    doc: "button variant"
+    values: ["solid", "soft", "light", "outline", "inverted", "shadow", "ghost"],
+    doc: "button variant. soft adapts its tint to dark mode; light stays light in both modes"
 
   attr :color, :string,
     default: "primary",

@@ -137,7 +137,7 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
-  @alert_colors ~w(info success warning danger)
+  @alert_colors ~w(info success warning danger gray)
   @badge_colors ~w(primary secondary info success warning danger gray)
   @tint_variants ~w(light soft dark outline)
 
@@ -149,6 +149,7 @@ defmodule Dev.PlaygroundLive do
        radii: @radii,
        stars: @stars,
        variant: "solid",
+       color: "primary",
        size: "md",
        icon: false,
        loading: false,
@@ -174,14 +175,21 @@ defmodule Dev.PlaygroundLive do
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
   def handle_event("toggle_dark", _params, socket), do: patch_theme(socket, %{dark: !socket.assigns.dark})
 
-  def handle_event("ctl_variant", %{"v" => v}, socket) when v in ~w(solid light outline ghost),
+  def handle_event("ctl_variant", %{"v" => v}, socket) when v in ~w(solid soft light outline ghost),
     do: {:noreply, assign(socket, :variant, v)}
+
+  def handle_event("ctl_color", %{"v" => v}, socket)
+      when v in ~w(primary secondary info success warning danger gray),
+      do: {:noreply, assign(socket, :color, v)}
 
   def handle_event("ctl_size", %{"v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, assign(socket, :size, v)}
 
-  def handle_event("flip", %{"k" => "icon"}, socket), do: {:noreply, update(socket, :icon, &(!&1))}
-  def handle_event("flip", %{"k" => "loading"}, socket), do: {:noreply, update(socket, :loading, &(!&1))}
+  def handle_event("flip", %{"k" => "icon"}, socket),
+    do: {:noreply, socket |> update(:icon, &(!&1)) |> assign(:loading, false)}
+
+  def handle_event("flip", %{"k" => "loading"}, socket),
+    do: {:noreply, socket |> update(:loading, &(!&1)) |> assign(:icon, false)}
   def handle_event("flip", %{"k" => "disabled"}, socket), do: {:noreply, update(socket, :disabled, &(!&1))}
   def handle_event("flip", %{"k" => "show_code"}, socket), do: {:noreply, update(socket, :show_code, &(!&1))}
 
@@ -255,6 +263,7 @@ defmodule Dev.PlaygroundLive do
     attrs =
       [
         a.variant != "solid" && ~s(variant="#{a.variant}"),
+        a.color != "primary" && ~s(color="#{a.color}"),
         a.size != "md" && ~s(size="#{a.size}"),
         a.icon && ~s(icon="hero-rocket-launch"),
         a.loading && "loading",
@@ -445,7 +454,7 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Button</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Triggers an action. Four core variants, plus a semantic range for when the action carries meaning.
+        Triggers an action. Five variants, plus a semantic range for when the action carries meaning.
         Accent and radius follow the rail above.
       </p>
 
@@ -453,6 +462,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-center justify-center px-6 py-14">
           <.button
             variant={@variant}
+            color={@color}
             size={@size}
             icon={if @icon, do: "hero-rocket-launch"}
             loading={@loading}
@@ -463,15 +473,28 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(primary secondary info success warning danger gray)}
+                phx-click="ctl_color"
+                phx-value-v={c}
+                class={seg(@color == c)}
+              >
+                {c}
+              </button>
+            </div>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={{label, v} <- [{"solid", "solid"}, {"soft", "light"}, {"outline", "outline"}, {"ghost", "ghost"}]}
+                :for={v <- ~w(solid soft light outline ghost)}
                 phx-click="ctl_variant"
                 phx-value-v={v}
                 class={seg(@variant == v)}
               >
-                {label}
+                {v}
               </button>
             </div>
           </div>
@@ -515,7 +538,8 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
         <.button>Solid</.button>
-        <.button variant="light">Soft</.button>
+        <.button variant="soft">Soft</.button>
+        <.button variant="light">Light</.button>
         <.button variant="outline">Outline</.button>
         <.button variant="ghost">Ghost</.button>
       </div>
@@ -589,7 +613,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={c <- ~w(info success warning danger)}
+                :for={c <- ~w(info success warning danger gray)}
                 phx-click="ctl_alert"
                 phx-value-k="color"
                 phx-value-v={c}
@@ -646,8 +670,8 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
       <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="info" variant="light" with_icon>Light, the default.</.alert>
-        <.alert color="info" variant="soft" with_icon>Soft, a quieter tint.</.alert>
+        <.alert color="info" variant="light" with_icon>Light, the default. Stays light even in dark mode.</.alert>
+        <.alert color="info" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
         <.alert color="info" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
         <.alert color="info" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
       </div>

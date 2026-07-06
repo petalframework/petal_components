@@ -6,7 +6,7 @@ defmodule PetalComponents.Alert do
 
   attr(:color, :string,
     default: "info",
-    values: ["info", "success", "warning", "danger"]
+    values: ["info", "success", "warning", "danger", "gray"]
   )
 
   attr(:variant, :string,
@@ -79,8 +79,7 @@ defmodule PetalComponents.Alert do
                     @on_dismiss,
                     JS.hide(
                       to: "##{@alert_id}",
-                      transition:
-                        {"ease-out duration-300", "opacity-100", "opacity-0"}
+                      transition: {"ease-out duration-300", "opacity-100", "opacity-0"}
                     )
                   )
                 }
@@ -147,6 +146,12 @@ defmodule PetalComponents.Alert do
   defp get_icon(%{color: "danger"} = assigns) do
     ~H"""
     <.icon name="hero-x-circle" />
+    """
+  end
+
+  defp get_icon(%{color: "gray"} = assigns) do
+    ~H"""
+    <.icon name="hero-information-circle" />
     """
   end
 
