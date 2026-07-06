@@ -87,38 +87,58 @@ defmodule PetalComponents.Popover do
   end
 
   defp render_anchored(assigns) do
+    trigger_id = "#{assigns.id}-trigger"
+
+    hide_panel =
+      JS.hide(
+        to: "##{assigns.id}",
+        transition: {@transition_out_base, @transition_out_start, @transition_out_end}
+      )
+
     hide =
       compose_js(
         assigns.on_close,
-        JS.hide(
-          to: "##{assigns.id}",
-          transition: {@transition_out_base, @transition_out_start, @transition_out_end}
-        )
+        JS.set_attribute(hide_panel, {"aria-expanded", "false"}, to: "##{trigger_id}")
       )
+
+    # Escape closes AND returns focus to the trigger; scoped to the component
+    # (not the window) so a stray Escape elsewhere never steals focus.
+    hide_and_refocus = JS.focus(hide, to: "##{trigger_id}")
 
     toggle =
-      JS.toggle(
-        to: "##{assigns.id}",
-        display: "block",
-        in: {@transition_in_base, @transition_in_start, @transition_in_end},
-        out: {@transition_out_base, @transition_out_start, @transition_out_end}
+      JS.toggle_attribute(
+        JS.toggle(
+          to: "##{assigns.id}",
+          display: "block",
+          in: {@transition_in_base, @transition_in_start, @transition_in_end},
+          out: {@transition_out_base, @transition_out_start, @transition_out_end}
+        ),
+        {"aria-expanded", "true", "false"}
       )
 
-    assigns = assign(assigns, hide: hide, toggle: toggle)
+    assigns =
+      assign(assigns,
+        hide: hide,
+        hide_and_refocus: hide_and_refocus,
+        toggle: toggle,
+        trigger_id: trigger_id
+      )
 
     ~H"""
     <div
       class={["pc-popover", @class]}
       phx-click-away={@hide}
-      phx-window-keydown={@hide}
+      phx-keydown={@hide_and_refocus}
       phx-key="Escape"
       {@rest}
     >
       <button
         type="button"
+        id={@trigger_id}
         class={["pc-popover__trigger", @trigger_class]}
         phx-click={@toggle}
         aria-haspopup="dialog"
+        aria-expanded="false"
         aria-controls={@id}
       >
         {render_slot(@trigger)}

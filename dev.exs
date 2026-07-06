@@ -1083,8 +1083,8 @@ defmodule Dev.PlaygroundLive do
 
           <%!-- A realistic editor toolbar: every control gets a tooltip --%>
           <div class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs dark:border-gray-700 dark:bg-gray-800">
-            <.tooltip label="Bold (⌘B)">
-              <.icon_button size="sm">
+            <.tooltip id="tip-bold" label="Bold (⌘B)">
+              <.icon_button size="sm" aria-describedby="tip-bold">
                 <.icon name="hero-bold" class="w-4 h-4" />
               </.icon_button>
             </.tooltip>

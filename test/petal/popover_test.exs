@@ -25,6 +25,28 @@ defmodule PetalComponents.PopoverTest do
     assert html =~ ~s(phx-key="Escape")
   end
 
+  test "trigger has an id and toggles aria-expanded, Escape returns focus" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.popover id="pop-a11y">
+        <:trigger>Open</:trigger>
+        Panel
+      </.popover>
+      """)
+
+    assert html =~ ~s(id="pop-a11y-trigger")
+    assert html =~ ~s(aria-expanded="false")
+    # the click command toggles aria-expanded alongside the panel
+    assert html =~ "toggle_attr"
+    # the Escape binding is scoped to the component and returns focus to the trigger
+    assert html =~ "phx-keydown"
+    refute html =~ "phx-window-keydown"
+    assert html =~ ~s(focus)
+    assert html =~ "pop-a11y-trigger"
+  end
+
   test "generates an id when not given" do
     assigns = %{}
 
