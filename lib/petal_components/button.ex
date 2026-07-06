@@ -8,7 +8,7 @@ defmodule PetalComponents.Button do
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
 
   attr :radius, :string,
-    default: "md",
+    default: "lg",
     values: ["none", "sm", "md", "lg", "xl", "full"],
     doc: "button border radius"
 

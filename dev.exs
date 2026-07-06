@@ -141,7 +141,7 @@ defmodule Dev.PlaygroundLive do
      socket
      |> assign(:active, allow(params["c"], @slugs, "button"))
      |> assign(:accent, allow(params["accent"], @accent_names, "neutral"))
-     |> assign(:radius, allow(params["radius"], @radii ++ ["xl"], "md"))
+     |> assign(:radius, allow(params["radius"], @radii ++ ["xl"], "lg"))
      |> assign(:dark, params["dark"] == "1")}
   end
 
@@ -175,7 +175,7 @@ defmodule Dev.PlaygroundLive do
   defp theme_path(t) do
     []
     |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
-    |> then(&if t.radius != "md", do: [{"radius", t.radius} | &1], else: &1)
+    |> then(&if t.radius != "lg", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.accent != "neutral", do: [{"accent", t.accent} | &1], else: &1)
     |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
     |> case do
@@ -198,7 +198,7 @@ defmodule Dev.PlaygroundLive do
       [
         a.variant != "solid" && ~s(variant="#{a.variant}"),
         a.size != "md" && ~s(size="#{a.size}"),
-        a.radius != "md" && ~s(radius="#{a.radius}"),
+        a.radius != "lg" && ~s(radius="#{a.radius}"),
         a.icon && ~s(icon="hero-rocket-launch"),
         a.loading && "loading",
         a.disabled && "disabled"
