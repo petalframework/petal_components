@@ -93,8 +93,10 @@ defmodule Dev.PlaygroundLive do
      )}
   end
 
+  @known_tabs ~w(buttons typography forms feedback data navigation layout effects chat)
+
   @impl true
-  def handle_params(%{"tab" => tab}, _uri, socket) when is_binary(tab),
+  def handle_params(%{"tab" => tab}, _uri, socket) when tab in @known_tabs,
     do: {:noreply, assign(socket, :active_tab, tab)}
 
   def handle_params(_params, _uri, socket), do: {:noreply, socket}
@@ -1800,7 +1802,11 @@ Mix.Task.run("tailwind", ["petal_dev"])
 PhoenixPlayground.start(
   endpoint: Dev.Endpoint,
   # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
-  port: String.to_integer(System.get_env("PORT", "4000")),
+  port:
+    case Integer.parse(System.get_env("PORT") || "") do
+      {port, ""} -> port
+      _ -> 4000
+    end,
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
   live_reload: true,
   endpoint_options: [

@@ -50,7 +50,7 @@ defmodule PetalComponents.Tooltip do
     <span class={["pc-tooltip group/pc-tooltip", @class]} {@rest}>
       {render_slot(@inner_block)}
       <span
-        :if={!@disabled && (@label || @content != [])}
+        :if={!@disabled && (@label not in [nil, ""] || @content != [])}
         role="tooltip"
         class={["pc-tooltip__content", placement_class(@placement), @content_class]}
       >

@@ -95,6 +95,19 @@ defmodule PetalComponents.TooltipTest do
     refute html =~ ~s(role="tooltip")
   end
 
+  test "no tooltip is rendered for an empty label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tooltip label="">
+        <button>Trigger</button>
+      </.tooltip>
+      """)
+
+    refute html =~ ~s(role="tooltip")
+  end
+
   test "passes through custom classes and global attrs" do
     assigns = %{}
 
