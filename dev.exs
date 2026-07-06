@@ -94,6 +94,12 @@ defmodule Dev.PlaygroundLive do
   end
 
   @impl true
+  def handle_params(%{"tab" => tab}, _uri, socket) when is_binary(tab),
+    do: {:noreply, assign(socket, :active_tab, tab)}
+
+  def handle_params(_params, _uri, socket), do: {:noreply, socket}
+
+  @impl true
   def handle_event("inc", _, socket), do: {:noreply, update(socket, :count, &(&1 + 1))}
   def handle_event("dec", _, socket), do: {:noreply, update(socket, :count, &(&1 - 1))}
 
@@ -1069,6 +1075,111 @@ defmodule Dev.PlaygroundLive do
           </.dropdown>
         </section>
 
+        <%!-- Tooltip --%>
+        <section>
+          <.h2 class="mb-4">Tooltip</.h2>
+
+          <%!-- A realistic editor toolbar: every control gets a tooltip --%>
+          <div class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+            <.tooltip label="Bold (⌘B)">
+              <.icon_button size="sm">
+                <.icon name="hero-bold" class="w-4 h-4" />
+              </.icon_button>
+            </.tooltip>
+            <.tooltip label="Italic (⌘I)">
+              <.icon_button size="sm">
+                <.icon name="hero-italic" class="w-4 h-4" />
+              </.icon_button>
+            </.tooltip>
+            <.tooltip label="Insert link (⌘K)">
+              <.icon_button size="sm">
+                <.icon name="hero-link" class="w-4 h-4" />
+              </.icon_button>
+            </.tooltip>
+            <div class="mx-1 h-5 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <.tooltip placement="bottom">
+              <:content>
+                Last saved <span class="font-semibold">2 minutes ago</span>
+              </:content>
+              <.icon_button size="sm">
+                <.icon name="hero-check-circle" class="w-4 h-4 text-green-500" />
+              </.icon_button>
+            </.tooltip>
+          </div>
+
+          <%!-- Placements --%>
+          <div class="mt-6 flex items-center gap-4">
+            <.tooltip
+              :for={placement <- ["top", "bottom", "left", "right"]}
+              placement={placement}
+              label={placement}
+            >
+              <.button size="sm" color="white" label={placement} />
+            </.tooltip>
+          </div>
+        </section>
+
+        <%!-- Popover --%>
+        <section>
+          <.h2 class="mb-4">Popover</.h2>
+
+          <div class="flex flex-wrap items-start gap-8">
+            <%!-- The classic dimensions form --%>
+            <.popover
+              placement="bottom-start"
+              panel_class="w-80"
+              trigger_class="pc-button pc-button--md pc-button--white pc-button--radius-md"
+            >
+              <:trigger>
+                <.icon name="hero-adjustments-horizontal" class="w-4 h-4 mr-2" /> Dimensions
+              </:trigger>
+              <div class="space-y-3">
+                <div>
+                  <.h5 class="mb-1" no_margin>Dimensions</.h5>
+                  <.p class="text-sm text-gray-500 dark:text-gray-400" no_margin>
+                    Set the dimensions for the layer.
+                  </.p>
+                </div>
+                <div class="grid grid-cols-2 items-center gap-2">
+                  <label class="text-sm">Width</label>
+                  <input type="text" value="100%" class="pc-text-input" />
+                  <label class="text-sm">Max. width</label>
+                  <input type="text" value="300px" class="pc-text-input" />
+                  <label class="text-sm">Height</label>
+                  <input type="text" value="25px" class="pc-text-input" />
+                </div>
+              </div>
+            </.popover>
+
+            <%!-- Top layer: an account switcher escaping an overflow-clipped rail --%>
+            <div class="flex h-56 w-16 flex-col items-center justify-end overflow-hidden rounded-lg border border-gray-200 bg-gray-50 py-3 dark:border-gray-700 dark:bg-gray-900">
+              <.popover top_layer placement="right-start" panel_class="w-64">
+                <:trigger>
+                  <.avatar size="sm" name="Jane Doe" random_color />
+                </:trigger>
+                <div class="space-y-1">
+                  <.p class="px-2 text-xs font-semibold uppercase text-gray-400" no_margin>
+                    Switch workspace
+                  </.p>
+                  <button class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <.avatar size="xs" name="Acme Inc" random_color /> Acme Inc
+                  </button>
+                  <button class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <.avatar size="xs" name="Petal Labs" random_color /> Petal Labs
+                  </button>
+                  <div class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+                  <button class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
+                  </button>
+                </div>
+              </.popover>
+              <.p class="mt-2 text-center text-[10px] leading-tight text-gray-400" no_margin>
+                overflow<br />hidden
+              </.p>
+            </div>
+          </div>
+        </section>
+
         <%!-- Vertical Menu --%>
         <section>
           <.h2 class="mb-4">Vertical Menu</.h2>
@@ -1191,7 +1302,9 @@ defmodule Dev.PlaygroundLive do
 
         <%!-- Every style, labelled with the component that renders it --%>
         <section>
-          <div class="mb-6 font-mono text-xs uppercase tracking-widest text-gray-400">Every style</div>
+          <div class="mb-6 font-mono text-xs uppercase tracking-widest text-gray-400">
+            Every style
+          </div>
           <div class="space-y-10">
             <div>
               <div class="mb-2 font-mono text-xs text-gray-400">&lt;.lead&gt;</div>
@@ -1271,7 +1384,6 @@ defmodule Dev.PlaygroundLive do
             </ul>
           </.prose>
         </section>
-
       </div>
 
       <%!-- ============================================================ --%>
@@ -1616,6 +1728,9 @@ defmodule Dev.Endpoint do
     key: "_dev_key",
     signing_salt: "petal_dev"
 
+  # Answer HEAD probes (readiness checks from agents/CI) as GET
+  plug Plug.Head
+
   plug Dev.Router
 end
 
@@ -1684,7 +1799,8 @@ Mix.Task.run("tailwind", ["petal_dev"])
 
 PhoenixPlayground.start(
   endpoint: Dev.Endpoint,
-  # OPEN_BROWSER=false for headless runs (CI, agents)
+  # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
+  port: String.to_integer(System.get_env("PORT", "4000")),
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
   live_reload: true,
   endpoint_options: [
