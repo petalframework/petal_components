@@ -8,9 +8,9 @@ defmodule PetalComponents.Button do
   attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
 
   attr :radius, :string,
-    default: "lg",
-    values: ["none", "sm", "md", "lg", "xl", "full"],
-    doc: "button border radius"
+    default: nil,
+    values: [nil, "none", "sm", "md", "lg", "xl", "full"],
+    doc: "button border radius; when unset the --pc-radius theme token applies"
 
   attr :variant, :string,
     default: "solid",
@@ -148,7 +148,7 @@ defmodule PetalComponents.Button do
 
   defp button_classes(assigns) do
     size = assigns[:size] || "md"
-    radius = assigns[:radius] || "md"
+    radius = assigns[:radius]
     variant = assigns[:variant] || "solid"
     color = assigns[:color] || "primary"
     loading = assigns[:loading] || false
@@ -163,7 +163,7 @@ defmodule PetalComponents.Button do
       "pc-button",
       "#{color_class}#{variant_suffix}",
       "pc-button--#{size}",
-      "pc-button--radius-#{radius}",
+      radius && "pc-button--radius-#{radius}",
       user_classes,
       loading && "pc-button--loading",
       disabled && "pc-button--disabled",

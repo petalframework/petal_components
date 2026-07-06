@@ -117,7 +117,16 @@ defmodule Dev.PlaygroundLive do
   ]
   @accent_names Enum.map(@accents, &elem(&1, 0))
 
-  @radii ~w(none sm md lg full)
+  # Theme radius: the rail sets --pc-radius on the page, so every component
+  # that reads the token follows. Labels are honest pixel values.
+  @radii [
+    {"0", "0px"},
+    {"6", "0.375rem"},
+    {"10", "0.625rem"},
+    {"14", "0.875rem"},
+    {"full", "9999px"}
+  ]
+  @radius_labels Enum.map(@radii, &elem(&1, 0))
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -141,7 +150,7 @@ defmodule Dev.PlaygroundLive do
      socket
      |> assign(:active, allow(params["c"], @slugs, "button"))
      |> assign(:accent, allow(params["accent"], @accent_names, "neutral"))
-     |> assign(:radius, allow(params["radius"], @radii ++ ["xl"], "lg"))
+     |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
      |> assign(:dark, params["dark"] == "1")}
   end
 
@@ -175,7 +184,7 @@ defmodule Dev.PlaygroundLive do
   defp theme_path(t) do
     []
     |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
-    |> then(&if t.radius != "lg", do: [{"radius", t.radius} | &1], else: &1)
+    |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.accent != "neutral", do: [{"accent", t.accent} | &1], else: &1)
     |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
     |> case do
@@ -185,6 +194,11 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
+
+  defp radius_css(label) do
+    {_, v} = List.keyfind(@radii, label, 0) || {label, "0.625rem"}
+    v
+  end
 
   defp fmt_stars(n) when n >= 1000 do
     k = Float.round(n / 1000, 1)
@@ -198,7 +212,6 @@ defmodule Dev.PlaygroundLive do
       [
         a.variant != "solid" && ~s(variant="#{a.variant}"),
         a.size != "md" && ~s(size="#{a.size}"),
-        a.radius != "lg" && ~s(radius="#{a.radius}"),
         a.icon && ~s(icon="hero-rocket-launch"),
         a.loading && "loading",
         a.disabled && "disabled"
@@ -219,6 +232,7 @@ defmodule Dev.PlaygroundLive do
         @dark && "dark"
       ]}
       data-accent={@accent}
+      style={"--pc-radius: #{radius_css(@radius)}"}
     >
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-zinc-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
@@ -298,12 +312,12 @@ defmodule Dev.PlaygroundLive do
           <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">radius</span>
           <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
             <button
-              :for={r <- @radii}
+              :for={{label, _value} <- @radii}
               phx-click="set_radius"
-              phx-value-radius={r}
-              class={seg(@radius == r)}
+              phx-value-radius={label}
+              class={seg(@radius == label)}
             >
-              {r}
+              {label}
             </button>
           </div>
         </div>
@@ -358,11 +372,10 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 bg-gray-50 py-14 dark:bg-zinc-900/40">
+        <div class="flex items-center justify-center px-6 py-14">
           <.button
             variant={@variant}
             size={@size}
-            radius={@radius}
             icon={if @icon, do: "hero-rocket-launch"}
             loading={@loading}
             disabled={@disabled}
@@ -422,38 +435,49 @@ defmodule Dev.PlaygroundLive do
       ><code>{button_snippet(assigns)}</code></pre>
 
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
-        <.button radius={@radius}>Solid</.button>
-        <.button variant="light" radius={@radius}>Soft</.button>
-        <.button variant="outline" radius={@radius}>Outline</.button>
-        <.button variant="ghost" radius={@radius}>Ghost</.button>
-        <.button color="danger" radius={@radius}>Destructive</.button>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.button>Solid</.button>
+        <.button variant="light">Soft</.button>
+        <.button variant="outline">Outline</.button>
+        <.button variant="ghost">Ghost</.button>
+        <.button color="danger">Destructive</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
-        <.button color="info" variant="light" size="sm" radius={@radius}>Info</.button>
-        <.button color="success" variant="light" size="sm" radius={@radius}>Success</.button>
-        <.button color="warning" variant="light" size="sm" radius={@radius}>Warning</.button>
-        <.button color="danger" variant="light" size="sm" radius={@radius}>Danger</.button>
-        <.button color="danger" variant="outline" size="sm" radius={@radius}>Destructive outline</.button>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.button color="info" variant="light" size="sm">Info</.button>
+        <.button color="success" variant="light" size="sm">Success</.button>
+        <.button color="warning" variant="light" size="sm">Warning</.button>
+        <.button color="danger" variant="light" size="sm">Danger</.button>
+        <.button color="danger" variant="outline" size="sm">Destructive outline</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
-        <.button size="xs" radius={@radius}>Extra small</.button>
-        <.button size="sm" radius={@radius}>Small</.button>
-        <.button size="md" radius={@radius}>Medium</.button>
-        <.button size="lg" radius={@radius}>Large</.button>
-        <.button size="xl" radius={@radius}>Extra large</.button>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.button size="xs">Extra small</.button>
+        <.button size="sm">Small</.button>
+        <.button size="md">Medium</.button>
+        <.button size="lg">Large</.button>
+        <.button size="xl">Extra large</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl bg-gray-50 dark:bg-zinc-900/40 dark:border-zinc-800">
-        <.button radius={@radius}>Default</.button>
-        <.button icon="hero-rocket-launch" radius={@radius}>With icon</.button>
-        <.button loading radius={@radius}>Loading</.button>
-        <.button disabled radius={@radius}>Disabled</.button>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.button>Default</.button>
+        <.button icon="hero-rocket-launch">With icon</.button>
+        <.button loading>Loading</.button>
+        <.button disabled>Disabled</.button>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Icon button</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.button variant="outline">Button</.button>
+        <.icon_button tooltip="Submit">
+          <.icon name="hero-arrow-up" class="w-5 h-5" />
+        </.icon_button>
+        <.icon_button color="gray" tooltip="Settings">
+          <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
+        </.icon_button>
       </div>
     </div>
     """

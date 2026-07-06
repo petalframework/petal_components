@@ -26,7 +26,8 @@
   /* Buttons (New) */
 
   .pc-button {
-    @apply inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border rounded-md focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
+    @apply inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Buttons - sizes */
