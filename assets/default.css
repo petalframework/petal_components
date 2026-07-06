@@ -256,19 +256,21 @@
     @apply animate-spin;
   }
 
-  .pc-button__spinner-icon--xs {
+  /* Parent-scoped so the size wins over the heroicon mask's own
+     width/height defaults regardless of stylesheet order. */
+  .pc-button .pc-button__spinner-icon--xs {
     @apply w-3 h-3;
   }
-  .pc-button__spinner-icon--sm {
+  .pc-button .pc-button__spinner-icon--sm {
     @apply w-4 h-4;
   }
-  .pc-button__spinner-icon--md {
+  .pc-button .pc-button__spinner-icon--md {
     @apply w-5 h-5;
   }
-  .pc-button__spinner-icon--lg {
+  .pc-button .pc-button__spinner-icon--lg {
     @apply w-5 h-5;
   }
-  .pc-button__spinner-icon--xl {
+  .pc-button .pc-button__spinner-icon--xl {
     @apply w-6 h-6;
   }
 
