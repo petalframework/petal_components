@@ -195,6 +195,11 @@ defmodule Dev.PlaygroundLive do
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
 
+  defp radius_title("0"), do: "Square corners"
+  defp radius_title("10"), do: "10px — the shipped default"
+  defp radius_title("full"), do: "Pill"
+  defp radius_title(label), do: label <> "px"
+
   defp radius_css(label) do
     {_, v} = List.keyfind(@radii, label, 0) || {label, "0.625rem"}
     v
@@ -315,6 +320,7 @@ defmodule Dev.PlaygroundLive do
               :for={{label, _value} <- @radii}
               phx-click="set_radius"
               phx-value-radius={label}
+              title={radius_title(label)}
               class={seg(@radius == label)}
             >
               {label}
