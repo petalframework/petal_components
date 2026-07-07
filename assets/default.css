@@ -1119,7 +1119,7 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-file-input::file-selector-button {
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-color-input {
     @apply border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;

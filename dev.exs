@@ -139,7 +139,7 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
-  @input_types ~w(text email password search date select textarea file)
+  @input_types ~w(text email password search date time select textarea file)
 
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
@@ -300,6 +300,7 @@ defmodule Dev.PlaygroundLive do
   defp input_meta("password"), do: {"Password", nil}
   defp input_meta("search"), do: {"Search", "Search components..."}
   defp input_meta("date"), do: {"Renewal date", nil}
+  defp input_meta("time"), do: {"Meeting time", nil}
   defp input_meta("select"), do: {"Country", nil}
   defp input_meta("textarea"), do: {"Bio", "A little about you"}
   defp input_meta("file"), do: {"Avatar", nil}
@@ -711,7 +712,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={t <- ~w(text email password search date select textarea file)}
+                :for={t <- ~w(text email password search date time select textarea file)}
                 phx-click="ctl_input"
                 phx-value-k="type"
                 phx-value-v={t}
@@ -795,7 +796,7 @@ defmodule Dev.PlaygroundLive do
             no_margin
           />
           <div class="mt-6">
-            <.field type="checkbox" name="tos" label="I agree to the terms" value="true" checked no_margin />
+            <.field type="checkbox" name="tos" label="I agree to the terms" checked no_margin />
           </div>
         </div>
       </div>
@@ -874,10 +875,10 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-          <.field type="checkbox" name="s_off" label="Unchecked" value="true" no_margin />
-          <.field type="checkbox" name="s_on" label="Checked" value="true" checked no_margin />
-          <.field type="checkbox" name="s_dis" label="Disabled" value="true" disabled no_margin />
-          <.field type="checkbox" name="s_dis_on" label="Disabled checked" value="true" checked disabled no_margin />
+          <.field type="checkbox" name="s_off" label="Unchecked" no_margin />
+          <.field type="checkbox" name="s_on" label="Checked" checked no_margin />
+          <.field type="checkbox" name="s_dis" label="Disabled" disabled no_margin />
+          <.field type="checkbox" name="s_dis_on" label="Disabled checked" checked disabled no_margin />
         </div>
       </div>
 
@@ -888,7 +889,6 @@ defmodule Dev.PlaygroundLive do
             type="checkbox"
             name="terms"
             label="I agree to the terms and privacy policy"
-            value="true"
             help_text="You can withdraw consent at any time."
             no_margin
           />

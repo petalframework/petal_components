@@ -108,22 +108,28 @@ defmodule PetalComponents.Field do
   attr :max_field, Phoenix.HTML.FormField,
     doc: "form field for the maximum value; required for type=\"range-dual\""
 
-  attr :range_min, :any, default: 0,
+  attr :range_min, :any,
+    default: 0,
     doc: "absolute lower bound of the range; used with type=\"range-dual\""
 
-  attr :range_max, :any, default: 100,
+  attr :range_max, :any,
+    default: 100,
     doc: "absolute upper bound of the range; used with type=\"range-dual\""
 
-  attr :range_min_label, :string, default: nil,
+  attr :range_min_label, :string,
+    default: nil,
     doc: "override label for the lower bound; defaults to the formatted range_min value"
 
-  attr :range_max_label, :string, default: nil,
+  attr :range_max_label, :string,
+    default: nil,
     doc: "override label for the upper bound; defaults to the formatted range_max value"
 
-  attr :value_prefix, :string, default: "",
+  attr :value_prefix, :string,
+    default: "",
     doc: ~s(string prepended to displayed values, e.g. "$"; used with type="range-dual")
 
-  attr :value_suffix, :string, default: "",
+  attr :value_suffix, :string,
+    default: "",
     doc: ~s(string appended to displayed values, e.g. "%"; used with type="range-dual")
 
   attr :rest, :global,
@@ -148,9 +154,13 @@ defmodule PetalComponents.Field do
     |> field()
   end
 
-  def field(%{type: "checkbox", value: value} = assigns) do
+  def field(%{type: "checkbox"} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assigns
+      |> assign_new(:value, fn -> nil end)
+      |> assign_new(:checked, fn %{value: value} ->
+        Phoenix.HTML.Form.normalize_value("checkbox", value)
+      end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -608,7 +618,12 @@ defmodule PetalComponents.Field do
       |> assign(:id, assigns.id || assigns.min_field.id)
 
     ~H"""
-    <.field_wrapper errors={@errors} name={@min_field.name} class={@wrapper_class} no_margin={@no_margin}>
+    <.field_wrapper
+      errors={@errors}
+      name={@min_field.name}
+      class={@wrapper_class}
+      no_margin={@no_margin}
+    >
       <.field_label class={@label_class}>
         {@label}
       </.field_label>
