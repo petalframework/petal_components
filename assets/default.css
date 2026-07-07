@@ -26,7 +26,7 @@
   /* Buttons (New) */
 
   .pc-button {
-    @apply inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
+    @apply inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -80,191 +80,191 @@
   /* Buttons - colors */
 
   .pc-button--primary {
-    @apply border-transparent bg-primary-600 hover:bg-primary-700 active:bg-primary-800;
+    @apply border-transparent bg-primary-600 hover:bg-primary-700 active:bg-primary-800 shadow-xs;
     color: var(--pc-button-solid-fg, #fff);
   }
   .pc-button--primary-light {
-    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 dark:bg-primary-200 dark:text-primary-800 dark:hover:bg-primary-300 dark:active:bg-primary-400;
+    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-200 dark:text-primary-800 dark:hover:bg-primary-300 dark:active:bg-primary-400;
   }
   .pc-button--primary-soft {
-    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/25 dark:active:bg-primary-500/30;
+    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/25 dark:active:bg-primary-500/30;
   }
   .pc-button--primary-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--primary-inverted {
-    @apply border-primary-400 dark:border-primary-400 dark:hover:border-primary-700 dark:hover:text-white dark:hover:bg-primary-700 dark:text-primary-400 hover:border-primary-600 text-primary-600 hover:text-white active:bg-primary-700 hover:bg-primary-600 focus:border-primary-700 focus:shadow-primary-500/50;
+    @apply border-primary-400 dark:border-primary-400 dark:hover:border-primary-700 dark:hover:text-white dark:hover:bg-primary-700 dark:text-primary-400 hover:border-primary-600 text-primary-600 hover:text-white active:bg-primary-700 hover:bg-primary-600;
   }
   .pc-button--primary-shadow {
-    @apply text-white border-transparent shadow-xl bg-primary-600 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800 focus:shadow-primary-500/50 shadow-primary-500/30 dark:hover:shadow-primary-600/30 dark:focus:shadow-primary-600/30 dark:active:shadow-primary-700/30;
+    @apply text-white border-transparent shadow-xl bg-primary-600 hover:bg-primary-700 active:bg-primary-800 shadow-primary-500/30 dark:hover:shadow-primary-600/30 dark:active:shadow-primary-700/30;
   }
   .pc-button--primary-ghost {
     @apply bg-transparent border-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--secondary {
-    @apply text-white border-transparent bg-secondary-600 hover:bg-secondary-700 focus:bg-secondary-700 active:bg-secondary-800 focus:shadow-secondary-500/50;
+    @apply text-white border-transparent bg-secondary-600 hover:bg-secondary-700 active:bg-secondary-800 shadow-xs;
   }
   .pc-button--secondary-light {
-    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 dark:bg-secondary-200 dark:text-secondary-800 dark:hover:bg-secondary-300 dark:active:bg-secondary-400;
+    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-200 dark:text-secondary-800 dark:hover:bg-secondary-300 dark:active:bg-secondary-400;
   }
   .pc-button--secondary-soft {
-    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 dark:bg-secondary-500/15 dark:text-secondary-300 dark:hover:bg-secondary-500/25 dark:active:bg-secondary-500/30;
+    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-500/15 dark:text-secondary-300 dark:hover:bg-secondary-500/25 dark:active:bg-secondary-500/30;
   }
   .pc-button--secondary-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--secondary-inverted {
-    @apply border-secondary-400 dark:border-secondary-400 dark:hover:border-secondary-700 dark:hover:text-white dark:hover:bg-secondary-700 dark:text-secondary-400 hover:border-secondary-600 text-secondary-600 hover:text-white active:bg-secondary-700 hover:bg-secondary-600 focus:border-secondary-700 focus:shadow-secondary-500/50;
+    @apply border-secondary-400 dark:border-secondary-400 dark:hover:border-secondary-700 dark:hover:text-white dark:hover:bg-secondary-700 dark:text-secondary-400 hover:border-secondary-600 text-secondary-600 hover:text-white active:bg-secondary-700 hover:bg-secondary-600;
   }
   .pc-button--secondary-shadow {
-    @apply text-white border-transparent shadow-xl bg-secondary-600 hover:bg-secondary-700 focus:bg-secondary-700 active:bg-secondary-800 focus:shadow-secondary-500/50 shadow-secondary-500/30 dark:hover:shadow-secondary-600/30 dark:focus:shadow-secondary-600/30 dark:active:shadow-secondary-700/30;
+    @apply text-white border-transparent shadow-xl bg-secondary-600 hover:bg-secondary-700 active:bg-secondary-800 shadow-secondary-500/30 dark:hover:shadow-secondary-600/30 dark:active:shadow-secondary-700/30;
   }
   .pc-button--secondary-ghost {
     @apply bg-transparent border-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--white {
-    @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent dark:focus:bg-gray-200;
+    @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
   }
   .pc-button--white-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--white-inverted {
-    @apply text-gray-600 border-gray-400 dark:border-white dark:hover:border-gray-700 dark:hover:text-black dark:hover:bg-white dark:text-gray-300 hover:border-gray-600 hover:text-black active:bg-gray-700 hover:bg-white focus:border-gray-700 focus:shadow-gray-500/50;
+    @apply text-gray-600 border-gray-400 dark:border-white dark:hover:border-gray-700 dark:hover:text-black dark:hover:bg-white dark:text-gray-300 hover:border-gray-600 hover:text-black active:bg-gray-700 hover:bg-white;
   }
   .pc-button--white-shadow {
-    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent dark:focus:bg-gray-200 active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
+    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-black shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:active:shadow-gray-400/30;
   }
   .pc-button--pure-white {
-    @apply text-gray-700 bg-white border-white hover:text-gray-900 hover:border-transparent hover:bg-gray-50 focus:outline-hidden focus:border-transparent focus:bg-gray-100 focus:text-gray-900 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent dark:focus:bg-gray-200;
+    @apply text-gray-700 bg-white border-white hover:text-gray-900 hover:border-transparent hover:bg-gray-50 active:border-transparent active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
   }
   .pc-button--info {
-    @apply text-white border-transparent bg-info-600 hover:bg-info-700 active:bg-info-800 focus:bg-info-700;
+    @apply text-white border-transparent bg-info-600 hover:bg-info-700 active:bg-info-800 shadow-xs;
   }
   .pc-button--info-light {
-    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 dark:bg-info-200 dark:text-info-800 dark:hover:bg-info-300 dark:active:bg-info-400;
+    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-200 dark:text-info-800 dark:hover:bg-info-300 dark:active:bg-info-400;
   }
   .pc-button--info-soft {
-    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 dark:bg-info-500/15 dark:text-info-300 dark:hover:bg-info-500/25 dark:active:bg-info-500/30;
+    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-500/15 dark:text-info-300 dark:hover:bg-info-500/25 dark:active:bg-info-500/30;
   }
   .pc-button--info-outline {
     @apply bg-transparent border-info-600/30 text-info-700 shadow-xs hover:bg-info-50 hover:border-info-600/50 hover:text-info-800 active:bg-info-100 dark:bg-white/5 dark:border-info-500/40 dark:text-info-300 dark:hover:bg-info-500/10 dark:hover:text-info-200 dark:hover:border-info-500/60 dark:active:bg-info-500/20;
   }
   .pc-button--info-inverted {
-    @apply text-info-600 border-info-400 dark:border-info-400 dark:hover:border-info-700 dark:hover:text-white dark:hover:bg-info-700 dark:text-info-400 hover:border-info-600 hover:text-white active:bg-info-800 hover:bg-info-600 focus:border-info-700 focus:shadow-info-500/50;
+    @apply text-info-600 border-info-400 dark:border-info-400 dark:hover:border-info-700 dark:hover:text-white dark:hover:bg-info-700 dark:text-info-400 hover:border-info-600 hover:text-white active:bg-info-800 hover:bg-info-600;
   }
   .pc-button--info-shadow {
-    @apply text-white border-transparent shadow-xl bg-info-600 hover:bg-info-700 focus:bg-info-700 active:bg-info-800 focus:shadow-info-500/50 shadow-info-500/30 dark:hover:shadow-info-600/30 dark:focus:shadow-info-600/30 dark:active:shadow-info-700/30;
+    @apply text-white border-transparent shadow-xl bg-info-600 hover:bg-info-700 active:bg-info-800 shadow-info-500/30 dark:hover:shadow-info-600/30 dark:active:shadow-info-700/30;
   }
   .pc-button--info-ghost {
     @apply bg-transparent border-transparent text-info-700 hover:bg-info-100 hover:text-info-800 active:bg-info-200 dark:text-info-300 dark:hover:bg-info-500/15 dark:hover:text-info-200 dark:active:bg-info-500/20;
   }
   .pc-button--success {
-    @apply text-white border-transparent bg-success-600 hover:bg-success-700 active:bg-success-800 focus:bg-success-700;
+    @apply text-white border-transparent bg-success-600 hover:bg-success-700 active:bg-success-800 shadow-xs;
   }
   .pc-button--success-light {
-    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 dark:bg-success-200 dark:text-success-800 dark:hover:bg-success-300 dark:active:bg-success-400;
+    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-200 dark:text-success-800 dark:hover:bg-success-300 dark:active:bg-success-400;
   }
   .pc-button--success-soft {
-    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 dark:bg-success-500/15 dark:text-success-300 dark:hover:bg-success-500/25 dark:active:bg-success-500/30;
+    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-500/15 dark:text-success-300 dark:hover:bg-success-500/25 dark:active:bg-success-500/30;
   }
   .pc-button--success-outline {
     @apply bg-transparent border-success-600/30 text-success-700 shadow-xs hover:bg-success-50 hover:border-success-600/50 hover:text-success-800 active:bg-success-100 dark:bg-white/5 dark:border-success-500/40 dark:text-success-300 dark:hover:bg-success-500/10 dark:hover:text-success-200 dark:hover:border-success-500/60 dark:active:bg-success-500/20;
   }
   .pc-button--success-inverted {
-    @apply text-success-600 border-success-400 dark:border-success-400 dark:hover:border-success-700 dark:hover:text-white dark:hover:bg-success-700 dark:text-success-400 hover:border-success-600 hover:text-white active:bg-success-800 hover:bg-success-600 focus:border-success-700 focus:shadow-success-500/50;
+    @apply text-success-600 border-success-400 dark:border-success-400 dark:hover:border-success-700 dark:hover:text-white dark:hover:bg-success-700 dark:text-success-400 hover:border-success-600 hover:text-white active:bg-success-800 hover:bg-success-600;
   }
   .pc-button--success-shadow {
-    @apply text-white border-transparent shadow-xl bg-success-600 hover:bg-success-700 active:bg-success-800 focus:bg-success-700 focus:shadow-success-500/50 shadow-success-500/30 dark:hover:shadow-success-600/30 dark:focus:shadow-success-600/30 dark:active:shadow-success-700/30;
+    @apply text-white border-transparent shadow-xl bg-success-600 hover:bg-success-700 active:bg-success-800 shadow-success-500/30 dark:hover:shadow-success-600/30 dark:active:shadow-success-700/30;
   }
   .pc-button--success-ghost {
     @apply bg-transparent border-transparent text-success-700 hover:bg-success-100 hover:text-success-800 active:bg-success-200 dark:text-success-300 dark:hover:bg-success-500/15 dark:hover:text-success-200 dark:active:bg-success-500/20;
   }
   .pc-button--warning {
-    @apply text-white border-transparent bg-warning-600 hover:bg-warning-700 active:bg-warning-800 focus:bg-warning-700;
+    @apply text-white border-transparent bg-warning-600 hover:bg-warning-700 active:bg-warning-800 shadow-xs;
   }
   .pc-button--warning-light {
-    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 dark:bg-warning-200 dark:text-warning-800 dark:hover:bg-warning-300 dark:active:bg-warning-400;
+    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-200 dark:text-warning-800 dark:hover:bg-warning-300 dark:active:bg-warning-400;
   }
   .pc-button--warning-soft {
-    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 dark:bg-warning-500/15 dark:text-warning-300 dark:hover:bg-warning-500/25 dark:active:bg-warning-500/30;
+    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-500/15 dark:text-warning-300 dark:hover:bg-warning-500/25 dark:active:bg-warning-500/30;
   }
   .pc-button--warning-outline {
     @apply bg-transparent border-warning-600/30 text-warning-700 shadow-xs hover:bg-warning-50 hover:border-warning-600/50 hover:text-warning-800 active:bg-warning-100 dark:bg-white/5 dark:border-warning-500/40 dark:text-warning-300 dark:hover:bg-warning-500/10 dark:hover:text-warning-200 dark:hover:border-warning-500/60 dark:active:bg-warning-500/20;
   }
   .pc-button--warning-inverted {
-    @apply text-warning-600 border-warning-400 dark:border-warning-400 dark:hover:border-warning-700 dark:hover:text-white dark:hover:bg-warning-700 dark:text-warning-400 hover:border-warning-600 hover:text-white active:bg-warning-800 hover:bg-warning-600 focus:border-warning-700 focus:shadow-warning-500/50;
+    @apply text-warning-600 border-warning-400 dark:border-warning-400 dark:hover:border-warning-700 dark:hover:text-white dark:hover:bg-warning-700 dark:text-warning-400 hover:border-warning-600 hover:text-white active:bg-warning-800 hover:bg-warning-600;
   }
   .pc-button--warning-shadow {
-    @apply text-white border-transparent shadow-xl bg-warning-600 hover:bg-warning-700 focus:bg-warning-700 active:bg-warning-800 focus:shadow-warning-500/50 shadow-warning-500/30 dark:hover:shadow-warning-600/30 dark:focus:shadow-warning-600/30 dark:active:shadow-warning-700/30;
+    @apply text-white border-transparent shadow-xl bg-warning-600 hover:bg-warning-700 active:bg-warning-800 shadow-warning-500/30 dark:hover:shadow-warning-600/30 dark:active:shadow-warning-700/30;
   }
   .pc-button--warning-ghost {
     @apply bg-transparent border-transparent text-warning-700 hover:bg-warning-100 hover:text-warning-800 active:bg-warning-200 dark:text-warning-300 dark:hover:bg-warning-500/15 dark:hover:text-warning-200 dark:active:bg-warning-500/20;
   }
   .pc-button--danger {
-    @apply text-white border-transparent bg-danger-600 hover:bg-danger-700 active:bg-danger-800 focus:bg-danger-700;
+    @apply text-white border-transparent bg-danger-600 hover:bg-danger-700 active:bg-danger-800 shadow-xs;
   }
   .pc-button--danger-light {
-    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 dark:bg-danger-200 dark:text-danger-800 dark:hover:bg-danger-300 dark:active:bg-danger-400;
+    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-200 dark:text-danger-800 dark:hover:bg-danger-300 dark:active:bg-danger-400;
   }
   .pc-button--danger-soft {
-    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 dark:bg-danger-500/15 dark:text-danger-300 dark:hover:bg-danger-500/25 dark:active:bg-danger-500/30;
+    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-500/15 dark:text-danger-300 dark:hover:bg-danger-500/25 dark:active:bg-danger-500/30;
   }
   .pc-button--danger-outline {
     @apply bg-transparent border-danger-600/30 text-danger-700 shadow-xs hover:bg-danger-50 hover:border-danger-600/50 hover:text-danger-800 active:bg-danger-100 dark:bg-white/5 dark:border-danger-500/40 dark:text-danger-300 dark:hover:bg-danger-500/10 dark:hover:text-danger-200 dark:hover:border-danger-500/60 dark:active:bg-danger-500/20;
   }
   .pc-button--danger-inverted {
-    @apply text-danger-600 border-danger-400 dark:border-danger-400 dark:hover:border-danger-700 dark:hover:text-white dark:hover:bg-danger-700 dark:text-danger-400 hover:border-danger-600 hover:text-white active:bg-danger-800 hover:bg-danger-600 focus:border-danger-700 focus:shadow-danger-500/50;
+    @apply text-danger-600 border-danger-400 dark:border-danger-400 dark:hover:border-danger-700 dark:hover:text-white dark:hover:bg-danger-700 dark:text-danger-400 hover:border-danger-600 hover:text-white active:bg-danger-800 hover:bg-danger-600;
   }
   .pc-button--danger-shadow {
-    @apply text-white border-transparent shadow-xl bg-danger-600 hover:bg-danger-700 focus:bg-danger-700 active:bg-danger-800 focus:shadow-danger-500/50 shadow-danger-500/30 dark:hover:shadow-danger-600/30 dark:focus:shadow-danger-600/30 dark:active:shadow-danger-700/30;
+    @apply text-white border-transparent shadow-xl bg-danger-600 hover:bg-danger-700 active:bg-danger-800 shadow-danger-500/30 dark:hover:shadow-danger-600/30 dark:active:shadow-danger-700/30;
   }
   .pc-button--danger-ghost {
     @apply bg-transparent border-transparent text-danger-700 hover:bg-danger-100 hover:text-danger-800 active:bg-danger-200 dark:text-danger-300 dark:hover:bg-danger-500/15 dark:hover:text-danger-200 dark:active:bg-danger-500/20;
   }
   .pc-button--gray {
-    @apply text-white bg-gray-600 border-transparent active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700;
+    @apply text-white border-transparent bg-gray-600 hover:bg-gray-700 active:bg-gray-800 shadow-xs;
   }
   .pc-button--gray-light {
-    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:active:bg-gray-400;
+    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:active:bg-gray-400;
   }
   .pc-button--gray-soft {
-    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-500/15 dark:text-gray-300 dark:hover:bg-gray-500/25 dark:active:bg-gray-500/30;
+    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-500/15 dark:text-gray-300 dark:hover:bg-gray-500/25 dark:active:bg-gray-500/30;
   }
   .pc-button--gray-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--gray-inverted {
-    @apply text-gray-600 border-gray-400 dark:border-gray-400 dark:hover:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:text-gray-400 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 focus:border-gray-700 focus:shadow-gray-500/50;
+    @apply text-gray-600 border-gray-400 dark:border-gray-400 dark:hover:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:text-gray-400 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600;
   }
   .pc-button--gray-shadow {
-    @apply text-white bg-gray-600 border-transparent shadow-xl active:bg-gray-800 hover:bg-gray-700 focus:bg-gray-700 focus:shadow-gray-500/50 shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:focus:shadow-gray-600/30 dark:active:shadow-gray-700/30;
+    @apply text-white bg-gray-600 border-transparent shadow-xl active:bg-gray-800 hover:bg-gray-700 shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:active:shadow-gray-700/30;
   }
   .pc-button--gray-ghost {
     @apply bg-transparent border-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--light {
-    @apply text-gray-900 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:hover:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 dark:active:text-white;
+    @apply text-gray-900 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:hover:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 dark:active:text-white;
   }
   .pc-button--light-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--light-inverted {
-    @apply text-gray-900 border-gray-300 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 focus:border-gray-700 focus:shadow-gray-500/50 dark:hover:text-black dark:hover:bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:border-white dark:active:bg-gray-300 dark:active:border-gray-300 dark:focus:shadow-gray-600/50;
+    @apply text-gray-900 border-gray-300 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 dark:hover:text-black dark:hover:bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:border-white dark:active:bg-gray-300 dark:active:border-gray-300;
   }
   .pc-button--light-shadow {
-    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 focus:outline-hidden focus:border-gray-400 focus:bg-gray-100 focus:text-gray-900 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 shadow-gray-500/30 dark:shadow-gray-600/30 dark:hover:shadow-gray-500/30 dark:focus:shadow-gray-500/30 dark:active:shadow-gray-600/30;
+    @apply text-gray-700 bg-white border-gray-300 shadow-xl hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 shadow-gray-500/30 dark:shadow-gray-600/30 dark:hover:shadow-gray-500/30 dark:active:shadow-gray-600/30;
   }
   .pc-button--dark {
-    @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:focus:outline-hidden dark:focus:bg-gray-200 dark:focus:text-gray-900 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
+    @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
   }
   .pc-button--dark-outline {
     @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
   }
   .pc-button--dark-inverted {
-    @apply border-gray-950 text-gray-950 hover:border-transparent hover:text-white active:bg-gray-800 hover:bg-gray-950 focus:shadow-gray-500/50 dark:hover:bg-white dark:hover:text-black dark:bg-gray-950 dark:text-white dark:active:bg-gray-200 dark:active:border-gray-200 dark:border-white;
+    @apply border-gray-950 text-gray-950 hover:border-transparent hover:text-white active:bg-gray-800 hover:bg-gray-950 dark:hover:bg-white dark:hover:text-black dark:bg-gray-950 dark:text-white dark:active:bg-gray-200 dark:active:border-gray-200 dark:border-white;
   }
   .pc-button--dark-shadow {
-    @apply text-white border-transparent shadow-xl dark:text-gray-950 bg-gray-950 active:bg-gray-900 hover:bg-gray-800 focus:bg-gray-800 focus:shadow-gray-500/50 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-white shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:focus:shadow-gray-300/30 dark:active:shadow-gray-400/30;
+    @apply text-white border-transparent shadow-xl dark:text-gray-950 bg-gray-950 active:bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent active:text-white shadow-gray-500/30 dark:shadow-gray-200/30 dark:hover:shadow-gray-300/30 dark:active:shadow-gray-400/30;
   }
 
   /* Buttons - loading */
@@ -744,7 +744,8 @@
     @apply py-1 font-medium;
   }
   .pc-alert__dismiss-button {
-    @apply flex p-2 hover:cursor-pointer hover:rounded transition-colors duration-150;
+    @apply flex p-2 hover:cursor-pointer transition-colors duration-150;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
 
   /* Alerts - colors and variants */
@@ -809,58 +810,58 @@
 
   /* Info dismiss button variants */
   .pc-alert__dismiss-button--info-light {
-    @apply bg-info-100 dark:bg-info-200 hover:bg-info-200 dark:hover:bg-info-300 hover:text-info-800 dark:hover:text-info-800;
+    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-300 dark:hover:text-info-800;
   }
   .pc-alert__dismiss-button--info-soft {
-    @apply bg-info-100 dark:bg-info-900 hover:bg-info-200 dark:hover:bg-info-800 hover:text-info-800 dark:hover:text-info-200;
+    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-500/25 dark:hover:text-info-200;
   }
   .pc-alert__dismiss-button--info-dark {
-    @apply text-white bg-info-600 hover:bg-info-500;
+    @apply text-white hover:bg-info-500;
   }
   .pc-alert__dismiss-button--info-outline {
-    @apply hover:bg-info-50 dark:hover:bg-gray-800 text-info-600 dark:text-info-400;
+    @apply text-info-700 hover:bg-info-50 dark:text-info-300 dark:hover:bg-white/10;
   }
 
   /* Success dismiss button variants */
   .pc-alert__dismiss-button--success-light {
-    @apply bg-success-100 dark:bg-success-200 hover:bg-success-200 dark:hover:bg-success-300 hover:text-success-800 dark:hover:text-success-800;
+    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-300 dark:hover:text-success-800;
   }
   .pc-alert__dismiss-button--success-soft {
-    @apply bg-success-100 dark:bg-success-900 hover:bg-success-200 dark:hover:bg-success-800 hover:text-success-800 dark:hover:text-success-200;
+    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-500/25 dark:hover:text-success-200;
   }
   .pc-alert__dismiss-button--success-dark {
-    @apply text-white bg-success-600 hover:bg-success-500;
+    @apply text-white hover:bg-success-500;
   }
   .pc-alert__dismiss-button--success-outline {
-    @apply hover:bg-success-50 dark:hover:bg-gray-800 text-success-600 dark:text-success-400;
+    @apply text-success-700 hover:bg-success-50 dark:text-success-300 dark:hover:bg-white/10;
   }
 
   /* Warning dismiss button variants */
   .pc-alert__dismiss-button--warning-light {
-    @apply bg-warning-100 dark:bg-warning-200 hover:bg-warning-200 dark:hover:bg-warning-300 hover:text-warning-800 dark:hover:text-warning-800;
+    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-300 dark:hover:text-warning-800;
   }
   .pc-alert__dismiss-button--warning-soft {
-    @apply bg-warning-100 dark:bg-warning-900 hover:bg-warning-200 dark:hover:bg-warning-800 hover:text-warning-800 dark:hover:text-warning-200;
+    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-500/25 dark:hover:text-warning-200;
   }
   .pc-alert__dismiss-button--warning-dark {
-    @apply text-white bg-warning-600 hover:bg-warning-500;
+    @apply text-white hover:bg-warning-500;
   }
   .pc-alert__dismiss-button--warning-outline {
-    @apply hover:bg-warning-50 dark:hover:bg-gray-800 text-warning-600 dark:text-warning-400;
+    @apply text-warning-700 hover:bg-warning-50 dark:text-warning-300 dark:hover:bg-white/10;
   }
 
   /* Danger dismiss button variants */
   .pc-alert__dismiss-button--danger-light {
-    @apply bg-danger-100 dark:bg-danger-200 hover:bg-danger-200 dark:hover:bg-danger-300 hover:text-danger-800 dark:hover:text-danger-800;
+    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-300 dark:hover:text-danger-800;
   }
   .pc-alert__dismiss-button--danger-soft {
-    @apply bg-danger-100 dark:bg-danger-900 hover:bg-danger-200 dark:hover:bg-danger-800 hover:text-danger-800 dark:hover:text-danger-200;
+    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-500/25 dark:hover:text-danger-200;
   }
   .pc-alert__dismiss-button--danger-dark {
-    @apply text-white bg-danger-600 hover:bg-danger-500;
+    @apply text-white hover:bg-danger-500;
   }
   .pc-alert__dismiss-button--danger-outline {
-    @apply hover:bg-danger-50 dark:hover:bg-gray-800 text-danger-600 dark:text-danger-400;
+    @apply text-danger-700 hover:bg-danger-50 dark:text-danger-300 dark:hover:bg-white/10;
   }
 
   /* Alert - gray (monochrome) */
@@ -878,16 +879,16 @@
     @apply bg-transparent border text-gray-700 border-gray-300 dark:bg-white/5 dark:text-gray-200 dark:border-white/15;
   }
   .pc-alert__dismiss-button--gray-light {
-    @apply bg-gray-100 dark:bg-gray-200 hover:bg-gray-200 dark:hover:bg-gray-300 hover:text-gray-800 dark:hover:text-gray-800;
+    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-300 dark:hover:text-gray-800;
   }
   .pc-alert__dismiss-button--gray-soft {
-    @apply bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200;
+    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-500/25 dark:hover:text-gray-200;
   }
   .pc-alert__dismiss-button--gray-dark {
-    @apply text-white bg-gray-600 hover:bg-gray-500;
+    @apply text-white hover:bg-gray-500;
   }
   .pc-alert__dismiss-button--gray-outline {
-    @apply hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300;
+    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/10;
   }
 
   /* Alerts - with icon */
