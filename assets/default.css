@@ -972,7 +972,7 @@
     @apply w-14 h-7;
   }
   .pc-switch__fake-input {
-    @apply absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-gray-300 rounded-full pointer-events-none dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500;
+    @apply absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-transparent rounded-full pointer-events-none dark:bg-white/15 peer-checked:bg-primary-600 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500/50;
   }
   .pc-switch__fake-input--xs {
     @apply h-4 w-7;

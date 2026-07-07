@@ -94,7 +94,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
-        %{slug: "switch", name: "Switch", ready: false}
+        %{slug: "switch", name: "Switch", ready: true}
       ]},
     %{group: "Feedback",
       items: [
@@ -164,7 +164,8 @@ defmodule Dev.PlaygroundLive do
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
-       radio: %{variant: "outline", size: "md", layout: "row"}
+       radio: %{variant: "outline", size: "md", layout: "row"},
+       switch: %{size: "md", disabled: false, error: false}
      )}
   end
 
@@ -206,6 +207,12 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
+    do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
+
+  def handle_event("ctl_switch", %{"k" => k}, socket) when k in ~w(disabled error),
+    do: {:noreply, update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket) when v in ~w(outline classic),
     do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -333,6 +340,22 @@ defmodule Dev.PlaygroundLive do
         i.help && ~s(help_text="Shown on your public profile."),
         i.error && ~s(errors={["can't be blank"]}),
         i.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp switch_snippet(sw) do
+    attrs =
+      [
+        ~s(type="switch"),
+        ~s(name="notifications"),
+        ~s(label="Email notifications"),
+        "checked",
+        sw.size != "md" && ~s(size="#{sw.size}"),
+        sw.error && ~s(errors={["must be enabled"]}),
+        sw.disabled && "disabled"
       ]
       |> Enum.filter(& &1)
 
@@ -855,6 +878,91 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "switch"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Switch</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        On or off, applied immediately. Switches are pill-shaped by nature, so
+        the radius rail deliberately leaves them alone.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              type="switch"
+              name="pg_notifications"
+              label="Email notifications"
+              checked
+              size={@switch.size}
+              disabled={@switch.disabled}
+              errors={if @switch.error, do: ["must be enabled"], else: []}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={z <- ~w(xs sm md lg xl)}
+                phx-click="ctl_switch"
+                phx-value-k="size"
+                phx-value-v={z}
+                class={seg(@switch.size == z)}
+              >
+                {z}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_switch" phx-value-k="error" class={tog(@switch.error)}>error</button>
+              <button phx-click="ctl_switch" phx-value-k="disabled" class={tog(@switch.disabled)}>
+                disabled
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{switch_snippet(@switch)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+          <.field type="switch" name="st_off" label="Off" no_margin />
+          <.field type="switch" name="st_on" label="On" checked no_margin />
+          <.field type="switch" name="st_dis" label="Disabled" disabled no_margin />
+          <.field type="switch" name="st_dis_on" label="Disabled on" checked disabled no_margin />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+          <.field :for={z <- ~w(xs sm md lg xl)} type="switch" name={"sz_" <> z} label={z} size={z} checked no_margin />
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "radio"} = assigns) do
     ~H"""

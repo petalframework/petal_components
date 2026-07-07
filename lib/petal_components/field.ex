@@ -234,10 +234,13 @@ defmodule PetalComponents.Field do
     """
   end
 
-  def field(%{type: "switch", value: value} = assigns) do
+  def field(%{type: "switch"} = assigns) do
     assigns =
       assigns
-      |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      |> assign_new(:value, fn -> nil end)
+      |> assign_new(:checked, fn %{value: value} ->
+        Phoenix.HTML.Form.normalize_value("checkbox", value)
+      end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
