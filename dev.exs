@@ -959,6 +959,28 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        With radio indicator
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="radio-card"
+            name="speed"
+            label="Delivery speed"
+            value="express"
+            group_layout="col"
+            indicator
+            options={[
+              %{value: "standard", label: "Standard", description: "4 to 6 business days - free"},
+              %{value: "express", label: "Express", description: "1 to 2 business days - $12"},
+              %{value: "overnight", label: "Overnight", description: "Next business day - $29"}
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
         Disabled option
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">

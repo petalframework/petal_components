@@ -1117,6 +1117,7 @@
   select.pc-text-input[multiple],
   select.pc-select[multiple] {
     @apply p-1.5;
+    scrollbar-width: thin;
   }
   select.pc-text-input[multiple] option,
   select.pc-select[multiple] option {
@@ -1125,8 +1126,11 @@
   }
   select.pc-text-input[multiple] option:checked,
   select.pc-select[multiple] option:checked {
-    background: linear-gradient(0deg, var(--color-primary-600) 0%, var(--color-primary-600) 100%);
-    color: var(--pc-button-solid-fg, #fff);
+    background: linear-gradient(0deg, var(--color-primary-200) 0%, var(--color-primary-200) 100%);
+  }
+  .dark select.pc-text-input[multiple] option:checked,
+  .dark select.pc-select[multiple] option:checked {
+    background: linear-gradient(0deg, color-mix(in oklab, var(--color-primary-500) 35%, transparent) 0%, color-mix(in oklab, var(--color-primary-500) 35%, transparent) 100%);
   }
 
   .pc-file-input {
@@ -1353,7 +1357,7 @@
 
   /* Checked State Styles */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-600 bg-primary-50 dark:border-primary-500/70 dark:bg-primary-500/10;
+    @apply border-primary-600 dark:border-primary-600;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
@@ -1375,6 +1379,24 @@
   .pc-radio-card__fake-input {
     @apply absolute inset-0;
     border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Indicator variant - a visible radio dot inside the card */
+  .pc-radio-card--indicator {
+    @apply justify-start;
+  }
+  .pc-radio-card--indicator > .pc-radio-card__content {
+    @apply w-full;
+  }
+  .pc-radio-card__content--indicator {
+    @apply flex items-center gap-3;
+  }
+  .pc-radio-card__dot {
+    @apply shrink-0 w-4 h-4 rounded-full border border-gray-300 bg-transparent dark:border-white/25;
+  }
+  .pc-radio-card__input:checked ~ .pc-radio-card__content .pc-radio-card__dot {
+    @apply border-primary-600 dark:border-primary-600;
+    border-width: 5px;
   }
 
   /* Content Styles */

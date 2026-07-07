@@ -43,6 +43,10 @@ defmodule PetalComponents.Field do
 
   attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
+  attr :indicator, :boolean,
+    default: false,
+    doc: "radio-card only: shows a radio dot inside each card"
+
   attr :viewable, :boolean,
     default: false,
     doc: "If true, adds a toggle to show/hide the password text"
@@ -389,6 +393,7 @@ defmodule PetalComponents.Field do
             "pc-radio-card",
             "pc-radio-card--#{@size}",
             "pc-radio-card--#{@variant}",
+            @indicator && "pc-radio-card--indicator",
             option[:disabled] && "pc-radio-card--disabled"
           ]}>
             <input
@@ -405,10 +410,13 @@ defmodule PetalComponents.Field do
               {@rest}
             />
             <div class="pc-radio-card__fake-input"></div>
-            <div class="pc-radio-card__content">
-              <div class="pc-radio-card__label">{option[:label]}</div>
-              <div :if={option[:description]} class="pc-radio-card__description">
-                {option[:description]}
+            <div class={["pc-radio-card__content", @indicator && "pc-radio-card__content--indicator"]}>
+              <span :if={@indicator} class="pc-radio-card__dot" aria-hidden="true"></span>
+              <div>
+                <div class="pc-radio-card__label">{option[:label]}</div>
+                <div :if={option[:description]} class="pc-radio-card__description">
+                  {option[:description]}
+                </div>
               </div>
             </div>
           </label>
