@@ -1241,7 +1241,7 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Account menu</div>
       <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-72">
         <div class="flex justify-center">
-          <.dropdown label="matt@petal.build">
+          <.dropdown label="you@example.com">
             <.dropdown_menu_label>My account</.dropdown_menu_label>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-user" class="w-4 h-4" /> Profile
