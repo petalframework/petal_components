@@ -1766,76 +1766,77 @@
     @apply flex overflow-hidden;
   }
   .pc-progress__inner {
-    @apply flex flex-col justify-center;
+    @apply flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
   }
 
   /* Progress - label (xl only) */
 
   .pc-progress__label {
-    @apply px-4 text-xs font-normal leading-6 text-center text-white whitespace-nowrap;
+    @apply px-4 text-xs font-medium leading-6 text-center whitespace-nowrap;
+    color: var(--pc-button-solid-fg, #fff);
   }
 
   /* Progress - sizes */
 
   .pc-progress--xs {
-    @apply h-1 rounded-xs;
+    @apply h-1 rounded-full;
   }
   .pc-progress--sm {
-    @apply h-2 rounded-sm;
+    @apply h-2 rounded-full;
   }
   .pc-progress--md {
-    @apply h-3 rounded-md;
+    @apply h-3 rounded-full;
   }
   .pc-progress--lg {
-    @apply h-4 rounded-lg;
+    @apply h-4 rounded-full;
   }
   .pc-progress--xl {
-    @apply h-5 rounded-xl;
+    @apply h-5 rounded-full;
   }
 
   /* Progress - colors */
 
   .pc-progress--primary {
-    @apply bg-primary-100 dark:bg-primary-900;
+    @apply bg-primary-500/15;
   }
   .pc-progress--secondary {
-    @apply bg-secondary-100 dark:bg-secondary-900;
+    @apply bg-secondary-500/15;
   }
   .pc-progress--info {
-    @apply bg-info-100 dark:bg-info-900;
+    @apply bg-info-500/15;
   }
   .pc-progress--success {
-    @apply bg-success-100 dark:bg-success-900;
+    @apply bg-success-500/15;
   }
   .pc-progress--warning {
-    @apply bg-warning-100 dark:bg-warning-900;
+    @apply bg-warning-500/15;
   }
   .pc-progress--danger {
-    @apply bg-danger-100 dark:bg-danger-900;
+    @apply bg-danger-500/15;
   }
   .pc-progress--gray {
-    @apply bg-gray-100 dark:bg-gray-900;
+    @apply bg-gray-500/15;
   }
   .pc-progress__inner--primary {
-    @apply bg-primary-500;
+    @apply bg-primary-600;
   }
   .pc-progress__inner--secondary {
-    @apply bg-secondary-500;
+    @apply bg-secondary-600;
   }
   .pc-progress__inner--info {
-    @apply bg-info-500;
+    @apply bg-info-600;
   }
   .pc-progress__inner--success {
-    @apply bg-success-500;
+    @apply bg-success-600;
   }
   .pc-progress__inner--warning {
-    @apply bg-warning-500;
+    @apply bg-warning-600;
   }
   .pc-progress__inner--danger {
-    @apply bg-danger-500;
+    @apply bg-danger-600;
   }
   .pc-progress__inner--gray {
-    @apply bg-gray-500;
+    @apply bg-gray-600;
   }
 
   /* Pagination */

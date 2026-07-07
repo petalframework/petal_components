@@ -101,7 +101,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "alert", name: "Alert", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
-        %{slug: "progress", name: "Progress", ready: false}
+        %{slug: "progress", name: "Progress", ready: true}
       ]},
     %{group: "Overlay",
       items: [
@@ -170,6 +170,7 @@ defmodule Dev.PlaygroundLive do
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       progress: %{value: 60, color: "primary", size: "md", label: false},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -213,6 +214,19 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket) when v in ~w(15 40 60 85 100),
+    do: {:noreply, update(socket, :progress, &%{&1 | value: String.to_integer(v)})}
+
+  def handle_event("ctl_progress", %{"k" => "color", "v" => v}, socket)
+      when v in ~w(primary secondary info success warning danger gray),
+      do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
+
+  def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
+    do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
+
+  def handle_event("ctl_progress", %{"k" => "label"}, socket),
+    do: {:noreply, update(socket, :progress, &%{&1 | label: !&1.label, size: if(!&1.label, do: "xl", else: &1.size)})}
 
   def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
     do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
@@ -371,6 +385,19 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp progress_snippet(pr) do
+    attrs =
+      [
+        ~s(value={#{pr.value}}),
+        pr.color != "primary" && ~s(color="#{pr.color}"),
+        pr.size != "md" && ~s(size="#{pr.size}"),
+        pr.label && ~s(label="#{pr.value}%")
+      ]
+      |> Enum.filter(& &1)
+
+    "<.progress #{Enum.join(attrs, " ")} />"
   end
 
   defp tooltip_snippet(t) do
@@ -968,6 +995,115 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "progress"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Determinate progress on a washed track. The bar animates between
+        values - click the value control and watch it move.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <div class="w-full max-w-md">
+            <.progress
+              value={@progress.value}
+              color={@progress.color}
+              size={@progress.size}
+              label={if @progress.label, do: "#{@progress.value}%"}
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={v <- ~w(15 40 60 85 100)}
+                phx-click="ctl_progress"
+                phx-value-k="value"
+                phx-value-v={v}
+                class={seg(to_string(@progress.value) == v)}
+              >
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(primary secondary info success warning danger gray)}
+                phx-click="ctl_progress"
+                phx-value-k="color"
+                phx-value-v={c}
+                class={seg(@progress.color == c)}
+              >
+                {c}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={z <- ~w(xs sm md lg xl)}
+                phx-click="ctl_progress"
+                phx-value-k="size"
+                phx-value-v={z}
+                class={seg(@progress.size == z)}
+              >
+                {z}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_progress" phx-value-k="label" class={tog(@progress.label)}>
+                label
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{progress_snippet(@progress)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-md mx-auto space-y-4">
+          <.progress value={80} color="success" />
+          <.progress value={55} color="info" />
+          <.progress value={35} color="warning" />
+          <.progress value={15} color="danger" />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-md mx-auto space-y-4">
+          <.progress :for={z <- ~w(xs sm md lg)} value={60} size={z} />
+          <.progress value={60} size="xl" label="60%" />
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "tooltip"} = assigns) do
     ~H"""
