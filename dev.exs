@@ -93,7 +93,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "input", name: "Input", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
-        %{slug: "radio", name: "Radio", ready: false},
+        %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: false}
       ]},
     %{group: "Feedback",
@@ -163,7 +163,8 @@ defmodule Dev.PlaygroundLive do
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
-       select: %{disabled: false, error: false, help: false}
+       select: %{disabled: false, error: false, help: false},
+       radio: %{variant: "outline", size: "md", layout: "row"}
      )}
   end
 
@@ -205,6 +206,15 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket) when v in ~w(outline classic),
+    do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
+
+  def handle_event("ctl_radio", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :radio, &%{&1 | size: v})}
+
+  def handle_event("ctl_radio", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
+    do: {:noreply, update(socket, :radio, &%{&1 | layout: v})}
 
   def handle_event("ctl_select", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
@@ -323,6 +333,23 @@ defmodule Dev.PlaygroundLive do
         i.help && ~s(help_text="Shown on your public profile."),
         i.error && ~s(errors={["can't be blank"]}),
         i.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp radio_snippet(r) do
+    attrs =
+      [
+        ~s(type="radio-card"),
+        ~s(name="plan"),
+        ~s(label="Plan"),
+        ~s(value="pro"),
+        r.variant != "outline" && ~s(variant="#{r.variant}"),
+        r.size != "md" && ~s(size="#{r.size}"),
+        r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        ~s(options={[%{value: "starter", label: "Starter", description: "For side projects"}, ...]})
       ]
       |> Enum.filter(& &1)
 
@@ -827,6 +854,131 @@ defmodule Dev.PlaygroundLive do
   end
 
 
+
+
+  defp render_page(%{active: "radio"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Radio</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Plain radio groups, plus radio cards - selectable panels with labels and
+        descriptions that most libraries make you hand-roll.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-lg">
+            <.field
+              type="radio-card"
+              name="pg_plan"
+              label="Plan"
+              value="pro"
+              variant={@radio.variant}
+              size={@radio.size}
+              group_layout={@radio.layout}
+              options={[
+                %{value: "starter", label: "Starter", description: "For side projects"},
+                %{value: "pro", label: "Pro", description: "For small teams"},
+                %{value: "team", label: "Team", description: "For growing orgs"}
+              ]}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={v <- ~w(outline classic)}
+                phx-click="ctl_radio"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@radio.variant == v)}
+              >
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={z <- ~w(sm md lg)}
+                phx-click="ctl_radio"
+                phx-value-k="size"
+                phx-value-v={z}
+                class={seg(@radio.size == z)}
+              >
+                {z}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={l <- ~w(row col)}
+                phx-click="ctl_radio"
+                phx-value-k="layout"
+                phx-value-v={l}
+                class={seg(@radio.layout == l)}
+              >
+                {l}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{radio_snippet(@radio)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Radio group</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="radio-group"
+            name="billing"
+            label="Billing period"
+            value="monthly"
+            options={[{"Monthly", "monthly"}, {"Yearly (save 20%)", "yearly"}]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Disabled option
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-lg mx-auto">
+          <.field
+            type="radio-card"
+            name="tier"
+            label="Tier"
+            value="cloud"
+            options={[
+              %{value: "cloud", label: "Cloud", description: "Managed for you"},
+              %{value: "self", label: "Self-hosted", description: "Coming soon", disabled: true}
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "select"} = assigns) do
     ~H"""

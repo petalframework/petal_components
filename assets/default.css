@@ -1336,26 +1336,29 @@
   }
 
   .pc-radio-card--outline .pc-radio-card__fake-input {
-    @apply bg-white border border-gray-300;
-    @apply dark:bg-gray-800 dark:border-gray-600;
+    @apply bg-transparent border border-gray-300 dark:bg-white/5 dark:border-white/15;
   }
 
   .pc-radio-card--outline:hover .pc-radio-card__fake-input {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-50 dark:bg-white/10;
   }
 
   .pc-radio-card--classic .pc-radio-card__fake-input {
-    @apply bg-gray-100 border border-gray-100 dark:border-gray-800 dark:bg-gray-800;
+    @apply bg-gray-100 border border-transparent dark:bg-white/10;
   }
 
   .pc-radio-card--classic:hover .pc-radio-card__fake-input {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-200/70 dark:bg-white/15;
   }
 
   /* Checked State Styles */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-2 border-primary-500 bg-primary-50;
-    @apply dark:bg-gray-800;
+    @apply border-primary-600 bg-primary-50 dark:border-primary-500/70 dark:bg-primary-500/10;
+  }
+
+  /* Keyboard focus surfaces on the card (the real input is sr-only) */
+  .pc-radio-card__input:focus-visible ~ .pc-radio-card__fake-input {
+    @apply ring-2 ring-primary-500/50;
   }
 
   /* Disabled State */
@@ -1370,7 +1373,8 @@
 
   /* Fake Input Styles */
   .pc-radio-card__fake-input {
-    @apply absolute inset-0 rounded-lg;
+    @apply absolute inset-0;
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Content Styles */
@@ -1387,15 +1391,6 @@
   .pc-radio-card__description {
     @apply text-sm font-normal text-gray-600;
     @apply dark:text-gray-400;
-  }
-
-  /* Adjust Description Font Size Based on Size */
-  .pc-radio-card--sm .pc-radio-card__description {
-    @apply text-xs;
-  }
-
-  .pc-radio-card--lg .pc-radio-card__description {
-    @apply text-base;
   }
 
   /* Apply styles when input is checked using peer-checked variants */
