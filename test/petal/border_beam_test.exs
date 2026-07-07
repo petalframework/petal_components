@@ -80,7 +80,7 @@ defmodule PetalComponents.BorderBeamTest do
         <.border_beam easing="spring">Content</.border_beam>
         """)
 
-      assert html =~ "--pc-beam-ease: linear(0,"
+      assert html =~ "--pc-beam-ease: linear(0"
     end
   end
 

@@ -3426,6 +3426,10 @@
      square only ever paints over the border itself. */
   .pc-border-beam__beam {
     @apply pointer-events-none absolute inset-0;
+    /* size container: lets the traveller clamp itself to the card's
+       smallest side via cqmin - safe here because inset-0 gives this layer
+       a definite size */
+    container-type: size;
     border: var(--pc-beam-border-width, 1px) solid transparent;
     border-radius: inherit;
     -webkit-mask: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
@@ -3444,7 +3448,11 @@
   .pc-border-beam__beam::after {
     content: "";
     display: block;
-    width: var(--pc-beam-size, 150px);
+    /* the technique's invariant: beam size must stay well under the card's
+       smallest side, or the traveller cuts corners on a visible diagonal
+       (racing + tail split). Clamp to 30% of the min side, always. */
+    --pc-beam-eff: min(var(--pc-beam-size, 150px), 30cqmin);
+    width: var(--pc-beam-eff);
     aspect-ratio: 1 / 1;
     background: linear-gradient(
       to left,
@@ -3452,7 +3460,7 @@
       var(--pc-beam-to, #9c40ff),
       transparent
     );
-    offset-path: rect(0 auto auto 0 round var(--pc-beam-size, 150px));
+    offset-path: rect(0 auto auto 0 round var(--pc-beam-eff));
     offset-rotate: var(--pc-beam-rotate, auto);
     animation: pc-border-beam var(--pc-beam-duration, 8s) infinite;
     animation-timing-function: var(--pc-beam-ease, linear);

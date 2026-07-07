@@ -7,10 +7,11 @@ defmodule PetalComponents.BorderBeam do
   """
   use Phoenix.Component
 
-  # A damped-spring position curve for the CSS linear() timing function:
-  # accelerates in, overshoots the lap seam by ~9%, settles back. Gives the
-  # springy per-lap motion of MagicUI's framer-motion spring, without JS.
-  @spring_easing "linear(0, 0.007, 0.029, 0.065, 0.116, 0.182, 0.263, 0.359, 0.469, 0.593, 0.731, 0.882, 1.046 63.6%, 1.088, 1.098, 1.092, 1.078, 1.061, 1.045, 1.031, 1.02, 1.011, 1.005, 1.001, 1)"
+  # A critically-damped spring position curve for the CSS linear() timing
+  # function: fast rise, long settle, strictly monotonic. Overshoot is
+  # deliberately zero - on a closed path even a few percent of overshoot is
+  # a huge visible backwards excursion at the lap seam.
+  @spring_easing "linear(0.0, 0.0617, 0.1918, 0.3384, 0.4765, 0.5958, 0.6937, 0.7713, 0.8313, 0.877, 0.9112, 0.9365, 0.9552, 0.9687, 0.9785, 0.9856, 0.9907, 0.9943, 0.9969, 0.9987, 1)"
 
   attr :color_from, :string, default: "#ffaa40", doc: "start color of the beam gradient"
   attr :color_to, :string, default: "#9c40ff", doc: "end color of the beam gradient"
