@@ -582,10 +582,11 @@
     @apply mb-6 text-xl leading-relaxed text-gray-500 dark:text-gray-400;
   }
   .pc-blockquote {
-    @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-700 dark:text-gray-100;
+    @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-white/15 dark:text-gray-100;
   }
   .pc-inline-code {
-    @apply rounded bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-100;
+    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-white/10 dark:text-gray-100;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
   }
   .pc-text-muted {
     @apply text-sm text-gray-500 dark:text-gray-400;
@@ -1725,10 +1726,10 @@
     @apply object-cover rounded-full;
   }
   .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-700;
+    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-white/10;
   }
   .pc-avatar--with-placeholder-initials {
-    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300;
+    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-white/10 dark:text-gray-300;
   }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-100;
@@ -1871,48 +1872,53 @@
     @apply inline-flex -space-x-px text-sm font-medium;
   }
   .pc-pagination__item {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700;
+    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-white/15;
   }
   .pc-pagination__item--is-current {
-    @apply text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-300;
+    @apply text-gray-900 bg-gray-100 dark:bg-white/10 dark:text-gray-100;
   }
   .pc-pagination__item--is-not-current {
-    @apply text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-400;
+    @apply text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-800 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200;
   }
   .pc-pagination__item--current {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-gray-700;
+    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-white/15;
   }
   .pc-pagination__item__previous {
-    @apply mr-2 inline-flex items-center justify-center rounded-sm leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
+    @apply mr-2 inline-flex items-center justify-center leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-white/5 enabled:dark:hover:bg-white/10 border dark:border-white/15 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-pagination__item__previous__chevron {
     /* !important is needed because heroicon class overrides width and height */
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__next {
-    @apply ml-2 inline-flex items-center justify-center rounded-sm leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
+    @apply ml-2 inline-flex items-center justify-center leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-white/5 enabled:dark:hover:bg-white/10 dark:border-white/15 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-pagination__item__next__chevron {
     /* !important is needed because heroicon class overrides width and height */
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__ellipsis {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-gray-900 dark:border-gray-700 border-gray-200 text-gray-400;
+    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-white/5 dark:border-white/15 border-gray-200 text-gray-400;
   }
 
   /* Pagination - number(s) rounded box corner style */
 
   .pc-pagination__item--with-single-box {
-    @apply rounded;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-pagination__item--with-multiple-boxes--left {
-    @apply rounded-l;
+    border-start-start-radius: var(--pc-radius, 0.625rem);
+    border-end-start-radius: var(--pc-radius, 0.625rem);
   }
   .pc-pagination__item--with-multiple-boxes--right {
-    @apply rounded-r;
+    border-start-end-radius: var(--pc-radius, 0.625rem);
+    border-end-end-radius: var(--pc-radius, 0.625rem);
   }
   .pc-pagination__item--with-multiple-boxes--right {
-    @apply rounded-r;
+    border-start-end-radius: var(--pc-radius, 0.625rem);
+    border-end-end-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Tabs */
@@ -1921,19 +1927,20 @@
     @apply flex gap-x-8 gap-y-2;
   }
   .pc-tabs--underlined {
-    @apply border-b border-gray-200 dark:border-gray-600;
+    @apply border-b border-gray-200 dark:border-white/10;
   }
 
   /* Tabs - Pill */
 
   .pc-tab__pill {
-    @apply flex items-center px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors duration-200;
+    @apply flex items-center px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-tab__pill--is-active {
-    @apply bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-500;
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
   }
   .pc-tab__pill--is-not-active {
-    @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100;
+    @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-white/10 hover:bg-gray-100;
   }
 
   /* Tabs - Individual Tab Underline */
@@ -1986,16 +1993,18 @@
   /* Cards */
 
   .pc-card {
-    @apply flex flex-wrap overflow-hidden bg-white dark:bg-gray-800;
+    @apply flex flex-wrap overflow-hidden bg-white dark:bg-zinc-900;
   }
   .pc-card__inner {
     @apply flex flex-col w-full max-w-full;
   }
   .pc-card--basic {
-    @apply border border-gray-200 rounded-lg shadow-lg dark:shadow-2xl dark:border-none;
+    @apply border border-gray-200 shadow-lg dark:shadow-2xl dark:border-white/10;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-card--outline {
-    @apply border border-gray-300 rounded-lg dark:border-gray-600;
+    @apply border border-gray-300 dark:border-white/15;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
   /* Cards - content */
@@ -2019,7 +2028,7 @@
     @apply shrink-0 object-cover w-full;
   }
   .pc-card__image-placeholder {
-    @apply shrink-0 w-full bg-gray-300 dark:bg-gray-700;
+    @apply shrink-0 w-full bg-gray-300 dark:bg-white/10;
   }
 
   /* Cards - footer */
@@ -2031,22 +2040,23 @@
   /* Table */
 
   .pc-table--basic {
-    @apply min-w-full overflow-hidden rounded-xs shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded;
+    @apply min-w-full overflow-hidden shadow-sm table-auto ring-1 ring-gray-200 dark:ring-white/10;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-table--ghost {
     @apply min-w-full overflow-hidden table-auto;
   }
   .pc-table__th {
-    @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-gray-800 dark:text-white;
+    @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-white/5 dark:text-white;
   }
   .pc-table thead {
-    @apply border-b dark:border-gray-800 dark:bg-gray-900;
+    @apply border-b dark:border-white/10;
   }
   .pc-table__tr {
-    @apply bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 last:border-none;
+    @apply bg-white border-b border-gray-200 dark:border-white/10 dark:bg-transparent last:border-none;
   }
   .pc-table__tr--row-click {
-    @apply hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150;
+    @apply hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-150;
   }
   .pc-table__td {
     @apply px-6 py-4 text-sm text-gray-700 dark:text-gray-100 tabular-nums;
@@ -2073,10 +2083,11 @@
   /* Accordion */
 
   .pc-accordion-item {
-    @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200;
+    @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-zinc-900 dark:border-white/10 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200;
   }
   .pc-accordion-item--first {
-    @apply rounded-t-xl;
+    border-start-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+    border-start-end-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-accordion-item--all-except-last {
     @apply border-b-0;
@@ -2088,16 +2099,18 @@
     @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
-    @apply p-5 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-900;
+    @apply p-5 bg-white border border-gray-200 dark:border-white/10 dark:bg-zinc-900;
   }
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
   }
   .pc-accordion-item__content-container--last {
     @apply border-t-0;
+    border-end-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+    border-end-end-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-50 dark:bg-white/5;
   }
 
   /* Ghost variant */
@@ -2205,9 +2218,10 @@
   }
 
   .pc-review-card {
-    @apply relative md:w-64 cursor-pointer overflow-hidden rounded-xl border p-4
+    @apply relative md:w-64 cursor-pointer overflow-hidden border p-4
       border-black/10 bg-black/[0.01] hover:bg-black/[0.05]
       dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/[0.15];
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
   .pc-review-header {
@@ -2668,13 +2682,13 @@
   /* Slideover */
 
   .pc-slideover__overlay {
-    @apply fixed inset-0 z-50 transition-opacity bg-gray-900/30 dark:bg-gray-900/70;
+    @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
   .pc-slideover__wrapper {
     @apply fixed inset-0 z-50 flex overflow-hidden;
   }
   .pc-slideover__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-gray-800;
+    @apply w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-zinc-900;
   }
   .pc-slideover__box--sm {
     @apply max-w-sm;
@@ -2695,7 +2709,7 @@
     @apply max-w-full;
   }
   .pc-slideover__header {
-    @apply px-5 py-3 border-b border-gray-100 dark:border-gray-600;
+    @apply px-5 py-3 border-b border-gray-100 dark:border-white/10;
   }
   .pc-slideover__header__container {
     @apply flex items-center justify-between;
@@ -2910,15 +2924,16 @@
   }
 
   .pc-vertical-menu-item {
-    @apply flex items-center w-full gap-3 px-3 py-2 text-sm font-semibold leading-none transition-colors duration-200 ease-out rounded-md;
+    @apply flex items-center w-full gap-3 px-3 py-2 text-sm font-semibold leading-none transition-colors duration-200 ease-out;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-vertical-menu-item--active {
-    @apply text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-gray-800;
+    @apply text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-white/10;
   }
 
   .pc-vertical-menu-item--inactive {
-    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-gray-700;
+    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-white/10;
   }
 
   .pc-vertical-menu__menu-group__wrapper {
@@ -3514,7 +3529,8 @@
 
   /* Spotlight Card */
   .pc-spotlight-card {
-    @apply relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800;
+    @apply relative overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-900;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
   .pc-spotlight-card__glow {
