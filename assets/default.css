@@ -1114,6 +1114,21 @@
     @apply block w-full py-2 pl-3 pr-10 text-base bg-transparent border-gray-300 shadow-xs text-gray-900 cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-white/5 dark:border-white/15 dark:text-gray-100;
     border-radius: var(--pc-radius, 0.625rem);
   }
+  select.pc-text-input[multiple],
+  select.pc-select[multiple] {
+    @apply p-1.5;
+  }
+  select.pc-text-input[multiple] option,
+  select.pc-select[multiple] option {
+    @apply px-2.5 py-1.5;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
+  }
+  select.pc-text-input[multiple] option:checked,
+  select.pc-select[multiple] option:checked {
+    background: linear-gradient(0deg, var(--color-primary-600) 0%, var(--color-primary-600) 100%);
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
   .pc-file-input {
     @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-4 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-white/15 dark:file:bg-white/5 dark:file:text-gray-200 dark:hover:file:bg-white/10 file:transition-colors file:duration-200;
     border-radius: var(--pc-radius, 0.625rem);
