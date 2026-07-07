@@ -715,6 +715,69 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
   });
 }
 
+
+export const PetalInputOTP = {
+  mounted() {
+    this.input = this.el.querySelector("[data-pc-otp-input]");
+    this.slots = Array.from(this.el.querySelectorAll("[data-pc-otp-slot]"));
+    this.render = this.render.bind(this);
+    this.sanitize = this.sanitize.bind(this);
+
+    this.input.addEventListener("input", () => {
+      this.sanitize();
+      this.render();
+      if (this.input.value.length === this.slots.length) {
+        this.el.dispatchEvent(
+          new CustomEvent("petal:otp-complete", {
+            detail: { value: this.input.value },
+            bubbles: true,
+          })
+        );
+      }
+    });
+
+    // keep the caret at the end so typing always fills the next slot
+    const snapCaret = () => {
+      const len = this.input.value.length;
+      this.input.setSelectionRange(len, len);
+      this.render();
+    };
+    this.input.addEventListener("focus", snapCaret);
+    this.input.addEventListener("click", snapCaret);
+    this.input.addEventListener("keyup", this.render);
+    this.input.addEventListener("blur", this.render);
+
+    this.render();
+  },
+
+  updated() {
+    this.slots = Array.from(this.el.querySelectorAll("[data-pc-otp-slot]"));
+    this.render();
+  },
+
+  sanitize() {
+    const pattern =
+      this.el.dataset.pattern === "alphanumeric" ? /[^a-zA-Z0-9]/g : /[^0-9]/g;
+    const clean = this.input.value.replace(pattern, "").slice(0, this.slots.length);
+    if (clean !== this.input.value) this.input.value = clean;
+  },
+
+  render() {
+    const value = this.input.value;
+    const focused = document.activeElement === this.input;
+    const activeIndex = Math.min(value.length, this.slots.length - 1);
+
+    this.slots.forEach((slot, i) => {
+      slot.textContent = value[i] || "";
+      slot.classList.toggle("pc-otp__slot--filled", Boolean(value[i]));
+      slot.classList.toggle(
+        "pc-otp__slot--active",
+        focused && i === activeIndex && value.length < this.slots.length + (value[i] ? 0 : 1) && (i === value.length || (i === this.slots.length - 1 && value.length === this.slots.length))
+      );
+    });
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -730,4 +793,5 @@ export default {
   PetalSpotlight,
   PetalWordRotate,
   PetalTypingEffect,
+  PetalInputOTP,
 };

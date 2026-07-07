@@ -36,6 +36,7 @@ defmodule PetalComponents do
         Icon,
         Input,
         InputGroup,
+        InputOtp,
         Link,
         Loading,
         Marquee,

@@ -1143,16 +1143,22 @@
   /* Input Group */
 
   .pc-input-group {
-    @apply flex items-stretch w-full bg-transparent border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-white/5 dark:border-white/15;
+    @apply flex flex-col w-full bg-transparent border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-white/5 dark:border-white/15;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-input-group:has(input:disabled, select:disabled, textarea:disabled) {
     @apply opacity-50;
   }
+  .pc-input-group__row {
+    @apply flex items-stretch w-full;
+  }
   .pc-input-group :is(input, select, textarea) {
     @apply flex-1 min-w-0 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent;
     border-radius: 0;
   }
+
+  /* Addons: tight against their input - the addon owns the outer padding,
+     the input sheds the adjacent side of its own */
   .pc-input-group__addon {
     @apply flex items-center gap-1.5 text-sm text-gray-500 select-none whitespace-nowrap dark:text-gray-400;
   }
@@ -1162,13 +1168,92 @@
   .pc-input-group__addon--trailing {
     @apply pr-3;
   }
+  .pc-input-group__addon--leading + :is(input, select, textarea) {
+    @apply pl-2;
+  }
+  .pc-input-group__row :is(input, select, textarea):has(+ .pc-input-group__addon--trailing) {
+    @apply pr-2;
+  }
+  .pc-input-group__addon:has(> .pc-button) {
+    @apply px-1.5;
+  }
+  .pc-input-group__addon [class*="hero-"]:not([class*="w-"]) {
+    @apply w-4 h-4;
+  }
+
+  /* kbd hints: shadcn-calibre chip, nested radius */
   .pc-input-group__addon kbd {
-    @apply px-1.5 py-0.5 text-[11px] font-medium text-gray-500 border border-gray-200 rounded-md dark:text-gray-400 dark:border-white/15;
+    @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-white/10 dark:text-gray-400;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
+  }
+  .pc-input-group__addon--trailing:has(> kbd) {
+    @apply pr-2;
+  }
+  .pc-input-group__addon--leading:has(> kbd) {
+    @apply pl-2;
+  }
+
+  /* Block addons: full-width rows above/below the control (toolbars,
+     helper rows, character counters) */
+  .pc-input-group__block {
+    @apply flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 select-none dark:text-gray-400;
   }
 
   .pc-form-field-wrapper--error .pc-input-group {
     @apply border-danger-500 ring-2 ring-danger-500/20 focus-within:ring-danger-500/40 dark:border-danger-500/70 dark:ring-danger-500/25;
   }
+  /* Input OTP */
+
+  .pc-otp {
+    @apply relative inline-flex;
+  }
+  .pc-otp__input {
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-text disabled:cursor-not-allowed;
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+  .pc-otp__slots {
+    @apply flex items-center gap-2 pointer-events-none;
+  }
+  .pc-otp__group {
+    @apply flex items-center;
+  }
+  .pc-otp__slot {
+    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-white/5 dark:border-white/15 dark:text-gray-100;
+  }
+  .pc-otp__group .pc-otp__slot + .pc-otp__slot {
+    @apply -ml-px;
+  }
+  .pc-otp__group .pc-otp__slot:first-child {
+    border-start-start-radius: var(--pc-radius, 0.625rem);
+    border-end-start-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-otp__group .pc-otp__slot:last-child {
+    border-start-end-radius: var(--pc-radius, 0.625rem);
+    border-end-end-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-otp__slot--active {
+    @apply border-primary-500 ring-2 ring-primary-500/50 z-10;
+  }
+  .pc-otp__slot--active:not(.pc-otp__slot--filled)::before {
+    content: "";
+    @apply absolute w-px h-6 bg-gray-900 dark:bg-gray-100;
+    animation: pc-otp-blink 1.1s steps(2, start) infinite;
+  }
+  @keyframes pc-otp-blink {
+    to {
+      visibility: hidden;
+    }
+  }
+  .pc-otp__separator {
+    @apply px-1 text-gray-400 select-none dark:text-gray-500;
+  }
+  .pc-otp:has(.pc-otp__input:disabled) .pc-otp__slot {
+    @apply opacity-50;
+  }
+  .pc-form-field-wrapper--error .pc-otp__slot {
+    @apply border-danger-500 dark:border-danger-500/70;
+  }
+
 
   .pc-color-input {
     @apply h-10 w-14 bg-transparent border-gray-300 shadow-xs cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white/5 dark:border-white/15;

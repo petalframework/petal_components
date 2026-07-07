@@ -94,7 +94,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
-        %{slug: "switch", name: "Switch", ready: true}
+        %{slug: "switch", name: "Switch", ready: true},
+        %{slug: "input-otp", name: "Input OTP", ready: true}
       ]},
     %{group: "Feedback",
       items: [
@@ -165,7 +166,8 @@ defmodule Dev.PlaygroundLive do
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
        radio: %{variant: "outline", size: "md", layout: "row"},
-       switch: %{size: "md", disabled: false, error: false}
+       switch: %{size: "md", disabled: false, error: false},
+       otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false}
      )}
   end
 
@@ -207,6 +209,15 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
+    do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
+
+  def handle_event("ctl_otp", %{"k" => "pattern", "v" => v}, socket) when v in ~w(numeric alphanumeric),
+    do: {:noreply, update(socket, :otp, &%{&1 | pattern: v})}
+
+  def handle_event("ctl_otp", %{"k" => k}, socket) when k in ~w(grouped disabled),
+    do: {:noreply, update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
@@ -344,6 +355,20 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp otp_snippet(o) do
+    attrs =
+      [
+        ~s(name="code"),
+        o.length != 6 && ~s(length={#{o.length}}),
+        o.grouped && ~s(group_size={#{div(o.length, 2)}}),
+        o.pattern != "numeric" && ~s(pattern="#{o.pattern}"),
+        o.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.input_otp #{Enum.join(attrs, " ")} />"
   end
 
   defp switch_snippet(sw) do
@@ -899,6 +924,101 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "input-otp"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Input OTP</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A segmented one-time-code input. One real input under the hood, so
+        paste, SMS autofill and form posts all just work. Try typing in it.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.input_otp
+            id={"pg-otp-#{@otp.length}-#{@otp.grouped}-#{@otp.pattern}-#{@otp.disabled}"}
+            name="pg_code"
+            length={@otp.length}
+            group_size={if @otp.grouped, do: div(@otp.length, 2)}
+            pattern={@otp.pattern}
+            disabled={@otp.disabled}
+          />
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={l <- ~w(4 6)}
+                phx-click="ctl_otp"
+                phx-value-k="length"
+                phx-value-v={l}
+                class={seg(to_string(@otp.length) == l)}
+              >
+                {l}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">pattern</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={pt <- ~w(numeric alphanumeric)}
+                phx-click="ctl_otp"
+                phx-value-k="pattern"
+                phx-value-v={pt}
+                class={seg(@otp.pattern == pt)}
+              >
+                {pt}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_otp" phx-value-k="grouped" class={tog(@otp.grouped)}>grouped</button>
+              <button phx-click="ctl_otp" phx-value-k="disabled" class={tog(@otp.disabled)}>disabled</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{otp_snippet(@otp)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Grouped</div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.input_otp id="otp-grouped-demo" name="grouped_code" length={6} group_size={3} />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        In a form field (error state)
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0!">
+            <.input_otp id="otp-error-demo" name="error_code" length={6} value="123" />
+            <p class="pc-form-field-error">that code has expired - we sent a new one</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "switch"} = assigns) do
     ~H"""
