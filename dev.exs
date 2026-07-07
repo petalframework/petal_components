@@ -105,6 +105,8 @@ defmodule Dev.PlaygroundLive do
       ]},
     %{group: "Overlay",
       items: [
+        %{slug: "tooltip", name: "Tooltip", ready: true},
+        %{slug: "popover", name: "Popover", ready: true},
         %{slug: "modal", name: "Modal", ready: false},
         %{slug: "dropdown", name: "Dropdown", ready: false}
       ]},
@@ -167,7 +169,9 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
-       otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false}
+       otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       tooltip: %{placement: "top", arrow: true},
+       popover: %{placement: "bottom", top_layer: false}
      )}
   end
 
@@ -209,6 +213,18 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
+    do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
+
+  def handle_event("ctl_tooltip", %{"k" => "arrow"}, socket),
+    do: {:noreply, update(socket, :tooltip, &%{&1 | arrow: !&1.arrow})}
+
+  def handle_event("ctl_popover", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
+    do: {:noreply, update(socket, :popover, &%{&1 | placement: v})}
+
+  def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
+    do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
 
   def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
     do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
@@ -355,6 +371,32 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp tooltip_snippet(t) do
+    attrs =
+      [
+        ~s(label="Copied to clipboard"),
+        t.placement != "top" && ~s(placement="#{t.placement}"),
+        !t.arrow && "arrow={false}"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.tooltip #{Enum.join(attrs, " ")}>\n  <.button variant=\"outline\">Hover me</.button>\n</.tooltip>"
+  end
+
+  defp popover_snippet(po) do
+    attrs =
+      [
+        po.placement != "bottom" && ~s(placement="#{po.placement}"),
+        po.top_layer && "top_layer"
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.popover" | attrs], " ")
+    open <>
+      ~s( trigger_class="pc-button pc-button--primary-outline pc-button--md") <>
+      ">\n  <:trigger>Open popover</:trigger>\n  Panel content here.\n</.popover>"
   end
 
   defp otp_snippet(o) do
@@ -925,6 +967,186 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "tooltip"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Tooltip</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A label on hover or keyboard focus. Pure CSS - no JS, no dependencies.
+        The bubble inverts against the page in both modes.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.tooltip
+            label="Copied to clipboard"
+            placement={@tooltip.placement}
+            arrow={@tooltip.arrow}
+          >
+            <.button variant="outline">Hover me</.button>
+          </.tooltip>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={pl <- ~w(top bottom left right)}
+                phx-click="ctl_tooltip"
+                phx-value-k="placement"
+                phx-value-v={pl}
+                class={seg(@tooltip.placement == pl)}
+              >
+                {pl}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_tooltip" phx-value-k="arrow" class={tog(@tooltip.arrow)}>arrow</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{tooltip_snippet(@tooltip)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Icon buttons (the classic use)
+      </div>
+      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center gap-3">
+          <.tooltip label="Bold">
+            <.button variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
+          </.tooltip>
+          <.tooltip label="Italic">
+            <.button variant="ghost" size="icon" aria-label="Italic"><.icon name="hero-italic" /></.button>
+          </.tooltip>
+          <.tooltip label="Link">
+            <.button variant="ghost" size="icon" aria-label="Link"><.icon name="hero-link" /></.button>
+          </.tooltip>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Rich content</div>
+      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center">
+          <.tooltip placement="bottom">
+            <:content>
+              <span class="font-semibold">Deploys locked</span><br />ask in #releases to unlock
+            </:content>
+            <.badge color="warning" label="Locked" />
+          </.tooltip>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "popover"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Popover</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Click-to-open panel with light dismiss. Optional top_layer mode uses the
+        native popover API to escape clipped containers.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-20">
+          <.popover
+            id={"pg-popover-#{@popover.placement}-#{@popover.top_layer}"}
+            placement={@popover.placement}
+            top_layer={@popover.top_layer}
+            trigger_class="pc-button pc-button--primary-outline pc-button--md"
+          >
+            <:trigger>Open popover</:trigger>
+            <div class="max-w-56">
+              <div class="text-sm font-semibold">Dimensions</div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+                Set the width and height for the layer.
+              </p>
+            </div>
+          </.popover>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={pl <- ~w(top bottom left right)}
+                phx-click="ctl_popover"
+                phx-value-k="placement"
+                phx-value-v={pl}
+                class={seg(@popover.placement == pl)}
+              >
+                {pl}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_popover" phx-value-k="top_layer" class={tog(@popover.top_layer)}>
+                top_layer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{popover_snippet(@popover)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        top_layer escapes clipped containers
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-md mx-auto">
+          <div class="relative h-24 p-4 overflow-hidden border border-dashed rounded-lg border-gray-300 dark:border-zinc-700">
+            <div class="mb-2 text-xs text-gray-400">overflow: hidden container</div>
+            <.popover
+              id="pg-popover-clipped"
+              placement="bottom"
+              top_layer
+              trigger_class="pc-button pc-button--primary-outline pc-button--sm"
+            >
+              <:trigger>Open from inside</:trigger>
+              <div class="max-w-64 text-sm">
+                This panel paints on the browser top layer - the clipped
+                container can't cut it off.
+              </div>
+            </.popover>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "input-otp"} = assigns) do
     ~H"""

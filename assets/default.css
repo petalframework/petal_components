@@ -1585,7 +1585,8 @@
     @apply relative inline-block;
   }
   .pc-tooltip__content {
-    @apply absolute z-40 invisible w-max max-w-xs rounded-md px-2.5 py-1.5 text-xs font-medium leading-snug text-white bg-gray-900 shadow-lg opacity-0 transition-opacity duration-150 delay-75 pointer-events-none dark:bg-gray-700 group-hover/pc-tooltip:visible group-hover/pc-tooltip:opacity-100 group-focus-within/pc-tooltip:visible group-focus-within/pc-tooltip:opacity-100;
+    @apply absolute z-40 invisible w-max max-w-xs px-2.5 py-1.5 text-xs font-medium leading-snug text-white bg-gray-900 shadow-lg opacity-0 transition-opacity duration-150 delay-75 pointer-events-none dark:bg-gray-100 dark:text-gray-900 group-hover/pc-tooltip:visible group-hover/pc-tooltip:opacity-100 group-focus-within/pc-tooltip:visible group-focus-within/pc-tooltip:opacity-100;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-tooltip--suppressed .pc-tooltip__content {
     display: none;
@@ -1603,7 +1604,7 @@
     @apply left-full top-1/2 -translate-y-1/2 ml-2;
   }
   .pc-tooltip__arrow {
-    @apply absolute w-2 h-2 rotate-45 bg-gray-900 dark:bg-gray-700;
+    @apply absolute w-2 h-2 rotate-45 bg-gray-900 dark:bg-gray-100;
   }
   .pc-tooltip__arrow--top {
     @apply top-full left-1/2 -translate-x-1/2 -mt-1;
@@ -1624,7 +1625,8 @@
     @apply relative inline-block;
   }
   .pc-popover__panel {
-    @apply absolute z-40 w-max max-w-[min(24rem,calc(100vw-1rem))] rounded-md bg-white p-4 shadow-lg ring-1 ring-black/5 focus:outline-hidden dark:bg-gray-800;
+    @apply absolute z-40 w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 shadow-lg border border-gray-200 focus:outline-hidden dark:bg-zinc-900 dark:border-white/10;
+    border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-popover__panel--top {
     @apply bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom;
