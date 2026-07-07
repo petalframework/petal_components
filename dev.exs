@@ -91,8 +91,10 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "button", name: "Button", ready: true},
         %{slug: "input", name: "Input", ready: true},
-        %{slug: "checkbox", name: "Checkbox", ready: false},
-        %{slug: "select", name: "Select", ready: false}
+        %{slug: "checkbox", name: "Checkbox", ready: true},
+        %{slug: "select", name: "Select", ready: false},
+        %{slug: "radio", name: "Radio", ready: false},
+        %{slug: "switch", name: "Switch", ready: false}
       ]},
     %{group: "Feedback",
       items: [
@@ -159,7 +161,8 @@ defmodule Dev.PlaygroundLive do
        show_code: false,
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
-       input: %{type: "text", disabled: false, error: false, help: false}
+       input: %{type: "text", disabled: false, error: false, help: false},
+       checkbox: %{layout: "row", disabled: false, error: false}
      )}
   end
 
@@ -201,6 +204,12 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_checkbox", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
+    do: {:noreply, update(socket, :checkbox, &%{&1 | layout: v})}
+
+  def handle_event("ctl_checkbox", %{"k" => k}, socket) when k in ~w(disabled error),
+    do: {:noreply, update(socket, :checkbox, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
     do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
@@ -308,6 +317,22 @@ defmodule Dev.PlaygroundLive do
         i.help && ~s(help_text="Shown on your public profile."),
         i.error && ~s(errors={["can't be blank"]}),
         i.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp checkbox_snippet(c) do
+    attrs =
+      [
+        ~s(type="checkbox-group"),
+        ~s(name="stack[]"),
+        ~s(label="Stack"),
+        ~s(options={[{"Phoenix", "phoenix"}, {"LiveView", "live_view"}, {"Oban", "oban"}]}),
+        c.layout != "row" && ~s(group_layout="#{c.layout}"),
+        c.error && ~s(errors={["pick at least one"]}),
+        c.disabled && "disabled"
       ]
       |> Enum.filter(& &1)
 
@@ -772,6 +797,101 @@ defmodule Dev.PlaygroundLive do
           <div class="mt-6">
             <.field type="checkbox" name="tos" label="I agree to the terms" value="true" checked no_margin />
           </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+
+  defp render_page(%{active: "checkbox"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Checkbox</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Single agreements and multi-select groups. The box nests the rail radius;
+        the ring only shows for keyboard focus.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              type="checkbox-group"
+              name="pg_stack[]"
+              label="Stack"
+              value={["phoenix"]}
+              options={[{"Phoenix", "phoenix"}, {"LiveView", "live_view"}, {"Oban", "oban"}]}
+              group_layout={@checkbox.layout}
+              disabled={@checkbox.disabled}
+              errors={if @checkbox.error, do: ["pick at least one"], else: []}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={l <- ~w(row col)}
+                phx-click="ctl_checkbox"
+                phx-value-k="layout"
+                phx-value-v={l}
+                class={seg(@checkbox.layout == l)}
+              >
+                {l}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_checkbox" phx-value-k="error" class={tog(@checkbox.error)}>error</button>
+              <button phx-click="ctl_checkbox" phx-value-k="disabled" class={tog(@checkbox.disabled)}>
+                disabled
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{checkbox_snippet(@checkbox)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        States (click one - no ring; tab to it - ring)
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+          <.field type="checkbox" name="s_off" label="Unchecked" value="true" no_margin />
+          <.field type="checkbox" name="s_on" label="Checked" value="true" checked no_margin />
+          <.field type="checkbox" name="s_dis" label="Disabled" value="true" disabled no_margin />
+          <.field type="checkbox" name="s_dis_on" label="Disabled checked" value="true" checked disabled no_margin />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Single checkbox</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="checkbox"
+            name="terms"
+            label="I agree to the terms and privacy policy"
+            value="true"
+            help_text="You can withdraw consent at any time."
+            no_margin
+          />
         </div>
       </div>
     </div>

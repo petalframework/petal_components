@@ -1212,7 +1212,7 @@
 
   /* -------------------------------------------------------------------- */
   .pc-checkbox {
-    @apply w-5 h-5 transition-all duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-5 h-5 transition-all duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
   }
   .pc-checkbox-group {
@@ -1231,7 +1231,7 @@
     @apply inline-flex items-center gap-3 cursor-pointer;
   }
   .pc-radio {
-    @apply w-4 h-4 border-gray-300 cursor-pointer text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600;
+    @apply w-4 h-4 transition-all duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .pc-radio-group {
     @apply pt-2;
