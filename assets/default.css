@@ -910,7 +910,7 @@
   .pc-form-field-wrapper--error input,
   .pc-form-field-wrapper--error select,
   .pc-form-field-wrapper--error textarea {
-    @apply border-danger-500 focus-visible:border-danger-500 focus-visible:ring-danger-500/30 dark:border-danger-500/70;
+    @apply border-danger-500 ring-2 ring-danger-500/20 focus-visible:border-danger-500 focus-visible:ring-danger-500/40 dark:border-danger-500/70 dark:ring-danger-500/25 dark:focus-visible:ring-danger-500/40;
   }
   .pc-form-field-wrapper--error input[type="checkbox"] {
     @apply border-danger-500 dark:border-danger-500/70;

@@ -92,7 +92,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "button", name: "Button", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
-        %{slug: "select", name: "Select", ready: false},
+        %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: false},
         %{slug: "switch", name: "Switch", ready: false}
       ]},
@@ -162,7 +162,8 @@ defmodule Dev.PlaygroundLive do
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
-       checkbox: %{layout: "row", disabled: false, error: false}
+       checkbox: %{layout: "row", disabled: false, error: false},
+       select: %{disabled: false, error: false, help: false}
      )}
   end
 
@@ -204,6 +205,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
     do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_select", %{"k" => k}, socket) when k in ~w(disabled error help),
+    do: {:noreply, update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_checkbox", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
     do: {:noreply, update(socket, :checkbox, &%{&1 | layout: v})}
@@ -319,6 +323,23 @@ defmodule Dev.PlaygroundLive do
         i.help && ~s(help_text="Shown on your public profile."),
         i.error && ~s(errors={["can't be blank"]}),
         i.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp select_snippet(sel) do
+    attrs =
+      [
+        ~s(type="select"),
+        ~s(name="country"),
+        ~s(label="Country"),
+        ~s(prompt="Pick a country"),
+        ~s(options={["Australia", "New Zealand", "Japan"]}),
+        sel.help && ~s(help_text="Where you pay tax."),
+        sel.error && ~s(errors={["can't be blank"]}),
+        sel.disabled && "disabled"
       ]
       |> Enum.filter(& &1)
 
@@ -805,6 +826,91 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+
+
+  defp render_page(%{active: "select"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Select</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The native select on the shared field surface: prompt, option groups and
+        multiple selection, no JS required.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              type="select"
+              name="pg_country"
+              label="Country"
+              value=""
+              prompt="Pick a country"
+              options={["Australia", "New Zealand", "Japan"]}
+              disabled={@select.disabled}
+              errors={if @select.error, do: ["can't be blank"], else: []}
+              help_text={if @select.help, do: "Where you pay tax."}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_select" phx-value-k="help" class={tog(@select.help)}>help</button>
+              <button phx-click="ctl_select" phx-value-k="error" class={tog(@select.error)}>error</button>
+              <button phx-click="ctl_select" phx-value-k="disabled" class={tog(@select.disabled)}>disabled</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{select_snippet(@select)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Option groups</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="select"
+            name="region"
+            label="Region"
+            value="Sydney"
+            options={[APAC: ["Sydney", "Tokyo", "Singapore"], Europe: ["Amsterdam", "Berlin"], Americas: ["Denver", "Sao Paulo"]]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Multiple</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="select"
+            name="channels"
+            label="Notification channels"
+            value={["Email", "Slack"]}
+            options={["Email", "Slack", "SMS", "Webhook"]}
+            multiple
+            help_text="Cmd-click to select more than one."
+            no_margin
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "checkbox"} = assigns) do
     ~H"""
