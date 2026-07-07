@@ -2336,6 +2336,9 @@ defmodule Dev.Endpoint do
     key: "_dev_key",
     signing_salt: "petal_dev"
 
+  # Answer HEAD probes (readiness checks from agents/CI) as GET
+  plug Plug.Head
+
   plug Dev.Router
 end
 
