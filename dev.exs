@@ -137,7 +137,7 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
-  @alert_colors ~w(info success warning danger gray)
+  @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
   @tint_variants ~w(light soft dark outline)
 
@@ -155,7 +155,7 @@ defmodule Dev.PlaygroundLive do
        loading: false,
        disabled: false,
        show_code: false,
-       alert: %{color: "info", variant: "light", icon: true, heading: false},
+       alert: %{color: "gray", variant: "light", icon: true, heading: false},
        badge: %{color: "primary", variant: "light", size: "md", icon: false}
      )}
   end
@@ -520,6 +520,12 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
         </div>
+        <p
+          :if={@variant in ~w(outline ghost) and @color in ~w(primary secondary gray)}
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+        >
+          outline and ghost render neutral chrome for brand colours - pick a semantic colour to tint
+        </p>
       </div>
 
       <button
@@ -613,7 +619,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={c <- ~w(info success warning danger gray)}
+                :for={c <- ~w(gray info success warning danger)}
                 phx-click="ctl_alert"
                 phx-value-k="color"
                 phx-value-v={c}
@@ -670,10 +676,10 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
       <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="info" variant="light" with_icon>Light, the default. Stays light even in dark mode.</.alert>
-        <.alert color="info" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
-        <.alert color="info" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
-        <.alert color="info" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
+        <.alert color="gray" variant="light" with_icon>Light, the default. Stays light even in dark mode.</.alert>
+        <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
+        <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
+        <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
