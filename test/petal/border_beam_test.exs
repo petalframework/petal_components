@@ -92,8 +92,31 @@ defmodule PetalComponents.BorderBeamTest do
         <.border_beam easing="spring" beams={2}>Content</.border_beam>
         """)
 
-      assert html =~ ~s(--pc-beam-ease: linear")
+      assert html =~ "--pc-beam-ease: linear;"
       refute html =~ "linear(0"
+    end
+
+    test "spring parks near top-centre by default; initial_offset overrides" do
+      assigns = %{}
+
+      spring_html =
+        rendered_to_string(~H"""
+        <.border_beam easing="spring">Content</.border_beam>
+        """)
+
+      linear_html =
+        rendered_to_string(~H"""
+        <.border_beam>Content</.border_beam>
+        """)
+
+      custom_html =
+        rendered_to_string(~H"""
+        <.border_beam easing="spring" initial_offset={40}>Content</.border_beam>
+        """)
+
+      assert spring_html =~ "--pc-beam-offset: 25%"
+      assert linear_html =~ "--pc-beam-offset: 0%"
+      assert custom_html =~ "--pc-beam-offset: 40%"
     end
 
     test "spring easing resolves to a linear() curve" do

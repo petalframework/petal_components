@@ -3579,8 +3579,13 @@
 }
 
 @keyframes pc-border-beam {
+  from {
+    offset-distance: var(--pc-beam-offset, 0%);
+  }
   to {
-    offset-distance: 100%;
+    /* closed offset-paths wrap past 100%, so a shifted range relocates the
+       lap seam - and with it, where the spring parks and releases */
+    offset-distance: calc(var(--pc-beam-offset, 0%) + 100%);
   }
 }
 

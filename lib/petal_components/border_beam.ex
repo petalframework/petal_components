@@ -40,6 +40,11 @@ defmodule PetalComponents.BorderBeam do
 
   attr :reverse, :boolean, default: false, doc: "run the beam anticlockwise"
 
+  attr :initial_offset, :integer,
+    default: nil,
+    doc:
+      "shifts the lap seam (0-100, % of the path from the top-left corner). The spring's pause-release happens at the seam, so this sets WHERE it springs from. Defaults to 0; spring easing defaults to 25, which parks the release near the top centre on typical shapes"
+
   attr :glow, :boolean,
     default: false,
     doc:
@@ -91,6 +96,7 @@ defmodule PetalComponents.BorderBeam do
         "--pc-beam-border-width: #{assigns.border_width}",
         "--pc-beam-gradient: #{gradient(assigns)}",
         "--pc-beam-ease: #{resolve_easing(assigns.easing, assigns.beams)}",
+        "--pc-beam-offset: #{resolve_offset(assigns.initial_offset, assigns.easing)}%",
         assigns.reverse && "--pc-beam-direction: reverse",
         assigns.reverse && "--pc-beam-rotate: reverse",
         assigns.border_radius && "--pc-beam-radius: #{assigns.border_radius}"
@@ -123,6 +129,10 @@ defmodule PetalComponents.BorderBeam do
 
   # Spring is a per-lap surge-and-settle; staggered beams sharing it lurch
   # and park alternately, so multi-beam runs keep constant speed instead.
+  defp resolve_offset(nil, "spring"), do: 25
+  defp resolve_offset(nil, _easing), do: 0
+  defp resolve_offset(offset, _easing), do: offset
+
   defp gradient(%{glow: true} = assigns) do
     "linear-gradient(to left, transparent, #{assigns.color_from}, #{assigns.color_to}, transparent)"
   end
