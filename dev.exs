@@ -148,15 +148,15 @@ defmodule Dev.PlaygroundLive do
        accents: @accents,
        radii: @radii,
        stars: @stars,
-       variant: "solid",
+       variant: "outline",
        color: "primary",
        size: "md",
        icon: false,
        loading: false,
        disabled: false,
        show_code: false,
-       alert: %{color: "gray", variant: "light", icon: true, heading: false},
-       badge: %{color: "primary", variant: "light", size: "md", icon: false}
+       alert: %{color: "gray", variant: "outline", icon: true, heading: false},
+       badge: %{color: "primary", variant: "outline", size: "md", icon: false}
      )}
   end
 
@@ -524,7 +524,7 @@ defmodule Dev.PlaygroundLive do
           :if={@variant in ~w(outline ghost) and @color in ~w(primary secondary gray)}
           class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
         >
-          outline and ghost render neutral chrome for brand colours - pick a semantic colour to tint
+          outline and ghost render neutral chrome for brand colours, so the accent dial won't change them - pick a semantic colour to tint
         </p>
       </div>
 
@@ -552,10 +552,10 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.button color="info">Info</.button>
-        <.button color="success">Success</.button>
-        <.button color="warning">Warning</.button>
-        <.button color="danger">Danger</.button>
+        <.button color="info" variant={@variant}>Info</.button>
+        <.button color="success" variant={@variant}>Success</.button>
+        <.button color="warning" variant={@variant}>Warning</.button>
+        <.button color="danger" variant={@variant}>Danger</.button>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
@@ -668,10 +668,10 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
       <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="info" with_icon>A new version of this page is available.</.alert>
-        <.alert color="success" with_icon>Your changes were saved.</.alert>
-        <.alert color="warning" with_icon>Your trial ends in 3 days.</.alert>
-        <.alert color="danger" with_icon>Payment failed. Check your card details.</.alert>
+        <.alert color="info" variant={@alert.variant} with_icon>A new version of this page is available.</.alert>
+        <.alert color="success" variant={@alert.variant} with_icon>Your changes were saved.</.alert>
+        <.alert color="warning" variant={@alert.variant} with_icon>Your trial ends in 3 days.</.alert>
+        <.alert color="danger" variant={@alert.variant} with_icon>Payment failed. Check your card details.</.alert>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
@@ -783,7 +783,7 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.badge :for={c <- ~w(primary secondary info success warning danger gray)} color={c} label={c} />
+        <.badge :for={c <- ~w(primary secondary info success warning danger gray)} color={c} variant={@badge.variant} label={c} />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
