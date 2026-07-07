@@ -856,6 +856,26 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Input group</div>
+      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.input_group>
+            <:leading>https://</:leading>
+            <.input type="text" name="ig_domain" value="" placeholder="example.com" />
+          </.input_group>
+          <.input_group>
+            <:leading>$</:leading>
+            <.input type="number" name="ig_amount" value="" placeholder="0.00" />
+            <:trailing>USD</:trailing>
+          </.input_group>
+          <.input_group>
+            <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
+            <.input type="search" name="ig_q" value="" placeholder="Search components..." />
+            <:trailing><kbd>&#8984;K</kbd></:trailing>
+          </.input_group>
+        </div>
+      </div>
+
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Select and checkbox</div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto">
