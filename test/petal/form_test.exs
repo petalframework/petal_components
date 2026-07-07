@@ -591,19 +591,44 @@ defmodule PetalComponents.FormTest do
     assert html =~ "Something else"
   end
 
+  test "form_field switch label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} />
+      </.form>
+      """)
+
+    assert html =~ "Name"
+    assert html =~ "pc-switch"
+
+    html =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} label="Something else" />
+      </.form>
+      """)
+
+    assert html =~ "Something else"
+  end
+
   test "number_input" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.number_input form={f} field={:name} />
+        <.number_input form={f} field={:name} value="123" placeholder="eg. 42" />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "number"
     assert html =~ "user[name]"
+    assert html =~ ~s(value="123")
+    assert html =~ ~s(placeholder="eg. 42")
   end
 
   test "email_input" do
@@ -612,13 +637,20 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.email_input form={f} field={:name} />
+        <.email_input
+          form={f}
+          field={:name}
+          value="jane@example.com"
+          placeholder="eg. jane@example.com"
+        />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "email"
     assert html =~ "user[name]"
+    assert html =~ ~s(value="jane@example.com")
+    assert html =~ ~s(placeholder="eg. jane@example.com")
   end
 
   test "password_input" do
@@ -627,13 +659,14 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.password_input form={f} field={:name} />
+        <.password_input form={f} field={:name} placeholder="Enter password" />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "password"
     assert html =~ "user[name]"
+    assert html =~ ~s(placeholder="Enter password")
   end
 
   test "search_input" do
@@ -642,13 +675,15 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.search_input form={f} field={:name} />
+        <.search_input form={f} field={:name} value="abc-123" placeholder="eg. Jane Doe" />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "search"
     assert html =~ "user[name]"
+    assert html =~ ~s(value="abc-123")
+    assert html =~ ~s(placeholder="eg. Jane Doe")
   end
 
   test "telephone_input" do
@@ -657,13 +692,15 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.telephone_input form={f} field={:name} />
+        <.telephone_input form={f} field={:name} value="0400 000 000" placeholder="eg. 0400 000 000" />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "tel"
     assert html =~ "user[name]"
+    assert html =~ ~s(value="0400 000 000")
+    assert html =~ ~s(placeholder="eg. 0400 000 000")
   end
 
   test "url_input" do
@@ -672,13 +709,20 @@ defmodule PetalComponents.FormTest do
     html =
       rendered_to_string(~H"""
       <.form :let={f} for={%{}} as={:user}>
-        <.url_input form={f} field={:name} />
+        <.url_input
+          form={f}
+          field={:name}
+          value="https://petal.build"
+          placeholder="eg. https://petal.build"
+        />
       </.form>
       """)
 
     assert html =~ "input"
     assert html =~ "url"
     assert html =~ "user[name]"
+    assert html =~ ~s(value="https://petal.build")
+    assert html =~ ~s(placeholder="eg. https://petal.build")
   end
 
   test "time_input" do

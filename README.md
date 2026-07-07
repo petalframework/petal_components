@@ -118,7 +118,7 @@ You can also fetch it at https://petal.build/petal-components/rules.md.
 
 **Actions**: `<.button>`, `<.button_group>`, `<.dropdown>`, `<.menu>`, `<.user_dropdown_menu>`
 
-**Feedback**: `<.alert>`, `<.modal>`, `<.slide_over>`, `<.progress>`, `<.spinner>`, `<.rating>`
+**Feedback**: `<.alert>`, `<.modal>`, `<.slide_over>`, `<.popover>`, `<.tooltip>`, `<.progress>`, `<.spinner>`, `<.rating>`
 
 **Data display**: `<.table>`, `<.pagination>`, `<.breadcrumbs>`, `<.badge>`, `<.avatar>`, `<.marquee>`, `<.icon>`, `<.link>`
 
