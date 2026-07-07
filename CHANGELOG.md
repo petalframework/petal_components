@@ -11,6 +11,8 @@ The theming foundation and a forms overhaul. This release introduces the first p
 - **`variant="soft"` on buttons.** The adaptive tint: pastel fill in light mode, a translucent wash in dark. The existing `light` variant keeps its original contract - it stays light in both modes.
 - **`color="gray"` on alerts.** A monochrome alert for unbranded announcements, in all four variants. `info` remains the default.
 - **`indicator` on radio cards.** Renders a visible radio dot inside each card - the expanded-hit-area pattern for pricing tiers and delivery options with an explicit single-choice affordance.
+- **`dropdown_menu_label` and `dropdown_menu_separator`.** Group headings and `role="separator"` hairlines for dropdown menus - the two pieces that make real account/action menus composable. The default triggers were restyled onto the shared system too (the labelled trigger is the neutral outline button; the ellipsis is a ghost icon button; both follow the theme radius).
+- **Border beam, rebuilt.** The corner geometry is fixed (the tail now fades smoothly around corners at any aspect ratio - the travelling gradient's path rounding must equal the beam size, and it now always does), and the beam self-clamps to its panel so it can never be configured into the broken zone. New powers, all still zero-JavaScript: `glow` (a symmetric comet with no sharp head - runs beautifully at very long sizes), `beams={n}` (evenly phased chasing beams), `reverse` (with the tail correctly trailing - the reference library gets this wrong), `easing="spring"` (a spring-release lap encoded as a CSS `linear()` curve: fast trace, a breath before the seam, then a launch through it), `initial_offset` (relocates where the spring parks - defaults to the top centre), plus `delay` and `border_width`. The wrapper is now a proper panel (surface, hairline border, theme radius), so content goes straight inside - no more nesting a card in it.
 - **`label_position="top"` on progress.** A label row with the live percentage (tabular figures) above the bar, at any size; the inside-the-bar label remains for `xl`. Both paths now also expose `aria-valuetext`.
 
 #### Changed
@@ -42,6 +44,7 @@ The dev playground (`dev.exs`) was rebuilt as an app-shell with a component side
 
 No API changes are required. Visual shifts to be aware of:
 
+- `border_beam` wraps content in a real panel now (background + hairline border). If you were nesting your own card inside it, unwrap - the beam is the card.
 - Corner radii now come from `--pc-radius` (10px default). Inputs and selects were `rounded-md` (6px) and badges `rounded-sm` - everything is slightly rounder out of the box. Set `--pc-radius: 0.375rem` on `:root` to keep the old feel.
 - Dark mode is significantly different across the board (washes instead of solid gray fills, real borders on panels). Light mode changes are subtler: semantic outline borders are stronger, error states are calmer, checkboxes are 16px.
 - If you relied on the old error styling (red fills/labels), the state is now carried by the border, ring and message only.
