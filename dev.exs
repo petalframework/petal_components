@@ -84,8 +84,8 @@ defmodule Dev.PlaygroundLive do
   @nav [
     %{group: "Foundations",
       items: [
-        %{slug: "typography", name: "Typography", ready: false},
-        %{slug: "colors", name: "Colours", ready: false}
+        %{slug: "typography", name: "Typography", ready: true},
+        %{slug: "colors", name: "Colours", ready: true}
       ]},
     %{group: "Inputs",
       items: [
@@ -1000,6 +1000,138 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "typography"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Typography</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The refined 4.2 scale: self-composing vertical rhythm, balanced
+        headings, and a three-tier emphasis system that holds in both modes.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Headings</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.h1>The quick brown fox</.h1>
+        <.h2>The quick brown fox</.h2>
+        <.h3>The quick brown fox</.h3>
+        <.h4>The quick brown fox</.h4>
+        <.h5>The quick brown fox</.h5>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Body and emphasis tiers
+      </div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.lead>
+          A lead paragraph sits between heading and body - one size up, muted a step.
+        </.lead>
+        <.p>
+          Default body copy carries the middle emphasis tier. It pairs
+          <.inline_code>inline_code</.inline_code>
+          with <strong>strong text</strong> at the top tier, and stays readable
+          across light and dark without per-mode overrides.
+        </.p>
+        <.text_muted>Muted text is the quiet tier - captions, hints, timestamps.</.text_muted>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Structure</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.blockquote>
+          Design is the silent ambassador of your brand.
+        </.blockquote>
+        <.ul class="mt-6">
+          <li>Unordered lists keep the body rhythm</li>
+          <li>With markers in the muted tier</li>
+        </.ul>
+        <.hr class="my-6" />
+        <.ol>
+          <li>Ordered lists number in tabular figures</li>
+          <li>So multi-digit lists stay aligned</li>
+        </.ol>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "colors"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Colours</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Four roles: primary follows the accent rail, secondary is your second
+        brand hue, semantics carry meaning, gray is the chrome. Filled
+        variants take colour; transparent variants stay neutral.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Primary (accent-driven - try the rail)
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex overflow-hidden rounded-lg">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 h-14"
+            style={"background-color: var(--color-primary-#{stop})"}
+            title={"primary-#{stop}"}
+          >
+          </div>
+        </div>
+        <div class="flex mt-1.5 text-[10px] text-gray-400">
+          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+            {stop}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Semantic ramps (fixed hues)
+      </div>
+      <div class="px-6 py-6 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div :for={c <- ~w(info success warning danger)} class="flex items-center gap-3">
+          <div class="w-16 text-xs text-gray-500 dark:text-zinc-400">{c}</div>
+          <div class="flex flex-1 overflow-hidden rounded-lg">
+            <div
+              :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+              class="flex-1 h-8"
+              style={"background-color: var(--color-#{c}-#{stop})"}
+              title={"#{c}-#{stop}"}
+            >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Gray (zinc) - the chrome family
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex overflow-hidden rounded-lg">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 h-14"
+            style={"background-color: var(--color-gray-#{stop})"}
+            title={"gray-#{stop}"}
+          >
+          </div>
+        </div>
+        <div class="flex mt-1.5 text-[10px] text-gray-400">
+          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+            {stop}
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Secondary maps to your second brand hue in app config (pink in this
+        playground). The surface tokens - washes at 500/15, borders at 600/30
+        light and 500/40 dark, solids at 600 - are derived from these ramps,
+        which is why one accent swap restyles every component.
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "dropdown"} = assigns) do
     ~H"""
