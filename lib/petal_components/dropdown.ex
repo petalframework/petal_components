@@ -32,7 +32,10 @@ defmodule PetalComponents.Dropdown do
   attr :placement, :string, default: "left", values: ["left", "right"]
   attr :rest, :global
 
-  slot :trigger_element
+  slot :trigger_element,
+    doc:
+      "custom trigger content. Rendered INSIDE the dropdown's own <button>, so never nest interactive elements (<.button>, links) here - browsers split nested buttons and the toggle binding breaks. Style the built-in trigger via trigger_class instead, e.g. trigger_class=\"pc-button pc-button--primary-outline pc-button--md\""
+
   slot :inner_block, required: false
 
   @doc """

@@ -1294,11 +1294,9 @@ defmodule Dev.PlaygroundLive do
               <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
             </.dropdown_menu_item>
           </.dropdown>
-          <.dropdown placement="right">
+          <.dropdown placement="right" trigger_class="pc-button pc-button--primary-outline pc-button--md">
             <:trigger_element>
-              <.button variant="outline">
-                Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
-              </.button>
+              Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
             </:trigger_element>
             <.dropdown_menu_label>Recent</.dropdown_menu_label>
             <.dropdown_menu_item link_type="button">petal_components</.dropdown_menu_item>
