@@ -1163,40 +1163,86 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Dropdown</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A menu on the floating-panel surface. Items nest the rail radius;
-        works with both LiveView JS and Alpine.
+        Menus on the floating-panel surface: group labels, separators, icons,
+        keyboard hints and destructive items. Triggers follow the rail radius.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-start justify-center gap-12 px-6 pt-12 pb-44">
-          <.dropdown label="Options">
-            <.dropdown_menu_item link_type="button" label="Edit" />
-            <.dropdown_menu_item link_type="button" label="Duplicate" />
-            <.dropdown_menu_item link_type="button" label="Archive" />
-          </.dropdown>
-          <.dropdown placement="right">
-            <:trigger_element>
-              <.button variant="outline">
-                Custom trigger <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
-              </.button>
-            </:trigger_element>
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Account menu</div>
+      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-72">
+        <div class="flex justify-center">
+          <.dropdown label="matt@petal.build">
+            <.dropdown_menu_label>My account</.dropdown_menu_label>
             <.dropdown_menu_item link_type="button">
-              <.icon name="hero-pencil-square" class="w-4 h-4" /> Rename
+              <.icon name="hero-user" class="w-4 h-4" /> Profile
+              <kbd class="pc-kbd ml-auto">&#8679;&#8984;P</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
-              <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download
+              <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
             </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> Settings
+              <kbd class="pc-kbd ml-auto">&#8984;,</kbd>
+            </.dropdown_menu_item>
+            <.dropdown_menu_separator />
+            <.dropdown_menu_label>Team</.dropdown_menu_label>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-user-plus" class="w-4 h-4" /> Invite members
+            </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button" disabled>
+              <.icon name="hero-plus" class="w-4 h-4" /> New team (Pro)
+            </.dropdown_menu_item>
+            <.dropdown_menu_separator />
             <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
-              <.icon name="hero-trash" class="w-4 h-4" /> Delete
+              <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
+              <kbd class="pc-kbd ml-auto">&#8679;&#8984;Q</kbd>
             </.dropdown_menu_item>
           </.dropdown>
         </div>
       </div>
 
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Row actions (ellipsis trigger) and a custom trigger
+      </div>
+      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-56">
+        <div class="flex items-start justify-center gap-16">
+          <.dropdown>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
+              <kbd class="pc-kbd ml-auto">&#8984;E</kbd>
+            </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-document-duplicate" class="w-4 h-4" /> Duplicate
+              <kbd class="pc-kbd ml-auto">&#8984;D</kbd>
+            </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-archive-box" class="w-4 h-4" /> Archive
+            </.dropdown_menu_item>
+            <.dropdown_menu_separator />
+            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
+              <.icon name="hero-trash" class="w-4 h-4" /> Delete
+              <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
+            </.dropdown_menu_item>
+          </.dropdown>
+          <.dropdown placement="right">
+            <:trigger_element>
+              <.button variant="outline">
+                Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
+              </.button>
+            </:trigger_element>
+            <.dropdown_menu_label>Recent</.dropdown_menu_label>
+            <.dropdown_menu_item link_type="button">petal_components</.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">petal_pro</.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">marketing site</.dropdown_menu_item>
+          </.dropdown>
+        </div>
+      </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Click either trigger - the default ellipsis trigger on the left, a custom
-        button trigger (with placement="right") on the right. Menu items take
-        icons, links (a / live_patch / live_redirect / button) and custom classes.
+        The default trigger is a labelled outline button (or a ghost ellipsis
+        with no label) - both follow the rail radius. Items are links or
+        buttons (a / live_patch / live_redirect / button) and take arbitrary
+        content: icons, .pc-kbd hints, custom classes for destructive actions.
+        dropdown_menu_label and dropdown_menu_separator organise groups.
       </div>
     </div>
     """

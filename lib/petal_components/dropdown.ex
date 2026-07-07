@@ -131,6 +131,35 @@ defmodule PetalComponents.Dropdown do
     """
   end
 
+  @doc """
+  A non-interactive heading for a group of menu items.
+
+      <.dropdown_menu_label>Signed in as matt@petal.build</.dropdown_menu_label>
+  """
+  attr :class, :any, default: nil, doc: "any additional CSS classes"
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def dropdown_menu_label(assigns) do
+    ~H"""
+    <div class={["pc-dropdown__label", @class]} {@rest}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
+  A thin divider between groups of menu items.
+  """
+  attr :class, :any, default: nil, doc: "any additional CSS classes"
+  attr :rest, :global
+
+  def dropdown_menu_separator(assigns) do
+    ~H"""
+    <div class={["pc-dropdown__separator", @class]} role="separator" {@rest}></div>
+    """
+  end
+
   defp trigger_button_classes(nil, []),
     do: "pc-dropdown__trigger-button--no-label"
 
