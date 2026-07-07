@@ -196,6 +196,7 @@ defmodule Dev.PlaygroundLive do
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{value: 60, color: "primary", size: "md", label: "none"},
+       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -254,6 +255,18 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :progress, &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)})}
+
+  def handle_event("ctl_beam", %{"k" => "duration", "v" => v}, socket) when v in ~w(4s 8s 12s),
+    do: {:noreply, update(socket, :beam, &%{&1 | duration: v})}
+
+  def handle_event("ctl_beam", %{"k" => "beams", "v" => v}, socket) when v in ~w(1 2 3),
+    do: {:noreply, update(socket, :beam, &%{&1 | beams: String.to_integer(v)})}
+
+  def handle_event("ctl_beam", %{"k" => "easing", "v" => v}, socket) when v in ~w(linear spring),
+    do: {:noreply, update(socket, :beam, &%{&1 | easing: v})}
+
+  def handle_event("ctl_beam", %{"k" => "reverse"}, socket),
+    do: {:noreply, update(socket, :beam, &%{&1 | reverse: !&1.reverse})}
 
   def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
     do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
@@ -426,6 +439,20 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.progress #{Enum.join(attrs, " ")} />"
+  end
+
+  defp beam_snippet(bm) do
+    attrs =
+      [
+        bm.duration != "8s" && ~s(duration="#{bm.duration}"),
+        bm.beams != 1 && "beams={#{bm.beams}}",
+        bm.easing != "linear" && ~s(easing="#{bm.easing}"),
+        bm.reverse && "reverse"
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.border_beam" | attrs], " ")
+    open <> ">\n  <div class=\"p-8\">...</div>\n</.border_beam>"
   end
 
   defp tooltip_snippet(t) do
@@ -1033,34 +1060,122 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Border beam</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        An animated beam tracing the container border - pure CSS, for hero
-        cards and callouts that deserve attention.
+        A light beam tracing the border - pure CSS on an offset-path, with the
+        tail fading smoothly around corners at any aspect ratio. The panel
+        follows the rail radius.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">On a card</div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.border_beam border_radius="min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)">
-            <.card variant="basic" class="w-full">
-              <.card_content category="Launch" heading="4.4.0 is coming">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.border_beam
+            id={"pg-beam-#{@beam.duration}-#{@beam.beams}-#{@beam.reverse}-#{@beam.easing}"}
+            duration={@beam.duration}
+            beams={@beam.beams}
+            reverse={@beam.reverse}
+            easing={@beam.easing}
+            class="w-full max-w-sm"
+          >
+            <div class="p-8">
+              <div class="text-xs font-medium tracking-wide uppercase text-gray-400">Launch</div>
+              <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                4.4.0 is coming
+              </div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
                 Theme tokens, one surface system, and the forms overhaul.
-              </.card_content>
-            </.card>
-          </.border_beam>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Custom colours and speed
-      </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.border_beam color_from="#22c55e" color_to="#0ea5e9" duration="4s">
-            <div class="p-6 text-sm text-gray-500 border border-gray-200 rounded-lg dark:border-zinc-800 dark:text-zinc-400">
-              color_from / color_to take any CSS colour; duration sets the lap time.
+              </p>
             </div>
           </.border_beam>
         </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={d <- ~w(4s 8s 12s)}
+                phx-click="ctl_beam"
+                phx-value-k="duration"
+                phx-value-v={d}
+                class={seg(@beam.duration == d)}
+              >
+                {d}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">beams</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={n <- ~w(1 2 3)}
+                phx-click="ctl_beam"
+                phx-value-k="beams"
+                phx-value-v={n}
+                class={seg(to_string(@beam.beams) == n)}
+              >
+                {n}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">motion</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={e <- ~w(linear spring)}
+                phx-click="ctl_beam"
+                phx-value-k="easing"
+                phx-value-v={e}
+                class={seg(@beam.easing == e)}
+              >
+                {e}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_beam" phx-value-k="reverse" class={tog(@beam.reverse)}>
+                reverse
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{beam_snippet(@beam)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Custom colours, wide aspect (the corner test)
+      </div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.border_beam color_from="#22c55e" color_to="#0ea5e9" duration="5s" size="120px" class="w-full">
+          <div class="px-6 py-4 text-sm text-gray-500 dark:text-zinc-400">
+            A wide, short panel - the shape that made the old tail misbehave.
+            color_from / color_to take any CSS colour.
+          </div>
+        </.border_beam>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Two beams, spring motion
+      </div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.border_beam beams={2} easing="spring" duration="6s" class="w-full max-w-sm mx-auto">
+          <div class="p-8 text-center">
+            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Pro tier</div>
+            <div class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">$29</div>
+            <div class="mt-1 text-xs text-gray-500 dark:text-zinc-400">per month</div>
+          </div>
+        </.border_beam>
       </div>
     </div>
     """

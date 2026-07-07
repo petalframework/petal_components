@@ -3416,37 +3416,52 @@
 
   /* Border Beam */
   .pc-border-beam {
-    @apply relative border border-gray-200 dark:border-gray-700;
-    border-radius: var(--pc-beam-radius, 0.75rem);
+    @apply relative bg-white border-gray-200 dark:bg-zinc-900 dark:border-white/10;
+    border-style: solid;
+    border-width: var(--pc-beam-border-width, 1px);
+    border-radius: var(--pc-beam-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
   }
 
-  /* The beam layer is masked to the 1px border ring, so the travelling
-     gradient square only ever paints over the border itself. */
+  /* Each beam layer is masked to the border ring, so the travelling gradient
+     square only ever paints over the border itself. */
   .pc-border-beam__beam {
-    @apply pointer-events-none absolute inset-0 border border-transparent;
+    @apply pointer-events-none absolute inset-0;
+    border: var(--pc-beam-border-width, 1px) solid transparent;
     border-radius: inherit;
     -webkit-mask: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
     mask: linear-gradient(transparent, transparent), linear-gradient(#fff, #fff);
+    -webkit-mask-clip: padding-box, border-box;
+    mask-clip: padding-box, border-box;
     -webkit-mask-composite: source-in, xor;
     mask-composite: intersect;
-    mask-clip: padding-box, border-box;
   }
 
+  /* The traveller: a gradient square riding offset-path around the border
+     rectangle. The path's corner rounding equals the BEAM SIZE (not the
+     card radius) - the wide swing keeps the square overlapping the ring
+     mask through the whole corner turn, which is what makes the tail fade
+     smoothly around corners at any aspect ratio. */
   .pc-border-beam__beam::after {
     content: "";
     display: block;
     width: var(--pc-beam-size, 150px);
     aspect-ratio: 1 / 1;
-    offset-path: rect(0 auto auto 0 round calc(var(--pc-beam-radius, 0.75rem) * 12));
-    offset-anchor: 90% 50%;
     background: linear-gradient(
       to left,
       var(--pc-beam-from, #ffaa40),
       var(--pc-beam-to, #9c40ff),
       transparent
     );
-    animation: pc-border-beam var(--pc-beam-duration, 8s) linear infinite;
+    offset-path: rect(0 auto auto 0 round var(--pc-beam-size, 150px));
+    offset-rotate: var(--pc-beam-rotate, auto);
+    animation: pc-border-beam var(--pc-beam-duration, 8s) infinite;
+    animation-timing-function: var(--pc-beam-ease, linear);
+    animation-direction: var(--pc-beam-direction, normal);
+    animation-delay: calc(
+      var(--pc-beam-delay, 0s) + var(--pc-beam-duration, 8s) * var(--pc-beam-phase, 0)
+    );
   }
+
 
   /* Meteors */
   .pc-meteors {

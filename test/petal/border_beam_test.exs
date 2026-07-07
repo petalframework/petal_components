@@ -31,7 +31,56 @@ defmodule PetalComponents.BorderBeamTest do
       assert html =~ "--pc-beam-to: #9c40ff"
       assert html =~ "--pc-beam-duration: 8s"
       assert html =~ "--pc-beam-size: 150px"
-      assert html =~ "--pc-beam-radius: 0.75rem"
+      # radius defaults to the theme token via the CSS fallback, so no
+      # inline radius var is emitted unless border_radius is passed
+      refute html =~ "--pc-beam-radius"
+    end
+
+    test "border_radius attr overrides the theme default" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam border_radius="2rem">Content</.border_beam>
+        """)
+
+      assert html =~ "--pc-beam-radius: 2rem"
+    end
+
+    test "beams renders evenly phased beam layers" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam beams={2}>Content</.border_beam>
+        """)
+
+      assert length(String.split(html, "pc-border-beam__beam")) - 1 == 2
+      assert html =~ "--pc-beam-phase: 0"
+      assert html =~ "--pc-beam-phase: -0.5"
+    end
+
+    test "reverse flips direction and traveller rotation" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam reverse>Content</.border_beam>
+        """)
+
+      assert html =~ "--pc-beam-direction: reverse"
+      assert html =~ "--pc-beam-rotate: reverse"
+    end
+
+    test "spring easing resolves to a linear() curve" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam easing="spring">Content</.border_beam>
+        """)
+
+      assert html =~ "--pc-beam-ease: linear(0,"
     end
   end
 
