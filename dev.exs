@@ -90,7 +90,7 @@ defmodule Dev.PlaygroundLive do
     %{group: "Inputs",
       items: [
         %{slug: "button", name: "Button", ready: true},
-        %{slug: "input", name: "Input", ready: false},
+        %{slug: "input", name: "Input", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: false},
         %{slug: "select", name: "Select", ready: false}
       ]},
@@ -137,6 +137,8 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
+  @input_types ~w(text email password search date select textarea file)
+
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
   @tint_variants ~w(light soft dark outline)
@@ -156,7 +158,8 @@ defmodule Dev.PlaygroundLive do
        disabled: false,
        show_code: false,
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
-       badge: %{color: "primary", variant: "outline", size: "md", icon: false}
+       badge: %{color: "primary", variant: "outline", size: "md", icon: false},
+       input: %{type: "text", disabled: false, error: false, help: false}
      )}
   end
 
@@ -192,6 +195,12 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, socket |> update(:loading, &(!&1)) |> assign(:icon, false)}
   def handle_event("flip", %{"k" => "disabled"}, socket), do: {:noreply, update(socket, :disabled, &(!&1))}
   def handle_event("flip", %{"k" => "show_code"}, socket), do: {:noreply, update(socket, :show_code, &(!&1))}
+
+  def handle_event("ctl_input", %{"k" => "type", "v" => v}, socket) when v in @input_types,
+    do: {:noreply, update(socket, :input, &%{&1 | type: v})}
+
+  def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
+    do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
     do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
@@ -275,6 +284,34 @@ defmodule Dev.PlaygroundLive do
       [] -> "<.button>Get started</.button>"
       _ -> "<.button #{Enum.join(attrs, " ")}>Get started</.button>"
     end
+  end
+
+  defp input_meta("text"), do: {"Full name", "Ada Lovelace"}
+  defp input_meta("email"), do: {"Email address", "you@example.com"}
+  defp input_meta("password"), do: {"Password", nil}
+  defp input_meta("search"), do: {"Search", "Search components..."}
+  defp input_meta("date"), do: {"Renewal date", nil}
+  defp input_meta("select"), do: {"Country", nil}
+  defp input_meta("textarea"), do: {"Bio", "A little about you"}
+  defp input_meta("file"), do: {"Avatar", nil}
+
+  defp field_snippet(i) do
+    {label, placeholder} = input_meta(i.type)
+
+    attrs =
+      [
+        i.type != "text" && ~s(type="#{i.type}"),
+        ~s(name="#{i.type}"),
+        ~s(label="#{label}"),
+        placeholder && ~s(placeholder="#{placeholder}"),
+        i.type == "select" && ~s(options={["Australia", "New Zealand", "Japan"]}),
+        i.help && ~s(help_text="Shown on your public profile."),
+        i.error && ~s(errors={["can't be blank"]}),
+        i.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
   end
 
   defp alert_snippet(a) do
@@ -591,6 +628,155 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+
+
+  defp render_page(%{active: "input"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Input</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        One field surface for every type: label, control, help and error.
+        Border, radius and focus ring follow the rail above.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              :if={@input.type == "select"}
+              type="select"
+              name="pg_country"
+              label="Country"
+              value=""
+              prompt="Pick a country"
+              options={["Australia", "New Zealand", "Japan"]}
+              disabled={@input.disabled}
+              errors={if @input.error, do: ["can't be blank"], else: []}
+              help_text={if @input.help, do: "Shown on your public profile."}
+              no_margin
+            />
+            <.field
+              :if={@input.type == "textarea"}
+              type="textarea"
+              name="pg_bio"
+              label="Bio"
+              value=""
+              placeholder="A little about you"
+              disabled={@input.disabled}
+              errors={if @input.error, do: ["can't be blank"], else: []}
+              help_text={if @input.help, do: "Shown on your public profile."}
+              no_margin
+            />
+            <.field
+              :if={@input.type not in ~w(select textarea)}
+              type={@input.type}
+              name={"pg_" <> @input.type}
+              label={elem(input_meta(@input.type), 0)}
+              value=""
+              placeholder={elem(input_meta(@input.type), 1)}
+              disabled={@input.disabled}
+              errors={if @input.error, do: ["can't be blank"], else: []}
+              help_text={if @input.help, do: "Shown on your public profile."}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={t <- ~w(text email password search date select textarea file)}
+                phx-click="ctl_input"
+                phx-value-k="type"
+                phx-value-v={t}
+                class={seg(@input.type == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_input" phx-value-k="help" class={tog(@input.help)}>help</button>
+              <button phx-click="ctl_input" phx-value-k="error" class={tog(@input.error)}>error</button>
+              <button phx-click="ctl_input" phx-value-k="disabled" class={tog(@input.disabled)}>disabled</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{field_snippet(@input)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Anatomy</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="email"
+            name="anatomy_email"
+            label="Email address"
+            value=""
+            placeholder="you@example.com"
+            help_text="We only use this for receipts."
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Error state</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="email"
+            name="error_email"
+            label="Email address"
+            value="not-an-email"
+            errors={["must include an @ sign"]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">In-field actions</div>
+      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.field type="password" name="pw_viewable" label="Password (viewable)" value="hunter2hunter2" viewable no_margin />
+          <.field type="text" name="api_key" label="API key (copyable)" value="pk_live_51J8s0" copyable no_margin />
+          <.field type="search" name="q" label="Search (clearable)" value="petal components" clearable no_margin />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Select and checkbox</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="select"
+            name="plan"
+            label="Plan"
+            value="Pro"
+            options={["Free", "Pro", "Team"]}
+            no_margin
+          />
+          <div class="mt-6">
+            <.field type="checkbox" name="tos" label="I agree to the terms" value="true" checked no_margin />
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "alert"} = assigns) do
     ~H"""
