@@ -1182,7 +1182,7 @@
   }
 
   /* kbd hints: shadcn-calibre chip, nested radius */
-  .pc-input-group__addon kbd {
+  :is(.pc-kbd, .pc-input-group__addon kbd) {
     @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-white/10 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
   }

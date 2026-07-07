@@ -498,7 +498,7 @@ defmodule Dev.PlaygroundLive do
           <button class="hidden md:flex items-center gap-2 h-8 pl-3 pr-2 mr-1 text-sm text-gray-400 border rounded-lg w-56 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900">
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
             <span>Search components</span>
-            <kbd class="ml-auto text-[11px] px-1.5 py-0.5 rounded border border-gray-200 dark:border-zinc-700">⌘K</kbd>
+            <kbd class="pc-kbd ml-auto">⌘K</kbd>
           </button>
           <a
             href="https://github.com/petalframework/petal_components"
