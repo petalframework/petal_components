@@ -1765,6 +1765,19 @@
   .pc-progress {
     @apply flex overflow-hidden;
   }
+  .pc-progress-wrapper {
+    @apply w-full;
+  }
+  .pc-progress__header {
+    @apply flex items-center justify-between mb-1.5 text-sm;
+  }
+  .pc-progress__title {
+    @apply font-medium text-gray-900 dark:text-gray-100;
+  }
+  .pc-progress__value {
+    @apply text-gray-500 tabular-nums dark:text-gray-400;
+  }
+
   .pc-progress__inner {
     @apply flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
   }

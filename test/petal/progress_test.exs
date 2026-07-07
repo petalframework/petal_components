@@ -91,4 +91,18 @@ defmodule PetalComponents.ProgressTest do
 
     assert html =~ "width: 66.67%"
   end
+
+  test "label_position top renders a header row with the percentage" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.progress value={56} label="Upload progress" label_position="top" />
+      """)
+
+    assert html =~ "pc-progress__header"
+    assert html =~ "Upload progress"
+    assert html =~ "56%"
+    assert html =~ ~s(aria-valuetext="56%")
+  end
 end

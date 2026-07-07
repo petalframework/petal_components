@@ -170,7 +170,7 @@ defmodule Dev.PlaygroundLive do
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
-       progress: %{value: 60, color: "primary", size: "md", label: false},
+       progress: %{value: 60, color: "primary", size: "md", label: "none"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -225,8 +225,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
 
-  def handle_event("ctl_progress", %{"k" => "label"}, socket),
-    do: {:noreply, update(socket, :progress, &%{&1 | label: !&1.label, size: if(!&1.label, do: "xl", else: &1.size)})}
+  def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket) when v in ~w(none inside top),
+    do:
+      {:noreply,
+       update(socket, :progress, &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)})}
 
   def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
     do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
@@ -393,7 +395,8 @@ defmodule Dev.PlaygroundLive do
         ~s(value={#{pr.value}}),
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
-        pr.label && ~s(label="#{pr.value}%")
+        pr.label == "inside" && ~s(label="#{pr.value}%"),
+        pr.label == "top" && ~s(label="Upload progress" label_position="top")
       ]
       |> Enum.filter(& &1)
 
@@ -1013,7 +1016,14 @@ defmodule Dev.PlaygroundLive do
               value={@progress.value}
               color={@progress.color}
               size={@progress.size}
-              label={if @progress.label, do: "#{@progress.value}%"}
+              label={
+                case @progress.label do
+                  "inside" -> "#{@progress.value}%"
+                  "top" -> "Upload progress"
+                  _ -> nil
+                end
+              }
+              label_position={if @progress.label == "top", do: "top", else: "inside"}
             />
           </div>
         </div>
@@ -1061,10 +1071,16 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_progress" phx-value-k="label" class={tog(@progress.label)}>
-                label
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={l <- ~w(none inside top)}
+                phx-click="ctl_progress"
+                phx-value-k="label"
+                phx-value-v={l}
+                class={seg(@progress.label == l)}
+              >
+                {l}
               </button>
             </div>
           </div>
@@ -1099,6 +1115,7 @@ defmodule Dev.PlaygroundLive do
         <div class="max-w-md mx-auto space-y-4">
           <.progress :for={z <- ~w(xs sm md lg)} value={60} size={z} />
           <.progress value={60} size="xl" label="60%" />
+          <.progress value={56} size="sm" label="Upload progress" label_position="top" />
         </div>
       </div>
     </div>
