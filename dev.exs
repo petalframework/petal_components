@@ -139,7 +139,7 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
-  @input_types ~w(text email password search date time select textarea file)
+  @input_types ~w(text email password search date time select textarea file color)
 
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
@@ -304,6 +304,7 @@ defmodule Dev.PlaygroundLive do
   defp input_meta("select"), do: {"Country", nil}
   defp input_meta("textarea"), do: {"Bio", "A little about you"}
   defp input_meta("file"), do: {"Avatar", nil}
+  defp input_meta("color"), do: {"Brand colour", nil}
 
   defp field_snippet(i) do
     {label, placeholder} = input_meta(i.type)
@@ -712,7 +713,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={t <- ~w(text email password search date time select textarea file)}
+                :for={t <- ~w(text email password search date time select textarea file color)}
                 phx-click="ctl_input"
                 phx-value-k="type"
                 phx-value-v={t}

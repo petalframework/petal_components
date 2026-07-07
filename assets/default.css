@@ -734,7 +734,7 @@
     @apply flex items-start justify-between;
   }
   .pc-alert-base-classes {
-    @apply flex items-center w-full gap-3 px-4 py-3 text-sm focus:outline-hidden;
+    @apply flex items-center w-full gap-3 px-4 py-3 text-sm border border-transparent focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-alert__heading {
@@ -761,7 +761,7 @@
     @apply text-white bg-info-600;
   }
   .pc-alert--info-outline {
-    @apply bg-transparent border text-info-700 border-info-600/30 dark:bg-white/5 dark:text-info-300 dark:border-info-500/40;
+    @apply bg-transparent text-info-700 border-info-600/30 dark:bg-white/5 dark:text-info-300 dark:border-info-500/40;
   }
 
   /* Success variants */
@@ -775,7 +775,7 @@
     @apply text-white bg-success-600;
   }
   .pc-alert--success-outline {
-    @apply bg-transparent border text-success-700 border-success-600/30 dark:bg-white/5 dark:text-success-300 dark:border-success-500/40;
+    @apply bg-transparent text-success-700 border-success-600/30 dark:bg-white/5 dark:text-success-300 dark:border-success-500/40;
   }
 
   /* Warning variants */
@@ -789,7 +789,7 @@
     @apply text-white bg-warning-600;
   }
   .pc-alert--warning-outline {
-    @apply bg-transparent border text-warning-700 border-warning-600/30 dark:bg-white/5 dark:text-warning-300 dark:border-warning-500/40;
+    @apply bg-transparent text-warning-700 border-warning-600/30 dark:bg-white/5 dark:text-warning-300 dark:border-warning-500/40;
   }
 
   /* Danger variants */
@@ -803,7 +803,7 @@
     @apply text-white bg-danger-600;
   }
   .pc-alert--danger-outline {
-    @apply bg-transparent border text-danger-700 border-danger-600/30 dark:bg-white/5 dark:text-danger-300 dark:border-danger-500/40;
+    @apply bg-transparent text-danger-700 border-danger-600/30 dark:bg-white/5 dark:text-danger-300 dark:border-danger-500/40;
   }
 
   /* Alerts - dismiss button variants */
@@ -876,7 +876,7 @@
     @apply text-white bg-gray-600;
   }
   .pc-alert--gray-outline {
-    @apply bg-transparent border text-gray-700 border-gray-300 dark:bg-white/5 dark:text-gray-200 dark:border-white/15;
+    @apply bg-transparent text-gray-700 border-gray-300 dark:bg-white/5 dark:text-gray-200 dark:border-white/15;
   }
   .pc-alert__dismiss-button--gray-light {
     @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-300 dark:hover:text-gray-800;
@@ -1122,10 +1122,19 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-color-input {
-    @apply border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
+    @apply h-10 w-14 bg-transparent border-gray-300 shadow-xs cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white/5 dark:border-white/15;
+    @apply [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:border-0;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-color-input::-webkit-color-swatch {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-color-input::-moz-color-swatch {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-range-input {
-    @apply w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500;
+    @apply w-full cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* ---- Dual Range Slider -------------------------------------------- */
@@ -1210,7 +1219,7 @@
 
   /* -------------------------------------------------------------------- */
   .pc-checkbox {
-    @apply w-5 h-5 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
   }
   .pc-checkbox-group {
