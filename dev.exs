@@ -1160,29 +1160,69 @@ defmodule Dev.PlaygroundLive do
       ><code>{beam_snippet(@beam)}</code></pre>
 
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Custom colours, wide aspect (the corner test)
+        Now playing (two long glow beams)
       </div>
       <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.border_beam color_from="#22c55e" color_to="#0ea5e9" duration="5s" size="120px" class="w-full">
-          <div class="px-6 py-4 text-sm text-gray-500 dark:text-zinc-400">
-            A wide, short panel - the shape that made the old tail misbehave.
-            color_from / color_to take any CSS colour.
+        <.border_beam
+          glow
+          beams={2}
+          size="400px"
+          duration="9s"
+          color_from="#f43f5e"
+          color_to="#3b82f6"
+          class="w-full max-w-sm mx-auto"
+        >
+          <div class="p-6">
+            <div class="font-semibold leading-none text-gray-900 dark:text-gray-100">
+              Now playing
+            </div>
+            <div class="mt-1.5 text-sm text-gray-500 dark:text-zinc-400">
+              Stairway to Heaven - Led Zeppelin
+            </div>
+            <div class="w-40 h-40 mx-auto mt-5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+            </div>
+            <div class="mt-5">
+              <.progress value={34} size="xs" />
+            </div>
+            <div class="flex justify-between mt-2 text-sm text-gray-500 dark:text-zinc-400">
+              <span>2:45</span><span>8:02</span>
+            </div>
+            <div class="flex justify-center gap-3 mt-4">
+              <.button variant="outline" size="icon" radius="full" aria-label="Previous">
+                <.icon name="hero-backward" />
+              </.button>
+              <.button size="icon" radius="full" aria-label="Play">
+                <.icon name="hero-play" />
+              </.button>
+              <.button variant="outline" size="icon" radius="full" aria-label="Next">
+                <.icon name="hero-forward" />
+              </.button>
+            </div>
           </div>
         </.border_beam>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Two beams, spring motion
+        Spring release (a button-sized lap)
       </div>
       <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.border_beam beams={2} easing="spring" duration="6s" class="w-full max-w-sm mx-auto">
-          <div class="p-8 text-center">
-            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Pro tier</div>
-            <div class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">$29</div>
-            <div class="mt-1 text-xs text-gray-500 dark:text-zinc-400">per month</div>
-          </div>
-        </.border_beam>
+        <div class="flex justify-center">
+          <.border_beam
+            glow
+            easing="spring"
+            duration="3s"
+            size="60px"
+            color_from="#eab308"
+            color_to="#eab308"
+            class="inline-block"
+          >
+            <div class="px-6 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">
+              Buy now
+            </div>
+          </.border_beam>
+        </div>
       </div>
+
     </div>
     """
   end

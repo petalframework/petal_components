@@ -7,11 +7,12 @@ defmodule PetalComponents.BorderBeam do
   """
   use Phoenix.Component
 
-  # A critically-damped spring position curve for the CSS linear() timing
-  # function: fast rise, long settle, strictly monotonic. Overshoot is
-  # deliberately zero - on a closed path even a few percent of overshoot is
-  # a huge visible backwards excursion at the lap seam.
-  @spring_easing "linear(0.0, 0.0617, 0.1918, 0.3384, 0.4765, 0.5958, 0.6937, 0.7713, 0.8313, 0.877, 0.9112, 0.9365, 0.9552, 0.9687, 0.9785, 0.9856, 0.9907, 0.9943, 0.9969, 0.9987, 1)"
+  # The spring lap, shaped to MagicUI's kinematics: a fast trace around
+  # most of the border, a near-stop just before the lap seam, then a
+  # release that accelerates through the seam into the next lap's fast
+  # phase. Strictly monotonic - no backwards motion is possible on the
+  # closed path.
+  @spring_easing "linear(0, 0.14, 0.27, 0.385, 0.49, 0.58, 0.655, 0.715, 0.765, 0.81, 0.845, 0.862, 0.875, 0.885, 0.893, 0.899, 0.905, 0.922, 0.945, 0.972, 1)"
 
   attr :color_from, :string, default: "#ffaa40", doc: "start color of the beam gradient"
   attr :color_to, :string, default: "#9c40ff", doc: "end color of the beam gradient"
@@ -38,6 +39,11 @@ defmodule PetalComponents.BorderBeam do
     doc: "number of beams, evenly phased around the border"
 
   attr :reverse, :boolean, default: false, doc: "run the beam anticlockwise"
+
+  attr :glow, :boolean,
+    default: false,
+    doc:
+      "symmetric comet (transparent -> colours -> transparent) instead of the sharp-headed beam. Glows tolerate very long sizes, so the size clamp is lifted - great for long dramatic beams"
 
   attr :easing, :string,
     default: "linear",
@@ -83,6 +89,7 @@ defmodule PetalComponents.BorderBeam do
         "--pc-beam-delay: #{assigns.delay}",
         "--pc-beam-size: #{assigns.size}",
         "--pc-beam-border-width: #{assigns.border_width}",
+        "--pc-beam-gradient: #{gradient(assigns)}",
         "--pc-beam-ease: #{resolve_easing(assigns.easing, assigns.beams)}",
         assigns.reverse && "--pc-beam-direction: reverse",
         assigns.reverse && "--pc-beam-rotate: reverse",
@@ -97,7 +104,11 @@ defmodule PetalComponents.BorderBeam do
       |> assign(:phases, beam_phases(assigns.beams))
 
     ~H"""
-    <div class={["pc-border-beam", @class]} style={@style} {@rest}>
+    <div
+      class={["pc-border-beam", @glow && "pc-border-beam--glow", @class]}
+      style={@style}
+      {@rest}
+    >
       <div
         :for={phase <- @phases}
         class="pc-border-beam__beam"
@@ -112,6 +123,14 @@ defmodule PetalComponents.BorderBeam do
 
   # Spring is a per-lap surge-and-settle; staggered beams sharing it lurch
   # and park alternately, so multi-beam runs keep constant speed instead.
+  defp gradient(%{glow: true} = assigns) do
+    "linear-gradient(to left, transparent, #{assigns.color_from}, #{assigns.color_to}, transparent)"
+  end
+
+  defp gradient(assigns) do
+    "linear-gradient(to left, #{assigns.color_from}, #{assigns.color_to}, transparent)"
+  end
+
   defp resolve_easing("spring", beams) when beams > 1, do: "linear"
   defp resolve_easing("spring", _beams), do: @spring_easing
   defp resolve_easing(easing, _beams), do: easing

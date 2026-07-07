@@ -72,6 +72,18 @@ defmodule PetalComponents.BorderBeamTest do
       assert html =~ "--pc-beam-rotate: reverse"
     end
 
+    test "glow renders the symmetric gradient and modifier class" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam glow color_from="#f43f5e" color_to="#3b82f6">Content</.border_beam>
+        """)
+
+      assert html =~ "pc-border-beam--glow"
+      assert html =~ "linear-gradient(to left, transparent, #f43f5e, #3b82f6, transparent)"
+    end
+
     test "spring with multiple beams falls back to constant speed" do
       assigns = %{}
 

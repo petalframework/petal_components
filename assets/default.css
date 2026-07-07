@@ -3445,6 +3445,12 @@
      card radius) - the wide swing keeps the square overlapping the ring
      mask through the whole corner turn, which is what makes the tail fade
      smoothly around corners at any aspect ratio. */
+  /* Glows have no sharp head, so long beams stay artifact-free even past
+     the size regime - lift the clamp and let them stretch. */
+  .pc-border-beam--glow .pc-border-beam__beam::after {
+    --pc-beam-max: 500cqmax;
+  }
+
   .pc-border-beam__beam::after {
     content: "";
     display: block;
@@ -3454,11 +3460,9 @@
     --pc-beam-eff: min(var(--pc-beam-size, 150px), var(--pc-beam-max, 45cqmin));
     width: var(--pc-beam-eff);
     aspect-ratio: 1 / 1;
-    background: linear-gradient(
-      to left,
-      var(--pc-beam-from, #ffaa40),
-      var(--pc-beam-to, #9c40ff),
-      transparent
+    background: var(
+      --pc-beam-gradient,
+      linear-gradient(to left, var(--pc-beam-from, #ffaa40), var(--pc-beam-to, #9c40ff), transparent)
     );
     offset-path: rect(0 auto auto 0 round var(--pc-beam-eff));
     offset-rotate: var(--pc-beam-rotate, auto);
