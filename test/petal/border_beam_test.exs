@@ -72,6 +72,18 @@ defmodule PetalComponents.BorderBeamTest do
       assert html =~ "--pc-beam-rotate: reverse"
     end
 
+    test "spring with multiple beams falls back to constant speed" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.border_beam easing="spring" beams={2}>Content</.border_beam>
+        """)
+
+      assert html =~ ~s(--pc-beam-ease: linear")
+      refute html =~ "linear(0"
+    end
+
     test "spring easing resolves to a linear() curve" do
       assigns = %{}
 

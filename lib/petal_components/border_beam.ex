@@ -43,7 +43,7 @@ defmodule PetalComponents.BorderBeam do
     default: "linear",
     values: ["linear", "ease-in-out", "spring"],
     doc:
-      "beam motion: linear for constant speed, ease-in-out for a glide, spring for a springy lap with a settle at the seam"
+      "beam motion: linear for constant speed, ease-in-out for a glide, spring for a springy lap with a settle at the seam. Spring applies to a single beam; with beams > 1 motion stays linear so the chase remains even"
 
   attr :class, :any, default: nil, doc: "extra classes for the container"
   attr :rest, :global
@@ -83,7 +83,7 @@ defmodule PetalComponents.BorderBeam do
         "--pc-beam-delay: #{assigns.delay}",
         "--pc-beam-size: #{assigns.size}",
         "--pc-beam-border-width: #{assigns.border_width}",
-        "--pc-beam-ease: #{resolve_easing(assigns.easing)}",
+        "--pc-beam-ease: #{resolve_easing(assigns.easing, assigns.beams)}",
         assigns.reverse && "--pc-beam-direction: reverse",
         assigns.reverse && "--pc-beam-rotate: reverse",
         assigns.border_radius && "--pc-beam-radius: #{assigns.border_radius}"
@@ -110,8 +110,11 @@ defmodule PetalComponents.BorderBeam do
     """
   end
 
-  defp resolve_easing("spring"), do: @spring_easing
-  defp resolve_easing(easing), do: easing
+  # Spring is a per-lap surge-and-settle; staggered beams sharing it lurch
+  # and park alternately, so multi-beam runs keep constant speed instead.
+  defp resolve_easing("spring", beams) when beams > 1, do: "linear"
+  defp resolve_easing("spring", _beams), do: @spring_easing
+  defp resolve_easing(easing, _beams), do: easing
 
   defp beam_phases(count) when count <= 1, do: ["0"]
 

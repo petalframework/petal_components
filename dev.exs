@@ -1138,6 +1138,12 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
         </div>
+        <p
+          :if={@beam.easing == "spring" and @beam.beams > 1}
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+        >
+          spring is a single-beam motion - with multiple beams the chase runs at constant speed
+        </p>
       </div>
 
       <button

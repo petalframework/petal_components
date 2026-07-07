@@ -3451,7 +3451,7 @@
     /* the technique's invariant: beam size must stay well under the card's
        smallest side, or the traveller cuts corners on a visible diagonal
        (racing + tail split). Clamp to 30% of the min side, always. */
-    --pc-beam-eff: min(var(--pc-beam-size, 150px), 30cqmin);
+    --pc-beam-eff: min(var(--pc-beam-size, 150px), var(--pc-beam-max, 45cqmin));
     width: var(--pc-beam-eff);
     aspect-ratio: 1 / 1;
     background: linear-gradient(
