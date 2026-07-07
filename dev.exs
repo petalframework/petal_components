@@ -107,8 +107,8 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "tooltip", name: "Tooltip", ready: true},
         %{slug: "popover", name: "Popover", ready: true},
-        %{slug: "modal", name: "Modal", ready: false},
-        %{slug: "dropdown", name: "Dropdown", ready: false}
+        %{slug: "modal", name: "Modal", ready: true},
+        %{slug: "dropdown", name: "Dropdown", ready: true}
       ]},
     %{group: "Effects",
       items: [
@@ -999,6 +999,93 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "dropdown"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Dropdown</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A menu on the floating-panel surface. Items nest the rail radius;
+        works with both LiveView JS and Alpine.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-start justify-center gap-12 px-6 pt-12 pb-44">
+          <.dropdown label="Options">
+            <.dropdown_menu_item link_type="button" label="Edit" />
+            <.dropdown_menu_item link_type="button" label="Duplicate" />
+            <.dropdown_menu_item link_type="button" label="Archive" />
+          </.dropdown>
+          <.dropdown placement="right">
+            <:trigger_element>
+              <.button variant="outline">
+                Custom trigger <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
+              </.button>
+            </:trigger_element>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-pencil-square" class="w-4 h-4" /> Rename
+            </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button">
+              <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download
+            </.dropdown_menu_item>
+            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
+              <.icon name="hero-trash" class="w-4 h-4" /> Delete
+            </.dropdown_menu_item>
+          </.dropdown>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Click either trigger - the default ellipsis trigger on the left, a custom
+        button trigger (with placement="right") on the right. Menu items take
+        icons, links (a / live_patch / live_redirect / button) and custom classes.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "modal"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Dialog on the panel surface with a proper scrim. Escape and
+        click-away close it; the box radius scales gently with the rail.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.button variant="outline" phx-click={show_modal("pg-modal")}>
+            Open modal
+          </.button>
+        </div>
+      </div>
+
+      <.modal id="pg-modal" title="Invite your team" hide max_width="sm">
+        <p class="text-sm text-gray-500 dark:text-zinc-400">
+          Share this link with your teammates and they'll join the workspace
+          with member access.
+        </p>
+        <div class="mt-4">
+          <.input_group>
+            <.input type="text" name="invite_url" value="https://petal.build/join/x1y2z3" readonly />
+            <:trailing><kbd>&#8984;C</kbd></:trailing>
+          </.input_group>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <.button variant="outline" phx-click={hide_modal("pg-modal")}>Cancel</.button>
+          <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
+        </div>
+      </.modal>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
+        to any phx-click. close_on_click_away and close_on_escape default on.
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "progress"} = assigns) do
     ~H"""

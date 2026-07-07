@@ -1552,7 +1552,8 @@
     @apply w-5 h-5 ml-2 -mr-1 dark:text-gray-100;
   }
   .pc-dropdown__menu-items-wrapper {
-    @apply absolute z-30 w-56 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800 ring-1 ring-black/5 focus:outline-hidden;
+    @apply absolute z-30 w-56 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-zinc-900 dark:border-white/10;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-dropdown__menu-items-wrapper-placement--left {
     @apply right-0 origin-top-right;
@@ -1561,7 +1562,8 @@
     @apply left-0 origin-top-left;
   }
   .pc-dropdown__menu-item {
-    @apply flex items-center self-start justify-start w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out dark:hover:bg-gray-700 dark:text-gray-300 dark:bg-gray-800 hover:bg-gray-100;
+    @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
   .pc-dropdown__trigger-button--no-label {
     @apply flex items-center text-gray-400 rounded-full hover:text-gray-600 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-primary-500;
@@ -1626,7 +1628,7 @@
   }
   .pc-popover__panel {
     @apply absolute z-40 w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 shadow-lg border border-gray-200 focus:outline-hidden dark:bg-zinc-900 dark:border-white/10;
-    border-radius: var(--pc-radius, 0.625rem);
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-popover__panel--top {
     @apply bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom;
@@ -2256,13 +2258,14 @@
     @apply relative z-50;
   }
   .pc-modal__overlay {
-    @apply fixed inset-0 z-50 transition-opacity bg-gray-50/90 dark:bg-gray-900/90;
+    @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
   .pc-modal__wrapper {
     @apply fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6;
   }
   .pc-modal__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg rounded-xl dark:bg-gray-800;
+    @apply w-full max-h-full overflow-auto bg-white shadow-lg border border-gray-200 dark:bg-zinc-900 dark:border-white/10;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-modal__box--sm {
     @apply max-w-sm;
