@@ -1,4 +1,50 @@
 # Changelog
+### 4.4.0 - unreleased
+
+The theming foundation and a forms overhaul. This release introduces the first public theme tokens, rebuilds every form control on one shared surface system, and adds the input primitives everyone reaches for. It is a restyle release: no breaking API changes, but plenty of deliberate visual refinement - see Upgrading.
+
+#### Added
+
+- **Theme tokens.** `--pc-radius` (default `0.625rem`) now drives the corner radius of buttons, badges, alerts, inputs, selects, checkboxes, radio cards, tooltips, popovers, dropdowns and modals - override one custom property and the whole library follows. `--pc-button-solid-fg` (default `#fff`) sets the text colour on solid primary surfaces, so monochrome themes (black button in light, white button in dark) invert their label correctly. Both have safe fallbacks: if you set nothing, you get the current look.
+- **`input_group` - prefix/suffix addons on one field surface.** Wrap any input with `:leading`/`:trailing` slots for text ("https://", "$", "USD"), icons, buttons or `<kbd>` hints, plus `:block_start`/`:block_end` rows for toolbars and character counters. The group carries the border, radius and focus ring; the input inside sheds its own surface automatically, so `<.input>` drops in unchanged.
+- **`input_otp` - a segmented one-time-code input.** One real (invisible) input stretched across painted segments, which is why paste, SMS autofill (`autocomplete="one-time-code"`) and form posts all just work - unlike the N-separate-inputs pattern. Numeric or alphanumeric, optional grouping with a separator, fires `petal:otp-complete` when full. Powered by the new `PetalInputOTP` hook, zero dependencies.
+- **`variant="soft"` on buttons.** The adaptive tint: pastel fill in light mode, a translucent wash in dark. The existing `light` variant keeps its original contract - it stays light in both modes.
+- **`color="gray"` on alerts.** A monochrome alert for unbranded announcements, in all four variants. `info` remains the default.
+- **`indicator` on radio cards.** Renders a visible radio dot inside each card - the expanded-hit-area pattern for pricing tiers and delivery options with an explicit single-choice affordance.
+- **`label_position="top"` on progress.** A label row with the live percentage (tabular figures) above the bar, at any size; the inside-the-bar label remains for `xl`. Both paths now also expose `aria-valuetext`.
+
+#### Changed
+
+- **One surface system.** Outline-style surfaces (button/badge/alert outlines, every text-like input, select, checkbox, radio, the input group) now share a single definition: transparent in light with `gray-300` borders, a `white/5` wash in dark with `white/15` borders. Floating panels (popover, dropdown, modal) share theirs: white / `zinc-900` with a real border in both modes. Dark mode stops being a mix of `gray-700`/`gray-800` fills and becomes one material.
+- **Semantic borders pair with their text.** Coloured outlines use the strong hue at low alpha (`600/30` light, `500/40` dark) instead of pastel `-300` borders, so an info alert's border finally looks like it belongs to its text.
+- **The error state calmed down.** Invalid fields show a `danger` border plus a permanent soft ring that deepens slightly on focus - and nothing else changes. Gone: pink input fills, red placeholder text, labels force-painted red with `!important`, red-filled checkboxes and switches, and the italic error message (now `text-sm`, regular).
+- **Selection controls grew up.** Checkboxes and radios are both 16px (checkbox was 20), sit on the shared surface, and only show a focus ring for keyboard focus in your accent - the forms plugin's hardcoded blue ring that lit up on every mouse click is gone. Checked state is the solid-button statement (`primary-600`). Radio cards select by border colour at constant width (no more thickening border or dark-mode fill inversion) and finally surface keyboard focus. Switches match: doctrine track, `primary-600` when on, keyboard ring.
+- **Solid buttons are uniform.** Every colour runs `600 -> 700` hover `-> 800` active with `shadow-xs`; the legacy `focus:` colour overrides (which repainted buttons on tab-focus) are gone - the `focus-visible` ring is the one focus treatment. Filled variants (solid/soft/light) plus outline carry `shadow-xs`; ghost never does.
+- **Tooltips invert in both modes** - near-black bubble on light, near-white bubble with dark text on dark (the old dark bubble was `gray-700` mud). Modal scrim is a modern `black/50`. Dropdown menu items sit transparent on a padded panel with a hover wash and nested radius.
+- **Progress joined the system**: washed tracks (hue at 15% alpha - the old `dark:*-900` tracks inverted badly under monochrome themes), `600` bars, pill-shaped at every size, and the bar now animates between values.
+- **Native multiple selects are styled**: padded rows, themed selection washes that survive the browser's forced selection-text colours, and a thin scrollbar.
+- **Every input type is on the surface** - date/time/month/week, color (with a nested-radius swatch), file (the file button is literally the outline button now, and the "No file chosen" text sits in the muted tier) and range all dropped their pre-4.4 one-off styles.
+
+#### Fixed
+
+- **`<.field type="checkbox">` and `type="switch"` without `value` no longer crash.** The clause heads pattern-matched on `value`, so a valueless checkbox mis-routed into the generic input branch and raised a KeyError. Omitting `value` now renders unchecked; an explicit `checked` still overrides. Same fix in `input.ex`'s switch.
+- **`<.input type="text">` (and other bare text-like inputs) render with the field surface again** - the generic clause forwarded no surface class at all, so bare inputs were completely unstyled while `select`/`textarea` styled themselves.
+- **Badge `size="xs"` and `size="xl"` actually render.** The API accepted five sizes but the stylesheet only ever defined three - xs and xl fell through to the unstyled base.
+- **Radio cards and switches were invisible to keyboard users** - their real inputs are visually hidden and nothing surfaced `:focus-visible`. Both now ring.
+- **Alert dismiss buttons** had pre-4.4 leftovers: rounding that only appeared on hover, and solid dark chips that clashed with the new washes. They are ghost-styled now and nest the theme radius.
+- **Heroicon sizing is layer-safe in the playground/docs setup** - the icon mask CSS is imported into `layer(base)` so component and utility sizing can override it. If you import `heroicons.css` yourself, keep it inside a cascade layer.
+
+#### Playground
+
+The dev playground (`dev.exs`) was rebuilt as an app-shell with a component sidebar, live theme rail (accent + radius, deep-linked in the URL), dark mode, and per-component pages with live controls and code snippets - 17 pages covering foundations, inputs, feedback and overlays.
+
+#### Upgrading
+
+No API changes are required. Visual shifts to be aware of:
+
+- Corner radii now come from `--pc-radius` (10px default). Inputs and selects were `rounded-md` (6px) and badges `rounded-sm` - everything is slightly rounder out of the box. Set `--pc-radius: 0.375rem` on `:root` to keep the old feel.
+- Dark mode is significantly different across the board (washes instead of solid gray fills, real borders on panels). Light mode changes are subtler: semantic outline borders are stronger, error states are calmer, checkboxes are 16px.
+- If you relied on the old error styling (red fills/labels), the state is now carried by the border, ring and message only.
 ### 4.3.0 - 2026-07-07
 
 #### Added
