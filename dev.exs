@@ -137,8 +137,8 @@ defmodule Dev.PlaygroundLive do
       ]},
     %{group: "Effects",
       items: [
-        %{slug: "border-beam", name: "Border beam", ready: false},
-        %{slug: "meteors", name: "Meteors", ready: false}
+        %{slug: "border-beam", name: "Border beam", ready: true},
+        %{slug: "meteors", name: "Meteors", ready: true}
       ]}
   ]
 
@@ -1026,6 +1026,77 @@ defmodule Dev.PlaygroundLive do
 
 
 
+
+
+  defp render_page(%{active: "border-beam"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Border beam</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        An animated beam tracing the container border - pure CSS, for hero
+        cards and callouts that deserve attention.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">On a card</div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.border_beam border_radius="min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)">
+            <.card variant="basic" class="w-full">
+              <.card_content category="Launch" heading="4.4.0 is coming">
+                Theme tokens, one surface system, and the forms overhaul.
+              </.card_content>
+            </.card>
+          </.border_beam>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Custom colours and speed
+      </div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
+          <.border_beam color_from="#22c55e" color_to="#0ea5e9" duration="4s">
+            <div class="p-6 text-sm text-gray-500 border border-gray-200 rounded-lg dark:border-zinc-800 dark:text-zinc-400">
+              color_from / color_to take any CSS colour; duration sets the lap time.
+            </div>
+          </.border_beam>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "meteors"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Meteors</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A meteor shower inside any container. Deterministic per seed, so the
+        same seed renders the same sky.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Hero panel</div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="relative max-w-lg mx-auto overflow-hidden bg-zinc-950 rounded-xl h-52">
+          <.meteors count={20} />
+          <div class="relative flex flex-col items-center justify-center h-full text-center">
+            <div class="text-lg font-semibold text-white">Ship something tonight</div>
+            <div class="mt-1 text-sm text-zinc-400">Meteors work best on dark panels.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Sparse (count 8, fixed seed)
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="relative max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-zinc-800 dark:bg-zinc-900">
+          <.meteors count={8} seed={42} />
+        </div>
+      </div>
+    </div>
+    """
+  end
 
   defp render_page(%{active: "typography"} = assigns) do
     ~H"""
