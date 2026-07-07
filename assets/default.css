@@ -3465,6 +3465,10 @@
       linear-gradient(to left, var(--pc-beam-from, #ffaa40), var(--pc-beam-to, #9c40ff), transparent)
     );
     offset-path: rect(0 auto auto 0 round var(--pc-beam-eff));
+    /* Chrome won't resolve inherited custom props inside @keyframes on
+       pseudo-elements, so the keyframes animate a registered number
+       (--pc-beam-t) and the offset maths lives here, where vars resolve. */
+    offset-distance: calc(var(--pc-beam-offset, 0%) + var(--pc-beam-t, 0) * 100%);
     offset-rotate: var(--pc-beam-rotate, auto);
     animation: pc-border-beam var(--pc-beam-duration, 8s) infinite;
     animation-timing-function: var(--pc-beam-ease, linear);
@@ -3578,14 +3582,21 @@
   }
 }
 
+@property --pc-beam-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 @keyframes pc-border-beam {
   from {
-    offset-distance: var(--pc-beam-offset, 0%);
+    --pc-beam-t: 0;
   }
   to {
-    /* closed offset-paths wrap past 100%, so a shifted range relocates the
-       lap seam - and with it, where the spring parks and releases */
-    offset-distance: calc(var(--pc-beam-offset, 0%) + 100%);
+    /* closed offset-paths wrap past 100%, so the shifted range (applied in
+       the ::after's offset-distance calc) relocates the lap seam - and with
+       it, where the spring parks and releases */
+    --pc-beam-t: 1;
   }
 }
 
