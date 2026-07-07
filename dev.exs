@@ -36,6 +36,31 @@ defmodule Dev.Layouts do
         <link rel="stylesheet" href="/assets/app.css" />
       </head>
       <body class="bg-white antialiased">
+        <script>
+          // Hidden webviews (Claude preview, headless CDP) never fire
+          // requestAnimationFrame - Chrome pauses it while document.hidden.
+          // LiveView schedules every client-side JS command DOM write
+          // (show/hide/add_class/...) on rAF, so those commands silently
+          // never run under automation. While hidden, fall back to a
+          // timeout; when visible, native rAF is untouched. Must run before
+          // the LiveView bundle loads.
+          (() => {
+            const nativeRAF = window.requestAnimationFrame.bind(window);
+            const nativeCAF = window.cancelAnimationFrame.bind(window);
+            let shimId = -1;
+            const shimTimers = new Map();
+            window.requestAnimationFrame = (cb) => {
+              if (!document.hidden) return nativeRAF(cb);
+              const id = shimId--;
+              shimTimers.set(id, setTimeout(() => { shimTimers.delete(id); cb(performance.now()); }, 16));
+              return id;
+            };
+            window.cancelAnimationFrame = (id) => {
+              if (shimTimers.has(id)) { clearTimeout(shimTimers.get(id)); shimTimers.delete(id); return; }
+              nativeCAF(id);
+            };
+          })();
+        </script>
         <script src="/assets/phoenix/phoenix.js">
         </script>
         <script src="/assets/phoenix_live_view/phoenix_live_view.js">
