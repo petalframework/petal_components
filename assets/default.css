@@ -3452,6 +3452,22 @@
     }
   }
 
+  /* Form controls dropped inside follow the wrapper's rounded shape (and the
+     radius rail). The shimmer IS the border, so the control's own default
+     ring is stripped (like input_group); keyboard focus still shows a soft
+     accent outline that follows the rounded shape. */
+  .pc-shine-border :is(input, select, textarea) {
+    border-radius: inherit;
+  }
+  .pc-shine-border :is(input, select, textarea):focus {
+    outline: none;
+    box-shadow: none;
+  }
+  .pc-shine-border :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: -2px;
+  }
+
   /* Border Beam */
   .pc-border-beam {
     @apply relative bg-white border-gray-200 dark:bg-zinc-900 dark:border-white/10;
