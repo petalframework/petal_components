@@ -199,6 +199,7 @@ defmodule Dev.PlaygroundLive do
        progress: %{value: 60, color: "primary", size: "md", label: "none"},
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
+       meteors: %{count: 20, angle: "215deg", color: "slate", seed: 0},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -260,6 +261,18 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
+
+  def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
+    do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
+
+  def handle_event("ctl_meteors", %{"k" => "angle", "v" => v}, socket) when v in ~w(200deg 215deg 235deg),
+    do: {:noreply, update(socket, :meteors, &%{&1 | angle: v})}
+
+  def handle_event("ctl_meteors", %{"k" => "color", "v" => v}, socket) when v in ~w(slate sky violet),
+    do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
+
+  def handle_event("ctl_meteors", %{"k" => "shuffle"}, socket),
+    do: {:noreply, update(socket, :meteors, &%{&1 | seed: &1.seed + 1})}
 
   def handle_event("ctl_shine", %{"k" => "scheme", "v" => v}, socket) when v in ~w(mono blend),
     do: {:noreply, update(socket, :shine, &%{&1 | scheme: v})}
@@ -472,6 +485,22 @@ defmodule Dev.PlaygroundLive do
 
     open = Enum.join(["<.shine_border" | attrs], " ")
     open <> ">\n  <div class=\"p-8\">...</div>\n</.shine_border>"
+  end
+
+  defp meteor_color("sky"), do: "#38bdf8"
+  defp meteor_color("violet"), do: "#a78bfa"
+  defp meteor_color(_slate), do: "#64748b"
+
+  defp meteor_snippet(m) do
+    attrs =
+      [
+        m.count != 20 && "count={#{m.count}}",
+        m.angle != "215deg" && ~s(angle="#{m.angle}"),
+        m.color != "slate" && ~s(color="#{meteor_color(m.color)}")
+      ]
+      |> Enum.filter(& &1)
+
+    "<.meteors #{Enum.join(attrs, " ")} />"
   end
 
   defp beam_snippet(bm) do
@@ -1392,26 +1421,95 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Meteors</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A meteor shower inside any container. Deterministic per seed, so the
-        same seed renders the same sky.
+        A meteor shower inside any container - positions generated server-side,
+        so it costs zero JavaScript and never jumps on re-render.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Hero panel</div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="relative max-w-lg mx-auto overflow-hidden bg-zinc-950 rounded-xl h-52">
-          <.meteors count={20} />
-          <div class="relative flex flex-col items-center justify-center h-full text-center">
-            <div class="text-lg font-semibold text-white">Ship something tonight</div>
-            <div class="mt-1 text-sm text-zinc-400">Meteors work best on dark panels.</div>
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="px-6 py-8">
+          <div class="relative w-full overflow-hidden bg-zinc-950 rounded-xl h-56">
+            <.meteors
+              count={@meteors.count}
+              angle={@meteors.angle}
+              color={meteor_color(@meteors.color)}
+              seed={@meteors.seed}
+            />
+            <div class="relative flex flex-col items-center justify-center h-full text-center">
+              <div class="text-lg font-semibold text-white">Ship something tonight</div>
+              <div class="mt-1 text-sm text-zinc-400">Meteors sit behind your content.</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">count</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={n <- ~w(10 20 40)}
+                phx-click="ctl_meteors"
+                phx-value-k="count"
+                phx-value-v={n}
+                class={seg(to_string(@meteors.count) == n)}
+              >
+                {n}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">angle</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={{lbl, v} <- [{"shallow", "200deg"}, {"default", "215deg"}, {"steep", "235deg"}]}
+                phx-click="ctl_meteors"
+                phx-value-k="angle"
+                phx-value-v={v}
+                class={seg(@meteors.angle == v)}
+              >
+                {lbl}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(slate sky violet)}
+                phx-click="ctl_meteors"
+                phx-value-k="color"
+                phx-value-v={c}
+                class={seg(@meteors.color == c)}
+              >
+                {c}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">scatter</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_meteors" phx-value-k="shuffle" class={tog(false)}>shuffle</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Sparse (count 8, fixed seed)
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{meteor_snippet(@meteors)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Deterministic (same seed, same sky)
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="relative max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="relative w-full max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-zinc-800 dark:bg-zinc-900">
           <.meteors count={8} seed={42} />
         </div>
       </div>
@@ -1419,1272 +1517,7 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
-  defp render_page(%{active: "typography"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Typography</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        The refined 4.2 scale: self-composing vertical rhythm, balanced
-        headings, and a three-tier emphasis system that holds in both modes.
-      </p>
-
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Headings</div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.h1>The quick brown fox</.h1>
-        <.h2>The quick brown fox</.h2>
-        <.h3>The quick brown fox</.h3>
-        <.h4>The quick brown fox</.h4>
-        <.h5>The quick brown fox</.h5>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Body and emphasis tiers
-      </div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.lead>
-          A lead paragraph sits between heading and body - one size up, muted a step.
-        </.lead>
-        <.p>
-          Default body copy carries the middle emphasis tier. It pairs
-          <.inline_code>inline_code</.inline_code>
-          with <strong>strong text</strong> at the top tier, and stays readable
-          across light and dark without per-mode overrides.
-        </.p>
-        <.text_muted>Muted text is the quiet tier - captions, hints, timestamps.</.text_muted>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Structure</div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.blockquote>
-          Design is the silent ambassador of your brand.
-        </.blockquote>
-        <.ul class="mt-6">
-          <li>Unordered lists keep the body rhythm</li>
-          <li>With markers in the muted tier</li>
-        </.ul>
-        <.hr class="my-6" />
-        <.ol>
-          <li>Ordered lists number in tabular figures</li>
-          <li>So multi-digit lists stay aligned</li>
-        </.ol>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "colors"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Colours</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Four roles: primary follows the accent rail, secondary is your second
-        brand hue, semantics carry meaning, gray is the chrome. Filled
-        variants take colour; transparent variants stay neutral.
-      </p>
-
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Primary (accent-driven - try the rail)
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex overflow-hidden rounded-lg">
-          <div
-            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
-            class="flex-1 h-14"
-            style={"background-color: var(--color-primary-#{stop})"}
-            title={"primary-#{stop}"}
-          >
-          </div>
-        </div>
-        <div class="flex mt-1.5 text-[10px] text-gray-400">
-          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
-            {stop}
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Semantic ramps (fixed hues)
-      </div>
-      <div class="px-6 py-6 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div :for={c <- ~w(info success warning danger)} class="flex items-center gap-3">
-          <div class="w-16 text-xs text-gray-500 dark:text-zinc-400">{c}</div>
-          <div class="flex flex-1 overflow-hidden rounded-lg">
-            <div
-              :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
-              class="flex-1 h-8"
-              style={"background-color: var(--color-#{c}-#{stop})"}
-              title={"#{c}-#{stop}"}
-            >
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Gray (zinc) - the chrome family
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex overflow-hidden rounded-lg">
-          <div
-            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
-            class="flex-1 h-14"
-            style={"background-color: var(--color-gray-#{stop})"}
-            title={"gray-#{stop}"}
-          >
-          </div>
-        </div>
-        <div class="flex mt-1.5 text-[10px] text-gray-400">
-          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
-            {stop}
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Secondary maps to your second brand hue in app config (pink in this
-        playground). The surface tokens - washes at 500/15, borders at 600/30
-        light and 500/40 dark, solids at 600 - are derived from these ramps,
-        which is why one accent swap restyles every component.
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "dropdown"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Dropdown</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Menus on the floating-panel surface: group labels, separators, icons,
-        keyboard hints and destructive items. Triggers follow the rail radius.
-      </p>
-
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Account menu</div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-72">
-        <div class="flex justify-center">
-          <.dropdown label="you@example.com">
-            <.dropdown_menu_label>My account</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-user" class="w-4 h-4" /> Profile
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;P</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> Settings
-              <kbd class="pc-kbd ml-auto">&#8984;,</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_label>Team</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-user-plus" class="w-4 h-4" /> Invite members
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button" disabled>
-              <.icon name="hero-plus" class="w-4 h-4" /> New team (Pro)
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
-              <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;Q</kbd>
-            </.dropdown_menu_item>
-          </.dropdown>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Row actions (ellipsis trigger) and a custom trigger
-      </div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-56">
-        <div class="flex items-start justify-center gap-16">
-          <.dropdown>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
-              <kbd class="pc-kbd ml-auto">&#8984;E</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-document-duplicate" class="w-4 h-4" /> Duplicate
-              <kbd class="pc-kbd ml-auto">&#8984;D</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-archive-box" class="w-4 h-4" /> Archive
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
-              <.icon name="hero-trash" class="w-4 h-4" /> Delete
-              <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
-            </.dropdown_menu_item>
-          </.dropdown>
-          <.dropdown placement="right" trigger_class="pc-button pc-button--primary-outline pc-button--md">
-            <:trigger_element>
-              Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
-            </:trigger_element>
-            <.dropdown_menu_label>Recent</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">petal_components</.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">petal_pro</.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">marketing site</.dropdown_menu_item>
-          </.dropdown>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        The default trigger is a labelled outline button (or a ghost ellipsis
-        with no label) - both follow the rail radius. Items are links or
-        buttons (a / live_patch / live_redirect / button) and take arbitrary
-        content: icons, .pc-kbd hints, custom classes for destructive actions.
-        dropdown_menu_label and dropdown_menu_separator organise groups.
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "modal"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Dialog on the panel surface with a proper scrim. Escape and
-        click-away close it; the box radius scales gently with the rail.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-16">
-          <.button variant="outline" phx-click={show_modal("pg-modal")}>
-            Open modal
-          </.button>
-        </div>
-      </div>
-
-      <.modal id="pg-modal" title="Invite your team" hide max_width="sm">
-        <p class="text-sm text-gray-500 dark:text-zinc-400">
-          Share this link with your teammates and they'll join the workspace
-          with member access.
-        </p>
-        <div class="mt-4">
-          <.input_group>
-            <.input type="text" name="invite_url" value="https://petal.build/join/x1y2z3" readonly />
-            <:trailing><kbd>&#8984;C</kbd></:trailing>
-          </.input_group>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <.button variant="outline" phx-click={hide_modal("pg-modal")}>Cancel</.button>
-          <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
-        </div>
-      </.modal>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
-        to any phx-click. close_on_click_away and close_on_escape default on.
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "progress"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Determinate progress on a washed track. The bar animates between
-        values - click the value control and watch it move.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-16">
-          <div class="w-full max-w-md">
-            <.progress
-              value={@progress.value}
-              color={@progress.color}
-              size={@progress.size}
-              label={
-                case @progress.label do
-                  "inside" -> "#{@progress.value}%"
-                  "top" -> "Upload progress"
-                  _ -> nil
-                end
-              }
-              label_position={if @progress.label == "top", do: "top", else: "inside"}
-            />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={v <- ~w(15 40 60 85 100)}
-                phx-click="ctl_progress"
-                phx-value-k="value"
-                phx-value-v={v}
-                class={seg(to_string(@progress.value) == v)}
-              >
-                {v}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={c <- ~w(primary secondary info success warning danger gray)}
-                phx-click="ctl_progress"
-                phx-value-k="color"
-                phx-value-v={c}
-                class={seg(@progress.color == c)}
-              >
-                {c}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_progress"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@progress.size == z)}
-              >
-                {z}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={l <- ~w(none inside top)}
-                phx-click="ctl_progress"
-                phx-value-k="label"
-                phx-value-v={l}
-                class={seg(@progress.label == l)}
-              >
-                {l}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{progress_snippet(@progress)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
-      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-md mx-auto space-y-4">
-          <.progress value={80} color="success" />
-          <.progress value={55} color="info" />
-          <.progress value={35} color="warning" />
-          <.progress value={15} color="danger" />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-md mx-auto space-y-4">
-          <.progress :for={z <- ~w(xs sm md lg)} value={60} size={z} />
-          <.progress value={60} size="xl" label="60%" />
-          <.progress value={56} size="sm" label="Upload progress" label_position="top" />
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "tooltip"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Tooltip</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A label on hover or keyboard focus. Pure CSS - no JS, no dependencies.
-        The bubble inverts against the page in both modes.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-16">
-          <.tooltip
-            label="Copied to clipboard"
-            placement={@tooltip.placement}
-            arrow={@tooltip.arrow}
-          >
-            <.button variant="outline">Hover me</.button>
-          </.tooltip>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={pl <- ~w(top bottom left right)}
-                phx-click="ctl_tooltip"
-                phx-value-k="placement"
-                phx-value-v={pl}
-                class={seg(@tooltip.placement == pl)}
-              >
-                {pl}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_tooltip" phx-value-k="arrow" class={tog(@tooltip.arrow)}>arrow</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{tooltip_snippet(@tooltip)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Icon buttons (the classic use)
-      </div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center gap-3">
-          <.tooltip label="Bold">
-            <.button variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
-          </.tooltip>
-          <.tooltip label="Italic">
-            <.button variant="ghost" size="icon" aria-label="Italic"><.icon name="hero-italic" /></.button>
-          </.tooltip>
-          <.tooltip label="Link">
-            <.button variant="ghost" size="icon" aria-label="Link"><.icon name="hero-link" /></.button>
-          </.tooltip>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Rich content</div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center">
-          <.tooltip placement="bottom">
-            <:content>
-              <span class="font-semibold">Deploys locked</span><br />ask in #releases to unlock
-            </:content>
-            <.badge color="warning" label="Locked" />
-          </.tooltip>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "popover"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Popover</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Click-to-open panel with light dismiss. Optional top_layer mode uses the
-        native popover API to escape clipped containers.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-20">
-          <.popover
-            id={"pg-popover-#{@popover.placement}-#{@popover.top_layer}"}
-            placement={@popover.placement}
-            top_layer={@popover.top_layer}
-            trigger_class="pc-button pc-button--primary-outline pc-button--md"
-          >
-            <:trigger>Open popover</:trigger>
-            <div class="max-w-56">
-              <div class="text-sm font-semibold">Dimensions</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-                Set the width and height for the layer.
-              </p>
-            </div>
-          </.popover>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={pl <- ~w(top bottom left right)}
-                phx-click="ctl_popover"
-                phx-value-k="placement"
-                phx-value-v={pl}
-                class={seg(@popover.placement == pl)}
-              >
-                {pl}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_popover" phx-value-k="top_layer" class={tog(@popover.top_layer)}>
-                top_layer
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{popover_snippet(@popover)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        top_layer escapes clipped containers
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-md mx-auto">
-          <div class="relative h-24 p-4 overflow-hidden border border-dashed rounded-lg border-gray-300 dark:border-zinc-700">
-            <div class="mb-2 text-xs text-gray-400">overflow: hidden container</div>
-            <.popover
-              id="pg-popover-clipped"
-              placement="bottom"
-              top_layer
-              trigger_class="pc-button pc-button--primary-outline pc-button--sm"
-            >
-              <:trigger>Open from inside</:trigger>
-              <div class="max-w-64 text-sm">
-                This panel paints on the browser top layer - the clipped
-                container can't cut it off.
-              </div>
-            </.popover>
-          </div>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "input-otp"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Input OTP</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A segmented one-time-code input. One real input under the hood, so
-        paste, SMS autofill and form posts all just work. Try typing in it.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-14">
-          <.input_otp
-            id={"pg-otp-#{@otp.length}-#{@otp.grouped}-#{@otp.pattern}-#{@otp.disabled}"}
-            name="pg_code"
-            length={@otp.length}
-            group_size={if @otp.grouped, do: div(@otp.length, 2)}
-            pattern={@otp.pattern}
-            disabled={@otp.disabled}
-          />
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={l <- ~w(4 6)}
-                phx-click="ctl_otp"
-                phx-value-k="length"
-                phx-value-v={l}
-                class={seg(to_string(@otp.length) == l)}
-              >
-                {l}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">pattern</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={pt <- ~w(numeric alphanumeric)}
-                phx-click="ctl_otp"
-                phx-value-k="pattern"
-                phx-value-v={pt}
-                class={seg(@otp.pattern == pt)}
-              >
-                {pt}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_otp" phx-value-k="grouped" class={tog(@otp.grouped)}>grouped</button>
-              <button phx-click="ctl_otp" phx-value-k="disabled" class={tog(@otp.disabled)}>disabled</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{otp_snippet(@otp)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Grouped</div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex justify-center">
-          <.input_otp id="otp-grouped-demo" name="grouped_code" length={6} group_size={3} />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        In a form field (error state)
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex justify-center">
-          <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0!">
-            <.input_otp id="otp-error-demo" name="error_code" length={6} value="123" />
-            <p class="pc-form-field-error">that code has expired - we sent a new one</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "switch"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Switch</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        On or off, applied immediately. Switches are pill-shaped by nature, so
-        the radius rail deliberately leaves them alone.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-sm">
-            <.field
-              type="switch"
-              name="pg_notifications"
-              label="Email notifications"
-              checked
-              size={@switch.size}
-              disabled={@switch.disabled}
-              errors={if @switch.error, do: ["must be enabled"], else: []}
-              no_margin
-            />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_switch"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@switch.size == z)}
-              >
-                {z}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_switch" phx-value-k="error" class={tog(@switch.error)}>error</button>
-              <button phx-click="ctl_switch" phx-value-k="disabled" class={tog(@switch.disabled)}>
-                disabled
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{switch_snippet(@switch)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          <.field type="switch" name="st_off" label="Off" no_margin />
-          <.field type="switch" name="st_on" label="On" checked no_margin />
-          <.field type="switch" name="st_dis" label="Disabled" disabled no_margin />
-          <.field type="switch" name="st_dis_on" label="Disabled on" checked disabled no_margin />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          <.field :for={z <- ~w(xs sm md lg xl)} type="switch" name={"sz_" <> z} label={z} size={z} checked no_margin />
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "radio"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Radio</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Plain radio groups, plus radio cards - selectable panels with labels and
-        descriptions that most libraries make you hand-roll.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-lg">
-            <.field
-              type="radio-card"
-              name="pg_plan"
-              label="Plan"
-              value="pro"
-              variant={@radio.variant}
-              size={@radio.size}
-              group_layout={@radio.layout}
-              options={[
-                %{value: "starter", label: "Starter", description: "For side projects"},
-                %{value: "pro", label: "Pro", description: "For small teams"},
-                %{value: "team", label: "Team", description: "For growing orgs"}
-              ]}
-              no_margin
-            />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={v <- ~w(outline classic)}
-                phx-click="ctl_radio"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@radio.variant == v)}
-              >
-                {v}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={z <- ~w(sm md lg)}
-                phx-click="ctl_radio"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@radio.size == z)}
-              >
-                {z}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={l <- ~w(row col)}
-                phx-click="ctl_radio"
-                phx-value-k="layout"
-                phx-value-v={l}
-                class={seg(@radio.layout == l)}
-              >
-                {l}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{radio_snippet(@radio)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Radio group</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="radio-group"
-            name="billing"
-            label="Billing period"
-            value="monthly"
-            options={[{"Monthly", "monthly"}, {"Yearly (save 20%)", "yearly"}]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        With radio indicator
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="radio-card"
-            name="speed"
-            label="Delivery speed"
-            value="express"
-            group_layout="col"
-            indicator
-            options={[
-              %{value: "standard", label: "Standard", description: "4 to 6 business days - free"},
-              %{value: "express", label: "Express", description: "1 to 2 business days - $12"},
-              %{value: "overnight", label: "Overnight", description: "Next business day - $29"}
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Disabled option
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-lg mx-auto">
-          <.field
-            type="radio-card"
-            name="tier"
-            label="Tier"
-            value="cloud"
-            options={[
-              %{value: "cloud", label: "Cloud", description: "Managed for you"},
-              %{value: "self", label: "Self-hosted", description: "Coming soon", disabled: true}
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "select"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Select</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        The native select on the shared field surface: prompt, option groups and
-        multiple selection, no JS required.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-sm">
-            <.field
-              type="select"
-              name="pg_country"
-              label="Country"
-              value=""
-              prompt="Pick a country"
-              options={["Australia", "New Zealand", "Japan"]}
-              disabled={@select.disabled}
-              errors={if @select.error, do: ["can't be blank"], else: []}
-              help_text={if @select.help, do: "Where you pay tax."}
-              no_margin
-            />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_select" phx-value-k="help" class={tog(@select.help)}>help</button>
-              <button phx-click="ctl_select" phx-value-k="error" class={tog(@select.error)}>error</button>
-              <button phx-click="ctl_select" phx-value-k="disabled" class={tog(@select.disabled)}>disabled</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{select_snippet(@select)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Option groups</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="region"
-            label="Region"
-            value="Sydney"
-            options={[APAC: ["Sydney", "Tokyo", "Singapore"], Europe: ["Amsterdam", "Berlin"], Americas: ["Denver", "Sao Paulo"]]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Multiple</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="channels"
-            label="Notification channels"
-            value={["Email", "Slack"]}
-            options={["Email", "Slack", "SMS", "Webhook"]}
-            multiple
-            help_text="Cmd-click to select more than one."
-            no_margin
-          />
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "checkbox"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Checkbox</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Single agreements and multi-select groups. The box nests the rail radius;
-        the ring only shows for keyboard focus.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-sm">
-            <.field
-              type="checkbox-group"
-              name="pg_stack[]"
-              label="Stack"
-              value={["phoenix"]}
-              options={[{"Phoenix", "phoenix"}, {"LiveView", "live_view"}, {"Oban", "oban"}]}
-              group_layout={@checkbox.layout}
-              disabled={@checkbox.disabled}
-              errors={if @checkbox.error, do: ["pick at least one"], else: []}
-              no_margin
-            />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={l <- ~w(row col)}
-                phx-click="ctl_checkbox"
-                phx-value-k="layout"
-                phx-value-v={l}
-                class={seg(@checkbox.layout == l)}
-              >
-                {l}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_checkbox" phx-value-k="error" class={tog(@checkbox.error)}>error</button>
-              <button phx-click="ctl_checkbox" phx-value-k="disabled" class={tog(@checkbox.disabled)}>
-                disabled
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{checkbox_snippet(@checkbox)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        States (click one - no ring; tab to it - ring)
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-          <.field type="checkbox" name="s_off" label="Unchecked" no_margin />
-          <.field type="checkbox" name="s_on" label="Checked" checked no_margin />
-          <.field type="checkbox" name="s_dis" label="Disabled" disabled no_margin />
-          <.field type="checkbox" name="s_dis_on" label="Disabled checked" checked disabled no_margin />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Single checkbox</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="checkbox"
-            name="terms"
-            label="I agree to the terms and privacy policy"
-            help_text="You can withdraw consent at any time."
-            no_margin
-          />
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "alert"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Alert</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A prominent message tied to state: information, success, caution or failure.
-        Radius follows the rail above.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-xl">
-            <.alert
-              color={@alert.color}
-              variant={@alert.variant}
-              with_icon={@alert.icon}
-              heading={if @alert.heading, do: "Heads up"}
-            >
-              Your subscription renews on 12 August.
-            </.alert>
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={c <- ~w(gray info success warning danger)}
-                phx-click="ctl_alert"
-                phx-value-k="color"
-                phx-value-v={c}
-                class={seg(@alert.color == c)}
-              >
-                {c}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={v <- ~w(light soft dark outline)}
-                phx-click="ctl_alert"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@alert.variant == v)}
-              >
-                {v}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_alert" phx-value-k="icon" class={tog(@alert.icon)}>icon</button>
-              <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{alert_snippet(@alert)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="info" variant={@alert.variant} with_icon>A new version of this page is available.</.alert>
-        <.alert color="success" variant={@alert.variant} with_icon>Your changes were saved.</.alert>
-        <.alert color="warning" variant={@alert.variant} with_icon>Your trial ends in 3 days.</.alert>
-        <.alert color="danger" variant={@alert.variant} with_icon>Payment failed. Check your card details.</.alert>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="gray" variant="light" with_icon>Light, the default. Stays light even in dark mode.</.alert>
-        <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
-        <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
-        <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Dismissible (click the cross)
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="success" with_icon heading="Invite sent" close_button_properties={[]}>
-          We emailed Ana a link to join your workspace.
-        </.alert>
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "badge"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
-      <h1 class="text-3xl font-bold tracking-tight">Badge</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        A small label for counts, statuses and categories. Radius follows the rail above.
-      </p>
-
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-center justify-center px-6 py-14">
-          <.badge color={@badge.color} variant={@badge.variant} size={@badge.size} with_icon={@badge.icon}>
-            <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
-          </.badge>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={c <- ~w(primary secondary info success warning danger gray)}
-                phx-click="ctl_badge"
-                phx-value-k="color"
-                phx-value-v={c}
-                class={seg(@badge.color == c)}
-              >
-                {c}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={v <- ~w(light soft dark outline)}
-                phx-click="ctl_badge"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@badge.variant == v)}
-              >
-                {v}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_badge"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@badge.size == z)}
-              >
-                {z}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_badge" phx-value-k="icon" class={tog(@badge.icon)}>icon</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        phx-click="flip"
-        phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-      >
-        <.icon name="hero-code-bracket" class="w-4 h-4" />
-        {if @show_code, do: "Hide code", else: "View code"}
-      </button>
-      <pre
-        :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
-      ><code>{badge_snippet(@badge)}</code></pre>
-
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.badge label="Light" />
-        <.badge variant="soft" label="Soft" />
-        <.badge variant="dark" label="Dark" />
-        <.badge variant="outline" label="Outline" />
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.badge :for={c <- ~w(primary secondary info success warning danger gray)} color={c} variant={@badge.variant} label={c} />
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
-      </div>
-    </div>
-    """
-  end
-
-  defp render_page(assigns) do
+    defp render_page(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-full px-8 text-center">
       <.icon name="hero-cube-transparent" class="w-10 h-10 text-gray-300 dark:text-zinc-700" />

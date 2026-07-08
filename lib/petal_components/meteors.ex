@@ -16,6 +16,14 @@ defmodule PetalComponents.Meteors do
     doc:
       "vary this when rendering several meteor fields on one page so each gets a different scatter pattern"
 
+  attr :angle, :string,
+    default: "215deg",
+    doc: "direction the meteors travel, as a CSS angle (default streaks down and to the left)"
+
+  attr :color, :string,
+    default: "#64748b",
+    doc: "meteor and trail colour. Any CSS colour; the default slate suits dark panels"
+
   attr :class, :any, default: nil, doc: "extra classes for the container"
   attr :rest, :global
 
@@ -31,10 +39,16 @@ defmodule PetalComponents.Meteors do
   re-renders never make the meteors jump.
   """
   def meteors(assigns) do
-    assigns = assign(assigns, :meteor_styles, build_styles(assigns.count, assigns.seed))
+    assigns =
+      assigns
+      |> assign(:meteor_styles, build_styles(assigns.count, assigns.seed))
+      |> assign(
+        :field_style,
+        "--pc-meteor-angle: #{assigns.angle}; --pc-meteor-color: #{assigns.color};"
+      )
 
     ~H"""
-    <div class={["pc-meteors", @class]} aria-hidden="true" {@rest}>
+    <div class={["pc-meteors", @class]} style={@field_style} aria-hidden="true" {@rest}>
       <span :for={style <- @meteor_styles} class="pc-meteor" style={style}></span>
     </div>
     """

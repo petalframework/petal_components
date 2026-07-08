@@ -3540,16 +3540,16 @@
 
   .pc-meteor {
     @apply absolute h-0.5 w-0.5 rounded-full opacity-0;
-    background-color: #64748b;
+    background-color: var(--pc-meteor-color, #64748b);
     box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1);
-    transform: rotate(215deg);
+    transform: rotate(var(--pc-meteor-angle, 215deg));
     animation: pc-meteor linear infinite;
   }
 
   .pc-meteor::before {
     content: "";
     @apply absolute top-1/2 h-px w-[50px] -translate-y-1/2;
-    background: linear-gradient(90deg, #64748b, transparent);
+    background: linear-gradient(90deg, var(--pc-meteor-color, #64748b), transparent);
   }
 
   /* Gradient Text */
@@ -3668,14 +3668,14 @@
 
 @keyframes pc-meteor {
   0% {
-    transform: rotate(215deg) translateX(0);
+    transform: rotate(var(--pc-meteor-angle, 215deg)) translateX(0);
     opacity: 1;
   }
   70% {
     opacity: 1;
   }
   100% {
-    transform: rotate(215deg) translateX(-500px);
+    transform: rotate(var(--pc-meteor-angle, 215deg)) translateX(-500px);
     opacity: 0;
   }
 }
