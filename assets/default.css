@@ -84,7 +84,7 @@
     color: var(--pc-button-solid-fg, #fff);
   }
   .pc-button--primary-light {
-    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-200 dark:text-primary-800 dark:hover:bg-primary-300 dark:active:bg-primary-400;
+    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-200 dark:text-primary-800 dark:hover:brightness-95 dark:active:brightness-90;
   }
   .pc-button--primary-soft {
     @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/25 dark:active:bg-primary-500/30;
@@ -105,7 +105,7 @@
     @apply text-white border-transparent bg-secondary-600 hover:bg-secondary-700 active:bg-secondary-800 shadow-xs;
   }
   .pc-button--secondary-light {
-    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-200 dark:text-secondary-800 dark:hover:bg-secondary-300 dark:active:bg-secondary-400;
+    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-200 dark:text-secondary-800 dark:hover:brightness-95 dark:active:brightness-90;
   }
   .pc-button--secondary-soft {
     @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-500/15 dark:text-secondary-300 dark:hover:bg-secondary-500/25 dark:active:bg-secondary-500/30;
