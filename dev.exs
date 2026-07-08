@@ -197,7 +197,8 @@ defmodule Dev.PlaygroundLive do
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{value: 60, color: "primary", size: "md", label: "none"},
-       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "150px"},
+       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
+       shine: %{scheme: "mono", duration: "14s", width: "1px"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -257,7 +258,19 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :progress, &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)})}
 
-  def handle_event("ctl_beam", %{"k" => "size", "v" => v}, socket) when v in ~w(40px 80px 160px),
+  def handle_event("ctl_beam", %{"k" => "glow"}, socket),
+    do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
+
+  def handle_event("ctl_shine", %{"k" => "scheme", "v" => v}, socket) when v in ~w(mono blend),
+    do: {:noreply, update(socket, :shine, &%{&1 | scheme: v})}
+
+  def handle_event("ctl_shine", %{"k" => "duration", "v" => v}, socket) when v in ~w(6s 14s 24s),
+    do: {:noreply, update(socket, :shine, &%{&1 | duration: v})}
+
+  def handle_event("ctl_shine", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 3px),
+    do: {:noreply, update(socket, :shine, &%{&1 | width: v})}
+
+  def handle_event("ctl_beam", %{"k" => "size", "v" => v}, socket) when v in ~w(40px 60px 160px),
     do: {:noreply, update(socket, :beam, &%{&1 | size: v})}
 
   def handle_event("ctl_beam", %{"k" => "duration", "v" => v}, socket) when v in ~w(4s 8s 12s),
@@ -445,11 +458,28 @@ defmodule Dev.PlaygroundLive do
     "<.progress #{Enum.join(attrs, " ")} />"
   end
 
+  defp shine_colors("blend"), do: ["#f43f5e", "#8b5cf6", "#3b82f6"]
+  defp shine_colors(_mono), do: "#a1a1aa"
+
+  defp shine_snippet(sh) do
+    attrs =
+      [
+        sh.scheme == "blend" && ~s(shine_color={["#f43f5e", "#8b5cf6", "#3b82f6"]}),
+        sh.duration != "14s" && ~s(duration="#{sh.duration}"),
+        sh.width != "1px" && ~s(border_width="#{sh.width}")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.shine_border" | attrs], " ")
+    open <> ">\n  <div class=\"p-8\">...</div>\n</.shine_border>"
+  end
+
   defp beam_snippet(bm) do
     attrs =
       [
         bm.duration != "8s" && ~s(duration="#{bm.duration}"),
-        bm.size != "150px" && ~s(size="#{bm.size}"),
+        bm.size != "60px" && ~s(size="#{bm.size}"),
+        bm.glow && "glow",
         bm.beams != 1 && "beams={#{bm.beams}}",
         bm.easing != "linear" && ~s(easing="#{bm.easing}"),
         bm.reverse && "reverse"
@@ -1073,12 +1103,13 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.border_beam
-            id={"pg-beam-#{@beam.duration}-#{@beam.beams}-#{@beam.reverse}-#{@beam.easing}"}
+            id={"pg-beam-#{@beam.duration}-#{@beam.beams}-#{@beam.reverse}-#{@beam.easing}-#{@beam.glow}"}
             duration={@beam.duration}
             beams={@beam.beams}
             reverse={@beam.reverse}
             easing={@beam.easing}
             size={@beam.size}
+            glow={@beam.glow}
             class="w-full max-w-sm"
           >
             <div class="p-8">
@@ -1125,7 +1156,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
-                :for={{lbl, v} <- [{"sm", "40px"}, {"md", "80px"}, {"lg", "160px"}]}
+                :for={{lbl, v} <- [{"sm", "40px"}, {"md", "60px"}, {"lg", "160px"}]}
                 phx-click="ctl_beam"
                 phx-value-k="size"
                 phx-value-v={v}
@@ -1152,6 +1183,7 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
+              <button phx-click="ctl_beam" phx-value-k="glow" class={tog(@beam.glow)}>glow</button>
               <button phx-click="ctl_beam" phx-value-k="reverse" class={tog(@beam.reverse)}>
                 reverse
               </button>
@@ -1163,6 +1195,12 @@ defmodule Dev.PlaygroundLive do
           class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
         >
           spring is a single-beam motion - with multiple beams the chase runs at constant speed
+        </p>
+        <p
+          :if={@beam.size == "160px" and not @beam.glow}
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+        >
+          a long sharp beam clamps to the panel for corner safety - turn on glow for the full length
         </p>
       </div>
 
@@ -1256,36 +1294,84 @@ defmodule Dev.PlaygroundLive do
         border beam. Pure CSS, and it holds still for reduced-motion users.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Single colour</div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.shine_border class="w-full max-w-sm mx-auto">
-          <div class="p-8">
-            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upgrade to Pro</div>
-            <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-              Unlimited projects and priority support.
-            </p>
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.shine_border
+            shine_color={shine_colors(@shine.scheme)}
+            duration={@shine.duration}
+            border_width={@shine.width}
+            class="w-full max-w-sm"
+          >
+            <div class="p-8">
+              <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Upgrade to Pro
+              </div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+                Unlimited projects and priority support.
+              </p>
+            </div>
+          </.shine_border>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={c <- ~w(mono blend)}
+                phx-click="ctl_shine"
+                phx-value-k="scheme"
+                phx-value-v={c}
+                class={seg(@shine.scheme == c)}
+              >
+                {c}
+              </button>
+            </div>
           </div>
-        </.shine_border>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sweep</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={{lbl, v} <- [{"fast", "6s"}, {"med", "14s"}, {"slow", "24s"}]}
+                phx-click="ctl_shine"
+                phx-value-k="duration"
+                phx-value-v={v}
+                class={seg(@shine.duration == v)}
+              >
+                {lbl}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={w <- ~w(1px 2px 3px)}
+                phx-click="ctl_shine"
+                phx-value-k="width"
+                phx-value-v={w}
+                class={seg(@shine.width == w)}
+              >
+                {w}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Blended colours, faster sweep
-      </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.shine_border
-          shine_color={["#f43f5e", "#8b5cf6", "#3b82f6"]}
-          duration="6s"
-          class="w-full max-w-sm mx-auto"
-        >
-          <div class="p-8 text-center">
-            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Team plan</div>
-            <div class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">$79</div>
-            <div class="mt-1 text-xs text-gray-500 dark:text-zinc-400">per month</div>
-          </div>
-        </.shine_border>
-      </div>
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{shine_snippet(@shine)}</code></pre>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
         On an input (thicker border)
       </div>
       <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
