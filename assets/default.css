@@ -3414,6 +3414,44 @@
     @apply h-5 w-5 flex-none text-gray-400;
   }
 
+
+  /* Shine Border */
+  .pc-shine-border {
+    @apply relative bg-white border-gray-200 dark:bg-zinc-900 dark:border-white/10;
+    border-width: var(--pc-shine-border-width, 1px);
+    border-style: solid;
+    border-radius: var(--pc-shine-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
+  }
+
+  /* The shimmer: a radial gradient with the colour band in its middle, blown
+     up to 300% and swept via background-position, then masked to the border
+     ring (content-box XOR border-box). Sits just outside the container's own
+     border via a negative inset so the sweep reads as ON the edge. */
+  .pc-shine-border__shine {
+    @apply pointer-events-none absolute;
+    inset: calc(-1 * var(--pc-shine-border-width, 1px));
+    border-radius: inherit;
+    padding: var(--pc-shine-border-width, 1px);
+    background-image: radial-gradient(
+      transparent,
+      transparent,
+      var(--pc-shine-colors, #a1a1aa),
+      transparent,
+      transparent
+    );
+    background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    will-change: background-position;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-shine-border__shine {
+      animation: pc-shine var(--pc-shine-duration, 14s) infinite linear;
+    }
+  }
+
   /* Border Beam */
   .pc-border-beam {
     @apply relative bg-white border-gray-200 dark:bg-zinc-900 dark:border-white/10;
@@ -3586,6 +3624,18 @@
   syntax: "<number>";
   inherits: false;
   initial-value: 0;
+}
+
+@keyframes pc-shine {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 @keyframes pc-border-beam {

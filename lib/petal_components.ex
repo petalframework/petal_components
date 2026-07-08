@@ -50,6 +50,7 @@ defmodule PetalComponents do
         Rating,
         Skeleton,
         SlideOver,
+        ShineBorder,
         SpotlightCard,
         Stepper,
         Table,

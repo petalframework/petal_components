@@ -138,7 +138,8 @@ defmodule Dev.PlaygroundLive do
     %{group: "Effects",
       items: [
         %{slug: "border-beam", name: "Border beam", ready: true},
-        %{slug: "meteors", name: "Meteors", ready: true}
+        %{slug: "meteors", name: "Meteors", ready: true},
+        %{slug: "shine-border", name: "Shine border", ready: true}
       ]}
   ]
 
@@ -196,7 +197,7 @@ defmodule Dev.PlaygroundLive do
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{value: 60, color: "primary", size: "md", label: "none"},
-       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear"},
+       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "150px"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -255,6 +256,9 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :progress, &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)})}
+
+  def handle_event("ctl_beam", %{"k" => "size", "v" => v}, socket) when v in ~w(40px 80px 160px),
+    do: {:noreply, update(socket, :beam, &%{&1 | size: v})}
 
   def handle_event("ctl_beam", %{"k" => "duration", "v" => v}, socket) when v in ~w(4s 8s 12s),
     do: {:noreply, update(socket, :beam, &%{&1 | duration: v})}
@@ -445,6 +449,7 @@ defmodule Dev.PlaygroundLive do
     attrs =
       [
         bm.duration != "8s" && ~s(duration="#{bm.duration}"),
+        bm.size != "150px" && ~s(size="#{bm.size}"),
         bm.beams != 1 && "beams={#{bm.beams}}",
         bm.easing != "linear" && ~s(easing="#{bm.easing}"),
         bm.reverse && "reverse"
@@ -1073,6 +1078,7 @@ defmodule Dev.PlaygroundLive do
             beams={@beam.beams}
             reverse={@beam.reverse}
             easing={@beam.easing}
+            size={@beam.size}
             class="w-full max-w-sm"
           >
             <div class="p-8">
@@ -1112,6 +1118,20 @@ defmodule Dev.PlaygroundLive do
                 class={seg(to_string(@beam.beams) == n)}
               >
                 {n}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button
+                :for={{lbl, v} <- [{"sm", "40px"}, {"md", "80px"}, {"lg", "160px"}]}
+                phx-click="ctl_beam"
+                phx-value-k="size"
+                phx-value-v={v}
+                class={seg(@beam.size == v)}
+              >
+                {lbl}
               </button>
             </div>
           </div>
@@ -1223,6 +1243,60 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "shine-border"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Shine border</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A slow, ambient shimmer sweeping the border - the quiet sibling of the
+        border beam. Pure CSS, and it holds still for reduced-motion users.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Single colour</div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.shine_border class="w-full max-w-sm mx-auto">
+          <div class="p-8">
+            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upgrade to Pro</div>
+            <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              Unlimited projects and priority support.
+            </p>
+          </div>
+        </.shine_border>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Blended colours, faster sweep
+      </div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.shine_border
+          shine_color={["#f43f5e", "#8b5cf6", "#3b82f6"]}
+          duration="6s"
+          class="w-full max-w-sm mx-auto"
+        >
+          <div class="p-8 text-center">
+            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Team plan</div>
+            <div class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">$79</div>
+            <div class="mt-1 text-xs text-gray-500 dark:text-zinc-400">per month</div>
+          </div>
+        </.shine_border>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        On an input (thicker border)
+      </div>
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.shine_border shine_color="#3b82f6" border_width="2px" class="w-full max-w-sm mx-auto">
+          <input
+            type="text"
+            value="magic search..."
+            class="w-full px-4 py-2.5 text-sm bg-transparent border-0 focus:outline-hidden text-gray-900 dark:text-gray-100"
+          />
+        </.shine_border>
+      </div>
     </div>
     """
   end
