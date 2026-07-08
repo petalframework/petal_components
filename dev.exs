@@ -199,7 +199,7 @@ defmodule Dev.PlaygroundLive do
        progress: %{value: 60, color: "primary", size: "md", label: "none"},
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
-       meteors: %{count: 20, angle: "215deg", color: "slate", seed: 0},
+       meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -270,6 +270,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_meteors", %{"k" => "color", "v" => v}, socket) when v in ~w(slate sky violet),
     do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
+
+  def handle_event("ctl_meteors", %{"k" => "reverse"}, socket),
+    do: {:noreply, update(socket, :meteors, &%{&1 | reverse: !&1.reverse})}
 
   def handle_event("ctl_meteors", %{"k" => "shuffle"}, socket),
     do: {:noreply, update(socket, :meteors, &%{&1 | seed: &1.seed + 1})}
@@ -496,7 +499,8 @@ defmodule Dev.PlaygroundLive do
       [
         m.count != 20 && "count={#{m.count}}",
         m.angle != "215deg" && ~s(angle="#{m.angle}"),
-        m.color != "slate" && ~s(color="#{meteor_color(m.color)}")
+        m.color != "slate" && ~s(color="#{meteor_color(m.color)}"),
+        m.reverse && "reverse"
       ]
       |> Enum.filter(& &1)
 
@@ -1432,6 +1436,7 @@ defmodule Dev.PlaygroundLive do
               count={@meteors.count}
               angle={@meteors.angle}
               color={meteor_color(@meteors.color)}
+              reverse={@meteors.reverse}
               seed={@meteors.seed}
             />
             <div class="relative flex flex-col items-center justify-center h-full text-center">
@@ -1484,8 +1489,11 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">scatter</div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
+              <button phx-click="ctl_meteors" phx-value-k="reverse" class={tog(@meteors.reverse)}>
+                reverse
+              </button>
               <button phx-click="ctl_meteors" phx-value-k="shuffle" class={tog(false)}>shuffle</button>
             </div>
           </div>

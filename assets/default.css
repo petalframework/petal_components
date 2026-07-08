@@ -3537,6 +3537,9 @@
   .pc-meteors {
     @apply pointer-events-none absolute inset-0 overflow-hidden;
   }
+  .pc-meteors--reverse {
+    transform: scaleX(-1);
+  }
 
   .pc-meteor {
     @apply absolute h-0.5 w-0.5 rounded-full opacity-0;

@@ -24,6 +24,10 @@ defmodule PetalComponents.Meteors do
     default: "#64748b",
     doc: "meteor and trail colour. Any CSS colour; the default slate suits dark panels"
 
+  attr :reverse, :boolean,
+    default: false,
+    doc: "mirror the shower horizontally, so meteors stream the opposite way"
+
   attr :class, :any, default: nil, doc: "extra classes for the container"
   attr :rest, :global
 
@@ -48,7 +52,12 @@ defmodule PetalComponents.Meteors do
       )
 
     ~H"""
-    <div class={["pc-meteors", @class]} style={@field_style} aria-hidden="true" {@rest}>
+    <div
+      class={["pc-meteors", @reverse && "pc-meteors--reverse", @class]}
+      style={@field_style}
+      aria-hidden="true"
+      {@rest}
+    >
       <span :for={style <- @meteor_styles} class="pc-meteor" style={style}></span>
     </div>
     """
