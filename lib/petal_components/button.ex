@@ -18,7 +18,8 @@ defmodule PetalComponents.Button do
   attr :variant, :string,
     default: "solid",
     values: ["solid", "soft", "light", "outline", "inverted", "shadow", "ghost"],
-    doc: "button variant. soft adapts its tint to dark mode; light stays light in both modes"
+    doc:
+      "button variant. solid/soft/light/outline/ghost are the supported fill styles (soft adapts its tint to dark mode; light stays light in both modes). inverted and shadow are legacy, slated for removal in a future major - prefer outline, and compose effects (border_beam / shine_border) for flourish"
 
   attr :color, :string,
     default: "primary",
