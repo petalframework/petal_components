@@ -196,7 +196,7 @@ defmodule Dev.PlaygroundLive do
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
-       progress: %{value: 60, color: "primary", size: "md", label: "none"},
+       progress: %{value: 60, color: "primary", size: "xs", label: "top"},
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
