@@ -193,6 +193,42 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|<input type="hidden" name="user[read_terms]" value="false">|
   end
 
+  test "field switch without value renders unchecked instead of crashing" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="switch" name="plain_switch" label="Plain" />
+      """)
+
+    assert html =~ "pc-switch"
+    refute html =~ ~s( checked)
+  end
+
+  test "field checkbox without value renders unchecked instead of crashing" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="checkbox" name="plain" label="Plain" />
+      """)
+
+    assert html =~ ~s(type="checkbox")
+    assert html =~ "pc-checkbox"
+    refute html =~ ~s( checked)
+  end
+
+  test "field checkbox honours an explicit checked without a value" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="checkbox" name="on" label="On" checked />
+      """)
+
+    assert html =~ ~s( checked)
+  end
+
   test "field checkbox disabled omits the hidden false input" do
     assigns = %{form: to_form(%{}, as: :user)}
 

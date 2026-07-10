@@ -96,4 +96,38 @@ defmodule PetalComponents.MeteorsTest do
       assert html =~ ~s(data-test="meteors")
     end
   end
+  test "angle and color attrs set the field custom properties" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.meteors count={5} angle="235deg" color="#38bdf8" />
+      """)
+
+    assert html =~ "--pc-meteor-angle: 235deg"
+    assert html =~ "--pc-meteor-color: #38bdf8"
+  end
+
+  test "reverse adds the mirror modifier class" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.meteors count={4} reverse />
+      """)
+
+    assert html =~ "pc-meteors--reverse"
+  end
+
+  test "angle and color default to the shipped look" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.meteors count={3} />
+      """)
+
+    assert html =~ "--pc-meteor-angle: 215deg"
+    assert html =~ "--pc-meteor-color: #64748b"
+  end
 end

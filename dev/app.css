@@ -4,7 +4,8 @@
 @source "../dev.exs";
 @import "../assets/default.css";
 @import "./colors.css";
-@import "./heroicons.css";
+/* layer(base) so component/utility sizing can override the mask defaults */
+@import "./heroicons.css" layer(base);
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";

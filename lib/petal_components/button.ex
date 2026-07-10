@@ -5,17 +5,21 @@ defmodule PetalComponents.Button do
   alias PetalComponents.Link
   import PetalComponents.Icon
 
-  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"], doc: "button sizes"
+  attr :size, :string,
+    default: "md",
+    values: ["xs", "sm", "md", "lg", "xl", "icon"],
+    doc: "button sizes; icon renders a square, md-height icon button (pair with an aria-label)"
 
   attr :radius, :string,
-    default: "md",
-    values: ["none", "sm", "md", "lg", "xl", "full"],
-    doc: "button border radius"
+    default: nil,
+    values: [nil, "none", "sm", "md", "lg", "xl", "full"],
+    doc: "button border radius; when unset the --pc-radius theme token applies"
 
   attr :variant, :string,
     default: "solid",
-    values: ["solid", "light", "outline", "inverted", "shadow", "ghost"],
-    doc: "button variant"
+    values: ["solid", "soft", "light", "outline", "inverted", "shadow", "ghost"],
+    doc:
+      "button variant. solid/soft/light/outline/ghost are the supported fill styles (soft adapts its tint to dark mode; light stays light in both modes). inverted and shadow are legacy, slated for removal in a future major - prefer outline, and compose effects (border_beam / shine_border) for flourish"
 
   attr :color, :string,
     default: "primary",
@@ -148,7 +152,7 @@ defmodule PetalComponents.Button do
 
   defp button_classes(assigns) do
     size = assigns[:size] || "md"
-    radius = assigns[:radius] || "md"
+    radius = assigns[:radius]
     variant = assigns[:variant] || "solid"
     color = assigns[:color] || "primary"
     loading = assigns[:loading] || false
@@ -163,7 +167,7 @@ defmodule PetalComponents.Button do
       "pc-button",
       "#{color_class}#{variant_suffix}",
       "pc-button--#{size}",
-      "pc-button--radius-#{radius}",
+      radius && "pc-button--radius-#{radius}",
       user_classes,
       loading && "pc-button--loading",
       disabled && "pc-button--disabled",

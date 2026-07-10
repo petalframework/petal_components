@@ -105,7 +105,8 @@ defmodule PetalComponents.ButtonTest do
     end
 
     test "renders all color variants correctly" do
-      colors() |> Enum.each(fn color ->
+      colors()
+      |> Enum.each(fn color ->
         assigns = %{color: color}
 
         html =
@@ -133,6 +134,15 @@ defmodule PetalComponents.ButtonTest do
         """)
 
       assert_has_class(html, button_class("primary", "outline"))
+    end
+
+    test "renders soft variant with proper class", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.button color="primary" variant="soft">Press me</.button>
+        """)
+
+      assert_has_class(html, button_class("primary", "soft"))
     end
   end
 
@@ -316,7 +326,8 @@ defmodule PetalComponents.ButtonTest do
     end
 
     test "renders all color variants correctly" do
-      colors() |> Enum.each(fn color ->
+      colors()
+      |> Enum.each(fn color ->
         assigns = %{color: color}
 
         html =
@@ -368,8 +379,7 @@ defmodule PetalComponents.ButtonTest do
     test "handles missing icon gracefully", %{assigns: assigns} do
       html =
         rendered_to_string(~H"""
-        <.icon_button color="primary">
-        </.icon_button>
+        <.icon_button color="primary"></.icon_button>
         """)
 
       assert_has_class(html, icon_button_bg_class("primary"))

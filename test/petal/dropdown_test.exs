@@ -432,4 +432,23 @@ defmodule PetalComponents.DropdownTest do
       end
     end
   end
+
+  test "dropdown_menu_label and dropdown_menu_separator render" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.dropdown label="Account">
+        <.dropdown_menu_label>My account</.dropdown_menu_label>
+        <.dropdown_menu_item link_type="button" label="Profile" />
+        <.dropdown_menu_separator />
+        <.dropdown_menu_item link_type="button" label="Sign out" />
+      </.dropdown>
+      """)
+
+    assert html =~ "pc-dropdown__label"
+    assert html =~ "My account"
+    assert html =~ "pc-dropdown__separator"
+    assert html =~ ~s(role="separator")
+  end
 end
