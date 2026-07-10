@@ -2263,6 +2263,15 @@
   .pc-table__td--row-click {
     @apply hover:cursor-pointer;
   }
+  .pc-table--ghost .pc-table__th {
+    @apply bg-transparent px-3 py-2.5 font-medium text-gray-500 dark:bg-transparent dark:text-gray-400;
+  }
+  .pc-table--ghost .pc-table__td {
+    @apply px-3 py-3;
+  }
+  .pc-table--ghost .pc-table__tr {
+    @apply border-gray-100 dark:border-white/5;
+  }
   .pc-table--compact .pc-table__th {
     @apply py-2;
   }
@@ -2276,7 +2285,7 @@
     @apply sticky top-0 z-10;
   }
   .pc-table__sort {
-    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 font-semibold transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:text-gray-300;
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:text-gray-300;
   }
   .pc-table__sort-icon {
     @apply h-3.5 w-3.5 text-gray-400 dark:text-gray-500;

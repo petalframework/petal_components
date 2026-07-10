@@ -2717,8 +2717,9 @@ defmodule Dev.PlaygroundLive do
         Sorting is honest: the header is a real button firing on_sort (default event
         "sort") with the column's sort_key, aria-sort announces the state, and the arrow
         shows direction - your app owns the actual reorder. sticky_header pins the header
-        row inside a scrolling container; ghost strips the frame entirely for embedding in
-        cards; LiveView streams work unchanged. Search and filtering are deliberately NOT
+        row inside a scrolling container; ghost is the shadcn-minimal look - no frame, no
+        header fill, muted headers, tighter cells, hairline separators only - for embedding
+        in cards and detail views; LiveView streams work unchanged. Search and filtering are deliberately NOT
         here - they are data-layer concerns (queries, params, debounce), which is exactly
         where the pro data_table picks up. This component draws the line at presentation:
         it renders state and fires events.
