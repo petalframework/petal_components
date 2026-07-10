@@ -2102,10 +2102,10 @@
   /* Tabs */
 
   .pc-tabs {
-    @apply flex gap-x-8 gap-y-2;
+    @apply flex gap-x-2 gap-y-2;
   }
-  .pc-tabs--underlined {
-    @apply border-b border-gray-200 dark:border-white/10;
+  .pc-tabs--underline {
+    @apply gap-x-6 border-b border-gray-200 dark:border-white/10;
   }
 
   /* Tabs - Pill */
@@ -2161,7 +2161,8 @@
   /* Tabs - Pill with number */
 
   .pc-tab__number__pill--is-active {
-    @apply text-white bg-primary-600;
+    @apply bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
   }
   .pc-tab__number__pill--is-not-active {
     @apply text-white bg-gray-500 dark:bg-gray-600;
@@ -2176,7 +2177,10 @@
     @apply text-gray-500 bg-gray-100;
   }
   .pc-tab__number__underline--with-underline-and-is-active {
-    @apply bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white;
+    @apply bg-primary-100 text-primary-600 dark:bg-primary-600;
+  }
+  .dark .pc-tab__number__underline--with-underline-and-is-active {
+    color: var(--pc-button-solid-fg, #fff);
   }
   .pc-tab__number__underline--with-underline-and-is-not-active {
     @apply text-gray-500 bg-gray-100 dark:bg-gray-600 dark:text-white;

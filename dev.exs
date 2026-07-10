@@ -255,9 +255,9 @@ defmodule Dev.PlaygroundLive do
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{icon: "star", size: "md", value: 3.0, hearts: 2.0, mood: 4, label: "none", step: "whole"},
        slideover: %{origin: "right", width: "md"},
-       tabs: %{variant: "segmented", active: "overview"},
-       table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false},
-       page: %{current: 3},
+       tabs: %{variant: "segmented", active: "overview", number: true},
+       table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false, variant: "basic", empty: false},
+       page: %{current: 3, sibling: 1, boundary: 1},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -375,6 +375,9 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(overview analytics reports settings),
       do: {:noreply, update(socket, :tabs, &%{&1 | active: v})}
 
+  def handle_event("ctl_tabs", %{"k" => "number"}, socket),
+    do: {:noreply, update(socket, :tabs, &%{&1 | number: !&1.number})}
+
   def handle_event("sort", %{"sort" => key}, socket) do
     {:noreply,
      update(socket, :table, fn t ->
@@ -390,6 +393,18 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_table", %{"k" => "striped"}, socket),
     do: {:noreply, update(socket, :table, &%{&1 | striped: !&1.striped})}
+
+  def handle_event("ctl_table", %{"k" => "variant", "v" => v}, socket) when v in ~w(basic ghost),
+    do: {:noreply, update(socket, :table, &%{&1 | variant: v})}
+
+  def handle_event("ctl_table", %{"k" => "empty"}, socket),
+    do: {:noreply, update(socket, :table, &%{&1 | empty: !&1.empty})}
+
+  def handle_event("ctl_page", %{"k" => "sibling", "v" => v}, socket) when v in ~w(0 1 2),
+    do: {:noreply, update(socket, :page, &%{&1 | sibling: String.to_integer(v)})}
+
+  def handle_event("ctl_page", %{"k" => "boundary", "v" => v}, socket) when v in ~w(1 2),
+    do: {:noreply, update(socket, :page, &%{&1 | boundary: String.to_integer(v)})}
 
   def handle_event("goto-page", %{"page" => page}, socket),
     do: {:noreply, update(socket, :page, &%{&1 | current: String.to_integer(page)})}
@@ -2507,7 +2522,7 @@ defmodule Dev.PlaygroundLive do
               :for={{slug, name, n} <- [{"overview", "Overview", nil}, {"analytics", "Analytics", nil}, {"reports", "Reports", 4}, {"settings", "Settings", nil}]}
               variant={@tabs.variant}
               is_active={@tabs.active == slug}
-              number={n}
+              number={@tabs.number && n}
               link_type="button"
               phx-click="ctl_tabs"
               phx-value-k="tab"
@@ -2535,6 +2550,31 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_tabs" phx-value-k="number" class={tog(@tabs.number)}>number badge</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        With icons - anything goes in the tab body
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.tabs variant="segmented">
+            <.tab variant="segmented" is_active link_type="button">
+              <.icon name="hero-chart-bar" class="w-4 h-4 mr-1.5" /> Dashboard
+            </.tab>
+            <.tab variant="segmented" link_type="button">
+              <.icon name="hero-users" class="w-4 h-4 mr-1.5" /> Team
+            </.tab>
+            <.tab variant="segmented" link_type="button">
+              <.icon name="hero-cog-6-tooth" class="w-4 h-4 mr-1.5" /> Settings
+            </.tab>
+          </.tabs>
         </div>
       </div>
 
@@ -2559,15 +2599,36 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center gap-4 px-6 py-14">
-          <.pagination event total_pages={12} current_page={@page.current} sibling_count={1} boundary_count={1} />
+          <.pagination event total_pages={12} current_page={@page.current} sibling_count={@page.sibling} boundary_count={@page.boundary} />
           <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">Page {@page.current} of 12</p>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={n <- ~w(0 1 2)} phx-click="ctl_page" phx-value-k="sibling" phx-value-v={n} class={seg(to_string(@page.sibling) == n)}>
+                {n}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">boundary count</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={n <- ~w(1 2)} phx-click="ctl_page" phx-value-k="boundary" phx-value-v={n} class={seg(to_string(@page.boundary) == n)}>
+                {n}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         The current page rides primary (selection signals follow your dial - try it);
-        everything else is quiet chrome with hover washes. Link mode takes a path template
-        like /users/:page; event mode fires goto-page with phx-value-page.
+        everything else is quiet chrome with hover washes. sibling and boundary counts
+        control the windowing around the ellipses. Link mode takes a path template like
+        /users/:page; event mode fires goto-page with phx-value-page. One style by design -
+        variants multiply here without earning their keep.
       </div>
     </div>
     """
@@ -2585,7 +2646,8 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="px-6 py-8">
           <.table
-            rows={table_rows(@table)}
+            rows={if @table.empty, do: [], else: table_rows(@table)}
+            variant={@table.variant}
             density={@table.density}
             striped={@table.striped}
             sort_by={@table.sort_by}
@@ -2597,6 +2659,11 @@ defmodule Dev.PlaygroundLive do
             <:col :let={p} label="Status">
               <.badge color={if p.status == "Active", do: "success", else: "gray"} variant="soft" size="sm" label={p.status} />
             </:col>
+            <:empty_state>
+              <div class="py-8 text-center text-gray-500 dark:text-zinc-400">
+                No people match. The empty_state slot renders whenever rows is empty.
+              </div>
+            </:empty_state>
           </.table>
         </div>
 
@@ -2610,19 +2677,51 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={v <- ~w(basic ghost)} phx-click="ctl_table" phx-value-k="variant" phx-value-v={v} class={seg(@table.variant == v)}>
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
               <button phx-click="ctl_table" phx-value-k="striped" class={tog(@table.striped)}>striped</button>
+              <button phx-click="ctl_table" phx-value-k="empty" class={tog(@table.empty)}>empty state</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        People cells - avatar + name + sub-label in one helper
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <.table rows={[
+          %{name: "Matt Platts", email: "matt@petal.build", plan: "Team"},
+          %{name: "Ada Lovelace", email: "ada@analytical.engine", plan: "Pro"}
+        ]}>
+          <:col :let={u} label="User">
+            <.user_inner_td
+              label={u.name}
+              sub_label={u.email}
+              avatar_assigns={%{name: u.name, size: "sm"}}
+            />
+          </:col>
+          <:col :let={u} label="Plan">{u.plan}</:col>
+        </.table>
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Sorting is honest: the header is a real button firing on_sort (default event
         "sort") with the column's sort_key, aria-sort announces the state, and the arrow
         shows direction - your app owns the actual reorder. sticky_header pins the header
-        row inside a scrolling container. LiveView streams work unchanged.
+        row inside a scrolling container; ghost strips the frame entirely for embedding in
+        cards; LiveView streams work unchanged. Search and filtering are deliberately NOT
+        here - they are data-layer concerns (queries, params, debounce), which is exactly
+        where the pro data_table picks up. This component draws the line at presentation:
+        it renders state and fires events.
       </div>
     </div>
     """
