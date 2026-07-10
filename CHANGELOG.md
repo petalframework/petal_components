@@ -1,5 +1,5 @@
 # Changelog
-### 4.4.0 - unreleased
+### 4.4.0 - 2026-07-10
 
 The theming foundation and a forms overhaul. This release introduces the first public theme tokens, rebuilds every form control on one shared surface system, and adds the input primitives everyone reaches for. It is a restyle release: no breaking API changes, but plenty of deliberate visual refinement - see Upgrading.
 
@@ -42,7 +42,7 @@ The theming foundation and a forms overhaul. This release introduces the first p
 
 #### Playground
 
-The dev playground (`dev.exs`) was rebuilt as an app-shell with a component sidebar, live theme rail (accent + radius, deep-linked in the URL), dark mode, and per-component pages with live controls and code snippets - 17 pages covering foundations, inputs, feedback and overlays.
+The dev playground (`dev.exs`) was rebuilt as an app-shell with a component sidebar, a live theme rail (primary and secondary colour dials + radius, deep-linked in the URL), dark mode, and per-component pages with live controls and code snippets - 19 pages covering foundations, inputs, feedback, overlays and effects. The Colours page shows the full Tailwind palette you can map the dials from.
 
 #### Upgrading
 
