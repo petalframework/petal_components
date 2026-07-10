@@ -589,7 +589,7 @@ defmodule Dev.PlaygroundLive do
 
     open = Enum.join(["<.popover" | attrs], " ")
     open <>
-      ~s( trigger_class="pc-button pc-button--primary-outline pc-button--md") <>
+      ~s( trigger_class="pc-button pc-button--gray-outline pc-button--md") <>
       ">\n  <:trigger>Open popover</:trigger>\n  Panel content here.\n</.popover>"
   end
 
@@ -2031,7 +2031,7 @@ defmodule Dev.PlaygroundLive do
             placement={@tooltip.placement}
             arrow={@tooltip.arrow}
           >
-            <.button variant="outline">Hover me</.button>
+            <.button color="gray" variant="outline">Hover me</.button>
           </.tooltip>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
@@ -2077,13 +2077,13 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex items-center justify-center gap-3">
           <.tooltip label="Bold">
-            <.button variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
+            <.button color="gray" variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
           </.tooltip>
           <.tooltip label="Italic">
-            <.button variant="ghost" size="icon" aria-label="Italic"><.icon name="hero-italic" /></.button>
+            <.button color="gray" variant="ghost" size="icon" aria-label="Italic"><.icon name="hero-italic" /></.button>
           </.tooltip>
           <.tooltip label="Link">
-            <.button variant="ghost" size="icon" aria-label="Link"><.icon name="hero-link" /></.button>
+            <.button color="gray" variant="ghost" size="icon" aria-label="Link"><.icon name="hero-link" /></.button>
           </.tooltip>
         </div>
       </div>
@@ -2118,7 +2118,7 @@ defmodule Dev.PlaygroundLive do
             id={"pg-popover-#{@popover.placement}-#{@popover.top_layer}"}
             placement={@popover.placement}
             top_layer={@popover.top_layer}
-            trigger_class="pc-button pc-button--primary-outline pc-button--md"
+            trigger_class="pc-button pc-button--gray-outline pc-button--md"
           >
             <:trigger>Open popover</:trigger>
             <div class="max-w-56">
@@ -2179,7 +2179,7 @@ defmodule Dev.PlaygroundLive do
               id="pg-popover-clipped"
               placement="bottom"
               top_layer
-              trigger_class="pc-button pc-button--primary-outline pc-button--sm"
+              trigger_class="pc-button pc-button--gray-outline pc-button--sm"
             >
               <:trigger>Open from inside</:trigger>
               <div class="max-w-64 text-sm">
