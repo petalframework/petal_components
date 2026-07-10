@@ -1,11 +1,12 @@
-/* Playground colour mapping.
+/* Playground colour mapping — two dials.
  *
- * `primary` routes through the --pg-accent-* runtime layer below, so the
- * playground's accent rail can restyle the whole page live (no rebuild).
- * The default accent is `neutral`: near-black solids in light mode, white
- * solids in dark mode (via light-dark(), driven by color-scheme). Classic
- * petal blue is one swatch away. This is the seed of the 4.3 token work —
- * user apps still map primary to a plain ramp exactly as before.
+ * `primary` routes through --pg-accent-* and `secondary` through
+ * --pg-accent2-*, so the topbar dials restyle the whole page live (no
+ * rebuild). Default primary is `neutral`: near-black solids in light mode,
+ * white solids in dark (light-dark(), driven by color-scheme) — the
+ * monochrome look lives in the token VALUE, exactly like shadcn. Default
+ * secondary is pink, the brand accent. User apps map both to plain ramps
+ * in their own colors.css.
  */
 
 @theme inline {
@@ -21,17 +22,17 @@
   --color-primary-900: var(--pg-accent-900);
   --color-primary-950: var(--pg-accent-950);
 
-  --color-secondary-50: var(--color-pink-50);
-  --color-secondary-100: var(--color-pink-100);
-  --color-secondary-200: var(--color-pink-200);
-  --color-secondary-300: var(--color-pink-300);
-  --color-secondary-400: var(--color-pink-400);
-  --color-secondary-500: var(--color-pink-500);
-  --color-secondary-600: var(--color-pink-600);
-  --color-secondary-700: var(--color-pink-700);
-  --color-secondary-800: var(--color-pink-800);
-  --color-secondary-900: var(--color-pink-900);
-  --color-secondary-950: var(--color-pink-950);
+  --color-secondary-50: var(--pg-accent2-50);
+  --color-secondary-100: var(--pg-accent2-100);
+  --color-secondary-200: var(--pg-accent2-200);
+  --color-secondary-300: var(--pg-accent2-300);
+  --color-secondary-400: var(--pg-accent2-400);
+  --color-secondary-500: var(--pg-accent2-500);
+  --color-secondary-600: var(--pg-accent2-600);
+  --color-secondary-700: var(--pg-accent2-700);
+  --color-secondary-800: var(--pg-accent2-800);
+  --color-secondary-900: var(--pg-accent2-900);
+  --color-secondary-950: var(--pg-accent2-950);
 
   --color-success-50: var(--color-green-50);
   --color-success-100: var(--color-green-100);
@@ -104,7 +105,7 @@
 
 /* Accent: neutral (default) — black button in light, white button in dark. */
 :root,
-[data-accent="neutral"] {
+[data-primary="neutral"] {
   --pg-accent-50: light-dark(#fafafa, #18181b);
   --pg-accent-100: light-dark(#f4f4f5, #3f3f46);
   --pg-accent-200: light-dark(#e4e4e7, #27272a);
@@ -119,7 +120,7 @@
   --pc-button-solid-fg: light-dark(#ffffff, #18181b);
 }
 
-[data-accent="blue"] {
+[data-primary="blue"] {
   --pg-accent-50: #eff6ff;
   --pg-accent-100: #dbeafe;
   --pg-accent-200: #bfdbfe;
@@ -134,7 +135,7 @@
   --pc-button-solid-fg: #ffffff;
 }
 
-[data-accent="indigo"] {
+[data-primary="indigo"] {
   --pg-accent-50: #eef2ff;
   --pg-accent-100: #e0e7ff;
   --pg-accent-200: #c7d2fe;
@@ -149,7 +150,7 @@
   --pc-button-solid-fg: #ffffff;
 }
 
-[data-accent="violet"] {
+[data-primary="violet"] {
   --pg-accent-50: #f5f3ff;
   --pg-accent-100: #ede9fe;
   --pg-accent-200: #ddd6fe;
@@ -164,7 +165,7 @@
   --pc-button-solid-fg: #ffffff;
 }
 
-[data-accent="emerald"] {
+[data-primary="emerald"] {
   --pg-accent-50: #ecfdf5;
   --pg-accent-100: #d1fae5;
   --pg-accent-200: #a7f3d0;
@@ -179,7 +180,7 @@
   --pc-button-solid-fg: #ffffff;
 }
 
-[data-accent="rose"] {
+[data-primary="rose"] {
   --pg-accent-50: #fff1f2;
   --pg-accent-100: #ffe4e6;
   --pg-accent-200: #fecdd3;
@@ -194,7 +195,7 @@
   --pc-button-solid-fg: #ffffff;
 }
 
-[data-accent="amber"] {
+[data-primary="amber"] {
   --pg-accent-50: #fffbeb;
   --pg-accent-100: #fef3c7;
   --pg-accent-200: #fde68a;
@@ -209,16 +210,104 @@
   --pc-button-solid-fg: #ffffff;
 }
 
+
+/* Secondary dial: the brand-accent ramp. Default pink; values are the
+   Tailwind palette, extracted from the shipped binary. */
+:root,
+[data-secondary="pink"] {
+  --pg-accent2-50: oklch(97.1% 0.014 343.198);
+  --pg-accent2-100: oklch(94.8% 0.028 342.258);
+  --pg-accent2-200: oklch(89.9% 0.061 343.231);
+  --pg-accent2-300: oklch(82.3% 0.12 346.018);
+  --pg-accent2-400: oklch(71.8% 0.202 349.761);
+  --pg-accent2-500: oklch(65.6% 0.241 354.308);
+  --pg-accent2-600: oklch(59.2% 0.249 0.584);
+  --pg-accent2-700: oklch(52.5% 0.223 3.958);
+  --pg-accent2-800: oklch(45.9% 0.187 3.815);
+  --pg-accent2-900: oklch(40.8% 0.153 2.432);
+  --pg-accent2-950: oklch(28.4% 0.109 3.907);
+}
+
+[data-secondary="fuchsia"] {
+  --pg-accent2-50: oklch(97.7% 0.017 320.058);
+  --pg-accent2-100: oklch(95.2% 0.037 318.852);
+  --pg-accent2-200: oklch(90.3% 0.076 319.62);
+  --pg-accent2-300: oklch(83.3% 0.145 321.434);
+  --pg-accent2-400: oklch(74% 0.238 322.16);
+  --pg-accent2-500: oklch(66.7% 0.295 322.15);
+  --pg-accent2-600: oklch(59.1% 0.293 322.896);
+  --pg-accent2-700: oklch(51.8% 0.253 323.949);
+  --pg-accent2-800: oklch(45.2% 0.211 324.591);
+  --pg-accent2-900: oklch(40.1% 0.17 325.612);
+  --pg-accent2-950: oklch(29.3% 0.136 325.661);
+}
+
+[data-secondary="teal"] {
+  --pg-accent2-50: oklch(98.4% 0.014 180.72);
+  --pg-accent2-100: oklch(95.3% 0.051 180.801);
+  --pg-accent2-200: oklch(91% 0.096 180.426);
+  --pg-accent2-300: oklch(85.5% 0.138 181.071);
+  --pg-accent2-400: oklch(77.7% 0.152 181.912);
+  --pg-accent2-500: oklch(70.4% 0.14 182.503);
+  --pg-accent2-600: oklch(60% 0.118 184.704);
+  --pg-accent2-700: oklch(51.1% 0.096 186.391);
+  --pg-accent2-800: oklch(43.7% 0.078 188.216);
+  --pg-accent2-900: oklch(38.6% 0.063 188.416);
+  --pg-accent2-950: oklch(27.7% 0.046 192.524);
+}
+
+[data-secondary="cyan"] {
+  --pg-accent2-50: oklch(98.4% 0.019 200.873);
+  --pg-accent2-100: oklch(95.6% 0.045 203.388);
+  --pg-accent2-200: oklch(91.7% 0.08 205.041);
+  --pg-accent2-300: oklch(86.5% 0.127 207.078);
+  --pg-accent2-400: oklch(78.9% 0.154 211.53);
+  --pg-accent2-500: oklch(71.5% 0.143 215.221);
+  --pg-accent2-600: oklch(60.9% 0.126 221.723);
+  --pg-accent2-700: oklch(52% 0.105 223.128);
+  --pg-accent2-800: oklch(45% 0.085 224.283);
+  --pg-accent2-900: oklch(39.8% 0.07 227.392);
+  --pg-accent2-950: oklch(30.2% 0.056 229.695);
+}
+
+[data-secondary="lime"] {
+  --pg-accent2-50: oklch(98.6% 0.031 120.757);
+  --pg-accent2-100: oklch(96.7% 0.067 122.328);
+  --pg-accent2-200: oklch(93.8% 0.127 124.321);
+  --pg-accent2-300: oklch(89.7% 0.196 126.665);
+  --pg-accent2-400: oklch(84.1% 0.238 128.85);
+  --pg-accent2-500: oklch(76.8% 0.233 130.85);
+  --pg-accent2-600: oklch(64.8% 0.2 131.684);
+  --pg-accent2-700: oklch(53.2% 0.157 131.589);
+  --pg-accent2-800: oklch(45.3% 0.124 130.933);
+  --pg-accent2-900: oklch(40.5% 0.101 131.063);
+  --pg-accent2-950: oklch(27.4% 0.072 132.109);
+}
+
+[data-secondary="orange"] {
+  --pg-accent2-50: oklch(98% 0.016 73.684);
+  --pg-accent2-100: oklch(95.4% 0.038 75.164);
+  --pg-accent2-200: oklch(90.1% 0.076 70.697);
+  --pg-accent2-300: oklch(83.7% 0.128 66.29);
+  --pg-accent2-400: oklch(75% 0.183 55.934);
+  --pg-accent2-500: oklch(70.5% 0.213 47.604);
+  --pg-accent2-600: oklch(64.6% 0.222 41.116);
+  --pg-accent2-700: oklch(55.3% 0.195 38.402);
+  --pg-accent2-800: oklch(47% 0.157 37.304);
+  --pg-accent2-900: oklch(40.8% 0.123 38.172);
+  --pg-accent2-950: oklch(26.6% 0.079 36.259);
+}
+
 /* Neutral accent, dark mode: checked primary-600 is near-white, so the
    forms-plugin white check vanishes. Swap in a dark check to invert like
    the solid button does. */
-.dark[data-accent="neutral"] .pc-checkbox:checked,
-[data-accent="neutral"]:where(.dark) .pc-checkbox:checked {
+.dark[data-primary="neutral"] .pc-checkbox:checked,
+[data-primary="neutral"]:where(.dark) .pc-checkbox:checked {
   background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%2318181b' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
 }
 
 /* Neutral accent, dark mode: the checked switch track is near-white, so the
    white thumb vanishes. Invert the thumb like the solid button. */
-.dark[data-accent="neutral"] .pc-switch input:checked ~ .pc-switch__fake-input-bg {
+.dark[data-primary="neutral"] .pc-switch input:checked ~ .pc-switch__fake-input-bg {
   background-color: #18181b;
 }

@@ -79,6 +79,21 @@ mix compile
 
 Should compile cleanly. To smoke test, drop `<.button>Hello</.button>` in any HEEx template.
 
+### 7. Brand colours (optional)
+
+Components work out of the box: petal_components ships default colour ramps (blue `primary`, pink `secondary`, semantic hues, zinc `gray`). To use the project's brand colours instead, define the same variables AFTER the petal_components import in `app.css` - later definitions win:
+
+```css
+@theme inline {
+  --color-primary-50: var(--color-violet-50);
+  --color-primary-100: var(--color-violet-100);
+  /* ...one line per stop, 50-950, for any ramp you want to change... */
+  --color-primary-950: var(--color-violet-950);
+}
+```
+
+The roles: `primary` is the base action colour and tints every variant of every component (solid fills, outline borders, ghost text); `secondary` is a second brand accent with the same rule; `info`/`success`/`warning`/`danger` carry meaning and should stay recognisable; `gray` is the neutral chrome. Map a role to any Tailwind hue by referencing that hue's variables, or use literal values.
+
 ### Installation rules of thumb for AI agents
 
 - Read each file before editing. Do not blind-patch.

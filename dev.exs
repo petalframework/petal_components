@@ -146,7 +146,7 @@ defmodule Dev.PlaygroundLive do
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
 
   # {name, rail swatch css}. Neutral adapts to the mode, hence the split dot.
-  @accents [
+  @primaries [
     {"neutral", "linear-gradient(135deg,#18181b 50%,#e4e4e7 50%)"},
     {"blue", "#2563eb"},
     {"indigo", "#4f46e5"},
@@ -155,7 +155,46 @@ defmodule Dev.PlaygroundLive do
     {"rose", "#e11d48"},
     {"amber", "#d97706"}
   ]
-  @accent_names Enum.map(@accents, &elem(&1, 0))
+  @primary_names Enum.map(@primaries, &elem(&1, 0))
+
+  # Secondary dial - the brand accent. Dots show each ramp's 600.
+  @secondaries [
+    {"pink", "oklch(59.2% 0.249 0.584)"},
+    {"fuchsia", "oklch(59.1% 0.293 322.896)"},
+    {"teal", "oklch(60% 0.118 184.704)"},
+    {"cyan", "oklch(60.9% 0.126 221.723)"},
+    {"lime", "oklch(64.8% 0.2 131.684)"},
+    {"orange", "oklch(64.6% 0.222 41.116)"}
+  ]
+  @secondary_names Enum.map(@secondaries, &elem(&1, 0))
+
+  # The full Tailwind palette (extracted from the shipped binary) - the hues
+  # an app maps primary/secondary from. Hard-coded because Tailwind v4
+  # tree-shakes unused colour vars out of the build.
+  @tw_palette [
+    {"red", ["oklch(97.1% 0.013 17.38)", "oklch(93.6% 0.032 17.717)", "oklch(88.5% 0.062 18.334)", "oklch(80.8% 0.114 19.571)", "oklch(70.4% 0.191 22.216)", "oklch(63.7% 0.237 25.331)", "oklch(57.7% 0.245 27.325)", "oklch(50.5% 0.213 27.518)", "oklch(44.4% 0.177 26.899)", "oklch(39.6% 0.141 25.723)", "oklch(25.8% 0.092 26.042)"]},
+    {"orange", ["oklch(98% 0.016 73.684)", "oklch(95.4% 0.038 75.164)", "oklch(90.1% 0.076 70.697)", "oklch(83.7% 0.128 66.29)", "oklch(75% 0.183 55.934)", "oklch(70.5% 0.213 47.604)", "oklch(64.6% 0.222 41.116)", "oklch(55.3% 0.195 38.402)", "oklch(47% 0.157 37.304)", "oklch(40.8% 0.123 38.172)", "oklch(26.6% 0.079 36.259)"]},
+    {"amber", ["oklch(98.7% 0.022 95.277)", "oklch(96.2% 0.059 95.617)", "oklch(92.4% 0.12 95.746)", "oklch(87.9% 0.169 91.605)", "oklch(82.8% 0.189 84.429)", "oklch(76.9% 0.188 70.08)", "oklch(66.6% 0.179 58.318)", "oklch(55.5% 0.163 48.998)", "oklch(47.3% 0.137 46.201)", "oklch(41.4% 0.112 45.904)", "oklch(27.9% 0.077 45.635)"]},
+    {"yellow", ["oklch(98.7% 0.026 102.212)", "oklch(97.3% 0.071 103.193)", "oklch(94.5% 0.129 101.54)", "oklch(90.5% 0.182 98.111)", "oklch(85.2% 0.199 91.936)", "oklch(79.5% 0.184 86.047)", "oklch(68.1% 0.162 75.834)", "oklch(55.4% 0.135 66.442)", "oklch(47.6% 0.114 61.907)", "oklch(42.1% 0.095 57.708)", "oklch(28.6% 0.066 53.813)"]},
+    {"lime", ["oklch(98.6% 0.031 120.757)", "oklch(96.7% 0.067 122.328)", "oklch(93.8% 0.127 124.321)", "oklch(89.7% 0.196 126.665)", "oklch(84.1% 0.238 128.85)", "oklch(76.8% 0.233 130.85)", "oklch(64.8% 0.2 131.684)", "oklch(53.2% 0.157 131.589)", "oklch(45.3% 0.124 130.933)", "oklch(40.5% 0.101 131.063)", "oklch(27.4% 0.072 132.109)"]},
+    {"green", ["oklch(98.2% 0.018 155.826)", "oklch(96.2% 0.044 156.743)", "oklch(92.5% 0.084 155.995)", "oklch(87.1% 0.15 154.449)", "oklch(79.2% 0.209 151.711)", "oklch(72.3% 0.219 149.579)", "oklch(62.7% 0.194 149.214)", "oklch(52.7% 0.154 150.069)", "oklch(44.8% 0.119 151.328)", "oklch(39.3% 0.095 152.535)", "oklch(26.6% 0.065 152.934)"]},
+    {"emerald", ["oklch(97.9% 0.021 166.113)", "oklch(95% 0.052 163.051)", "oklch(90.5% 0.093 164.15)", "oklch(84.5% 0.143 164.978)", "oklch(76.5% 0.177 163.223)", "oklch(69.6% 0.17 162.48)", "oklch(59.6% 0.145 163.225)", "oklch(50.8% 0.118 165.612)", "oklch(43.2% 0.095 166.913)", "oklch(37.8% 0.077 168.94)", "oklch(26.2% 0.051 172.552)"]},
+    {"teal", ["oklch(98.4% 0.014 180.72)", "oklch(95.3% 0.051 180.801)", "oklch(91% 0.096 180.426)", "oklch(85.5% 0.138 181.071)", "oklch(77.7% 0.152 181.912)", "oklch(70.4% 0.14 182.503)", "oklch(60% 0.118 184.704)", "oklch(51.1% 0.096 186.391)", "oklch(43.7% 0.078 188.216)", "oklch(38.6% 0.063 188.416)", "oklch(27.7% 0.046 192.524)"]},
+    {"cyan", ["oklch(98.4% 0.019 200.873)", "oklch(95.6% 0.045 203.388)", "oklch(91.7% 0.08 205.041)", "oklch(86.5% 0.127 207.078)", "oklch(78.9% 0.154 211.53)", "oklch(71.5% 0.143 215.221)", "oklch(60.9% 0.126 221.723)", "oklch(52% 0.105 223.128)", "oklch(45% 0.085 224.283)", "oklch(39.8% 0.07 227.392)", "oklch(30.2% 0.056 229.695)"]},
+    {"sky", ["oklch(97.7% 0.013 236.62)", "oklch(95.1% 0.026 236.824)", "oklch(90.1% 0.058 230.902)", "oklch(82.8% 0.111 230.318)", "oklch(74.6% 0.16 232.661)", "oklch(68.5% 0.169 237.323)", "oklch(58.8% 0.158 241.966)", "oklch(50% 0.134 242.749)", "oklch(44.3% 0.11 240.79)", "oklch(39.1% 0.09 240.876)", "oklch(29.3% 0.066 243.157)"]},
+    {"blue", ["oklch(97% 0.014 254.604)", "oklch(93.2% 0.032 255.585)", "oklch(88.2% 0.059 254.128)", "oklch(80.9% 0.105 251.813)", "oklch(70.7% 0.165 254.624)", "oklch(62.3% 0.214 259.815)", "oklch(54.6% 0.245 262.881)", "oklch(48.8% 0.243 264.376)", "oklch(42.4% 0.199 265.638)", "oklch(37.9% 0.146 265.522)", "oklch(28.2% 0.091 267.935)"]},
+    {"indigo", ["oklch(96.2% 0.018 272.314)", "oklch(93% 0.034 272.788)", "oklch(87% 0.065 274.039)", "oklch(78.5% 0.115 274.713)", "oklch(67.3% 0.182 276.935)", "oklch(58.5% 0.233 277.117)", "oklch(51.1% 0.262 276.966)", "oklch(45.7% 0.24 277.023)", "oklch(39.8% 0.195 277.366)", "oklch(35.9% 0.144 278.697)", "oklch(25.7% 0.09 281.288)"]},
+    {"violet", ["oklch(96.9% 0.016 293.756)", "oklch(94.3% 0.029 294.588)", "oklch(89.4% 0.057 293.283)", "oklch(81.1% 0.111 293.571)", "oklch(70.2% 0.183 293.541)", "oklch(60.6% 0.25 292.717)", "oklch(54.1% 0.281 293.009)", "oklch(49.1% 0.27 292.581)", "oklch(43.2% 0.232 292.759)", "oklch(38% 0.189 293.745)", "oklch(28.3% 0.141 291.089)"]},
+    {"purple", ["oklch(97.7% 0.014 308.299)", "oklch(94.6% 0.033 307.174)", "oklch(90.2% 0.063 306.703)", "oklch(82.7% 0.119 306.383)", "oklch(71.4% 0.203 305.504)", "oklch(62.7% 0.265 303.9)", "oklch(55.8% 0.288 302.321)", "oklch(49.6% 0.265 301.924)", "oklch(43.8% 0.218 303.724)", "oklch(38.1% 0.176 304.987)", "oklch(29.1% 0.149 302.717)"]},
+    {"fuchsia", ["oklch(97.7% 0.017 320.058)", "oklch(95.2% 0.037 318.852)", "oklch(90.3% 0.076 319.62)", "oklch(83.3% 0.145 321.434)", "oklch(74% 0.238 322.16)", "oklch(66.7% 0.295 322.15)", "oklch(59.1% 0.293 322.896)", "oklch(51.8% 0.253 323.949)", "oklch(45.2% 0.211 324.591)", "oklch(40.1% 0.17 325.612)", "oklch(29.3% 0.136 325.661)"]},
+    {"pink", ["oklch(97.1% 0.014 343.198)", "oklch(94.8% 0.028 342.258)", "oklch(89.9% 0.061 343.231)", "oklch(82.3% 0.12 346.018)", "oklch(71.8% 0.202 349.761)", "oklch(65.6% 0.241 354.308)", "oklch(59.2% 0.249 0.584)", "oklch(52.5% 0.223 3.958)", "oklch(45.9% 0.187 3.815)", "oklch(40.8% 0.153 2.432)", "oklch(28.4% 0.109 3.907)"]},
+    {"rose", ["oklch(96.9% 0.015 12.422)", "oklch(94.1% 0.03 12.58)", "oklch(89.2% 0.058 10.001)", "oklch(81% 0.117 11.638)", "oklch(71.2% 0.194 13.428)", "oklch(64.5% 0.246 16.439)", "oklch(58.6% 0.253 17.585)", "oklch(51.4% 0.222 16.935)", "oklch(45.5% 0.188 13.697)", "oklch(41% 0.159 10.272)", "oklch(27.1% 0.105 12.094)"]},
+    {"slate", ["oklch(98.4% 0.003 247.858)", "oklch(96.8% 0.007 247.896)", "oklch(92.9% 0.013 255.508)", "oklch(86.9% 0.022 252.894)", "oklch(70.4% 0.04 256.788)", "oklch(55.4% 0.046 257.417)", "oklch(44.6% 0.043 257.281)", "oklch(37.2% 0.044 257.287)", "oklch(27.9% 0.041 260.031)", "oklch(20.8% 0.042 265.755)", "oklch(12.9% 0.042 264.695)"]},
+    {"gray", ["oklch(98.5% 0.002 247.839)", "oklch(96.7% 0.003 264.542)", "oklch(92.8% 0.006 264.531)", "oklch(87.2% 0.01 258.338)", "oklch(70.7% 0.022 261.325)", "oklch(55.1% 0.027 264.364)", "oklch(44.6% 0.03 256.802)", "oklch(37.3% 0.034 259.733)", "oklch(27.8% 0.033 256.848)", "oklch(21% 0.034 264.665)", "oklch(13% 0.028 261.692)"]},
+    {"zinc", ["oklch(98.5% 0 0)", "oklch(96.7% 0.001 286.375)", "oklch(92% 0.004 286.32)", "oklch(87.1% 0.006 286.286)", "oklch(70.5% 0.015 286.067)", "oklch(55.2% 0.016 285.938)", "oklch(44.2% 0.017 285.786)", "oklch(37% 0.013 285.805)", "oklch(27.4% 0.006 286.033)", "oklch(21% 0.006 285.885)", "oklch(14.1% 0.005 285.823)"]},
+    {"neutral", ["oklch(98.5% 0 0)", "oklch(97% 0 0)", "oklch(92.2% 0 0)", "oklch(87% 0 0)", "oklch(70.8% 0 0)", "oklch(55.6% 0 0)", "oklch(43.9% 0 0)", "oklch(37.1% 0 0)", "oklch(26.9% 0 0)", "oklch(20.5% 0 0)", "oklch(14.5% 0 0)"]},
+    {"stone", ["oklch(98.5% 0.001 106.423)", "oklch(97% 0.001 106.424)", "oklch(92.3% 0.003 48.717)", "oklch(86.9% 0.005 56.366)", "oklch(70.9% 0.01 56.259)", "oklch(55.3% 0.013 58.071)", "oklch(44.4% 0.011 73.639)", "oklch(37.4% 0.01 67.558)", "oklch(26.8% 0.007 34.298)", "oklch(21.6% 0.006 56.043)", "oklch(14.7% 0.004 49.25)"]}
+  ]
 
   # Theme radius: the rail sets --pc-radius on the page, so every component
   # that reads the token follows. Labels are honest pixel values.
@@ -178,7 +217,9 @@ defmodule Dev.PlaygroundLive do
     {:ok,
      assign(socket,
        nav: @nav,
-       accents: @accents,
+       primaries: @primaries,
+       secondaries: @secondaries,
+       tw_palette: @tw_palette,
        radii: @radii,
        stars: @stars,
        variant: "outline",
@@ -210,13 +251,15 @@ defmodule Dev.PlaygroundLive do
     {:noreply,
      socket
      |> assign(:active, allow(params["c"], @slugs, "button"))
-     |> assign(:accent, allow(params["accent"], @accent_names, "neutral"))
+     |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
+     |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
      |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
      |> assign(:dark, params["dark"] == "1")}
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
-  def handle_event("set_accent", %{"accent" => a}, socket), do: patch_theme(socket, %{accent: a})
+  def handle_event("set_primary", %{"primary" => p}, socket), do: patch_theme(socket, %{primary: p})
+  def handle_event("set_secondary", %{"secondary" => x}, socket), do: patch_theme(socket, %{secondary: x})
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
   def handle_event("toggle_dark", _params, socket), do: patch_theme(socket, %{dark: !socket.assigns.dark})
 
@@ -375,7 +418,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :accent, :radius, :dark])
+      |> Map.take([:active, :primary, :secondary, :radius, :dark])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -385,7 +428,8 @@ defmodule Dev.PlaygroundLive do
     []
     |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
-    |> then(&if t.accent != "neutral", do: [{"accent", t.accent} | &1], else: &1)
+    |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
+    |> then(&if t.primary != "neutral", do: [{"primary", t.primary} | &1], else: &1)
     |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
     |> case do
       [] -> "/"
@@ -669,7 +713,8 @@ defmodule Dev.PlaygroundLive do
         "flex flex-col h-screen bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50",
         @dark && "dark"
       ]}
-      data-accent={@accent}
+      data-primary={@primary}
+      data-secondary={@secondary}
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-zinc-800">
@@ -729,16 +774,34 @@ defmodule Dev.PlaygroundLive do
 
       <div class="flex items-center flex-none h-11 gap-5 px-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/60 dark:bg-zinc-900/30">
         <div class="flex items-center gap-2.5">
-          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">accent</span>
+          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">primary</span>
           <div class="flex items-center gap-1.5">
             <button
-              :for={{name, css} <- @accents}
-              phx-click="set_accent"
-              phx-value-accent={name}
-              aria-label={name}
+              :for={{name, css} <- @primaries}
+              phx-click="set_primary"
+              phx-value-primary={name}
+              aria-label={"primary #{name}"}
               class={[
                 "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
-                @accent == name &&
+                @primary == name &&
+                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
+              ]}
+              style={"background:#{css}"}
+            >
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">secondary</span>
+          <div class="flex items-center gap-1.5">
+            <button
+              :for={{name, css} <- @secondaries}
+              phx-click="set_secondary"
+              phx-value-secondary={name}
+              aria-label={"secondary #{name}"}
+              class={[
+                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                @secondary == name &&
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
               ]}
               style={"background:#{css}"}
@@ -807,7 +870,7 @@ defmodule Dev.PlaygroundLive do
       <h1 class="text-3xl font-bold tracking-tight">Button</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
         Triggers an action. Five variants, plus a semantic range for when the action carries meaning.
-        Accent and radius follow the rail above.
+        The colour dials and radius up top restyle everything live.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
@@ -876,7 +939,7 @@ defmodule Dev.PlaygroundLive do
           :if={@variant in ~w(outline ghost) and @color in ~w(primary secondary gray)}
           class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
         >
-          outline and ghost render neutral chrome for brand colours, so the accent dial won't change them - pick a semantic colour to tint
+          colour always tints - the default primary is monochrome, so its outline reads neutral until you dial a hue up top; secondary follows the second dial
         </p>
       </div>
 
@@ -1583,13 +1646,15 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Colours</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Four roles: primary follows the accent rail, secondary is your second
-        brand hue, semantics carry meaning, gray is the chrome. Filled
-        variants take colour; transparent variants stay neutral.
+        Four roles: primary is your base action colour (monochrome by
+        default), secondary is your brand accent, semantics carry meaning,
+        gray is the chrome. One rule everywhere: colour picks the ramp,
+        variant picks the treatment - both dials up top restyle every
+        component live.
       </p>
 
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Primary (accent-driven - try the rail)
+        Primary (first dial - monochrome by default)
       </div>
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex overflow-hidden rounded-lg">
@@ -1598,6 +1663,26 @@ defmodule Dev.PlaygroundLive do
             class="flex-1 h-14"
             style={"background-color: var(--color-primary-#{stop})"}
             title={"primary-#{stop}"}
+          >
+          </div>
+        </div>
+        <div class="flex mt-1.5 text-[10px] text-gray-400">
+          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+            {stop}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Secondary (second dial - the brand accent)
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex overflow-hidden rounded-lg">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 h-14"
+            style={"background-color: var(--color-secondary-#{stop})"}
+            title={"secondary-#{stop}"}
           >
           </div>
         </div>
@@ -1647,10 +1732,29 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Secondary maps to your second brand hue in app config (pink in this
-        playground). The surface tokens - washes at 500/15, borders at 600/30
-        light and 500/40 dark, solids at 600 - are derived from these ramps,
-        which is why one accent swap restyles every component.
+        In your app, primary and secondary are plain ramps in colors.css -
+        map each to any hue below (or keep primary monochrome for the
+        shadcn look). The surface tokens - washes at 500/15, borders at
+        600/30 light and 500/40 dark, solids at 600 - are derived from the
+        ramps, which is why one dial swap restyles every component.
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        The Tailwind palette - what you map primary and secondary from
+      </div>
+      <div class="px-6 py-6 space-y-2 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div :for={{hue, ramp} <- @tw_palette} class="flex items-center gap-3">
+          <div class="w-16 text-xs text-gray-500 dark:text-zinc-400">{hue}</div>
+          <div class="flex flex-1 overflow-hidden rounded-md">
+            <div
+              :for={{stop, value} <- Enum.zip(~w(50 100 200 300 400 500 600 700 800 900 950), ramp)}
+              class="flex-1 h-6"
+              style={"background-color: #{value}"}
+              title={"#{hue}-#{stop}"}
+            >
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     """
