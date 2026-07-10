@@ -3185,19 +3185,49 @@
   /* checked fill: the item holding the checked radio and every item before it
      (= items with a LATER checked sibling). Suspended while the group is
      hovered so the preview owns the row. */
-  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) .pc-rating__icon {
+  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:not(.pc-rating--half):not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) .pc-rating__icon {
     fill: var(--pc-rating-active-color);
   }
-  .pc-rating--custom.pc-rating__group:not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) {
+  .pc-rating--custom.pc-rating__group:not(.pc-rating--half):not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) {
     color: var(--pc-rating-active-color);
   }
 
   /* hover preview: the hovered item and every item before it */
-  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) .pc-rating__icon {
+  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:not(.pc-rating--half):hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) .pc-rating__icon {
     fill: var(--pc-rating-active-color);
   }
-  .pc-rating--custom.pc-rating__group:hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) {
+  .pc-rating--custom.pc-rating__group:not(.pc-rating--half):hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) {
     color: var(--pc-rating-active-color);
+  }
+
+  /* half precision: two hit areas per icon; the fill overlay carries the
+     state. 50%% when a start-half radio is checked/hovered, 100%% when the
+     end half is, or when any later item holds the state. */
+  .pc-rating__half {
+    @apply absolute inset-y-0 z-10 w-1/2 cursor-pointer;
+  }
+  .pc-rating__half--start {
+    left: 0;
+  }
+  .pc-rating__half--end {
+    right: 0;
+  }
+  .pc-rating--star .pc-rating__fill .pc-rating__icon {
+    fill: var(--pc-rating-active-color);
+  }
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked) .pc-rating__fill,
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(.pc-rating__half--end .pc-rating__input:checked) .pc-rating__fill {
+    width: 100%;
+  }
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(.pc-rating__half--start .pc-rating__input:checked) .pc-rating__fill {
+    width: 50%;
+  }
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(~ .pc-rating__item .pc-rating__half:hover) .pc-rating__fill,
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(.pc-rating__half--end:hover) .pc-rating__fill {
+    width: 100%;
+  }
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(.pc-rating__half--start:hover) .pc-rating__fill {
+    width: 50%;
   }
 
   /* faces: a sentiment scale - single-select, one colour per expression */

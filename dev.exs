@@ -244,7 +244,7 @@ defmodule Dev.PlaygroundLive do
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
-       rating: %{icon: "star", size: "md", value: 3, hearts: 2, mood: 4, label: "none"},
+       rating: %{icon: "star", size: "md", value: 3.0, hearts: 2.0, mood: 4, label: "none", step: "whole"},
        slideover: %{origin: "right", width: "md"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
@@ -320,7 +320,9 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
 
   def handle_event("ctl_rating", %{"k" => "icon", "v" => v}, socket) when v in ~w(star heart face),
-    do: {:noreply, update(socket, :rating, &%{&1 | icon: v})}
+    do:
+      {:noreply,
+       update(socket, :rating, &%{&1 | icon: v, step: if(v == "face", do: "whole", else: &1.step)})}
 
   def handle_event("ctl_rating", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :rating, &%{&1 | size: v})}
@@ -328,14 +330,18 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_rating", %{"k" => "label", "v" => v}, socket) when v in ~w(none right bottom),
     do: {:noreply, update(socket, :rating, &%{&1 | label: v})}
 
+  def handle_event("ctl_rating", %{"k" => "step", "v" => v}, socket) when v in ~w(whole half),
+    do: {:noreply, update(socket, :rating, &%{&1 | step: v})}
+
   def handle_event("rate", params, socket) do
     rating = socket.assigns.rating
+    parse = fn v -> v |> Float.parse() |> elem(0) end
 
     rating =
       rating
-      |> then(&if v = params["score"], do: %{&1 | value: String.to_integer(v)}, else: &1)
-      |> then(&if v = params["love"], do: %{&1 | hearts: String.to_integer(v)}, else: &1)
-      |> then(&if v = params["mood"], do: %{&1 | mood: String.to_integer(v)}, else: &1)
+      |> then(&if v = params["score"], do: %{&1 | value: parse.(v)}, else: &1)
+      |> then(&if v = params["love"], do: %{&1 | hearts: parse.(v)}, else: &1)
+      |> then(&if v = params["mood"], do: %{&1 | mood: v |> parse.() |> round()}, else: &1)
 
     {:noreply, assign(socket, :rating, rating)}
   end
@@ -743,9 +749,10 @@ defmodule Dev.PlaygroundLive do
 
   defp rating_snippet(assigns) do
     name = %{"star" => "score", "heart" => "love", "face" => "mood"}[assigns.rating.icon]
+    precision = if assigns.rating.step == "half", do: ~s| precision="half"|, else: ""
 
     ~s|<form phx-change="rate">
-  <.rating interactive name="#{name}" rating={@#{name}} icon="#{assigns.rating.icon}" size="#{assigns.rating.size}" />
+  <.rating interactive name="#{name}" rating={@#{name}} icon="#{assigns.rating.icon}"#{precision} size="#{assigns.rating.size}" />
 </form>|
   end
 
@@ -2177,6 +2184,7 @@ defmodule Dev.PlaygroundLive do
               rating={@rating.value}
               icon="star"
               size={@rating.size}
+              precision={@rating.step}
               include_label={@rating.label != "none"}
               label_position={if @rating.label == "none", do: "right", else: @rating.label}
             />
@@ -2188,6 +2196,7 @@ defmodule Dev.PlaygroundLive do
               rating={@rating.hearts}
               icon="heart"
               size={@rating.size}
+              precision={@rating.step}
               include_label={@rating.label != "none"}
               label_position={if @rating.label == "none", do: "right", else: @rating.label}
             />
@@ -2221,6 +2230,26 @@ defmodule Dev.PlaygroundLive do
                 {sz}
               </button>
             </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button phx-click="ctl_rating" phx-value-k="step" phx-value-v="whole" class={seg(@rating.step == "whole")}>
+                1
+              </button>
+              <button
+                phx-click="ctl_rating"
+                phx-value-k="step"
+                phx-value-v="half"
+                disabled={@rating.icon == "face"}
+                class={[seg(@rating.step == "half"), @rating.icon == "face" && "opacity-40 cursor-not-allowed"]}
+              >
+                ½
+              </button>
+            </div>
+            <p :if={@rating.icon == "face"} class="mt-1.5 text-[11px] text-gray-400">
+              faces are an ordinal scale - always whole
+            </p>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
@@ -2290,12 +2319,13 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Interactive mode is a fieldset of radios: the value posts under name like any form
-        field, arrows move between options, and focus-visible rings the focused icon. Stars
-        and hearts fill cumulatively (display mode fills fractionally - 3.5 hearts is half a
-        heart); faces are a discrete five-point scale, so fractional display values round to
-        the nearest expression and the label carries the precision. Any icon set can be
-        recoloured per instance with --pc-rating-active-color, and the :glyph slot swaps in
-        your own icon entirely.
+        field, arrows move between options, and focus-visible rings the focused icon.
+        precision="half" doubles the hit areas so 3.5 is clickable (and arrow keys step by
+        halves) - still radios, still zero JavaScript. Faces are a discrete five-point
+        scale, so they always step whole and fractional display values round to the nearest
+        expression with the label carrying the precision. Any icon set can be recoloured per
+        instance with --pc-rating-active-color, and the :glyph slot swaps in your own icon
+        entirely.
       </div>
     </div>
     """

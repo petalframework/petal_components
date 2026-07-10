@@ -36,6 +36,13 @@ defmodule PetalComponents.Rating do
     doc: "render as a radio group: clickable, keyboard-accessible, posts in forms. Requires name"
   )
 
+  attr(:precision, :string,
+    default: "whole",
+    values: ["whole", "half"],
+    doc:
+      "interactive step size. half renders two hit areas per icon so 3.5 is clickable and posts as 3.5 - pure CSS. Faces are an ordinal scale and always use whole"
+  )
+
   attr(:name, :string, default: nil, doc: "the input name (required when interactive)")
 
   attr(:disabled, :boolean, default: false, doc: "disable the interactive radios")
@@ -83,12 +90,22 @@ defmodule PetalComponents.Rating do
     end
 
     assigns =
-      assigns
-      |> assign(:icon_kind, if(assigns.glyph != [], do: "custom", else: assigns.icon))
-      |> assign(:value, assigns.rating |> to_float() |> round() |> trunc())
+      assign(assigns, :icon_kind, if(assigns.glyph != [], do: "custom", else: assigns.icon))
 
     assigns =
-      assign(assigns, :total, if(assigns.icon_kind == "face", do: 5, else: assigns.total))
+      assigns
+      |> assign(:precision, if(assigns.icon_kind == "face", do: "whole", else: assigns.precision))
+      |> assign(:total, if(assigns.icon_kind == "face", do: 5, else: assigns.total))
+
+    assigns =
+      assign(
+        assigns,
+        :value,
+        case assigns.precision do
+          "half" -> assigns.rating |> to_float() |> round_to_half()
+          _ -> assigns.rating |> to_float() |> round() |> trunc()
+        end
+      )
 
     ~H"""
     <fieldset
@@ -96,6 +113,7 @@ defmodule PetalComponents.Rating do
         "pc-rating__group",
         "pc-rating--#{@icon_kind}",
         "pc-rating--#{@size}",
+        @precision == "half" && "pc-rating--half",
         @label_position == "bottom" && "pc-rating--label-bottom",
         @disabled && "pc-rating--disabled",
         @class
@@ -105,26 +123,63 @@ defmodule PetalComponents.Rating do
     >
       <legend class="sr-only">{@label}</legend>
       <div class="pc-rating__icons">
-        <label
-          :for={i <- 1..@total}
-          class="pc-rating__item"
-          data-index={i}
-          title={item_title(@icon_kind, i, @total)}
-        >
-          <input
-            type="radio"
-            name={@name}
-            value={i}
-            checked={@value == i}
-            class="pc-rating__input"
-            aria-label={item_title(@icon_kind, i, @total)}
-          />
-          <%= if @icon_kind == "custom" do %>
-            {render_slot(@glyph, i)}
-          <% else %>
-            <.rating_icon icon={@icon_kind} index={i} class={@star_class} />
-          <% end %>
-        </label>
+        <%= if @precision == "half" do %>
+          <span :for={i <- 1..@total} class="pc-rating__item" data-index={i}>
+            <%= if @icon_kind == "custom" do %>
+              {render_slot(@glyph, i)}
+            <% else %>
+              <.rating_icon icon={@icon_kind} index={i} class={@star_class} />
+            <% end %>
+            <span class="pc-rating__fill" aria-hidden="true">
+              <%= if @icon_kind == "custom" do %>
+                {render_slot(@glyph, i)}
+              <% else %>
+                <.rating_icon icon={@icon_kind} index={i} class={@star_class} />
+              <% end %>
+            </span>
+            <label class="pc-rating__half pc-rating__half--start" title={"#{i - 0.5} of #{@total}"}>
+              <input
+                type="radio"
+                name={@name}
+                value={i - 0.5}
+                checked={@value == i - 0.5}
+                class="pc-rating__input"
+                aria-label={"#{i - 0.5} of #{@total}"}
+              />
+            </label>
+            <label class="pc-rating__half pc-rating__half--end" title={"#{i} of #{@total}"}>
+              <input
+                type="radio"
+                name={@name}
+                value={i}
+                checked={@value == i}
+                class="pc-rating__input"
+                aria-label={"#{i} of #{@total}"}
+              />
+            </label>
+          </span>
+        <% else %>
+          <label
+            :for={i <- 1..@total}
+            class="pc-rating__item"
+            data-index={i}
+            title={item_title(@icon_kind, i, @total)}
+          >
+            <input
+              type="radio"
+              name={@name}
+              value={i}
+              checked={@value == i}
+              class="pc-rating__input"
+              aria-label={item_title(@icon_kind, i, @total)}
+            />
+            <%= if @icon_kind == "custom" do %>
+              {render_slot(@glyph, i)}
+            <% else %>
+              <.rating_icon icon={@icon_kind} index={i} class={@star_class} />
+            <% end %>
+          </label>
+        <% end %>
       </div>
       <span :if={@include_label} class={["pc-rating__label", @label_class]}>
         {generated_label(@icon_kind, @value + 0.0, @total)}

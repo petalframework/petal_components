@@ -93,6 +93,35 @@ defmodule PetalComponents.RatingTest do
       end
     end
 
+    test "half precision renders two hit areas per icon and posts halves" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.rating interactive name="score" rating={3.5} precision="half" />
+        """)
+
+      assert html =~ "pc-rating--half"
+      assert 10 == html |> String.split(~s(type="radio")) |> length() |> Kernel.-(1)
+      assert html =~ ~s(value="0.5")
+      assert html =~ ~s(value="3.5" checked)
+      assert html =~ ~s(aria-label="3.5 of 5")
+      assert html =~ "pc-rating__half--start"
+      assert html =~ "pc-rating__fill"
+    end
+
+    test "faces ignore half precision - ordinal scale stays whole" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.rating interactive name="mood" rating={3} icon="face" precision="half" />
+        """)
+
+      refute html =~ "pc-rating--half"
+      assert 5 == html |> String.split(~s(type="radio")) |> length() |> Kernel.-(1)
+    end
+
     test "disabled group" do
       assigns = %{}
 
