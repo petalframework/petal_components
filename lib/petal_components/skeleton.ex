@@ -1,11 +1,67 @@
 defmodule PetalComponents.Skeleton do
+  @moduledoc """
+  Loading placeholders, compose-first.
+
+  The primitive is a single brick - size it with classes exactly like
+  shadcn's skeleton, pick a shape with `variant`, and choose `pulse`,
+  `shimmer` or `none` for motion (shimmer is the premium sweep; both stand
+  still under `prefers-reduced-motion`):
+
+      <.skeleton variant="circle" class="size-12" />
+      <.skeleton variant="text" class="w-48" />
+      <.skeleton class="h-32 w-full" />
+
+  `skeleton_text/1` builds a realistic paragraph (varied, deterministic line
+  widths), and `skeleton_group/1` is the accessibility wrapper: it announces
+  the loading state once (`role="status"`, `aria-busy`, screen-reader label)
+  while the bricks inside stay decorative. Set `animation` on the group and
+  every skeleton inside follows; an explicit per-brick `animation` wins.
+
+  The legacy `kind:` layouts (:default, :image, :video, :text, :card,
+  :widget, :list, :testimonial) still render for backwards compatibility -
+  prefer composing the primitives.
+  """
   use Phoenix.Component
 
-  attr(:kind, :atom,
-    default: :default,
-    doc: "skeleton",
-    values: [:default, :image, :video, :text, :card, :widget, :list, :testimonial]
+  attr(:variant, :string,
+    default: "block",
+    values: ["block", "text", "circle"],
+    doc:
+      "the brick shape: block (theme-radius rectangle), text (a rounded line with a sensible default height), circle (avatar)"
   )
+
+  attr(:animation, :string,
+    default: nil,
+    values: [nil, "pulse", "shimmer", "none"],
+    doc:
+      "pulse (default), shimmer (a moving highlight sweep), or none. When unset, inherits from an enclosing skeleton_group"
+  )
+
+  attr(:kind, :atom,
+    default: nil,
+    doc: "LEGACY prebuilt layouts - prefer composing skeleton/skeleton_text/skeleton_group",
+    values: [nil, :default, :image, :video, :text, :card, :widget, :list, :testimonial]
+  )
+
+  attr(:class, :any, default: nil, doc: "size it here, e.g. class=\"h-4 w-48\"")
+  attr(:rest, :global)
+
+  @doc "The composable loading brick. Pass the legacy kind attr for the old prebuilt layouts."
+  def skeleton(%{kind: nil} = assigns) do
+    ~H"""
+    <div
+      class={[
+        "pc-skeleton",
+        "pc-skeleton--#{@variant}",
+        @animation && "pc-skeleton--anim-#{@animation}",
+        @class
+      ]}
+      aria-hidden="true"
+      {@rest}
+    >
+    </div>
+    """
+  end
 
   def skeleton(%{kind: :default} = assigns) do
     ~H"""
@@ -272,6 +328,88 @@ defmodule PetalComponents.Skeleton do
         </div>
       </div>
       <span class="sr-only">Loading...</span>
+    </div>
+    """
+  end
+
+  attr(:lines, :integer, default: 3, doc: "number of text lines")
+
+  attr(:animation, :string,
+    default: nil,
+    values: [nil, "pulse", "shimmer", "none"],
+    doc: "see skeleton/1"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  @doc """
+  A realistic paragraph placeholder: line widths vary in a fixed pattern
+  (deterministic, so LiveView re-renders never make the skeleton dance) and
+  the last line runs short.
+  """
+  def skeleton_text(assigns) do
+    ~H"""
+    <div class={["pc-skeleton-text", @class]} aria-hidden="true" {@rest}>
+      <div
+        :for={i <- 1..@lines}
+        class={[
+          "pc-skeleton",
+          "pc-skeleton--text",
+          @animation && "pc-skeleton--anim-#{@animation}"
+        ]}
+        style={"width: #{text_line_width(i, @lines)}"}
+      >
+      </div>
+    </div>
+    """
+  end
+
+  # a fixed rhythm reads like prose; the last line always trails off
+  defp text_line_width(line, total) when line == total, do: "60%"
+  defp text_line_width(line, _total), do: Enum.at(["100%", "92%", "97%", "88%"], rem(line - 1, 4))
+
+  attr(:label, :string,
+    default: "Loading...",
+    doc: "what screen readers announce while the skeleton shows"
+  )
+
+  attr(:animation, :string,
+    default: nil,
+    values: [nil, "pulse", "shimmer", "none"],
+    doc: "cascades to every skeleton inside; a brick's own animation attr wins"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
+
+  @doc """
+  The accessibility wrapper for a loading region. Announces once; the bricks
+  inside stay decorative.
+
+      <.skeleton_group label="Loading posts" class="flex items-center gap-4">
+        <.skeleton variant="circle" class="size-12" />
+        <div class="flex-1 space-y-2">
+          <.skeleton variant="text" class="w-1/2" />
+          <.skeleton variant="text" class="w-full" />
+        </div>
+      </.skeleton_group>
+  """
+  def skeleton_group(assigns) do
+    ~H"""
+    <div
+      role="status"
+      aria-busy="true"
+      class={[
+        "pc-skeleton-group",
+        @animation && "pc-skeleton-group--anim-#{@animation}",
+        @class
+      ]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+      <span class="sr-only">{@label}</span>
     </div>
     """
   end

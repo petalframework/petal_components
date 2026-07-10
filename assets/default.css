@@ -2566,8 +2566,78 @@
 
   /* Skeleton */
 
+  /* v2 primitives: one brick, three shapes, three animations. Explicit
+     per-brick animation classes beat the group cascade, which beats the
+     pulse default (the :where() keeps base/cascade at zero specificity). */
   .pc-skeleton {
+    @apply bg-gray-200 dark:bg-white/10;
+  }
+  .pc-skeleton--block {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-skeleton--text {
+    @apply h-4 w-full rounded-full;
+  }
+  .pc-skeleton--circle {
+    @apply rounded-full;
+  }
+  :where(.pc-skeleton) {
     @apply animate-pulse;
+  }
+  :where(.pc-skeleton-group--anim-shimmer .pc-skeleton) {
+    animation: none;
+  }
+  :where(.pc-skeleton-group--anim-none .pc-skeleton) {
+    animation: none;
+  }
+  .pc-skeleton--anim-pulse {
+    @apply animate-pulse;
+  }
+  .pc-skeleton--anim-none {
+    animation: none;
+  }
+  .pc-skeleton--anim-shimmer,
+  .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none) {
+    @apply relative overflow-hidden;
+    animation: none;
+  }
+  .pc-skeleton--anim-shimmer::after,
+  .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+    content: "";
+    @apply absolute inset-0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, white 60%, transparent),
+      transparent
+    );
+  }
+  .dark .pc-skeleton--anim-shimmer::after,
+  .dark .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, white 9%, transparent),
+      transparent
+    );
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-skeleton--anim-shimmer::after,
+    .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+      animation: pc-skeleton-shimmer 1.8s ease-in-out infinite;
+    }
+  }
+  @keyframes pc-skeleton-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  .pc-skeleton-text {
+    @apply flex w-full flex-col gap-2.5;
+  }
+  .pc-skeleton-group--anim-none .pc-skeleton {
+    animation: none;
   }
 
   /* Default Skeleton */

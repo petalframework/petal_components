@@ -127,7 +127,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "alert", name: "Alert", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
         %{slug: "progress", name: "Progress", ready: true},
-        %{slug: "rating", name: "Rating", ready: true}
+        %{slug: "rating", name: "Rating", ready: true},
+        %{slug: "skeleton", name: "Skeleton", ready: true}
       ]},
     %{group: "Navigation",
       items: [
@@ -258,6 +259,7 @@ defmodule Dev.PlaygroundLive do
        tabs: %{variant: "segmented", active: "overview", number: true},
        table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false, variant: "basic", empty: false},
        page: %{current: 3, sibling: 1, boundary: 1},
+       skeleton: %{animation: "pulse", loading: false},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -405,6 +407,18 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_page", %{"k" => "boundary", "v" => v}, socket) when v in ~w(1 2),
     do: {:noreply, update(socket, :page, &%{&1 | boundary: String.to_integer(v)})}
+
+  def handle_event("ctl_skeleton", %{"k" => "animation", "v" => v}, socket)
+      when v in ~w(pulse shimmer none),
+      do: {:noreply, update(socket, :skeleton, &%{&1 | animation: v})}
+
+  def handle_event("ctl_skeleton", %{"k" => "load"}, socket) do
+    Process.send_after(self(), :pg_skeleton_loaded, 1600)
+    {:noreply, update(socket, :skeleton, &%{&1 | loading: true})}
+  end
+
+  def handle_info(:pg_skeleton_loaded, socket),
+    do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
   def handle_event("goto-page", %{"page" => page}, socket),
     do: {:noreply, update(socket, :page, &%{&1 | current: String.to_integer(page)})}
@@ -2501,6 +2515,106 @@ defmodule Dev.PlaygroundLive do
         slot pins action rows below the scrolling body. Escape and click-away close by
         default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
         so no server round-trip is needed to animate.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "skeleton"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Skeleton</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        One composable brick - size it with classes, pick a shape, pick a motion.
+        Compose any loading state instead of picking from prebuilt layouts.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center px-6 py-14">
+          <.skeleton_group
+            label="Loading article"
+            animation={@skeleton.animation}
+            class="flex w-full max-w-md flex-col gap-5"
+          >
+            <.skeleton class="h-40 w-full" />
+            <div class="flex items-center gap-4">
+              <.skeleton variant="circle" class="size-12 shrink-0" />
+              <div class="flex-1 space-y-2.5">
+                <.skeleton variant="text" class="w-1/2" />
+                <.skeleton variant="text" class="w-3/4" />
+              </div>
+            </div>
+            <.skeleton_text lines={3} />
+          </.skeleton_group>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={a <- ~w(pulse shimmer none)} phx-click="ctl_skeleton" phx-value-k="animation" phx-value-v={a} class={seg(@skeleton.animation == a)}>
+                {a}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        The real pattern - skeleton while loading, content when ready
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="mx-auto max-w-md">
+          <%= if @skeleton.loading do %>
+            <.skeleton_group label="Loading profile" animation="shimmer" class="flex items-center gap-4">
+              <.skeleton variant="circle" class="size-14 shrink-0" />
+              <div class="flex-1 space-y-2.5">
+                <.skeleton variant="text" class="w-40" />
+                <.skeleton variant="text" class="w-56" />
+              </div>
+            </.skeleton_group>
+          <% else %>
+            <div class="flex items-center gap-4">
+              <.avatar name="Grace Hopper" size="lg" />
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-gray-100">Grace Hopper</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Invented the compiler. Debugs moths.</p>
+              </div>
+              <.button color="gray" variant="outline" size="sm" class="ml-auto" phx-click="ctl_skeleton" phx-value-k="load">
+                Reload
+              </.button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Shapes
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-8">
+          <div class="flex flex-col items-center gap-2">
+            <.skeleton class="h-16 w-24" />
+            <span class="text-[11px] text-gray-400">block</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <.skeleton variant="circle" class="size-16" />
+            <span class="text-[11px] text-gray-400">circle</span>
+          </div>
+          <div class="flex w-40 flex-col items-center gap-2">
+            <.skeleton_text lines={3} />
+            <span class="text-[11px] text-gray-400">skeleton_text</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        skeleton_group is the accessibility wrapper: role="status" + aria-busy announces
+        loading once (set the label), while the bricks stay aria-hidden. Its animation
+        cascades to everything inside; a brick's own animation wins. Blocks follow the
+        radius token, shimmer respects prefers-reduced-motion, and skeleton_text's line
+        widths are deterministic so LiveView re-renders never make it dance. The old
+        kind={:card}-style prebuilt layouts still render for compatibility.
       </div>
     </div>
     """
