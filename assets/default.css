@@ -2864,7 +2864,7 @@
     @apply fixed inset-0 z-50 flex overflow-hidden;
   }
   .pc-slideover__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-zinc-900;
+    @apply flex w-full max-h-full flex-col bg-white shadow-lg dark:bg-zinc-900;
   }
   .pc-slideover__box--sm {
     @apply max-w-sm;
@@ -2885,22 +2885,32 @@
     @apply max-w-full;
   }
   .pc-slideover__header {
-    @apply px-5 py-3 border-b border-gray-100 dark:border-white/10;
+    @apply flex-none px-5 py-4 border-b border-gray-100 dark:border-white/10;
+  }
+  .pc-slideover__header__titles {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .pc-slideover__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
   }
   .pc-slideover__header__container {
     @apply flex items-center justify-between;
   }
   .pc-slideover__header__text {
-    @apply font-semibold text-gray-800 dark:text-gray-200;
+    @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply text-gray-400 hover:text-gray-500;
+    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-white/10 dark:hover:text-gray-300;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-slideover__header__close-svg {
-    @apply w-4 h-4 fill-current;
+    @apply h-4 w-4 fill-current;
+  }
+  .pc-slideover__footer {
+    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/10;
   }
   .pc-slideover__content {
-    @apply p-5;
+    @apply p-5 flex-1 overflow-y-auto;
   }
 
   /* Stepper */
@@ -3073,8 +3083,12 @@
 
   /* Rating */
 
-  .pc-rating__wrapper {
+  .pc-rating__wrapper,
+  .pc-rating__group {
     @apply flex items-center gap-1;
+    border: 0;
+    margin: 0;
+    padding: 0;
   }
   .pc-rating__label {
     @apply ml-1 text-base font-bold text-gray-700 dark:text-gray-300;
@@ -3087,6 +3101,100 @@
   }
   .pc-rating__star--empty {
     @apply w-5 h-5 fill-gray-400 dark:fill-gray-500;
+  }
+
+  /* v2: interactive + icon sets. The radio is visually hidden; the label is
+     the hit target. All fill/preview logic is pure CSS via :has(). */
+  .pc-rating__item {
+    @apply relative inline-flex rounded;
+  }
+  .pc-rating__group .pc-rating__item {
+    @apply cursor-pointer;
+  }
+  .pc-rating__input {
+    @apply absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0;
+    clip-path: inset(50%);
+  }
+  .pc-rating__item:has(.pc-rating__input:focus-visible) {
+    @apply ring-2 ring-primary-500/50 ring-offset-1 ring-offset-white dark:ring-offset-zinc-950;
+  }
+  .pc-rating--disabled {
+    @apply pointer-events-none opacity-50;
+  }
+
+  /* sizes */
+  .pc-rating--sm .pc-rating__icon {
+    @apply h-4 w-4;
+  }
+  .pc-rating--md .pc-rating__icon {
+    @apply h-5 w-5;
+  }
+  .pc-rating--lg .pc-rating__icon {
+    @apply h-7 w-7;
+  }
+  .pc-rating--sm :is(.pc-rating__star--filled, .pc-rating__star--half, .pc-rating__star--empty) {
+    @apply h-4 w-4;
+  }
+  .pc-rating--lg :is(.pc-rating__star--filled, .pc-rating__star--half, .pc-rating__star--empty) {
+    @apply h-7 w-7;
+  }
+
+  /* cumulative sets (star, heart): rest state = empty */
+  .pc-rating--star .pc-rating__icon {
+    @apply fill-gray-300 transition-colors dark:fill-gray-600;
+  }
+  .pc-rating--heart .pc-rating__icon {
+    @apply fill-gray-300 transition-colors dark:fill-gray-600;
+  }
+
+  /* checked fill: the item holding the checked radio and every item before it
+     (= items with a LATER checked sibling). Suspended while the group is
+     hovered so the preview owns the row. */
+  .pc-rating--star.pc-rating__group:not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--star.pc-rating__wrapper .pc-rating__item[data-selected] .pc-rating__icon {
+    @apply fill-warning-500;
+  }
+  .pc-rating--heart.pc-rating__group:not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--heart.pc-rating__wrapper .pc-rating__item[data-selected] .pc-rating__icon {
+    @apply fill-danger-500;
+  }
+
+  /* hover preview: the hovered item and every item before it */
+  .pc-rating--star.pc-rating__group:hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) .pc-rating__icon {
+    @apply fill-warning-500;
+  }
+  .pc-rating--heart.pc-rating__group:hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) .pc-rating__icon {
+    @apply fill-danger-500;
+  }
+
+  /* faces: a sentiment scale - single-select, one colour per expression */
+  .pc-rating--face .pc-rating__icon {
+    @apply text-gray-300 transition-all dark:text-gray-600;
+  }
+  .pc-rating--face .pc-rating__item:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon {
+    @apply scale-110;
+  }
+  .pc-rating--face.pc-rating__group:hover .pc-rating__item:hover .pc-rating__icon {
+    @apply scale-110;
+  }
+  /* while hovering, the preview owns the colour */
+  .pc-rating--face.pc-rating__group:hover .pc-rating__item:not(:hover):has(.pc-rating__input:checked) .pc-rating__icon {
+    @apply scale-100 text-gray-300 dark:text-gray-600;
+  }
+  .pc-rating--face .pc-rating__item[data-index="1"]:is([data-selected], :has(.pc-rating__input:checked), :hover) .pc-rating__icon {
+    @apply text-danger-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="2"]:is([data-selected], :has(.pc-rating__input:checked), :hover) .pc-rating__icon {
+    @apply text-orange-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="3"]:is([data-selected], :has(.pc-rating__input:checked), :hover) .pc-rating__icon {
+    @apply text-warning-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="4"]:is([data-selected], :has(.pc-rating__input:checked), :hover) .pc-rating__icon {
+    @apply text-lime-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="5"]:is([data-selected], :has(.pc-rating__input:checked), :hover) .pc-rating__icon {
+    @apply text-success-500;
   }
 
   /* Menu */

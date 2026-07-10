@@ -126,7 +126,8 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "alert", name: "Alert", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
-        %{slug: "progress", name: "Progress", ready: true}
+        %{slug: "progress", name: "Progress", ready: true},
+        %{slug: "rating", name: "Rating", ready: true}
       ]},
     %{group: "Overlay",
       items: [
@@ -134,7 +135,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "popover", name: "Popover", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
         %{slug: "dropdown", name: "Dropdown", ready: true},
-        %{slug: "command", name: "Command", ready: true}
+        %{slug: "command", name: "Command", ready: true},
+        %{slug: "slide-over", name: "Slide over", ready: true}
       ]},
     %{group: "Effects",
       items: [
@@ -242,6 +244,8 @@ defmodule Dev.PlaygroundLive do
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
+       rating: %{icon: "star", size: "md", value: 3, hearts: 2, mood: 4},
+       slideover: %{origin: "right", width: "md"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -314,6 +318,33 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_meteors", %{"k" => "color", "v" => v}, socket) when v in ~w(slate sky violet),
     do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
+
+  def handle_event("ctl_rating", %{"k" => "icon", "v" => v}, socket) when v in ~w(star heart face),
+    do: {:noreply, update(socket, :rating, &%{&1 | icon: v})}
+
+  def handle_event("ctl_rating", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :rating, &%{&1 | size: v})}
+
+  def handle_event("rate", params, socket) do
+    rating = socket.assigns.rating
+
+    rating =
+      rating
+      |> then(&if v = params["score"], do: %{&1 | value: String.to_integer(v)}, else: &1)
+      |> then(&if v = params["love"], do: %{&1 | hearts: String.to_integer(v)}, else: &1)
+      |> then(&if v = params["mood"], do: %{&1 | mood: String.to_integer(v)}, else: &1)
+
+    {:noreply, assign(socket, :rating, rating)}
+  end
+
+  def handle_event("ctl_slideover", %{"k" => "origin", "v" => v}, socket)
+      when v in ~w(left right top bottom),
+      do: {:noreply, update(socket, :slideover, &%{&1 | origin: v})}
+
+  def handle_event("ctl_slideover", %{"k" => "width", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :slideover, &%{&1 | width: v})}
+
+  def handle_event("close_slide_over", _, socket), do: {:noreply, socket}
 
   def handle_event("ctl_meteors", %{"k" => "reverse"}, socket),
     do: {:noreply, update(socket, :meteors, &%{&1 | reverse: !&1.reverse})}
@@ -705,6 +736,14 @@ defmodule Dev.PlaygroundLive do
     else
       open <> ~s( label="New" />)
     end
+  end
+
+  defp rating_snippet(assigns) do
+    name = %{"star" => "score", "heart" => "love", "face" => "mood"}[assigns.rating.icon]
+
+    ~s|<form phx-change="rate">
+  <.rating interactive name="#{name}" rating={@#{name}} icon="#{assigns.rating.icon}" size="#{assigns.rating.size}" />
+</form>|
   end
 
   def render(assigns) do
@@ -2112,6 +2151,206 @@ defmodule Dev.PlaygroundLive do
           <.progress value={60} size="xl" label="60%" />
           <.progress value={56} size="sm" label="Upload progress" label_position="top" />
         </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "rating"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Rating</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Click one - it's a real radio group, so it posts in forms, arrow keys work, and the
+        hover preview is pure CSS. Zero JavaScript.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
+          <form :if={@rating.icon == "star"} phx-change="rate">
+            <.rating interactive name="score" rating={@rating.value} icon="star" size={@rating.size} />
+          </form>
+          <form :if={@rating.icon == "heart"} phx-change="rate">
+            <.rating interactive name="love" rating={@rating.hearts} icon="heart" size={@rating.size} />
+          </form>
+          <form :if={@rating.icon == "face"} phx-change="rate">
+            <.rating interactive name="mood" rating={@rating.mood} icon="face" size={@rating.size} />
+          </form>
+          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">
+            {case @rating.icon do
+              "star" -> "#{@rating.value} of 5"
+              "heart" -> "#{@rating.hearts} of 5"
+              "face" -> Enum.at(["Awful", "Bad", "Okay", "Good", "Great"], @rating.mood - 1)
+            end}
+          </p>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={i <- ~w(star heart face)} phx-click="ctl_rating" phx-value-k="icon" phx-value-v={i} class={seg(@rating.icon == i)}>
+                {i}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={sz <- ~w(sm md lg)} phx-click="ctl_rating" phx-value-k="size" phx-value-v={sz} class={seg(@rating.size == sz)}>
+                {sz}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+      ><code>{rating_snippet(assigns)}</code></pre>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        The sentiment scale - each face is its own expression and colour
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-6">
+          <.rating interactive name="csat" rating={0} icon="face" size="lg" label="How was your experience?" />
+          <p class="text-sm text-gray-500 dark:text-zinc-400">How was your support experience?</p>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Display only - fractional values, any total
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-4">
+          <.rating rating={3.5} include_label />
+          <.rating rating={4} icon="heart" total={5} />
+          <.rating rating={5} icon="face" />
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Interactive mode is a fieldset of radios: the value posts under name like any form
+        field, arrows move between options, and focus-visible rings the focused icon. Stars
+        and hearts fill cumulatively; faces select a single expression. Display mode keeps
+        the classic half-star precision (3.3 rounds to 3.5).
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "slide-over"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Slide over</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        An edge-attached panel (a "sheet") for forms and detail views that don't warrant a
+        full page. Slides from any edge, scrolls its body, pins its footer.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.show_slide_over(@slideover.origin, "pg-sheet")}>
+            <.icon name="hero-pencil-square" class="w-4 h-4 mr-1" /> Edit profile
+          </.button>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={o <- ~w(left right top bottom)} phx-click="ctl_slideover" phx-value-k="origin" phx-value-v={o} class={seg(@slideover.origin == o)}>
+                {o}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max width (left/right)</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={w <- ~w(sm md lg)} phx-click="ctl_slideover" phx-value-k="width" phx-value-v={w} class={seg(@slideover.width == w)}>
+                {w}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <.slide_over
+        id="pg-sheet"
+        hide
+        origin={@slideover.origin}
+        max_width={@slideover.width}
+        title="Edit profile"
+        description="Make changes to your profile here. Click save when you're done."
+      >
+        <div class="flex flex-col gap-4">
+          <.field type="text" name="name" value="Matt Platts" label="Name" />
+          <.field type="text" name="username" value="@PetalFramework" label="Username" />
+          <.field type="textarea" name="bio" value="" label="Bio" placeholder="A line about you" />
+        </div>
+        <:footer>
+          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")}>
+            Cancel
+          </.button>
+          <.button phx-click={PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")}>
+            Save changes
+          </.button>
+        </:footer>
+      </.slide_over>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        A cart - scrolling body, pinned summary footer
+      </div>
+      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.show_slide_over("right", "pg-cart")}>
+            <.icon name="hero-shopping-bag" class="w-4 h-4 mr-1" /> Open cart
+            <.badge color="primary" size="sm" label="3" class="ml-2" />
+          </.button>
+        </div>
+      </div>
+
+      <.slide_over id="pg-cart" hide origin="right" max_width="sm" title="Your cart" description="3 items">
+        <div class="flex flex-col divide-y divide-gray-100 dark:divide-white/10">
+          <div :for={{name, meta, price} <- [{"Petal Pro licence", "Single project", "$299"}, {"Petal Pro team", "Unlimited projects", "$599"}, {"Petal stickers", "Pack of 12", "$9"}]} class="flex items-center gap-3 py-4">
+            <div class="flex items-center justify-center flex-none w-12 h-12 rounded-lg bg-gray-100 dark:bg-white/10">
+              <.icon name="hero-cube" class="w-5 h-5 text-gray-400" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{name}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{meta}</p>
+            </div>
+            <p class="text-sm font-medium tabular-nums text-gray-900 dark:text-gray-100">{price}</p>
+          </div>
+        </div>
+        <:footer>
+          <div class="flex items-center justify-between w-full gap-4">
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              <p class="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">$907</p>
+            </div>
+            <.button phx-click={PetalComponents.SlideOver.hide_slide_over("right", "pg-cart")}>
+              Checkout
+            </.button>
+          </div>
+        </:footer>
+      </.slide_over>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        The panel is the floating surface: white / zinc-900 with a hairline border on its
+        attached edge. title and description wire aria-labelledby/describedby; the footer
+        slot pins action rows below the scrolling body. Escape and click-away close by
+        default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
+        so no server round-trip is needed to animate.
       </div>
     </div>
     """
