@@ -1825,7 +1825,7 @@ defmodule Dev.PlaygroundLive do
               <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
             </.dropdown_menu_item>
           </.dropdown>
-          <.dropdown placement="right" trigger_class="pc-button pc-button--primary-outline pc-button--md">
+          <.dropdown placement="right" trigger_class="pc-button pc-button--primary pc-button--md">
             <:trigger_element>
               Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
             </:trigger_element>
@@ -1838,11 +1838,14 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        The default trigger is a labelled outline button (or a ghost ellipsis
-        with no label) - both follow the rail radius. Items are links or
-        buttons (a / live_patch / live_redirect / button) and take arbitrary
-        content: icons, .pc-kbd hints, custom classes for destructive actions.
-        dropdown_menu_label and dropdown_menu_separator organise groups.
+        Triggers are chrome: the built-in labelled trigger and the ghost
+        ellipsis stay neutral gray whatever your palette (only their focus
+        ring rides primary). A custom trigger is your own button - brand it
+        when the action deserves it, like the solid one above, and it follows
+        your colour dials. Items are links or buttons (a / live_patch /
+        live_redirect / button) and take arbitrary content: icons, .pc-kbd
+        hints, custom classes for destructive actions. dropdown_menu_label
+        and dropdown_menu_separator organise groups.
       </div>
     </div>
     """
@@ -1859,7 +1862,7 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <.button variant="outline" phx-click={show_modal("pg-modal")}>
+          <.button color="gray" variant="outline" phx-click={show_modal("pg-modal")}>
             Open modal
           </.button>
         </div>
@@ -1877,7 +1880,7 @@ defmodule Dev.PlaygroundLive do
           </.input_group>
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <.button variant="outline" phx-click={hide_modal("pg-modal")}>Cancel</.button>
+          <.button color="gray" variant="outline" phx-click={hide_modal("pg-modal")}>Cancel</.button>
           <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
         </div>
       </.modal>

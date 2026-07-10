@@ -34,7 +34,7 @@ defmodule PetalComponents.Dropdown do
 
   slot :trigger_element,
     doc:
-      "custom trigger content. Rendered INSIDE the dropdown's own <button>, so never nest interactive elements (<.button>, links) here - browsers split nested buttons and the toggle binding breaks. Style the built-in trigger via trigger_class instead, e.g. trigger_class=\"pc-button pc-button--primary-outline pc-button--md\""
+      "custom trigger content. Rendered INSIDE the dropdown's own <button>, so never nest interactive elements (<.button>, links) here - browsers split nested buttons and the toggle binding breaks. Style the built-in trigger via trigger_class instead, e.g. trigger_class=\"pc-button pc-button--primary pc-button--md\""
 
   slot :inner_block, required: false
 
