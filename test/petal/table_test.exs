@@ -236,4 +236,22 @@ defmodule PetalComponents.TableTest do
     assert html =~ "pc-table--striped"
     assert html =~ "pc-table__th--sticky"
   end
+
+  test "footer slot renders a tfoot totals row" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.table rows={[%{n: 1}]}>
+        <:col :let={r} label="N">{r.n}</:col>
+        <:footer>
+          <.td colspan={1}>Total: 1</.td>
+        </:footer>
+      </.table>
+      """)
+
+    assert html =~ "<tfoot"
+    assert html =~ "pc-table__tfoot"
+    assert html =~ "Total: 1"
+  end
 end

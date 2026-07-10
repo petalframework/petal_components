@@ -2664,6 +2664,11 @@ defmodule Dev.PlaygroundLive do
                 No people match. The empty_state slot renders whenever rows is empty.
               </div>
             </:empty_state>
+            <:footer>
+              <.td colspan={2}>5 people</.td>
+              <.td>avg 67</.td>
+              <.td></.td>
+            </:footer>
           </.table>
         </div>
 
@@ -2718,8 +2723,9 @@ defmodule Dev.PlaygroundLive do
         "sort") with the column's sort_key, aria-sort announces the state, and the arrow
         shows direction - your app owns the actual reorder. sticky_header pins the header
         row inside a scrolling container; ghost is the shadcn-minimal look - no frame, no
-        header fill, muted headers, tighter cells, hairline separators only - for embedding
-        in cards and detail views; LiveView streams work unchanged. Search and filtering are deliberately NOT
+        header fill, tighter cells, hairline separators only - for embedding in cards and
+        detail views. Rows carry a scan-friendly hover wash, and the :footer slot pins a
+        totals row (colspan works) under the body; LiveView streams work unchanged. Search and filtering are deliberately NOT
         here - they are data-layer concerns (queries, params, debounce), which is exactly
         where the pro data_table picks up. This component draws the line at presentation:
         it renders state and fires events.

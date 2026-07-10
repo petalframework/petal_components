@@ -62,6 +62,10 @@ defmodule PetalComponents.Table do
     attr :row_class, :any
   end
 
+  slot :footer,
+    doc:
+      "a totals/summary row pinned under the body - supply <.td> cells (colspan works), e.g. <.td colspan={3}>Total</.td><.td>$2,500</.td>"
+
   attr :rest, :global, include: ~w(colspan rowspan)
 
   def table(assigns) do
@@ -134,6 +138,11 @@ defmodule PetalComponents.Table do
             </.td>
           </.tr>
         </tbody>
+        <tfoot :if={@footer != []} class="pc-table__tfoot">
+          <.tr>
+            {render_slot(@footer)}
+          </.tr>
+        </tfoot>
       <% else %>
         {render_slot(@inner_block)}
       <% end %>
