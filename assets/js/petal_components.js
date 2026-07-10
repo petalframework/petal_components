@@ -846,6 +846,227 @@ export const PetalPopover = {
   },
 };
 
+
+// Command palette: client-side filtering + WAI-ARIA combobox keyboard model.
+// Items are hidden, never reordered - the server owns DOM order, so the
+// palette stays safe under LiveView patches. Scoring: value prefix beats
+// word-boundary prefix beats substring beats fuzzy subsequence.
+export const PetalCommand = {
+  mounted() {
+    this.input = this.el.querySelector(".pc-command__input");
+    this.list = this.el.querySelector(".pc-command__list");
+    if (!this.input || !this.list) return;
+
+    if (!this.list.id) this.list.id = `${this.el.id}-list`;
+    this.input.setAttribute("aria-controls", this.list.id);
+
+    this.onInput = () => this.filter();
+    this.onKeydown = (e) => this.keydown(e);
+    this.onPointerOver = (e) => {
+      const item = e.target.closest("[data-pc-command-item]");
+      if (item && !item.hasAttribute("data-disabled") && !item.hidden) this.setActive(item, false);
+    };
+    this.input.addEventListener("input", this.onInput);
+    this.input.addEventListener("keydown", this.onKeydown);
+    this.list.addEventListener("pointerover", this.onPointerOver);
+
+    this.filter();
+  },
+
+  updated() {
+    // LiveView patched the palette - re-apply the current query.
+    this.filter();
+  },
+
+  destroyed() {
+    if (!this.input) return;
+    this.input.removeEventListener("input", this.onInput);
+    this.input.removeEventListener("keydown", this.onKeydown);
+    this.list.removeEventListener("pointerover", this.onPointerOver);
+  },
+
+  items() {
+    return Array.from(this.el.querySelectorAll("[data-pc-command-item]"));
+  },
+
+  visibleItems() {
+    return this.items().filter((i) => !i.hidden && !i.hasAttribute("data-disabled"));
+  },
+
+  searchText(item) {
+    const value = item.dataset.value || item.textContent || "";
+    const keywords = item.dataset.keywords || "";
+    return `${value} ${keywords}`.trim().toLowerCase();
+  },
+
+  score(text, query) {
+    if (!query) return 1;
+    if (text.startsWith(query)) return 4;
+    const at = text.indexOf(query);
+    if (at > 0 && /[\s\-_/]/.test(text[at - 1])) return 3;
+    if (at >= 0) return 2;
+    // fuzzy subsequence: every query char appears in order
+    let qi = 0;
+    for (const ch of text) if (ch === query[qi] && ++qi === query.length) return 1;
+    return 0;
+  },
+
+  filter() {
+    const query = this.input.value.trim().toLowerCase();
+    const queryChanged = query !== this._lastQuery;
+    this._lastQuery = query;
+    let count = 0;
+    let idBase = 0;
+
+    for (const item of this.items()) {
+      if (!item.id) item.id = `${this.el.id}-item-${idBase}`;
+      idBase++;
+      const show = this.score(this.searchText(item), query) > 0;
+      item.hidden = !show;
+      if (show) count++;
+    }
+
+    for (const group of this.el.querySelectorAll("[data-pc-command-group]")) {
+      const any = Array.from(group.querySelectorAll("[data-pc-command-item]")).some((i) => !i.hidden);
+      group.hidden = !any;
+    }
+
+    for (const sep of this.el.querySelectorAll("[data-pc-command-separator]")) {
+      sep.hidden = query.length > 0;
+    }
+
+    const empty = this.el.querySelector("[data-pc-command-empty]");
+    if (empty) empty.hidden = count > 0;
+
+    // a new query re-homes the highlight to the best (first) match;
+    // otherwise keep it, unless it was filtered away
+    const active = this.activeItem();
+    if (queryChanged || !active || active.hidden || active.hasAttribute("data-disabled")) {
+      this.setActive(this.visibleItems()[0] || null, false);
+    }
+  },
+
+  activeItem() {
+    const id = this.input.getAttribute("aria-activedescendant");
+    return id ? document.getElementById(id) : null;
+  },
+
+  setActive(item, scroll = true) {
+    for (const i of this.items()) {
+      const on = i === item;
+      i.toggleAttribute("data-selected", on);
+      i.setAttribute("aria-selected", on ? "true" : "false");
+    }
+    if (item) {
+      this.input.setAttribute("aria-activedescendant", item.id);
+      if (scroll) item.scrollIntoView({ block: "nearest" });
+    } else {
+      this.input.removeAttribute("aria-activedescendant");
+    }
+  },
+
+  move(delta) {
+    const items = this.visibleItems();
+    if (!items.length) return;
+    const loop = this.el.dataset.loop === "true";
+    const at = items.indexOf(this.activeItem());
+    let next = at + delta;
+    if (at === -1) next = delta > 0 ? 0 : items.length - 1;
+    else if (loop) next = (next + items.length) % items.length;
+    else next = Math.max(0, Math.min(next, items.length - 1));
+    this.setActive(items[next]);
+  },
+
+  keydown(e) {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        this.move(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        this.move(-1);
+        break;
+      case "Home":
+        e.preventDefault();
+        this.setActive(this.visibleItems()[0] || null);
+        break;
+      case "End":
+        e.preventDefault();
+        this.setActive(this.visibleItems().slice(-1)[0] || null);
+        break;
+      case "Enter": {
+        e.preventDefault();
+        const item = this.activeItem();
+        if (item && !item.hidden && !item.hasAttribute("data-disabled")) item.click();
+        break;
+      }
+    }
+  },
+};
+
+// The palette in a native <dialog>: global shortcut, open/close events,
+// autofocus, and query reset. The native element supplies the top layer,
+// focus trap, ::backdrop and Escape.
+export const PetalCommandDialog = {
+  mounted() {
+    this.palette = this.el.querySelector(".pc-command");
+
+    this.onShortcut = (e) => {
+      const key = this.el.dataset.shortcut;
+      if (!key) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === key.toLowerCase()) {
+        e.preventDefault();
+        this.el.open ? this.close() : this.open();
+      }
+    };
+    this.onOpen = () => this.open();
+    this.onCloseEvent = () => this.close();
+    this.onClick = (e) => {
+      // click on the backdrop = click whose target is the dialog itself
+      if (e.target === this.el) this.close();
+    };
+    this.onClose = () => this.reset();
+    this.onItemClick = (e) => {
+      const item = e.target.closest("[data-pc-command-item]");
+      if (item && !item.hasAttribute("data-keep-open") && !item.hasAttribute("data-disabled")) {
+        this.close();
+      }
+    };
+
+    document.addEventListener("keydown", this.onShortcut);
+    this.el.addEventListener("pc:command-open", this.onOpen);
+    this.el.addEventListener("pc:command-close", this.onCloseEvent);
+    this.el.addEventListener("click", this.onClick);
+    this.el.addEventListener("close", this.onClose);
+    this.el.addEventListener("click", this.onItemClick);
+  },
+
+  destroyed() {
+    document.removeEventListener("keydown", this.onShortcut);
+  },
+
+  open() {
+    if (this.el.open) return;
+    this.el.showModal();
+    const input = this.el.querySelector(".pc-command__input");
+    if (input) input.focus();
+  },
+
+  close() {
+    if (this.el.open) this.el.close();
+  },
+
+  reset() {
+    if (this.el.dataset.resetOnClose !== "true") return;
+    const input = this.el.querySelector(".pc-command__input");
+    if (input && input.value !== "") {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -863,4 +1084,6 @@ export default {
   PetalTypingEffect,
   PetalInputOTP,
   PetalPopover,
+  PetalCommand,
+  PetalCommandDialog,
 };

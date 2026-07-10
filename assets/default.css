@@ -1684,6 +1684,88 @@
     @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
   }
 
+
+  /* Command palette */
+
+  .pc-command {
+    @apply flex w-full flex-col overflow-hidden bg-white text-gray-900 dark:bg-zinc-900 dark:text-gray-100;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+  .pc-command__input-wrap {
+    @apply flex items-center gap-2 border-b border-gray-200 px-3 dark:border-white/10;
+  }
+  .pc-command__input-icon {
+    @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__input {
+    @apply h-11 w-full border-0 bg-transparent p-0 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
+  }
+  .pc-command__input:focus {
+    @apply outline-none ring-0 shadow-none border-0;
+  }
+  .pc-command__list {
+    @apply max-h-80 overflow-y-auto overscroll-contain p-1;
+    scrollbar-width: thin;
+  }
+  .pc-command__group {
+    @apply overflow-hidden;
+  }
+  .pc-command__group-heading {
+    @apply px-2 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
+  }
+  .pc-command__item {
+    @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none dark:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-command__item[data-selected] {
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+  }
+  .pc-command__item[data-disabled] {
+    @apply pointer-events-none opacity-50;
+  }
+  .pc-command__item svg {
+    @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__item[data-selected] svg {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+  .pc-command__separator {
+    @apply -mx-1 my-1 h-px bg-gray-200 dark:bg-white/10;
+  }
+  .pc-command__shortcut {
+    @apply ml-auto text-xs tracking-widest text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__empty {
+    @apply py-6 text-center text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-command-dialog {
+    @apply fixed p-0 shadow-lg;
+    inset: 0;
+    margin: 12vh auto auto;
+    width: min(36rem, calc(100vw - 2rem));
+    border: 1px solid var(--color-gray-200);
+    background: transparent;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+  .dark .pc-command-dialog {
+    border-color: color-mix(in srgb, white 15%, transparent);
+  }
+  .pc-command-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-command-dialog[open] {
+      animation: pc-command-in 0.15s ease-out;
+    }
+  }
+  @keyframes pc-command-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
   /* Tooltip */
 
   .pc-tooltip {

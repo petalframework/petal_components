@@ -133,7 +133,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "tooltip", name: "Tooltip", ready: true},
         %{slug: "popover", name: "Popover", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
-        %{slug: "dropdown", name: "Dropdown", ready: true}
+        %{slug: "dropdown", name: "Dropdown", ready: true},
+        %{slug: "command", name: "Command", ready: true}
       ]},
     %{group: "Effects",
       items: [
@@ -732,7 +733,10 @@ defmodule Dev.PlaygroundLive do
           <span class="font-normal text-gray-400 dark:text-zinc-500">playground</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <button class="hidden md:flex items-center gap-2 h-8 pl-3 pr-2 mr-1 text-sm text-gray-400 border rounded-lg w-56 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900">
+          <button
+            phx-click={PetalComponents.Command.open_command("pg-cmdk")}
+            class="hidden md:flex items-center gap-2 h-8 pl-3 pr-2 mr-1 text-sm text-gray-400 border rounded-lg w-56 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900"
+          >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
             <span>Search components</span>
             <kbd class="pc-kbd ml-auto">⌘K</kbd>
@@ -827,6 +831,28 @@ defmodule Dev.PlaygroundLive do
           theme is in the URL, share the look
         </span>
       </div>
+
+      <.command_dialog id="pg-cmdk" loop>
+        <.command_input placeholder="Search components and actions..." />
+        <.command_list label="Playground">
+          <.command_empty>Nothing matches. Try a component name.</.command_empty>
+          <.command_group :for={grp <- @nav} heading={grp.group}>
+            <.command_item
+              :for={item <- grp.items}
+              phx-click="select"
+              phx-value-slug={item.slug}
+            >
+              <.icon name="hero-square-3-stack-3d" /> {item.name}
+            </.command_item>
+          </.command_group>
+          <.command_separator />
+          <.command_group heading="Theme">
+            <.command_item phx-click="toggle_dark" keywords={["light", "theme", "mode"]}>
+              <.icon name="hero-moon" /> Toggle dark mode
+            </.command_item>
+          </.command_group>
+        </.command_list>
+      </.command_dialog>
 
       <div class="flex flex-1 min-h-0">
         <nav class="flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-zinc-800">
@@ -1755,6 +1781,82 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "command"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Command</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The ⌘K palette. Type to filter, arrows to move, Enter to run. Items are real
+        links and buttons, so navigate/patch and any phx binding just work. Filtering is
+        client-side - keystrokes never wait on the server.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Inline palette - try typing
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-md mx-auto">
+          <.command id="demo-command" loop class="border border-gray-200 dark:border-white/15 shadow-xs">
+            <.command_input placeholder="Type a command or search..." />
+            <.command_list>
+              <.command_empty>No results found.</.command_empty>
+              <.command_group heading="Suggestions">
+                <.command_item keywords={["date", "schedule"]}>
+                  <.icon name="hero-calendar" /> Calendar
+                </.command_item>
+                <.command_item keywords={["smile"]}>
+                  <.icon name="hero-face-smile" /> Search emoji
+                </.command_item>
+                <.command_item disabled>
+                  <.icon name="hero-calculator" /> Calculator
+                </.command_item>
+              </.command_group>
+              <.command_separator />
+              <.command_group heading="Settings">
+                <.command_item keywords={["account", "user"]}>
+                  <.icon name="hero-user" /> Profile
+                  <.command_shortcut>⌘P</.command_shortcut>
+                </.command_item>
+                <.command_item keywords={["payment", "card"]}>
+                  <.icon name="hero-credit-card" /> Billing
+                  <.command_shortcut>⌘B</.command_shortcut>
+                </.command_item>
+                <.command_item>
+                  <.icon name="hero-cog-6-tooth" /> Settings
+                  <.command_shortcut>⌘S</.command_shortcut>
+                </.command_item>
+              </.command_group>
+            </.command_list>
+          </.command>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Dialog - the classic ⌘K
+      </div>
+      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-3">
+          <.button color="gray" variant="outline" phx-click={PetalComponents.Command.open_command("pg-cmdk")}>
+            <.icon name="hero-magnifying-glass" class="w-4 h-4 mr-1" /> Open the palette
+          </.button>
+          <p class="text-sm text-gray-500 dark:text-zinc-400">
+            or press <kbd class="pc-kbd">⌘K</kbd> anywhere in the playground
+          </p>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        This page's dialog IS the playground's own search - the topbar button and ⌘K both
+        open a command_dialog listing every page. The dialog is a native &lt;dialog&gt;, so the
+        top layer, focus trap, backdrop and Escape come from the browser. Keyboard model is
+        the WAI-ARIA combobox pattern: focus stays in the input, the highlight is virtual
+        (aria-activedescendant), and Enter clicks the highlighted item. Items hide but never
+        reorder - the server owns DOM order, so LiveView patches stay safe.
       </div>
     </div>
     """

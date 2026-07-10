@@ -35,6 +35,7 @@ defmodule PetalComponents do
         Form,
         Icon,
         Input,
+        Command,
         InputGroup,
         InputOtp,
         Link,
