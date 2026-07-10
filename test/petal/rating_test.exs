@@ -107,16 +107,46 @@ defmodule PetalComponents.RatingTest do
   end
 
   describe "display icon sets" do
-    test "hearts fill cumulatively via data-selected" do
+    test "hearts fill fractionally via the overlay" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
-        <.rating rating={2} icon="heart" total={4} />
+        <.rating rating={2.5} icon="heart" total={4} />
         """)
 
       assert html =~ "pc-rating--heart"
-      assert 2 == html |> String.split(~s(data-selected="true")) |> length() |> Kernel.-(1)
+      assert html =~ "--pc-rating-fill: 100%"
+      assert html =~ "--pc-rating-fill: 50%"
+      assert html =~ "--pc-rating-fill: 0%"
+    end
+
+    test "custom glyph slot renders per position with the custom modifier" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.rating rating={3} total={5}>
+          <:glyph><svg viewBox="0 0 24 24"><path d="M0 0" /></svg></:glyph>
+        </.rating>
+        """)
+
+      assert html =~ "pc-rating--custom"
+      # base + fill overlay copies: 2 per item
+      assert 10 == html |> String.split("<svg") |> length() |> Kernel.-(1)
+    end
+
+    test "label position bottom and generated face label" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.rating rating={4} icon="face" include_label label_position="bottom" />
+        """)
+
+      assert html =~ "pc-rating--label-bottom"
+      assert html =~ "Good"
+      refute html =~ "out of"
     end
 
     test "faces highlight only the chosen expression" do

@@ -244,7 +244,7 @@ defmodule Dev.PlaygroundLive do
        beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
-       rating: %{icon: "star", size: "md", value: 3, hearts: 2, mood: 4},
+       rating: %{icon: "star", size: "md", value: 3, hearts: 2, mood: 4, label: "none"},
        slideover: %{origin: "right", width: "md"},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
@@ -324,6 +324,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_rating", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :rating, &%{&1 | size: v})}
+
+  def handle_event("ctl_rating", %{"k" => "label", "v" => v}, socket) when v in ~w(none right bottom),
+    do: {:noreply, update(socket, :rating, &%{&1 | label: v})}
 
   def handle_event("rate", params, socket) do
     rating = socket.assigns.rating
@@ -2168,21 +2171,38 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
           <form :if={@rating.icon == "star"} phx-change="rate">
-            <.rating interactive name="score" rating={@rating.value} icon="star" size={@rating.size} />
+            <.rating
+              interactive
+              name="score"
+              rating={@rating.value}
+              icon="star"
+              size={@rating.size}
+              include_label={@rating.label != "none"}
+              label_position={if @rating.label == "none", do: "right", else: @rating.label}
+            />
           </form>
           <form :if={@rating.icon == "heart"} phx-change="rate">
-            <.rating interactive name="love" rating={@rating.hearts} icon="heart" size={@rating.size} />
+            <.rating
+              interactive
+              name="love"
+              rating={@rating.hearts}
+              icon="heart"
+              size={@rating.size}
+              include_label={@rating.label != "none"}
+              label_position={if @rating.label == "none", do: "right", else: @rating.label}
+            />
           </form>
           <form :if={@rating.icon == "face"} phx-change="rate">
-            <.rating interactive name="mood" rating={@rating.mood} icon="face" size={@rating.size} />
+            <.rating
+              interactive
+              name="mood"
+              rating={@rating.mood}
+              icon="face"
+              size={@rating.size}
+              include_label={@rating.label != "none"}
+              label_position={if @rating.label == "none", do: "right", else: @rating.label}
+            />
           </form>
-          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">
-            {case @rating.icon do
-              "star" -> "#{@rating.value} of 5"
-              "heart" -> "#{@rating.hearts} of 5"
-              "face" -> Enum.at(["Awful", "Bad", "Okay", "Good", "Great"], @rating.mood - 1)
-            end}
-          </p>
         </div>
 
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
@@ -2199,6 +2219,14 @@ defmodule Dev.PlaygroundLive do
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button :for={sz <- ~w(sm md lg)} phx-click="ctl_rating" phx-value-k="size" phx-value-v={sz} class={seg(@rating.size == sz)}>
                 {sz}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={l <- ~w(none right bottom)} phx-click="ctl_rating" phx-value-k="label" phx-value-v={l} class={seg(@rating.label == l)}>
+                {l}
               </button>
             </div>
           </div>
@@ -2233,16 +2261,41 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center gap-4">
           <.rating rating={3.5} include_label />
-          <.rating rating={4} icon="heart" total={5} />
-          <.rating rating={5} icon="face" />
+          <.rating rating={3.5} icon="heart" include_label />
+          <.rating rating={4.2} icon="face" include_label />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Bring your own glyph - the :glyph slot + one colour token
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-2">
+          <.rating
+            interactive
+            name="heat"
+            rating={3}
+            label="Spice level"
+            style="--pc-rating-active-color: var(--color-orange-500)"
+          >
+            <:glyph>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="pc-rating__icon">
+                <path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" clip-rule="evenodd" />
+              </svg>
+            </:glyph>
+          </.rating>
+          <p class="text-sm text-gray-500 dark:text-zinc-400">Spice level</p>
         </div>
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Interactive mode is a fieldset of radios: the value posts under name like any form
         field, arrows move between options, and focus-visible rings the focused icon. Stars
-        and hearts fill cumulatively; faces select a single expression. Display mode keeps
-        the classic half-star precision (3.3 rounds to 3.5).
+        and hearts fill cumulatively (display mode fills fractionally - 3.5 hearts is half a
+        heart); faces are a discrete five-point scale, so fractional display values round to
+        the nearest expression and the label carries the precision. Any icon set can be
+        recoloured per instance with --pc-rating-active-color, and the :glyph slot swaps in
+        your own icon entirely.
       </div>
     </div>
     """

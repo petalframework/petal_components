@@ -63,7 +63,19 @@ defmodule PetalComponents.Rating do
     doc: "Any additional CSS classes for the rating label"
   )
 
+  attr(:label_position, :string,
+    default: "right",
+    values: ["right", "bottom"],
+    doc: "where the generated label sits relative to the icons"
+  )
+
   attr(:rest, :global)
+
+  slot(:glyph,
+    required: false,
+    doc:
+      "a custom glyph (an svg or icon component) used for every position instead of the built-in sets. Design it to inherit currentColor/fill; recolour the active state with the --pc-rating-active-color CSS variable"
+  )
 
   def rating(%{interactive: true} = assigns) do
     if is_nil(assigns.name) do
@@ -72,15 +84,19 @@ defmodule PetalComponents.Rating do
 
     assigns =
       assigns
-      |> assign(:total, if(assigns.icon == "face", do: 5, else: assigns.total))
+      |> assign(:icon_kind, if(assigns.glyph != [], do: "custom", else: assigns.icon))
       |> assign(:value, assigns.rating |> to_float() |> round() |> trunc())
+
+    assigns =
+      assign(assigns, :total, if(assigns.icon_kind == "face", do: 5, else: assigns.total))
 
     ~H"""
     <fieldset
       class={[
         "pc-rating__group",
-        "pc-rating--#{@icon}",
+        "pc-rating--#{@icon_kind}",
         "pc-rating--#{@size}",
+        @label_position == "bottom" && "pc-rating--label-bottom",
         @disabled && "pc-rating--disabled",
         @class
       ]}
@@ -88,24 +104,30 @@ defmodule PetalComponents.Rating do
       {@rest}
     >
       <legend class="sr-only">{@label}</legend>
-      <label
-        :for={i <- 1..@total}
-        class="pc-rating__item"
-        data-index={i}
-        title={item_title(@icon, i, @total)}
-      >
-        <input
-          type="radio"
-          name={@name}
-          value={i}
-          checked={@value == i}
-          class="pc-rating__input"
-          aria-label={item_title(@icon, i, @total)}
-        />
-        <.rating_icon icon={@icon} index={i} class={@star_class} />
-      </label>
+      <div class="pc-rating__icons">
+        <label
+          :for={i <- 1..@total}
+          class="pc-rating__item"
+          data-index={i}
+          title={item_title(@icon_kind, i, @total)}
+        >
+          <input
+            type="radio"
+            name={@name}
+            value={i}
+            checked={@value == i}
+            class="pc-rating__input"
+            aria-label={item_title(@icon_kind, i, @total)}
+          />
+          <%= if @icon_kind == "custom" do %>
+            {render_slot(@glyph, i)}
+          <% else %>
+            <.rating_icon icon={@icon_kind} index={i} class={@star_class} />
+          <% end %>
+        </label>
+      </div>
       <span :if={@include_label} class={["pc-rating__label", @label_class]}>
-        {@value} out of {@total}
+        {generated_label(@icon_kind, @value + 0.0, @total)}
       </span>
     </fieldset>
     """
@@ -114,43 +136,93 @@ defmodule PetalComponents.Rating do
   def rating(assigns) do
     assigns =
       assigns
+      |> assign(:icon_kind, if(assigns.glyph != [], do: "custom", else: assigns.icon))
       |> assign(:rating_as_float, to_float(assigns.rating))
-      |> assign(:total, if(assigns.icon == "face", do: 5, else: assigns.total))
+
+    assigns =
+      assign(assigns, :total, if(assigns.icon_kind == "face", do: 5, else: assigns.total))
 
     ~H"""
     <div
-      class={["pc-rating__wrapper", "pc-rating--#{@icon}", "pc-rating--#{@size}", @class]}
+      class={[
+        "pc-rating__wrapper",
+        "pc-rating--#{@icon_kind}",
+        "pc-rating--#{@size}",
+        @label_position == "bottom" && "pc-rating--label-bottom",
+        @class
+      ]}
       {@rest}
     >
-      <%= if @icon == "star" do %>
-        <.rating_star
-          :for={i <- 1..@total}
-          class={@star_class}
-          type={calculate_type(i, @rating_as_float, @round_to_nearest_half)}
-        />
-      <% else %>
-        <span
-          :for={i <- 1..@total}
-          class="pc-rating__item"
-          data-index={i}
-          data-selected={display_selected?(@icon, i, @rating_as_float) && "true"}
-        >
-          <.rating_icon icon={@icon} index={i} class={@star_class} />
-        </span>
-      <% end %>
+      <div class="pc-rating__icons">
+        <%= if @icon_kind == "star" do %>
+          <.rating_star
+            :for={i <- 1..@total}
+            class={@star_class}
+            type={calculate_type(i, @rating_as_float, @round_to_nearest_half)}
+          />
+        <% end %>
+        <%= if @icon_kind == "face" do %>
+          <span
+            :for={i <- 1..@total}
+            class="pc-rating__item"
+            data-index={i}
+            data-selected={round(@rating_as_float) == i && "true"}
+            title={item_title("face", i, @total)}
+          >
+            <.rating_icon icon="face" index={i} class={@star_class} />
+          </span>
+        <% end %>
+        <%= if @icon_kind in ["heart", "custom"] do %>
+          <span :for={i <- 1..@total} class="pc-rating__item" data-index={i}>
+            <%= if @icon_kind == "custom" do %>
+              {render_slot(@glyph, i)}
+            <% else %>
+              <.rating_icon icon="heart" index={i} class={@star_class} />
+            <% end %>
+            <span
+              class="pc-rating__fill"
+              style={"--pc-rating-fill: #{fill_percent(i, @rating_as_float, @round_to_nearest_half)}%"}
+              aria-hidden="true"
+            >
+              <%= if @icon_kind == "custom" do %>
+                {render_slot(@glyph, i)}
+              <% else %>
+                <.rating_icon icon="heart" index={i} class={@star_class} />
+              <% end %>
+            </span>
+          </span>
+        <% end %>
+      </div>
 
       <%= if @include_label do %>
         <span class={["pc-rating__label", @label_class]}>
-          {@rating_as_float} out of {@total}
+          {generated_label(@icon_kind, @rating_as_float, @total)}
         </span>
       <% end %>
     </div>
     """
   end
 
-  # faces highlight only the chosen expression; hearts fill cumulatively
-  defp display_selected?("face", index, rating), do: round(rating) == index
-  defp display_selected?(_icon, index, rating), do: index <= rating
+  # cumulative sets fill each icon 0-100%; the fraction lands on one icon
+  defp fill_percent(index, rating, round_to_half?) do
+    rating = if round_to_half?, do: round_to_half(rating), else: rating
+
+    cond do
+      index <= trunc(rating) -> 100
+      index - 1 < rating -> round((rating - (index - 1)) * 100)
+      true -> 0
+    end
+  end
+
+  defp generated_label("face", rating, _total) when rating >= 0.5,
+    do: Enum.at(["Awful", "Bad", "Okay", "Good", "Great"], min(round(rating), 5) - 1)
+
+  defp generated_label("face", _rating, _total), do: "Not rated"
+
+  defp generated_label(_icon, rating, total) do
+    rating = if rating == trunc(rating), do: trunc(rating), else: rating
+    "#{rating} out of #{total}"
+  end
 
   defp item_title("face", index, _total),
     do: Enum.at(["Awful", "Bad", "Okay", "Good", "Great"], index - 1)
