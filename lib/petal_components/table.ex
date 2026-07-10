@@ -111,7 +111,11 @@ defmodule PetalComponents.Table do
           </.tr>
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
-          <.tr :if={@empty_state != []} id={@id <> "-empty"} class="hidden only:table-row">
+          <.tr
+            :if={@empty_state != []}
+            id={@id <> "-empty"}
+            class="pc-table__tr--empty hidden only:table-row"
+          >
             <.td
               :for={empty_state <- @empty_state}
               colspan={length(@col)}
