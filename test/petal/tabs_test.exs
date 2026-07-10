@@ -198,4 +198,34 @@ defmodule PetalComponents.TabsTest do
 
     assert html =~ "disabled"
   end
+
+  test "segmented variant renders the track and raised active segment" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tabs variant="segmented">
+        <.tab variant="segmented" is_active label="Overview" />
+        <.tab variant="segmented" label="Settings" />
+      </.tabs>
+      """)
+
+    assert html =~ "pc-tabs--segmented"
+    assert html =~ "pc-tab__segment--is-active"
+    assert html =~ "pc-tab__segment--is-not-active"
+  end
+
+  test "legacy underline flag still resolves" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tabs underline>
+        <.tab underline is_active label="Home" />
+      </.tabs>
+      """)
+
+    assert html =~ "pc-tabs--underline"
+    assert html =~ "pc-tab__underline--is-active"
+  end
 end

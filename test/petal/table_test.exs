@@ -203,4 +203,37 @@ defmodule PetalComponents.TableTest do
            <.user_inner_td label="John" sub_label="Smith" class="extra-class" />
            """) =~ "extra-class"
   end
+
+  test "sortable column renders a sort button with aria-sort and state icon" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.table rows={[%{name: "Ada"}]} sort_by="name" sort_dir="asc" on_sort="sort">
+        <:col :let={u} label="Name" sortable>{u.name}</:col>
+        <:col :let={u} label="Role">{u.name}</:col>
+      </.table>
+      """)
+
+    assert html =~ "pc-table__sort"
+    assert html =~ ~s(phx-click="sort")
+    assert html =~ ~s(phx-value-sort="name")
+    assert html =~ ~s(aria-sort="ascending")
+    assert html =~ "pc-table__sort-icon--active"
+  end
+
+  test "density, striped and sticky header classes" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.table rows={[%{a: 1}]} density="compact" striped sticky_header>
+        <:col :let={r} label="A">{r.a}</:col>
+      </.table>
+      """)
+
+    assert html =~ "pc-table--compact"
+    assert html =~ "pc-table--striped"
+    assert html =~ "pc-table__th--sticky"
+  end
 end

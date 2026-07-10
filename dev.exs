@@ -129,6 +129,15 @@ defmodule Dev.PlaygroundLive do
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true}
       ]},
+    %{group: "Navigation",
+      items: [
+        %{slug: "tabs", name: "Tabs", ready: true},
+        %{slug: "pagination", name: "Pagination", ready: true}
+      ]},
+    %{group: "Data",
+      items: [
+        %{slug: "table", name: "Table", ready: true}
+      ]},
     %{group: "Overlay",
       items: [
         %{slug: "tooltip", name: "Tooltip", ready: true},
@@ -246,6 +255,9 @@ defmodule Dev.PlaygroundLive do
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{icon: "star", size: "md", value: 3.0, hearts: 2.0, mood: 4, label: "none", step: "whole"},
        slideover: %{origin: "right", width: "md"},
+       tabs: %{variant: "segmented", active: "overview"},
+       table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false},
+       page: %{current: 3},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -354,6 +366,33 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :slideover, &%{&1 | width: v})}
 
   def handle_event("close_slide_over", _, socket), do: {:noreply, socket}
+
+  def handle_event("ctl_tabs", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(pill underline segmented),
+      do: {:noreply, update(socket, :tabs, &%{&1 | variant: v})}
+
+  def handle_event("ctl_tabs", %{"k" => "tab", "v" => v}, socket)
+      when v in ~w(overview analytics reports settings),
+      do: {:noreply, update(socket, :tabs, &%{&1 | active: v})}
+
+  def handle_event("sort", %{"sort" => key}, socket) do
+    {:noreply,
+     update(socket, :table, fn t ->
+       if t.sort_by == key,
+         do: %{t | sort_dir: if(t.sort_dir == "asc", do: "desc", else: "asc")},
+         else: %{t | sort_by: key, sort_dir: "asc"}
+     end)}
+  end
+
+  def handle_event("ctl_table", %{"k" => "density", "v" => v}, socket)
+      when v in ~w(comfortable compact),
+      do: {:noreply, update(socket, :table, &%{&1 | density: v})}
+
+  def handle_event("ctl_table", %{"k" => "striped"}, socket),
+    do: {:noreply, update(socket, :table, &%{&1 | striped: !&1.striped})}
+
+  def handle_event("goto-page", %{"page" => page}, socket),
+    do: {:noreply, update(socket, :page, &%{&1 | current: String.to_integer(page)})}
 
   def handle_event("ctl_meteors", %{"k" => "reverse"}, socket),
     do: {:noreply, update(socket, :meteors, &%{&1 | reverse: !&1.reverse})}
@@ -745,6 +784,19 @@ defmodule Dev.PlaygroundLive do
     else
       open <> ~s( label="New" />)
     end
+  end
+
+  @table_people [
+    %{name: "Ada Lovelace", role: "Engineering", age: 36, status: "Active"},
+    %{name: "Grace Hopper", role: "Engineering", age: 85, status: "Active"},
+    %{name: "Alan Turing", role: "Research", age: 41, status: "Inactive"},
+    %{name: "Katherine Johnson", role: "Research", age: 101, status: "Active"},
+    %{name: "Edsger Dijkstra", role: "Engineering", age: 72, status: "Inactive"}
+  ]
+
+  defp table_rows(%{sort_by: key, sort_dir: dir}) do
+    key = String.to_existing_atom(key)
+    Enum.sort_by(@table_people, & &1[key], if(dir == "asc", do: :asc, else: :desc))
   end
 
   defp rating_snippet(assigns) do
@@ -2434,6 +2486,143 @@ defmodule Dev.PlaygroundLive do
         slot pins action rows below the scrolling body. Escape and click-away close by
         default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
         so no server round-trip is needed to animate.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "tabs"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Tabs</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Three styles: segmented (a raised pill on a muted track), underline, and pill.
+        Tabs are links or buttons - wire them to live_patch, JS commands or events.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-6 px-6 py-12">
+          <.tabs variant={@tabs.variant}>
+            <.tab
+              :for={{slug, name, n} <- [{"overview", "Overview", nil}, {"analytics", "Analytics", nil}, {"reports", "Reports", 4}, {"settings", "Settings", nil}]}
+              variant={@tabs.variant}
+              is_active={@tabs.active == slug}
+              number={n}
+              link_type="button"
+              phx-click="ctl_tabs"
+              phx-value-k="tab"
+              phx-value-v={slug}
+            >
+              {name}
+            </.tab>
+          </.tabs>
+          <div class="w-full max-w-md p-5 text-sm border border-gray-200 rounded-lg text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
+            {case @tabs.active do
+              "overview" -> "Your project at a glance - traffic, revenue and recent activity."
+              "analytics" -> "Charts and breakdowns. This panel swapped without a page load."
+              "reports" -> "Four reports ready to export."
+              "settings" -> "Project name, members and billing."
+            end}
+          </div>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={v <- ~w(segmented underline pill)} phx-click="ctl_tabs" phx-value-k="variant" phx-value-v={v} class={seg(@tabs.variant == v)}>
+                {v}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        segmented is the modern default for in-page switching (the active tab is a raised
+        white pill, nested-radius on the track); underline suits page-level navigation;
+        pill is the roomy classic. The legacy underline flag still works - variant wins
+        when both are set.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "pagination"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Pagination</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Discrete page buttons with a solid primary current page. Works as links
+        (path templates) or pure events - this one is events.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-4 px-6 py-14">
+          <.pagination event total_pages={12} current_page={@page.current} sibling_count={1} boundary_count={1} />
+          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">Page {@page.current} of 12</p>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        The current page rides primary (selection signals follow your dial - try it);
+        everything else is quiet chrome with hover washes. Link mode takes a path template
+        like /users/:page; event mode fires goto-page with phx-value-page.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "table"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Table</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Sortable headers, density, stripes - the presentation layer for data. Click
+        Name or Age to sort; the component fires the event, your app reorders the rows.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="px-6 py-8">
+          <.table
+            rows={table_rows(@table)}
+            density={@table.density}
+            striped={@table.striped}
+            sort_by={@table.sort_by}
+            sort_dir={@table.sort_dir}
+          >
+            <:col :let={p} label="Name" sortable sort_key="name">{p.name}</:col>
+            <:col :let={p} label="Role">{p.role}</:col>
+            <:col :let={p} label="Age" sortable sort_key="age">{p.age}</:col>
+            <:col :let={p} label="Status">
+              <.badge color={if p.status == "Active", do: "success", else: "gray"} variant="soft" size="sm" label={p.status} />
+            </:col>
+          </.table>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={d <- ~w(comfortable compact)} phx-click="ctl_table" phx-value-k="density" phx-value-v={d} class={seg(@table.density == d)}>
+                {d}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_table" phx-value-k="striped" class={tog(@table.striped)}>striped</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Sorting is honest: the header is a real button firing on_sort (default event
+        "sort") with the column's sort_key, aria-sort announces the state, and the arrow
+        shows direction - your app owns the actual reorder. sticky_header pins the header
+        row inside a scrolling container. LiveView streams work unchanged.
       </div>
     </div>
     """
