@@ -586,7 +586,11 @@
   }
 
   .pc-button-group__separator {
-    @apply w-px shrink-0 self-stretch;
+    @apply w-px shrink-0 self-stretch bg-gray-300 dark:bg-white/15;
+  }
+
+  /* between primary solids the hairline tints from the label colour instead */
+  .pc-button--primary + .pc-button-group__separator {
     background: color-mix(in srgb, var(--pc-button-solid-fg, #fff) 25%, transparent);
   }
 

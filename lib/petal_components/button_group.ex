@@ -146,8 +146,9 @@ defmodule PetalComponents.ButtonGroup do
   @doc """
   A hairline divider between fused children. Solid buttons need it (their
   borders are transparent); outline buttons and inputs don't - they carry
-  their own borders. Tinted from `--pc-button-solid-fg` so it stays visible
-  on a primary solid in both modes.
+  their own borders. The default matches the border colour; between primary
+  solids it tints from `--pc-button-solid-fg` instead, so it stays visible
+  on the solid in both modes.
   """
   attr :class, :any, default: nil, doc: "CSS class"
 

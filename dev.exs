@@ -3222,9 +3222,8 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-wrap items-center justify-center gap-6 px-6 py-12">
           <.button_group aria_label="Merge options">
-            <.button label="Merge pull request" />
-            <.button_group_separator />
-            <.button aria-label="More merge options">
+            <.button color="gray" variant="outline" label="Merge pull request" />
+            <.button color="gray" variant="outline" size="icon" aria-label="More merge options">
               <.icon name="hero-chevron-down" class="w-4 h-4" />
             </.button>
           </.button_group>
@@ -3243,21 +3242,21 @@ defmodule Dev.PlaygroundLive do
         <div class="flex justify-center">
           <.button_group aria_label="Editor toolbar">
             <.button_group aria_label="History">
-              <.button color="gray" variant="outline" size="sm" aria-label="Undo">
+              <.button color="gray" variant="outline" size="icon" aria-label="Undo">
                 <.icon name="hero-arrow-uturn-left" class="w-4 h-4" />
               </.button>
-              <.button color="gray" variant="outline" size="sm" aria-label="Redo">
+              <.button color="gray" variant="outline" size="icon" aria-label="Redo">
                 <.icon name="hero-arrow-uturn-right" class="w-4 h-4" />
               </.button>
             </.button_group>
             <.button_group aria_label="Formatting">
-              <.button color="gray" variant="outline" size="sm" aria-label="Bold">
+              <.button color="gray" variant="outline" size="icon" aria-label="Bold">
                 <.icon name="hero-bold" class="w-4 h-4" />
               </.button>
-              <.button color="gray" variant="outline" size="sm" aria-label="Italic">
+              <.button color="gray" variant="outline" size="icon" aria-label="Italic">
                 <.icon name="hero-italic" class="w-4 h-4" />
               </.button>
-              <.button color="gray" variant="outline" size="sm" aria-label="Link">
+              <.button color="gray" variant="outline" size="icon" aria-label="Link">
                 <.icon name="hero-link" class="w-4 h-4" />
               </.button>
             </.button_group>
@@ -3284,6 +3283,21 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Split button - solid buttons have no borders, the separator is the divider
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.button_group aria_label="Save options">
+            <.button label="Save changes" />
+            <.button_group_separator />
+            <.button size="icon" aria-label="More save options">
+              <.icon name="hero-chevron-down" class="w-4 h-4" />
+            </.button>
+          </.button_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
         Mixed rail - text prefix, input and button share one surface
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
@@ -3295,7 +3309,9 @@ defmodule Dev.PlaygroundLive do
           </.button_group>
           <.button_group aria_label="Search the docs" class="w-full max-w-sm">
             <.input type="search" name="bg_q" value="" placeholder="Search the docs..." />
-            <.button label="Search" />
+            <.button color="gray" variant="outline" size="icon" aria-label="Search">
+              <.icon name="hero-magnifying-glass" class="w-4 h-4" />
+            </.button>
           </.button_group>
         </div>
       </div>
@@ -3306,10 +3322,10 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex justify-center">
           <.button_group aria_label="Zoom" orientation="vertical">
-            <.button color="gray" variant="outline" aria-label="Zoom in">
+            <.button color="gray" variant="outline" size="icon" aria-label="Zoom in">
               <.icon name="hero-plus" class="w-4 h-4" />
             </.button>
-            <.button color="gray" variant="outline" aria-label="Zoom out">
+            <.button color="gray" variant="outline" size="icon" aria-label="Zoom out">
               <.icon name="hero-minus" class="w-4 h-4" />
             </.button>
           </.button_group>
@@ -3320,7 +3336,8 @@ defmodule Dev.PlaygroundLive do
         Drop real components in and the group fuses them: outer corners keep the radius
         token, inner borders collapse to a single line. Outline buttons and inputs carry
         their own dividers; solid buttons have transparent borders, so put a
-        button_group_separator between them (it tints from the solid label colour).
+        button_group_separator between them (between primary solids it tints from the
+        solid label colour; elsewhere it matches the border colour).
         Nested groups stop fusing and gap into clusters. The :button slot API from
         earlier releases still renders unchanged.
       </div>
