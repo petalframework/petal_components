@@ -603,6 +603,17 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
 
+  /* a dropdown fused into the rail (split button): the component wraps its
+     trigger in two divs, so flex them through and drop the collapse classes
+     on the trigger itself via trigger_class */
+  .pc-button-group > .pc-dropdown {
+    @apply inline-flex;
+  }
+
+  .pc-button-group > .pc-dropdown > div:first-child {
+    @apply flex;
+  }
+
   /* Button Group - legacy :button slot API (self-styled overlapping buttons) */
 
   .pc-button-group--legacy {

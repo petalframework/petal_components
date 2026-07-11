@@ -3223,9 +3223,44 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-center justify-center gap-6 px-6 py-12">
           <.button_group aria_label="Merge options">
             <.button color="gray" variant="outline" label="Merge pull request" />
-            <.button color="gray" variant="outline" size="icon" aria-label="More merge options">
-              <.icon name="hero-chevron-down" class="w-4 h-4" />
-            </.button>
+            <.dropdown
+              placement="left"
+              menu_items_wrapper_class="w-72"
+              trigger_class="pc-button pc-button--gray-outline pc-button--icon rounded-l-none border-l-0"
+            >
+              <:trigger_element>
+                <.icon name="hero-chevron-down" class="w-4 h-4" />
+              </:trigger_element>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-arrow-down-on-square" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                <div class="flex flex-col">
+                  <span class="font-medium text-gray-900 dark:text-gray-100">
+                    Create a merge commit
+                  </span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    All commits added to the base via a merge commit
+                  </span>
+                </div>
+              </.dropdown_menu_item>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-arrows-pointing-in" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                <div class="flex flex-col">
+                  <span class="font-medium text-gray-900 dark:text-gray-100">Squash and merge</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    Commits combined into one before merging
+                  </span>
+                </div>
+              </.dropdown_menu_item>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-arrow-path" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                <div class="flex flex-col">
+                  <span class="font-medium text-gray-900 dark:text-gray-100">Rebase and merge</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    Commits rebased onto the base branch
+                  </span>
+                </div>
+              </.dropdown_menu_item>
+            </.dropdown>
           </.button_group>
           <.button_group aria_label="Change view">
             <.button color="gray" variant="outline" label="Day" />
