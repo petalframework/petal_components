@@ -1881,16 +1881,19 @@
     @apply flex items-center;
   }
   .pc-breadcrumb {
-    @apply flex text-gray-500 hover:underline dark:text-gray-400;
+    @apply flex text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100;
+  }
+  .pc-breadcrumb--current {
+    @apply font-medium text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100;
   }
   .pc-breadcrumbs__separator-slash {
-    @apply px-5 text-lg text-gray-300;
+    @apply px-2.5 text-sm text-gray-300 dark:text-gray-600;
   }
   .pc-breadcrumbs__separator-chevron {
-    @apply px-3 text-gray-300;
+    @apply px-1.5 text-gray-300 dark:text-gray-600;
   }
   .pc-breadcrumbs__separator-chevron__icon {
-    @apply w-6 h-6;
+    @apply h-4 w-4;
   }
   .pc-breadcrumb-icon {
     @apply w-6 h-6 shrink-0;
@@ -2195,7 +2198,7 @@
     @apply flex flex-col w-full max-w-full;
   }
   .pc-card--basic {
-    @apply border border-gray-200 shadow-lg dark:shadow-2xl dark:border-white/10;
+    @apply border border-gray-200 shadow-xs dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-card--outline {
@@ -2206,7 +2209,7 @@
   /* Cards - content */
 
   .pc-card__content {
-    @apply flex-1 p-6 text-base font-light text-gray-500 dark:text-gray-400;
+    @apply flex-1 p-6 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
   }
   .pc-card__category {
     @apply mb-3 text-sm font-medium;
@@ -2215,7 +2218,7 @@
     @apply text-primary-600 dark:text-primary-400;
   }
   .pc-card__heading {
-    @apply mb-2 text-xl font-medium text-gray-900 dark:text-gray-300;
+    @apply mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100;
   }
 
   /* Cards - with media */
@@ -2230,7 +2233,7 @@
   /* Cards - footer */
 
   .pc-card__footer {
-    @apply px-6 pb-6;
+    @apply flex items-center gap-2 px-6 pb-6;
   }
 
   /* Table */
@@ -2321,7 +2324,7 @@
   /* Accordion */
 
   .pc-accordion-item {
-    @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-zinc-900 dark:border-white/10 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200;
+    @apply flex w-full items-center justify-between border border-gray-200 bg-white p-4 text-left text-gray-900 transition-colors duration-200 hover:bg-gray-50 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-100 dark:hover:bg-white/5;
   }
   .pc-accordion-item--first {
     border-start-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
@@ -2331,13 +2334,13 @@
     @apply border-b-0;
   }
   .pc-accordion-item__heading {
-    @apply text-base font-semibold;
+    @apply text-sm font-medium;
   }
   .pc-accordion-item__chevron {
     @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
-    @apply p-5 bg-white border border-gray-200 dark:border-white/10 dark:bg-zinc-900;
+    @apply border border-gray-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-gray-500 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-400;
   }
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
@@ -2377,7 +2380,7 @@
   }
 
   .pc-accordion-item__button--ghost {
-    @apply flex items-start justify-between w-full text-left text-gray-900 dark:text-gray-100;
+    @apply flex w-full items-start justify-between py-4 text-left text-gray-900 dark:text-gray-100;
   }
 
   .pc-accordion-item__minus {
@@ -2388,7 +2391,7 @@
   }
 
   .pc-accordion-item__heading--ghost {
-    @apply text-base font-semibold leading-7;
+    @apply text-sm font-medium leading-6;
   }
 
   .pc-accordion-item__icon-container--ghost {
@@ -2396,7 +2399,7 @@
   }
 
   .pc-accordion-item__content--ghost {
-    @apply pr-12 my-2;
+    @apply pb-4 pr-12 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
   }
 
   /* Marquee Container */
@@ -3089,54 +3092,55 @@
 
   /* Indicator */
   .pc-stepper__indicator {
-    @apply grid shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
+    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-white/15 dark:text-gray-400;
   }
 
   .pc-stepper__node--complete .pc-stepper__indicator {
-    @apply bg-success-500;
+    @apply border-transparent bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
   }
 
   .pc-stepper__node--active .pc-stepper__indicator {
-    @apply border-2 border-success-800 dark:border-success-100;
+    @apply border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
   }
 
   /* Size variants for indicator */
   .pc-stepper--sm .pc-stepper__indicator {
-    @apply w-8 h-8;
+    @apply h-7 w-7;
   }
 
   .pc-stepper--md .pc-stepper__indicator {
-    @apply w-10 h-10;
+    @apply h-8 w-8;
   }
 
   .pc-stepper--lg .pc-stepper__indicator {
-    @apply w-12 h-12;
+    @apply h-10 w-10;
   }
 
   /* Check icon */
   .pc-stepper__check {
-    @apply text-white;
+    color: inherit;
   }
 
   .pc-stepper--sm .pc-stepper__check {
-    @apply w-4 h-4;
+    @apply h-3.5 w-3.5;
   }
 
   .pc-stepper--md .pc-stepper__check {
-    @apply w-5 h-5;
+    @apply h-4 w-4;
   }
 
   .pc-stepper--lg .pc-stepper__check {
-    @apply w-6 h-6;
+    @apply h-5 w-5;
   }
 
   /* Number */
   .pc-stepper__number {
-    @apply font-semibold;
+    @apply font-medium;
   }
 
   .pc-stepper--sm .pc-stepper__number {
-    @apply text-sm;
+    @apply text-xs;
   }
 
   .pc-stepper--md .pc-stepper__number {
@@ -3209,11 +3213,11 @@
 
   /* Connector */
   .pc-stepper__connector {
-    @apply bg-gray-200 shrink dark:bg-gray-600;
+    @apply shrink bg-gray-200 transition-colors dark:bg-white/10;
   }
 
   .pc-stepper__connector--complete {
-    @apply bg-success-500 dark:bg-success-500;
+    @apply bg-primary-600;
   }
 
   .pc-stepper--horizontal .pc-stepper__connector {

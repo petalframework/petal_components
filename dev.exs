@@ -2862,29 +2862,33 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-col items-center gap-8 px-6 py-12">
           <div class="flex items-end gap-4">
             <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
-              <.avatar size={sz} name="Matt Platts" random_color />
+              <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
               <span class="text-[11px] text-gray-400">{sz}</span>
             </div>
           </div>
           <div class="flex items-center gap-4">
-            <.avatar name="Matt Platts" />
+            <.avatar src="/dev-static/avatars/p44.jpg" alt="Team member" />
             <.avatar name="Ada Lovelace" random_color />
             <.avatar name="Grace Hopper" random_color />
             <.avatar />
           </div>
-          <div class="flex -space-x-2">
-            <.avatar name="Matt Platts" random_color class="ring-2 ring-white dark:ring-zinc-900" />
-            <.avatar name="Ada Lovelace" random_color class="ring-2 ring-white dark:ring-zinc-900" />
-            <.avatar name="Grace Hopper" random_color class="ring-2 ring-white dark:ring-zinc-900" />
-            <.avatar name="Alan Turing" random_color class="ring-2 ring-white dark:ring-zinc-900" />
-          </div>
+          <.avatar_group
+            size="md"
+            avatars={[
+              "/dev-static/avatars/p32.jpg",
+              "/dev-static/avatars/p44.jpg",
+              "/dev-static/avatars/p65.jpg",
+              "/dev-static/avatars/p12.jpg",
+              "/dev-static/avatars/p68.jpg"
+            ]}
+          />
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        No src? name renders initials (random_color gives each person a stable hue,
-        hashed from the name); no name either renders the person icon. Stack them with
-        -space-x-2 + rings for the classic team cluster, or use avatar_group with image
-        URLs.
+        src renders the photo; no src + name renders initials (random_color gives each
+        person a stable hue hashed from the name); neither renders the person icon.
+        avatar_group stacks with overlap and rings. Demo photos are tiny local files -
+        4KB each, dev-only.
       </div>
     </div>
     """
@@ -2974,14 +2978,18 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
-              <button phx-click="ctl_accordion" phx-value-k="multiple" class={tog(@accordion.multiple)}>multiple</button>
+              <button phx-click="ctl_accordion" phx-value-k="multiple" class={tog(@accordion.multiple)}>
+                allow multiple open
+              </button>
             </div>
           </div>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Items come from :item slots (heading attr + body) or an entries list; open_index
-        opens one at render. ghost drops the container border for embedding.
+        opens one at render. "Allow multiple open" changes what happens on the NEXT
+        clicks: off, opening a section closes the others (classic FAQ); on, sections
+        stay open independently - open two to see it. ghost drops the boxes entirely.
       </div>
     </div>
     """
@@ -4332,6 +4340,7 @@ defmodule Dev.Endpoint do
 
   # Petal Components hook bundle (loaded as an ES module by the root layout)
   plug Plug.Static, from: Path.expand("assets/js", __DIR__), at: "/assets/js"
+  plug Plug.Static, from: Path.expand("dev/static", __DIR__), at: "/dev-static"
 
   # Compiled Tailwind CSS
   plug Plug.Static,

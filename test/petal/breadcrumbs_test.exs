@@ -151,4 +151,19 @@ defmodule PetalComponents.BreadcrumbsTest do
     assert html =~ "pc-breadcrumbs__separator-chevron"
     assert has_icon?(html, "hero-chevron-right-solid")
   end
+
+  test "the last crumb is the current page" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.breadcrumbs links={[
+        %{label: "Home", to: "/"},
+        %{label: "Projects", to: "/projects"}
+      ]} />
+      """)
+
+    assert html =~ "pc-breadcrumb--current"
+    assert html =~ ~s(aria-current="page")
+  end
 end
