@@ -2405,7 +2405,8 @@
     border-end-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
     border-end-end-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
-  .pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
+  /* only the bordered variant highlights its open header - rows stay clean */
+  .pc-accordion-item.pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
     @apply bg-gray-50 dark:bg-white/5;
   }
 

@@ -12,7 +12,7 @@ defmodule PetalComponents.Accordion do
     default: "default",
     values: ["default", "bordered", "ghost"],
     doc:
-      "default is the shadcn row style (hairline dividers, no boxes); bordered is the boxed card-accordion; ghost is the minimal +/- style"
+      "default is the shadcn row style (hairline dividers, no boxes); bordered is the boxed card-accordion. ghost is a legacy alias of default (identical look) slated for removal in a future major"
   )
 
   attr(:size, :string,
@@ -42,6 +42,8 @@ defmodule PetalComponents.Accordion do
     assigns =
       assigns
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
+      # ghost became visually indistinguishable from the row default - alias it
+      |> then(&if &1.variant == "ghost", do: assign(&1, :variant, "default"), else: &1)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do

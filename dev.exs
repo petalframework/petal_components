@@ -441,7 +441,7 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
   def handle_event("ctl_accordion", %{"k" => "variant", "v" => v}, socket)
-      when v in ~w(default bordered ghost),
+      when v in ~w(default bordered),
       do: {:noreply, update(socket, :accordion, &%{&1 | variant: v})}
 
   def handle_event("ctl_accordion", %{"k" => "multiple"}, socket),
@@ -3017,7 +3017,7 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={v <- ~w(default bordered ghost)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
+              <button :for={v <- ~w(default bordered)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
                 {v}
               </button>
             </div>
@@ -3042,10 +3042,12 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         default is the shadcn row style - hairline dividers, headings underline on
-        hover; bordered is the boxed card-accordion; ghost is the minimal +/- look.
-        "Allow multiple open" changes what happens on the NEXT clicks: off, opening a
-        section closes the others (classic FAQ); on, sections stay open independently -
-        open two to see it.
+        hover, no highlight on open; bordered is the boxed card-accordion, whose open
+        header keeps a soft fill so you can see which section is expanded. "Allow
+        multiple open" changes what happens on the NEXT clicks: off, opening a section
+        closes the others (classic FAQ); on, sections stay open independently - open two
+        to see it. (variant="ghost" still renders - a legacy alias of default, going
+        away in 5.0.)
       </div>
     </div>
     """
