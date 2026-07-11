@@ -122,4 +122,73 @@ defmodule PetalComponents.ButtonGroupTest do
     assert html =~ "bg-blue-500"
     refute html =~ "dark:border-gray-800"
   end
+
+  describe "composition mode" do
+    test "fuses arbitrary children inside role=group" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.button_group aria_label="Change view">
+          <PetalComponents.Button.button color="gray" variant="outline" label="Day" />
+          <PetalComponents.Button.button color="gray" variant="outline" label="Week" />
+        </.button_group>
+        """)
+
+      assert html =~ ~s(role="group")
+      assert html =~ ~s(aria-label="Change view")
+      assert html =~ "pc-button-group"
+      assert html =~ "pc-button"
+      refute html =~ "pc-button-group--legacy"
+      refute html =~ "pc-button-group__button"
+    end
+
+    test "vertical orientation adds the modifier" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.button_group aria_label="Zoom" orientation="vertical">
+          <PetalComponents.Button.button label="+" />
+          <PetalComponents.Button.button label="-" />
+        </.button_group>
+        """)
+
+      assert html =~ "pc-button-group--vertical"
+    end
+
+    test "separator and text segments render" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.button_group aria_label="Site address">
+          <.button_group_text>https://</.button_group_text>
+          <PetalComponents.Button.button label="Visit" />
+          <.button_group_separator />
+          <PetalComponents.Button.button label="Go" />
+        </.button_group>
+        """)
+
+      assert html =~ "pc-button-group__text"
+      assert html =~ "https://"
+      assert html =~ "pc-button-group__separator"
+      assert html =~ ~s(aria-hidden="true")
+    end
+  end
+
+  test "legacy slot mode keeps the legacy container modifier" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.button_group aria_label="Legacy">
+        <:button>One</:button>
+        <:button>Two</:button>
+      </.button_group>
+      """)
+
+    assert html =~ "pc-button-group pc-button-group--legacy"
+    assert html =~ "pc-button-group__button"
+  end
 end

@@ -539,7 +539,70 @@
   /* Button Group */
 
   .pc-button-group {
-    @apply flex -space-x-px;
+    @apply flex w-fit items-stretch;
+  }
+
+  /* a group of groups stops fusing and gaps its clusters instead */
+  .pc-button-group:has(> .pc-button-group) {
+    @apply gap-2;
+  }
+
+  /* the focused child rises above its fused neighbours so its ring isn't clipped */
+  .pc-button-group > :where(*) {
+    @apply focus-visible:relative focus-visible:z-10;
+  }
+
+  /* inputs take the leftover rail width */
+  .pc-button-group > input.pc-text-input {
+    @apply min-w-0 flex-1;
+  }
+
+  /* a pressed button scaling down would crack the fused strip open */
+  .pc-button-group > .pc-button {
+    @apply active:scale-100;
+  }
+
+  .pc-button-group--vertical {
+    @apply flex-col;
+  }
+
+  /* fuse: only the group's outer corners stay round; inner borders collapse
+     to a single line (solid buttons have transparent borders - use the
+     separator there) */
+  .pc-button-group:not(.pc-button-group--legacy, .pc-button-group--vertical) > :not(:first-child) {
+    @apply rounded-l-none border-l-0;
+  }
+
+  .pc-button-group:not(.pc-button-group--legacy, .pc-button-group--vertical) > :not(:last-child) {
+    @apply rounded-r-none;
+  }
+
+  .pc-button-group--vertical > :not(:first-child) {
+    @apply rounded-t-none border-t-0;
+  }
+
+  .pc-button-group--vertical > :not(:last-child) {
+    @apply rounded-b-none;
+  }
+
+  .pc-button-group__separator {
+    @apply w-px shrink-0 self-stretch;
+    background: color-mix(in srgb, var(--pc-button-solid-fg, #fff) 25%, transparent);
+  }
+
+  .pc-button-group--vertical > .pc-button-group__separator {
+    @apply h-px w-auto;
+  }
+
+  .pc-button-group__text {
+    @apply flex items-center gap-2 border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-300;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Button Group - legacy :button slot API (self-styled overlapping buttons) */
+
+  .pc-button-group--legacy {
+    @apply -space-x-px;
   }
 
   /* Button Group - Buttons */

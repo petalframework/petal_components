@@ -107,12 +107,15 @@ defmodule Dev.PlaygroundLive do
   @stars 1037
 
   @nav [
-    %{group: "Foundations",
+    %{
+      group: "Foundations",
       items: [
         %{slug: "typography", name: "Typography", ready: true},
         %{slug: "colors", name: "Colours", ready: true}
-      ]},
-    %{group: "Inputs",
+      ]
+    },
+    %{
+      group: "Inputs",
       items: [
         %{slug: "button", name: "Button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
@@ -122,8 +125,10 @@ defmodule Dev.PlaygroundLive do
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "input-otp", name: "Input OTP", ready: true}
-      ]},
-    %{group: "Feedback",
+      ]
+    },
+    %{
+      group: "Feedback",
       items: [
         %{slug: "alert", name: "Alert", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
@@ -131,25 +136,33 @@ defmodule Dev.PlaygroundLive do
         %{slug: "rating", name: "Rating", ready: true},
         %{slug: "skeleton", name: "Skeleton", ready: true},
         %{slug: "loading", name: "Loading", ready: true}
-      ]},
-    %{group: "Navigation",
+      ]
+    },
+    %{
+      group: "Navigation",
       items: [
         %{slug: "tabs", name: "Tabs", ready: true},
         %{slug: "pagination", name: "Pagination", ready: true},
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
         %{slug: "stepper", name: "Stepper", ready: true}
-      ]},
-    %{group: "Data",
+      ]
+    },
+    %{
+      group: "Data",
       items: [
         %{slug: "table", name: "Table", ready: true}
-      ]},
-    %{group: "Display",
+      ]
+    },
+    %{
+      group: "Display",
       items: [
         %{slug: "avatar", name: "Avatar", ready: true},
         %{slug: "card", name: "Card", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true}
-      ]},
-    %{group: "Overlay",
+      ]
+    },
+    %{
+      group: "Overlay",
       items: [
         %{slug: "tooltip", name: "Tooltip", ready: true},
         %{slug: "popover", name: "Popover", ready: true},
@@ -157,8 +170,10 @@ defmodule Dev.PlaygroundLive do
         %{slug: "dropdown", name: "Dropdown", ready: true},
         %{slug: "command", name: "Command", ready: true},
         %{slug: "slide-over", name: "Slide over", ready: true}
-      ]},
-    %{group: "Effects",
+      ]
+    },
+    %{
+      group: "Effects",
       items: [
         %{slug: "border-beam", name: "Border beam", ready: true},
         %{slug: "meteors", name: "Meteors", ready: true},
@@ -168,7 +183,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "number-ticker", name: "Number ticker", ready: true},
         %{slug: "text-animation", name: "Text animation", ready: true},
         %{slug: "confetti", name: "Confetti", ready: true}
-      ]}
+      ]
+    }
   ]
 
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
@@ -200,28 +216,314 @@ defmodule Dev.PlaygroundLive do
   # an app maps primary/secondary from. Hard-coded because Tailwind v4
   # tree-shakes unused colour vars out of the build.
   @tw_palette [
-    {"red", ["oklch(97.1% 0.013 17.38)", "oklch(93.6% 0.032 17.717)", "oklch(88.5% 0.062 18.334)", "oklch(80.8% 0.114 19.571)", "oklch(70.4% 0.191 22.216)", "oklch(63.7% 0.237 25.331)", "oklch(57.7% 0.245 27.325)", "oklch(50.5% 0.213 27.518)", "oklch(44.4% 0.177 26.899)", "oklch(39.6% 0.141 25.723)", "oklch(25.8% 0.092 26.042)"]},
-    {"orange", ["oklch(98% 0.016 73.684)", "oklch(95.4% 0.038 75.164)", "oklch(90.1% 0.076 70.697)", "oklch(83.7% 0.128 66.29)", "oklch(75% 0.183 55.934)", "oklch(70.5% 0.213 47.604)", "oklch(64.6% 0.222 41.116)", "oklch(55.3% 0.195 38.402)", "oklch(47% 0.157 37.304)", "oklch(40.8% 0.123 38.172)", "oklch(26.6% 0.079 36.259)"]},
-    {"amber", ["oklch(98.7% 0.022 95.277)", "oklch(96.2% 0.059 95.617)", "oklch(92.4% 0.12 95.746)", "oklch(87.9% 0.169 91.605)", "oklch(82.8% 0.189 84.429)", "oklch(76.9% 0.188 70.08)", "oklch(66.6% 0.179 58.318)", "oklch(55.5% 0.163 48.998)", "oklch(47.3% 0.137 46.201)", "oklch(41.4% 0.112 45.904)", "oklch(27.9% 0.077 45.635)"]},
-    {"yellow", ["oklch(98.7% 0.026 102.212)", "oklch(97.3% 0.071 103.193)", "oklch(94.5% 0.129 101.54)", "oklch(90.5% 0.182 98.111)", "oklch(85.2% 0.199 91.936)", "oklch(79.5% 0.184 86.047)", "oklch(68.1% 0.162 75.834)", "oklch(55.4% 0.135 66.442)", "oklch(47.6% 0.114 61.907)", "oklch(42.1% 0.095 57.708)", "oklch(28.6% 0.066 53.813)"]},
-    {"lime", ["oklch(98.6% 0.031 120.757)", "oklch(96.7% 0.067 122.328)", "oklch(93.8% 0.127 124.321)", "oklch(89.7% 0.196 126.665)", "oklch(84.1% 0.238 128.85)", "oklch(76.8% 0.233 130.85)", "oklch(64.8% 0.2 131.684)", "oklch(53.2% 0.157 131.589)", "oklch(45.3% 0.124 130.933)", "oklch(40.5% 0.101 131.063)", "oklch(27.4% 0.072 132.109)"]},
-    {"green", ["oklch(98.2% 0.018 155.826)", "oklch(96.2% 0.044 156.743)", "oklch(92.5% 0.084 155.995)", "oklch(87.1% 0.15 154.449)", "oklch(79.2% 0.209 151.711)", "oklch(72.3% 0.219 149.579)", "oklch(62.7% 0.194 149.214)", "oklch(52.7% 0.154 150.069)", "oklch(44.8% 0.119 151.328)", "oklch(39.3% 0.095 152.535)", "oklch(26.6% 0.065 152.934)"]},
-    {"emerald", ["oklch(97.9% 0.021 166.113)", "oklch(95% 0.052 163.051)", "oklch(90.5% 0.093 164.15)", "oklch(84.5% 0.143 164.978)", "oklch(76.5% 0.177 163.223)", "oklch(69.6% 0.17 162.48)", "oklch(59.6% 0.145 163.225)", "oklch(50.8% 0.118 165.612)", "oklch(43.2% 0.095 166.913)", "oklch(37.8% 0.077 168.94)", "oklch(26.2% 0.051 172.552)"]},
-    {"teal", ["oklch(98.4% 0.014 180.72)", "oklch(95.3% 0.051 180.801)", "oklch(91% 0.096 180.426)", "oklch(85.5% 0.138 181.071)", "oklch(77.7% 0.152 181.912)", "oklch(70.4% 0.14 182.503)", "oklch(60% 0.118 184.704)", "oklch(51.1% 0.096 186.391)", "oklch(43.7% 0.078 188.216)", "oklch(38.6% 0.063 188.416)", "oklch(27.7% 0.046 192.524)"]},
-    {"cyan", ["oklch(98.4% 0.019 200.873)", "oklch(95.6% 0.045 203.388)", "oklch(91.7% 0.08 205.041)", "oklch(86.5% 0.127 207.078)", "oklch(78.9% 0.154 211.53)", "oklch(71.5% 0.143 215.221)", "oklch(60.9% 0.126 221.723)", "oklch(52% 0.105 223.128)", "oklch(45% 0.085 224.283)", "oklch(39.8% 0.07 227.392)", "oklch(30.2% 0.056 229.695)"]},
-    {"sky", ["oklch(97.7% 0.013 236.62)", "oklch(95.1% 0.026 236.824)", "oklch(90.1% 0.058 230.902)", "oklch(82.8% 0.111 230.318)", "oklch(74.6% 0.16 232.661)", "oklch(68.5% 0.169 237.323)", "oklch(58.8% 0.158 241.966)", "oklch(50% 0.134 242.749)", "oklch(44.3% 0.11 240.79)", "oklch(39.1% 0.09 240.876)", "oklch(29.3% 0.066 243.157)"]},
-    {"blue", ["oklch(97% 0.014 254.604)", "oklch(93.2% 0.032 255.585)", "oklch(88.2% 0.059 254.128)", "oklch(80.9% 0.105 251.813)", "oklch(70.7% 0.165 254.624)", "oklch(62.3% 0.214 259.815)", "oklch(54.6% 0.245 262.881)", "oklch(48.8% 0.243 264.376)", "oklch(42.4% 0.199 265.638)", "oklch(37.9% 0.146 265.522)", "oklch(28.2% 0.091 267.935)"]},
-    {"indigo", ["oklch(96.2% 0.018 272.314)", "oklch(93% 0.034 272.788)", "oklch(87% 0.065 274.039)", "oklch(78.5% 0.115 274.713)", "oklch(67.3% 0.182 276.935)", "oklch(58.5% 0.233 277.117)", "oklch(51.1% 0.262 276.966)", "oklch(45.7% 0.24 277.023)", "oklch(39.8% 0.195 277.366)", "oklch(35.9% 0.144 278.697)", "oklch(25.7% 0.09 281.288)"]},
-    {"violet", ["oklch(96.9% 0.016 293.756)", "oklch(94.3% 0.029 294.588)", "oklch(89.4% 0.057 293.283)", "oklch(81.1% 0.111 293.571)", "oklch(70.2% 0.183 293.541)", "oklch(60.6% 0.25 292.717)", "oklch(54.1% 0.281 293.009)", "oklch(49.1% 0.27 292.581)", "oklch(43.2% 0.232 292.759)", "oklch(38% 0.189 293.745)", "oklch(28.3% 0.141 291.089)"]},
-    {"purple", ["oklch(97.7% 0.014 308.299)", "oklch(94.6% 0.033 307.174)", "oklch(90.2% 0.063 306.703)", "oklch(82.7% 0.119 306.383)", "oklch(71.4% 0.203 305.504)", "oklch(62.7% 0.265 303.9)", "oklch(55.8% 0.288 302.321)", "oklch(49.6% 0.265 301.924)", "oklch(43.8% 0.218 303.724)", "oklch(38.1% 0.176 304.987)", "oklch(29.1% 0.149 302.717)"]},
-    {"fuchsia", ["oklch(97.7% 0.017 320.058)", "oklch(95.2% 0.037 318.852)", "oklch(90.3% 0.076 319.62)", "oklch(83.3% 0.145 321.434)", "oklch(74% 0.238 322.16)", "oklch(66.7% 0.295 322.15)", "oklch(59.1% 0.293 322.896)", "oklch(51.8% 0.253 323.949)", "oklch(45.2% 0.211 324.591)", "oklch(40.1% 0.17 325.612)", "oklch(29.3% 0.136 325.661)"]},
-    {"pink", ["oklch(97.1% 0.014 343.198)", "oklch(94.8% 0.028 342.258)", "oklch(89.9% 0.061 343.231)", "oklch(82.3% 0.12 346.018)", "oklch(71.8% 0.202 349.761)", "oklch(65.6% 0.241 354.308)", "oklch(59.2% 0.249 0.584)", "oklch(52.5% 0.223 3.958)", "oklch(45.9% 0.187 3.815)", "oklch(40.8% 0.153 2.432)", "oklch(28.4% 0.109 3.907)"]},
-    {"rose", ["oklch(96.9% 0.015 12.422)", "oklch(94.1% 0.03 12.58)", "oklch(89.2% 0.058 10.001)", "oklch(81% 0.117 11.638)", "oklch(71.2% 0.194 13.428)", "oklch(64.5% 0.246 16.439)", "oklch(58.6% 0.253 17.585)", "oklch(51.4% 0.222 16.935)", "oklch(45.5% 0.188 13.697)", "oklch(41% 0.159 10.272)", "oklch(27.1% 0.105 12.094)"]},
-    {"slate", ["oklch(98.4% 0.003 247.858)", "oklch(96.8% 0.007 247.896)", "oklch(92.9% 0.013 255.508)", "oklch(86.9% 0.022 252.894)", "oklch(70.4% 0.04 256.788)", "oklch(55.4% 0.046 257.417)", "oklch(44.6% 0.043 257.281)", "oklch(37.2% 0.044 257.287)", "oklch(27.9% 0.041 260.031)", "oklch(20.8% 0.042 265.755)", "oklch(12.9% 0.042 264.695)"]},
-    {"gray", ["oklch(98.5% 0.002 247.839)", "oklch(96.7% 0.003 264.542)", "oklch(92.8% 0.006 264.531)", "oklch(87.2% 0.01 258.338)", "oklch(70.7% 0.022 261.325)", "oklch(55.1% 0.027 264.364)", "oklch(44.6% 0.03 256.802)", "oklch(37.3% 0.034 259.733)", "oklch(27.8% 0.033 256.848)", "oklch(21% 0.034 264.665)", "oklch(13% 0.028 261.692)"]},
-    {"zinc", ["oklch(98.5% 0 0)", "oklch(96.7% 0.001 286.375)", "oklch(92% 0.004 286.32)", "oklch(87.1% 0.006 286.286)", "oklch(70.5% 0.015 286.067)", "oklch(55.2% 0.016 285.938)", "oklch(44.2% 0.017 285.786)", "oklch(37% 0.013 285.805)", "oklch(27.4% 0.006 286.033)", "oklch(21% 0.006 285.885)", "oklch(14.1% 0.005 285.823)"]},
-    {"neutral", ["oklch(98.5% 0 0)", "oklch(97% 0 0)", "oklch(92.2% 0 0)", "oklch(87% 0 0)", "oklch(70.8% 0 0)", "oklch(55.6% 0 0)", "oklch(43.9% 0 0)", "oklch(37.1% 0 0)", "oklch(26.9% 0 0)", "oklch(20.5% 0 0)", "oklch(14.5% 0 0)"]},
-    {"stone", ["oklch(98.5% 0.001 106.423)", "oklch(97% 0.001 106.424)", "oklch(92.3% 0.003 48.717)", "oklch(86.9% 0.005 56.366)", "oklch(70.9% 0.01 56.259)", "oklch(55.3% 0.013 58.071)", "oklch(44.4% 0.011 73.639)", "oklch(37.4% 0.01 67.558)", "oklch(26.8% 0.007 34.298)", "oklch(21.6% 0.006 56.043)", "oklch(14.7% 0.004 49.25)"]}
+    {"red",
+     [
+       "oklch(97.1% 0.013 17.38)",
+       "oklch(93.6% 0.032 17.717)",
+       "oklch(88.5% 0.062 18.334)",
+       "oklch(80.8% 0.114 19.571)",
+       "oklch(70.4% 0.191 22.216)",
+       "oklch(63.7% 0.237 25.331)",
+       "oklch(57.7% 0.245 27.325)",
+       "oklch(50.5% 0.213 27.518)",
+       "oklch(44.4% 0.177 26.899)",
+       "oklch(39.6% 0.141 25.723)",
+       "oklch(25.8% 0.092 26.042)"
+     ]},
+    {"orange",
+     [
+       "oklch(98% 0.016 73.684)",
+       "oklch(95.4% 0.038 75.164)",
+       "oklch(90.1% 0.076 70.697)",
+       "oklch(83.7% 0.128 66.29)",
+       "oklch(75% 0.183 55.934)",
+       "oklch(70.5% 0.213 47.604)",
+       "oklch(64.6% 0.222 41.116)",
+       "oklch(55.3% 0.195 38.402)",
+       "oklch(47% 0.157 37.304)",
+       "oklch(40.8% 0.123 38.172)",
+       "oklch(26.6% 0.079 36.259)"
+     ]},
+    {"amber",
+     [
+       "oklch(98.7% 0.022 95.277)",
+       "oklch(96.2% 0.059 95.617)",
+       "oklch(92.4% 0.12 95.746)",
+       "oklch(87.9% 0.169 91.605)",
+       "oklch(82.8% 0.189 84.429)",
+       "oklch(76.9% 0.188 70.08)",
+       "oklch(66.6% 0.179 58.318)",
+       "oklch(55.5% 0.163 48.998)",
+       "oklch(47.3% 0.137 46.201)",
+       "oklch(41.4% 0.112 45.904)",
+       "oklch(27.9% 0.077 45.635)"
+     ]},
+    {"yellow",
+     [
+       "oklch(98.7% 0.026 102.212)",
+       "oklch(97.3% 0.071 103.193)",
+       "oklch(94.5% 0.129 101.54)",
+       "oklch(90.5% 0.182 98.111)",
+       "oklch(85.2% 0.199 91.936)",
+       "oklch(79.5% 0.184 86.047)",
+       "oklch(68.1% 0.162 75.834)",
+       "oklch(55.4% 0.135 66.442)",
+       "oklch(47.6% 0.114 61.907)",
+       "oklch(42.1% 0.095 57.708)",
+       "oklch(28.6% 0.066 53.813)"
+     ]},
+    {"lime",
+     [
+       "oklch(98.6% 0.031 120.757)",
+       "oklch(96.7% 0.067 122.328)",
+       "oklch(93.8% 0.127 124.321)",
+       "oklch(89.7% 0.196 126.665)",
+       "oklch(84.1% 0.238 128.85)",
+       "oklch(76.8% 0.233 130.85)",
+       "oklch(64.8% 0.2 131.684)",
+       "oklch(53.2% 0.157 131.589)",
+       "oklch(45.3% 0.124 130.933)",
+       "oklch(40.5% 0.101 131.063)",
+       "oklch(27.4% 0.072 132.109)"
+     ]},
+    {"green",
+     [
+       "oklch(98.2% 0.018 155.826)",
+       "oklch(96.2% 0.044 156.743)",
+       "oklch(92.5% 0.084 155.995)",
+       "oklch(87.1% 0.15 154.449)",
+       "oklch(79.2% 0.209 151.711)",
+       "oklch(72.3% 0.219 149.579)",
+       "oklch(62.7% 0.194 149.214)",
+       "oklch(52.7% 0.154 150.069)",
+       "oklch(44.8% 0.119 151.328)",
+       "oklch(39.3% 0.095 152.535)",
+       "oklch(26.6% 0.065 152.934)"
+     ]},
+    {"emerald",
+     [
+       "oklch(97.9% 0.021 166.113)",
+       "oklch(95% 0.052 163.051)",
+       "oklch(90.5% 0.093 164.15)",
+       "oklch(84.5% 0.143 164.978)",
+       "oklch(76.5% 0.177 163.223)",
+       "oklch(69.6% 0.17 162.48)",
+       "oklch(59.6% 0.145 163.225)",
+       "oklch(50.8% 0.118 165.612)",
+       "oklch(43.2% 0.095 166.913)",
+       "oklch(37.8% 0.077 168.94)",
+       "oklch(26.2% 0.051 172.552)"
+     ]},
+    {"teal",
+     [
+       "oklch(98.4% 0.014 180.72)",
+       "oklch(95.3% 0.051 180.801)",
+       "oklch(91% 0.096 180.426)",
+       "oklch(85.5% 0.138 181.071)",
+       "oklch(77.7% 0.152 181.912)",
+       "oklch(70.4% 0.14 182.503)",
+       "oklch(60% 0.118 184.704)",
+       "oklch(51.1% 0.096 186.391)",
+       "oklch(43.7% 0.078 188.216)",
+       "oklch(38.6% 0.063 188.416)",
+       "oklch(27.7% 0.046 192.524)"
+     ]},
+    {"cyan",
+     [
+       "oklch(98.4% 0.019 200.873)",
+       "oklch(95.6% 0.045 203.388)",
+       "oklch(91.7% 0.08 205.041)",
+       "oklch(86.5% 0.127 207.078)",
+       "oklch(78.9% 0.154 211.53)",
+       "oklch(71.5% 0.143 215.221)",
+       "oklch(60.9% 0.126 221.723)",
+       "oklch(52% 0.105 223.128)",
+       "oklch(45% 0.085 224.283)",
+       "oklch(39.8% 0.07 227.392)",
+       "oklch(30.2% 0.056 229.695)"
+     ]},
+    {"sky",
+     [
+       "oklch(97.7% 0.013 236.62)",
+       "oklch(95.1% 0.026 236.824)",
+       "oklch(90.1% 0.058 230.902)",
+       "oklch(82.8% 0.111 230.318)",
+       "oklch(74.6% 0.16 232.661)",
+       "oklch(68.5% 0.169 237.323)",
+       "oklch(58.8% 0.158 241.966)",
+       "oklch(50% 0.134 242.749)",
+       "oklch(44.3% 0.11 240.79)",
+       "oklch(39.1% 0.09 240.876)",
+       "oklch(29.3% 0.066 243.157)"
+     ]},
+    {"blue",
+     [
+       "oklch(97% 0.014 254.604)",
+       "oklch(93.2% 0.032 255.585)",
+       "oklch(88.2% 0.059 254.128)",
+       "oklch(80.9% 0.105 251.813)",
+       "oklch(70.7% 0.165 254.624)",
+       "oklch(62.3% 0.214 259.815)",
+       "oklch(54.6% 0.245 262.881)",
+       "oklch(48.8% 0.243 264.376)",
+       "oklch(42.4% 0.199 265.638)",
+       "oklch(37.9% 0.146 265.522)",
+       "oklch(28.2% 0.091 267.935)"
+     ]},
+    {"indigo",
+     [
+       "oklch(96.2% 0.018 272.314)",
+       "oklch(93% 0.034 272.788)",
+       "oklch(87% 0.065 274.039)",
+       "oklch(78.5% 0.115 274.713)",
+       "oklch(67.3% 0.182 276.935)",
+       "oklch(58.5% 0.233 277.117)",
+       "oklch(51.1% 0.262 276.966)",
+       "oklch(45.7% 0.24 277.023)",
+       "oklch(39.8% 0.195 277.366)",
+       "oklch(35.9% 0.144 278.697)",
+       "oklch(25.7% 0.09 281.288)"
+     ]},
+    {"violet",
+     [
+       "oklch(96.9% 0.016 293.756)",
+       "oklch(94.3% 0.029 294.588)",
+       "oklch(89.4% 0.057 293.283)",
+       "oklch(81.1% 0.111 293.571)",
+       "oklch(70.2% 0.183 293.541)",
+       "oklch(60.6% 0.25 292.717)",
+       "oklch(54.1% 0.281 293.009)",
+       "oklch(49.1% 0.27 292.581)",
+       "oklch(43.2% 0.232 292.759)",
+       "oklch(38% 0.189 293.745)",
+       "oklch(28.3% 0.141 291.089)"
+     ]},
+    {"purple",
+     [
+       "oklch(97.7% 0.014 308.299)",
+       "oklch(94.6% 0.033 307.174)",
+       "oklch(90.2% 0.063 306.703)",
+       "oklch(82.7% 0.119 306.383)",
+       "oklch(71.4% 0.203 305.504)",
+       "oklch(62.7% 0.265 303.9)",
+       "oklch(55.8% 0.288 302.321)",
+       "oklch(49.6% 0.265 301.924)",
+       "oklch(43.8% 0.218 303.724)",
+       "oklch(38.1% 0.176 304.987)",
+       "oklch(29.1% 0.149 302.717)"
+     ]},
+    {"fuchsia",
+     [
+       "oklch(97.7% 0.017 320.058)",
+       "oklch(95.2% 0.037 318.852)",
+       "oklch(90.3% 0.076 319.62)",
+       "oklch(83.3% 0.145 321.434)",
+       "oklch(74% 0.238 322.16)",
+       "oklch(66.7% 0.295 322.15)",
+       "oklch(59.1% 0.293 322.896)",
+       "oklch(51.8% 0.253 323.949)",
+       "oklch(45.2% 0.211 324.591)",
+       "oklch(40.1% 0.17 325.612)",
+       "oklch(29.3% 0.136 325.661)"
+     ]},
+    {"pink",
+     [
+       "oklch(97.1% 0.014 343.198)",
+       "oklch(94.8% 0.028 342.258)",
+       "oklch(89.9% 0.061 343.231)",
+       "oklch(82.3% 0.12 346.018)",
+       "oklch(71.8% 0.202 349.761)",
+       "oklch(65.6% 0.241 354.308)",
+       "oklch(59.2% 0.249 0.584)",
+       "oklch(52.5% 0.223 3.958)",
+       "oklch(45.9% 0.187 3.815)",
+       "oklch(40.8% 0.153 2.432)",
+       "oklch(28.4% 0.109 3.907)"
+     ]},
+    {"rose",
+     [
+       "oklch(96.9% 0.015 12.422)",
+       "oklch(94.1% 0.03 12.58)",
+       "oklch(89.2% 0.058 10.001)",
+       "oklch(81% 0.117 11.638)",
+       "oklch(71.2% 0.194 13.428)",
+       "oklch(64.5% 0.246 16.439)",
+       "oklch(58.6% 0.253 17.585)",
+       "oklch(51.4% 0.222 16.935)",
+       "oklch(45.5% 0.188 13.697)",
+       "oklch(41% 0.159 10.272)",
+       "oklch(27.1% 0.105 12.094)"
+     ]},
+    {"slate",
+     [
+       "oklch(98.4% 0.003 247.858)",
+       "oklch(96.8% 0.007 247.896)",
+       "oklch(92.9% 0.013 255.508)",
+       "oklch(86.9% 0.022 252.894)",
+       "oklch(70.4% 0.04 256.788)",
+       "oklch(55.4% 0.046 257.417)",
+       "oklch(44.6% 0.043 257.281)",
+       "oklch(37.2% 0.044 257.287)",
+       "oklch(27.9% 0.041 260.031)",
+       "oklch(20.8% 0.042 265.755)",
+       "oklch(12.9% 0.042 264.695)"
+     ]},
+    {"gray",
+     [
+       "oklch(98.5% 0.002 247.839)",
+       "oklch(96.7% 0.003 264.542)",
+       "oklch(92.8% 0.006 264.531)",
+       "oklch(87.2% 0.01 258.338)",
+       "oklch(70.7% 0.022 261.325)",
+       "oklch(55.1% 0.027 264.364)",
+       "oklch(44.6% 0.03 256.802)",
+       "oklch(37.3% 0.034 259.733)",
+       "oklch(27.8% 0.033 256.848)",
+       "oklch(21% 0.034 264.665)",
+       "oklch(13% 0.028 261.692)"
+     ]},
+    {"zinc",
+     [
+       "oklch(98.5% 0 0)",
+       "oklch(96.7% 0.001 286.375)",
+       "oklch(92% 0.004 286.32)",
+       "oklch(87.1% 0.006 286.286)",
+       "oklch(70.5% 0.015 286.067)",
+       "oklch(55.2% 0.016 285.938)",
+       "oklch(44.2% 0.017 285.786)",
+       "oklch(37% 0.013 285.805)",
+       "oklch(27.4% 0.006 286.033)",
+       "oklch(21% 0.006 285.885)",
+       "oklch(14.1% 0.005 285.823)"
+     ]},
+    {"neutral",
+     [
+       "oklch(98.5% 0 0)",
+       "oklch(97% 0 0)",
+       "oklch(92.2% 0 0)",
+       "oklch(87% 0 0)",
+       "oklch(70.8% 0 0)",
+       "oklch(55.6% 0 0)",
+       "oklch(43.9% 0 0)",
+       "oklch(37.1% 0 0)",
+       "oklch(26.9% 0 0)",
+       "oklch(20.5% 0 0)",
+       "oklch(14.5% 0 0)"
+     ]},
+    {"stone",
+     [
+       "oklch(98.5% 0.001 106.423)",
+       "oklch(97% 0.001 106.424)",
+       "oklch(92.3% 0.003 48.717)",
+       "oklch(86.9% 0.005 56.366)",
+       "oklch(70.9% 0.01 56.259)",
+       "oklch(55.3% 0.013 58.071)",
+       "oklch(44.4% 0.011 73.639)",
+       "oklch(37.4% 0.01 67.558)",
+       "oklch(26.8% 0.007 34.298)",
+       "oklch(21.6% 0.006 56.043)",
+       "oklch(14.7% 0.004 49.25)"
+     ]}
   ]
 
   # Theme radius: the rail sets --pc-radius on the page, so every component
@@ -266,13 +568,35 @@ defmodule Dev.PlaygroundLive do
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{value: 60, color: "primary", size: "xs", label: "top"},
-       beam: %{duration: "8s", beams: 1, reverse: false, easing: "linear", size: "60px", glow: false},
+       beam: %{
+         duration: "8s",
+         beams: 1,
+         reverse: false,
+         easing: "linear",
+         size: "60px",
+         glow: false
+       },
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
-       rating: %{icon: "star", size: "md", value: 3.0, hearts: 2.0, mood: 4, label: "none", step: "whole"},
+       rating: %{
+         icon: "star",
+         size: "md",
+         value: 3.0,
+         hearts: 2.0,
+         mood: 4,
+         label: "none",
+         step: "whole"
+       },
        slideover: %{origin: "right", width: "md"},
        tabs: %{variant: "segmented", active: "overview", number: true},
-       table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false, variant: "basic", empty: false},
+       table: %{
+         sort_by: "name",
+         sort_dir: "asc",
+         density: "comfortable",
+         striped: false,
+         variant: "basic",
+         empty: false
+       },
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
@@ -297,13 +621,21 @@ defmodule Dev.PlaygroundLive do
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
-  def handle_event("set_primary", %{"primary" => p}, socket), do: patch_theme(socket, %{primary: p})
-  def handle_event("set_secondary", %{"secondary" => x}, socket), do: patch_theme(socket, %{secondary: x})
-  def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
-  def handle_event("toggle_dark", _params, socket), do: patch_theme(socket, %{dark: !socket.assigns.dark})
 
-  def handle_event("ctl_variant", %{"v" => v}, socket) when v in ~w(solid soft light outline ghost),
-    do: {:noreply, assign(socket, :variant, v)}
+  def handle_event("set_primary", %{"primary" => p}, socket),
+    do: patch_theme(socket, %{primary: p})
+
+  def handle_event("set_secondary", %{"secondary" => x}, socket),
+    do: patch_theme(socket, %{secondary: x})
+
+  def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
+
+  def handle_event("toggle_dark", _params, socket),
+    do: patch_theme(socket, %{dark: !socket.assigns.dark})
+
+  def handle_event("ctl_variant", %{"v" => v}, socket)
+      when v in ~w(solid soft light outline ghost),
+      do: {:noreply, assign(socket, :variant, v)}
 
   def handle_event("ctl_color", %{"v" => v}, socket)
       when v in ~w(primary secondary info success warning danger gray),
@@ -317,29 +649,42 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("flip", %{"k" => "loading"}, socket),
     do: {:noreply, socket |> update(:loading, &(!&1)) |> assign(:icon, false)}
-  def handle_event("flip", %{"k" => "disabled"}, socket), do: {:noreply, update(socket, :disabled, &(!&1))}
-  def handle_event("flip", %{"k" => "show_code"}, socket), do: {:noreply, update(socket, :show_code, &(!&1))}
+
+  def handle_event("flip", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :disabled, &(!&1))}
+
+  def handle_event("flip", %{"k" => "show_code"}, socket),
+    do: {:noreply, update(socket, :show_code, &(!&1))}
 
   def handle_event("ctl_input", %{"k" => "type", "v" => v}, socket) when v in @input_types,
     do: {:noreply, update(socket, :input, &%{&1 | type: v})}
 
   def handle_event("ctl_input", %{"k" => k}, socket) when k in ~w(disabled error help),
-    do: {:noreply, update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+    do:
+      {:noreply,
+       update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
-  def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket) when v in ~w(15 40 60 85 100),
-    do: {:noreply, update(socket, :progress, &%{&1 | value: String.to_integer(v)})}
+  def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
+      when v in ~w(15 40 60 85 100),
+      do: {:noreply, update(socket, :progress, &%{&1 | value: String.to_integer(v)})}
 
   def handle_event("ctl_progress", %{"k" => "color", "v" => v}, socket)
       when v in ~w(primary secondary info success warning danger gray),
       do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
 
-  def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
-    do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
+  def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket)
+      when v in ~w(xs sm md lg xl),
+      do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
 
-  def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket) when v in ~w(none inside top),
-    do:
-      {:noreply,
-       update(socket, :progress, &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)})}
+  def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
+      when v in ~w(none inside top),
+      do:
+        {:noreply,
+         update(
+           socket,
+           :progress,
+           &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)}
+         )}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -347,22 +692,30 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
 
-  def handle_event("ctl_meteors", %{"k" => "angle", "v" => v}, socket) when v in ~w(200deg 215deg 235deg),
-    do: {:noreply, update(socket, :meteors, &%{&1 | angle: v})}
+  def handle_event("ctl_meteors", %{"k" => "angle", "v" => v}, socket)
+      when v in ~w(200deg 215deg 235deg),
+      do: {:noreply, update(socket, :meteors, &%{&1 | angle: v})}
 
-  def handle_event("ctl_meteors", %{"k" => "color", "v" => v}, socket) when v in ~w(slate sky violet),
-    do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
+  def handle_event("ctl_meteors", %{"k" => "color", "v" => v}, socket)
+      when v in ~w(slate sky violet),
+      do: {:noreply, update(socket, :meteors, &%{&1 | color: v})}
 
-  def handle_event("ctl_rating", %{"k" => "icon", "v" => v}, socket) when v in ~w(star heart face),
-    do:
-      {:noreply,
-       update(socket, :rating, &%{&1 | icon: v, step: if(v == "face", do: "whole", else: &1.step)})}
+  def handle_event("ctl_rating", %{"k" => "icon", "v" => v}, socket)
+      when v in ~w(star heart face),
+      do:
+        {:noreply,
+         update(
+           socket,
+           :rating,
+           &%{&1 | icon: v, step: if(v == "face", do: "whole", else: &1.step)}
+         )}
 
   def handle_event("ctl_rating", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :rating, &%{&1 | size: v})}
 
-  def handle_event("ctl_rating", %{"k" => "label", "v" => v}, socket) when v in ~w(none right bottom),
-    do: {:noreply, update(socket, :rating, &%{&1 | label: v})}
+  def handle_event("ctl_rating", %{"k" => "label", "v" => v}, socket)
+      when v in ~w(none right bottom),
+      do: {:noreply, update(socket, :rating, &%{&1 | label: v})}
 
   def handle_event("ctl_rating", %{"k" => "step", "v" => v}, socket) when v in ~w(whole half),
     do: {:noreply, update(socket, :rating, &%{&1 | step: v})}
@@ -505,14 +858,16 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_beam", %{"k" => "reverse"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | reverse: !&1.reverse})}
 
-  def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
-    do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
+  def handle_event("ctl_tooltip", %{"k" => "placement", "v" => v}, socket)
+      when v in ~w(top bottom left right),
+      do: {:noreply, update(socket, :tooltip, &%{&1 | placement: v})}
 
   def handle_event("ctl_tooltip", %{"k" => "arrow"}, socket),
     do: {:noreply, update(socket, :tooltip, &%{&1 | arrow: !&1.arrow})}
 
-  def handle_event("ctl_popover", %{"k" => "placement", "v" => v}, socket) when v in ~w(top bottom left right),
-    do: {:noreply, update(socket, :popover, &%{&1 | placement: v})}
+  def handle_event("ctl_popover", %{"k" => "placement", "v" => v}, socket)
+      when v in ~w(top bottom left right),
+      do: {:noreply, update(socket, :popover, &%{&1 | placement: v})}
 
   def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
     do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
@@ -520,20 +875,26 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
     do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
 
-  def handle_event("ctl_otp", %{"k" => "pattern", "v" => v}, socket) when v in ~w(numeric alphanumeric),
-    do: {:noreply, update(socket, :otp, &%{&1 | pattern: v})}
+  def handle_event("ctl_otp", %{"k" => "pattern", "v" => v}, socket)
+      when v in ~w(numeric alphanumeric),
+      do: {:noreply, update(socket, :otp, &%{&1 | pattern: v})}
 
   def handle_event("ctl_otp", %{"k" => k}, socket) when k in ~w(grouped disabled),
-    do: {:noreply, update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+    do:
+      {:noreply,
+       update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
 
   def handle_event("ctl_switch", %{"k" => k}, socket) when k in ~w(disabled error),
-    do: {:noreply, update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+    do:
+      {:noreply,
+       update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
-  def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket) when v in ~w(outline classic),
-    do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
+  def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(outline classic),
+      do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
 
   def handle_event("ctl_radio", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :radio, &%{&1 | size: v})}
@@ -542,13 +903,17 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :radio, &%{&1 | layout: v})}
 
   def handle_event("ctl_select", %{"k" => k}, socket) when k in ~w(disabled error help),
-    do: {:noreply, update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+    do:
+      {:noreply,
+       update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_checkbox", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
     do: {:noreply, update(socket, :checkbox, &%{&1 | layout: v})}
 
   def handle_event("ctl_checkbox", %{"k" => k}, socket) when k in ~w(disabled error),
-    do: {:noreply, update(socket, :checkbox, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+    do:
+      {:noreply,
+       update(socket, :checkbox, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
     do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
@@ -749,6 +1114,7 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     open = Enum.join(["<.popover" | attrs], " ")
+
     open <>
       ~s( trigger_class="pc-button pc-button--gray-outline pc-button--md") <>
       ">\n  <:trigger>Open popover</:trigger>\n  Panel content here.\n</.popover>"
@@ -887,7 +1253,10 @@ defmodule Dev.PlaygroundLive do
       step
       |> Map.put(:complete?, i < at)
       |> Map.put(:active?, i == at)
-      |> Map.put(:on_click, Phoenix.LiveView.JS.push("ctl_stepper", value: %{k: "goto", v: to_string(i)}))
+      |> Map.put(
+        :on_click,
+        Phoenix.LiveView.JS.push("ctl_stepper", value: %{k: "goto", v: to_string(i)})
+      )
     end)
   end
 
@@ -919,16 +1288,36 @@ defmodule Dev.PlaygroundLive do
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-zinc-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
           <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
-            <path d="M230.003 125.876C240.013 163.648 236.787 202.614 225.872 222.08C205.825 218.645 165.131 177.459 154.643 142.091C146.575 114.884 141.211 61.5546 163.147 42.9603C181.2 48.0856 206.638 59.5304 230.003 125.876Z" fill="#7C3AED" />
-            <path d="M131.821 194.829C174.63 205.417 202.334 225.678 214.021 244.543C201.178 260.41 145.154 276.223 109.043 268.435C81.2645 262.444 31.9419 241.573 26.4252 213.497C39.7695 200.183 86.0939 184.721 131.821 194.829Z" fill="#8C3CE1" />
-            <path d="M134.395 304.982C169.081 273.136 202.487 268.276 224.626 270.582C229.181 290.377 206.903 344.143 178.354 367.829C156.393 386.049 109.322 412.156 83.7427 399.371C81.5135 380.738 93.3967 339.963 134.395 304.982Z" fill="#9C3ED6" />
-            <path d="M231.851 387.183C232.759 332.248 238.002 310.308 252.007 292.916C271.176 299.651 304.367 347.093 308.781 383.753C312.177 411.953 308.543 465.487 283.829 480.18C266.907 472.108 231.642 429.293 231.851 387.183Z" fill="#AD40C9" />
-            <path d="M334.122 361.502C304.16 336.45 293.796 314.74 291.865 296.983C306.635 289.867 352.611 297.682 376.032 315.802C394.047 329.74 422.5 361.935 416.786 384.265C402.535 389.351 361.449 384.351 334.122 361.502Z" fill="#BA42BF" />
-            <path d="M403.327 299.046C368.688 285.832 356.017 277.465 348.32 264.596C357.161 254.009 395.173 243.911 419.486 249.551C438.188 253.889 471.288 268.507 474.721 287.534C465.567 296.391 438.764 306.747 403.327 299.046Z" fill="#CB44B2" />
-            <path d="M434.34 229.57C407.147 225.737 396.619 221.79 388.943 213.786C393.589 204.711 419.385 191.202 437.873 191.274C452.095 191.33 478.408 196.427 484.016 209.566C478.86 217.447 461.203 229.303 434.34 229.57Z" fill="#D445AB" />
+            <path
+              d="M230.003 125.876C240.013 163.648 236.787 202.614 225.872 222.08C205.825 218.645 165.131 177.459 154.643 142.091C146.575 114.884 141.211 61.5546 163.147 42.9603C181.2 48.0856 206.638 59.5304 230.003 125.876Z"
+              fill="#7C3AED"
+            />
+            <path
+              d="M131.821 194.829C174.63 205.417 202.334 225.678 214.021 244.543C201.178 260.41 145.154 276.223 109.043 268.435C81.2645 262.444 31.9419 241.573 26.4252 213.497C39.7695 200.183 86.0939 184.721 131.821 194.829Z"
+              fill="#8C3CE1"
+            />
+            <path
+              d="M134.395 304.982C169.081 273.136 202.487 268.276 224.626 270.582C229.181 290.377 206.903 344.143 178.354 367.829C156.393 386.049 109.322 412.156 83.7427 399.371C81.5135 380.738 93.3967 339.963 134.395 304.982Z"
+              fill="#9C3ED6"
+            />
+            <path
+              d="M231.851 387.183C232.759 332.248 238.002 310.308 252.007 292.916C271.176 299.651 304.367 347.093 308.781 383.753C312.177 411.953 308.543 465.487 283.829 480.18C266.907 472.108 231.642 429.293 231.851 387.183Z"
+              fill="#AD40C9"
+            />
+            <path
+              d="M334.122 361.502C304.16 336.45 293.796 314.74 291.865 296.983C306.635 289.867 352.611 297.682 376.032 315.802C394.047 329.74 422.5 361.935 416.786 384.265C402.535 389.351 361.449 384.351 334.122 361.502Z"
+              fill="#BA42BF"
+            />
+            <path
+              d="M403.327 299.046C368.688 285.832 356.017 277.465 348.32 264.596C357.161 254.009 395.173 243.911 419.486 249.551C438.188 253.889 471.288 268.507 474.721 287.534C465.567 296.391 438.764 306.747 403.327 299.046Z"
+              fill="#CB44B2"
+            />
+            <path
+              d="M434.34 229.57C407.147 225.737 396.619 221.79 388.943 213.786C393.589 204.711 419.385 191.202 437.873 191.274C452.095 191.33 478.408 196.427 484.016 209.566C478.86 217.447 461.203 229.303 434.34 229.57Z"
+              fill="#D445AB"
+            />
           </svg>
-          petal
-          <span class="font-normal text-gray-400 dark:text-zinc-500">playground</span>
+          petal <span class="font-normal text-gray-400 dark:text-zinc-500">playground</span>
         </div>
         <div class="flex items-center gap-1.5">
           <button
@@ -989,8 +1378,7 @@ defmodule Dev.PlaygroundLive do
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
               ]}
               style={"background:#{css}"}
-            >
-            </button>
+            ></button>
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -1007,8 +1395,7 @@ defmodule Dev.PlaygroundLive do
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
               ]}
               style={"background:#{css}"}
-            >
-            </button>
+            ></button>
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -1189,7 +1576,9 @@ defmodule Dev.PlaygroundLive do
         <.button variant="ghost">Ghost</.button>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Semantic colours
+      </div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <.button color="info" variant={@variant}>Info</.button>
         <.button color="success" variant={@variant}>Success</.button>
@@ -1229,8 +1618,6 @@ defmodule Dev.PlaygroundLive do
     </div>
     """
   end
-
-
 
   defp render_page(%{active: "input"} = assigns) do
     ~H"""
@@ -1351,12 +1738,35 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">In-field actions</div>
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        In-field actions
+      </div>
       <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto space-y-6">
-          <.field type="password" name="pw_viewable" label="Password (viewable)" value="hunter2hunter2" viewable no_margin />
-          <.field type="text" name="api_key" label="API key (copyable)" value="pk_live_51J8s0" copyable no_margin />
-          <.field type="search" name="q" label="Search (clearable)" value="petal components" clearable no_margin />
+          <.field
+            type="password"
+            name="pw_viewable"
+            label="Password (viewable)"
+            value="hunter2hunter2"
+            viewable
+            no_margin
+          />
+          <.field
+            type="text"
+            name="api_key"
+            label="API key (copyable)"
+            value="pk_live_51J8s0"
+            copyable
+            no_margin
+          />
+          <.field
+            type="search"
+            name="q"
+            label="Search (clearable)"
+            value="petal components"
+            clearable
+            no_margin
+          />
         </div>
       </div>
 
@@ -1380,7 +1790,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Select and checkbox</div>
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Select and checkbox
+      </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto">
           <.field
@@ -1399,16 +1811,6 @@ defmodule Dev.PlaygroundLive do
     </div>
     """
   end
-
-
-
-
-
-
-
-
-
-
 
   defp render_page(%{active: "border-beam"} = assigns) do
     ~H"""
@@ -1600,7 +2002,6 @@ defmodule Dev.PlaygroundLive do
           </.border_beam>
         </div>
       </div>
-
     </div>
     """
   end
@@ -1840,7 +2241,8 @@ defmodule Dev.PlaygroundLive do
         <.p>
           Default body copy carries the middle emphasis tier. It pairs
           <.inline_code>inline_code</.inline_code>
-          with <strong>strong text</strong> at the top tier, and stays readable
+          with <strong>strong text</strong>
+          at the top tier, and stays readable
           across light and dark without per-mode overrides.
         </.p>
         <.text_muted>Muted text is the quiet tier - captions, hints, timestamps.</.text_muted>
@@ -1891,7 +2293,10 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex mt-1.5 text-[10px] text-gray-400">
-          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 text-center"
+          >
             {stop}
           </div>
         </div>
@@ -1911,7 +2316,10 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex mt-1.5 text-[10px] text-gray-400">
-          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 text-center"
+          >
             {stop}
           </div>
         </div>
@@ -1949,7 +2357,10 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex mt-1.5 text-[10px] text-gray-400">
-          <div :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)} class="flex-1 text-center">
+          <div
+            :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
+            class="flex-1 text-center"
+          >
             {stop}
           </div>
         </div>
@@ -1999,7 +2410,11 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-md mx-auto">
-          <.command id="demo-command" loop class="border border-gray-200 dark:border-white/15 shadow-xs">
+          <.command
+            id="demo-command"
+            loop
+            class="border border-gray-200 dark:border-white/15 shadow-xs"
+          >
             <.command_input placeholder="Type a command or search..." />
             <.command_list>
               <.command_empty>No results found.</.command_empty>
@@ -2039,7 +2454,11 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center gap-3">
-          <.button color="gray" variant="outline" phx-click={PetalComponents.Command.open_command("pg-cmdk")}>
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.Command.open_command("pg-cmdk")}
+          >
             <.icon name="hero-magnifying-glass" class="w-4 h-4 mr-1" /> Open the palette
           </.button>
           <p class="text-sm text-gray-500 dark:text-zinc-400">
@@ -2293,7 +2712,9 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
       ><code>{progress_snippet(@progress)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Semantic colours
+      </div>
       <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-md mx-auto space-y-4">
           <.progress value={80} color="success" />
@@ -2367,7 +2788,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={i <- ~w(star heart face)} phx-click="ctl_rating" phx-value-k="icon" phx-value-v={i} class={seg(@rating.icon == i)}>
+              <button
+                :for={i <- ~w(star heart face)}
+                phx-click="ctl_rating"
+                phx-value-k="icon"
+                phx-value-v={i}
+                class={seg(@rating.icon == i)}
+              >
                 {i}
               </button>
             </div>
@@ -2375,7 +2802,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={sz <- ~w(sm md lg)} phx-click="ctl_rating" phx-value-k="size" phx-value-v={sz} class={seg(@rating.size == sz)}>
+              <button
+                :for={sz <- ~w(sm md lg)}
+                phx-click="ctl_rating"
+                phx-value-k="size"
+                phx-value-v={sz}
+                class={seg(@rating.size == sz)}
+              >
                 {sz}
               </button>
             </div>
@@ -2383,7 +2816,12 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button phx-click="ctl_rating" phx-value-k="step" phx-value-v="whole" class={seg(@rating.step == "whole")}>
+              <button
+                phx-click="ctl_rating"
+                phx-value-k="step"
+                phx-value-v="whole"
+                class={seg(@rating.step == "whole")}
+              >
                 1
               </button>
               <button
@@ -2391,7 +2829,10 @@ defmodule Dev.PlaygroundLive do
                 phx-value-k="step"
                 phx-value-v="half"
                 disabled={@rating.icon == "face"}
-                class={[seg(@rating.step == "half"), @rating.icon == "face" && "opacity-40 cursor-not-allowed"]}
+                class={[
+                  seg(@rating.step == "half"),
+                  @rating.icon == "face" && "opacity-40 cursor-not-allowed"
+                ]}
               >
                 ½
               </button>
@@ -2403,7 +2844,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={l <- ~w(none right bottom)} phx-click="ctl_rating" phx-value-k="label" phx-value-v={l} class={seg(@rating.label == l)}>
+              <button
+                :for={l <- ~w(none right bottom)}
+                phx-click="ctl_rating"
+                phx-value-k="label"
+                phx-value-v={l}
+                class={seg(@rating.label == l)}
+              >
                 {l}
               </button>
             </div>
@@ -2428,7 +2875,14 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center gap-6">
-          <.rating interactive name="csat" rating={0} icon="face" size="lg" label="How was your experience?" />
+          <.rating
+            interactive
+            name="csat"
+            rating={0}
+            icon="face"
+            size="lg"
+            label="How was your experience?"
+          />
           <p class="text-sm text-gray-500 dark:text-zinc-400">How was your support experience?</p>
         </div>
       </div>
@@ -2458,7 +2912,11 @@ defmodule Dev.PlaygroundLive do
           >
             <:glyph>
               <svg viewBox="0 0 24 24" fill="currentColor" class="pc-rating__icon">
-                <path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" clip-rule="evenodd" />
+                <path
+                  fill-rule="evenodd"
+                  d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </:glyph>
           </.rating>
@@ -2491,7 +2949,11 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.show_slide_over(@slideover.origin, "pg-sheet")}>
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.SlideOver.show_slide_over(@slideover.origin, "pg-sheet")}
+          >
             <.icon name="hero-pencil-square" class="w-4 h-4 mr-1" /> Edit profile
           </.button>
         </div>
@@ -2500,15 +2962,29 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={o <- ~w(left right top bottom)} phx-click="ctl_slideover" phx-value-k="origin" phx-value-v={o} class={seg(@slideover.origin == o)}>
+              <button
+                :for={o <- ~w(left right top bottom)}
+                phx-click="ctl_slideover"
+                phx-value-k="origin"
+                phx-value-v={o}
+                class={seg(@slideover.origin == o)}
+              >
                 {o}
               </button>
             </div>
           </div>
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max width (left/right)</div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              max width (left/right)
+            </div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={w <- ~w(sm md lg)} phx-click="ctl_slideover" phx-value-k="width" phx-value-v={w} class={seg(@slideover.width == w)}>
+              <button
+                :for={w <- ~w(sm md lg)}
+                phx-click="ctl_slideover"
+                phx-value-k="width"
+                phx-value-v={w}
+                class={seg(@slideover.width == w)}
+              >
                 {w}
               </button>
             </div>
@@ -2530,10 +3006,16 @@ defmodule Dev.PlaygroundLive do
           <.field type="textarea" name="bio" value="" label="Bio" placeholder="A line about you" />
         </div>
         <:footer>
-          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")}>
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")}
+          >
             Cancel
           </.button>
-          <.button phx-click={PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")}>
+          <.button phx-click={
+            PetalComponents.SlideOver.hide_slide_over(@slideover.origin, "pg-sheet")
+          }>
             Save changes
           </.button>
         </:footer>
@@ -2544,16 +3026,36 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex justify-center">
-          <.button color="gray" variant="outline" phx-click={PetalComponents.SlideOver.show_slide_over("right", "pg-cart")}>
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.SlideOver.show_slide_over("right", "pg-cart")}
+          >
             <.icon name="hero-shopping-bag" class="w-4 h-4 mr-1" /> Open cart
             <.badge color="primary" size="sm" label="3" class="ml-2" />
           </.button>
         </div>
       </div>
 
-      <.slide_over id="pg-cart" hide origin="right" max_width="sm" title="Your cart" description="3 items">
+      <.slide_over
+        id="pg-cart"
+        hide
+        origin="right"
+        max_width="sm"
+        title="Your cart"
+        description="3 items"
+      >
         <div class="flex flex-col divide-y divide-gray-100 dark:divide-white/10">
-          <div :for={{name, meta, price} <- [{"Petal Pro licence", "Single project", "$299"}, {"Petal Pro team", "Unlimited projects", "$599"}, {"Petal stickers", "Pack of 12", "$9"}]} class="flex items-center gap-3 py-4">
+          <div
+            :for={
+              {name, meta, price} <- [
+                {"Petal Pro licence", "Single project", "$299"},
+                {"Petal Pro team", "Unlimited projects", "$599"},
+                {"Petal stickers", "Pack of 12", "$9"}
+              ]
+            }
+            class="flex items-center gap-3 py-4"
+          >
             <div class="flex items-center justify-center flex-none w-12 h-12 rounded-lg bg-gray-100 dark:bg-white/10">
               <.icon name="hero-cube" class="w-5 h-5 text-gray-400" />
             </div>
@@ -2568,7 +3070,9 @@ defmodule Dev.PlaygroundLive do
           <div class="flex items-center justify-between w-full gap-4">
             <div>
               <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
-              <p class="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">$907</p>
+              <p class="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+                $907
+              </p>
             </div>
             <.button phx-click={PetalComponents.SlideOver.hide_slide_over("right", "pg-cart")}>
               Checkout
@@ -2620,7 +3124,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={a <- ~w(pulse shimmer none)} phx-click="ctl_skeleton" phx-value-k="animation" phx-value-v={a} class={seg(@skeleton.animation == a)}>
+              <button
+                :for={a <- ~w(pulse shimmer none)}
+                phx-click="ctl_skeleton"
+                phx-value-k="animation"
+                phx-value-v={a}
+                class={seg(@skeleton.animation == a)}
+              >
                 {a}
               </button>
             </div>
@@ -2634,7 +3144,11 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="mx-auto max-w-md">
           <%= if @skeleton.loading do %>
-            <.skeleton_group label="Loading profile" animation="shimmer" class="flex items-center gap-4">
+            <.skeleton_group
+              label="Loading profile"
+              animation="shimmer"
+              class="flex items-center gap-4"
+            >
               <.skeleton variant="circle" class="size-14 shrink-0" />
               <div class="flex-1 space-y-2.5">
                 <.skeleton variant="text" class="w-40" />
@@ -2646,9 +3160,18 @@ defmodule Dev.PlaygroundLive do
               <.avatar name="Grace Hopper" size="lg" />
               <div>
                 <p class="font-semibold text-gray-900 dark:text-gray-100">Grace Hopper</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Invented the compiler. Debugs moths.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Invented the compiler. Debugs moths.
+                </p>
               </div>
-              <.button color="gray" variant="outline" size="sm" class="ml-auto" phx-click="ctl_skeleton" phx-value-k="load">
+              <.button
+                color="gray"
+                variant="outline"
+                size="sm"
+                class="ml-auto"
+                phx-click="ctl_skeleton"
+                phx-value-k="load"
+              >
                 Reload
               </.button>
             </div>
@@ -2693,25 +3216,113 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Button group</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Joined actions that read as one control - view switchers, toolbars, export menus.
+        Fuses buttons, inputs and text segments into one control - split buttons,
+        toolbars, mixed rails.
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-col items-center gap-6 px-6 py-12">
-          <.button_group aria_label="View">
-            <:button phx-click={nil}>Day</:button>
-            <:button phx-click={nil}>Week</:button>
-            <:button phx-click={nil}>Month</:button>
+        <div class="flex flex-wrap items-center justify-center gap-6 px-6 py-12">
+          <.button_group aria_label="Merge options">
+            <.button label="Merge pull request" />
+            <.button_group_separator />
+            <.button aria-label="More merge options">
+              <.icon name="hero-chevron-down" class="w-4 h-4" />
+            </.button>
           </.button_group>
-          <.button_group aria_label="Actions" size="sm">
-            <:button><.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-1.5" /> Export</:button>
-            <:button><.icon name="hero-document-duplicate" class="w-4 h-4 mr-1.5" /> Copy</:button>
-            <:button><.icon name="hero-trash" class="w-4 h-4 mr-1.5" /> Delete</:button>
+          <.button_group aria_label="Change view">
+            <.button color="gray" variant="outline" label="Day" />
+            <.button color="gray" variant="outline" label="Week" />
+            <.button color="gray" variant="outline" label="Month" />
           </.button_group>
         </div>
       </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Toolbar - nested groups gap apart, buttons inside fuse
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.button_group aria_label="Editor toolbar">
+            <.button_group aria_label="History">
+              <.button color="gray" variant="outline" size="sm" aria-label="Undo">
+                <.icon name="hero-arrow-uturn-left" class="w-4 h-4" />
+              </.button>
+              <.button color="gray" variant="outline" size="sm" aria-label="Redo">
+                <.icon name="hero-arrow-uturn-right" class="w-4 h-4" />
+              </.button>
+            </.button_group>
+            <.button_group aria_label="Formatting">
+              <.button color="gray" variant="outline" size="sm" aria-label="Bold">
+                <.icon name="hero-bold" class="w-4 h-4" />
+              </.button>
+              <.button color="gray" variant="outline" size="sm" aria-label="Italic">
+                <.icon name="hero-italic" class="w-4 h-4" />
+              </.button>
+              <.button color="gray" variant="outline" size="sm" aria-label="Link">
+                <.icon name="hero-link" class="w-4 h-4" />
+              </.button>
+            </.button_group>
+            <.button_group aria_label="Share">
+              <.button color="gray" variant="outline" size="sm" label="Share" />
+            </.button_group>
+          </.button_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Sizes - the buttons carry it, the group just joins
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-4">
+          <div :for={sz <- ~w(sm md lg)} class="flex items-center gap-3">
+            <.button_group aria_label={"Pager " <> sz}>
+              <.button color="gray" variant="outline" size={sz} label="Previous" />
+              <.button color="gray" variant="outline" size={sz} label="Next" />
+            </.button_group>
+            <span class="text-[11px] text-gray-400">{sz}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Mixed rail - text prefix, input and button share one surface
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-5">
+          <.button_group aria_label="Site address" class="w-full max-w-sm">
+            <.button_group_text>https://</.button_group_text>
+            <.input type="text" name="bg_domain" value="" placeholder="example.com" />
+            <.button color="gray" variant="outline" label="Visit" />
+          </.button_group>
+          <.button_group aria_label="Search the docs" class="w-full max-w-sm">
+            <.input type="search" name="bg_q" value="" placeholder="Search the docs..." />
+            <.button label="Search" />
+          </.button_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Vertical - fuses top to bottom
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center">
+          <.button_group aria_label="Zoom" orientation="vertical">
+            <.button color="gray" variant="outline" aria-label="Zoom in">
+              <.icon name="hero-plus" class="w-4 h-4" />
+            </.button>
+            <.button color="gray" variant="outline" aria-label="Zoom out">
+              <.icon name="hero-minus" class="w-4 h-4" />
+            </.button>
+          </.button_group>
+        </div>
+      </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Buttons come from the :button slot and take any phx binding; the group carries
-        the border, radius token and an aria_label. Sizes xs-xl.
+        Drop real components in and the group fuses them: outer corners keep the radius
+        token, inner borders collapse to a single line. Outline buttons and inputs carry
+        their own dividers; solid buttons have transparent borders, so put a
+        button_group_separator between them (it tints from the solid label colour).
+        Nested groups stop fusing and gap into clusters. The :button slot API from
+        earlier releases still renders unchanged.
       </div>
     </div>
     """
@@ -2797,7 +3408,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={sp <- ~w(chevron slash)} phx-click="ctl_crumbs" phx-value-k="separator" phx-value-v={sp} class={seg(@crumbs.separator == sp)}>
+              <button
+                :for={sp <- ~w(chevron slash)}
+                phx-click="ctl_crumbs"
+                phx-value-k="separator"
+                phx-value-v={sp}
+                class={seg(@crumbs.separator == sp)}
+              >
                 {sp}
               </button>
             </div>
@@ -2822,13 +3439,23 @@ defmodule Dev.PlaygroundLive do
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex justify-center px-6 py-12 overflow-x-auto">
-          <.stepper steps={pg_steps(@stepper.at)} orientation={@stepper.orientation} size={@stepper.size} />
+          <.stepper
+            steps={pg_steps(@stepper.at)}
+            orientation={@stepper.orientation}
+            size={@stepper.size}
+          />
         </div>
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={o <- ~w(horizontal vertical)} phx-click="ctl_stepper" phx-value-k="orientation" phx-value-v={o} class={seg(@stepper.orientation == o)}>
+              <button
+                :for={o <- ~w(horizontal vertical)}
+                phx-click="ctl_stepper"
+                phx-value-k="orientation"
+                phx-value-v={o}
+                class={seg(@stepper.orientation == o)}
+              >
                 {o}
               </button>
             </div>
@@ -2836,7 +3463,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={sz <- ~w(sm md lg)} phx-click="ctl_stepper" phx-value-k="size" phx-value-v={sz} class={seg(@stepper.size == sz)}>
+              <button
+                :for={sz <- ~w(sm md lg)}
+                phx-click="ctl_stepper"
+                phx-value-k="size"
+                phx-value-v={sz}
+                class={seg(@stepper.size == sz)}
+              >
                 {sz}
               </button>
             </div>
@@ -2901,12 +3534,14 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto divide-y divide-gray-100 dark:divide-white/10">
           <div
-            :for={{src, name, role, status, label} <- [
-              {"/dev-static/avatars/p32.jpg", "Amelia Ward", "Engineering", "online", "Online"},
-              {"/dev-static/avatars/p65.jpg", "Jonah Reyes", "Design", "busy", "In a meeting"},
-              {"/dev-static/avatars/p44.jpg", "Priya Anand", "Support", "away", "Back in 20m"},
-              {"/dev-static/avatars/p12.jpg", "Maya Okafor", "Engineering", "offline", "Offline"}
-            ]}
+            :for={
+              {src, name, role, status, label} <- [
+                {"/dev-static/avatars/p32.jpg", "Amelia Ward", "Engineering", "online", "Online"},
+                {"/dev-static/avatars/p65.jpg", "Jonah Reyes", "Design", "busy", "In a meeting"},
+                {"/dev-static/avatars/p44.jpg", "Priya Anand", "Support", "away", "Back in 20m"},
+                {"/dev-static/avatars/p12.jpg", "Maya Okafor", "Engineering", "offline", "Offline"}
+              ]
+            }
             class="flex items-center gap-3 py-3"
           >
             <.avatar src={src} alt={name} status={status} />
@@ -2986,7 +3621,10 @@ defmodule Dev.PlaygroundLive do
                 <div>
                   <div class="flex items-center justify-between mb-1.5">
                     <label class="text-sm font-medium text-gray-900 dark:text-gray-100">Password</label>
-                    <a href="#" class="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+                    <a
+                      href="#"
+                      class="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                    >
                       Forgot your password?
                     </a>
                   </div>
@@ -3064,7 +3702,13 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="px-6 py-10">
           <div class="max-w-xl mx-auto">
-            <.accordion container_id={"pg-acc-#{@accordion.variant}-#{@accordion.size}-#{if @accordion.multiple, do: "m", else: "s"}"} variant={@accordion.variant} size={@accordion.size} multiple={@accordion.multiple} open_index={0}>
+            <.accordion
+              container_id={"pg-acc-#{@accordion.variant}-#{@accordion.size}-#{if @accordion.multiple, do: "m", else: "s"}"}
+              variant={@accordion.variant}
+              size={@accordion.size}
+              multiple={@accordion.multiple}
+              open_index={0}
+            >
               <:item heading="Is it accessible?">
                 Yes - proper button semantics, aria-expanded, and keyboard toggling out of
                 the box.
@@ -3082,7 +3726,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={v <- ~w(default bordered)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
+              <button
+                :for={v <- ~w(default bordered)}
+                phx-click="ctl_accordion"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@accordion.variant == v)}
+              >
                 {v}
               </button>
             </div>
@@ -3090,7 +3740,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={sz <- ~w(md sm)} phx-click="ctl_accordion" phx-value-k="size" phx-value-v={sz} class={seg(@accordion.size == sz)}>
+              <button
+                :for={sz <- ~w(md sm)}
+                phx-click="ctl_accordion"
+                phx-value-k="size"
+                phx-value-v={sz}
+                class={seg(@accordion.size == sz)}
+              >
                 {if sz == "sm", do: "compact", else: "default"}
               </button>
             </div>
@@ -3098,7 +3754,11 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
-              <button phx-click="ctl_accordion" phx-value-k="multiple" class={tog(@accordion.multiple)}>
+              <button
+                phx-click="ctl_accordion"
+                phx-value-k="multiple"
+                class={tog(@accordion.multiple)}
+              >
                 allow multiple open
               </button>
             </div>
@@ -3135,7 +3795,10 @@ defmodule Dev.PlaygroundLive do
             duration="24s"
             max_height={@marquee_ctl.vertical && "300px"}
           >
-            <div :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)} class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-zinc-700">
+            <div
+              :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)}
+              class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-zinc-700"
+            >
               <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
               <span class="text-sm font-medium">{name}</span>
             </div>
@@ -3146,7 +3809,11 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
               <button phx-click="ctl_marquee" phx-value-k="reverse" class={tog(@marquee_ctl.reverse)}>reverse</button>
-              <button phx-click="ctl_marquee" phx-value-k="vertical" class={tog(@marquee_ctl.vertical)}>vertical</button>
+              <button
+                phx-click="ctl_marquee"
+                phx-value-k="vertical"
+                class={tog(@marquee_ctl.vertical)}
+              >vertical</button>
               <button phx-click="ctl_marquee" phx-value-k="pause" class={tog(@marquee_ctl.pause)}>pause on hover</button>
             </div>
           </div>
@@ -3175,7 +3842,12 @@ defmodule Dev.PlaygroundLive do
               Subtle by default - the light source tracks the pointer.
             </p>
           </.spotlight_card>
-          <.spotlight_card id="spot-2" spotlight_color="rgba(124, 58, 237, 0.25)" spotlight_size="500px" class="p-8">
+          <.spotlight_card
+            id="spot-2"
+            spotlight_color="rgba(124, 58, 237, 0.25)"
+            spotlight_size="500px"
+            class="p-8"
+          >
             <h3 class="text-lg font-semibold">Tuned glow</h3>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
               spotlight_color and spotlight_size make it a brand moment.
@@ -3209,11 +3881,21 @@ defmodule Dev.PlaygroundLive do
           </.button>
           <div class="flex gap-10 text-center">
             <div>
-              <div class="text-2xl font-semibold tabular-nums"><.number_ticker id="t-stars" value={1024} suffix="+" /></div>
+              <div class="text-2xl font-semibold tabular-nums">
+                <.number_ticker id="t-stars" value={1024} suffix="+" />
+              </div>
               <div class="mt-1 text-xs text-gray-400">GitHub stars</div>
             </div>
             <div>
-              <div class="text-2xl font-semibold tabular-nums"><.number_ticker id="t-uptime" value={99.98} decimal_places={2} suffix="%" duration={2200} /></div>
+              <div class="text-2xl font-semibold tabular-nums">
+                <.number_ticker
+                  id="t-uptime"
+                  value={99.98}
+                  decimal_places={2}
+                  suffix="%"
+                  duration={2200}
+                />
+              </div>
               <div class="mt-1 text-xs text-gray-400">Uptime</div>
             </div>
           </div>
@@ -3239,9 +3921,18 @@ defmodule Dev.PlaygroundLive do
           <.gradient_text class="text-4xl font-bold">Ship something tonight</.gradient_text>
           <.shimmer_text class="text-2xl font-semibold">Generating your app...</.shimmer_text>
           <div class="text-2xl font-semibold">
-            Build <.word_rotate id="pg-rotate" words={["faster", "calmer", "together", "tonight"]} class="text-primary-600 dark:text-primary-400" />
+            Build
+            <.word_rotate
+              id="pg-rotate"
+              words={["faster", "calmer", "together", "tonight"]}
+              class="text-primary-600 dark:text-primary-400"
+            />
           </div>
-          <.typing_effect id="pg-typing" text="mix petal.gen.live Accounts User users" class="font-mono text-sm" />
+          <.typing_effect
+            id="pg-typing"
+            text="mix petal.gen.live Accounts User users"
+            class="font-mono text-sm"
+          />
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
@@ -3267,7 +3958,9 @@ defmodule Dev.PlaygroundLive do
           <.button phx-click={Phoenix.LiveView.JS.dispatch("pc:confetti", to: "#pg-confetti")}>
             <.icon name="hero-sparkles" class="w-4 h-4 mr-1.5" /> Celebrate
           </.button>
-          <p class="text-sm text-gray-500 dark:text-zinc-400">no server round-trip - it's a JS.dispatch</p>
+          <p class="text-sm text-gray-500 dark:text-zinc-400">
+            no server round-trip - it's a JS.dispatch
+          </p>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
@@ -3292,7 +3985,14 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-col items-center gap-6 px-6 py-12">
           <.tabs variant={@tabs.variant}>
             <.tab
-              :for={{slug, name, n} <- [{"overview", "Overview", nil}, {"analytics", "Analytics", nil}, {"reports", "Reports", 4}, {"settings", "Settings", nil}]}
+              :for={
+                {slug, name, n} <- [
+                  {"overview", "Overview", nil},
+                  {"analytics", "Analytics", nil},
+                  {"reports", "Reports", 4},
+                  {"settings", "Settings", nil}
+                ]
+              }
               variant={@tabs.variant}
               is_active={@tabs.active == slug}
               number={@tabs.number && n}
@@ -3318,7 +4018,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={v <- ~w(segmented underline pill)} phx-click="ctl_tabs" phx-value-k="variant" phx-value-v={v} class={seg(@tabs.variant == v)}>
+              <button
+                :for={v <- ~w(segmented underline pill)}
+                phx-click="ctl_tabs"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@tabs.variant == v)}
+              >
                 {v}
               </button>
             </div>
@@ -3372,15 +4078,29 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-col items-center gap-4 px-6 py-14">
-          <.pagination event total_pages={12} current_page={@page.current} sibling_count={@page.sibling} boundary_count={@page.boundary} />
-          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">Page {@page.current} of 12</p>
+          <.pagination
+            event
+            total_pages={12}
+            current_page={@page.current}
+            sibling_count={@page.sibling}
+            boundary_count={@page.boundary}
+          />
+          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">
+            Page {@page.current} of 12
+          </p>
         </div>
 
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={n <- ~w(0 1 2)} phx-click="ctl_page" phx-value-k="sibling" phx-value-v={n} class={seg(to_string(@page.sibling) == n)}>
+              <button
+                :for={n <- ~w(0 1 2)}
+                phx-click="ctl_page"
+                phx-value-k="sibling"
+                phx-value-v={n}
+                class={seg(to_string(@page.sibling) == n)}
+              >
                 {n}
               </button>
             </div>
@@ -3388,7 +4108,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">boundary count</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={n <- ~w(1 2)} phx-click="ctl_page" phx-value-k="boundary" phx-value-v={n} class={seg(to_string(@page.boundary) == n)}>
+              <button
+                :for={n <- ~w(1 2)}
+                phx-click="ctl_page"
+                phx-value-k="boundary"
+                phx-value-v={n}
+                class={seg(to_string(@page.boundary) == n)}
+              >
                 {n}
               </button>
             </div>
@@ -3431,7 +4157,12 @@ defmodule Dev.PlaygroundLive do
             <:col :let={p} label="Role">{p.role}</:col>
             <:col :let={p} label="Age" sortable sort_key="age">{p.age}</:col>
             <:col :let={p} label="Status">
-              <.badge color={if p.status == "Active", do: "success", else: "gray"} variant="soft" size="sm" label={p.status} />
+              <.badge
+                color={if p.status == "Active", do: "success", else: "gray"}
+                variant="soft"
+                size="sm"
+                label={p.status}
+              />
             </:col>
             <:empty_state>
               <div class="py-8 text-center text-gray-500 dark:text-zinc-400">
@@ -3450,7 +4181,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={d <- ~w(comfortable compact)} phx-click="ctl_table" phx-value-k="density" phx-value-v={d} class={seg(@table.density == d)}>
+              <button
+                :for={d <- ~w(comfortable compact)}
+                phx-click="ctl_table"
+                phx-value-k="density"
+                phx-value-v={d}
+                class={seg(@table.density == d)}
+              >
                 {d}
               </button>
             </div>
@@ -3458,7 +4195,13 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={v <- ~w(basic ghost)} phx-click="ctl_table" phx-value-k="variant" phx-value-v={v} class={seg(@table.variant == v)}>
+              <button
+                :for={v <- ~w(basic ghost)}
+                phx-click="ctl_table"
+                phx-value-k="variant"
+                phx-value-v={v}
+                class={seg(@table.variant == v)}
+              >
                 {v}
               </button>
             </div>
@@ -3858,7 +4601,15 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          <.field :for={z <- ~w(xs sm md lg xl)} type="switch" name={"sz_" <> z} label={z} size={z} checked no_margin />
+          <.field
+            :for={z <- ~w(xs sm md lg xl)}
+            type="switch"
+            name={"sz_" <> z}
+            label={z}
+            size={z}
+            checked
+            no_margin
+          />
         </div>
       </div>
     </div>
@@ -4070,7 +4821,11 @@ defmodule Dev.PlaygroundLive do
             name="region"
             label="Region"
             value="Sydney"
-            options={[APAC: ["Sydney", "Tokyo", "Singapore"], Europe: ["Amsterdam", "Berlin"], Americas: ["Denver", "Sao Paulo"]]}
+            options={[
+              APAC: ["Sydney", "Tokyo", "Singapore"],
+              Europe: ["Amsterdam", "Berlin"],
+              Americas: ["Denver", "Sao Paulo"]
+            ]}
             no_margin
           />
         </div>
@@ -4172,7 +4927,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Single checkbox</div>
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Single checkbox
+      </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto">
           <.field
@@ -4262,17 +5019,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
       ><code>{alert_snippet(@alert)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Semantic colours
+      </div>
       <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="info" variant={@alert.variant} with_icon>A new version of this page is available.</.alert>
+        <.alert color="info" variant={@alert.variant} with_icon>
+          A new version of this page is available.
+        </.alert>
         <.alert color="success" variant={@alert.variant} with_icon>Your changes were saved.</.alert>
         <.alert color="warning" variant={@alert.variant} with_icon>Your trial ends in 3 days.</.alert>
-        <.alert color="danger" variant={@alert.variant} with_icon>Payment failed. Check your card details.</.alert>
+        <.alert color="danger" variant={@alert.variant} with_icon>
+          Payment failed. Check your card details.
+        </.alert>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
       <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.alert color="gray" variant="light" with_icon>Light, the default. Stays light even in dark mode.</.alert>
+        <.alert color="gray" variant="light" with_icon>
+          Light, the default. Stays light even in dark mode.
+        </.alert>
         <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
         <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
         <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
@@ -4300,7 +5065,12 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex items-center justify-center px-6 py-14">
-          <.badge color={@badge.color} variant={@badge.variant} size={@badge.size} with_icon={@badge.icon}>
+          <.badge
+            color={@badge.color}
+            variant={@badge.variant}
+            size={@badge.size}
+            with_icon={@badge.icon}
+          >
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
         </div>
@@ -4377,9 +5147,16 @@ defmodule Dev.PlaygroundLive do
         <.badge variant="outline" label="Outline" />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Semantic colours</div>
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Semantic colours
+      </div>
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <.badge :for={c <- ~w(primary secondary info success warning danger gray)} color={c} variant={@badge.variant} label={c} />
+        <.badge
+          :for={c <- ~w(primary secondary info success warning danger gray)}
+          color={c}
+          variant={@badge.variant}
+          label={c}
+        />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
@@ -4405,10 +5182,12 @@ defmodule Dev.PlaygroundLive do
   defp seg(true), do: "px-2.5 py-1 text-xs font-medium bg-primary-600 text-(--pc-button-solid-fg)"
 
   defp seg(false),
-    do: "px-2.5 py-1 text-xs text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+    do:
+      "px-2.5 py-1 text-xs text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
 
   defp tog(true),
-    do: "px-2.5 py-1 text-xs font-medium rounded-lg border border-transparent bg-primary-600 text-(--pc-button-solid-fg)"
+    do:
+      "px-2.5 py-1 text-xs font-medium rounded-lg border border-transparent bg-primary-600 text-(--pc-button-solid-fg)"
 
   defp tog(false),
     do:
