@@ -657,6 +657,8 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
 
     function closeItem(item) {
       item.dataset.open = "false";
+      const toggleBtn = item.querySelector("[aria-expanded]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
       if (isGhostVariant) {
         const plusIcon = item.querySelector(".pc-accordion-item__plus");
         const minusIcon = item.querySelector(".pc-accordion-item__minus");
@@ -679,6 +681,8 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
 
     function openItem(item) {
       item.dataset.open = "true";
+      const toggleBtn = item.querySelector("[aria-expanded]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
       if (isGhostVariant) {
         const plusIcon = item.querySelector(".pc-accordion-item__plus");
         const minusIcon = item.querySelector(".pc-accordion-item__minus");

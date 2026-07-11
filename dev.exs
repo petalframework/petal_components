@@ -115,6 +115,7 @@ defmodule Dev.PlaygroundLive do
     %{group: "Inputs",
       items: [
         %{slug: "button", name: "Button", ready: true},
+        %{slug: "button-group", name: "Button group", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
@@ -128,16 +129,25 @@ defmodule Dev.PlaygroundLive do
         %{slug: "badge", name: "Badge", ready: true},
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true},
-        %{slug: "skeleton", name: "Skeleton", ready: true}
+        %{slug: "skeleton", name: "Skeleton", ready: true},
+        %{slug: "loading", name: "Loading", ready: true}
       ]},
     %{group: "Navigation",
       items: [
         %{slug: "tabs", name: "Tabs", ready: true},
-        %{slug: "pagination", name: "Pagination", ready: true}
+        %{slug: "pagination", name: "Pagination", ready: true},
+        %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
+        %{slug: "stepper", name: "Stepper", ready: true}
       ]},
     %{group: "Data",
       items: [
         %{slug: "table", name: "Table", ready: true}
+      ]},
+    %{group: "Display",
+      items: [
+        %{slug: "avatar", name: "Avatar", ready: true},
+        %{slug: "card", name: "Card", ready: true},
+        %{slug: "accordion", name: "Accordion", ready: true}
       ]},
     %{group: "Overlay",
       items: [
@@ -152,7 +162,12 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "border-beam", name: "Border beam", ready: true},
         %{slug: "meteors", name: "Meteors", ready: true},
-        %{slug: "shine-border", name: "Shine border", ready: true}
+        %{slug: "shine-border", name: "Shine border", ready: true},
+        %{slug: "marquee", name: "Marquee", ready: true},
+        %{slug: "spotlight-card", name: "Spotlight card", ready: true},
+        %{slug: "number-ticker", name: "Number ticker", ready: true},
+        %{slug: "text-animation", name: "Text animation", ready: true},
+        %{slug: "confetti", name: "Confetti", ready: true}
       ]}
   ]
 
@@ -260,6 +275,11 @@ defmodule Dev.PlaygroundLive do
        table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false, variant: "basic", empty: false},
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
+       accordion: %{variant: "default", multiple: false},
+       stepper: %{orientation: "horizontal", size: "md", at: 1},
+       crumbs: %{separator: "chevron"},
+       marquee_ctl: %{reverse: false, vertical: false, pause: true},
+       ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false}
      )}
@@ -419,6 +439,35 @@ defmodule Dev.PlaygroundLive do
 
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
+
+  def handle_event("ctl_accordion", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default ghost),
+      do: {:noreply, update(socket, :accordion, &%{&1 | variant: v})}
+
+  def handle_event("ctl_accordion", %{"k" => "multiple"}, socket),
+    do: {:noreply, update(socket, :accordion, &%{&1 | multiple: !&1.multiple})}
+
+  def handle_event("ctl_stepper", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(horizontal vertical),
+      do: {:noreply, update(socket, :stepper, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
+
+  def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
+    do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v)})}
+
+  def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
+      when v in ~w(slash chevron),
+      do: {:noreply, update(socket, :crumbs, &%{&1 | separator: v})}
+
+  def handle_event("ctl_marquee", %{"k" => k}, socket) when k in ~w(reverse vertical pause) do
+    key = String.to_existing_atom(k)
+    {:noreply, update(socket, :marquee_ctl, &Map.update!(&1, key, fn v -> !v end))}
+  end
+
+  def handle_event("ticker_bump", _params, socket),
+    do: {:noreply, update(socket, :ticker, &%{&1 | value: &1.value + Enum.random(137..913)})}
 
   def handle_event("goto-page", %{"page" => page}, socket),
     do: {:noreply, update(socket, :page, &%{&1 | current: String.to_integer(page)})}
@@ -822,6 +871,22 @@ defmodule Dev.PlaygroundLive do
     %{name: "Katherine Johnson", role: "Research", age: 101, status: "Active"},
     %{name: "Edsger Dijkstra", role: "Engineering", age: 72, status: "Inactive"}
   ]
+
+  defp pg_steps(at) do
+    [
+      %{name: "Account", description: "Email and password"},
+      %{name: "Workspace", description: "Name your project"},
+      %{name: "Invite", description: "Bring the team"},
+      %{name: "Done", description: "Start building"}
+    ]
+    |> Enum.with_index()
+    |> Enum.map(fn {step, i} ->
+      step
+      |> Map.put(:complete?, i < at)
+      |> Map.put(:active?, i == at)
+      |> Map.put(:on_click, Phoenix.LiveView.JS.push("ctl_stepper", value: %{k: "goto", v: to_string(i)}))
+    end)
+  end
 
   defp table_rows(%{sort_by: key, sort_dir: dir}) do
     key = String.to_existing_atom(key)
@@ -2615,6 +2680,428 @@ defmodule Dev.PlaygroundLive do
         radius token, shimmer respects prefers-reduced-motion, and skeleton_text's line
         widths are deterministic so LiveView re-renders never make it dance. The old
         kind={:card}-style prebuilt layouts still render for compatibility.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "button-group"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Button group</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Joined actions that read as one control - view switchers, toolbars, export menus.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-6 px-6 py-12">
+          <.button_group aria_label="View">
+            <:button phx-click={nil}>Day</:button>
+            <:button phx-click={nil}>Week</:button>
+            <:button phx-click={nil}>Month</:button>
+          </.button_group>
+          <.button_group aria_label="Actions" size="sm">
+            <:button><.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-1.5" /> Export</:button>
+            <:button><.icon name="hero-document-duplicate" class="w-4 h-4 mr-1.5" /> Copy</:button>
+            <:button><.icon name="hero-trash" class="w-4 h-4 mr-1.5" /> Delete</:button>
+          </.button_group>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Buttons come from the :button slot and take any phx binding; the group carries
+        the border, radius token and an aria_label. Sizes xs-xl.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "loading"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Loading</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The spinner. Buttons already know it (loading attr) - use it standalone for
+        anything else that waits.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-10 px-6 py-12">
+          <div :for={sz <- ~w(sm md lg)} class="flex flex-col items-center gap-2">
+            <.spinner size={sz} />
+            <span class="text-[11px] text-gray-400">{sz}</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <.spinner size_class="h-10 w-10 text-secondary-500" />
+            <span class="text-[11px] text-gray-400">custom</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        show toggles visibility without unmounting; size_class takes over sizing and
+        colour entirely (it inherits currentColor, so text-* utilities recolour it).
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "breadcrumbs"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Breadcrumbs</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Where am I, and how do I get back up. Links from a plain list.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center px-6 py-12">
+          <.breadcrumbs
+            separator={@crumbs.separator}
+            links={[
+              %{label: "Home", to: "#", link_type: "button"},
+              %{label: "Projects", to: "#", link_type: "button"},
+              %{label: "petal_components", to: "#", link_type: "button"}
+            ]}
+          />
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={sp <- ~w(chevron slash)} phx-click="ctl_crumbs" phx-value-k="separator" phx-value-v={sp} class={seg(@crumbs.separator == sp)}>
+                {sp}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        links take label + to + link_type (a / live_patch / live_redirect / button); the
+        nav carries an aria_label for assistive tech.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "stepper"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Stepper</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Multi-step progress - onboarding, checkout, wizards. Click a step to jump.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center px-6 py-12 overflow-x-auto">
+          <.stepper steps={pg_steps(@stepper.at)} orientation={@stepper.orientation} size={@stepper.size} />
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={o <- ~w(horizontal vertical)} phx-click="ctl_stepper" phx-value-k="orientation" phx-value-v={o} class={seg(@stepper.orientation == o)}>
+                {o}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={sz <- ~w(sm md lg)} phx-click="ctl_stepper" phx-value-k="size" phx-value-v={sz} class={seg(@stepper.size == sz)}>
+                {sz}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Steps are plain maps: name, description, complete?, active?, on_click (any JS
+        command - this demo pushes an event). aria-current and completed labels are wired
+        for screen readers.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "avatar"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Avatar</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Images, initials fallbacks, and stacked groups.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-8 px-6 py-12">
+          <div class="flex items-end gap-4">
+            <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
+              <.avatar size={sz} name="Matt Platts" random_color />
+              <span class="text-[11px] text-gray-400">{sz}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.avatar name="Matt Platts" />
+            <.avatar name="Ada Lovelace" random_color />
+            <.avatar name="Grace Hopper" random_color />
+            <.avatar />
+          </div>
+          <div class="flex -space-x-2">
+            <.avatar name="Matt Platts" random_color class="ring-2 ring-white dark:ring-zinc-900" />
+            <.avatar name="Ada Lovelace" random_color class="ring-2 ring-white dark:ring-zinc-900" />
+            <.avatar name="Grace Hopper" random_color class="ring-2 ring-white dark:ring-zinc-900" />
+            <.avatar name="Alan Turing" random_color class="ring-2 ring-white dark:ring-zinc-900" />
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        No src? name renders initials (random_color gives each person a stable hue,
+        hashed from the name); no name either renders the person icon. Stack them with
+        -space-x-2 + rings for the classic team cluster, or use avatar_group with image
+        URLs.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "card"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Card</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The container for everything - media, content, footer, composed from parts.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="grid gap-8 px-6 py-12 md:grid-cols-2">
+          <.card>
+            <.card_media />
+            <.card_content category="Release" heading="petal_components 4.5">
+              Command palette, interactive ratings, sheets, sortable tables and a
+              composable skeleton.
+            </.card_content>
+            <.card_footer>
+              <.button color="gray" variant="outline" size="sm">Read more</.button>
+            </.card_footer>
+          </.card>
+          <.card variant="outline">
+            <.card_content category="Outline" heading="Quieter variant">
+              The outline variant drops the shadow and leans on the doctrine border -
+              right at home on busy pages.
+            </.card_content>
+            <.card_footer>
+              <.button color="gray" variant="ghost" size="sm">Dismiss</.button>
+            </.card_footer>
+          </.card>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        card_media takes an aspect_ratio_class (default aspect-video); card_content takes
+        optional category + heading and free-form children; card_footer is a plain row.
+        Everything follows the radius token.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "accordion"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Accordion</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Expandable sections for FAQs and dense settings. Pure LiveView.JS - no server
+        round-trip to toggle.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="px-6 py-10">
+          <div class="max-w-xl mx-auto">
+            <.accordion container_id={"pg-acc-#{@accordion.variant}-#{if @accordion.multiple, do: "m", else: "s"}"} variant={@accordion.variant} multiple={@accordion.multiple} open_index={0}>
+              <:item heading="Is it accessible?">
+                Yes - proper button semantics, aria-expanded, and keyboard toggling out of
+                the box.
+              </:item>
+              <:item heading="Can several be open at once?">
+                That is the multiple attr - flip it in the controls below.
+              </:item>
+              <:item heading="Does it follow the theme?">
+                Borders, radius token and text tiers all come from the doctrine.
+              </:item>
+            </.accordion>
+          </div>
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={v <- ~w(default ghost)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
+                {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_accordion" phx-value-k="multiple" class={tog(@accordion.multiple)}>multiple</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Items come from :item slots (heading attr + body) or an entries list; open_index
+        opens one at render. ghost drops the container border for embedding.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "marquee"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Marquee</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        An infinite scroller for logos, testimonials, anything. Pure CSS animation with
+        edge fade.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="px-2 py-10">
+          <.marquee
+            reverse={@marquee_ctl.reverse}
+            vertical={@marquee_ctl.vertical}
+            pause_on_hover={@marquee_ctl.pause}
+            duration="24s"
+            max_height={@marquee_ctl.vertical && "300px"}
+          >
+            <div :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)} class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-zinc-700">
+              <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
+              <span class="text-sm font-medium">{name}</span>
+            </div>
+          </.marquee>
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_marquee" phx-value-k="reverse" class={tog(@marquee_ctl.reverse)}>reverse</button>
+              <button phx-click="ctl_marquee" phx-value-k="vertical" class={tog(@marquee_ctl.vertical)}>vertical</button>
+              <button phx-click="ctl_marquee" phx-value-k="pause" class={tog(@marquee_ctl.pause)}>pause on hover</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        repeat controls how many copies keep the loop seamless; duration and gap tune the
+        feel; overlay_gradient fades the edges. Holds still under prefers-reduced-motion.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "spotlight-card"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Spotlight card</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A radial glow follows your cursor across the card. Move your mouse over them.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="grid gap-6 px-6 py-12 md:grid-cols-2">
+          <.spotlight_card id="spot-1" class="p-8">
+            <h3 class="text-lg font-semibold">Default glow</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Subtle by default - the light source tracks the pointer.
+            </p>
+          </.spotlight_card>
+          <.spotlight_card id="spot-2" spotlight_color="rgba(124, 58, 237, 0.25)" spotlight_size="500px" class="p-8">
+            <h3 class="text-lg font-semibold">Tuned glow</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              spotlight_color and spotlight_size make it a brand moment.
+            </p>
+          </.spotlight_card>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Powered by the tiny PetalSpotlight hook (pointer position only - the paint is pure
+        CSS). Reads best on dark panels.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "number-ticker"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Number ticker</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Numbers that count up to their value. Feed it new numbers and it animates the
+        difference.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-6 px-6 py-12">
+          <div class="text-5xl font-bold tabular-nums tracking-tight">
+            <.number_ticker id="pg-ticker" value={@ticker.value} prefix="$" />
+          </div>
+          <.button color="gray" variant="outline" size="sm" phx-click="ticker_bump">
+            <.icon name="hero-arrow-trending-up" class="w-4 h-4 mr-1" /> Add revenue
+          </.button>
+          <div class="flex gap-10 text-center">
+            <div>
+              <div class="text-2xl font-semibold tabular-nums"><.number_ticker id="t-stars" value={1024} suffix="+" /></div>
+              <div class="mt-1 text-xs text-gray-400">GitHub stars</div>
+            </div>
+            <div>
+              <div class="text-2xl font-semibold tabular-nums"><.number_ticker id="t-uptime" value={99.98} decimal_places={2} suffix="%" duration={2200} /></div>
+              <div class="mt-1 text-xs text-gray-400">Uptime</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        prefix/suffix/decimal_places/locale handle formatting; duration tunes the count.
+        The PetalNumberTicker hook animates on mount and on every value change.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "text-animation"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Text animation</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Four ways to make words move: gradient sweep, shimmer, typing, and word rotation.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-10 px-6 py-14 text-center">
+          <.gradient_text class="text-4xl font-bold">Ship something tonight</.gradient_text>
+          <.shimmer_text class="text-2xl font-semibold">Generating your app...</.shimmer_text>
+          <div class="text-2xl font-semibold">
+            Build <.word_rotate id="pg-rotate" words={["faster", "calmer", "together", "tonight"]} class="text-primary-600 dark:text-primary-400" />
+          </div>
+          <.typing_effect id="pg-typing" text="mix petal.gen.live Accounts User users" class="font-mono text-sm" />
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        gradient_text and shimmer_text are pure CSS (colours + duration attrs);
+        word_rotate and typing_effect use tiny hooks. All respect
+        prefers-reduced-motion.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "confetti"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Confetti</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Zero-dependency canvas confetti. Fire it from the client or push it from the
+        server on the moments that matter.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-4 px-6 py-16">
+          <.confetti id="pg-confetti" />
+          <.button phx-click={Phoenix.LiveView.JS.dispatch("pc:confetti", to: "#pg-confetti")}>
+            <.icon name="hero-sparkles" class="w-4 h-4 mr-1.5" /> Celebrate
+          </.button>
+          <p class="text-sm text-gray-500 dark:text-zinc-400">no server round-trip - it's a JS.dispatch</p>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Tune particle_count, spread, angle, velocity, colors and origin. From LiveView:
+        push_event(socket, "pc-confetti", %{}) fires it server-side - ship it on signup
+        complete, plan upgraded, streak kept.
       </div>
     </div>
     """
