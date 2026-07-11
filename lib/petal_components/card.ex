@@ -9,7 +9,7 @@ defmodule PetalComponents.Card do
     default: "basic",
     values: ["basic", "outline", "muted"],
     doc:
-      "basic is the elevated panel (border + a whisper of shadow); outline is the same panel without the shadow, for flat dense layouts; muted is the tinted well for de-emphasised content"
+      "basic is THE card (bordered panel); muted is the tinted well for de-emphasised content. outline is a legacy alias of basic (identical look) slated for removal in a future major"
   )
 
   attr(:rest, :global)

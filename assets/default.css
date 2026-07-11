@@ -2205,8 +2205,9 @@
     @apply border border-gray-200 shadow-xs dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
+  /* legacy alias of basic - visually identical; slated for removal in 5.0 */
   .pc-card--outline {
-    @apply border border-gray-200 dark:border-white/10;
+    @apply border border-gray-200 shadow-xs dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 

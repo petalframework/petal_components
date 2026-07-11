@@ -2956,28 +2956,22 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Variants - elevated, flat, and the muted well
+        Variants - the panel and the well
       </div>
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="grid gap-6 md:grid-cols-3">
+        <div class="grid max-w-2xl gap-6 mx-auto md:grid-cols-2">
           <.card>
-            <.card_header title="Basic" description="The default" />
+            <.card_header title="Basic" description="The card" />
             <.card_content>
-              Border plus a whisper of shadow - the elevated panel for primary content.
-            </.card_content>
-          </.card>
-          <.card variant="outline">
-            <.card_header title="Outline" description="Flat" />
-            <.card_content>
-              The same panel without the shadow - for dense layouts and grids of many
-              cards.
+              The bordered panel - primary content lives here. This is the default and
+              the only card most screens need.
             </.card_content>
           </.card>
           <.card variant="muted">
             <.card_header title="Muted" description="The well" />
             <.card_content>
-              A quiet tinted fill, no border - for secondary content, form sections and
-              stat tiles.
+              A quiet tinted fill, no border - secondary content, form sections, stat
+              tiles. It recedes where basic asserts.
             </.card_content>
           </.card>
         </div>
@@ -2985,9 +2979,10 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         card_header carries title + description + a top-right :action; card_content and
-        card_footer pad themselves so media can run full-bleed. Three variants, three
-        jobs: basic elevates primary content, outline keeps dense grids calm, muted
-        recedes for secondary panels. The cover photo is a 36KB local file, dev-only.
+        card_footer pad themselves so media can run full-bleed. Two variants, two jobs:
+        the panel asserts, the well recedes. (variant="outline" still renders - it is a
+        legacy alias of basic, going away in 5.0.) The cover photo is a 36KB local file,
+        dev-only.
       </div>
     </div>
     """
