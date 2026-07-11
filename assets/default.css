@@ -604,14 +604,13 @@
   }
 
   /* a dropdown fused into the rail (split button): the component wraps its
-     trigger in two divs, so flex them through and drop the collapse classes
-     on the trigger itself via trigger_class */
-  .pc-button-group > .pc-dropdown {
-    @apply inline-flex;
-  }
-
+     trigger in an intermediate div, so flex that through to stretch the
+     trigger to the rail height. .pc-dropdown itself stays relative + block
+     (never flex) so its absolute menu still drops below the trigger, not
+     over it. Collapse classes ride on trigger_class since the group's
+     :not(:first-child) rule can't reach the nested button. */
   .pc-button-group > .pc-dropdown > div:first-child {
-    @apply flex;
+    @apply flex h-full;
   }
 
   /* Button Group - legacy :button slot API (self-styled overlapping buttons) */
