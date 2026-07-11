@@ -14,9 +14,30 @@ defmodule PetalComponents.Avatar do
     doc: "generates a random color for placeholder initials avatar"
   )
 
+  attr(:status, :string,
+    default: nil,
+    values: [nil, "online", "offline", "busy", "away"],
+    doc: "presence dot on the bottom-right corner, ringed to separate from the image"
+  )
+
   attr(:rest, :global)
 
-  def avatar(assigns) do
+  def avatar(%{status: status} = assigns) when not is_nil(status) do
+    ~H"""
+    <span class="pc-avatar-anchor">
+      {avatar_media(assigns)}
+      <span
+        class={["pc-avatar__status", "pc-avatar__status--#{@status}", "pc-avatar__status--#{@size}"]}
+        role="status"
+        aria-label={@status}
+      ></span>
+    </span>
+    """
+  end
+
+  def avatar(assigns), do: avatar_media(assigns)
+
+  defp avatar_media(assigns) do
     ~H"""
     <%= if src_blank?(@src) && !@name do %>
       <div
@@ -65,14 +86,40 @@ defmodule PetalComponents.Avatar do
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:avatars, :list, default: [], doc: "list of your hosted avatar URLs")
+
+  attr(:max, :integer,
+    default: nil,
+    doc: "show at most this many avatars, then a +N overflow bubble for the rest"
+  )
+
   attr(:rest, :global)
 
   def avatar_group(assigns) do
+    {shown, hidden} =
+      if assigns.max, do: Enum.split(assigns.avatars, assigns.max), else: {assigns.avatars, []}
+
+    assigns =
+      assigns
+      |> assign(:shown, shown)
+      |> assign(:overflow, length(hidden))
+
     ~H"""
     <div {@rest} class={["pc-avatar-group--#{@size}", @class]}>
-      <%= for src <- @avatars do %>
+      <%= for src <- @shown do %>
         <.avatar src={src} size={@size} class="pc-avatar-group" />
       <% end %>
+      <div
+        :if={@overflow > 0}
+        class={[
+          "pc-avatar--with-placeholder-initials",
+          "pc-avatar--#{@size}",
+          "pc-avatar-group",
+          "pc-avatar-group__overflow"
+        ]}
+        aria-label={"#{@overflow} more"}
+      >
+        +{@overflow}
+      </div>
     </div>
     """
   end

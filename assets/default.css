@@ -1904,6 +1904,43 @@
   .pc-avatar--with-image {
     @apply object-cover rounded-full;
   }
+  .pc-avatar-anchor {
+    @apply relative inline-flex shrink-0;
+  }
+  .pc-avatar__status {
+    @apply absolute right-0 bottom-0 block rounded-full ring-2 ring-white dark:ring-zinc-950;
+  }
+  .pc-avatar__status--online {
+    @apply bg-success-500;
+  }
+  .pc-avatar__status--offline {
+    @apply bg-gray-300 dark:bg-gray-600;
+  }
+  .pc-avatar__status--busy {
+    @apply bg-danger-500;
+  }
+  .pc-avatar__status--away {
+    @apply bg-warning-400;
+  }
+  .pc-avatar__status--xs {
+    @apply h-1.5 w-1.5;
+  }
+  .pc-avatar__status--sm {
+    @apply h-2 w-2;
+  }
+  .pc-avatar__status--md {
+    @apply h-2.5 w-2.5;
+  }
+  .pc-avatar__status--lg {
+    @apply h-3 w-3;
+  }
+  .pc-avatar__status--xl {
+    @apply h-3.5 w-3.5;
+  }
+  .pc-avatar-group__overflow {
+    @apply bg-gray-100 font-medium text-gray-600 dark:bg-zinc-800 dark:text-gray-300;
+  }
+
   .pc-avatar--with-placeholder-icon {
     @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-white/10;
   }
@@ -1911,7 +1948,7 @@
     @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-white/10 dark:text-gray-300;
   }
   .pc-avatar-group {
-    @apply ring-white ring-2 dark:ring-gray-100;
+    @apply ring-white ring-2 dark:ring-zinc-950;
   }
   .pc-avatar__placeholder-icon {
     @apply relative w-full! h-full! bg-gray-300 top-[12%] scale-[1.15] transform;

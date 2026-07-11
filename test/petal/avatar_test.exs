@@ -92,4 +92,32 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ ~s{custom-attrs="456"}
     assert html =~ ~s{custom-attrs="789"}
   end
+
+  test "status renders a ringed presence dot in a relative anchor" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar name="Grace Hopper" status="online" />
+      """)
+
+    assert html =~ "pc-avatar-anchor"
+    assert html =~ "pc-avatar__status--online"
+    assert html =~ "pc-avatar__status--md"
+    assert html =~ ~s(aria-label="online")
+  end
+
+  test "avatar_group max renders the +N overflow bubble" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar_group avatars={["/a.jpg", "/b.jpg", "/c.jpg", "/d.jpg", "/e.jpg"]} max={3} />
+      """)
+
+    assert 3 == html |> String.split("pc-avatar--with-image") |> length() |> Kernel.-(1)
+    assert html =~ "pc-avatar-group__overflow"
+    assert html =~ "+2"
+    assert html =~ ~s(aria-label="2 more")
+  end
 end

@@ -2857,24 +2857,76 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Avatar</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Images, initials fallbacks, and stacked groups.
+        Images, initials fallbacks, presence dots, and stacked groups.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-col items-center gap-8 px-6 py-12">
-          <div class="flex items-end gap-4">
-            <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
-              <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
-              <span class="text-[11px] text-gray-400">{sz}</span>
-            </div>
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Sizes - xs to xl
+      </div>
+      <div class="border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-4 px-6 py-12">
+          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
+            <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
+            <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
-          <div class="flex items-center gap-4">
-            <.avatar src="/dev-static/avatars/p44.jpg" alt="Team member" />
-            <.avatar name="Ada Lovelace" random_color />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Fallback chain - photo, initials, icon
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-center justify-center gap-6">
+          <div class="flex flex-col items-center gap-2">
+            <.avatar src="/dev-static/avatars/p44.jpg" alt="Photo" />
+            <span class="text-[11px] text-gray-400">src</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <.avatar name="Ada Lovelace" />
+            <span class="text-[11px] text-gray-400">initials</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
             <.avatar name="Grace Hopper" random_color />
-            <.avatar />
+            <span class="text-[11px] text-gray-400">random_color</span>
           </div>
+          <div class="flex flex-col items-center gap-2">
+            <.avatar />
+            <span class="text-[11px] text-gray-400">no name</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Presence - a team list with status dots
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto divide-y divide-gray-100 dark:divide-white/10">
+          <div
+            :for={{src, name, role, status, label} <- [
+              {"/dev-static/avatars/p32.jpg", "Amelia Ward", "Engineering", "online", "Online"},
+              {"/dev-static/avatars/p65.jpg", "Jonah Reyes", "Design", "busy", "In a meeting"},
+              {"/dev-static/avatars/p44.jpg", "Priya Anand", "Support", "away", "Back in 20m"},
+              {"/dev-static/avatars/p12.jpg", "Maya Okafor", "Engineering", "offline", "Offline"}
+            ]}
+            class="flex items-center gap-3 py-3"
+          >
+            <.avatar src={src} alt={name} status={status} />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{name}</p>
+              <p class="text-xs text-gray-500 truncate dark:text-gray-400">{role}</p>
+            </div>
+            <span class="text-xs text-gray-400 dark:text-gray-500">{label}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Groups - stacked, with a +N overflow
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center gap-5">
           <.avatar_group
             size="md"
+            max={3}
             avatars={[
               "/dev-static/avatars/p32.jpg",
               "/dev-static/avatars/p44.jpg",
@@ -2883,13 +2935,26 @@ defmodule Dev.PlaygroundLive do
               "/dev-static/avatars/p68.jpg"
             ]}
           />
+          <div class="flex items-center gap-3">
+            <.avatar_group
+              size="sm"
+              avatars={[
+                "/dev-static/avatars/p65.jpg",
+                "/dev-static/avatars/p68.jpg",
+                "/dev-static/avatars/p12.jpg"
+              ]}
+            />
+            <span class="text-sm text-gray-500 dark:text-gray-400">3 people are viewing this page</span>
+          </div>
         </div>
       </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        src renders the photo; no src + name renders initials (random_color gives each
-        person a stable hue hashed from the name); neither renders the person icon.
-        avatar_group stacks with overlap and rings. Demo photos are tiny local files -
-        4KB each, dev-only.
+        The fallback chain is automatic: src renders the photo, name renders initials
+        (random_color hashes a stable hue from the name), neither renders the person
+        icon. status adds a ringed presence dot that scales with the avatar (online /
+        busy / away / offline). avatar_group stacks with overlap; max caps the row and
+        folds the rest into a +N bubble. Demo photos are tiny local files, dev-only.
       </div>
     </div>
     """

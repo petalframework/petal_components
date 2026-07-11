@@ -27,6 +27,7 @@ defmodule PetalComponents.Card do
 
   attr(:aspect_ratio_class, :any, default: "aspect-video", doc: "aspect ratio class")
   attr(:src, :string, default: nil, doc: "hosted image URL")
+  attr(:alt, :string, default: nil, doc: "alt text for the image")
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -34,7 +35,7 @@ defmodule PetalComponents.Card do
   def card_media(assigns) do
     ~H"""
     <%= if @src do %>
-      <img {@rest} src={@src} class={["pc-card__image", @aspect_ratio_class, @class]} />
+      <img {@rest} src={@src} alt={@alt} class={["pc-card__image", @aspect_ratio_class, @class]} />
     <% else %>
       <div {@rest} class={["pc-card__image-placeholder", @aspect_ratio_class, @class]}></div>
     <% end %>
