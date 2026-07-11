@@ -275,7 +275,7 @@ defmodule Dev.PlaygroundLive do
        table: %{sort_by: "name", sort_dir: "asc", density: "comfortable", striped: false, variant: "basic", empty: false},
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
-       accordion: %{variant: "default", multiple: false},
+       accordion: %{variant: "default", multiple: false, size: "md"},
        stepper: %{orientation: "horizontal", size: "md", at: 1},
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
@@ -446,6 +446,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_accordion", %{"k" => "multiple"}, socket),
     do: {:noreply, update(socket, :accordion, &%{&1 | multiple: !&1.multiple})}
+
+  def handle_event("ctl_accordion", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md),
+    do: {:noreply, update(socket, :accordion, &%{&1 | size: v})}
 
   def handle_event("ctl_stepper", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(horizontal vertical),
@@ -2723,20 +2726,50 @@ defmodule Dev.PlaygroundLive do
         anything else that waits.
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex items-end justify-center gap-10 px-6 py-12">
+        <div class="flex flex-col items-center gap-6 px-6 py-12">
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <.button loading>Saving changes</.button>
+            <.button color="gray" variant="outline" loading disabled>Generating</.button>
+          </div>
+          <div class="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400">
+            <.spinner size="sm" /> Syncing workspace...
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        A loading panel
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col items-center justify-center max-w-md gap-3 py-12 mx-auto border border-gray-200 border-dashed rounded-xl dark:border-zinc-700">
+          <.spinner size="md" />
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Generating preview</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">This usually takes a few seconds</p>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Sizes and colour
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-10">
           <div :for={sz <- ~w(sm md lg)} class="flex flex-col items-center gap-2">
             <.spinner size={sz} />
             <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
           <div class="flex flex-col items-center gap-2">
-            <.spinner size_class="h-10 w-10 text-secondary-500" />
+            <.spinner size_class="h-8 w-8 text-secondary-500" />
             <span class="text-[11px] text-gray-400">custom</span>
           </div>
         </div>
       </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        show toggles visibility without unmounting; size_class takes over sizing and
-        colour entirely (it inherits currentColor, so text-* utilities recolour it).
+        Buttons take loading directly (spinner swaps in, label stays). Standalone, pair
+        the spinner with a status line or a panel state. show toggles visibility without
+        unmounting; size_class takes over sizing and colour (currentColor, so text-*
+        utilities recolour it). For full skeleton states, reach for the skeleton
+        component instead.
       </div>
     </div>
     """
@@ -2907,7 +2940,7 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="px-6 py-10">
           <div class="max-w-xl mx-auto">
-            <.accordion container_id={"pg-acc-#{@accordion.variant}-#{if @accordion.multiple, do: "m", else: "s"}"} variant={@accordion.variant} multiple={@accordion.multiple} open_index={0}>
+            <.accordion container_id={"pg-acc-#{@accordion.variant}-#{@accordion.size}-#{if @accordion.multiple, do: "m", else: "s"}"} variant={@accordion.variant} size={@accordion.size} multiple={@accordion.multiple} open_index={0}>
               <:item heading="Is it accessible?">
                 Yes - proper button semantics, aria-expanded, and keyboard toggling out of
                 the box.
@@ -2927,6 +2960,14 @@ defmodule Dev.PlaygroundLive do
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button :for={v <- ~w(default ghost)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
                 {v}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+              <button :for={sz <- ~w(md sm)} phx-click="ctl_accordion" phx-value-k="size" phx-value-v={sz} class={seg(@accordion.size == sz)}>
+                {if sz == "sm", do: "compact", else: "default"}
               </button>
             </div>
           </div>
@@ -3225,8 +3266,9 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        The current page rides primary (selection signals follow your dial - try it);
-        everything else is quiet chrome with hover washes. sibling and boundary counts
+        The current page carries the outline surface (border + wash - the same recipe as
+        outline buttons), everything else is quiet ghost chrome with hover washes.
+        sibling and boundary counts
         control the windowing around the ellipses. Link mode takes a path template like
         /users/:page; event mode fires goto-page with phx-value-page. One style by design -
         variants multiply here without earning their keep.

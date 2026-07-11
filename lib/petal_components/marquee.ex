@@ -37,6 +37,7 @@ defmodule PetalComponents.Marquee do
         class={[
           "pc-marquee-container group",
           @vertical && "pc-vertical",
+          @overlay_gradient && "pc-marquee--fade",
           @class
         ]}
         max-width={@max_width}
@@ -58,16 +59,6 @@ defmodule PetalComponents.Marquee do
           </div>
         <% end %>
       </div>
-
-      <%= if @overlay_gradient do %>
-        <%= if @vertical do %>
-          <div class="pc-gradient-overlay-top"></div>
-          <div class="pc-gradient-overlay-bottom"></div>
-        <% else %>
-          <div class="pc-gradient-overlay-left"></div>
-          <div class="pc-gradient-overlay-right"></div>
-        <% end %>
-      <% end %>
     </div>
     """
   end

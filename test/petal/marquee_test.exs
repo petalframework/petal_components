@@ -148,8 +148,7 @@ defmodule PetalComponents.MarqueeTest do
         </.marquee>
         """)
 
-      assert html =~ "pc-gradient-overlay-left"
-      assert html =~ "pc-gradient-overlay-right"
+      assert html =~ "pc-marquee--fade"
     end
 
     test "renders vertical gradient overlays when vertical" do
@@ -166,8 +165,8 @@ defmodule PetalComponents.MarqueeTest do
         </.marquee>
         """)
 
-      assert html =~ "pc-gradient-overlay-top"
-      assert html =~ "pc-gradient-overlay-bottom"
+      assert html =~ "pc-marquee--fade"
+      assert html =~ "pc-vertical"
     end
 
     test "doesn't render gradient overlays when disabled" do

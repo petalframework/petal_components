@@ -9,6 +9,12 @@ defmodule PetalComponents.Accordion do
   attr(:entries, :list, default: [%{}])
   attr(:variant, :string, default: "default", values: ["default", "ghost"])
 
+  attr(:size, :string,
+    default: "md",
+    values: ["sm", "md"],
+    doc: "sm tightens paddings and type for dense UIs (settings panels, sidebars)"
+  )
+
   attr(:open_index, :integer, default: nil, doc: "Index of item to be open at render")
 
   attr(:multiple, :boolean,
@@ -54,6 +60,7 @@ defmodule PetalComponents.Accordion do
       id={@container_id}
       class={[
         @class,
+        @size == "sm" && "pc-accordion--sm",
         if(@variant == "ghost", do: "pc-accordion--ghost")
       ]}
       {@rest}
@@ -138,7 +145,6 @@ defmodule PetalComponents.Accordion do
         </div>
       <% end %>
     </div>
-
     """
   end
 

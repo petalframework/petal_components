@@ -2052,7 +2052,7 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item--is-current {
-    @apply bg-primary-600 text-[var(--pc-button-solid-fg,#fff)] shadow-xs;
+    @apply border border-gray-300 bg-transparent font-medium text-gray-900 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-100;
   }
   .pc-pagination__item--is-not-current {
     @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200;
@@ -2342,6 +2342,22 @@
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
   }
+  /* compact: shadcn-scale rows for dense UIs */
+  .pc-accordion--sm .pc-accordion-item {
+    @apply px-4 py-3;
+  }
+  .pc-accordion--sm .pc-accordion-item__heading {
+    @apply text-sm font-medium;
+  }
+  .pc-accordion--sm .pc-accordion-item__content-container {
+    @apply px-4 py-3 text-sm;
+  }
+  .pc-accordion--sm .pc-accordion-item__button--ghost {
+    @apply py-2.5;
+  }
+  .pc-accordion--sm .pc-accordion-item__content--ghost {
+    @apply pb-3 text-sm;
+  }
   .pc-accordion-item__content-container--last {
     @apply border-t-0;
     border-end-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
@@ -2497,21 +2513,16 @@
     }
   }
 
-  .pc-gradient-overlay-left {
-    @apply absolute top-0 bottom-0 left-0 w-1/3 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+  /* edge fade via mask: works on ANY background, no shade to mismatch */
+  .pc-marquee--fade {
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+  .pc-marquee--fade.pc-vertical {
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
   }
 
-  .pc-gradient-overlay-right {
-    @apply absolute top-0 bottom-0 right-0 w-1/3 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-900/0 dark:to-gray-900;
-  }
 
-  .pc-gradient-overlay-top {
-    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
-  }
 
-  .pc-gradient-overlay-bottom {
-    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
-  }
 
   /* Modal */
   .pc-modal {
