@@ -34,6 +34,37 @@ defmodule PetalComponents.Card do
     """
   end
 
+  attr(:title, :string, default: nil, doc: "the card title")
+  attr(:description, :string, default: nil, doc: "a muted line under the title")
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+
+  slot(:action, required: false, doc: "top-right header content - a button, link or menu")
+  slot(:inner_block, required: false)
+
+  @doc """
+  The card header: title + description on the left, an optional action on
+  the right.
+
+      <.card_header title="Login to your account" description="Enter your email below">
+        <:action><.button color="gray" variant="ghost" size="sm">Sign up</.button></:action>
+      </.card_header>
+  """
+  def card_header(assigns) do
+    ~H"""
+    <div class={["pc-card__header", @class]} {@rest}>
+      <div class="pc-card__header-titles">
+        <div :if={@title} class="pc-card__title">{@title}</div>
+        <div :if={@description} class="pc-card__description">{@description}</div>
+        {render_slot(@inner_block)}
+      </div>
+      <div :if={@action != []} class="pc-card__header-action">
+        {render_slot(@action)}
+      </div>
+    </div>
+    """
+  end
+
   attr(:heading, :string, default: nil, doc: "creates a heading")
   attr(:category, :string, default: nil, doc: "creates a category")
 

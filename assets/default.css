@@ -2202,12 +2202,27 @@
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-card--outline {
-    @apply border border-gray-300 dark:border-white/15;
+    @apply border border-gray-200 bg-transparent dark:border-white/15 dark:bg-white/5;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
   /* Cards - content */
 
+  .pc-card__header {
+    @apply flex items-start justify-between gap-4 px-6 pt-6;
+  }
+  .pc-card__header-titles {
+    @apply flex min-w-0 flex-col gap-1.5;
+  }
+  .pc-card__title {
+    @apply font-semibold leading-none text-gray-900 dark:text-gray-100;
+  }
+  .pc-card__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-card__header-action {
+    @apply shrink-0;
+  }
   .pc-card__content {
     @apply flex-1 p-6 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
   }
@@ -2336,6 +2351,9 @@
   .pc-accordion-item__heading {
     @apply text-sm font-medium;
   }
+  .pc-accordion--rows .pc-accordion-item__chevron {
+    @apply h-4 w-4 translate-y-0.5 text-gray-400 dark:text-gray-500;
+  }
   .pc-accordion-item__chevron {
     @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
@@ -2345,7 +2363,23 @@
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
   }
-  /* compact: shadcn-scale rows for dense UIs */
+  /* default: the shadcn row style - hairline dividers, no boxes */
+  .pc-accordion-row {
+    @apply border-b border-gray-200 last:border-b-0 dark:border-white/10;
+  }
+  .pc-accordion-item--row {
+    @apply flex w-full items-start justify-between gap-4 py-4 text-left text-sm font-medium text-gray-900 transition-all hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-100;
+  }
+  .pc-accordion-item__content--row {
+    @apply pb-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
+  }
+  /* compact scales */
+  .pc-accordion--sm .pc-accordion-item--row {
+    @apply py-3;
+  }
+  .pc-accordion--sm .pc-accordion-item__content--row {
+    @apply pb-3;
+  }
   .pc-accordion--sm .pc-accordion-item {
     @apply px-4 py-3;
   }
@@ -3065,7 +3099,7 @@
   }
 
   .pc-stepper__container {
-    @apply flex md:gap-4;
+    @apply flex w-full md:gap-4;
   }
 
   .pc-stepper--horizontal .pc-stepper__container {
@@ -3082,12 +3116,12 @@
   }
 
   .pc-stepper__item-content {
-    @apply flex items-center gap-4 focus:outline-hidden ring-0;
+    @apply flex items-center gap-3 ring-0 focus:outline-hidden;
   }
 
   /* Node */
   .pc-stepper__node {
-    @apply flex items-center gap-4 transition-all duration-200 ease-out cursor-pointer hover:opacity-90;
+    @apply flex cursor-pointer items-center gap-3 transition-all duration-200 ease-out hover:opacity-90;
   }
 
   /* Indicator */
@@ -3163,50 +3197,41 @@
 
   /* Description */
   .pc-stepper__description {
-    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply mt-0.5 text-xs text-gray-500 dark:text-gray-400;
   }
 
   /* Connector Wrapper */
   .pc-stepper__connector-wrapper {
-    @apply flex self-start shrink md:self-center;
+    @apply flex shrink justify-center self-start md:self-center;
   }
-
-  /* Size Variants */
-  .pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply pl-4 md:pl-0;
-  }
-
-  .pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply pl-5 md:pl-0;
-  }
-
-  .pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply pl-6 md:pl-0;
-  }
-
   .pc-stepper--horizontal .pc-stepper__connector-wrapper {
-    @apply flex h-full md:w-full md:h-auto;
+    @apply md:min-w-8 md:flex-1;
   }
-
-  /* Vertical Orientation Connector Wrapper Adjustments */
-
-  /* Small Size */
+  .pc-stepper--sm .pc-stepper__connector-wrapper {
+    @apply w-7 md:w-auto;
+  }
+  .pc-stepper--md .pc-stepper__connector-wrapper {
+    @apply w-8 md:w-auto;
+  }
+  .pc-stepper--lg .pc-stepper__connector-wrapper {
+    @apply w-10 md:w-auto;
+  }
+  .pc-stepper--vertical .pc-stepper__connector-wrapper {
+    @apply md:self-start;
+  }
   .pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-4;
+    @apply md:w-7;
   }
-
-  /* Medium Size */
   .pc-stepper--vertical.pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-5;
+    @apply md:w-8;
+  }
+  .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
+    @apply md:w-10;
+  }
+  .pc-stepper__title {
+    @apply text-sm font-medium leading-tight text-gray-900 dark:text-gray-100;
   }
 
-  /* Large Size */
-  .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-6;
-  }
   .pc-stepper--vertical .pc-stepper__container {
     @apply md:gap-1;
   }

@@ -21,7 +21,8 @@ defmodule PetalComponents.AccordionTest do
     refute html =~ "<script"
     assert html =~ "phx-click"
     assert has_icon?(html)
-    assert html =~ "pc-accordion-item"
+    assert html =~ "pc-accordion-item--row"
+    assert html =~ "pc-accordion-row"
 
     html =
       rendered_to_string(~H"""
@@ -238,5 +239,21 @@ defmodule PetalComponents.AccordionTest do
       """)
 
     assert html =~ ~s|phx-update="ignore"|
+  end
+
+  test "bordered variant renders the boxed card-accordion" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.accordion variant="bordered">
+        <:item heading="One">1</:item>
+        <:item heading="Two">2</:item>
+      </.accordion>
+      """)
+
+    assert html =~ "pc-accordion-item accordion-button"
+    assert html =~ "pc-accordion-item--first"
+    assert html =~ "pc-accordion-item__content-container"
   end
 end

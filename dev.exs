@@ -441,7 +441,7 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
   def handle_event("ctl_accordion", %{"k" => "variant", "v" => v}, socket)
-      when v in ~w(default ghost),
+      when v in ~w(default bordered ghost),
       do: {:noreply, update(socket, :accordion, &%{&1 | variant: v})}
 
   def handle_event("ctl_accordion", %{"k" => "multiple"}, socket),
@@ -2787,7 +2787,7 @@ defmodule Dev.PlaygroundLive do
           <.breadcrumbs
             separator={@crumbs.separator}
             links={[
-              %{label: "Home", to: "#", link_type: "button"},
+              %{icon: "hero-home", to: "#", link_type: "button"},
               %{label: "Projects", to: "#", link_type: "button"},
               %{label: "petal_components", to: "#", link_type: "button"}
             ]}
@@ -2805,8 +2805,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        links take label + to + link_type (a / live_patch / live_redirect / button); the
-        nav carries an aria_label for assistive tech.
+        links take label and/or icon (the first crumb here is a home icon), to, and
+        link_type (a / live_patch / live_redirect / button). The last crumb renders as
+        the current page - strong text + aria-current. The nav carries an aria_label.
       </div>
     </div>
     """
@@ -2902,7 +2903,45 @@ defmodule Dev.PlaygroundLive do
         The container for everything - media, content, footer, composed from parts.
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="grid gap-8 px-6 py-12 md:grid-cols-2">
+        <div class="flex justify-center px-6 py-12">
+          <.card class="w-full max-w-sm">
+            <.card_header
+              title="Login to your account"
+              description="Enter your email below to login"
+            >
+              <:action>
+                <.button color="gray" variant="ghost" size="sm" link_type="a" to="#">
+                  Sign up
+                </.button>
+              </:action>
+            </.card_header>
+            <.card_content>
+              <div class="flex flex-col gap-4">
+                <.field type="email" name="email" value="" label="Email" placeholder="m@example.com" />
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-sm font-medium text-gray-900 dark:text-gray-100">Password</label>
+                    <a href="#" class="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+                      Forgot your password?
+                    </a>
+                  </div>
+                  <.input type="password" name="password" value="" />
+                </div>
+              </div>
+            </.card_content>
+            <.card_footer class="flex-col">
+              <.button class="w-full">Login</.button>
+              <.button color="gray" variant="outline" class="w-full">Login with Google</.button>
+            </.card_footer>
+          </.card>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Media card - full-bleed image, category, heading
+      </div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-sm mx-auto">
           <.card>
             <.card_media />
             <.card_content category="Release" heading="petal_components 4.5">
@@ -2913,21 +2952,36 @@ defmodule Dev.PlaygroundLive do
               <.button color="gray" variant="outline" size="sm">Read more</.button>
             </.card_footer>
           </.card>
-          <.card variant="outline">
-            <.card_content category="Outline" heading="Quieter variant">
-              The outline variant drops the shadow and leans on the doctrine border -
-              right at home on busy pages.
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Variants - panel vs surface (shown on a tinted backdrop)
+      </div>
+      <div class="px-6 py-10 bg-gray-100 border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-zinc-800">
+        <div class="grid max-w-2xl gap-6 mx-auto md:grid-cols-2">
+          <.card>
+            <.card_header title="Basic" description="A solid elevated panel" />
+            <.card_content>
+              White (zinc-900 in dark) with a hairline border and a whisper of shadow -
+              it pops off any backdrop.
             </.card_content>
-            <.card_footer>
-              <.button color="gray" variant="ghost" size="sm">Dismiss</.button>
-            </.card_footer>
+          </.card>
+          <.card variant="outline">
+            <.card_header title="Outline" description="The blending surface" />
+            <.card_content>
+              Transparent with a border (a soft wash in dark) - it sits INTO the page
+              instead of on top of it.
+            </.card_content>
           </.card>
         </div>
       </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        card_media takes an aspect_ratio_class (default aspect-video); card_content takes
-        optional category + heading and free-form children; card_footer is a plain row.
-        Everything follows the radius token.
+        card_header carries title + description + a top-right :action; card_content and
+        card_footer pad themselves so media can run full-bleed. basic is the elevated
+        panel; outline is the blending surface - the difference shows on tinted
+        backgrounds, which is exactly where you choose between them.
       </div>
     </div>
     """
@@ -2962,7 +3016,7 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
-              <button :for={v <- ~w(default ghost)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
+              <button :for={v <- ~w(default bordered ghost)} phx-click="ctl_accordion" phx-value-k="variant" phx-value-v={v} class={seg(@accordion.variant == v)}>
                 {v}
               </button>
             </div>
@@ -2986,10 +3040,11 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Items come from :item slots (heading attr + body) or an entries list; open_index
-        opens one at render. "Allow multiple open" changes what happens on the NEXT
-        clicks: off, opening a section closes the others (classic FAQ); on, sections
-        stay open independently - open two to see it. ghost drops the boxes entirely.
+        default is the shadcn row style - hairline dividers, headings underline on
+        hover; bordered is the boxed card-accordion; ghost is the minimal +/- look.
+        "Allow multiple open" changes what happens on the NEXT clicks: off, opening a
+        section closes the others (classic FAQ); on, sections stay open independently -
+        open two to see it.
       </div>
     </div>
     """
