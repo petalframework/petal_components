@@ -2943,7 +2943,7 @@ defmodule Dev.PlaygroundLive do
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="max-w-sm mx-auto">
           <.card>
-            <.card_media />
+            <.card_media src="/dev-static/covers/release.jpg" alt="Release cover" />
             <.card_content category="Release" heading="petal_components 4.5">
               Command palette, interactive ratings, sheets, sortable tables and a
               composable skeleton.
@@ -2956,22 +2956,28 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Variants - panel vs surface (shown on a tinted backdrop)
+        Variants - elevated, flat, and the muted well
       </div>
-      <div class="px-6 py-10 bg-gray-100 border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-zinc-800">
-        <div class="grid max-w-2xl gap-6 mx-auto md:grid-cols-2">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="grid gap-6 md:grid-cols-3">
           <.card>
-            <.card_header title="Basic" description="A solid elevated panel" />
+            <.card_header title="Basic" description="The default" />
             <.card_content>
-              White (zinc-900 in dark) with a hairline border and a whisper of shadow -
-              it pops off any backdrop.
+              Border plus a whisper of shadow - the elevated panel for primary content.
             </.card_content>
           </.card>
           <.card variant="outline">
-            <.card_header title="Outline" description="The blending surface" />
+            <.card_header title="Outline" description="Flat" />
             <.card_content>
-              Transparent with a border (a soft wash in dark) - it sits INTO the page
-              instead of on top of it.
+              The same panel without the shadow - for dense layouts and grids of many
+              cards.
+            </.card_content>
+          </.card>
+          <.card variant="muted">
+            <.card_header title="Muted" description="The well" />
+            <.card_content>
+              A quiet tinted fill, no border - for secondary content, form sections and
+              stat tiles.
             </.card_content>
           </.card>
         </div>
@@ -2979,9 +2985,9 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         card_header carries title + description + a top-right :action; card_content and
-        card_footer pad themselves so media can run full-bleed. basic is the elevated
-        panel; outline is the blending surface - the difference shows on tinted
-        backgrounds, which is exactly where you choose between them.
+        card_footer pad themselves so media can run full-bleed. Three variants, three
+        jobs: basic elevates primary content, outline keeps dense grids calm, muted
+        recedes for secondary panels. The cover photo is a 36KB local file, dev-only.
       </div>
     </div>
     """

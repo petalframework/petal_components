@@ -2197,12 +2197,16 @@
   .pc-card__inner {
     @apply flex flex-col w-full max-w-full;
   }
+  .pc-card--muted {
+    @apply border border-transparent bg-gray-50 dark:bg-white/[0.04];
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
   .pc-card--basic {
     @apply border border-gray-200 shadow-xs dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-card--outline {
-    @apply border border-gray-200 bg-transparent dark:border-white/15 dark:bg-white/5;
+    @apply border border-gray-200 dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 

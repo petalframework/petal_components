@@ -333,4 +333,15 @@ defmodule PetalComponents.CardTest do
     assert html =~ "pc-card__header-action"
     assert html =~ "Sign up"
   end
+
+  test "muted variant renders the tinted well" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.card variant="muted">hi</.card>
+      """)
+
+    assert html =~ "pc-card--muted"
+  end
 end

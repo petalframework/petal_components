@@ -4,7 +4,14 @@ defmodule PetalComponents.Card do
   import PetalComponents.Typography
 
   attr(:class, :any, default: nil, doc: "CSS class")
-  attr(:variant, :string, default: "basic", values: ["basic", "outline"])
+
+  attr(:variant, :string,
+    default: "basic",
+    values: ["basic", "outline", "muted"],
+    doc:
+      "basic is the elevated panel (border + a whisper of shadow); outline is the same panel without the shadow, for flat dense layouts; muted is the tinted well for de-emphasised content"
+  )
+
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
