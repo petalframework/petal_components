@@ -1404,11 +1404,15 @@
     border-end-end-radius: var(--pc-radius, 0.625rem);
   }
   .pc-otp__slot--active {
-    @apply border-primary-500 ring-2 ring-primary-500/50 z-10;
+    /* caret colour on the parent - dark: variants don't compile inside
+       pseudo-element selectors, they'd silently drop */
+    --pc-otp-caret: var(--color-gray-900, #18181b);
+    @apply border-primary-500 ring-2 ring-primary-500/50 z-10 dark:[--pc-otp-caret:#f4f4f5];
   }
   .pc-otp__slot--active:not(.pc-otp__slot--filled)::before {
     content: "";
-    @apply absolute w-px h-6 bg-gray-900 dark:bg-gray-100;
+    @apply absolute w-px h-6;
+    background-color: var(--pc-otp-caret);
     animation: pc-otp-blink 1.1s steps(2, start) infinite;
   }
   @keyframes pc-otp-blink {
@@ -3857,12 +3861,16 @@
     @apply my-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400;
   }
   .pc-chat__marker--separator {
-    @apply gap-3;
+    /* line colour lives on the parent - dark: variants don't compile inside
+       pseudo-element selectors, they'd silently drop */
+    --pc-chat-marker-line: var(--color-gray-200, #e4e4e7);
+    @apply gap-3 dark:[--pc-chat-marker-line:#ffffff1a];
   }
   .pc-chat__marker--separator::before,
   .pc-chat__marker--separator::after {
     content: "";
-    @apply h-px flex-1 bg-gray-200 dark:bg-white/10;
+    @apply h-px flex-1;
+    background-color: var(--pc-chat-marker-line);
   }
   .pc-chat__marker--border {
     @apply border-b border-gray-200 pb-2.5 dark:border-white/10;

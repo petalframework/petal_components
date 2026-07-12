@@ -311,3 +311,43 @@
 .dark[data-primary="neutral"] .pc-switch input:checked ~ .pc-switch__fake-input-bg {
   background-color: #18181b;
 }
+
+/* Raw-var bridge: components that read var(--color-primary-*) directly
+ * (chat bubbles via --pc-chat-user-bg, any token defaults) must track the
+ * dials too. @theme inline only rewires UTILITIES - it never emits the
+ * --color-* variables themselves - so mirror the mapping as plain custom
+ * properties. Declared on :root AND the [data-*] wrappers so the mapping
+ * re-resolves against each dial's accent overrides (custom properties
+ * substitute at the element they're declared on, not at point of use).
+ * In user apps this bridge is not needed: a normal @theme emits the
+ * --color-* vars on :root already.
+ */
+:root,
+[data-primary] {
+  --color-primary-50: var(--pg-accent-50);
+  --color-primary-100: var(--pg-accent-100);
+  --color-primary-200: var(--pg-accent-200);
+  --color-primary-300: var(--pg-accent-300);
+  --color-primary-400: var(--pg-accent-400);
+  --color-primary-500: var(--pg-accent-500);
+  --color-primary-600: var(--pg-accent-600);
+  --color-primary-700: var(--pg-accent-700);
+  --color-primary-800: var(--pg-accent-800);
+  --color-primary-900: var(--pg-accent-900);
+  --color-primary-950: var(--pg-accent-950);
+}
+
+:root,
+[data-secondary] {
+  --color-secondary-50: var(--pg-accent2-50);
+  --color-secondary-100: var(--pg-accent2-100);
+  --color-secondary-200: var(--pg-accent2-200);
+  --color-secondary-300: var(--pg-accent2-300);
+  --color-secondary-400: var(--pg-accent2-400);
+  --color-secondary-500: var(--pg-accent2-500);
+  --color-secondary-600: var(--pg-accent2-600);
+  --color-secondary-700: var(--pg-accent2-700);
+  --color-secondary-800: var(--pg-accent2-800);
+  --color-secondary-900: var(--pg-accent2-900);
+  --color-secondary-950: var(--pg-accent2-950);
+}
