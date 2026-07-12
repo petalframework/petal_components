@@ -1071,6 +1071,21 @@ export const PetalCommandDialog = {
   },
 };
 
+// Pauses the aurora drift while the section is off-screen.
+export const PetalAurora = {
+  mounted() {
+    this.lights = this.el.querySelector("[data-pc-aurora]");
+    if (!this.lights || !("IntersectionObserver" in window)) return;
+    this.observer = new IntersectionObserver(([entry]) => {
+      this.lights.classList.toggle("pc-aurora--paused", !entry.isIntersecting);
+    });
+    this.observer.observe(this.el);
+  },
+  destroyed() {
+    if (this.observer) this.observer.disconnect();
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -1089,5 +1104,6 @@ export default {
   PetalInputOTP,
   PetalPopover,
   PetalCommand,
+  PetalAurora,
   PetalCommandDialog,
 };

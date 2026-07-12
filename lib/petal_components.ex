@@ -23,6 +23,7 @@ defmodule PetalComponents do
         Alert,
         Avatar,
         Badge,
+        Aurora,
         BorderBeam,
         Breadcrumbs,
         Button,

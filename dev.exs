@@ -111,7 +111,9 @@ defmodule Dev.PlaygroundLive do
       group: "Foundations",
       items: [
         %{slug: "typography", name: "Typography", ready: true},
-        %{slug: "colors", name: "Colours", ready: true}
+        %{slug: "colors", name: "Colours", ready: true},
+        %{slug: "links", name: "Links", ready: true},
+        %{slug: "icons", name: "Icons", ready: true}
       ]
     },
     %{
@@ -144,7 +146,9 @@ defmodule Dev.PlaygroundLive do
         %{slug: "tabs", name: "Tabs", ready: true},
         %{slug: "pagination", name: "Pagination", ready: true},
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
-        %{slug: "stepper", name: "Stepper", ready: true}
+        %{slug: "stepper", name: "Stepper", ready: true},
+        %{slug: "menu", name: "Menu", ready: true},
+        %{slug: "navigation-menu", name: "Navigation menu", ready: true}
       ]
     },
     %{
@@ -158,7 +162,8 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "avatar", name: "Avatar", ready: true},
         %{slug: "card", name: "Card", ready: true},
-        %{slug: "accordion", name: "Accordion", ready: true}
+        %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "container", name: "Container", ready: true}
       ]
     },
     %{
@@ -175,6 +180,7 @@ defmodule Dev.PlaygroundLive do
     %{
       group: "Effects",
       items: [
+        %{slug: "aurora", name: "Aurora", ready: true},
         %{slug: "border-beam", name: "Border beam", ready: true},
         %{slug: "meteors", name: "Meteors", ready: true},
         %{slug: "shine-border", name: "Shine border", ready: true},
@@ -4992,6 +4998,371 @@ defmodule Dev.PlaygroundLive do
             no_margin
           />
         </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "aurora"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Aurora</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        A drifting aurora glow behind your content - the hero-section backdrop.
+        Pure CSS; pauses off-screen.
+      </p>
+      <div class="mt-8">
+        <.aurora class="border border-gray-200 rounded-2xl dark:border-zinc-800">
+          <div class="flex flex-col items-center px-8 text-center py-24">
+            <.badge color="primary" variant="outline" label="Now in petal_components" />
+            <h2 class="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+              Ship your Phoenix app this weekend
+            </h2>
+            <p class="max-w-md mt-3 text-gray-600 dark:text-gray-300">
+              Auth, billing, orgs and a component library that looks like you hired a designer.
+            </p>
+            <div class="flex items-center gap-3 mt-6">
+              <.button label="Get started" />
+              <.button color="gray" variant="outline" label="Live demo" />
+            </div>
+          </div>
+        </.aurora>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Any palette - colors builds the gradient for you
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div :for={
+          {label, colors} <- [
+            {"sunset", ["#f97316", "#f43f5e", "#fbbf24", "#fb7185"]},
+            {"emerald", ["#10b981", "#5eead4", "#a7f3d0", "#34d399"]},
+            {"violet", ["#8b5cf6", "#f0abfc", "#c4b5fd", "#a78bfa"]}
+          ]
+        }>
+          <.aurora colors={colors} class="border border-gray-200 rounded-xl dark:border-zinc-800">
+            <div class="flex items-end px-4 h-36">
+              <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">{label}</span>
+            </div>
+          </.aurora>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Tuning - flood the whole container, or slow the drift
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <.aurora
+          mask_position="50% 0"
+          mask_coverage="30%, 100%"
+          class="border border-gray-200 rounded-xl dark:border-zinc-800"
+        >
+          <div class="flex items-end px-4 h-36">
+            <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">
+              mask_position="50% 0" mask_coverage="30%, 100%"
+            </span>
+          </div>
+        </.aurora>
+        <.aurora
+          speed="20s"
+          opacity="0.7"
+          class="border border-gray-200 rounded-xl dark:border-zinc-800"
+        >
+          <div class="flex items-end px-4 h-36">
+            <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">
+              speed="20s" opacity="0.7"
+            </span>
+          </div>
+        </.aurora>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        The wrapper sizes to its content - pad a hero and it just works. By default the
+        effect inverts on light backgrounds and renders natural in dark
+        (invert="always"/"none" to force). The PetalAurora hook pauses the drift while
+        off-screen, and prefers-reduced-motion freezes it entirely. Ported from Petal Pro
+        and rebuilt: pc-prefixed classes, palette-driven gradients, content above the glow.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "links"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Links</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The routing primitive. One tag, four behaviours - plain anchor, LiveView
+        patch, LiveView redirect, or a styled-as-link button.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-lg px-6 py-10 mx-auto text-sm leading-7 text-gray-600 dark:text-gray-300">
+          Petal ships with
+          <.a
+            to="#"
+            class="font-medium text-primary-600 underline underline-offset-2 hover:text-primary-700 dark:text-primary-400"
+          >
+            36 components
+          </.a>
+          out of the box. Read the
+          <.a
+            to="#"
+            link_type="live_patch"
+            class="font-medium text-primary-600 underline underline-offset-2 hover:text-primary-700 dark:text-primary-400"
+          >
+            install guide
+          </.a>
+          or jump straight to the
+          <.a
+            to="#"
+            link_type="live_redirect"
+            class="font-medium text-primary-600 underline underline-offset-2 hover:text-primary-700 dark:text-primary-400"
+          >
+            live demo
+          </.a>
+          to see it running.
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Behaviours - same tag, different navigation
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
+          <div
+            :for={
+              {type, label} <- [
+                {"a", "plain anchor"},
+                {"live_patch", "live_patch"},
+                {"live_redirect", "live_redirect"},
+                {"button", "button"}
+              ]
+            }
+            class="flex flex-col items-center gap-1"
+          >
+            <.a
+              to={if type == "button", do: nil, else: "#"}
+              link_type={type}
+              class="font-medium text-primary-600 underline underline-offset-2 dark:text-primary-400"
+            >
+              {label}
+            </.a>
+            <span class="text-[11px] text-gray-400">link_type="{type}"</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <.a to="#" disabled class="font-medium text-gray-400 underline underline-offset-2">
+              disabled
+            </.a>
+            <span class="text-[11px] text-gray-400">disabled</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        &lt;.a&gt; is deliberately unstyled - it is the primitive under button, breadcrumbs,
+        pagination and dropdown items. Style it with classes (or just use those
+        components). disabled turns an anchor into a real disabled button, since
+        anchors can't be disabled.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "icons"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Icons</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Every Heroicon by name - outline, solid, mini and micro. Sized and coloured
+        with classes like any other element.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="grid grid-cols-4 gap-1 p-4 sm:grid-cols-6">
+          <div
+            :for={
+              name <-
+                ~w(home user users cog-6-tooth bell envelope calendar chart-bar folder document magnifying-glass plus trash pencil check x-mark arrow-right arrow-path cloud-arrow-up lock-closed star heart bolt sparkles)
+            }
+            class="flex flex-col items-center gap-2 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5"
+          >
+            <.icon name={"hero-" <> name} class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <span class="font-mono text-[10px] text-gray-400 truncate max-w-full px-1">{name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Variants - outline, solid, mini, micro
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-8">
+          <div
+            :for={
+              {suffix, label} <- [
+                {"", "outline"},
+                {"-solid", "solid"},
+                {"-mini", "mini"},
+                {"-micro", "micro"}
+              ]
+            }
+            class="flex flex-col items-center gap-2"
+          >
+            <.icon name={"hero-star" <> suffix} class="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            <span class="font-mono text-[10px] text-gray-400">hero-star{suffix}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Size and colour are just classes
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex items-end justify-center gap-6">
+          <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
+          <.icon name="hero-bolt" class="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          <.icon name="hero-bolt" class="w-8 h-8 text-warning-500" />
+          <.icon name="hero-bolt" class="w-10 h-10 text-danger-500" />
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Any hero-* name from heroicons.com works - this grid is a sample, not the set.
+        Icons render as masked spans, so text colour utilities colour them. The other
+        petal components (button icon attr, breadcrumbs, alerts) use this same
+        component under the hood.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "menu"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The sidebar menu - grouped items, icons, and an active state driven by
+        current_page.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center px-6 py-10">
+          <div class="w-64 p-3 bg-white border border-gray-200 rounded-xl dark:bg-zinc-900 dark:border-white/10">
+            <.vertical_menu
+              current_page={:projects}
+              menu_items={[
+                %{
+                  title: nil,
+                  menu_items: [
+                    %{name: :dashboard, label: "Dashboard", path: "#", icon: "hero-home"},
+                    %{name: :projects, label: "Projects", path: "#", icon: "hero-folder"},
+                    %{name: :reports, label: "Reports", path: "#", icon: "hero-chart-bar"}
+                  ]
+                },
+                %{
+                  title: "Workspace",
+                  menu_items: [
+                    %{name: :members, label: "Members", path: "#", icon: "hero-users"},
+                    %{name: :billing, label: "Billing", path: "#", icon: "hero-credit-card"},
+                    %{name: :settings, label: "Settings", path: "#", icon: "hero-cog-6-tooth"}
+                  ]
+                }
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        menu_items is a plain list of maps (name, label, path, icon) - group them with
+        title for section headings. current_page matches against name to highlight the
+        active item. Nested menu_items on an item render a collapsible sub-menu. This
+        is the same component Petal Pro's sidebar layout is built on.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "navigation-menu"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Navigation menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The marketing-site top nav - plain links and flyout panels with rich link
+        rows and a CTA footer.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex justify-center px-6 pt-6 pb-72">
+          <.navigation_menu id="pg-nav-demo">
+            <:item label="Product" width="md">
+              <.navigation_menu_link
+                to="#"
+                icon="hero-chart-bar"
+                title="Analytics"
+                description="Understand your traffic"
+              />
+              <.navigation_menu_link
+                to="#"
+                icon="hero-arrow-path"
+                title="Automations"
+                description="Put repetitive work on autopilot"
+              />
+              <.navigation_menu_link
+                to="#"
+                icon="hero-shield-check"
+                title="Security"
+                description="SSO, 2FA and audit logs"
+              />
+              <.navigation_menu_footer>
+                <.navigation_menu_footer_link to="#" icon="hero-play-circle" label="Watch demo" />
+                <.navigation_menu_footer_link to="#" icon="hero-phone" label="Contact sales" />
+              </.navigation_menu_footer>
+            </:item>
+            <:item label="Pricing" to="#" />
+            <:item label="Docs" to="#" current />
+          </.navigation_menu>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Click Product to open the flyout - panels close on Escape or click-away
+        (click-to-open by design; hover navs misfire on touch). Items with to render
+        plain links, current marks the active page. width sizes the panel sm-xl,
+        full_width spans a mega menu, and align="end" keeps right-edge panels on
+        screen.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "container"} = assigns) do
+    ~H"""
+    <div class="max-w-5xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Container</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        Centred max-width wrapper with responsive gutters - the outermost div of
+        every page.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col gap-3 py-8">
+          <.container :for={mw <- ~w(sm md lg xl full)} max_width={mw}>
+            <div class="flex items-center justify-between px-4 py-2.5 text-xs font-mono rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">
+              <span>max_width="{mw}"</span>
+              <span class="text-primary-400 dark:text-primary-500">
+                {case mw do
+                  "sm" -> "42rem"
+                  "md" -> "56rem"
+                  "lg" -> "64rem"
+                  "xl" -> "72rem"
+                  "full" -> "100%"
+                end}
+              </span>
+            </div>
+          </.container>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Wrap page content once and forget about horizontal padding - gutters are
+        responsive (none on mobile with no_padding_on_mobile). Larger sizes clamp to
+        their parent - lg upwards is capped by this demo panel. The playground pages
+        you're reading use the same pattern.
       </div>
     </div>
     """

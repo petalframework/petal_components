@@ -4112,6 +4112,110 @@
     outline-offset: -2px;
   }
 
+  /* Aurora */
+
+  .pc-aurora {
+    @apply relative overflow-hidden;
+    /* the stripe texture and the invert filter flip TOGETHER per mode: white
+       stripes + invert on light, black stripes + no invert on dark. The
+       difference blend against matching stripes is what restores the palette's
+       true hues - mismatched pairs shift every colour (blue turns gold). */
+    --pc-aurora-stripes-light: repeating-linear-gradient(
+      100deg,
+      #fff 0%,
+      #fff 7%,
+      transparent 10%,
+      transparent 12%,
+      #fff 16%
+    );
+    --pc-aurora-stripes-dark: repeating-linear-gradient(
+      100deg,
+      #000 0%,
+      #000 7%,
+      transparent 10%,
+      transparent 12%,
+      #000 16%
+    );
+    --pc-aurora-stripes: var(--pc-aurora-stripes-light);
+    --pc-aurora-invert: invert(1);
+    @apply dark:[--pc-aurora-stripes:var(--pc-aurora-stripes-dark)] dark:[--pc-aurora-invert:invert(0)];
+  }
+
+  /* force the light-style rendering in both modes */
+  .pc-aurora.pc-aurora--invert {
+    --pc-aurora-stripes: var(--pc-aurora-stripes-light);
+    --pc-aurora-invert: invert(1);
+  }
+
+  /* force the dark-style rendering in both modes */
+  .pc-aurora.pc-aurora--no-invert {
+    --pc-aurora-stripes: var(--pc-aurora-stripes-dark);
+    --pc-aurora-invert: invert(0);
+  }
+
+  .pc-aurora__backdrop {
+    @apply pointer-events-none absolute inset-0 overflow-hidden;
+  }
+
+  .pc-aurora__lights {
+    @apply pointer-events-none absolute will-change-transform;
+    inset: -10px;
+    background-image: var(--pc-aurora-stripes), var(--pc-aurora-gradient);
+    background-size: 300%, 200%;
+    background-position:
+      50% 50%,
+      50% 50%;
+    opacity: var(--pc-aurora-opacity, 0.5);
+    filter: blur(var(--pc-aurora-blur, 10px)) var(--pc-aurora-invert);
+    -webkit-mask-image: radial-gradient(
+      ellipse at var(--pc-aurora-mask-position, 100% 0),
+      #000 var(--pc-aurora-mask-coverage, 10%, 70%)
+    );
+    mask-image: radial-gradient(
+      ellipse at var(--pc-aurora-mask-position, 100% 0),
+      #000 var(--pc-aurora-mask-coverage, 10%, 70%)
+    );
+  }
+
+  .pc-aurora__lights::after {
+    content: "";
+    @apply absolute inset-0;
+    background-image: var(--pc-aurora-stripes), var(--pc-aurora-gradient);
+    background-size: 200%, 100%;
+    background-attachment: fixed;
+    mix-blend-mode: difference;
+    animation: pc-aurora var(--pc-aurora-speed, 60s) linear infinite;
+  }
+
+  /* the PetalAurora hook pauses the drift while off-screen */
+  .pc-aurora__lights.pc-aurora--paused::after {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-aurora__lights::after {
+      animation: none;
+    }
+  }
+
+  /* content paints above the glow, so text stays crisp */
+  .pc-aurora__content {
+    @apply relative;
+  }
+
+  @keyframes pc-aurora {
+    0% {
+      background-position:
+        50% 50%,
+        50% 50%;
+    }
+    100% {
+      background-position:
+        350% 50%,
+        350% 50%;
+    }
+  }
+
   /* Border Beam */
   .pc-border-beam {
     @apply relative bg-white border-gray-200 dark:bg-zinc-900 dark:border-white/10;
