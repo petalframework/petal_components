@@ -5545,9 +5545,10 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Streaming is real here: the LiveView pushes word-sized tokens with
         push_event and the PetalChatStream hook appends them - then the bubble
-        snaps to rendered markdown when the answer commits. Scroll up mid-answer
-        and it won't drag you back down; "Load earlier messages" inserts history
-        above without moving what you're reading.
+        snaps to rendered markdown when the answer commits. At the bottom, the
+        thread rides the live edge as tokens land; scroll up mid-answer and it
+        lets go instantly (the arrow button brings you back). "Load earlier
+        messages" inserts history above without moving what you're reading.
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">

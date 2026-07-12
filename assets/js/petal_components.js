@@ -17,15 +17,18 @@ export const PetalChatStream = {
     this.textEl = this.el.querySelector("[data-pc-stream-text]");
     this.htmlEl = this.el.querySelector("[data-pc-stream-html]");
     const event = this.el.dataset.event || "pc-chat-token";
-
-    // Anchor the new turn near the TOP of the viewport (so the answer starts at
-    // the top and there's room to read it), then DON'T auto-follow — the user
-    // scrolls down at their own pace. Avoids the "keeps yanking to the bottom"
-    // problem. The scroll-to-bottom button handles jumping back down.
-    this.anchorTop();
+    this.scroller = this.el.closest("[data-pc-scroll]");
 
     this.handleEvent(event, (payload) => {
       if (payload.id && payload.id !== this.el.id) return;
+      // Reader at the live edge rides it: pin after each token. Scrolling up
+      // disengages (edge check fails) and nothing ever yanks them back down —
+      // the scroll-to-bottom button is the way back. Same model as ChatGPT's
+      // follow and shadcn's autoScroll. Edge state is read BEFORE the token
+      // lands, so growth below the fold can't disengage a following reader.
+      const atEdge =
+        this.scroller &&
+        this.scroller.scrollHeight - this.scroller.scrollTop - this.scroller.clientHeight < 80;
       this.el.dataset.started = "";
       // markdown mode: replace innerHTML with pre-rendered HTML.
       // text mode: append the raw token delta.
@@ -34,18 +37,13 @@ export const PetalChatStream = {
       } else if (payload.text !== undefined && this.textEl) {
         this.textEl.textContent += payload.text;
       }
+      if (this.scroller) {
+        if (atEdge) this.scroller.scrollTop = this.scroller.scrollHeight;
+        // content changed without any scroll/patch event — let the scroller
+        // hook re-evaluate its jump-to-latest button
+        this.scroller.dispatchEvent(new Event("scroll"));
+      }
     });
-  },
-
-  anchorTop() {
-    const scroller = this.el.closest("[data-pc-scroll]");
-    if (!scroller) return;
-    // Prefer the user's question (so it sits at the top with the answer below);
-    // fall back to this answer's own row.
-    const userRows = scroller.querySelectorAll(".pc-chat__row--user");
-    const target = userRows[userRows.length - 1] || this.el.closest(".pc-chat__row") || this.el;
-    const delta = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
-    scroller.scrollTop += delta;
   },
 };
 
@@ -154,16 +152,25 @@ export const PetalChatScroll = {
     // (Anchor tracking, not added-node inspection: morphdom may recreate
     // trailing nodes, which makes structural prepend detection unreliable.)
     this.recordAnchor();
-    this.onScrollAnchor = () => this.recordAnchor();
+    this.recordEdge();
+    this.onScrollAnchor = () => {
+      this.recordAnchor();
+      this.recordEdge();
+    };
     this.el.addEventListener("scroll", this.onScrollAnchor, { passive: true });
     this.observer = new MutationObserver(() => {
-      const atLiveEdge =
-        this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < 80;
-      if (this.anchor && this.anchor.isConnected && !atLiveEdge) {
+      if (this.wasAtEdge) {
+        // reader was riding the live edge before this patch — keep them there
+        // (new turns appended below stay in view)
+        this.el.scrollTop = this.el.scrollHeight;
+      } else if (this.anchor && this.anchor.isConnected) {
+        // reader was mid-thread — if content was inserted above (history),
+        // shift by the anchor row's displacement so their view doesn't move
         const delta = this.anchor.offsetTop - this.anchorOffset;
         if (delta !== 0) this.el.scrollTop += delta;
       }
       this.recordAnchor();
+      this.recordEdge();
       this.toggle();
     });
     this.observer.observe(this.el, { childList: true });
@@ -176,6 +183,10 @@ export const PetalChatScroll = {
     this.el.removeEventListener("scroll", this.onScroll);
     this.el.removeEventListener("scroll", this.onScrollAnchor);
     if (this.observer) this.observer.disconnect();
+  },
+  recordEdge() {
+    this.wasAtEdge =
+      this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < 80;
   },
   recordAnchor() {
     const top = this.el.scrollTop;
