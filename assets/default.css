@@ -3666,10 +3666,13 @@
     /* Theme tokens — override these to reskin without touching markup. */
     --pc-chat-radius: 1rem;
     --pc-chat-user-bg: var(--color-primary-600, #2563eb);
-    --pc-chat-user-fg: #ffffff;
+    /* label colour ON the user bubble - rides the same token as labels on
+       primary solids, so it flips with the monochrome ramp in dark mode */
+    --pc-chat-user-fg: var(--pc-button-solid-fg, #ffffff);
     --pc-chat-assistant-bg: var(--color-gray-100, #f3f4f6);
     --pc-chat-assistant-fg: var(--color-gray-900, #111827);
     @apply flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
+    @apply dark:[--pc-chat-assistant-bg:#ffffff0f] dark:[--pc-chat-assistant-fg:#f4f4f5];
   }
   .pc-chat__thread {
     @apply flex flex-1 flex-col gap-3 overflow-y-auto p-4;
@@ -3909,15 +3912,18 @@
     field-sizing: content;
   }
   .pc-chat__composer-send {
-    @apply rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40;
+    @apply rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-40;
     background-color: var(--pc-chat-user-bg);
+    color: var(--pc-chat-user-fg);
   }
   .pc-chat__composer-stop {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white;
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg;
     background-color: var(--pc-chat-user-bg);
+    color: var(--pc-chat-user-fg);
   }
   .pc-chat__stop-icon {
-    @apply h-3 w-3 rounded-[2px] bg-white;
+    @apply h-3 w-3 rounded-[2px];
+    background-color: currentColor;
   }
 }
 
