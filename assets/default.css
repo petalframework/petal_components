@@ -3873,10 +3873,21 @@
     @apply my-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs dark:border-gray-700;
   }
   .pc-chat__reasoning-summary {
-    @apply cursor-pointer list-none font-medium text-gray-500 select-none dark:text-gray-400;
+    @apply flex cursor-pointer list-none items-center gap-1 font-medium text-gray-500 select-none dark:text-gray-400;
   }
+  .pc-chat__reasoning-summary::-webkit-details-marker {
+    display: none;
+  }
+  .pc-chat__reasoning-chevron {
+    @apply h-3.5 w-3.5 shrink-0 transition-transform duration-150;
+  }
+  .pc-chat__reasoning[open] .pc-chat__reasoning-chevron {
+    @apply rotate-90;
+  }
+  /* normal text flow - pre-wrap faithfully rendered template indentation,
+     which mangled any multi-line HEEx content */
   .pc-chat__reasoning-body {
-    @apply mt-1.5 border-s-2 border-gray-200 ps-2 whitespace-pre-wrap text-gray-600 dark:border-gray-700 dark:text-gray-400;
+    @apply mt-1.5 border-s-2 border-gray-200 ps-2 text-gray-600 dark:border-gray-700 dark:text-gray-400;
   }
 
   /* Conversation markers - system notes, status rows, separators */

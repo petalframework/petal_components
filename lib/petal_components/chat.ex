@@ -469,7 +469,10 @@ defmodule PetalComponents.Chat do
   def reasoning(assigns) do
     ~H"""
     <details class={["pc-chat__reasoning", @class]} open={@open}>
-      <summary class="pc-chat__reasoning-summary">{@label}</summary>
+      <summary class="pc-chat__reasoning-summary">
+        <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__reasoning-chevron" />
+        {@label}
+      </summary>
       <div class="pc-chat__reasoning-body">{render_slot(@inner_block)}</div>
     </details>
     """

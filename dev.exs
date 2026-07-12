@@ -608,7 +608,7 @@ defmodule Dev.PlaygroundLive do
        loading: false,
        disabled: false,
        show_code: false,
-       chat: %{turns: [], streaming: false, seq: 0, history: false},
+       chat: %{turns: [], streaming: false, seq: 0, history: false, variant: "plain"},
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
@@ -1024,6 +1024,11 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("chat_history", _params, socket) do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | history: true})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(plain bubbles) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | variant: v})}
   end
 
   def handle_event(_event, _params, socket), do: {:noreply, socket}
@@ -5483,7 +5488,7 @@ defmodule Dev.PlaygroundLive do
         have - no client AI SDK. This demo is live: ask it something.
       </p>
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
-        <Chat.conversation id="pg-chat">
+        <Chat.conversation id="pg-chat" variant={@chat.variant}>
           <div :if={!@chat.history} class="flex justify-center">
             <button
               type="button"
@@ -5559,6 +5564,20 @@ defmodule Dev.PlaygroundLive do
             />
           </:footer>
         </Chat.conversation>
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-zinc-800/80">
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <button
+              :for={v <- ~w(plain bubbles)}
+              phx-click="ctl_chat"
+              phx-value-k="variant"
+              phx-value-v={v}
+              class={seg(@chat.variant == v)}
+            >
+              {v}
+            </button>
+          </div>
+        </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Streaming is real here: the LiveView pushes word-sized tokens with

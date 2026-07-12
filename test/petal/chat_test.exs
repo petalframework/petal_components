@@ -488,6 +488,18 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  test "reasoning shows a rotating disclosure chevron" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.reasoning label="Thought for 3s">trace</.reasoning>
+      """)
+
+    assert html =~ "pc-chat__reasoning-chevron"
+    assert html =~ "hero-chevron-right"
+  end
+
   describe "conversation variants and the actions slot" do
     test "plain is the default; bubbles opts back in" do
       assigns = %{}
