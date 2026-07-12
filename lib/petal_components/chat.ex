@@ -378,7 +378,10 @@ defmodule PetalComponents.Chat do
     default: nil,
     doc: "event pushed when the stop button is clicked while loading"
 
-  attr :submit_label, :string, default: "Send"
+  attr :submit_label, :string,
+    default: nil,
+    doc: "text for the send button; the default is the arrow-up icon convention"
+
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
   slot :actions, doc: "extra controls left of the send button"
@@ -397,7 +400,18 @@ defmodule PetalComponents.Chat do
         class="pc-chat__composer-input"
       >{@value}</textarea>
       <div :if={@actions != []} class="pc-chat__composer-actions">{render_slot(@actions)}</div>
-      <button :if={!@loading} type="submit" class="pc-chat__composer-send">{@submit_label}</button>
+      <button
+        :if={!@loading}
+        type="submit"
+        class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+        aria-label={if !@submit_label, do: "Send message"}
+      >
+        <%= if @submit_label do %>
+          {@submit_label}
+        <% else %>
+          <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+        <% end %>
+      </button>
       <button
         :if={@loading && @on_stop}
         type="button"
@@ -407,8 +421,18 @@ defmodule PetalComponents.Chat do
       >
         <span class="pc-chat__stop-icon" aria-hidden="true"></span>
       </button>
-      <button :if={@loading && !@on_stop} type="button" disabled class="pc-chat__composer-send">
-        …
+      <button
+        :if={@loading && !@on_stop}
+        type="button"
+        disabled
+        aria-label="Sending"
+        class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+      >
+        <%= if @submit_label do %>
+          …
+        <% else %>
+          <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+        <% end %>
       </button>
     </form>
     """
@@ -480,31 +504,71 @@ defmodule PetalComponents.Chat do
   end
 
   @doc """
-  A row of actions under a message (copy, regenerate, feedback). Compose with
-  `copy_button/1` and your own `phx-click` buttons using the `pc-chat__action`
-  class.
+  A row of actions under a message - the copy / feedback / regenerate bar.
+  Compose with `copy_button/1`, `action_button/1`, or your own `phx-click`
+  buttons using the `pc-chat__action` class.
 
       <Chat.message_actions>
-        <Chat.copy_button id={"copy-\#{@id}"} text={@text} />
-        <button class="pc-chat__action" phx-click="regenerate">Regenerate</button>
+        <Chat.copy_button id={"copy-\#{@id}"} text={@text} icon />
+        <Chat.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="feedback" phx-value-vote="up" />
+        <Chat.action_button icon="hero-arrow-path" label="Regenerate" phx-click="regenerate" />
       </Chat.message_actions>
+
+  `visible="hover"` fades the bar in when the message row is hovered or
+  focused (ChatGPT-style density for long threads). Touch devices have no
+  hover, so there the bar always shows.
   """
+  attr :visible, :string,
+    default: "always",
+    values: ["always", "hover"],
+    doc: "hover reveals the bar on message-row hover/focus; always shows on touch"
+
   attr :class, :any, default: nil
   slot :inner_block, required: true
 
   def message_actions(assigns) do
     ~H"""
-    <div class={["pc-chat__actions", @class]}>{render_slot(@inner_block)}</div>
+    <div class={["pc-chat__actions", @visible == "hover" && "pc-chat__actions--hover", @class]}>
+      {render_slot(@inner_block)}
+    </div>
     """
   end
 
   @doc """
-  A copy-to-clipboard button (via the `PetalCopy` hook). Shows brief "Copied!"
-  feedback. Requires a unique `id`.
+  An icon action for the message bar - thumbs up/down, regenerate, share.
+  Icon-only with the accessible name on `label` (also the tooltip). Pass any
+  `phx-*` binding through.
+
+      <Chat.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="feedback" phx-value-vote="up" />
+  """
+  attr :icon, :string, required: true, doc: "heroicon name"
+  attr :label, :string, required: true, doc: "accessible name, also shown as the tooltip"
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def action_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={["pc-chat__action pc-chat__action--icon", @class]}
+      aria-label={@label}
+      title={@label}
+      {@rest}
+    >
+      <PetalComponents.Icon.icon name={@icon} class="pc-chat__action-icon" />
+    </button>
+    """
+  end
+
+  @doc """
+  A copy-to-clipboard button (via the `PetalCopy` hook). Shows brief feedback -
+  the text flips to "Copied!", or in `icon` mode the clipboard swaps to a
+  check. Requires a unique `id`.
   """
   attr :id, :string, required: true
   attr :text, :string, required: true, doc: "the text to copy"
   attr :label, :string, default: "Copy"
+  attr :icon, :boolean, default: false, doc: "icon-only (clipboard -> check feedback)"
   attr :class, :any, default: nil
 
   def copy_button(assigns) do
@@ -515,9 +579,20 @@ defmodule PetalComponents.Chat do
       phx-hook="PetalCopy"
       data-copy-text={@text}
       data-copied-label="Copied!"
-      class={["pc-chat__action", @class]}
+      class={["pc-chat__action", @icon && "pc-chat__action--icon", @class]}
+      aria-label={if @icon, do: @label}
+      title={if @icon, do: @label}
     >
-      <span data-pc-copy-label>{@label}</span>
+      <%= if @icon do %>
+        <span data-pc-copy-default>
+          <PetalComponents.Icon.icon name="hero-clipboard" class="pc-chat__action-icon" />
+        </span>
+        <span data-pc-copy-done class="hidden">
+          <PetalComponents.Icon.icon name="hero-check" class="pc-chat__action-icon text-success-500" />
+        </span>
+      <% else %>
+        <span data-pc-copy-label>{@label}</span>
+      <% end %>
     </button>
     """
   end

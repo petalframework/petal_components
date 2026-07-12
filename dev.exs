@@ -5510,8 +5510,20 @@ defmodule Dev.PlaygroundLive do
           <Chat.chat_message id="pg-chat-seed-a" role="assistant">
             <Chat.markdown content={@chat_seed_answer} id="pg-chat-seed" />
             <Chat.message_actions>
-              <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} />
-              <button class="pc-chat__action" type="button">Regenerate</button>
+              <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} icon />
+              <Chat.action_button
+                icon="hero-hand-thumb-up"
+                label="Good response"
+                phx-click="chat_feedback"
+                phx-value-vote="up"
+              />
+              <Chat.action_button
+                icon="hero-hand-thumb-down"
+                label="Bad response"
+                phx-click="chat_feedback"
+                phx-value-vote="down"
+              />
+              <Chat.action_button icon="hero-arrow-path" label="Regenerate" phx-click="chat_feedback" />
             </Chat.message_actions>
           </Chat.chat_message>
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
@@ -5545,10 +5557,14 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
         Streaming is real here: the LiveView pushes word-sized tokens with
         push_event and the PetalChatStream hook appends them - then the bubble
-        snaps to rendered markdown when the answer commits. At the bottom, the
-        thread rides the live edge as tokens land; scroll up mid-answer and it
-        lets go instantly (the arrow button brings you back). "Load earlier
-        messages" inserts history above without moving what you're reading.
+        snaps to rendered markdown when the answer commits. Sending always drops
+        you to the live edge and the thread rides it as tokens land; scroll up
+        mid-answer and it lets go instantly (the arrow button brings you back).
+        "Load earlier messages" inserts history above without moving what you're
+        reading. The bar under the answer is message_actions (copy_button icon +
+        action_button - visible="hover" fades it in per row); the starter chips
+        are the suggestions component; the send button defaults to the arrow
+        icon (submit_label brings text back).
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">

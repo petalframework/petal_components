@@ -417,4 +417,74 @@ defmodule PetalComponents.ChatTest do
       refute html =~ "hero-cpu-chip"
     end
   end
+
+  describe "message action bar" do
+    test "send button defaults to the arrow icon and takes text via submit_label" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input phx-submit="send" />
+        """)
+
+      assert html =~ "pc-chat__composer-send--icon"
+      assert html =~ "hero-arrow-up"
+      assert html =~ ~s(aria-label="Send message")
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input phx-submit="send" submit_label="Send" />
+        """)
+
+      assert html =~ ">Send" or html =~ "Send\n"
+      refute html =~ "pc-chat__composer-send--icon"
+    end
+
+    test "action_button renders icon-only with accessible name" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="fb" />
+        """)
+
+      assert html =~ "pc-chat__action--icon"
+      assert html =~ "hero-hand-thumb-up"
+      assert html =~ ~s(aria-label="Good response")
+      assert html =~ ~s(title="Good response")
+    end
+
+    test "copy_button icon mode swaps clipboard for check feedback" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.copy_button id="c2" text="abc" icon />
+        """)
+
+      assert html =~ "data-pc-copy-default"
+      assert html =~ "data-pc-copy-done"
+      assert html =~ "hero-clipboard"
+      assert html =~ "hero-check"
+      assert html =~ ~s(aria-label="Copy")
+    end
+
+    test "message_actions hover mode adds the reveal class" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.message_actions visible="hover"><button>x</button></.message_actions>
+        """)
+
+      assert html =~ "pc-chat__actions--hover"
+
+      html =
+        rendered_to_string(~H"""
+        <.message_actions><button>x</button></.message_actions>
+        """)
+
+      refute html =~ "pc-chat__actions--hover"
+    end
+  end
 end

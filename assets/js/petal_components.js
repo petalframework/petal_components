@@ -52,6 +52,19 @@ export const PetalChatStream = {
 export const PetalChatComposer = {
   mounted() {
     this.textarea = this.el.querySelector("textarea");
+
+    // Sending is an intentional act: drop to the live edge (even if scrolled
+    // up) so the reply streams in view - incoming content alone never does
+    // this. Pinning before the patch lands also flips the scroller's
+    // wasAtEdge, so the append sticks.
+    this.el.addEventListener("submit", () => {
+      const scroller = this.el.closest(".pc-chat")?.querySelector("[data-pc-scroll]");
+      if (scroller) {
+        scroller.scrollTop = scroller.scrollHeight;
+        scroller.dispatchEvent(new Event("scroll"));
+      }
+    });
+
     if (!this.textarea) return;
 
     this.onKeydown = (e) => {
@@ -92,8 +105,20 @@ export const PetalChatComposer = {
 export const PetalCopy = {
   mounted() {
     const label = this.el.querySelector("[data-pc-copy-label]");
+    const def = this.el.querySelector("[data-pc-copy-default]");
+    const done = this.el.querySelector("[data-pc-copy-done]");
     this.el.addEventListener("click", () => {
       navigator.clipboard?.writeText(this.el.dataset.copyText || "");
+      if (def && done) {
+        // icon mode: clipboard -> check for a moment
+        def.classList.add("hidden");
+        done.classList.remove("hidden");
+        setTimeout(() => {
+          def.classList.remove("hidden");
+          done.classList.add("hidden");
+        }, 1500);
+        return;
+      }
       if (!label) return;
       const original = label.textContent;
       label.textContent = this.el.dataset.copiedLabel || "Copied!";

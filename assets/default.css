@@ -3892,6 +3892,26 @@
   .pc-chat__action {
     @apply rounded px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200;
   }
+  .pc-chat__action--icon {
+    @apply p-1.5;
+  }
+  .pc-chat__action-icon {
+    @apply h-4 w-4;
+  }
+  /* hover-revealed bar: fades in on message-row hover/focus; touch devices
+     have no hover, so there it always shows */
+  .pc-chat__actions--hover {
+    @apply opacity-0 transition-opacity duration-150;
+  }
+  .pc-chat__row:hover .pc-chat__actions--hover,
+  .pc-chat__row:focus-within .pc-chat__actions--hover {
+    @apply opacity-100;
+  }
+  @media (hover: none) {
+    .pc-chat__actions--hover {
+      @apply opacity-100;
+    }
+  }
 
   /* Prompt suggestion chips */
   .pc-chat__suggestions {
@@ -3923,6 +3943,13 @@
     @apply rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-40;
     background-color: var(--pc-chat-user-bg);
     color: var(--pc-chat-user-fg);
+  }
+  /* default icon send - the arrow-up convention */
+  .pc-chat__composer-send--icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center p-0;
+  }
+  .pc-chat__composer-send-icon {
+    @apply h-4 w-4;
   }
   .pc-chat__composer-stop {
     @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg;
