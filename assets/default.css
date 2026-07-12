@@ -3693,11 +3693,22 @@
   .pc-chat__row--user {
     @apply justify-end;
   }
+  /* bubble + action bar stack; carries the width cap so actions align under
+     the bubble edge */
+  .pc-chat__body {
+    @apply flex min-w-0 max-w-[80%] flex-col;
+  }
+  .pc-chat__row--user .pc-chat__body {
+    @apply items-end;
+  }
+  .pc-chat__row-actions {
+    @apply mt-1;
+  }
   .pc-chat__avatar {
     @apply flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm;
   }
   .pc-chat__bubble {
-    @apply min-w-min max-w-[80%] px-4 py-2 text-sm leading-relaxed;
+    @apply min-w-min max-w-full px-4 py-2 text-sm leading-relaxed;
     border-radius: var(--pc-chat-radius);
     /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
     overflow-wrap: anywhere;
@@ -3716,6 +3727,18 @@
   .pc-chat__bubble--system {
     background-color: var(--pc-chat-assistant-bg);
     color: var(--pc-chat-assistant-fg);
+  }
+  /* plain (default): the AI convention - assistant text on the surface, no
+     bubble; only the user side keeps one. Colour still rides the token. */
+  .pc-chat--plain .pc-chat__bubble--assistant,
+  .pc-chat--plain .pc-chat__bubble--system {
+    @apply p-0;
+    background-color: transparent;
+    border-radius: 0;
+  }
+  .pc-chat--plain .pc-chat__row--assistant .pc-chat__body,
+  .pc-chat--plain .pc-chat__row--system .pc-chat__body {
+    @apply max-w-full flex-1;
   }
   .pc-chat__stream {
     @apply block text-left;

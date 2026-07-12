@@ -487,4 +487,45 @@ defmodule PetalComponents.ChatTest do
       refute html =~ "pc-chat__actions--hover"
     end
   end
+
+  describe "conversation variants and the actions slot" do
+    test "plain is the default; bubbles opts back in" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.conversation id="v1">hi</.conversation>
+        """)
+
+      assert html =~ "pc-chat--plain"
+
+      html =
+        rendered_to_string(~H"""
+        <.conversation id="v2" variant="bubbles">hi</.conversation>
+        """)
+
+      refute html =~ "pc-chat--plain"
+    end
+
+    test "chat_message :actions renders below the bubble, outside it" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.chat_message role="assistant">
+          Answer text
+          <:actions>
+            <.message_actions><button>copy</button></.message_actions>
+          </:actions>
+        </.chat_message>
+        """)
+
+      assert html =~ "pc-chat__body"
+      assert html =~ "pc-chat__row-actions"
+      # the actions container closes after the bubble does
+      bubble_close = :binary.match(html, "pc-chat__row-actions") |> elem(0)
+      bubble_open = :binary.match(html, "pc-chat__bubble") |> elem(0)
+      assert bubble_open < bubble_close
+    end
+  end
 end

@@ -67,6 +67,13 @@ defmodule PetalComponents.Chat do
       </Chat.conversation>
   """
   attr :id, :string, doc: "defaults to a generated id so multiple threads can coexist"
+
+  attr :variant, :string,
+    default: "plain",
+    values: ["plain", "bubbles"],
+    doc:
+      "plain is the AI convention (ChatGPT/Claude): assistant text sits on the surface, only the user gets a bubble. bubbles puts both sides in bubbles (messenger style)"
+
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -76,7 +83,7 @@ defmodule PetalComponents.Chat do
     assigns = assign_new(assigns, :id, fn -> "pc-chat-#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <div class={["pc-chat", @class]} {@rest}>
+    <div class={["pc-chat", @variant == "plain" && "pc-chat--plain", @class]} {@rest}>
       <div class="pc-chat__viewport">
         <div
           id={@id}
@@ -114,13 +121,22 @@ defmodule PetalComponents.Chat do
   attr :class, :any, default: nil
   attr :rest, :global
   slot :avatar, doc: "optional leading avatar/icon"
+
+  slot :actions,
+    doc: "an action bar rendered below the message, outside the bubble - message_actions/1"
+
   slot :inner_block, required: true
 
   def chat_message(assigns) do
     ~H"""
     <div class={["pc-chat__row", "pc-chat__row--#{@role}", @class]} {@rest}>
       <div :if={@avatar != []} class="pc-chat__avatar">{render_slot(@avatar)}</div>
-      <div class={["pc-chat__bubble", "pc-chat__bubble--#{@role}"]}>{render_slot(@inner_block)}</div>
+      <div class="pc-chat__body">
+        <div class={["pc-chat__bubble", "pc-chat__bubble--#{@role}"]}>
+          {render_slot(@inner_block)}
+        </div>
+        <div :if={@actions != []} class="pc-chat__row-actions">{render_slot(@actions)}</div>
+      </div>
     </div>
     """
   end

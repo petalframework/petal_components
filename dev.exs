@@ -5509,22 +5509,28 @@ defmodule Dev.PlaygroundLive do
           </Chat.chat_message>
           <Chat.chat_message id="pg-chat-seed-a" role="assistant">
             <Chat.markdown content={@chat_seed_answer} id="pg-chat-seed" />
-            <Chat.message_actions>
-              <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} icon />
-              <Chat.action_button
-                icon="hero-hand-thumb-up"
-                label="Good response"
-                phx-click="chat_feedback"
-                phx-value-vote="up"
-              />
-              <Chat.action_button
-                icon="hero-hand-thumb-down"
-                label="Bad response"
-                phx-click="chat_feedback"
-                phx-value-vote="down"
-              />
-              <Chat.action_button icon="hero-arrow-path" label="Regenerate" phx-click="chat_feedback" />
-            </Chat.message_actions>
+            <:actions>
+              <Chat.message_actions>
+                <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} icon />
+                <Chat.action_button
+                  icon="hero-hand-thumb-up"
+                  label="Good response"
+                  phx-click="chat_feedback"
+                  phx-value-vote="up"
+                />
+                <Chat.action_button
+                  icon="hero-hand-thumb-down"
+                  label="Bad response"
+                  phx-click="chat_feedback"
+                  phx-value-vote="down"
+                />
+                <Chat.action_button
+                  icon="hero-arrow-path"
+                  label="Regenerate"
+                  phx-click="chat_feedback"
+                />
+              </Chat.message_actions>
+            </:actions>
           </Chat.chat_message>
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
             <Chat.chat_message :if={turn.role == :user} id={"pg-chat-turn-#{i}"} role="user">
@@ -5561,10 +5567,12 @@ defmodule Dev.PlaygroundLive do
         you to the live edge and the thread rides it as tokens land; scroll up
         mid-answer and it lets go instantly (the arrow button brings you back).
         "Load earlier messages" inserts history above without moving what you're
-        reading. The bar under the answer is message_actions (copy_button icon +
-        action_button - visible="hover" fades it in per row); the starter chips
-        are the suggestions component; the send button defaults to the arrow
-        icon (submit_label brings text back).
+        reading. The bar under the answer is message_actions in the
+        chat_message :actions slot (outside the bubble, per convention); the
+        starter chips are the suggestions component; the send button defaults
+        to the arrow icon (submit_label brings text back). The thread itself is
+        variant="plain" by default - assistant text on the surface, ChatGPT
+        style; variant="bubbles" puts both sides in bubbles (messenger style).
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
