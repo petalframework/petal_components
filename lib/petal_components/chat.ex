@@ -53,6 +53,12 @@ defmodule PetalComponents.Chat do
   A scrollable conversation thread. Composition-first: drop `chat_message/1`,
   `streaming_text/1`, or your own markup inside.
 
+  Opens scrolled to the latest message. When older history is inserted above
+  (pagination), the reader's position is preserved - give thread rows stable
+  `id`s (or render them from a LiveView stream) so patches reuse the DOM
+  nodes; without ids, LiveView rebuilds the siblings and the browser resets
+  the scroll.
+
       <Chat.conversation>
         <Chat.chat_message :for={msg <- @messages} role={msg.role}>{msg.text}</Chat.chat_message>
         <:footer>
@@ -426,6 +432,50 @@ defmodule PetalComponents.Chat do
       <summary class="pc-chat__reasoning-summary">{@label}</summary>
       <div class="pc-chat__reasoning-body">{render_slot(@inner_block)}</div>
     </details>
+    """
+  end
+
+  @doc """
+  An inline conversation marker - a system note, a status row, or a labelled
+  separator between sections of the thread.
+
+      <Chat.marker icon="hero-magnifying-glass">Searched the web</Chat.marker>
+      <Chat.marker variant="separator">Today</Chat.marker>
+      <Chat.marker variant="border" icon="hero-check-circle">Context compacted</Chat.marker>
+      <Chat.marker loading>Thinking...</Chat.marker>
+
+  While `loading` it shows a small spinner and announces as a live status
+  region. For the shimmering streaming-status treatment, compose the existing
+  `PetalComponents.TextAnimation.shimmer_text/1` inside:
+
+      <Chat.marker loading><.shimmer_text>Running the numbers...</.shimmer_text></Chat.marker>
+  """
+  attr :variant, :string,
+    default: "inline",
+    values: ["inline", "separator", "border"],
+    doc: "inline note, centred labelled separator, or a full-width bordered row"
+
+  attr :icon, :string, default: nil, doc: "heroicon name rendered before the text"
+  attr :loading, :boolean, default: false, doc: "spinner + role=status for in-progress work"
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def marker(assigns) do
+    ~H"""
+    <div
+      class={["pc-chat__marker", "pc-chat__marker--#{@variant}", @class]}
+      role={if @loading, do: "status"}
+      {@rest}
+    >
+      <span :if={@loading} class="pc-chat__marker-spinner" aria-hidden="true"></span>
+      <PetalComponents.Icon.icon
+        :if={@icon && !@loading}
+        name={@icon}
+        class="pc-chat__marker-icon"
+      />
+      <span class="pc-chat__marker-text">{render_slot(@inner_block)}</span>
+    </div>
     """
   end
 

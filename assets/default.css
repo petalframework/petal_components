@@ -3849,6 +3849,31 @@
     @apply mt-1.5 border-s-2 border-gray-200 ps-2 whitespace-pre-wrap text-gray-600 dark:border-gray-700 dark:text-gray-400;
   }
 
+  /* Conversation markers - system notes, status rows, separators */
+  .pc-chat__marker {
+    @apply my-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400;
+  }
+  .pc-chat__marker--separator {
+    @apply gap-3;
+  }
+  .pc-chat__marker--separator::before,
+  .pc-chat__marker--separator::after {
+    content: "";
+    @apply h-px flex-1 bg-gray-200 dark:bg-white/10;
+  }
+  .pc-chat__marker--border {
+    @apply border-b border-gray-200 pb-2.5 dark:border-white/10;
+  }
+  .pc-chat__marker-icon {
+    @apply h-3.5 w-3.5 shrink-0;
+  }
+  .pc-chat__marker-spinner {
+    @apply h-3 w-3 shrink-0 animate-spin rounded-full border border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
+  }
+  .pc-chat__marker-text {
+    @apply flex items-center gap-1.5;
+  }
+
   /* Message actions (copy / regenerate / feedback) */
   .pc-chat__actions {
     @apply mt-1 flex items-center gap-1;

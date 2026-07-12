@@ -146,6 +146,27 @@ export const PetalChatScroll = {
         this.el.scrollTop = this.el.scrollHeight;
       });
     }
+    // A conversation opens at its latest message, not the top.
+    this.el.scrollTop = this.el.scrollHeight;
+    // Prepend preservation: remember the top-most visible row and how far down
+    // the thread it sits. When a patch inserts history ABOVE it, its offsetTop
+    // grows - shift scrollTop by the same amount so the reader doesn't move.
+    // (Anchor tracking, not added-node inspection: morphdom may recreate
+    // trailing nodes, which makes structural prepend detection unreliable.)
+    this.recordAnchor();
+    this.onScrollAnchor = () => this.recordAnchor();
+    this.el.addEventListener("scroll", this.onScrollAnchor, { passive: true });
+    this.observer = new MutationObserver(() => {
+      const atLiveEdge =
+        this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < 80;
+      if (this.anchor && this.anchor.isConnected && !atLiveEdge) {
+        const delta = this.anchor.offsetTop - this.anchorOffset;
+        if (delta !== 0) this.el.scrollTop += delta;
+      }
+      this.recordAnchor();
+      this.toggle();
+    });
+    this.observer.observe(this.el, { childList: true });
     this.toggle();
   },
   updated() {
@@ -153,6 +174,18 @@ export const PetalChatScroll = {
   },
   destroyed() {
     this.el.removeEventListener("scroll", this.onScroll);
+    this.el.removeEventListener("scroll", this.onScrollAnchor);
+    if (this.observer) this.observer.disconnect();
+  },
+  recordAnchor() {
+    const top = this.el.scrollTop;
+    const visible = [...this.el.children].filter(
+      (c) => c.offsetTop + c.offsetHeight > top
+    );
+    // prefer an id'd row - ids survive LiveView patches, anonymous wrappers
+    // (like a "load earlier" button) often don't
+    this.anchor = visible.find((c) => c.id) || visible[0] || null;
+    this.anchorOffset = this.anchor ? this.anchor.offsetTop : 0;
   },
   toggle() {
     if (!this.btn) return;

@@ -368,4 +368,53 @@ defmodule PetalComponents.ChatTest do
       refute html =~ "pc-chat__composer-stop"
     end
   end
+
+  describe "marker" do
+    test "inline with icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.marker icon="hero-magnifying-glass">Searched the web</.marker>
+        """)
+
+      assert html =~ "pc-chat__marker"
+      assert html =~ "pc-chat__marker--inline"
+      assert html =~ "hero-magnifying-glass"
+      assert html =~ "Searched the web"
+      refute html =~ ~s(role="status")
+    end
+
+    test "separator and border variants" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.marker variant="separator">Today</.marker>
+        """)
+
+      assert html =~ "pc-chat__marker--separator"
+
+      html =
+        rendered_to_string(~H"""
+        <.marker variant="border">Context compacted</.marker>
+        """)
+
+      assert html =~ "pc-chat__marker--border"
+    end
+
+    test "loading shows the spinner and announces as a status region" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.marker loading icon="hero-cpu-chip">Thinking...</.marker>
+        """)
+
+      assert html =~ "pc-chat__marker-spinner"
+      assert html =~ ~s(role="status")
+      # spinner replaces the icon while loading
+      refute html =~ "hero-cpu-chip"
+    end
+  end
 end

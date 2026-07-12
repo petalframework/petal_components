@@ -102,9 +102,46 @@ defmodule Dev.PlaygroundLive do
   use PetalComponents
 
   alias Phoenix.LiveView.JS
+  alias PetalComponents.Chat
 
   # Update by hand occasionally; formatted as "1k" style in the header.
   @stars 1037
+
+  @chat_seed_answer """
+  Add the dep and pull it in:
+
+  ```elixir
+  def deps do
+    [{:petal_components, "~> 4.5"}]
+  end
+  ```
+
+  Then `use PetalComponents` in your web module - every component in this
+  playground is available as a plain HEEx tag.
+  """
+
+  @chat_replies [
+    """
+    Good question. The short version:
+
+    1. **Streaming** rides the LiveView socket - `push_event/3` per token, no client AI SDK
+    2. **Markdown** is sanitised server-side via the optional `:mdex` dep
+    3. **Tool calls** render real Phoenix components inside the thread
+
+    Try the stop button mid-answer, or scroll up while I'm typing - the thread never yanks you back down.
+    """,
+    """
+    Here's a live example - a component the model could emit as a tool call:
+
+    ```elixir
+    <Chat.tool_call name="get_weather" status={:complete}>
+      <.weather_card city="Paris" temp={21} />
+    </Chat.tool_call>
+    ```
+
+    The widget is a real LiveView component: it can hold its own `phx-click`, forms, even streams.
+    """
+  ]
 
   @nav [
     %{
@@ -175,6 +212,12 @@ defmodule Dev.PlaygroundLive do
         %{slug: "dropdown", name: "Dropdown", ready: true},
         %{slug: "command", name: "Command", ready: true},
         %{slug: "slide-over", name: "Slide over", ready: true}
+      ]
+    },
+    %{
+      group: "AI",
+      items: [
+        %{slug: "chat", name: "AI Chat", ready: true}
       ]
     },
     %{
@@ -565,6 +608,7 @@ defmodule Dev.PlaygroundLive do
        loading: false,
        disabled: false,
        show_code: false,
+       chat: %{turns: [], streaming: false, seq: 0, history: false},
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
@@ -799,6 +843,31 @@ defmodule Dev.PlaygroundLive do
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
+  def handle_info({:chat_tick, id, chunks}, socket) do
+    chat = socket.assigns.chat
+
+    cond do
+      !chat.streaming ->
+        # stopped mid-stream: leave the partial text as-is
+        {:noreply, socket}
+
+      chunks == [] ->
+        # done: commit the turn (streaming span swaps to rendered markdown)
+        turns =
+          Enum.map(chat.turns, fn
+            %{stream_id: ^id} = turn -> %{turn | stream_id: nil}
+            turn -> turn
+          end)
+
+        {:noreply, assign(socket, :chat, %{chat | turns: turns, streaming: false})}
+
+      true ->
+        [chunk | rest] = chunks
+        Process.send_after(self(), {:chat_tick, id, rest}, 40)
+        {:noreply, push_event(socket, "pc-chat-token", %{id: id, text: chunk})}
+    end
+  end
+
   def handle_event("ctl_accordion", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(default bordered),
       do: {:noreply, update(socket, :accordion, &%{&1 | variant: v})}
@@ -945,7 +1014,42 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "icon"}, socket),
     do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
 
+  def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
+
+  def handle_event("chat_suggest", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
+
+  def handle_event("chat_stop", _params, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | streaming: false})}
+  end
+
+  def handle_event("chat_history", _params, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | history: true})}
+  end
+
   def handle_event(_event, _params, socket), do: {:noreply, socket}
+
+  defp chat_start(socket, prompt) do
+    prompt = String.trim(prompt)
+
+    if prompt == "" || socket.assigns.chat.streaming do
+      {:noreply, socket}
+    else
+      chat = socket.assigns.chat
+      seq = chat.seq + 1
+      id = "pg-chat-ans-#{seq}"
+      reply = Enum.at(@chat_replies, rem(seq - 1, length(@chat_replies)))
+      # word-sized chunks so the stream reads like typing
+      chunks = String.split(reply, ~r/(?<= )/)
+
+      turns =
+        chat.turns ++
+          [%{role: :user, text: prompt}, %{role: :assistant, text: reply, stream_id: id}]
+
+      Process.send_after(self(), {:chat_tick, id, chunks}, 350)
+
+      {:noreply, assign(socket, :chat, %{chat | turns: turns, streaming: true, seq: seq})}
+    end
+  end
 
   defp patch_theme(socket, delta) do
     theme =
@@ -5363,6 +5467,134 @@ defmodule Dev.PlaygroundLive do
         responsive (none on mobile with no_padding_on_mobile). Larger sizes clamp to
         their parent - lg upwards is capped by this demo panel. The playground pages
         you're reading use the same pattern.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "chat"} = assigns) do
+    assigns = assign(assigns, :chat_seed_answer, @chat_seed_answer)
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">AI Chat</h1>
+      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+        The LiveView-native AI chat kit. Tokens stream over the socket you already
+        have - no client AI SDK. This demo is live: ask it something.
+      </p>
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <Chat.conversation id="pg-chat">
+          <div :if={!@chat.history} class="flex justify-center">
+            <button
+              type="button"
+              phx-click="chat_history"
+              class="px-3 py-1 text-xs font-medium text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+            >
+              Load earlier messages
+            </button>
+          </div>
+          <%= if @chat.history do %>
+            <Chat.marker id="pg-chat-hist-sep" variant="separator">Yesterday</Chat.marker>
+            <Chat.chat_message id="pg-chat-hist-q" role="user">
+              Does it support dark mode?
+            </Chat.chat_message>
+            <Chat.chat_message id="pg-chat-hist-a" role="assistant">
+              Every component ships light and dark out of the box - flip the moon icon in
+              the top bar to see this whole thread switch.
+            </Chat.chat_message>
+          <% end %>
+          <Chat.marker id="pg-chat-today" variant="separator">Today</Chat.marker>
+          <Chat.chat_message id="pg-chat-seed-q" role="user">
+            How do I install petal_components?
+          </Chat.chat_message>
+          <Chat.chat_message id="pg-chat-seed-a" role="assistant">
+            <Chat.markdown content={@chat_seed_answer} id="pg-chat-seed" />
+            <Chat.message_actions>
+              <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} />
+              <button class="pc-chat__action" type="button">Regenerate</button>
+            </Chat.message_actions>
+          </Chat.chat_message>
+          <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
+            <Chat.chat_message :if={turn.role == :user} id={"pg-chat-turn-#{i}"} role="user">
+              {turn.text}
+            </Chat.chat_message>
+            <Chat.chat_message :if={turn.role == :assistant} id={"pg-chat-turn-#{i}"} role="assistant">
+              <%= if turn.stream_id do %>
+                <Chat.streaming_text id={turn.stream_id} />
+              <% else %>
+                <Chat.markdown content={turn.text} />
+              <% end %>
+            </Chat.chat_message>
+          <% end %>
+          <:footer>
+            <Chat.suggestions
+              :if={@chat.turns == []}
+              items={["What makes this different from React AI kits?", "Show me a tool call"]}
+              on_select="chat_suggest"
+              class="mb-2"
+            />
+            <Chat.prompt_input
+              phx-submit="chat_send"
+              loading={@chat.streaming}
+              on_stop="chat_stop"
+              placeholder="Ask the (canned) assistant..."
+            />
+          </:footer>
+        </Chat.conversation>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Streaming is real here: the LiveView pushes word-sized tokens with
+        push_event and the PetalChatStream hook appends them - then the bubble
+        snaps to rendered markdown when the answer commits. Scroll up mid-answer
+        and it won't drag you back down; "Load earlier messages" inserts history
+        above without moving what you're reading.
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Markers - system notes, status rows, separators
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="max-w-md mx-auto">
+          <Chat.marker variant="separator">Today</Chat.marker>
+          <Chat.marker icon="hero-magnifying-glass">Searched the web - 8 sources</Chat.marker>
+          <Chat.marker loading>
+            <.shimmer_text class="text-xs font-medium">Running the numbers...</.shimmer_text>
+          </Chat.marker>
+          <Chat.marker variant="border" icon="hero-archive-box">
+            Context compacted - 12k tokens summarised
+          </Chat.marker>
+          <Chat.marker icon="hero-check-circle">Answer complete</Chat.marker>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+        Tool calls, reasoning and errors
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+        <div class="flex flex-col max-w-md gap-3 mx-auto">
+          <Chat.tool_call name="get_weather" status={:complete} label="Checked the weather">
+            <div class="flex items-center gap-3 text-sm">
+              <.icon name="hero-sun" class="w-8 h-8 text-warning-500" />
+              <div>
+                <div class="font-medium text-gray-900 dark:text-gray-100">Paris - 21°C</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Clear skies until 6pm</div>
+              </div>
+            </div>
+          </Chat.tool_call>
+          <Chat.tool_call name="query_db" status={:running} label="Querying the database" />
+          <Chat.reasoning label="Thought for 3s">
+            The user asked about installs. Check the hex package name, then give
+            the two-step answer with a code fence.
+          </Chat.reasoning>
+          <Chat.chat_error on_retry="chat_history">Rate limited - give it a moment.</Chat.chat_error>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        Chat isn't pulled in by use PetalComponents - alias PetalComponents.Chat
+        and call it namespaced (it owns generic names like markdown). Markdown
+        needs the optional :mdex dep. Reactions and read receipts are social-chat
+        territory, not AI - deliberately out of scope for now.
       </div>
     </div>
     """
