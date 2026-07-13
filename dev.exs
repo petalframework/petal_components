@@ -143,6 +143,18 @@ defmodule Dev.PlaygroundLive do
     """
   ]
 
+  @chat_history [
+    %{id: "m-yesterday", role: :marker, text: "Yesterday"},
+    %{id: "hist-q", role: :user, text: "Does it support dark mode?", stream_id: nil},
+    %{
+      id: "hist-a",
+      role: :assistant,
+      stream_id: nil,
+      text:
+        "Every component ships light and dark out of the box - flip the moon icon in the top bar to see this whole thread switch."
+    }
+  ]
+
   @nav [
     %{
       group: "Foundations",
@@ -610,8 +622,14 @@ defmodule Dev.PlaygroundLive do
        show_code: false,
        chat: %{
          turns: [
-           %{role: :user, text: "How do I install petal_components?", stream_id: nil},
-           %{role: :assistant, text: @chat_seed_answer, stream_id: nil}
+           %{id: "m-today", role: :marker, text: "Today"},
+           %{
+             id: "seed-q",
+             role: :user,
+             text: "How do I install petal_components?",
+             stream_id: nil
+           },
+           %{id: "seed-a", role: :assistant, text: @chat_seed_answer, stream_id: nil}
          ],
          streaming: false,
          seq: 1,
@@ -1035,7 +1053,8 @@ defmodule Dev.PlaygroundLive do
   end
 
   def handle_event("chat_history", _params, socket) do
-    {:noreply, assign(socket, :chat, %{socket.assigns.chat | history: true})}
+    chat = socket.assigns.chat
+    {:noreply, assign(socket, :chat, %{chat | turns: @chat_history ++ chat.turns, history: true})}
   end
 
   def handle_event("ctl_chat", %{"k" => "variant", "v" => v}, socket)
@@ -1090,8 +1109,8 @@ defmodule Dev.PlaygroundLive do
       turns =
         base ++
           [
-            %{role: :user, text: prompt, stream_id: nil},
-            %{role: :assistant, text: reply, stream_id: id}
+            %{id: "u#{seq}", role: :user, text: prompt, stream_id: nil},
+            %{id: "a#{seq}", role: :assistant, text: reply, stream_id: id}
           ]
 
       Process.send_after(self(), {:chat_tick, id, chunks}, 350)
@@ -5552,28 +5571,24 @@ defmodule Dev.PlaygroundLive do
               Load earlier messages
             </button>
           </div>
-          <%= if @chat.history do %>
-            <Chat.marker id="pg-chat-hist-sep" variant="separator">Yesterday</Chat.marker>
-            <Chat.chat_message id="pg-chat-hist-q" role="user">
-              Does it support dark mode?
-            </Chat.chat_message>
-            <Chat.chat_message id="pg-chat-hist-a" role="assistant">
-              Every component ships light and dark out of the box - flip the moon icon in
-              the top bar to see this whole thread switch.
-            </Chat.chat_message>
-          <% end %>
-          <Chat.marker id="pg-chat-today" variant="separator">Today</Chat.marker>
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
+            <Chat.marker
+              :if={turn.role == :marker}
+              id={"pg-chat-row-#{turn.id}"}
+              variant="separator"
+            >
+              {turn.text}
+            </Chat.marker>
             <Chat.chat_message
               :if={turn.role == :user}
-              id={"pg-chat-turn-#{i}"}
+              id={"pg-chat-row-#{turn.id}"}
               role="user"
               class={@chat.editing == i && "pc-chat__row--editing"}
             >
               {turn.text}
               <:actions>
                 <Chat.message_actions visible={@chat.actions}>
-                  <Chat.copy_button id={"pg-chat-uc-#{i}"} text={turn.text} icon />
+                  <Chat.copy_button id={"pg-chat-uc-#{turn.id}"} text={turn.text} icon />
                   <Chat.action_button
                     icon="hero-pencil-square"
                     label="Edit"
@@ -5584,15 +5599,19 @@ defmodule Dev.PlaygroundLive do
                 </Chat.message_actions>
               </:actions>
             </Chat.chat_message>
-            <Chat.chat_message :if={turn.role == :assistant} id={"pg-chat-turn-#{i}"} role="assistant">
+            <Chat.chat_message
+              :if={turn.role == :assistant}
+              id={"pg-chat-row-#{turn.id}"}
+              role="assistant"
+            >
               <%= if turn.stream_id do %>
                 <Chat.streaming_text id={turn.stream_id} />
               <% else %>
-                <Chat.markdown content={turn.text} id={"pg-chat-md-#{i}"} />
+                <Chat.markdown content={turn.text} id={"pg-chat-md-#{turn.id}"} />
               <% end %>
               <:actions :if={turn.stream_id == nil}>
                 <Chat.message_actions visible={@chat.actions}>
-                  <Chat.copy_button id={"pg-chat-copy-#{i}"} text={turn.text} icon />
+                  <Chat.copy_button id={"pg-chat-copy-#{turn.id}"} text={turn.text} icon />
                   <Chat.action_button
                     icon="hero-hand-thumb-up"
                     label="Good response"

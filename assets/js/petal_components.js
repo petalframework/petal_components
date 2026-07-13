@@ -196,15 +196,19 @@ export const PetalChatScroll = {
     };
     this.el.addEventListener("scroll", this.onScrollAnchor, { passive: true });
     this.observer = new MutationObserver(() => {
-      if (this.wasAtEdge) {
-        // reader was riding the live edge before this patch — keep them there
-        // (new turns appended below stay in view)
+      // If the anchor row moved, content changed ABOVE it (history prepend) —
+      // hold the reader on that row. This wins over edge-following: prepending
+      // above must never jump you to the bottom, even if you were at the edge.
+      const shifted =
+        this.anchor && this.anchor.isConnected
+          ? this.anchor.offsetTop - this.anchorOffset
+          : 0;
+      if (shifted !== 0) {
+        this.el.scrollTop += shifted;
+      } else if (this.wasAtEdge) {
+        // nothing moved above and the reader was at the live edge — new content
+        // was appended below, so stay pinned to it
         this.el.scrollTop = this.el.scrollHeight;
-      } else if (this.anchor && this.anchor.isConnected) {
-        // reader was mid-thread — if content was inserted above (history),
-        // shift by the anchor row's displacement so their view doesn't move
-        const delta = this.anchor.offsetTop - this.anchorOffset;
-        if (delta !== 0) this.el.scrollTop += delta;
       }
       this.recordAnchor();
       this.recordEdge();
