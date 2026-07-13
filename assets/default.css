@@ -4187,25 +4187,22 @@
 
   /* Hover mode (default): the PetalNavMenu hook opens panels on hover with a
      close grace period (so the trigger-to-panel gap doesn't drop them) and
-     nudges them to stay in the viewport. Visibility is driven by the
-     --open class it toggles; :focus-within keeps keyboard users covered even
-     without the hook. */
+     nudges them to stay in the viewport. Visibility is driven entirely by the
+     --open class it toggles - never :focus-within, so a click that focuses the
+     trigger can still close the panel. */
   .pc-nav-menu--hover .pc-nav-menu__panel {
     display: none;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__panel,
-  .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__panel {
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__panel {
     display: block;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__trigger,
-  .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__trigger {
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__trigger {
     @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__item--open .pc-nav-menu__chevron,
-  .pc-nav-menu--hover .pc-nav-menu__item:focus-within .pc-nav-menu__chevron {
+  .pc-nav-menu--hover .pc-nav-menu__item--open .pc-nav-menu__chevron {
     @apply rotate-180;
   }
 

@@ -1202,7 +1202,10 @@ export const PetalNavMenu = {
       });
       // Click toggles - open it, or close an already-open one (matches shadcn).
       // While the pointer stays on the trigger, enter doesn't refire, so a
-      // click-to-close stays closed until you move away and hover back.
+      // click-to-close stays closed until you move away and hover back. This
+      // also covers keyboard activation (Enter/Space fire a native click) and
+      // touch taps, so opening is never tied to focus alone - a click that
+      // focuses the button can still close the panel.
       trigger.addEventListener("click", () => {
         clearTimeout(this.closeTimer);
         if (item.classList.contains("pc-nav-menu__item--open")) {
@@ -1211,11 +1214,7 @@ export const PetalNavMenu = {
           this.open(item, panel, trigger);
         }
       });
-      // keyboard: focusing anything in the item opens it; leaving closes
-      item.addEventListener("focusin", () => {
-        clearTimeout(this.closeTimer);
-        this.open(item, panel, trigger);
-      });
+      // tabbing focus out of an open item closes it
       item.addEventListener("focusout", (e) => {
         if (!item.contains(e.relatedTarget)) this.close(item, trigger);
       });
