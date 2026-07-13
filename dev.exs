@@ -614,7 +614,8 @@ defmodule Dev.PlaygroundLive do
          seq: 0,
          history: false,
          variant: "plain",
-         actions: "always"
+         actions: "always",
+         draft: ""
        },
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
@@ -1043,6 +1044,16 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | actions: v})}
   end
 
+  def handle_event("chat_draft", %{"prompt" => v}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: v})}
+  end
+
+  # edit a user message: load its text back into the composer (the app owns
+  # what "edit" does; this is the simplest useful version)
+  def handle_event("chat_edit", %{"text" => text}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: text})}
+  end
+
   def handle_event(_event, _params, socket), do: {:noreply, socket}
 
   defp chat_start(socket, prompt) do
@@ -1057,6 +1068,8 @@ defmodule Dev.PlaygroundLive do
       reply = Enum.at(@chat_replies, rem(seq - 1, length(@chat_replies)))
       # word-sized chunks so the stream reads like typing
       chunks = String.split(reply, ~r/(?<= )/)
+
+      chat = %{chat | draft: ""}
 
       turns =
         chat.turns ++
@@ -5523,6 +5536,21 @@ defmodule Dev.PlaygroundLive do
           <Chat.marker id="pg-chat-today" variant="separator">Today</Chat.marker>
           <Chat.chat_message id="pg-chat-seed-q" role="user">
             How do I install petal_components?
+            <:actions>
+              <Chat.message_actions visible={@chat.actions}>
+                <Chat.copy_button
+                  id="pg-chat-seed-q-copy"
+                  text="How do I install petal_components?"
+                  icon
+                />
+                <Chat.action_button
+                  icon="hero-pencil-square"
+                  label="Edit"
+                  phx-click="chat_edit"
+                  phx-value-text="How do I install petal_components?"
+                />
+              </Chat.message_actions>
+            </:actions>
           </Chat.chat_message>
           <Chat.chat_message id="pg-chat-seed-a" role="assistant">
             <Chat.markdown content={@chat_seed_answer} id="pg-chat-seed" />
@@ -5552,6 +5580,17 @@ defmodule Dev.PlaygroundLive do
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
             <Chat.chat_message :if={turn.role == :user} id={"pg-chat-turn-#{i}"} role="user">
               {turn.text}
+              <:actions>
+                <Chat.message_actions visible={@chat.actions}>
+                  <Chat.copy_button id={"pg-chat-uc-#{i}"} text={turn.text} icon />
+                  <Chat.action_button
+                    icon="hero-pencil-square"
+                    label="Edit"
+                    phx-click="chat_edit"
+                    phx-value-text={turn.text}
+                  />
+                </Chat.message_actions>
+              </:actions>
             </Chat.chat_message>
             <Chat.chat_message :if={turn.role == :assistant} id={"pg-chat-turn-#{i}"} role="assistant">
               <%= if turn.stream_id do %>
@@ -5587,6 +5626,8 @@ defmodule Dev.PlaygroundLive do
             />
             <Chat.prompt_input
               phx-submit="chat_send"
+              phx-change="chat_draft"
+              value={@chat.draft}
               loading={@chat.streaming}
               on_stop="chat_stop"
               placeholder="Ask the (canned) assistant..."
@@ -5631,8 +5672,9 @@ defmodule Dev.PlaygroundLive do
         you to the live edge and the thread rides it as tokens land; scroll up
         mid-answer and it lets go instantly (the arrow button brings you back).
         "Load earlier messages" inserts history above without moving what you're
-        reading. The bar under the answer is message_actions in the
-        chat_message :actions slot (outside the bubble, per convention); the
+        reading. The bar under a message is message_actions in the
+        chat_message :actions slot (role-agnostic - the user question above has
+        copy + edit, hover the bubble; edit loads it back into the composer); the
         starter chips are the suggestions component; the send button defaults
         to the arrow icon (submit_label brings text back). The thread itself is
         variant="plain" by default - assistant text on the surface, ChatGPT

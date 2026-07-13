@@ -123,7 +123,8 @@ defmodule PetalComponents.Chat do
   slot :avatar, doc: "optional leading avatar/icon"
 
   slot :actions,
-    doc: "an action bar rendered below the message, outside the bubble - message_actions/1"
+    doc:
+      "an action bar rendered below the message, outside the bubble - message_actions/1. Works on any role: copy/edit under a user message, copy/feedback/regenerate under an assistant one"
 
   slot :inner_block, required: true
 

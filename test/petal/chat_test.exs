@@ -519,6 +519,28 @@ defmodule PetalComponents.ChatTest do
       refute html =~ "pc-chat--plain"
     end
 
+    test "the actions slot works on a user message too (copy/edit)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.chat_message role="user">
+          How do I install?
+          <:actions>
+            <.message_actions>
+              <.copy_button id="uq" text="How do I install?" icon />
+              <.action_button icon="hero-pencil-square" label="Edit" phx-click="edit" />
+            </.message_actions>
+          </:actions>
+        </.chat_message>
+        """)
+
+      assert html =~ "pc-chat__row--user"
+      assert html =~ "pc-chat__row-actions"
+      assert html =~ "hero-pencil-square"
+      assert html =~ ~s(aria-label="Edit")
+    end
+
     test "chat_message :actions renders below the bubble, outside it" do
       assigns = %{}
 
