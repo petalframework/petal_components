@@ -680,7 +680,7 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
-       stepper: %{orientation: "horizontal", size: "md", at: 1},
+       stepper: %{orientation: "horizontal", size: "md", at: 0, done: false},
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -916,7 +916,21 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
-    do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v)})}
+    do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
+
+  def handle_event("ctl_stepper", %{"k" => "next"}, socket) do
+    st = socket.assigns.stepper
+    last = length(pg_step_defs()) - 1
+
+    st = if st.at >= last, do: %{st | done: true}, else: %{st | at: st.at + 1}
+    {:noreply, assign(socket, :stepper, st)}
+  end
+
+  def handle_event("ctl_stepper", %{"k" => "back"}, socket),
+    do: {:noreply, update(socket, :stepper, &%{&1 | at: max(&1.at - 1, 0), done: false})}
+
+  def handle_event("ctl_stepper", %{"k" => "reset"}, socket),
+    do: {:noreply, update(socket, :stepper, &%{&1 | at: 0, done: false})}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -1431,18 +1445,22 @@ defmodule Dev.PlaygroundLive do
     %{name: "Edsger Dijkstra", role: "Engineering", age: 72, status: "Inactive"}
   ]
 
-  defp pg_steps(at) do
+  defp pg_step_defs do
     [
       %{name: "Account", description: "Email and password"},
       %{name: "Workspace", description: "Name your project"},
       %{name: "Invite", description: "Bring the team"},
-      %{name: "Done", description: "Start building"}
+      %{name: "Review", description: "Confirm and finish"}
     ]
+  end
+
+  defp pg_steps(at, done) do
+    pg_step_defs()
     |> Enum.with_index()
     |> Enum.map(fn {step, i} ->
       step
-      |> Map.put(:complete?, i < at)
-      |> Map.put(:active?, i == at)
+      |> Map.put(:complete?, done || i < at)
+      |> Map.put(:active?, !done && i == at)
       |> Map.put(
         :on_click,
         Phoenix.LiveView.JS.push("ctl_stepper", value: %{k: "goto", v: to_string(i)})
@@ -3677,15 +3695,118 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Stepper</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        Multi-step progress - onboarding, checkout, wizards. Click a step to jump.
+        Multi-step progress - onboarding, checkout, wizards. This one's live: walk the
+        Back/Continue flow, or click any step to jump.
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex justify-center px-6 py-12 overflow-x-auto">
+        <div class="flex justify-center px-6 pt-10 pb-6 overflow-x-auto">
           <.stepper
-            steps={pg_steps(@stepper.at)}
+            steps={pg_steps(@stepper.at, @stepper.done)}
             orientation={@stepper.orientation}
             size={@stepper.size}
           />
+        </div>
+        <div class="px-6 pb-8 mx-auto max-w-md">
+          <%= if @stepper.done do %>
+            <div class="flex flex-col items-center py-8 text-center">
+              <div class="flex items-center justify-center w-12 h-12 rounded-full bg-success-100 text-success-600 dark:bg-success-500/15 dark:text-success-400">
+                <.icon name="hero-check" class="w-6 h-6" />
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                You're all set
+              </h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Your workspace is ready. Time to build something.
+              </p>
+              <.button
+                color="gray"
+                variant="outline"
+                class="mt-5"
+                phx-click="ctl_stepper"
+                phx-value-k="reset"
+              >
+                Start over
+              </.button>
+            </div>
+          <% else %>
+            <div class="min-h-[9rem]">
+              <%= case @stepper.at do %>
+                <% 0 -> %>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Work email
+                      </label>
+                      <.input type="email" name="wiz_email" value="" placeholder="you@company.com" />
+                    </div>
+                    <div>
+                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Password
+                      </label>
+                      <.input type="password" name="wiz_pass" value="" placeholder="8+ characters" />
+                    </div>
+                  </div>
+                <% 1 -> %>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Workspace name
+                      </label>
+                      <.input type="text" name="wiz_ws" value="" placeholder="Acme Inc" />
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      This is how your team will see the project across the app.
+                    </p>
+                  </div>
+                <% 2 -> %>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Invite teammates
+                      </label>
+                      <.input
+                        type="text"
+                        name="wiz_invite"
+                        value=""
+                        placeholder="alex@acme.com, sam@acme.com"
+                      />
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Comma-separated - or skip and invite them later.
+                    </p>
+                  </div>
+                <% _ -> %>
+                  <div class="text-sm rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
+                    <div class="flex items-center justify-between py-1">
+                      <span class="text-gray-500 dark:text-gray-400">Email</span>
+                      <span class="font-medium text-gray-900 dark:text-gray-100">you@company.com</span>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                      <span class="text-gray-500 dark:text-gray-400">Workspace</span>
+                      <span class="font-medium text-gray-900 dark:text-gray-100">Acme Inc</span>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                      <span class="text-gray-500 dark:text-gray-400">Invites</span>
+                      <span class="font-medium text-gray-900 dark:text-gray-100">2 teammates</span>
+                    </div>
+                  </div>
+              <% end %>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+              <.button
+                color="gray"
+                variant="outline"
+                disabled={@stepper.at == 0}
+                phx-click="ctl_stepper"
+                phx-value-k="back"
+              >
+                Back
+              </.button>
+              <.button phx-click="ctl_stepper" phx-value-k="next">
+                {if @stepper.at == length(pg_step_defs()) - 1, do: "Complete", else: "Continue"}
+              </.button>
+            </div>
+          <% end %>
         </div>
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
           <div>
@@ -5506,8 +5627,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Click Product to open the flyout - panels close on Escape or click-away
-        (click-to-open by design; hover navs misfire on touch). Items with to render
+        Hover Product (or tab to it) to open the flyout - pure CSS, no round-trip,
+        with a bridge across the gap so the pointer never drops it. trigger="click"
+        switches to explicit tap-to-open for touch-first apps. Items with to render
         plain links, current marks the active page. width sizes the panel sm-xl,
         full_width spans a mega menu, and align="end" keeps right-edge panels on
         screen.
