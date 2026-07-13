@@ -4185,31 +4185,26 @@
     @apply h-5 w-5 flex-none text-gray-400;
   }
 
-  /* Hover mode (default): panels open on pointer hover or keyboard/touch focus,
-     no JS. A transparent bridge spans the mt-3 gap so moving from the trigger
-     to the panel never crosses a dead zone and closes it. */
+  /* Hover mode (default): the PetalNavMenu hook opens panels on hover with a
+     close grace period (so the trigger-to-panel gap doesn't drop them) and
+     nudges them to stay in the viewport. Visibility is driven by the
+     --open class it toggles; :focus-within keeps keyboard users covered even
+     without the hook. */
   .pc-nav-menu--hover .pc-nav-menu__panel {
     display: none;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__item:hover > .pc-nav-menu__panel,
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__panel,
   .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__panel {
     display: block;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__panel::before {
-    content: "";
-    @apply absolute inset-x-0;
-    top: -0.75rem;
-    height: 0.75rem;
-  }
-
-  .pc-nav-menu--hover .pc-nav-menu__item:hover > .pc-nav-menu__trigger,
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__trigger,
   .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__trigger {
     @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
   }
 
-  .pc-nav-menu--hover .pc-nav-menu__item:hover .pc-nav-menu__chevron,
+  .pc-nav-menu--hover .pc-nav-menu__item--open .pc-nav-menu__chevron,
   .pc-nav-menu--hover .pc-nav-menu__item:focus-within .pc-nav-menu__chevron {
     @apply rotate-180;
   }

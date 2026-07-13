@@ -5627,12 +5627,12 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        Hover Product (or tab to it) to open the flyout - pure CSS, no round-trip,
-        with a bridge across the gap so the pointer never drops it. trigger="click"
-        switches to explicit tap-to-open for touch-first apps. Items with to render
-        plain links, current marks the active page. width sizes the panel sm-xl,
-        full_width spans a mega menu, and align="end" keeps right-edge panels on
-        screen.
+        Hover Product (or tab to it) to open the flyout. A close grace period keeps
+        it open while you move from the trigger down into the panel, and the panel
+        nudges itself to stay inside the viewport - no manual align needed.
+        trigger="click" switches to explicit tap-to-open for touch-first apps. Items
+        with to render plain links, current marks the active page. width sizes the
+        panel sm-xl, full_width spans a mega menu.
       </div>
     </div>
     """

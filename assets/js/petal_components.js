@@ -1171,6 +1171,95 @@ export const PetalAurora = {
   },
 };
 
+// Hover-driven navigation menu. Opens a panel on pointer hover / keyboard
+// focus, with a close GRACE PERIOD so moving across the trigger-to-panel gap
+// (or between siblings) doesn't drop it — the thing pure CSS :hover can't do.
+// On open it also nudges the panel horizontally to stay inside the viewport
+// (collision handling), the way shadcn/Radix position their flyouts.
+export const PetalNavMenu = {
+  mounted() {
+    this.closeDelay = 140;
+    this.items = [...this.el.querySelectorAll(".pc-nav-menu__item")].filter((i) =>
+      i.querySelector("[data-pc-nav-panel]")
+    );
+
+    this.items.forEach((item) => {
+      const panel = item.querySelector("[data-pc-nav-panel]");
+      const trigger = item.querySelector(".pc-nav-menu__trigger");
+
+      item.addEventListener("pointerenter", () => {
+        clearTimeout(this.closeTimer);
+        this.open(item, panel, trigger);
+      });
+      item.addEventListener("pointerleave", () => {
+        clearTimeout(this.closeTimer);
+        this.closeTimer = setTimeout(() => this.close(item, trigger), this.closeDelay);
+      });
+      // keyboard: focusing anything in the item opens it; leaving closes
+      item.addEventListener("focusin", () => {
+        clearTimeout(this.closeTimer);
+        this.open(item, panel, trigger);
+      });
+      item.addEventListener("focusout", (e) => {
+        if (!item.contains(e.relatedTarget)) this.close(item, trigger);
+      });
+    });
+
+    this.onKeydown = (e) => {
+      if (e.key === "Escape") this.closeAll();
+    };
+    this.onResize = () => {
+      const open = this.items.find((i) => i.classList.contains("pc-nav-menu__item--open"));
+      if (open) this.position(open.querySelector("[data-pc-nav-panel]"));
+    };
+    document.addEventListener("keydown", this.onKeydown);
+    window.addEventListener("resize", this.onResize);
+  },
+
+  destroyed() {
+    clearTimeout(this.closeTimer);
+    document.removeEventListener("keydown", this.onKeydown);
+    window.removeEventListener("resize", this.onResize);
+  },
+
+  open(item, panel, trigger) {
+    this.items.forEach((other) => {
+      if (other !== item) {
+        other.classList.remove("pc-nav-menu__item--open");
+        other.querySelector(".pc-nav-menu__trigger")?.setAttribute("aria-expanded", "false");
+      }
+    });
+    item.classList.add("pc-nav-menu__item--open");
+    trigger?.setAttribute("aria-expanded", "true");
+    this.position(panel);
+  },
+
+  close(item, trigger) {
+    item.classList.remove("pc-nav-menu__item--open");
+    trigger?.setAttribute("aria-expanded", "false");
+  },
+
+  closeAll() {
+    clearTimeout(this.closeTimer);
+    this.items.forEach((item) =>
+      this.close(item, item.querySelector(".pc-nav-menu__trigger"))
+    );
+  },
+
+  // Nudge the panel back inside the viewport if it would spill past an edge.
+  position(panel) {
+    if (!panel || panel.classList.contains("pc-nav-menu__panel--full")) return;
+    panel.style.transform = "";
+    const margin = 8;
+    const rect = panel.getBoundingClientRect();
+    if (rect.right > window.innerWidth - margin) {
+      panel.style.transform = `translateX(${-(rect.right - (window.innerWidth - margin))}px)`;
+    } else if (rect.left < margin) {
+      panel.style.transform = `translateX(${margin - rect.left}px)`;
+    }
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -1190,5 +1279,6 @@ export default {
   PetalPopover,
   PetalCommand,
   PetalAurora,
+  PetalNavMenu,
   PetalCommandDialog,
 };

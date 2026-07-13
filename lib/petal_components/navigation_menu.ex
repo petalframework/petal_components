@@ -6,9 +6,13 @@ defmodule PetalComponents.NavigationMenu do
 
   Follows the W3C disclosure navigation pattern (recommended for site
   navigation over ARIA `menu` roles): each trigger is a `button` with
-  `aria-expanded`/`aria-controls`, panels contain plain links, Escape and
-  clicking away close any open panel. Interaction is click-to-toggle (touch
-  friendly) and 100% LiveView.JS — no Alpine, no hooks.
+  `aria-expanded`/`aria-controls` and panels contain plain links.
+
+  By default panels open on **hover** (the top-nav convention), driven by the
+  `PetalNavMenu` JS hook: it holds the panel open across the trigger-to-panel
+  gap with a close grace period, opens on keyboard focus too, and closes on
+  Escape. Set `trigger="click"` for explicit tap-to-toggle (100% LiveView.JS,
+  no hook) on touch-first apps, where Escape and clicking away close the panel.
 
   Panels are free-form: compose them from `navigation_menu_link/1` rows
   (icon + title + description), an optional `navigation_menu_footer/1` CTA
@@ -16,12 +20,13 @@ defmodule PetalComponents.NavigationMenu do
 
   ## Staying on screen
 
-  Flyout panels anchor to their trigger's start edge and open rightward into
-  the page (so a left-most trigger never opens back under a sidebar). For a
-  trigger near the right edge, set `align="end"` on the item so its panel opens
-  leftward instead and stays on screen. Panel widths are clamped to the viewport
-  so a wide panel shrinks to fit instead of overflowing on a phone, and a panel
-  taller than the screen scrolls rather than being cut off at the bottom.
+  In hover mode the hook nudges an open panel horizontally to stay inside the
+  viewport, so a wide panel near the right edge slides left to fit instead of
+  spilling off screen. You can still set `align="end"` on an item to anchor its
+  panel to the trigger's end edge (useful in `click` mode, which has no
+  repositioning). Panel widths are clamped to the viewport so a wide panel
+  shrinks to fit on a phone, and a panel taller than the screen scrolls rather
+  than being cut off at the bottom.
 
   ## Full-width (mega menu) panels
 
@@ -46,7 +51,7 @@ defmodule PetalComponents.NavigationMenu do
     default: "hover",
     values: ["hover", "click"],
     doc:
-      "how flyout panels open. hover (default): opens on pointer hover or keyboard/touch focus, pure CSS, no round-trip - the convention for a top nav. click: explicit toggle via JS (opens on click, closes on click-away/Escape) - use for touch-first apps that want a deliberate tap"
+      "how flyout panels open. hover (default): the PetalNavMenu hook opens on pointer hover or keyboard focus, holds open across the trigger-to-panel gap with a close grace period, and nudges the panel to stay inside the viewport - the convention for a top nav. click: explicit toggle via JS (opens on click, closes on click-away/Escape) - use for touch-first apps that want a deliberate tap"
 
   attr :rest, :global
 
@@ -109,6 +114,7 @@ defmodule PetalComponents.NavigationMenu do
     <nav
       id={@id}
       class={["pc-nav-menu", @trigger == "hover" && "pc-nav-menu--hover", @class]}
+      phx-hook={@trigger == "hover" && "PetalNavMenu"}
       phx-click-away={@trigger == "click" && hide_panels(@id)}
       phx-window-keydown={@trigger == "click" && hide_panels(@id)}
       phx-key={@trigger == "click" && "Escape"}
