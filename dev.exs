@@ -681,6 +681,7 @@ defmodule Dev.PlaygroundLive do
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
        stepper: %{orientation: "horizontal", size: "md", at: 0, done: false},
+       nav_trigger: "hover",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -931,6 +932,10 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_stepper", %{"k" => "reset"}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: 0, done: false})}
+
+  def handle_event("ctl_navmenu", %{"k" => "trigger", "v" => v}, socket)
+      when v in ~w(hover click),
+      do: {:noreply, assign(socket, :nav_trigger, v)}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -5724,7 +5729,7 @@ defmodule Dev.PlaygroundLive do
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <div class="flex justify-center px-6 pt-6 pb-72">
-          <.navigation_menu id="pg-nav-demo">
+          <.navigation_menu id={"pg-nav-demo-#{@nav_trigger}"} trigger={@nav_trigger}>
             <:item label="Product" width="md">
               <.navigation_menu_link
                 to="#"
@@ -5752,6 +5757,20 @@ defmodule Dev.PlaygroundLive do
             <:item label="Pricing" to="#" />
             <:item label="Docs" to="#" current />
           </.navigation_menu>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-zinc-800/80">
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <button
+              :for={t <- ~w(hover click)}
+              phx-click="ctl_navmenu"
+              phx-value-k="trigger"
+              phx-value-v={t}
+              class={seg(@nav_trigger == t)}
+            >
+              {t}
+            </button>
+          </div>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">

@@ -4090,7 +4090,8 @@
 
   .pc-nav-menu__link-item,
   .pc-nav-menu__trigger {
-    @apply inline-flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    @apply inline-flex items-center gap-x-1 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-item[aria-current="page"] {
@@ -4149,11 +4150,13 @@
   }
 
   .pc-nav-menu__link {
-    @apply flex gap-x-4 rounded-lg p-3 transition-colors hover:bg-gray-100 dark:hover:bg-white/5;
+    @apply flex gap-x-4 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-white/5;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-icon {
-    @apply flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-100 transition-colors group-hover:bg-white dark:bg-white/5 dark:group-hover:bg-white/10;
+    @apply flex h-11 w-11 flex-none items-center justify-center bg-gray-100 transition-colors group-hover:bg-white dark:bg-white/5 dark:group-hover:bg-white/10;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-icon-svg {
