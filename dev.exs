@@ -3699,114 +3699,127 @@ defmodule Dev.PlaygroundLive do
         Back/Continue flow, or click any step to jump.
       </p>
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex justify-center px-6 pt-10 pb-6 overflow-x-auto">
-          <.stepper
-            steps={pg_steps(@stepper.at, @stepper.done)}
-            orientation={@stepper.orientation}
-            size={@stepper.size}
-          />
-        </div>
-        <div class="px-6 pb-8 mx-auto max-w-md">
-          <%= if @stepper.done do %>
-            <div class="flex flex-col items-center py-8 text-center">
-              <div class="flex items-center justify-center w-12 h-12 rounded-full bg-success-100 text-success-600 dark:bg-success-500/15 dark:text-success-400">
-                <.icon name="hero-check" class="w-6 h-6" />
+        <div class={[
+          "px-6 pt-8 pb-8",
+          @stepper.orientation == "vertical" && "md:flex md:items-start md:gap-8"
+        ]}>
+          <div class={[
+            "flex overflow-x-auto",
+            @stepper.orientation == "horizontal" && "justify-center pb-6",
+            @stepper.orientation == "vertical" && "justify-center md:justify-start md:shrink-0"
+          ]}>
+            <.stepper
+              steps={pg_steps(@stepper.at, @stepper.done)}
+              orientation={@stepper.orientation}
+              size={@stepper.size}
+            />
+          </div>
+          <div class={[
+            "max-w-md",
+            @stepper.orientation == "horizontal" && "mx-auto",
+            @stepper.orientation == "vertical" && "mx-auto mt-8 md:mx-0 md:mt-0 md:flex-1"
+          ]}>
+            <%= if @stepper.done do %>
+              <div class="flex flex-col items-center py-8 text-center">
+                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-success-100 text-success-600 dark:bg-success-500/15 dark:text-success-400">
+                  <.icon name="hero-check" class="w-6 h-6" />
+                </div>
+                <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  You're all set
+                </h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Your workspace is ready. Time to build something.
+                </p>
+                <.button
+                  color="gray"
+                  variant="outline"
+                  class="mt-5"
+                  phx-click="ctl_stepper"
+                  phx-value-k="reset"
+                >
+                  Start over
+                </.button>
               </div>
-              <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                You're all set
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Your workspace is ready. Time to build something.
-              </p>
-              <.button
-                color="gray"
-                variant="outline"
-                class="mt-5"
-                phx-click="ctl_stepper"
-                phx-value-k="reset"
-              >
-                Start over
-              </.button>
-            </div>
-          <% else %>
-            <div class="min-h-[9rem]">
-              <%= case @stepper.at do %>
-                <% 0 -> %>
-                  <div class="space-y-3">
-                    <div>
-                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Work email
-                      </label>
-                      <.input type="email" name="wiz_email" value="" placeholder="you@company.com" />
+            <% else %>
+              <div class="min-h-[9rem]">
+                <%= case @stepper.at do %>
+                  <% 0 -> %>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Work email
+                        </label>
+                        <.input type="email" name="wiz_email" value="" placeholder="you@company.com" />
+                      </div>
+                      <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Password
+                        </label>
+                        <.input type="password" name="wiz_pass" value="" placeholder="8+ characters" />
+                      </div>
                     </div>
-                    <div>
-                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Password
-                      </label>
-                      <.input type="password" name="wiz_pass" value="" placeholder="8+ characters" />
+                  <% 1 -> %>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Workspace name
+                        </label>
+                        <.input type="text" name="wiz_ws" value="" placeholder="Acme Inc" />
+                      </div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        This is how your team will see the project across the app.
+                      </p>
                     </div>
-                  </div>
-                <% 1 -> %>
-                  <div class="space-y-3">
-                    <div>
-                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Workspace name
-                      </label>
-                      <.input type="text" name="wiz_ws" value="" placeholder="Acme Inc" />
+                  <% 2 -> %>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Invite teammates
+                        </label>
+                        <.input
+                          type="text"
+                          name="wiz_invite"
+                          value=""
+                          placeholder="alex@acme.com, sam@acme.com"
+                        />
+                      </div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Comma-separated - or skip and invite them later.
+                      </p>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      This is how your team will see the project across the app.
-                    </p>
-                  </div>
-                <% 2 -> %>
-                  <div class="space-y-3">
-                    <div>
-                      <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Invite teammates
-                      </label>
-                      <.input
-                        type="text"
-                        name="wiz_invite"
-                        value=""
-                        placeholder="alex@acme.com, sam@acme.com"
-                      />
+                  <% _ -> %>
+                    <div class="text-sm rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
+                      <div class="flex items-center justify-between py-1">
+                        <span class="text-gray-500 dark:text-gray-400">Email</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100">you@company.com</span>
+                      </div>
+                      <div class="flex items-center justify-between py-1">
+                        <span class="text-gray-500 dark:text-gray-400">Workspace</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100">Acme Inc</span>
+                      </div>
+                      <div class="flex items-center justify-between py-1">
+                        <span class="text-gray-500 dark:text-gray-400">Invites</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100">2 teammates</span>
+                      </div>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      Comma-separated - or skip and invite them later.
-                    </p>
-                  </div>
-                <% _ -> %>
-                  <div class="text-sm rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
-                    <div class="flex items-center justify-between py-1">
-                      <span class="text-gray-500 dark:text-gray-400">Email</span>
-                      <span class="font-medium text-gray-900 dark:text-gray-100">you@company.com</span>
-                    </div>
-                    <div class="flex items-center justify-between py-1">
-                      <span class="text-gray-500 dark:text-gray-400">Workspace</span>
-                      <span class="font-medium text-gray-900 dark:text-gray-100">Acme Inc</span>
-                    </div>
-                    <div class="flex items-center justify-between py-1">
-                      <span class="text-gray-500 dark:text-gray-400">Invites</span>
-                      <span class="font-medium text-gray-900 dark:text-gray-100">2 teammates</span>
-                    </div>
-                  </div>
-              <% end %>
-            </div>
-            <div class="flex items-center justify-between mt-6">
-              <.button
-                color="gray"
-                variant="outline"
-                disabled={@stepper.at == 0}
-                phx-click="ctl_stepper"
-                phx-value-k="back"
-              >
-                Back
-              </.button>
-              <.button phx-click="ctl_stepper" phx-value-k="next">
-                {if @stepper.at == length(pg_step_defs()) - 1, do: "Complete", else: "Continue"}
-              </.button>
-            </div>
-          <% end %>
+                <% end %>
+              </div>
+              <div class="flex items-center justify-between mt-6">
+                <.button
+                  color="gray"
+                  variant="outline"
+                  disabled={@stepper.at == 0}
+                  phx-click="ctl_stepper"
+                  phx-value-k="back"
+                >
+                  Back
+                </.button>
+                <.button phx-click="ctl_stepper" phx-value-k="next">
+                  {if @stepper.at == length(pg_step_defs()) - 1, do: "Complete", else: "Continue"}
+                </.button>
+              </div>
+            <% end %>
+          </div>
         </div>
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
           <div>
