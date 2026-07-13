@@ -79,6 +79,18 @@ export const PetalChatComposer = {
 
     this.textarea.addEventListener("keydown", this.onKeydown);
     this.textarea.addEventListener("input", this.onInput);
+
+    // Set the field programmatically (edit a past message, quote, clear).
+    // The textarea is phx-update="ignore" so the server can't render into it;
+    // this is the channel for it. Focuses and drops the caret at the end.
+    this.handleEvent("pc-chat-set-input", (payload) => {
+      if (payload.id && payload.id !== this.el.id) return;
+      this.textarea.value = payload.value || "";
+      this.autogrow();
+      this.textarea.focus();
+      const end = this.textarea.value.length;
+      this.textarea.setSelectionRange(end, end);
+    });
   },
 
   updated() {

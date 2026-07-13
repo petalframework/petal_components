@@ -618,7 +618,6 @@ defmodule Dev.PlaygroundLive do
          history: false,
          variant: "plain",
          actions: "always",
-         draft: "",
          editing: nil,
          sent: false
        },
@@ -1049,21 +1048,24 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | actions: v})}
   end
 
-  def handle_event("chat_draft", %{"prompt" => v}, socket) do
-    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: v})}
-  end
-
   # edit a user message: load its text into the composer AND remember which
   # message so sending forks the thread there (ChatGPT-style), rather than
   # appending a duplicate. The app owns what "edit" does; this is the useful
   # version.
   def handle_event("chat_edit", %{"i" => i, "text" => text}, socket) do
-    chat = %{socket.assigns.chat | draft: text, editing: String.to_integer(i)}
-    {:noreply, assign(socket, :chat, chat)}
+    chat = %{socket.assigns.chat | editing: String.to_integer(i)}
+
+    {:noreply,
+     socket
+     |> push_event("pc-chat-set-input", %{id: "pg-chat-composer", value: text})
+     |> assign(:chat, chat)}
   end
 
   def handle_event("chat_cancel_edit", _params, socket) do
-    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: "", editing: nil})}
+    {:noreply,
+     socket
+     |> push_event("pc-chat-set-input", %{id: "pg-chat-composer", value: ""})
+     |> assign(:chat, %{socket.assigns.chat | editing: nil})}
   end
 
   def handle_event(_event, _params, socket), do: {:noreply, socket}
@@ -1099,12 +1101,14 @@ defmodule Dev.PlaygroundLive do
         | turns: turns,
           streaming: true,
           seq: seq,
-          draft: "",
           editing: nil,
           sent: true
       }
 
-      {:noreply, assign(socket, :chat, chat)}
+      {:noreply,
+       socket
+       |> push_event("pc-chat-set-input", %{id: "pg-chat-composer", value: ""})
+       |> assign(:chat, chat)}
     end
   end
 
@@ -5618,9 +5622,8 @@ defmodule Dev.PlaygroundLive do
               class="mb-2"
             />
             <Chat.prompt_input
+              id="pg-chat-composer"
               phx-submit="chat_send"
-              phx-change="chat_draft"
-              value={@chat.draft}
               editing={@chat.editing != nil}
               on_cancel_edit="chat_cancel_edit"
               loading={@chat.streaming}

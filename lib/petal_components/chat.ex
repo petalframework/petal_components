@@ -386,7 +386,12 @@ defmodule PetalComponents.Chat do
   attr :id, :string, doc: "defaults to a generated id so multiple composers can coexist"
 
   attr :name, :string, default: "prompt"
-  attr :value, :string, default: ""
+
+  attr :value, :string,
+    default: "",
+    doc:
+      "initial textarea value. The field is uncontrolled after mount (phx-update=ignore, so keystrokes never re-render and lose focus); set it later - edit, quote, clear - by pushing a `pc-chat-set-input` event (`%{value: text}`, optional `%{id: composer_id}`) to the PetalChatComposer hook"
+
   attr :placeholder, :string, default: "Send a message..."
   attr :aria_label, :string, default: "Message", doc: "accessible label for the textarea"
   attr :loading, :boolean, default: false
@@ -440,7 +445,9 @@ defmodule PetalComponents.Chat do
       </div>
       <div class="pc-chat__composer-row">
         <textarea
+          id={"#{@id}-input"}
           name={@name}
+          phx-update="ignore"
           rows="1"
           placeholder={@placeholder}
           aria-label={@aria_label}

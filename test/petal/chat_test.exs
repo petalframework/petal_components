@@ -500,6 +500,20 @@ defmodule PetalComponents.ChatTest do
     assert html =~ "hero-chevron-right"
   end
 
+  test "prompt_input textarea is uncontrolled (phx-update ignore) so keystrokes never lose focus" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.prompt_input id="cmp" phx-submit="send" value="hello" />
+      """)
+
+    assert html =~ ~s(phx-update="ignore")
+    assert html =~ ~s(id="cmp-input")
+    # the initial value is still rendered as the textarea content
+    assert html =~ "hello"
+  end
+
   describe "prompt_input edit banner" do
     test "editing shows the banner with a cancel control" do
       assigns = %{}
