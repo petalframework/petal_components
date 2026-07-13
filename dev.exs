@@ -5559,6 +5559,23 @@ defmodule Dev.PlaygroundLive do
               <% else %>
                 <Chat.markdown content={turn.text} />
               <% end %>
+              <:actions :if={turn.stream_id == nil}>
+                <Chat.message_actions visible={@chat.actions}>
+                  <Chat.copy_button id={"pg-chat-copy-#{i}"} text={turn.text} icon />
+                  <Chat.action_button
+                    icon="hero-hand-thumb-up"
+                    label="Good response"
+                    phx-click="chat_feedback"
+                    phx-value-vote="up"
+                  />
+                  <Chat.action_button
+                    icon="hero-hand-thumb-down"
+                    label="Bad response"
+                    phx-click="chat_feedback"
+                    phx-value-vote="down"
+                  />
+                </Chat.message_actions>
+              </:actions>
             </Chat.chat_message>
           <% end %>
           <:footer>
@@ -5592,9 +5609,7 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
-              actions (hover the answer)
-            </div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">action bar</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
               <button
                 :for={v <- ~w(always hover)}

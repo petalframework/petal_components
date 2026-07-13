@@ -3941,6 +3941,11 @@
   .pc-chat__row:focus-within .pc-chat__actions--hover {
     @apply opacity-100;
   }
+  /* the newest message keeps its bar visible even in hover mode - matches
+     ChatGPT, and the reserved space reads as intentional rather than a gap */
+  .pc-chat__thread > .pc-chat__row:last-child .pc-chat__actions--hover {
+    @apply opacity-100;
+  }
   @media (hover: none) {
     .pc-chat__actions--hover {
       @apply opacity-100;
