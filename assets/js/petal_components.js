@@ -1187,13 +1187,29 @@ export const PetalNavMenu = {
       const panel = item.querySelector("[data-pc-nav-panel]");
       const trigger = item.querySelector(".pc-nav-menu__trigger");
 
-      item.addEventListener("pointerenter", () => {
+      // Hover is for mouse/pen only. On touch there's no hover, so a tap would
+      // fire enter (open) then click (toggle -> close) and flash - skip the
+      // pointer path there and let click/tap drive the toggle instead.
+      item.addEventListener("pointerenter", (e) => {
+        if (e.pointerType === "touch") return;
         clearTimeout(this.closeTimer);
         this.open(item, panel, trigger);
       });
-      item.addEventListener("pointerleave", () => {
+      item.addEventListener("pointerleave", (e) => {
+        if (e.pointerType === "touch") return;
         clearTimeout(this.closeTimer);
         this.closeTimer = setTimeout(() => this.close(item, trigger), this.closeDelay);
+      });
+      // Click toggles - open it, or close an already-open one (matches shadcn).
+      // While the pointer stays on the trigger, enter doesn't refire, so a
+      // click-to-close stays closed until you move away and hover back.
+      trigger.addEventListener("click", () => {
+        clearTimeout(this.closeTimer);
+        if (item.classList.contains("pc-nav-menu__item--open")) {
+          this.close(item, trigger);
+        } else {
+          this.open(item, panel, trigger);
+        }
       });
       // keyboard: focusing anything in the item opens it; leaving closes
       item.addEventListener("focusin", () => {
@@ -1208,17 +1224,23 @@ export const PetalNavMenu = {
     this.onKeydown = (e) => {
       if (e.key === "Escape") this.closeAll();
     };
+    // tap/click outside the nav closes any open panel (also the touch dismiss)
+    this.onDocPointerDown = (e) => {
+      if (!this.el.contains(e.target)) this.closeAll();
+    };
     this.onResize = () => {
       const open = this.items.find((i) => i.classList.contains("pc-nav-menu__item--open"));
       if (open) this.position(open.querySelector("[data-pc-nav-panel]"));
     };
     document.addEventListener("keydown", this.onKeydown);
+    document.addEventListener("pointerdown", this.onDocPointerDown);
     window.addEventListener("resize", this.onResize);
   },
 
   destroyed() {
     clearTimeout(this.closeTimer);
     document.removeEventListener("keydown", this.onKeydown);
+    document.removeEventListener("pointerdown", this.onDocPointerDown);
     window.removeEventListener("resize", this.onResize);
   },
 
