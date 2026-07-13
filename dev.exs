@@ -2838,7 +2838,7 @@ defmodule Dev.PlaygroundLive do
         </p>
         <div class="mt-4">
           <.input_group>
-            <.input type="text" name="invite_url" value="https://petal.build/join/x1y2z3" readonly />
+            <.input type="text" name="invite_url" value="https://example.com/join/x1y2z3" readonly />
             <:trailing><kbd>&#8984;C</kbd></:trailing>
           </.input_group>
         </div>
@@ -3245,8 +3245,8 @@ defmodule Dev.PlaygroundLive do
         description="Make changes to your profile here. Click save when you're done."
       >
         <div class="flex flex-col gap-4">
-          <.field type="text" name="name" value="Matt Platts" label="Name" />
-          <.field type="text" name="username" value="@PetalFramework" label="Username" />
+          <.field type="text" name="name" value="Alex Rivera" label="Name" />
+          <.field type="text" name="username" value="@alexrivera" label="Username" />
           <.field type="textarea" name="bio" value="" label="Bio" placeholder="A line about you" />
         </div>
         <:footer>
@@ -3800,7 +3800,7 @@ defmodule Dev.PlaygroundLive do
                         <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
                           Workspace name
                         </label>
-                        <.input type="text" name="wiz_ws" value="" placeholder="Acme Inc" />
+                        <.input type="text" name="wiz_ws" value="" placeholder="Northwind" />
                       </div>
                       <p class="text-xs text-gray-500 dark:text-gray-400">
                         This is how your team will see the project across the app.
@@ -3831,7 +3831,7 @@ defmodule Dev.PlaygroundLive do
                       </div>
                       <div class="flex items-center justify-between py-1">
                         <span class="text-gray-500 dark:text-gray-400">Workspace</span>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">Acme Inc</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100">Northwind</span>
                       </div>
                       <div class="flex items-center justify-between py-1">
                         <span class="text-gray-500 dark:text-gray-400">Invites</span>
@@ -4633,7 +4633,7 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
         <.table rows={[
-          %{name: "Matt Platts", email: "matt@petal.build", plan: "Team"},
+          %{name: "Alex Rivera", email: "alex@example.com", plan: "Team"},
           %{name: "Ada Lovelace", email: "ada@analytical.engine", plan: "Pro"}
         ]}>
           <:col :let={u} label="User">
@@ -5602,15 +5602,20 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 flex h-[34rem] overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
         <aside class="flex flex-col w-64 border-r shrink-0 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
           <div class="p-2 border-b border-gray-200 dark:border-white/10">
-            <.dropdown class="w-full" placement="right" menu_items_wrapper_class="w-60">
+            <.dropdown
+              class="w-full"
+              trigger_class="w-full"
+              placement="right"
+              menu_items_wrapper_class="w-60"
+            >
               <:trigger_element>
                 <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
                   <div class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-lg shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
-                    A
+                    N
                   </div>
                   <div class="flex-1 min-w-0 text-left">
                     <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
-                      Acme Inc
+                      Northwind
                     </div>
                     <div class="text-xs text-gray-500 truncate dark:text-gray-400">Enterprise</div>
                   </div>
@@ -5620,15 +5625,15 @@ defmodule Dev.PlaygroundLive do
               <.dropdown_menu_label>Workspaces</.dropdown_menu_label>
               <.dropdown_menu_item link_type="button">
                 <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold rounded shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
-                  A
+                  N
                 </div>
-                Acme Inc
+                Northwind
               </.dropdown_menu_item>
               <.dropdown_menu_item link_type="button">
                 <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold text-gray-600 bg-gray-200 rounded shrink-0 dark:bg-white/10 dark:text-gray-300">
-                  S
+                  V
                 </div>
-                Startup Co
+                Vertex Labs
               </.dropdown_menu_item>
               <.dropdown_menu_separator />
               <.dropdown_menu_item link_type="button">
@@ -5644,24 +5649,25 @@ defmodule Dev.PlaygroundLive do
           <div class="p-2 border-t border-gray-200 dark:border-white/10">
             <.dropdown
               class="w-full"
+              trigger_class="w-full"
               placement="right"
               menu_items_wrapper_class="w-60 top-auto bottom-full mb-2"
             >
               <:trigger_element>
                 <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
-                  <.avatar name="Matt Platts" size="sm" random_color />
+                  <.avatar name="Alex Rivera" size="sm" random_color />
                   <div class="flex-1 min-w-0 text-left">
                     <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
-                      Matt Platts
+                      Alex Rivera
                     </div>
                     <div class="text-xs text-gray-500 truncate dark:text-gray-400">
-                      matt@petal.build
+                      alex@example.com
                     </div>
                   </div>
                   <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
                 </div>
               </:trigger_element>
-              <.dropdown_menu_label>matt@petal.build</.dropdown_menu_label>
+              <.dropdown_menu_label>alex@example.com</.dropdown_menu_label>
               <.dropdown_menu_item link_type="button">
                 <.icon name="hero-user-circle" class="w-5 h-5 text-gray-500" /> Account
               </.dropdown_menu_item>
