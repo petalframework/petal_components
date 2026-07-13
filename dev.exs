@@ -1445,6 +1445,42 @@ defmodule Dev.PlaygroundLive do
     %{name: "Edsger Dijkstra", role: "Engineering", age: 72, status: "Inactive"}
   ]
 
+  defp sidebar_menu_items do
+    [
+      %{
+        title: "Platform",
+        menu_items: [
+          %{name: :dashboard, label: "Dashboard", path: "#", icon: "hero-home"},
+          %{
+            name: :playground,
+            label: "Playground",
+            icon: "hero-command-line",
+            menu_items: [
+              %{name: :history, label: "History", path: "#"},
+              %{name: :starred, label: "Starred", path: "#"},
+              %{name: :ai_settings, label: "Settings", path: "#"}
+            ]
+          },
+          %{name: :models, label: "Models", path: "#", icon: "hero-cube"},
+          %{name: :docs, label: "Documentation", path: "#", icon: "hero-book-open"}
+        ]
+      },
+      %{
+        title: "Projects",
+        menu_items: [
+          %{name: :design, label: "Design Engineering", path: "#", icon: "hero-swatch"},
+          %{
+            name: :sales,
+            label: "Sales & Marketing",
+            path: "#",
+            icon: "hero-presentation-chart-line"
+          },
+          %{name: :travel, label: "Travel", path: "#", icon: "hero-map"}
+        ]
+      }
+    ]
+  end
+
   defp pg_step_defs do
     [
       %{name: "Account", description: "Email and password"},
@@ -3704,7 +3740,7 @@ defmodule Dev.PlaygroundLive do
           @stepper.orientation == "vertical" && "md:flex md:items-start md:gap-8"
         ]}>
           <div class={[
-            "flex overflow-x-auto",
+            "flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             @stepper.orientation == "horizontal" && "justify-center pb-6",
             @stepper.orientation == "vertical" && "justify-center md:justify-start md:shrink-0"
           ]}>
@@ -5556,44 +5592,117 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "menu"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-4xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Menu</h1>
       <p class="mt-2 text-gray-500 dark:text-zinc-400">
-        The sidebar menu - grouped items, icons, and an active state driven by
-        current_page.
+        The sidebar menu - a workspace switcher, grouped nav with collapsible
+        sub-items, and an account menu. All composed from menu, dropdown and avatar.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex justify-center px-6 py-10">
-          <div class="w-64 p-3 bg-white border border-gray-200 rounded-xl dark:bg-zinc-900 dark:border-white/10">
-            <.vertical_menu
-              current_page={:projects}
-              menu_items={[
-                %{
-                  title: nil,
-                  menu_items: [
-                    %{name: :dashboard, label: "Dashboard", path: "#", icon: "hero-home"},
-                    %{name: :projects, label: "Projects", path: "#", icon: "hero-folder"},
-                    %{name: :reports, label: "Reports", path: "#", icon: "hero-chart-bar"}
-                  ]
-                },
-                %{
-                  title: "Workspace",
-                  menu_items: [
-                    %{name: :members, label: "Members", path: "#", icon: "hero-users"},
-                    %{name: :billing, label: "Billing", path: "#", icon: "hero-credit-card"},
-                    %{name: :settings, label: "Settings", path: "#", icon: "hero-cog-6-tooth"}
-                  ]
-                }
-              ]}
-            />
+
+      <div class="mt-8 flex h-[34rem] overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+        <aside class="flex flex-col w-64 border-r shrink-0 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
+          <div class="p-2 border-b border-gray-200 dark:border-white/10">
+            <.dropdown class="w-full" placement="right" menu_items_wrapper_class="w-60">
+              <:trigger_element>
+                <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
+                  <div class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-lg shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
+                    A
+                  </div>
+                  <div class="flex-1 min-w-0 text-left">
+                    <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
+                      Acme Inc
+                    </div>
+                    <div class="text-xs text-gray-500 truncate dark:text-gray-400">Enterprise</div>
+                  </div>
+                  <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
+                </div>
+              </:trigger_element>
+              <.dropdown_menu_label>Workspaces</.dropdown_menu_label>
+              <.dropdown_menu_item link_type="button">
+                <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold rounded shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
+                  A
+                </div>
+                Acme Inc
+              </.dropdown_menu_item>
+              <.dropdown_menu_item link_type="button">
+                <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold text-gray-600 bg-gray-200 rounded shrink-0 dark:bg-white/10 dark:text-gray-300">
+                  S
+                </div>
+                Startup Co
+              </.dropdown_menu_item>
+              <.dropdown_menu_separator />
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-plus" class="w-5 h-5 text-gray-500" /> Add workspace
+              </.dropdown_menu_item>
+            </.dropdown>
+          </div>
+
+          <div class="flex-1 p-2 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <.vertical_menu current_page={:history} menu_items={sidebar_menu_items()} />
+          </div>
+
+          <div class="p-2 border-t border-gray-200 dark:border-white/10">
+            <.dropdown
+              class="w-full"
+              placement="right"
+              menu_items_wrapper_class="w-60 top-auto bottom-full mb-2"
+            >
+              <:trigger_element>
+                <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
+                  <.avatar name="Matt Platts" size="sm" random_color />
+                  <div class="flex-1 min-w-0 text-left">
+                    <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
+                      Matt Platts
+                    </div>
+                    <div class="text-xs text-gray-500 truncate dark:text-gray-400">
+                      matt@petal.build
+                    </div>
+                  </div>
+                  <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
+                </div>
+              </:trigger_element>
+              <.dropdown_menu_label>matt@petal.build</.dropdown_menu_label>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-user-circle" class="w-5 h-5 text-gray-500" /> Account
+              </.dropdown_menu_item>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-credit-card" class="w-5 h-5 text-gray-500" /> Billing
+              </.dropdown_menu_item>
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-bell" class="w-5 h-5 text-gray-500" /> Notifications
+              </.dropdown_menu_item>
+              <.dropdown_menu_separator />
+              <.dropdown_menu_item link_type="button">
+                <.icon name="hero-arrow-right-on-rectangle" class="w-5 h-5 text-gray-500" /> Log out
+              </.dropdown_menu_item>
+            </.dropdown>
+          </div>
+        </aside>
+
+        <div class="flex-col flex-1 hidden min-w-0 sm:flex bg-white dark:bg-zinc-950">
+          <div class="flex items-center h-12 gap-2 px-4 text-sm text-gray-500 border-b shrink-0 border-gray-200 dark:border-white/10 dark:text-gray-400">
+            <.icon name="hero-bars-3" class="w-4 h-4" />
+            <span class="w-px h-4 bg-gray-200 dark:bg-white/10"></span>
+            <span>Platform</span>
+            <.icon name="hero-chevron-right" class="w-3.5 h-3.5" />
+            <span class="font-medium text-gray-900 dark:text-gray-100">History</span>
+          </div>
+          <div class="grid flex-1 grid-cols-3 gap-4 p-4 auto-rows-min">
+            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+            <div class="col-span-3 rounded-xl bg-gray-100 dark:bg-white/[0.03] h-40"></div>
           </div>
         </div>
       </div>
+
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        menu_items is a plain list of maps (name, label, path, icon) - group them with
-        title for section headings. current_page matches against name to highlight the
-        active item. Nested menu_items on an item render a collapsible sub-menu. This
-        is the same component Petal Pro's sidebar layout is built on.
+        The whole sidebar is composition, not a new component: vertical_menu for the
+        grouped nav (menu_items with a nested menu_items renders a collapsible
+        sub-menu - Playground is open because a child is the current_page), dropdown
+        for the workspace switcher and the account menu (footer one opens upward), and
+        avatar for the account. Petal Pro's SidebarLayout wraps this with collapse and
+        a mobile drawer.
       </div>
     </div>
     """
