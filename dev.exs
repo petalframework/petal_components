@@ -609,13 +609,18 @@ defmodule Dev.PlaygroundLive do
        disabled: false,
        show_code: false,
        chat: %{
-         turns: [],
+         turns: [
+           %{role: :user, text: "How do I install petal_components?", stream_id: nil},
+           %{role: :assistant, text: @chat_seed_answer, stream_id: nil}
+         ],
          streaming: false,
-         seq: 0,
+         seq: 1,
          history: false,
          variant: "plain",
          actions: "always",
-         draft: ""
+         draft: "",
+         editing: nil,
+         sent: false
        },
        alert: %{color: "gray", variant: "outline", icon: true, heading: false},
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
@@ -1048,10 +1053,13 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: v})}
   end
 
-  # edit a user message: load its text back into the composer (the app owns
-  # what "edit" does; this is the simplest useful version)
-  def handle_event("chat_edit", %{"text" => text}, socket) do
-    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: text})}
+  # edit a user message: load its text into the composer AND remember which
+  # message so sending forks the thread there (ChatGPT-style), rather than
+  # appending a duplicate. The app owns what "edit" does; this is the useful
+  # version.
+  def handle_event("chat_edit", %{"i" => i, "text" => text}, socket) do
+    chat = %{socket.assigns.chat | draft: text, editing: String.to_integer(i)}
+    {:noreply, assign(socket, :chat, chat)}
   end
 
   def handle_event(_event, _params, socket), do: {:noreply, socket}
@@ -1069,15 +1077,30 @@ defmodule Dev.PlaygroundLive do
       # word-sized chunks so the stream reads like typing
       chunks = String.split(reply, ~r/(?<= )/)
 
-      chat = %{chat | draft: ""}
+      # editing forks the thread: drop the edited message and everything after
+      # it, then regenerate. A plain send just appends.
+      base = if chat.editing != nil, do: Enum.take(chat.turns, chat.editing), else: chat.turns
 
       turns =
-        chat.turns ++
-          [%{role: :user, text: prompt}, %{role: :assistant, text: reply, stream_id: id}]
+        base ++
+          [
+            %{role: :user, text: prompt, stream_id: nil},
+            %{role: :assistant, text: reply, stream_id: id}
+          ]
 
       Process.send_after(self(), {:chat_tick, id, chunks}, 350)
 
-      {:noreply, assign(socket, :chat, %{chat | turns: turns, streaming: true, seq: seq})}
+      chat = %{
+        chat
+        | turns: turns,
+          streaming: true,
+          seq: seq,
+          draft: "",
+          editing: nil,
+          sent: true
+      }
+
+      {:noreply, assign(socket, :chat, chat)}
     end
   end
 
@@ -5503,8 +5526,6 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp render_page(%{active: "chat"} = assigns) do
-    assigns = assign(assigns, :chat_seed_answer, @chat_seed_answer)
-
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">AI Chat</h1>
@@ -5534,49 +5555,6 @@ defmodule Dev.PlaygroundLive do
             </Chat.chat_message>
           <% end %>
           <Chat.marker id="pg-chat-today" variant="separator">Today</Chat.marker>
-          <Chat.chat_message id="pg-chat-seed-q" role="user">
-            How do I install petal_components?
-            <:actions>
-              <Chat.message_actions visible={@chat.actions}>
-                <Chat.copy_button
-                  id="pg-chat-seed-q-copy"
-                  text="How do I install petal_components?"
-                  icon
-                />
-                <Chat.action_button
-                  icon="hero-pencil-square"
-                  label="Edit"
-                  phx-click="chat_edit"
-                  phx-value-text="How do I install petal_components?"
-                />
-              </Chat.message_actions>
-            </:actions>
-          </Chat.chat_message>
-          <Chat.chat_message id="pg-chat-seed-a" role="assistant">
-            <Chat.markdown content={@chat_seed_answer} id="pg-chat-seed" />
-            <:actions>
-              <Chat.message_actions visible={@chat.actions}>
-                <Chat.copy_button id="pg-chat-seed-copy" text={@chat_seed_answer} icon />
-                <Chat.action_button
-                  icon="hero-hand-thumb-up"
-                  label="Good response"
-                  phx-click="chat_feedback"
-                  phx-value-vote="up"
-                />
-                <Chat.action_button
-                  icon="hero-hand-thumb-down"
-                  label="Bad response"
-                  phx-click="chat_feedback"
-                  phx-value-vote="down"
-                />
-                <Chat.action_button
-                  icon="hero-arrow-path"
-                  label="Regenerate"
-                  phx-click="chat_feedback"
-                />
-              </Chat.message_actions>
-            </:actions>
-          </Chat.chat_message>
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
             <Chat.chat_message :if={turn.role == :user} id={"pg-chat-turn-#{i}"} role="user">
               {turn.text}
@@ -5587,6 +5565,7 @@ defmodule Dev.PlaygroundLive do
                     icon="hero-pencil-square"
                     label="Edit"
                     phx-click="chat_edit"
+                    phx-value-i={i}
                     phx-value-text={turn.text}
                   />
                 </Chat.message_actions>
@@ -5596,7 +5575,7 @@ defmodule Dev.PlaygroundLive do
               <%= if turn.stream_id do %>
                 <Chat.streaming_text id={turn.stream_id} />
               <% else %>
-                <Chat.markdown content={turn.text} />
+                <Chat.markdown content={turn.text} id={"pg-chat-md-#{i}"} />
               <% end %>
               <:actions :if={turn.stream_id == nil}>
                 <Chat.message_actions visible={@chat.actions}>
@@ -5613,13 +5592,18 @@ defmodule Dev.PlaygroundLive do
                     phx-click="chat_feedback"
                     phx-value-vote="down"
                   />
+                  <Chat.action_button
+                    icon="hero-arrow-path"
+                    label="Regenerate"
+                    phx-click="chat_feedback"
+                  />
                 </Chat.message_actions>
               </:actions>
             </Chat.chat_message>
           <% end %>
           <:footer>
             <Chat.suggestions
-              :if={@chat.turns == []}
+              :if={not @chat.sent}
               items={["What makes this different from React AI kits?", "Show me a tool call"]}
               on_select="chat_suggest"
               class="mb-2"
@@ -5674,7 +5658,9 @@ defmodule Dev.PlaygroundLive do
         "Load earlier messages" inserts history above without moving what you're
         reading. The bar under a message is message_actions in the
         chat_message :actions slot (role-agnostic - the user question above has
-        copy + edit, hover the bubble; edit loads it back into the composer); the
+        copy + edit, hover the bubble; edit loads it into the composer and sending
+        forks the thread there - replaces the message, drops what followed, and
+        regenerates, like ChatGPT); the
         starter chips are the suggestions component; the send button defaults
         to the arrow icon (submit_label brings text back). The thread itself is
         variant="plain" by default - assistant text on the surface, ChatGPT
