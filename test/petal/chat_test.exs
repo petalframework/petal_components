@@ -500,6 +500,48 @@ defmodule PetalComponents.ChatTest do
     assert html =~ "hero-chevron-right"
   end
 
+  describe "prompt_input edit banner" do
+    test "editing shows the banner with a cancel control" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input phx-submit="send" editing on_cancel_edit="cancel" />
+        """)
+
+      assert html =~ "pc-chat__composer--editing"
+      assert html =~ "pc-chat__composer-banner"
+      assert html =~ "Editing message"
+      assert html =~ "hero-pencil-square"
+      assert html =~ ~s(aria-label="Cancel edit")
+      assert html =~ ~s(phx-click="cancel")
+    end
+
+    test "no banner when not editing; row wrapper is always present" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input phx-submit="send" />
+        """)
+
+      refute html =~ "pc-chat__composer-banner"
+      refute html =~ "pc-chat__composer--editing"
+      assert html =~ "pc-chat__composer-row"
+    end
+
+    test "custom edit_label" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input phx-submit="send" editing edit_label="Editing your question" />
+        """)
+
+      assert html =~ "Editing your question"
+    end
+  end
+
   describe "conversation variants and the actions slot" do
     test "plain is the default; bubbles opts back in" do
       assigns = %{}

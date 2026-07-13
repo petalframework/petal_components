@@ -1062,6 +1062,10 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, chat)}
   end
 
+  def handle_event("chat_cancel_edit", _params, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | draft: "", editing: nil})}
+  end
+
   def handle_event(_event, _params, socket), do: {:noreply, socket}
 
   defp chat_start(socket, prompt) do
@@ -5556,7 +5560,12 @@ defmodule Dev.PlaygroundLive do
           <% end %>
           <Chat.marker id="pg-chat-today" variant="separator">Today</Chat.marker>
           <%= for {turn, i} <- Enum.with_index(@chat.turns) do %>
-            <Chat.chat_message :if={turn.role == :user} id={"pg-chat-turn-#{i}"} role="user">
+            <Chat.chat_message
+              :if={turn.role == :user}
+              id={"pg-chat-turn-#{i}"}
+              role="user"
+              class={@chat.editing == i && "pc-chat__row--editing"}
+            >
               {turn.text}
               <:actions>
                 <Chat.message_actions visible={@chat.actions}>
@@ -5612,6 +5621,8 @@ defmodule Dev.PlaygroundLive do
               phx-submit="chat_send"
               phx-change="chat_draft"
               value={@chat.draft}
+              editing={@chat.editing != nil}
+              on_cancel_edit="chat_cancel_edit"
               loading={@chat.streaming}
               on_stop="chat_stop"
               placeholder="Ask the (canned) assistant..."
@@ -5660,7 +5671,8 @@ defmodule Dev.PlaygroundLive do
         chat_message :actions slot (role-agnostic - the user question above has
         copy + edit, hover the bubble; edit loads it into the composer and sending
         forks the thread there - replaces the message, drops what followed, and
-        regenerates, like ChatGPT); the
+        regenerates, like ChatGPT. prompt_input shows an edit banner with a
+        cancel while you're at it); the
         starter chips are the suggestions component; the send button defaults
         to the arrow icon (submit_label brings text back). The thread itself is
         variant="plain" by default - assistant text on the surface, ChatGPT

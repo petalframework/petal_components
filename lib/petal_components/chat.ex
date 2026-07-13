@@ -399,6 +399,16 @@ defmodule PetalComponents.Chat do
     default: nil,
     doc: "text for the send button; the default is the arrow-up icon convention"
 
+  attr :editing, :boolean,
+    default: false,
+    doc: "show the edit-mode banner above the field (set while editing a past message)"
+
+  attr :edit_label, :string, default: "Editing message", doc: "label shown in the edit banner"
+
+  attr :on_cancel_edit, :string,
+    default: nil,
+    doc: "event pushed when the edit banner's cancel (X) is clicked"
+
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
   slot :actions, doc: "extra controls left of the send button"
@@ -407,50 +417,72 @@ defmodule PetalComponents.Chat do
     assigns = assign_new(assigns, :id, fn -> "pc-chat-composer-#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <form id={@id} phx-hook="PetalChatComposer" class={["pc-chat__composer", @class]} {@rest}>
-      <textarea
-        name={@name}
-        rows="1"
-        placeholder={@placeholder}
-        aria-label={@aria_label}
-        autocomplete="off"
-        class="pc-chat__composer-input"
-      >{@value}</textarea>
-      <div :if={@actions != []} class="pc-chat__composer-actions">{render_slot(@actions)}</div>
-      <button
-        :if={!@loading}
-        type="submit"
-        class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
-        aria-label={if !@submit_label, do: "Send message"}
-      >
-        <%= if @submit_label do %>
-          {@submit_label}
-        <% else %>
-          <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
-        <% end %>
-      </button>
-      <button
-        :if={@loading && @on_stop}
-        type="button"
-        phx-click={@on_stop}
-        aria-label="Stop generating"
-        class="pc-chat__composer-stop"
-      >
-        <span class="pc-chat__stop-icon" aria-hidden="true"></span>
-      </button>
-      <button
-        :if={@loading && !@on_stop}
-        type="button"
-        disabled
-        aria-label="Sending"
-        class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
-      >
-        <%= if @submit_label do %>
-          …
-        <% else %>
-          <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
-        <% end %>
-      </button>
+    <form
+      id={@id}
+      phx-hook="PetalChatComposer"
+      class={["pc-chat__composer", @editing && "pc-chat__composer--editing", @class]}
+      {@rest}
+    >
+      <div :if={@editing} class="pc-chat__composer-banner">
+        <span class="pc-chat__composer-banner-label">
+          <PetalComponents.Icon.icon name="hero-pencil-square" class="pc-chat__composer-banner-icon" />
+          {@edit_label}
+        </span>
+        <button
+          :if={@on_cancel_edit}
+          type="button"
+          phx-click={@on_cancel_edit}
+          aria-label="Cancel edit"
+          class="pc-chat__composer-banner-cancel"
+        >
+          <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__composer-banner-icon" />
+        </button>
+      </div>
+      <div class="pc-chat__composer-row">
+        <textarea
+          name={@name}
+          rows="1"
+          placeholder={@placeholder}
+          aria-label={@aria_label}
+          autocomplete="off"
+          class="pc-chat__composer-input"
+        >{@value}</textarea>
+        <div :if={@actions != []} class="pc-chat__composer-actions">{render_slot(@actions)}</div>
+        <button
+          :if={!@loading}
+          type="submit"
+          class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+          aria-label={if !@submit_label, do: "Send message"}
+        >
+          <%= if @submit_label do %>
+            {@submit_label}
+          <% else %>
+            <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+          <% end %>
+        </button>
+        <button
+          :if={@loading && @on_stop}
+          type="button"
+          phx-click={@on_stop}
+          aria-label="Stop generating"
+          class="pc-chat__composer-stop"
+        >
+          <span class="pc-chat__stop-icon" aria-hidden="true"></span>
+        </button>
+        <button
+          :if={@loading && !@on_stop}
+          type="button"
+          disabled
+          aria-label="Sending"
+          class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+        >
+          <%= if @submit_label do %>
+            …
+          <% else %>
+            <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+          <% end %>
+        </button>
+      </div>
     </form>
     """
   end
