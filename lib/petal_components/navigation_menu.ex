@@ -41,6 +41,13 @@ defmodule PetalComponents.NavigationMenu do
 
   attr :id, :string, required: true
   attr :class, :any, default: nil, doc: "extra classes for the nav element"
+
+  attr :trigger, :string,
+    default: "hover",
+    values: ["hover", "click"],
+    doc:
+      "how flyout panels open. hover (default): opens on pointer hover or keyboard/touch focus, pure CSS, no round-trip - the convention for a top nav. click: explicit toggle via JS (opens on click, closes on click-away/Escape) - use for touch-first apps that want a deliberate tap"
+
   attr :rest, :global
 
   slot :item, required: true do
@@ -101,10 +108,10 @@ defmodule PetalComponents.NavigationMenu do
     ~H"""
     <nav
       id={@id}
-      class={["pc-nav-menu", @class]}
-      phx-click-away={hide_panels(@id)}
-      phx-window-keydown={hide_panels(@id)}
-      phx-key="Escape"
+      class={["pc-nav-menu", @trigger == "hover" && "pc-nav-menu--hover", @class]}
+      phx-click-away={@trigger == "click" && hide_panels(@id)}
+      phx-window-keydown={@trigger == "click" && hide_panels(@id)}
+      phx-key={@trigger == "click" && "Escape"}
       {@rest}
     >
       <ul class="pc-nav-menu__list">
@@ -127,7 +134,7 @@ defmodule PetalComponents.NavigationMenu do
               class="pc-nav-menu__trigger"
               aria-expanded="false"
               aria-controls={panel_id(@id, index)}
-              phx-click={toggle_panel(@id, index)}
+              phx-click={@trigger == "click" && toggle_panel(@id, index)}
             >
               {item.label}
               <.icon name="hero-chevron-down-solid" class="pc-nav-menu__chevron" />
@@ -140,7 +147,7 @@ defmodule PetalComponents.NavigationMenu do
                 item[:align] == "end" && "pc-nav-menu__panel--end",
                 item[:full_width] && "pc-nav-menu__panel--full"
               ]}
-              style="display: none;"
+              style={@trigger == "click" && "display: none;"}
               data-pc-nav-panel
             >
               {render_slot(item)}

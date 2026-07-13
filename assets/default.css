@@ -3577,7 +3577,7 @@
   }
 
   .pc-vertical-menu-item--active {
-    @apply text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-white/10;
+    @apply text-primary-700 dark:text-primary-300 bg-gray-50 dark:bg-white/10;
   }
 
   .pc-vertical-menu-item--inactive {
@@ -4087,15 +4087,15 @@
 
   .pc-nav-menu__link-item,
   .pc-nav-menu__trigger {
-    @apply inline-flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white;
+    @apply inline-flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
   }
 
   .pc-nav-menu__link-item[aria-current="page"] {
-    @apply text-primary-600 dark:text-primary-400;
+    @apply text-primary-600 dark:text-primary-300;
   }
 
   .pc-nav-menu__trigger[aria-expanded="true"] {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white;
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
   }
 
   .pc-nav-menu__chevron {
@@ -4112,7 +4112,7 @@
      width is clamped to the viewport and the panel scrolls if it is taller than
      the screen, so it is never clipped off the bottom on a phone. */
   .pc-nav-menu__panel {
-    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10 sm:max-h-none sm:overflow-hidden;
+    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-zinc-900 sm:max-h-none sm:overflow-hidden;
   }
 
   /* Each width is clamped to the viewport so a wide panel shrinks to fit instead
@@ -4141,19 +4141,19 @@
 
   /* Mega menu: spans the nearest positioned ancestor (give your header `relative`). */
   .pc-nav-menu__panel--full {
-    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-t border-gray-100 p-6 dark:border-gray-700;
+    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-x-0 border-t border-gray-200 p-6 dark:border-white/10;
   }
 
   .pc-nav-menu__link {
-    @apply flex gap-x-4 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50;
+    @apply flex gap-x-4 rounded-lg p-3 transition-colors hover:bg-gray-100 dark:hover:bg-white/5;
   }
 
   .pc-nav-menu__link-icon {
-    @apply flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 transition-colors group-hover:bg-white dark:bg-gray-700 dark:group-hover:bg-gray-600;
+    @apply flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-100 transition-colors group-hover:bg-white dark:bg-white/5 dark:group-hover:bg-white/10;
   }
 
   .pc-nav-menu__link-icon-svg {
-    @apply h-6 w-6 text-gray-600 group-hover:text-primary-600 dark:text-gray-300 dark:group-hover:text-primary-400;
+    @apply h-6 w-6 text-gray-600 group-hover:text-primary-600 dark:text-gray-300 dark:group-hover:text-primary-300;
   }
 
   .pc-nav-menu__link-body {
@@ -4170,7 +4170,7 @@
 
   /* Footer: negative margins escape the panel's p-4 (p-6 when full) for a full-bleed strip */
   .pc-nav-menu__footer {
-    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-900/5 bg-gray-50 dark:divide-white/10 dark:bg-gray-900/40;
+    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-200 bg-gray-50 dark:divide-white/10 dark:bg-white/[0.03];
   }
 
   .pc-nav-menu__panel--full .pc-nav-menu__footer {
@@ -4178,11 +4178,40 @@
   }
 
   .pc-nav-menu__footer-link {
-    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700/60;
+    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10;
   }
 
   .pc-nav-menu__footer-link-icon {
     @apply h-5 w-5 flex-none text-gray-400;
+  }
+
+  /* Hover mode (default): panels open on pointer hover or keyboard/touch focus,
+     no JS. A transparent bridge spans the mt-3 gap so moving from the trigger
+     to the panel never crosses a dead zone and closes it. */
+  .pc-nav-menu--hover .pc-nav-menu__panel {
+    display: none;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item:hover > .pc-nav-menu__panel,
+  .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__panel {
+    display: block;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__panel::before {
+    content: "";
+    @apply absolute inset-x-0;
+    top: -0.75rem;
+    height: 0.75rem;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item:hover > .pc-nav-menu__trigger,
+  .pc-nav-menu--hover .pc-nav-menu__item:focus-within > .pc-nav-menu__trigger {
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item:hover .pc-nav-menu__chevron,
+  .pc-nav-menu--hover .pc-nav-menu__item:focus-within .pc-nav-menu__chevron {
+    @apply rotate-180;
   }
 
 
