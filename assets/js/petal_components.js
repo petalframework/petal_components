@@ -1132,7 +1132,15 @@ export const PetalCommandDialog = {
   },
 
   destroyed() {
+    // Remove every listener mounted() registered - the document shortcut AND
+    // the dialog-element handlers - so a reused dialog node can't keep stale
+    // handlers that fire close/reset against a torn-down hook.
     document.removeEventListener("keydown", this.onShortcut);
+    this.el.removeEventListener("pc:command-open", this.onOpen);
+    this.el.removeEventListener("pc:command-close", this.onCloseEvent);
+    this.el.removeEventListener("click", this.onClick);
+    this.el.removeEventListener("close", this.onClose);
+    this.el.removeEventListener("click", this.onItemClick);
   },
 
   open() {
