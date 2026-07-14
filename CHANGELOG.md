@@ -1,4 +1,52 @@
 # Changelog
+### 4.5.0 - 2026-07-14
+
+The interaction release. Two new components - a ⌘K command palette and an ambient aurora backdrop - arrive alongside a ground-up overhaul of the AI chat kit and a navigation menu that opens on hover. Under that, a consistency pass pulls the last components onto the shared surface and radius system from 4.4. Mostly additive, with a few default changes to know about - see Upgrading.
+
+#### Added
+
+- **`command` - a ⌘K command palette.** Built on the native `<dialog>` element (real top layer, focus trap, backdrop for free), so it escapes every `overflow: hidden` container without a portal. Filter input, grouped items via `command_group` / `command_item`, an open shortcut (`data-shortcut`, e.g. ⌘K / Ctrl-K), selecting an item closes the palette (opt out per item with `data-keep-open`), and optional reset-on-close. Powered by the new `PetalCommand` and `PetalCommandDialog` hooks, zero dependencies.
+- **`aurora` - an ambient gradient backdrop.** Ported from Petal Pro and rebuilt for the free library. A `colors` list builds the gradient blend, `invert` (`auto` / `none` / `always`) adapts it for dark mode, and the motion is driven by the `PetalAurora` hook, which holds still under `prefers-reduced-motion`. Drop it behind a hero for a slow, living wash.
+- **The AI chat kit, overhauled.** `<.conversation>` gained a `variant="plain"` (the ChatGPT / Claude look: full-width turns, no bubbles) alongside the existing `bubbles`. A new `<.marker>` renders inline / separator / border section dividers ("Today", "New messages", a tool-call header) with an optional loading spinner and rotating chevron. `<.chat_message>` takes a role-agnostic `:actions` slot (copy, edit, retry) that reveals on hover. `<.prompt_input>` grew an edit mode (`editing`, `edit_label`, `on_cancel_edit`) that shows a ChatGPT-style banner, an arrow-icon send button by default (`submit_label` brings back a text button), and a `copy_button`. Streaming follows the live edge now, and loading a page of history keeps your scroll position. Powered by the `PetalChatStream`, `PetalChatComposer` and `PetalChatScroll` hooks.
+- **`navigation_menu` opens on hover.** The new default (`trigger="hover"`), driven by the `PetalNavMenu` hook: panels open on pointer hover or keyboard focus, hold open across the trigger-to-panel gap with a close grace period, toggle on click too (shadcn parity), and nudge horizontally to stay inside the viewport. `trigger="click"` keeps the pure-LiveView.JS tap-to-toggle from 4.4.
+- **`button_group` became a composition wrapper.** Wrap `<.button>`, `<.input>` and `<.button_group_text>` in `<.button_group>` and it fuses them into one segmented control: borders collapse, only the outer corners round, focus lifts the active segment. `orientation="vertical"` stacks them; `<.button_group_separator>` drops a divider. The old `:button` slot API still works unchanged.
+- **Avatar presence and overflow.** `status` (`online` / `offline` / `away` / `busy`) renders a ring-cut presence dot; `<.avatar_group max={4}>` collapses the rest into a `+N` chip.
+- **More surface for the everyday components.** `variant="muted"` on `card` (a filled, borderless card for nested panels and stats), `precision="half"` on `rating` (half-step selection, still zero JS), a `:footer` totals row on `table`, and `skeleton` rebuilt as one composable brick (three shapes, shimmer, an a11y-grouped loading region).
+
+#### Changed
+
+- **The surface and radius doctrine reached the rest of the library.** `tabs`, `table`, `pagination`, `breadcrumbs`, `card`, `accordion`, `avatar`, `marquee` and `slide_over` now sit on the same shared surfaces, ramps and `--pc-radius` token as the 4.4 forms pass - one material across the set, in both modes.
+- **Radius stays sensible at the extremes.** The checkbox caps its corner radius, so a high `--pc-radius` rounds it to a soft-cornered square instead of a circle (a circular checkbox reads as a radio). The chat input and send button, and the navigation menu's panels, rows, triggers and icon tiles, now track `--pc-radius` too - one dial still moves everything.
+- **Chat defaults to the plain variant.** `<.conversation>` renders full-width turns by default now; pass `variant="bubbles"` for the messaging-app look.
+- **`prompt_input` is an uncontrolled textarea.** Its `value` is the initial value only; set it imperatively (the `pc-chat-set-input` event / `push_event`) rather than re-rendering `value=`. This is what fixed the composer losing focus on every keystroke. The send button also defaults to an arrow icon now.
+- **`card` gained a two-name taxonomy** (`basic` + `muted`); `outline` is a legacy alias for `basic`. **`accordion`** likewise aliases its old `ghost` name. Both still render; both go away in 5.0.
+- **Marquee edges fade with a mask** (a gradient mask instead of stacked overlay divs), so the fade sits correctly on any background, including dark.
+
+#### Fixed
+
+- **The command dialog hook cleans up all its listeners on destroy.** `mounted()` registered five listeners on the dialog element but `destroyed()` only removed the document shortcut, so a LiveView remount that reused the dialog node left stale handlers firing against a torn-down hook. All five are removed now.
+- **Chat dark mode: the user bubble was white-on-white.** The bubble background rides `primary-600` (near-white under the monochrome dark theme) but the text was hardcoded white. The label colour now follows `--pc-button-solid-fg`, so it inverts correctly; the assistant tokens got proper dark values too.
+- **The chat composer no longer loses focus while you type** (see the uncontrolled-textarea change above).
+- **Streaming chat follows the live edge**, and loading older messages holds your scroll position instead of jumping - the scroll hook prioritises preserving the reader's anchor over following the bottom.
+- **Nav click-to-close works, and hover panels behave.** The earlier click-to-close was defeated by a `:focus-within` CSS fallback (a real click focused the trigger, which held the panel open); visibility is driven only by the hook's `--open` class now. The hook's grace period and horizontal nudging fix the gap-close and off-screen-panel issues that pure CSS `:hover` can't.
+- **Dark-mode hairlines that live in `::before` / `::after`** (the chat separator line, the OTP caret) were near-invisible because `dark:` utilities silently drop inside pseudo-element selectors. Their colour moved to a parent custom property that both modes set.
+
+#### Playground
+
+The `dev.exs` playground gained a live streaming **AI Chat** page (turn-by-turn streaming, edit-forks-the-thread, markers and tool-call sections), a **command palette** demo, an interactive **stepper wizard** (the vertical layout puts the content beside the rail; the horizontal one hides its scrollbar), and a **shadcn-grade sidebar** built purely by composing the existing `menu` (workspace switcher, collapsible sub-items, account menu). Aurora and six marketing-parity coverage pages landed too, and every example identity is now generic (no personal names or domains).
+
+#### Upgrading
+
+A few default changes and a set of hooks to know about. Everything else is additive or a restyle.
+
+- **`navigation_menu` now opens on hover by default.** Hover is driven by the `PetalNavMenu` hook. If you followed the install (`hooks: { ...PetalComponents }`), it is already registered, so hover just works after the upgrade. If you register hooks individually, add `PetalNavMenu`. If you can't run hooks at all, set `trigger="click"` to keep the 4.4 pure-LiveView.JS behaviour - in hover mode there is no click fallback without the hook, so the panels stay shut.
+- **More components ship hooks now.** In addition to the input and chat hooks, `command` uses `PetalCommand` + `PetalCommandDialog`, `aurora` uses `PetalAurora`, and `navigation_menu` uses `PetalNavMenu`. The documented `hooks: { ...PetalComponents }` spread picks them all up; only cherry-picked hook setups need to add them by hand.
+- **`conversation` defaults to `variant="plain"`.** Pass `variant="bubbles"` to keep the bubble layout.
+- **`prompt_input` `value` is initial-only now** (uncontrolled). Set the text via the `pc-chat-set-input` event / `push_event` instead of re-rendering `value=`. The send button defaults to an arrow icon; pass `submit_label` for a labelled button.
+- **`button_group`'s default is composition mode**, but the old `:button` slot still renders unchanged - no action needed unless you were overriding `.pc-button-group` internals.
+- **`card` `outline` and `accordion` `ghost` are legacy aliases now** (for `basic` and the default). They still work; they'll be removed in 5.0.
+- **Radius:** the checkbox no longer becomes a circle at high `--pc-radius`, and the chat input / send and nav surfaces now follow the dial. If you set a large radius, expect those to round with everything else.
+
 ### 4.4.0 - 2026-07-10
 
 The theming foundation and a forms overhaul. This release introduces the first public theme tokens, rebuilds every form control on one shared surface system, and adds the input primitives everyone reaches for. It is a restyle release: no breaking API changes, but plenty of deliberate visual refinement - see Upgrading.
