@@ -47,7 +47,7 @@ defmodule PetalComponents.MixProject do
       {:phoenix_playground, "~> 0.1.4", only: [:dev, :test]},
       {:tailwind, "~> 0.3", only: :dev, runtime: false},
       {:websock_adapter, "~> 0.5.7"},
-      {:wallaby, "~> 0.30.9", runtime: false, only: :test, optional: true},
+      {:wallaby, "~> 0.31.0", runtime: false, only: :test, optional: true},
       {:phoenix, "~> 1.7"},
       {:phoenix_live_view, "~> 1.0"},
       {:lazy_html, ">= 0.0.0", only: [:dev, :test]},
