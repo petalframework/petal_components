@@ -1,88 +1,104 @@
 defmodule PetalComponents.ButtonGroup do
   use Phoenix.Component
+
   alias PetalComponents.Helpers
 
   @doc """
-  Renders a button group. Group buttons are configured by defining multiple `:button` slots.
-
-  Note: Phoenix LiveView >= 0.20.17 is required to prevent arbitrary attributes like phx-*
-  given to `:button` slots emitting development warnings.
+  Fuses its children into one segmented control: shared border, collapsed
+  inner radii, a single outer radius. Put real petal components inside -
+  `<.button>` with any color/variant/size, `<.input>`, a text segment - and
+  the group does the joining.
 
   ## Examples
 
-  ### Buttons
+  ### Buttons (outline buttons carry their own dividers)
+
+      <.button_group aria_label="Change view">
+        <.button color="gray" variant="outline">Day</.button>
+        <.button color="gray" variant="outline">Week</.button>
+        <.button color="gray" variant="outline">Month</.button>
+      </.button_group>
+
+  ### Split button (solid buttons need the separator)
+
+      <.button_group aria_label="Merge options">
+        <.button>Merge pull request</.button>
+        <.button_group_separator />
+        <.button aria-label="More merge options">
+          <.icon name="hero-chevron-down" class="w-4 h-4" />
+        </.button>
+      </.button_group>
+
+  ### Mixed rail - text prefix, input and button
+
+      <.button_group aria_label="Site address" class="w-full max-w-sm">
+        <.button_group_text>https://</.button_group_text>
+        <.input type="text" name="domain" value="" placeholder="example.com" />
+        <.button color="gray" variant="outline">Visit</.button>
+      </.button_group>
+
+  Nest groups to split one rail into gapped clusters:
+
+      <.button_group aria_label="Editor toolbar">
+        <.button_group aria_label="History">...</.button_group>
+        <.button_group aria_label="Formatting">...</.button_group>
+      </.button_group>
+
+  ## Legacy slot API
+
+  The `:button` slot API from earlier releases still renders (it styles its
+  own plain buttons). New code should compose `<.button>` children instead.
 
       <.button_group aria_label="My actions" size="md">
-        <:button phx-click="beep" phx-value-boop="bop">Action 1</:button>
-        <:button phx-click="boop" phx-value-bop="beep">Action 2</:button>
-        <:button label="Action 3" phx-click="bop" phx-value-beep="boop" disabled={@action_disabled?} />
+        <:button phx-click="beep">Action 1</:button>
+        <:button label="Action 2" phx-click="boop" />
       </.button_group>
-
-  ### Links
-
-      <.button_group aria_label="My links" size="md">
-        <:button kind="link" patch={~p"/path-one"}>Link 1</:button>
-        <:button kind="link" patch={~p"/path-two"}>Link 2</:button>
-        <:button label="Link 3" kind="link" navigate={~p"/other"} />
-      </.button_group>
-
-  ### Custom Styles
-
-      <.button_group
-        aria_label="Custom styled buttons"
-        button_bg_class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
-        button_border_class="border border-blue-300 dark:border-blue-600"
-      >
-        <:button>Custom Button 1</:button>
-        <:button>Custom Button 2</:button>
-      </.button_group>
-
   """
 
   attr :id, :string, default: nil
   attr :aria_label, :string, required: true, doc: "the ARIA label for the button group"
-  attr :size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"]
+
+  attr :orientation, :string,
+    default: "horizontal",
+    values: ["horizontal", "vertical"],
+    doc: "stack direction - vertical fuses top-to-bottom"
+
+  attr :class, :any, default: nil, doc: "CSS classes for the group container"
+
+  attr :size, :string,
+    default: "md",
+    values: ["xs", "sm", "md", "lg", "xl"],
+    doc: "legacy slot API only - composed children carry their own size"
 
   attr :container_class, :string,
     default: "pc-button-group",
-    doc: "class to apply to the group container"
+    doc: "legacy slot API only - class to apply to the group container"
 
   attr :font_weight_class, :string,
     default: "font-medium",
-    doc: "the font weight class to apply to all buttons - defaults to font-medium"
+    doc: "legacy slot API only - the font weight class to apply to all buttons"
 
-  # New attributes for customizing button styles
   attr :button_bg_class, :string,
     default: nil,
-    doc: "class to customize the button background colors"
+    doc: "legacy slot API only - class to customize the button background colors"
 
   attr :button_border_class, :string,
     default: nil,
-    doc: "class to customize the button border styles"
+    doc: "legacy slot API only - class to customize the button border styles"
 
   # We mark validate_attrs false so passing phx-click etc. does not emit warnings
-  slot :button, required: true, validate_attrs: false
+  slot :button, validate_attrs: false, doc: "legacy API - self-styled buttons or links"
 
-  # :button slot attributes. Thought they're commented out, they're still relevant. It's just
-  # that they can't be used in a do block with `validate_attrs: false`
-  #
-  # attr :class, :string, doc: "classes in addition to those already configured"
-  # attr :label, :string, doc: "a button label, rendered if you don't provide an inner block"
+  slot :inner_block,
+    doc: "petal components to fuse - buttons, inputs, separators, text segments"
 
-  # attr :kind, :string,
-  #   values: ["button", "link"],
-  #   doc: "determines whether we render a button or a <.link />"
-
-  # attr :disabled, :boolean,
-  #   doc: "disables the button - will turn an <a> into a <button> (<a> tags can't be disabled)"
-
-  def button_group(assigns) do
+  def button_group(%{button: [_ | _]} = assigns) do
     ~H"""
     <div
       aria-label={@aria_label}
       role="group"
       id={@id || Helpers.uniq_id("button-group")}
-      class={@container_class}
+      class={legacy_container_class(@container_class)}
     >
       <.group_button
         :for={{group_btn_assigns, idx} <- Enum.with_index(@button)}
@@ -100,6 +116,60 @@ defmodule PetalComponents.ButtonGroup do
           {group_btn_assigns.label}
         <% end %>
       </.group_button>
+    </div>
+    """
+  end
+
+  def button_group(assigns) do
+    ~H"""
+    <div
+      aria-label={@aria_label}
+      role="group"
+      id={@id}
+      class={[
+        "pc-button-group",
+        @orientation == "vertical" && "pc-button-group--vertical",
+        @class
+      ]}
+    >
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  # The legacy look (self-styled overlapping buttons) rides on a modifier so
+  # the composition fuse rules can exclude it. Custom container classes pass
+  # through untouched, exactly as before.
+  defp legacy_container_class("pc-button-group"), do: "pc-button-group pc-button-group--legacy"
+  defp legacy_container_class(custom), do: custom
+
+  @doc """
+  A hairline divider between fused children. Solid buttons need it (their
+  borders are transparent); outline buttons and inputs don't - they carry
+  their own borders. The default matches the border colour; between primary
+  solids it tints from `--pc-button-solid-fg` instead, so it stays visible
+  on the solid in both modes.
+  """
+  attr :class, :any, default: nil, doc: "CSS class"
+
+  def button_group_separator(assigns) do
+    ~H"""
+    <div class={["pc-button-group__separator", @class]} aria-hidden="true"></div>
+    """
+  end
+
+  @doc """
+  A non-interactive segment on the rail - a prefix like `https://`, a unit,
+  a keyboard hint. Styled as a muted well that fuses like any other child.
+  """
+  attr :class, :any, default: nil, doc: "CSS class"
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def button_group_text(assigns) do
+    ~H"""
+    <div class={["pc-button-group__text", @class]} {@rest}>
+      {render_slot(@inner_block)}
     </div>
     """
   end

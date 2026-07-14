@@ -4,7 +4,14 @@ defmodule PetalComponents.Card do
   import PetalComponents.Typography
 
   attr(:class, :any, default: nil, doc: "CSS class")
-  attr(:variant, :string, default: "basic", values: ["basic", "outline"])
+
+  attr(:variant, :string,
+    default: "basic",
+    values: ["basic", "outline", "muted"],
+    doc:
+      "basic is THE card (bordered panel); muted is the tinted well for de-emphasised content. outline is a legacy alias of basic (identical look) slated for removal in a future major"
+  )
+
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -20,6 +27,7 @@ defmodule PetalComponents.Card do
 
   attr(:aspect_ratio_class, :any, default: "aspect-video", doc: "aspect ratio class")
   attr(:src, :string, default: nil, doc: "hosted image URL")
+  attr(:alt, :string, default: nil, doc: "alt text for the image")
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -27,10 +35,41 @@ defmodule PetalComponents.Card do
   def card_media(assigns) do
     ~H"""
     <%= if @src do %>
-      <img {@rest} src={@src} class={["pc-card__image", @aspect_ratio_class, @class]} />
+      <img {@rest} src={@src} alt={@alt} class={["pc-card__image", @aspect_ratio_class, @class]} />
     <% else %>
       <div {@rest} class={["pc-card__image-placeholder", @aspect_ratio_class, @class]}></div>
     <% end %>
+    """
+  end
+
+  attr(:title, :string, default: nil, doc: "the card title")
+  attr(:description, :string, default: nil, doc: "a muted line under the title")
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:rest, :global)
+
+  slot(:action, required: false, doc: "top-right header content - a button, link or menu")
+  slot(:inner_block, required: false)
+
+  @doc """
+  The card header: title + description on the left, an optional action on
+  the right.
+
+      <.card_header title="Login to your account" description="Enter your email below">
+        <:action><.button color="gray" variant="ghost" size="sm">Sign up</.button></:action>
+      </.card_header>
+  """
+  def card_header(assigns) do
+    ~H"""
+    <div class={["pc-card__header", @class]} {@rest}>
+      <div class="pc-card__header-titles">
+        <div :if={@title} class="pc-card__title">{@title}</div>
+        <div :if={@description} class="pc-card__description">{@description}</div>
+        {render_slot(@inner_block)}
+      </div>
+      <div :if={@action != []} class="pc-card__header-action">
+        {render_slot(@action)}
+      </div>
+    </div>
     """
   end
 

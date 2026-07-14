@@ -2,16 +2,66 @@ defmodule PetalComponents.SkeletonTest do
   use ComponentCase
   import PetalComponents.Skeleton
 
-  test "renders skeleton without specifying kind" do
+  test "bare skeleton is the composable brick" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.skeleton />
+      <.skeleton class="h-4 w-48" />
       """)
 
-    assert html =~ "data-skeleton=\"default\""
-    assert html =~ "Loading"
+    assert html =~ "pc-skeleton"
+    assert html =~ "pc-skeleton--block"
+    assert html =~ ~s(aria-hidden="true")
+    assert html =~ "h-4 w-48"
+  end
+
+  test "brick variants and explicit animation" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <div>
+        <.skeleton variant="circle" class="size-12" />
+        <.skeleton variant="text" animation="shimmer" />
+        <.skeleton animation="none" />
+      </div>
+      """)
+
+    assert html =~ "pc-skeleton--circle"
+    assert html =~ "pc-skeleton--text"
+    assert html =~ "pc-skeleton--anim-shimmer"
+    assert html =~ "pc-skeleton--anim-none"
+  end
+
+  test "skeleton_text renders varied deterministic lines" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.skeleton_text lines={4} />
+      """)
+
+    assert 4 == html |> String.split("pc-skeleton--text") |> length() |> Kernel.-(1)
+    assert html =~ "width: 100%"
+    # the last line trails off
+    assert html =~ "width: 60%"
+  end
+
+  test "skeleton_group announces loading and cascades animation" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.skeleton_group label="Loading posts" animation="shimmer">
+        <.skeleton variant="text" />
+      </.skeleton_group>
+      """)
+
+    assert html =~ ~s(role="status")
+    assert html =~ ~s(aria-busy="true")
+    assert html =~ "pc-skeleton-group--anim-shimmer"
+    assert html =~ "Loading posts"
   end
 
   test "renders skeleton specifying kind as default" do

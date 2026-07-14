@@ -32,7 +32,12 @@ defmodule PetalComponents.Breadcrumbs do
         <Link.a
           link_type={link[:link_type] || "a"}
           to={link.to}
-          class={["pc-breadcrumb", @link_class]}
+          class={[
+            "pc-breadcrumb",
+            counter == length(@links) - 1 && "pc-breadcrumb--current",
+            @link_class
+          ]}
+          aria-current={counter == length(@links) - 1 && "page"}
         >
           <div class="flex items-center gap-2">
             <%= if link[:icon] do %>

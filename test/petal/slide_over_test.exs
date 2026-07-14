@@ -198,4 +198,25 @@ defmodule PetalComponents.SlideOverTest do
 
     refute html =~ ~s{phx-window-keydown}
   end
+
+  test "description and footer slot render with aria wiring" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.slide_over id="profile" title="Edit profile" description="Changes save when you submit.">
+        Body
+        <:footer>
+          <button>Save</button>
+        </:footer>
+      </.slide_over>
+      """)
+
+    assert html =~ "Changes save when you submit."
+    assert html =~ "pc-slideover__description"
+    assert html =~ ~s(aria-labelledby="profile-title")
+    assert html =~ ~s(aria-describedby="profile-description")
+    assert html =~ "pc-slideover__footer"
+    assert html =~ "Save"
+  end
 end

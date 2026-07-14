@@ -17,15 +17,18 @@ export const PetalChatStream = {
     this.textEl = this.el.querySelector("[data-pc-stream-text]");
     this.htmlEl = this.el.querySelector("[data-pc-stream-html]");
     const event = this.el.dataset.event || "pc-chat-token";
-
-    // Anchor the new turn near the TOP of the viewport (so the answer starts at
-    // the top and there's room to read it), then DON'T auto-follow — the user
-    // scrolls down at their own pace. Avoids the "keeps yanking to the bottom"
-    // problem. The scroll-to-bottom button handles jumping back down.
-    this.anchorTop();
+    this.scroller = this.el.closest("[data-pc-scroll]");
 
     this.handleEvent(event, (payload) => {
       if (payload.id && payload.id !== this.el.id) return;
+      // Reader at the live edge rides it: pin after each token. Scrolling up
+      // disengages (edge check fails) and nothing ever yanks them back down —
+      // the scroll-to-bottom button is the way back. Same model as ChatGPT's
+      // follow and shadcn's autoScroll. Edge state is read BEFORE the token
+      // lands, so growth below the fold can't disengage a following reader.
+      const atEdge =
+        this.scroller &&
+        this.scroller.scrollHeight - this.scroller.scrollTop - this.scroller.clientHeight < 80;
       this.el.dataset.started = "";
       // markdown mode: replace innerHTML with pre-rendered HTML.
       // text mode: append the raw token delta.
@@ -34,18 +37,13 @@ export const PetalChatStream = {
       } else if (payload.text !== undefined && this.textEl) {
         this.textEl.textContent += payload.text;
       }
+      if (this.scroller) {
+        if (atEdge) this.scroller.scrollTop = this.scroller.scrollHeight;
+        // content changed without any scroll/patch event — let the scroller
+        // hook re-evaluate its jump-to-latest button
+        this.scroller.dispatchEvent(new Event("scroll"));
+      }
     });
-  },
-
-  anchorTop() {
-    const scroller = this.el.closest("[data-pc-scroll]");
-    if (!scroller) return;
-    // Prefer the user's question (so it sits at the top with the answer below);
-    // fall back to this answer's own row.
-    const userRows = scroller.querySelectorAll(".pc-chat__row--user");
-    const target = userRows[userRows.length - 1] || this.el.closest(".pc-chat__row") || this.el;
-    const delta = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
-    scroller.scrollTop += delta;
   },
 };
 
@@ -54,6 +52,19 @@ export const PetalChatStream = {
 export const PetalChatComposer = {
   mounted() {
     this.textarea = this.el.querySelector("textarea");
+
+    // Sending is an intentional act: drop to the live edge (even if scrolled
+    // up) so the reply streams in view - incoming content alone never does
+    // this. Pinning before the patch lands also flips the scroller's
+    // wasAtEdge, so the append sticks.
+    this.el.addEventListener("submit", () => {
+      const scroller = this.el.closest(".pc-chat")?.querySelector("[data-pc-scroll]");
+      if (scroller) {
+        scroller.scrollTop = scroller.scrollHeight;
+        scroller.dispatchEvent(new Event("scroll"));
+      }
+    });
+
     if (!this.textarea) return;
 
     this.onKeydown = (e) => {
@@ -68,6 +79,18 @@ export const PetalChatComposer = {
 
     this.textarea.addEventListener("keydown", this.onKeydown);
     this.textarea.addEventListener("input", this.onInput);
+
+    // Set the field programmatically (edit a past message, quote, clear).
+    // The textarea is phx-update="ignore" so the server can't render into it;
+    // this is the channel for it. Focuses and drops the caret at the end.
+    this.handleEvent("pc-chat-set-input", (payload) => {
+      if (payload.id && payload.id !== this.el.id) return;
+      this.textarea.value = payload.value || "";
+      this.autogrow();
+      this.textarea.focus();
+      const end = this.textarea.value.length;
+      this.textarea.setSelectionRange(end, end);
+    });
   },
 
   updated() {
@@ -94,8 +117,20 @@ export const PetalChatComposer = {
 export const PetalCopy = {
   mounted() {
     const label = this.el.querySelector("[data-pc-copy-label]");
+    const def = this.el.querySelector("[data-pc-copy-default]");
+    const done = this.el.querySelector("[data-pc-copy-done]");
     this.el.addEventListener("click", () => {
       navigator.clipboard?.writeText(this.el.dataset.copyText || "");
+      if (def && done) {
+        // icon mode: clipboard -> check for a moment
+        def.classList.add("hidden");
+        done.classList.remove("hidden");
+        setTimeout(() => {
+          def.classList.remove("hidden");
+          done.classList.add("hidden");
+        }, 1500);
+        return;
+      }
       if (!label) return;
       const original = label.textContent;
       label.textContent = this.el.dataset.copiedLabel || "Copied!";
@@ -146,6 +181,40 @@ export const PetalChatScroll = {
         this.el.scrollTop = this.el.scrollHeight;
       });
     }
+    // A conversation opens at its latest message, not the top.
+    this.el.scrollTop = this.el.scrollHeight;
+    // Prepend preservation: remember the top-most visible row and how far down
+    // the thread it sits. When a patch inserts history ABOVE it, its offsetTop
+    // grows - shift scrollTop by the same amount so the reader doesn't move.
+    // (Anchor tracking, not added-node inspection: morphdom may recreate
+    // trailing nodes, which makes structural prepend detection unreliable.)
+    this.recordAnchor();
+    this.recordEdge();
+    this.onScrollAnchor = () => {
+      this.recordAnchor();
+      this.recordEdge();
+    };
+    this.el.addEventListener("scroll", this.onScrollAnchor, { passive: true });
+    this.observer = new MutationObserver(() => {
+      // If the anchor row moved, content changed ABOVE it (history prepend) —
+      // hold the reader on that row. This wins over edge-following: prepending
+      // above must never jump you to the bottom, even if you were at the edge.
+      const shifted =
+        this.anchor && this.anchor.isConnected
+          ? this.anchor.offsetTop - this.anchorOffset
+          : 0;
+      if (shifted !== 0) {
+        this.el.scrollTop += shifted;
+      } else if (this.wasAtEdge) {
+        // nothing moved above and the reader was at the live edge — new content
+        // was appended below, so stay pinned to it
+        this.el.scrollTop = this.el.scrollHeight;
+      }
+      this.recordAnchor();
+      this.recordEdge();
+      this.toggle();
+    });
+    this.observer.observe(this.el, { childList: true });
     this.toggle();
   },
   updated() {
@@ -153,6 +222,22 @@ export const PetalChatScroll = {
   },
   destroyed() {
     this.el.removeEventListener("scroll", this.onScroll);
+    this.el.removeEventListener("scroll", this.onScrollAnchor);
+    if (this.observer) this.observer.disconnect();
+  },
+  recordEdge() {
+    this.wasAtEdge =
+      this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < 80;
+  },
+  recordAnchor() {
+    const top = this.el.scrollTop;
+    const visible = [...this.el.children].filter(
+      (c) => c.offsetTop + c.offsetHeight > top
+    );
+    // prefer an id'd row - ids survive LiveView patches, anonymous wrappers
+    // (like a "load earlier" button) often don't
+    this.anchor = visible.find((c) => c.id) || visible[0] || null;
+    this.anchorOffset = this.anchor ? this.anchor.offsetTop : 0;
   },
   toggle() {
     if (!this.btn) return;
@@ -657,6 +742,8 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
 
     function closeItem(item) {
       item.dataset.open = "false";
+      const toggleBtn = item.querySelector("[aria-expanded]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
       if (isGhostVariant) {
         const plusIcon = item.querySelector(".pc-accordion-item__plus");
         const minusIcon = item.querySelector(".pc-accordion-item__minus");
@@ -679,6 +766,8 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
 
     function openItem(item) {
       item.dataset.open = "true";
+      const toggleBtn = item.querySelector("[aria-expanded]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
       if (isGhostVariant) {
         const plusIcon = item.querySelector(".pc-accordion-item__plus");
         const minusIcon = item.querySelector(".pc-accordion-item__minus");
@@ -846,6 +935,360 @@ export const PetalPopover = {
   },
 };
 
+
+// Command palette: client-side filtering + WAI-ARIA combobox keyboard model.
+// Items are hidden, never reordered - the server owns DOM order, so the
+// palette stays safe under LiveView patches. Scoring: value prefix beats
+// word-boundary prefix beats substring beats fuzzy subsequence.
+export const PetalCommand = {
+  mounted() {
+    this.input = this.el.querySelector(".pc-command__input");
+    this.list = this.el.querySelector(".pc-command__list");
+    if (!this.input || !this.list) return;
+
+    if (!this.list.id) this.list.id = `${this.el.id}-list`;
+    this.input.setAttribute("aria-controls", this.list.id);
+
+    this.onInput = () => this.filter();
+    this.onKeydown = (e) => this.keydown(e);
+    this.onPointerOver = (e) => {
+      const item = e.target.closest("[data-pc-command-item]");
+      if (item && !item.hasAttribute("data-disabled") && !item.hidden) this.setActive(item, false);
+    };
+    this.input.addEventListener("input", this.onInput);
+    this.input.addEventListener("keydown", this.onKeydown);
+    this.list.addEventListener("pointerover", this.onPointerOver);
+
+    this.filter();
+  },
+
+  updated() {
+    // LiveView patched the palette - re-apply the current query.
+    this.filter();
+  },
+
+  destroyed() {
+    if (!this.input) return;
+    this.input.removeEventListener("input", this.onInput);
+    this.input.removeEventListener("keydown", this.onKeydown);
+    this.list.removeEventListener("pointerover", this.onPointerOver);
+  },
+
+  items() {
+    return Array.from(this.el.querySelectorAll("[data-pc-command-item]"));
+  },
+
+  visibleItems() {
+    return this.items().filter((i) => !i.hidden && !i.hasAttribute("data-disabled"));
+  },
+
+  searchText(item) {
+    const value = item.dataset.value || item.textContent || "";
+    const keywords = item.dataset.keywords || "";
+    return `${value} ${keywords}`.trim().toLowerCase();
+  },
+
+  score(text, query) {
+    if (!query) return 1;
+    if (text.startsWith(query)) return 4;
+    const at = text.indexOf(query);
+    if (at > 0 && /[\s\-_/]/.test(text[at - 1])) return 3;
+    if (at >= 0) return 2;
+    // fuzzy subsequence: every query char appears in order
+    let qi = 0;
+    for (const ch of text) if (ch === query[qi] && ++qi === query.length) return 1;
+    return 0;
+  },
+
+  filter() {
+    const query = this.input.value.trim().toLowerCase();
+    const queryChanged = query !== this._lastQuery;
+    this._lastQuery = query;
+    let count = 0;
+    let idBase = 0;
+
+    for (const item of this.items()) {
+      if (!item.id) item.id = `${this.el.id}-item-${idBase}`;
+      idBase++;
+      const show = this.score(this.searchText(item), query) > 0;
+      item.hidden = !show;
+      if (show) count++;
+    }
+
+    for (const group of this.el.querySelectorAll("[data-pc-command-group]")) {
+      const any = Array.from(group.querySelectorAll("[data-pc-command-item]")).some((i) => !i.hidden);
+      group.hidden = !any;
+    }
+
+    for (const sep of this.el.querySelectorAll("[data-pc-command-separator]")) {
+      sep.hidden = query.length > 0;
+    }
+
+    const empty = this.el.querySelector("[data-pc-command-empty]");
+    if (empty) empty.hidden = count > 0;
+
+    // a new query re-homes the highlight to the best (first) match;
+    // otherwise keep it, unless it was filtered away
+    const active = this.activeItem();
+    if (queryChanged || !active || active.hidden || active.hasAttribute("data-disabled")) {
+      this.setActive(this.visibleItems()[0] || null, false);
+    }
+  },
+
+  activeItem() {
+    const id = this.input.getAttribute("aria-activedescendant");
+    return id ? document.getElementById(id) : null;
+  },
+
+  setActive(item, scroll = true) {
+    for (const i of this.items()) {
+      const on = i === item;
+      i.toggleAttribute("data-selected", on);
+      i.setAttribute("aria-selected", on ? "true" : "false");
+    }
+    if (item) {
+      this.input.setAttribute("aria-activedescendant", item.id);
+      if (scroll) item.scrollIntoView({ block: "nearest" });
+    } else {
+      this.input.removeAttribute("aria-activedescendant");
+    }
+  },
+
+  move(delta) {
+    const items = this.visibleItems();
+    if (!items.length) return;
+    const loop = this.el.dataset.loop === "true";
+    const at = items.indexOf(this.activeItem());
+    let next = at + delta;
+    if (at === -1) next = delta > 0 ? 0 : items.length - 1;
+    else if (loop) next = (next + items.length) % items.length;
+    else next = Math.max(0, Math.min(next, items.length - 1));
+    this.setActive(items[next]);
+  },
+
+  keydown(e) {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        this.move(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        this.move(-1);
+        break;
+      case "Home":
+        e.preventDefault();
+        this.setActive(this.visibleItems()[0] || null);
+        break;
+      case "End":
+        e.preventDefault();
+        this.setActive(this.visibleItems().slice(-1)[0] || null);
+        break;
+      case "Enter": {
+        e.preventDefault();
+        const item = this.activeItem();
+        if (item && !item.hidden && !item.hasAttribute("data-disabled")) item.click();
+        break;
+      }
+    }
+  },
+};
+
+// The palette in a native <dialog>: global shortcut, open/close events,
+// autofocus, and query reset. The native element supplies the top layer,
+// focus trap, ::backdrop and Escape.
+export const PetalCommandDialog = {
+  mounted() {
+    this.palette = this.el.querySelector(".pc-command");
+
+    this.onShortcut = (e) => {
+      const key = this.el.dataset.shortcut;
+      if (!key) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === key.toLowerCase()) {
+        e.preventDefault();
+        this.el.open ? this.close() : this.open();
+      }
+    };
+    this.onOpen = () => this.open();
+    this.onCloseEvent = () => this.close();
+    this.onClick = (e) => {
+      // click on the backdrop = click whose target is the dialog itself
+      if (e.target === this.el) this.close();
+    };
+    this.onClose = () => this.reset();
+    this.onItemClick = (e) => {
+      const item = e.target.closest("[data-pc-command-item]");
+      if (item && !item.hasAttribute("data-keep-open") && !item.hasAttribute("data-disabled")) {
+        this.close();
+      }
+    };
+
+    document.addEventListener("keydown", this.onShortcut);
+    this.el.addEventListener("pc:command-open", this.onOpen);
+    this.el.addEventListener("pc:command-close", this.onCloseEvent);
+    this.el.addEventListener("click", this.onClick);
+    this.el.addEventListener("close", this.onClose);
+    this.el.addEventListener("click", this.onItemClick);
+  },
+
+  destroyed() {
+    // Remove every listener mounted() registered - the document shortcut AND
+    // the dialog-element handlers - so a reused dialog node can't keep stale
+    // handlers that fire close/reset against a torn-down hook.
+    document.removeEventListener("keydown", this.onShortcut);
+    this.el.removeEventListener("pc:command-open", this.onOpen);
+    this.el.removeEventListener("pc:command-close", this.onCloseEvent);
+    this.el.removeEventListener("click", this.onClick);
+    this.el.removeEventListener("close", this.onClose);
+    this.el.removeEventListener("click", this.onItemClick);
+  },
+
+  open() {
+    if (this.el.open) return;
+    this.el.showModal();
+    const input = this.el.querySelector(".pc-command__input");
+    if (input) input.focus();
+  },
+
+  close() {
+    if (this.el.open) this.el.close();
+  },
+
+  reset() {
+    if (this.el.dataset.resetOnClose !== "true") return;
+    const input = this.el.querySelector(".pc-command__input");
+    if (input && input.value !== "") {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  },
+};
+
+// Pauses the aurora drift while the section is off-screen.
+export const PetalAurora = {
+  mounted() {
+    this.lights = this.el.querySelector("[data-pc-aurora]");
+    if (!this.lights || !("IntersectionObserver" in window)) return;
+    this.observer = new IntersectionObserver(([entry]) => {
+      this.lights.classList.toggle("pc-aurora--paused", !entry.isIntersecting);
+    });
+    this.observer.observe(this.el);
+  },
+  destroyed() {
+    if (this.observer) this.observer.disconnect();
+  },
+};
+
+// Hover-driven navigation menu. Opens a panel on pointer hover / keyboard
+// focus, with a close GRACE PERIOD so moving across the trigger-to-panel gap
+// (or between siblings) doesn't drop it — the thing pure CSS :hover can't do.
+// On open it also nudges the panel horizontally to stay inside the viewport
+// (collision handling), the way shadcn/Radix position their flyouts.
+export const PetalNavMenu = {
+  mounted() {
+    this.closeDelay = 140;
+    this.items = [...this.el.querySelectorAll(".pc-nav-menu__item")].filter((i) =>
+      i.querySelector("[data-pc-nav-panel]")
+    );
+
+    this.items.forEach((item) => {
+      const panel = item.querySelector("[data-pc-nav-panel]");
+      const trigger = item.querySelector(".pc-nav-menu__trigger");
+
+      // Hover is for mouse/pen only. On touch there's no hover, so a tap would
+      // fire enter (open) then click (toggle -> close) and flash - skip the
+      // pointer path there and let click/tap drive the toggle instead.
+      item.addEventListener("pointerenter", (e) => {
+        if (e.pointerType === "touch") return;
+        clearTimeout(this.closeTimer);
+        this.open(item, panel, trigger);
+      });
+      item.addEventListener("pointerleave", (e) => {
+        if (e.pointerType === "touch") return;
+        clearTimeout(this.closeTimer);
+        this.closeTimer = setTimeout(() => this.close(item, trigger), this.closeDelay);
+      });
+      // Click toggles - open it, or close an already-open one (matches shadcn).
+      // While the pointer stays on the trigger, enter doesn't refire, so a
+      // click-to-close stays closed until you move away and hover back. This
+      // also covers keyboard activation (Enter/Space fire a native click) and
+      // touch taps, so opening is never tied to focus alone - a click that
+      // focuses the button can still close the panel.
+      trigger.addEventListener("click", () => {
+        clearTimeout(this.closeTimer);
+        if (item.classList.contains("pc-nav-menu__item--open")) {
+          this.close(item, trigger);
+        } else {
+          this.open(item, panel, trigger);
+        }
+      });
+      // tabbing focus out of an open item closes it
+      item.addEventListener("focusout", (e) => {
+        if (!item.contains(e.relatedTarget)) this.close(item, trigger);
+      });
+    });
+
+    this.onKeydown = (e) => {
+      if (e.key === "Escape") this.closeAll();
+    };
+    // tap/click outside the nav closes any open panel (also the touch dismiss)
+    this.onDocPointerDown = (e) => {
+      if (!this.el.contains(e.target)) this.closeAll();
+    };
+    this.onResize = () => {
+      const open = this.items.find((i) => i.classList.contains("pc-nav-menu__item--open"));
+      if (open) this.position(open.querySelector("[data-pc-nav-panel]"));
+    };
+    document.addEventListener("keydown", this.onKeydown);
+    document.addEventListener("pointerdown", this.onDocPointerDown);
+    window.addEventListener("resize", this.onResize);
+  },
+
+  destroyed() {
+    clearTimeout(this.closeTimer);
+    document.removeEventListener("keydown", this.onKeydown);
+    document.removeEventListener("pointerdown", this.onDocPointerDown);
+    window.removeEventListener("resize", this.onResize);
+  },
+
+  open(item, panel, trigger) {
+    this.items.forEach((other) => {
+      if (other !== item) {
+        other.classList.remove("pc-nav-menu__item--open");
+        other.querySelector(".pc-nav-menu__trigger")?.setAttribute("aria-expanded", "false");
+      }
+    });
+    item.classList.add("pc-nav-menu__item--open");
+    trigger?.setAttribute("aria-expanded", "true");
+    this.position(panel);
+  },
+
+  close(item, trigger) {
+    item.classList.remove("pc-nav-menu__item--open");
+    trigger?.setAttribute("aria-expanded", "false");
+  },
+
+  closeAll() {
+    clearTimeout(this.closeTimer);
+    this.items.forEach((item) =>
+      this.close(item, item.querySelector(".pc-nav-menu__trigger"))
+    );
+  },
+
+  // Nudge the panel back inside the viewport if it would spill past an edge.
+  position(panel) {
+    if (!panel || panel.classList.contains("pc-nav-menu__panel--full")) return;
+    panel.style.transform = "";
+    const margin = 8;
+    const rect = panel.getBoundingClientRect();
+    if (rect.right > window.innerWidth - margin) {
+      panel.style.transform = `translateX(${-(rect.right - (window.innerWidth - margin))}px)`;
+    } else if (rect.left < margin) {
+      panel.style.transform = `translateX(${margin - rect.left}px)`;
+    }
+  },
+};
+
 export default {
   PetalChatStream,
   PetalChatComposer,
@@ -863,4 +1306,8 @@ export default {
   PetalTypingEffect,
   PetalInputOTP,
   PetalPopover,
+  PetalCommand,
+  PetalAurora,
+  PetalNavMenu,
+  PetalCommandDialog,
 };

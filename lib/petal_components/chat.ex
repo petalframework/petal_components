@@ -53,6 +53,12 @@ defmodule PetalComponents.Chat do
   A scrollable conversation thread. Composition-first: drop `chat_message/1`,
   `streaming_text/1`, or your own markup inside.
 
+  Opens scrolled to the latest message. When older history is inserted above
+  (pagination), the reader's position is preserved - give thread rows stable
+  `id`s (or render them from a LiveView stream) so patches reuse the DOM
+  nodes; without ids, LiveView rebuilds the siblings and the browser resets
+  the scroll.
+
       <Chat.conversation>
         <Chat.chat_message :for={msg <- @messages} role={msg.role}>{msg.text}</Chat.chat_message>
         <:footer>
@@ -61,6 +67,13 @@ defmodule PetalComponents.Chat do
       </Chat.conversation>
   """
   attr :id, :string, doc: "defaults to a generated id so multiple threads can coexist"
+
+  attr :variant, :string,
+    default: "plain",
+    values: ["plain", "bubbles"],
+    doc:
+      "plain is the AI convention (ChatGPT/Claude): assistant text sits on the surface, only the user gets a bubble. bubbles puts both sides in bubbles (messenger style)"
+
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -70,7 +83,7 @@ defmodule PetalComponents.Chat do
     assigns = assign_new(assigns, :id, fn -> "pc-chat-#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <div class={["pc-chat", @class]} {@rest}>
+    <div class={["pc-chat", @variant == "plain" && "pc-chat--plain", @class]} {@rest}>
       <div class="pc-chat__viewport">
         <div
           id={@id}
@@ -108,13 +121,23 @@ defmodule PetalComponents.Chat do
   attr :class, :any, default: nil
   attr :rest, :global
   slot :avatar, doc: "optional leading avatar/icon"
+
+  slot :actions,
+    doc:
+      "an action bar rendered below the message, outside the bubble - message_actions/1. Works on any role: copy/edit under a user message, copy/feedback/regenerate under an assistant one"
+
   slot :inner_block, required: true
 
   def chat_message(assigns) do
     ~H"""
     <div class={["pc-chat__row", "pc-chat__row--#{@role}", @class]} {@rest}>
       <div :if={@avatar != []} class="pc-chat__avatar">{render_slot(@avatar)}</div>
-      <div class={["pc-chat__bubble", "pc-chat__bubble--#{@role}"]}>{render_slot(@inner_block)}</div>
+      <div class="pc-chat__body">
+        <div class={["pc-chat__bubble", "pc-chat__bubble--#{@role}"]}>
+          {render_slot(@inner_block)}
+        </div>
+        <div :if={@actions != []} class="pc-chat__row-actions">{render_slot(@actions)}</div>
+      </div>
     </div>
     """
   end
@@ -363,7 +386,12 @@ defmodule PetalComponents.Chat do
   attr :id, :string, doc: "defaults to a generated id so multiple composers can coexist"
 
   attr :name, :string, default: "prompt"
-  attr :value, :string, default: ""
+
+  attr :value, :string,
+    default: "",
+    doc:
+      "initial textarea value. The field is uncontrolled after mount (phx-update=ignore, so keystrokes never re-render and lose focus); set it later - edit, quote, clear - by pushing a `pc-chat-set-input` event (`%{value: text}`, optional `%{id: composer_id}`) to the PetalChatComposer hook"
+
   attr :placeholder, :string, default: "Send a message..."
   attr :aria_label, :string, default: "Message", doc: "accessible label for the textarea"
   attr :loading, :boolean, default: false
@@ -372,7 +400,20 @@ defmodule PetalComponents.Chat do
     default: nil,
     doc: "event pushed when the stop button is clicked while loading"
 
-  attr :submit_label, :string, default: "Send"
+  attr :submit_label, :string,
+    default: nil,
+    doc: "text for the send button; the default is the arrow-up icon convention"
+
+  attr :editing, :boolean,
+    default: false,
+    doc: "show the edit-mode banner above the field (set while editing a past message)"
+
+  attr :edit_label, :string, default: "Editing message", doc: "label shown in the edit banner"
+
+  attr :on_cancel_edit, :string,
+    default: nil,
+    doc: "event pushed when the edit banner's cancel (X) is clicked"
+
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
   slot :actions, doc: "extra controls left of the send button"
@@ -381,29 +422,74 @@ defmodule PetalComponents.Chat do
     assigns = assign_new(assigns, :id, fn -> "pc-chat-composer-#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <form id={@id} phx-hook="PetalChatComposer" class={["pc-chat__composer", @class]} {@rest}>
-      <textarea
-        name={@name}
-        rows="1"
-        placeholder={@placeholder}
-        aria-label={@aria_label}
-        autocomplete="off"
-        class="pc-chat__composer-input"
-      >{@value}</textarea>
-      <div :if={@actions != []} class="pc-chat__composer-actions">{render_slot(@actions)}</div>
-      <button :if={!@loading} type="submit" class="pc-chat__composer-send">{@submit_label}</button>
-      <button
-        :if={@loading && @on_stop}
-        type="button"
-        phx-click={@on_stop}
-        aria-label="Stop generating"
-        class="pc-chat__composer-stop"
-      >
-        <span class="pc-chat__stop-icon" aria-hidden="true"></span>
-      </button>
-      <button :if={@loading && !@on_stop} type="button" disabled class="pc-chat__composer-send">
-        …
-      </button>
+    <form
+      id={@id}
+      phx-hook="PetalChatComposer"
+      class={["pc-chat__composer", @editing && "pc-chat__composer--editing", @class]}
+      {@rest}
+    >
+      <div :if={@editing} class="pc-chat__composer-banner">
+        <span class="pc-chat__composer-banner-label">
+          <PetalComponents.Icon.icon name="hero-pencil-square" class="pc-chat__composer-banner-icon" />
+          {@edit_label}
+        </span>
+        <button
+          :if={@on_cancel_edit}
+          type="button"
+          phx-click={@on_cancel_edit}
+          aria-label="Cancel edit"
+          class="pc-chat__composer-banner-cancel"
+        >
+          <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__composer-banner-icon" />
+        </button>
+      </div>
+      <div class="pc-chat__composer-row">
+        <textarea
+          id={"#{@id}-input"}
+          name={@name}
+          phx-update="ignore"
+          rows="1"
+          placeholder={@placeholder}
+          aria-label={@aria_label}
+          autocomplete="off"
+          class="pc-chat__composer-input"
+        >{@value}</textarea>
+        <div :if={@actions != []} class="pc-chat__composer-actions">{render_slot(@actions)}</div>
+        <button
+          :if={!@loading}
+          type="submit"
+          class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+          aria-label={if !@submit_label, do: "Send message"}
+        >
+          <%= if @submit_label do %>
+            {@submit_label}
+          <% else %>
+            <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+          <% end %>
+        </button>
+        <button
+          :if={@loading && @on_stop}
+          type="button"
+          phx-click={@on_stop}
+          aria-label="Stop generating"
+          class="pc-chat__composer-stop"
+        >
+          <span class="pc-chat__stop-icon" aria-hidden="true"></span>
+        </button>
+        <button
+          :if={@loading && !@on_stop}
+          type="button"
+          disabled
+          aria-label="Sending"
+          class={["pc-chat__composer-send", !@submit_label && "pc-chat__composer-send--icon"]}
+        >
+          <%= if @submit_label do %>
+            …
+          <% else %>
+            <PetalComponents.Icon.icon name="hero-arrow-up" class="pc-chat__composer-send-icon" />
+          <% end %>
+        </button>
+      </div>
     </form>
     """
   end
@@ -423,38 +509,125 @@ defmodule PetalComponents.Chat do
   def reasoning(assigns) do
     ~H"""
     <details class={["pc-chat__reasoning", @class]} open={@open}>
-      <summary class="pc-chat__reasoning-summary">{@label}</summary>
+      <summary class="pc-chat__reasoning-summary">
+        <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__reasoning-chevron" />
+        {@label}
+      </summary>
       <div class="pc-chat__reasoning-body">{render_slot(@inner_block)}</div>
     </details>
     """
   end
 
   @doc """
-  A row of actions under a message (copy, regenerate, feedback). Compose with
-  `copy_button/1` and your own `phx-click` buttons using the `pc-chat__action`
-  class.
+  An inline conversation marker - a system note, a status row, or a labelled
+  separator between sections of the thread.
+
+      <Chat.marker icon="hero-magnifying-glass">Searched the web</Chat.marker>
+      <Chat.marker variant="separator">Today</Chat.marker>
+      <Chat.marker variant="border" icon="hero-check-circle">Context compacted</Chat.marker>
+      <Chat.marker loading>Thinking...</Chat.marker>
+
+  While `loading` it shows a small spinner and announces as a live status
+  region. For the shimmering streaming-status treatment, compose the existing
+  `PetalComponents.TextAnimation.shimmer_text/1` inside:
+
+      <Chat.marker loading><.shimmer_text>Running the numbers...</.shimmer_text></Chat.marker>
+  """
+  attr :variant, :string,
+    default: "inline",
+    values: ["inline", "separator", "border"],
+    doc: "inline note, centred labelled separator, or a full-width bordered row"
+
+  attr :icon, :string, default: nil, doc: "heroicon name rendered before the text"
+  attr :loading, :boolean, default: false, doc: "spinner + role=status for in-progress work"
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def marker(assigns) do
+    ~H"""
+    <div
+      class={["pc-chat__marker", "pc-chat__marker--#{@variant}", @class]}
+      role={if @loading, do: "status"}
+      {@rest}
+    >
+      <span :if={@loading} class="pc-chat__marker-spinner" aria-hidden="true"></span>
+      <PetalComponents.Icon.icon
+        :if={@icon && !@loading}
+        name={@icon}
+        class="pc-chat__marker-icon"
+      />
+      <span class="pc-chat__marker-text">{render_slot(@inner_block)}</span>
+    </div>
+    """
+  end
+
+  @doc """
+  A row of actions under a message - the copy / feedback / regenerate bar.
+  Compose with `copy_button/1`, `action_button/1`, or your own `phx-click`
+  buttons using the `pc-chat__action` class.
 
       <Chat.message_actions>
-        <Chat.copy_button id={"copy-\#{@id}"} text={@text} />
-        <button class="pc-chat__action" phx-click="regenerate">Regenerate</button>
+        <Chat.copy_button id={"copy-\#{@id}"} text={@text} icon />
+        <Chat.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="feedback" phx-value-vote="up" />
+        <Chat.action_button icon="hero-arrow-path" label="Regenerate" phx-click="regenerate" />
       </Chat.message_actions>
+
+  `visible="hover"` fades the bar in when the message row is hovered or
+  focused (ChatGPT-style density for long threads). Touch devices have no
+  hover, so there the bar always shows.
   """
+  attr :visible, :string,
+    default: "always",
+    values: ["always", "hover"],
+    doc: "hover reveals the bar on message-row hover/focus; always shows on touch"
+
   attr :class, :any, default: nil
   slot :inner_block, required: true
 
   def message_actions(assigns) do
     ~H"""
-    <div class={["pc-chat__actions", @class]}>{render_slot(@inner_block)}</div>
+    <div class={["pc-chat__actions", @visible == "hover" && "pc-chat__actions--hover", @class]}>
+      {render_slot(@inner_block)}
+    </div>
     """
   end
 
   @doc """
-  A copy-to-clipboard button (via the `PetalCopy` hook). Shows brief "Copied!"
-  feedback. Requires a unique `id`.
+  An icon action for the message bar - thumbs up/down, regenerate, share.
+  Icon-only with the accessible name on `label` (also the tooltip). Pass any
+  `phx-*` binding through.
+
+      <Chat.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="feedback" phx-value-vote="up" />
+  """
+  attr :icon, :string, required: true, doc: "heroicon name"
+  attr :label, :string, required: true, doc: "accessible name, also shown as the tooltip"
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def action_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={["pc-chat__action pc-chat__action--icon", @class]}
+      aria-label={@label}
+      title={@label}
+      {@rest}
+    >
+      <PetalComponents.Icon.icon name={@icon} class="pc-chat__action-icon" />
+    </button>
+    """
+  end
+
+  @doc """
+  A copy-to-clipboard button (via the `PetalCopy` hook). Shows brief feedback -
+  the text flips to "Copied!", or in `icon` mode the clipboard swaps to a
+  check. Requires a unique `id`.
   """
   attr :id, :string, required: true
   attr :text, :string, required: true, doc: "the text to copy"
   attr :label, :string, default: "Copy"
+  attr :icon, :boolean, default: false, doc: "icon-only (clipboard -> check feedback)"
   attr :class, :any, default: nil
 
   def copy_button(assigns) do
@@ -465,9 +638,20 @@ defmodule PetalComponents.Chat do
       phx-hook="PetalCopy"
       data-copy-text={@text}
       data-copied-label="Copied!"
-      class={["pc-chat__action", @class]}
+      class={["pc-chat__action", @icon && "pc-chat__action--icon", @class]}
+      aria-label={if @icon, do: @label}
+      title={if @icon, do: @label}
     >
-      <span data-pc-copy-label>{@label}</span>
+      <%= if @icon do %>
+        <span data-pc-copy-default>
+          <PetalComponents.Icon.icon name="hero-clipboard" class="pc-chat__action-icon" />
+        </span>
+        <span data-pc-copy-done class="hidden">
+          <PetalComponents.Icon.icon name="hero-check" class="pc-chat__action-icon text-success-500" />
+        </span>
+      <% else %>
+        <span data-pc-copy-label>{@label}</span>
+      <% end %>
     </button>
     """
   end

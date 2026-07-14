@@ -22,13 +22,10 @@ defmodule PetalComponents.NavigationMenuTest do
       assert html =~ ~s(aria-controls="nav-panel-0")
       assert html =~ ~s(id="nav-panel-0")
       assert html =~ "pc-nav-menu__chevron"
-      # panel starts hidden and is toggled with LiveView.JS
-      assert html =~ "display: none"
-      assert html =~ "phx-click"
       assert html =~ "data-pc-nav-panel"
     end
 
-    test "closes on Escape and click-away" do
+    test "defaults to hover mode: CSS-driven, no click JS" do
       assigns = %{}
 
       html =
@@ -40,6 +37,27 @@ defmodule PetalComponents.NavigationMenuTest do
         </.navigation_menu>
         """)
 
+      assert html =~ "pc-nav-menu--hover"
+      # no JS wiring in hover mode - CSS :hover/:focus-within opens the panel
+      refute html =~ "phx-click-away"
+      refute html =~ "display: none"
+    end
+
+    test "trigger=click toggles with LiveView.JS and closes on Escape/click-away" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.navigation_menu id="nav" trigger="click">
+          <:item label="Products">
+            <div>Panel</div>
+          </:item>
+        </.navigation_menu>
+        """)
+
+      refute html =~ "pc-nav-menu--hover"
+      assert html =~ "display: none"
+      assert html =~ "phx-click"
       assert html =~ "phx-click-away"
       assert html =~ "phx-window-keydown"
       assert html =~ ~s(phx-key="Escape")

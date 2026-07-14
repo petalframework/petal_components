@@ -7,7 +7,19 @@ defmodule PetalComponents.Accordion do
   attr(:container_id, :string)
   attr(:class, :any, default: nil, doc: "CSS class for parent container")
   attr(:entries, :list, default: [%{}])
-  attr(:variant, :string, default: "default", values: ["default", "ghost"])
+
+  attr(:variant, :string,
+    default: "default",
+    values: ["default", "bordered", "ghost"],
+    doc:
+      "default is the shadcn row style (hairline dividers, no boxes); bordered is the boxed card-accordion. ghost is a legacy alias of default (identical look) slated for removal in a future major"
+  )
+
+  attr(:size, :string,
+    default: "md",
+    values: ["sm", "md"],
+    doc: "sm tightens paddings and type for dense UIs (settings panels, sidebars)"
+  )
 
   attr(:open_index, :integer, default: nil, doc: "Index of item to be open at render")
 
@@ -30,6 +42,8 @@ defmodule PetalComponents.Accordion do
     assigns =
       assigns
       |> assign_new(:container_id, fn -> "accordion_#{Ecto.UUID.generate()}" end)
+      # ghost became visually indistinguishable from the row default - alias it
+      |> then(&if &1.variant == "ghost", do: assign(&1, :variant, "default"), else: &1)
 
     item =
       for entry <- assigns.entries, item <- assigns.item do
@@ -54,7 +68,9 @@ defmodule PetalComponents.Accordion do
       id={@container_id}
       class={[
         @class,
-        if(@variant == "ghost", do: "pc-accordion--ghost")
+        @size == "sm" && "pc-accordion--sm",
+        @variant == "ghost" && "pc-accordion--ghost",
+        @variant == "default" && "pc-accordion--rows"
       ]}
       {@rest}
       {js_attributes("container", @container_id, nil, nil, @open_index, @variant, @multiple)}
@@ -65,25 +81,36 @@ defmodule PetalComponents.Accordion do
           {js_attributes("item", @container_id, i, length(@item), is_open, @variant, @multiple)}
           data-i={i}
           data-open={if is_open, do: "true", else: "false"}
-          class={if(@variant == "ghost", do: "pc-accordion-item--ghost")}
+          class={
+            case @variant do
+              "ghost" -> "pc-accordion-item--ghost"
+              "default" -> "pc-accordion-row"
+              _ -> nil
+            end
+          }
         >
           <h2 id={content_panel_header_id(@container_id, i)}>
             <button
               type="button"
               {js_attributes("button", @container_id, i, length(@item), is_open, @variant, @multiple, @on_toggle)}
               class={
-                if @variant == "ghost" do
-                  "pc-accordion-item__button--ghost"
-                else
-                  [
-                    "pc-accordion-item accordion-button",
-                    if(i == 0, do: "pc-accordion-item--first"),
-                    unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
-                    if(i == length(@item) - 1,
-                      do:
-                        "pc-accordion-item--last #{if !is_open, do: "pc-accordion-item--last--closed"}"
-                    )
-                  ]
+                case @variant do
+                  "ghost" ->
+                    "pc-accordion-item__button--ghost"
+
+                  "default" ->
+                    "pc-accordion-item--row accordion-button"
+
+                  _ ->
+                    [
+                      "pc-accordion-item accordion-button",
+                      if(i == 0, do: "pc-accordion-item--first"),
+                      unless(i == length(@item) - 1, do: "pc-accordion-item--all-except-last"),
+                      if(i == length(@item) - 1,
+                        do:
+                          "pc-accordion-item--last #{if !is_open, do: "pc-accordion-item--last--closed"}"
+                      )
+                    ]
                 end
               }
             >
@@ -121,16 +148,22 @@ defmodule PetalComponents.Accordion do
             class="accordion-content-container"
           >
             <div class={
-              if(@variant == "ghost",
-                do: "pc-accordion-item__content--ghost",
-                else: [
-                  "pc-accordion-item__content-container",
-                  if(i == length(@item) - 1,
-                    do: "pc-accordion-item__content-container--last",
-                    else: "pc-accordion-item__content-container--not-last"
-                  )
-                ]
-              )
+              case @variant do
+                "ghost" ->
+                  "pc-accordion-item__content--ghost"
+
+                "default" ->
+                  "pc-accordion-item__content--row"
+
+                _ ->
+                  [
+                    "pc-accordion-item__content-container",
+                    if(i == length(@item) - 1,
+                      do: "pc-accordion-item__content-container--last",
+                      else: "pc-accordion-item__content-container--not-last"
+                    )
+                  ]
+              end
             }>
               {render_slot(current_item, current_item.entry)}
             </div>
@@ -138,7 +171,6 @@ defmodule PetalComponents.Accordion do
         </div>
       <% end %>
     </div>
-
     """
   end
 

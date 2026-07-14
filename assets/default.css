@@ -539,7 +539,84 @@
   /* Button Group */
 
   .pc-button-group {
-    @apply flex -space-x-px;
+    @apply flex w-fit items-stretch;
+  }
+
+  /* a group of groups stops fusing and gaps its clusters instead */
+  .pc-button-group:has(> .pc-button-group) {
+    @apply gap-2;
+  }
+
+  /* the focused child rises above its fused neighbours so its ring isn't clipped */
+  .pc-button-group > :where(*) {
+    @apply focus-visible:relative focus-visible:z-10;
+  }
+
+  /* inputs take the leftover rail width */
+  .pc-button-group > input.pc-text-input {
+    @apply min-w-0 flex-1;
+  }
+
+  /* a pressed button scaling down would crack the fused strip open */
+  .pc-button-group > .pc-button {
+    @apply active:scale-100;
+  }
+
+  .pc-button-group--vertical {
+    @apply flex-col;
+  }
+
+  /* fuse: only the group's outer corners stay round; inner borders collapse
+     to a single line (solid buttons have transparent borders - use the
+     separator there) */
+  .pc-button-group:not(.pc-button-group--legacy, .pc-button-group--vertical) > :not(:first-child) {
+    @apply rounded-l-none border-l-0;
+  }
+
+  .pc-button-group:not(.pc-button-group--legacy, .pc-button-group--vertical) > :not(:last-child) {
+    @apply rounded-r-none;
+  }
+
+  .pc-button-group--vertical > :not(:first-child) {
+    @apply rounded-t-none border-t-0;
+  }
+
+  .pc-button-group--vertical > :not(:last-child) {
+    @apply rounded-b-none;
+  }
+
+  .pc-button-group__separator {
+    @apply w-px shrink-0 self-stretch bg-gray-300 dark:bg-white/15;
+  }
+
+  /* between primary solids the hairline tints from the label colour instead */
+  .pc-button--primary + .pc-button-group__separator {
+    background: color-mix(in srgb, var(--pc-button-solid-fg, #fff) 25%, transparent);
+  }
+
+  .pc-button-group--vertical > .pc-button-group__separator {
+    @apply h-px w-auto;
+  }
+
+  .pc-button-group__text {
+    @apply flex items-center gap-2 border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-300;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* a dropdown fused into the rail (split button): the component wraps its
+     trigger in an intermediate div, so flex that through to stretch the
+     trigger to the rail height. .pc-dropdown itself stays relative + block
+     (never flex) so its absolute menu still drops below the trigger, not
+     over it. Collapse classes ride on trigger_class since the group's
+     :not(:first-child) rule can't reach the nested button. */
+  .pc-button-group > .pc-dropdown > div:first-child {
+    @apply flex h-full;
+  }
+
+  /* Button Group - legacy :button slot API (self-styled overlapping buttons) */
+
+  .pc-button-group--legacy {
+    @apply -space-x-px;
   }
 
   /* Button Group - Buttons */
@@ -1327,11 +1404,15 @@
     border-end-end-radius: var(--pc-radius, 0.625rem);
   }
   .pc-otp__slot--active {
-    @apply border-primary-500 ring-2 ring-primary-500/50 z-10;
+    /* caret colour on the parent - dark: variants don't compile inside
+       pseudo-element selectors, they'd silently drop */
+    --pc-otp-caret: var(--color-gray-900, #18181b);
+    @apply border-primary-500 ring-2 ring-primary-500/50 z-10 dark:[--pc-otp-caret:#f4f4f5];
   }
   .pc-otp__slot--active:not(.pc-otp__slot--filled)::before {
     content: "";
-    @apply absolute w-px h-6 bg-gray-900 dark:bg-gray-100;
+    @apply absolute w-px h-6;
+    background-color: var(--pc-otp-caret);
     animation: pc-otp-blink 1.1s steps(2, start) infinite;
   }
   @keyframes pc-otp-blink {
@@ -1449,7 +1530,7 @@
   /* -------------------------------------------------------------------- */
   .pc-checkbox {
     @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
+    border-radius: clamp(0px, calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.25rem);
   }
   .pc-checkbox-group {
     @apply pt-2;
@@ -1684,6 +1765,88 @@
     @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
   }
 
+
+  /* Command palette */
+
+  .pc-command {
+    @apply flex w-full flex-col overflow-hidden bg-white text-gray-900 dark:bg-zinc-900 dark:text-gray-100;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+  .pc-command__input-wrap {
+    @apply flex items-center gap-2 border-b border-gray-200 px-3 dark:border-white/10;
+  }
+  .pc-command__input-icon {
+    @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__input {
+    @apply h-11 w-full border-0 bg-transparent p-0 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
+  }
+  .pc-command__input:focus {
+    @apply outline-none ring-0 shadow-none border-0;
+  }
+  .pc-command__list {
+    @apply max-h-80 overflow-y-auto overscroll-contain p-1;
+    scrollbar-width: thin;
+  }
+  .pc-command__group {
+    @apply overflow-hidden;
+  }
+  .pc-command__group-heading {
+    @apply px-2 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
+  }
+  .pc-command__item {
+    @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none dark:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-command__item[data-selected] {
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+  }
+  .pc-command__item[data-disabled] {
+    @apply pointer-events-none opacity-50;
+  }
+  .pc-command__item svg {
+    @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__item[data-selected] svg {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+  .pc-command__separator {
+    @apply -mx-1 my-1 h-px bg-gray-200 dark:bg-white/10;
+  }
+  .pc-command__shortcut {
+    @apply ml-auto text-xs tracking-widest text-gray-400 dark:text-gray-500;
+  }
+  .pc-command__empty {
+    @apply py-6 text-center text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-command-dialog {
+    @apply fixed p-0 shadow-lg;
+    inset: 0;
+    margin: 12vh auto auto;
+    width: min(36rem, calc(100vw - 2rem));
+    border: 1px solid var(--color-gray-200);
+    background: transparent;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+  .dark .pc-command-dialog {
+    border-color: color-mix(in srgb, white 15%, transparent);
+  }
+  .pc-command-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-command-dialog[open] {
+      animation: pc-command-in 0.15s ease-out;
+    }
+  }
+  @keyframes pc-command-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
   /* Tooltip */
 
   .pc-tooltip {
@@ -1799,16 +1962,19 @@
     @apply flex items-center;
   }
   .pc-breadcrumb {
-    @apply flex text-gray-500 hover:underline dark:text-gray-400;
+    @apply flex text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100;
+  }
+  .pc-breadcrumb--current {
+    @apply font-medium text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100;
   }
   .pc-breadcrumbs__separator-slash {
-    @apply px-5 text-lg text-gray-300;
+    @apply px-2.5 text-sm text-gray-300 dark:text-gray-600;
   }
   .pc-breadcrumbs__separator-chevron {
-    @apply px-3 text-gray-300;
+    @apply px-1.5 text-gray-300 dark:text-gray-600;
   }
   .pc-breadcrumbs__separator-chevron__icon {
-    @apply w-6 h-6;
+    @apply h-4 w-4;
   }
   .pc-breadcrumb-icon {
     @apply w-6 h-6 shrink-0;
@@ -1819,6 +1985,43 @@
   .pc-avatar--with-image {
     @apply object-cover rounded-full;
   }
+  .pc-avatar-anchor {
+    @apply relative inline-flex shrink-0;
+  }
+  .pc-avatar__status {
+    @apply absolute right-0 bottom-0 block rounded-full ring-2 ring-white dark:ring-zinc-950;
+  }
+  .pc-avatar__status--online {
+    @apply bg-success-500;
+  }
+  .pc-avatar__status--offline {
+    @apply bg-gray-300 dark:bg-gray-600;
+  }
+  .pc-avatar__status--busy {
+    @apply bg-danger-500;
+  }
+  .pc-avatar__status--away {
+    @apply bg-warning-400;
+  }
+  .pc-avatar__status--xs {
+    @apply h-1.5 w-1.5;
+  }
+  .pc-avatar__status--sm {
+    @apply h-2 w-2;
+  }
+  .pc-avatar__status--md {
+    @apply h-2.5 w-2.5;
+  }
+  .pc-avatar__status--lg {
+    @apply h-3 w-3;
+  }
+  .pc-avatar__status--xl {
+    @apply h-3.5 w-3.5;
+  }
+  .pc-avatar-group__overflow {
+    @apply bg-gray-100 font-medium text-gray-600 dark:bg-zinc-800 dark:text-gray-300;
+  }
+
   .pc-avatar--with-placeholder-icon {
     @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-white/10;
   }
@@ -1826,7 +2029,7 @@
     @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-white/10 dark:text-gray-300;
   }
   .pc-avatar-group {
-    @apply ring-white ring-2 dark:ring-gray-100;
+    @apply ring-white ring-2 dark:ring-zinc-950;
   }
   .pc-avatar__placeholder-icon {
     @apply relative w-full! h-full! bg-gray-300 top-[12%] scale-[1.15] transform;
@@ -1963,38 +2166,40 @@
     @apply flex;
   }
   .pc-pagination__inner {
-    @apply inline-flex -space-x-px text-sm font-medium;
+    @apply inline-flex items-center gap-1 text-sm font-medium;
   }
   .pc-pagination__item {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-white/15;
+    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 transition-colors;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item--is-current {
-    @apply text-gray-900 bg-gray-100 dark:bg-white/10 dark:text-gray-100;
+    @apply border border-gray-300 bg-transparent font-medium text-gray-900 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-100;
   }
   .pc-pagination__item--is-not-current {
-    @apply text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-800 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200;
+    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200;
   }
   .pc-pagination__item--current {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 border border-gray-200 dark:border-white/15;
+    @apply inline-flex h-9 min-w-9 items-center justify-center px-2;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous {
-    @apply mr-2 inline-flex items-center justify-center leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-white/5 enabled:dark:hover:bg-white/10 border dark:border-white/15 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
-    border-radius: var(--pc-radius, 0.625rem);
+    @apply mr-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-white/10 enabled:dark:hover:text-gray-200 transition-colors duration-150;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous__chevron {
     /* !important is needed because heroicon class overrides width and height */
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__next {
-    @apply ml-2 inline-flex items-center justify-center leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-white/5 enabled:dark:hover:bg-white/10 dark:border-white/15 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50 transition-colors duration-150;
-    border-radius: var(--pc-radius, 0.625rem);
+    @apply ml-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-white/10 enabled:dark:hover:text-gray-200 transition-colors duration-150;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__next__chevron {
     /* !important is needed because heroicon class overrides width and height */
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__ellipsis {
-    @apply inline-flex items-center justify-center leading-5 px-3.5 py-2 bg-white border dark:bg-white/5 dark:border-white/15 border-gray-200 text-gray-400;
+    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-400 dark:text-gray-500;
   }
 
   /* Pagination - number(s) rounded box corner style */
@@ -2018,10 +2223,10 @@
   /* Tabs */
 
   .pc-tabs {
-    @apply flex gap-x-8 gap-y-2;
+    @apply flex gap-x-2 gap-y-2;
   }
-  .pc-tabs--underlined {
-    @apply border-b border-gray-200 dark:border-white/10;
+  .pc-tabs--underline {
+    @apply gap-x-6 border-b border-gray-200 dark:border-white/10;
   }
 
   /* Tabs - Pill */
@@ -2035,6 +2240,20 @@
   }
   .pc-tab__pill--is-not-active {
     @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-white/10 hover:bg-gray-100;
+  }
+  .pc-tabs--segmented {
+    @apply inline-flex items-center gap-1 bg-gray-100 p-1 dark:bg-white/10;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-tab__segment {
+    @apply flex items-center px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-tab__segment--is-active {
+    @apply bg-white text-gray-900 shadow-xs dark:bg-zinc-900 dark:text-gray-100;
+  }
+  .pc-tab__segment--is-not-active {
+    @apply text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200;
   }
 
   /* Tabs - Individual Tab Underline */
@@ -2063,7 +2282,8 @@
   /* Tabs - Pill with number */
 
   .pc-tab__number__pill--is-active {
-    @apply text-white bg-primary-600;
+    @apply bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
   }
   .pc-tab__number__pill--is-not-active {
     @apply text-white bg-gray-500 dark:bg-gray-600;
@@ -2078,7 +2298,10 @@
     @apply text-gray-500 bg-gray-100;
   }
   .pc-tab__number__underline--with-underline-and-is-active {
-    @apply bg-primary-100 dark:bg-primary-600 text-primary-600 dark:text-white;
+    @apply bg-primary-100 text-primary-600 dark:bg-primary-600;
+  }
+  .dark .pc-tab__number__underline--with-underline-and-is-active {
+    color: var(--pc-button-solid-fg, #fff);
   }
   .pc-tab__number__underline--with-underline-and-is-not-active {
     @apply text-gray-500 bg-gray-100 dark:bg-gray-600 dark:text-white;
@@ -2092,19 +2315,39 @@
   .pc-card__inner {
     @apply flex flex-col w-full max-w-full;
   }
-  .pc-card--basic {
-    @apply border border-gray-200 shadow-lg dark:shadow-2xl dark:border-white/10;
+  .pc-card--muted {
+    @apply border border-transparent bg-gray-50 dark:bg-white/[0.04];
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
+  .pc-card--basic {
+    @apply border border-gray-200 shadow-xs dark:border-white/10;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+  /* legacy alias of basic - visually identical; slated for removal in 5.0 */
   .pc-card--outline {
-    @apply border border-gray-300 dark:border-white/15;
+    @apply border border-gray-200 shadow-xs dark:border-white/10;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
   /* Cards - content */
 
+  .pc-card__header {
+    @apply flex items-start justify-between gap-4 px-6 pt-6;
+  }
+  .pc-card__header-titles {
+    @apply flex min-w-0 flex-col gap-1.5;
+  }
+  .pc-card__title {
+    @apply font-semibold leading-none text-gray-900 dark:text-gray-100;
+  }
+  .pc-card__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-card__header-action {
+    @apply shrink-0;
+  }
   .pc-card__content {
-    @apply flex-1 p-6 text-base font-light text-gray-500 dark:text-gray-400;
+    @apply flex-1 p-6 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
   }
   .pc-card__category {
     @apply mb-3 text-sm font-medium;
@@ -2113,7 +2356,7 @@
     @apply text-primary-600 dark:text-primary-400;
   }
   .pc-card__heading {
-    @apply mb-2 text-xl font-medium text-gray-900 dark:text-gray-300;
+    @apply mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100;
   }
 
   /* Cards - with media */
@@ -2128,7 +2371,7 @@
   /* Cards - footer */
 
   .pc-card__footer {
-    @apply px-6 pb-6;
+    @apply flex items-center gap-2 px-6 pb-6;
   }
 
   /* Table */
@@ -2143,14 +2386,26 @@
   .pc-table__th {
     @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-white/5 dark:text-white;
   }
-  .pc-table thead {
-    @apply border-b dark:border-white/10;
+  .pc-table__tfoot {
+    @apply border-t border-gray-200 bg-gray-50 font-medium text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-100;
+  }
+  /* a totals row under "no data" is nonsense - hide the footer whenever the
+     body is showing only its empty-state row (works for lists AND streams,
+     which only know emptiness client-side) */
+  tbody:has(> .pc-table__tr--empty:only-child) + .pc-table__tfoot {
+    @apply hidden;
+  }
+  .pc-table__tfoot .pc-table__tr {
+    @apply border-0 bg-transparent;
   }
   .pc-table__tr {
     @apply bg-white border-b border-gray-200 dark:border-white/10 dark:bg-transparent last:border-none;
   }
   .pc-table__tr--row-click {
-    @apply hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-150;
+    @apply transition-colors duration-150;
+  }
+  :is(.pc-table--basic, .pc-table--ghost) tbody .pc-table__tr {
+    @apply transition-colors hover:bg-gray-100/60 dark:hover:bg-white/[0.06];
   }
   .pc-table__td {
     @apply px-6 py-4 text-sm text-gray-700 dark:text-gray-100 tabular-nums;
@@ -2160,6 +2415,36 @@
   }
   .pc-table__td--row-click {
     @apply hover:cursor-pointer;
+  }
+  .pc-table--ghost .pc-table__th {
+    @apply bg-transparent px-3 py-2.5 font-medium text-gray-900 dark:bg-transparent dark:text-gray-100;
+  }
+  .pc-table--ghost .pc-table__td {
+    @apply px-3 py-3;
+  }
+  .pc-table--ghost .pc-table__tr {
+    @apply border-gray-100 dark:border-white/5;
+  }
+  .pc-table--compact .pc-table__th {
+    @apply py-2;
+  }
+  .pc-table--compact .pc-table__td {
+    @apply py-2;
+  }
+  .pc-table--striped tbody .pc-table__tr:nth-child(even) {
+    @apply bg-gray-50 dark:bg-white/[0.03];
+  }
+  .pc-table__th--sticky {
+    @apply sticky top-0 z-10;
+  }
+  .pc-table__sort {
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:text-gray-300;
+  }
+  .pc-table__sort-icon {
+    @apply h-3.5 w-3.5 text-gray-400 dark:text-gray-500;
+  }
+  .pc-table__sort-icon--active {
+    @apply text-gray-900 dark:text-white;
   }
   .pc-table__user-inner-td {
     @apply flex items-center gap-3;
@@ -2177,7 +2462,7 @@
   /* Accordion */
 
   .pc-accordion-item {
-    @apply flex items-center justify-between w-full p-5 text-left text-gray-800 bg-white border border-gray-200 dark:bg-zinc-900 dark:border-white/10 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200;
+    @apply flex w-full items-center justify-between border border-gray-200 bg-white p-4 text-left text-gray-900 transition-colors duration-200 hover:bg-gray-50 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-100 dark:hover:bg-white/5;
   }
   .pc-accordion-item--first {
     border-start-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
@@ -2187,23 +2472,59 @@
     @apply border-b-0;
   }
   .pc-accordion-item__heading {
-    @apply text-base font-semibold;
+    @apply text-sm font-medium;
+  }
+  .pc-accordion--rows .pc-accordion-item__chevron {
+    @apply h-4 w-4 translate-y-0.5 text-gray-400 dark:text-gray-500;
   }
   .pc-accordion-item__chevron {
     @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
-    @apply p-5 bg-white border border-gray-200 dark:border-white/10 dark:bg-zinc-900;
+    @apply border border-gray-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-gray-500 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-400;
   }
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
+  }
+  /* default: the shadcn row style - hairline dividers, no boxes */
+  .pc-accordion-row {
+    @apply border-b border-gray-200 last:border-b-0 dark:border-white/10;
+  }
+  .pc-accordion-item--row {
+    @apply flex w-full items-start justify-between gap-4 py-4 text-left text-sm font-medium text-gray-900 transition-all hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-100;
+  }
+  .pc-accordion-item__content--row {
+    @apply pb-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
+  }
+  /* compact scales */
+  .pc-accordion--sm .pc-accordion-item--row {
+    @apply py-3;
+  }
+  .pc-accordion--sm .pc-accordion-item__content--row {
+    @apply pb-3;
+  }
+  .pc-accordion--sm .pc-accordion-item {
+    @apply px-4 py-3;
+  }
+  .pc-accordion--sm .pc-accordion-item__heading {
+    @apply text-sm font-medium;
+  }
+  .pc-accordion--sm .pc-accordion-item__content-container {
+    @apply px-4 py-3 text-sm;
+  }
+  .pc-accordion--sm .pc-accordion-item__button--ghost {
+    @apply py-2.5;
+  }
+  .pc-accordion--sm .pc-accordion-item__content--ghost {
+    @apply pb-3 text-sm;
   }
   .pc-accordion-item__content-container--last {
     @apply border-t-0;
     border-end-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
     border-end-end-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
-  .pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
+  /* only the bordered variant highlights its open header - rows stay clean */
+  .pc-accordion-item.pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
     @apply bg-gray-50 dark:bg-white/5;
   }
 
@@ -2217,7 +2538,7 @@
   }
 
   .pc-accordion-item__button--ghost {
-    @apply flex items-start justify-between w-full text-left text-gray-900 dark:text-gray-100;
+    @apply flex w-full items-start justify-between py-4 text-left text-gray-900 dark:text-gray-100;
   }
 
   .pc-accordion-item__minus {
@@ -2228,7 +2549,7 @@
   }
 
   .pc-accordion-item__heading--ghost {
-    @apply text-base font-semibold leading-7;
+    @apply text-sm font-medium leading-6;
   }
 
   .pc-accordion-item__icon-container--ghost {
@@ -2236,7 +2557,7 @@
   }
 
   .pc-accordion-item__content--ghost {
-    @apply pr-12 my-2;
+    @apply pb-4 pr-12 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
   }
 
   /* Marquee Container */
@@ -2353,21 +2674,16 @@
     }
   }
 
-  .pc-gradient-overlay-left {
-    @apply absolute top-0 bottom-0 left-0 w-1/3 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+  /* edge fade via mask: works on ANY background, no shade to mismatch */
+  .pc-marquee--fade {
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+  .pc-marquee--fade.pc-vertical {
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
   }
 
-  .pc-gradient-overlay-right {
-    @apply absolute top-0 bottom-0 right-0 w-1/3 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-900/0 dark:to-gray-900;
-  }
 
-  .pc-gradient-overlay-top {
-    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
-  }
 
-  .pc-gradient-overlay-bottom {
-    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
-  }
 
   /* Modal */
   .pc-modal {
@@ -2422,8 +2738,78 @@
 
   /* Skeleton */
 
+  /* v2 primitives: one brick, three shapes, three animations. Explicit
+     per-brick animation classes beat the group cascade, which beats the
+     pulse default (the :where() keeps base/cascade at zero specificity). */
   .pc-skeleton {
+    @apply bg-gray-200 dark:bg-white/10;
+  }
+  .pc-skeleton--block {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+  }
+  .pc-skeleton--text {
+    @apply h-4 w-full rounded-full;
+  }
+  .pc-skeleton--circle {
+    @apply rounded-full;
+  }
+  :where(.pc-skeleton) {
     @apply animate-pulse;
+  }
+  :where(.pc-skeleton-group--anim-shimmer .pc-skeleton) {
+    animation: none;
+  }
+  :where(.pc-skeleton-group--anim-none .pc-skeleton) {
+    animation: none;
+  }
+  .pc-skeleton--anim-pulse {
+    @apply animate-pulse;
+  }
+  .pc-skeleton--anim-none {
+    animation: none;
+  }
+  .pc-skeleton--anim-shimmer,
+  .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none) {
+    @apply relative overflow-hidden;
+    animation: none;
+  }
+  .pc-skeleton--anim-shimmer::after,
+  .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+    content: "";
+    @apply absolute inset-0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, white 60%, transparent),
+      transparent
+    );
+  }
+  .dark .pc-skeleton--anim-shimmer::after,
+  .dark .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, white 9%, transparent),
+      transparent
+    );
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-skeleton--anim-shimmer::after,
+    .pc-skeleton-group--anim-shimmer .pc-skeleton:not(.pc-skeleton--anim-pulse):not(.pc-skeleton--anim-none)::after {
+      animation: pc-skeleton-shimmer 1.8s ease-in-out infinite;
+    }
+  }
+  @keyframes pc-skeleton-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  .pc-skeleton-text {
+    @apply flex w-full flex-col gap-2.5;
+  }
+  .pc-skeleton-group--anim-none .pc-skeleton {
+    animation: none;
   }
 
   /* Default Skeleton */
@@ -2782,7 +3168,7 @@
     @apply fixed inset-0 z-50 flex overflow-hidden;
   }
   .pc-slideover__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-zinc-900;
+    @apply flex w-full max-h-full flex-col bg-white shadow-lg dark:bg-zinc-900;
   }
   .pc-slideover__box--sm {
     @apply max-w-sm;
@@ -2803,22 +3189,32 @@
     @apply max-w-full;
   }
   .pc-slideover__header {
-    @apply px-5 py-3 border-b border-gray-100 dark:border-white/10;
+    @apply flex-none px-5 py-4 border-b border-gray-100 dark:border-white/10;
+  }
+  .pc-slideover__header__titles {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .pc-slideover__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
   }
   .pc-slideover__header__container {
     @apply flex items-center justify-between;
   }
   .pc-slideover__header__text {
-    @apply font-semibold text-gray-800 dark:text-gray-200;
+    @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply text-gray-400 hover:text-gray-500;
+    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-white/10 dark:hover:text-gray-300;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-slideover__header__close-svg {
-    @apply w-4 h-4 fill-current;
+    @apply h-4 w-4 fill-current;
+  }
+  .pc-slideover__footer {
+    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/10;
   }
   .pc-slideover__content {
-    @apply p-5;
+    @apply p-5 flex-1 overflow-y-auto;
   }
 
   /* Stepper */
@@ -2827,7 +3223,7 @@
   }
 
   .pc-stepper__container {
-    @apply flex md:gap-4;
+    @apply flex w-full md:gap-4;
   }
 
   .pc-stepper--horizontal .pc-stepper__container {
@@ -2844,64 +3240,65 @@
   }
 
   .pc-stepper__item-content {
-    @apply flex items-center gap-4 focus:outline-hidden ring-0;
+    @apply flex items-center gap-3 ring-0 focus:outline-hidden;
   }
 
   /* Node */
   .pc-stepper__node {
-    @apply flex items-center gap-4 transition-all duration-200 ease-out cursor-pointer hover:opacity-90;
+    @apply flex cursor-pointer items-center gap-3 transition-all duration-200 ease-out hover:opacity-90;
   }
 
   /* Indicator */
   .pc-stepper__indicator {
-    @apply grid shrink-0 text-white transition-all duration-200 bg-gray-500 rounded-full place-items-center;
+    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-white/15 dark:text-gray-400;
   }
 
   .pc-stepper__node--complete .pc-stepper__indicator {
-    @apply bg-success-500;
+    @apply border-transparent bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
   }
 
   .pc-stepper__node--active .pc-stepper__indicator {
-    @apply border-2 border-success-800 dark:border-success-100;
+    @apply border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
   }
 
   /* Size variants for indicator */
   .pc-stepper--sm .pc-stepper__indicator {
-    @apply w-8 h-8;
+    @apply h-7 w-7;
   }
 
   .pc-stepper--md .pc-stepper__indicator {
-    @apply w-10 h-10;
+    @apply h-8 w-8;
   }
 
   .pc-stepper--lg .pc-stepper__indicator {
-    @apply w-12 h-12;
+    @apply h-10 w-10;
   }
 
   /* Check icon */
   .pc-stepper__check {
-    @apply text-white;
+    color: inherit;
   }
 
   .pc-stepper--sm .pc-stepper__check {
-    @apply w-4 h-4;
+    @apply h-3.5 w-3.5;
   }
 
   .pc-stepper--md .pc-stepper__check {
-    @apply w-5 h-5;
+    @apply h-4 w-4;
   }
 
   .pc-stepper--lg .pc-stepper__check {
-    @apply w-6 h-6;
+    @apply h-5 w-5;
   }
 
   /* Number */
   .pc-stepper__number {
-    @apply font-semibold;
+    @apply font-medium;
   }
 
   .pc-stepper--sm .pc-stepper__number {
-    @apply text-sm;
+    @apply text-xs;
   }
 
   .pc-stepper--md .pc-stepper__number {
@@ -2924,61 +3321,52 @@
 
   /* Description */
   .pc-stepper__description {
-    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply mt-0.5 text-xs text-gray-500 dark:text-gray-400;
   }
 
   /* Connector Wrapper */
   .pc-stepper__connector-wrapper {
-    @apply flex self-start shrink md:self-center;
+    @apply flex shrink justify-center self-start md:self-center;
   }
-
-  /* Size Variants */
-  .pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply pl-4 md:pl-0;
-  }
-
-  .pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply pl-5 md:pl-0;
-  }
-
-  .pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply pl-6 md:pl-0;
-  }
-
   .pc-stepper--horizontal .pc-stepper__connector-wrapper {
-    @apply flex h-full md:w-full md:h-auto;
+    @apply md:min-w-8 md:flex-1;
   }
-
-  /* Vertical Orientation Connector Wrapper Adjustments */
-
-  /* Small Size */
+  .pc-stepper--sm .pc-stepper__connector-wrapper {
+    @apply w-7 md:w-auto;
+  }
+  .pc-stepper--md .pc-stepper__connector-wrapper {
+    @apply w-8 md:w-auto;
+  }
+  .pc-stepper--lg .pc-stepper__connector-wrapper {
+    @apply w-10 md:w-auto;
+  }
+  .pc-stepper--vertical .pc-stepper__connector-wrapper {
+    @apply md:self-start;
+  }
   .pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-4;
+    @apply md:w-7;
   }
-
-  /* Medium Size */
   .pc-stepper--vertical.pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-5;
+    @apply md:w-8;
+  }
+  .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
+    @apply md:w-10;
+  }
+  .pc-stepper__title {
+    @apply text-sm font-medium leading-tight text-gray-900 dark:text-gray-100;
   }
 
-  /* Large Size */
-  .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply self-start;
-    @apply md:pl-6;
-  }
   .pc-stepper--vertical .pc-stepper__container {
     @apply md:gap-1;
   }
 
   /* Connector */
   .pc-stepper__connector {
-    @apply bg-gray-200 shrink dark:bg-gray-600;
+    @apply shrink bg-gray-200 transition-colors dark:bg-white/10;
   }
 
   .pc-stepper__connector--complete {
-    @apply bg-success-500 dark:bg-success-500;
+    @apply bg-primary-600;
   }
 
   .pc-stepper--horizontal .pc-stepper__connector {
@@ -2991,11 +3379,22 @@
 
   /* Rating */
 
-  .pc-rating__wrapper {
+  .pc-rating__wrapper,
+  .pc-rating__group {
+    @apply inline-flex items-center gap-2;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .pc-rating--label-bottom.pc-rating__wrapper,
+  .pc-rating--label-bottom.pc-rating__group {
+    @apply flex-col items-center gap-1.5;
+  }
+  .pc-rating__icons {
     @apply flex items-center gap-1;
   }
   .pc-rating__label {
-    @apply ml-1 text-base font-bold text-gray-700 dark:text-gray-300;
+    @apply text-sm tabular-nums text-gray-500 select-none dark:text-gray-400;
   }
   .pc-rating__star--filled {
     @apply w-5 h-5 fill-warning-500;
@@ -3005,6 +3404,161 @@
   }
   .pc-rating__star--empty {
     @apply w-5 h-5 fill-gray-400 dark:fill-gray-500;
+  }
+
+  /* v2: interactive + icon sets. The radio is visually hidden; the label is
+     the hit target. All fill/preview logic is pure CSS via :has(). */
+  .pc-rating__item {
+    @apply relative inline-flex rounded;
+  }
+  .pc-rating__fill {
+    @apply absolute inset-0 overflow-hidden;
+    width: var(--pc-rating-fill, 0%);
+  }
+  .pc-rating__fill > * {
+    @apply flex-none;
+  }
+  .pc-rating__group .pc-rating__item {
+    @apply cursor-pointer;
+  }
+  .pc-rating__input {
+    @apply absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0;
+    clip-path: inset(50%);
+  }
+  .pc-rating__item:has(.pc-rating__input:focus-visible) {
+    @apply ring-2 ring-primary-500/50 ring-offset-1 ring-offset-white dark:ring-offset-zinc-950;
+  }
+  .pc-rating--disabled {
+    @apply pointer-events-none opacity-50;
+  }
+
+  /* sizes */
+  .pc-rating--sm .pc-rating__item :is(svg, span:not(.pc-rating__fill)) {
+    @apply h-4 w-4;
+  }
+  .pc-rating--md .pc-rating__item :is(svg, span:not(.pc-rating__fill)) {
+    @apply h-5 w-5;
+  }
+  .pc-rating--lg .pc-rating__item :is(svg, span:not(.pc-rating__fill)) {
+    @apply h-7 w-7;
+  }
+  .pc-rating--sm :is(.pc-rating__star--filled, .pc-rating__star--half, .pc-rating__star--empty) {
+    @apply h-4 w-4;
+  }
+  .pc-rating--lg :is(.pc-rating__star--filled, .pc-rating__star--half, .pc-rating__star--empty) {
+    @apply h-7 w-7;
+  }
+
+  /* cumulative sets (star, heart, custom): rest state = empty. The active
+     colour is a token - override per instance with --pc-rating-active-color. */
+  .pc-rating--star {
+    --pc-rating-active-color: var(--color-warning-500);
+  }
+  .pc-rating--heart {
+    --pc-rating-active-color: var(--color-danger-500);
+  }
+  .pc-rating--custom {
+    --pc-rating-active-color: var(--color-warning-500);
+  }
+  .pc-rating--star .pc-rating__icon,
+  .pc-rating--heart .pc-rating__icon {
+    @apply fill-gray-300 transition-colors dark:fill-gray-600;
+  }
+  .pc-rating--custom .pc-rating__item {
+    @apply text-gray-300 transition-colors dark:text-gray-600;
+  }
+  .pc-rating--custom .pc-rating__item svg {
+    fill: currentColor;
+  }
+  /* the fractional overlay copy always renders in the active colour */
+  .pc-rating--heart .pc-rating__fill .pc-rating__icon {
+    fill: var(--pc-rating-active-color);
+  }
+  .pc-rating--custom .pc-rating__fill {
+    color: var(--pc-rating-active-color);
+  }
+
+  /* checked fill: the item holding the checked radio and every item before it
+     (= items with a LATER checked sibling). Suspended while the group is
+     hovered so the preview owns the row. */
+  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:not(.pc-rating--half):not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) .pc-rating__icon {
+    fill: var(--pc-rating-active-color);
+  }
+  .pc-rating--custom.pc-rating__group:not(.pc-rating--half):not(:hover) :is(.pc-rating__item:has(.pc-rating__input:checked), .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked)) {
+    color: var(--pc-rating-active-color);
+  }
+
+  /* hover preview: the hovered item and every item before it */
+  :is(.pc-rating--star, .pc-rating--heart).pc-rating__group:not(.pc-rating--half):hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) .pc-rating__icon {
+    fill: var(--pc-rating-active-color);
+  }
+  .pc-rating--custom.pc-rating__group:not(.pc-rating--half):hover :is(.pc-rating__item:hover, .pc-rating__item:has(~ .pc-rating__item:hover)) {
+    color: var(--pc-rating-active-color);
+  }
+
+  /* half precision: two hit areas per icon; the fill overlay carries the
+     state. 50%% when a start-half radio is checked/hovered, 100%% when the
+     end half is, or when any later item holds the state. */
+  .pc-rating__half {
+    @apply absolute inset-y-0 z-10 w-1/2 cursor-pointer;
+  }
+  .pc-rating__half--start {
+    left: 0;
+  }
+  .pc-rating__half--end {
+    right: 0;
+  }
+  .pc-rating--star .pc-rating__fill .pc-rating__icon {
+    fill: var(--pc-rating-active-color);
+  }
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(~ .pc-rating__item .pc-rating__input:checked) .pc-rating__fill,
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(.pc-rating__half--end .pc-rating__input:checked) .pc-rating__fill {
+    width: 100%;
+  }
+  .pc-rating--half.pc-rating__group:not(:hover) .pc-rating__item:has(.pc-rating__half--start .pc-rating__input:checked) .pc-rating__fill {
+    width: 50%;
+  }
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(~ .pc-rating__item .pc-rating__half:hover) .pc-rating__fill,
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(.pc-rating__half--end:hover) .pc-rating__fill {
+    width: 100%;
+  }
+  .pc-rating--half.pc-rating__group:hover .pc-rating__item:has(.pc-rating__half--start:hover) .pc-rating__fill {
+    width: 50%;
+  }
+
+  /* faces: a sentiment scale - single-select, one colour per expression */
+  .pc-rating--face .pc-rating__icon {
+    @apply text-gray-300 transition-all dark:text-gray-600;
+  }
+  .pc-rating--face .pc-rating__item:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon {
+    @apply scale-110;
+  }
+  .pc-rating--face.pc-rating__group:hover .pc-rating__item:hover .pc-rating__icon {
+    @apply scale-110;
+  }
+  /* while hovering, the preview owns the colour */
+  .pc-rating--face.pc-rating__group:hover .pc-rating__item:not(:hover):has(.pc-rating__input:checked) .pc-rating__icon {
+    @apply scale-100 text-gray-300 dark:text-gray-600;
+  }
+  .pc-rating--face .pc-rating__item[data-index="1"]:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--face.pc-rating__group .pc-rating__item[data-index="1"]:hover .pc-rating__icon {
+    @apply text-danger-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="2"]:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--face.pc-rating__group .pc-rating__item[data-index="2"]:hover .pc-rating__icon {
+    @apply text-orange-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="3"]:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--face.pc-rating__group .pc-rating__item[data-index="3"]:hover .pc-rating__icon {
+    @apply text-warning-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="4"]:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--face.pc-rating__group .pc-rating__item[data-index="4"]:hover .pc-rating__icon {
+    @apply text-lime-500;
+  }
+  .pc-rating--face .pc-rating__item[data-index="5"]:is([data-selected], :has(.pc-rating__input:checked)) .pc-rating__icon,
+  .pc-rating--face.pc-rating__group .pc-rating__item[data-index="5"]:hover .pc-rating__icon {
+    @apply text-success-500;
   }
 
   /* Menu */
@@ -3023,7 +3577,7 @@
   }
 
   .pc-vertical-menu-item--active {
-    @apply text-primary-700 dark:text-primary-400 bg-gray-50 dark:bg-white/10;
+    @apply text-primary-700 dark:text-primary-300 bg-gray-50 dark:bg-white/10;
   }
 
   .pc-vertical-menu-item--inactive {
@@ -3116,10 +3670,13 @@
     /* Theme tokens — override these to reskin without touching markup. */
     --pc-chat-radius: 1rem;
     --pc-chat-user-bg: var(--color-primary-600, #2563eb);
-    --pc-chat-user-fg: #ffffff;
+    /* label colour ON the user bubble - rides the same token as labels on
+       primary solids, so it flips with the monochrome ramp in dark mode */
+    --pc-chat-user-fg: var(--pc-button-solid-fg, #ffffff);
     --pc-chat-assistant-bg: var(--color-gray-100, #f3f4f6);
     --pc-chat-assistant-fg: var(--color-gray-900, #111827);
     @apply flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
+    @apply dark:[--pc-chat-assistant-bg:#ffffff0f] dark:[--pc-chat-assistant-fg:#f4f4f5];
   }
   .pc-chat__thread {
     @apply flex flex-1 flex-col gap-3 overflow-y-auto p-4;
@@ -3136,11 +3693,22 @@
   .pc-chat__row--user {
     @apply justify-end;
   }
+  /* bubble + action bar stack; carries the width cap so actions align under
+     the bubble edge */
+  .pc-chat__body {
+    @apply flex min-w-0 max-w-[80%] flex-col;
+  }
+  .pc-chat__row--user .pc-chat__body {
+    @apply items-end;
+  }
+  .pc-chat__row-actions {
+    @apply mt-1;
+  }
   .pc-chat__avatar {
     @apply flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm;
   }
   .pc-chat__bubble {
-    @apply min-w-min max-w-[80%] px-4 py-2 text-sm leading-relaxed;
+    @apply min-w-min max-w-full px-4 py-2 text-sm leading-relaxed;
     border-radius: var(--pc-chat-radius);
     /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
     overflow-wrap: anywhere;
@@ -3159,6 +3727,18 @@
   .pc-chat__bubble--system {
     background-color: var(--pc-chat-assistant-bg);
     color: var(--pc-chat-assistant-fg);
+  }
+  /* plain (default): the AI convention - assistant text on the surface, no
+     bubble; only the user side keeps one. Colour still rides the token. */
+  .pc-chat--plain .pc-chat__bubble--assistant,
+  .pc-chat--plain .pc-chat__bubble--system {
+    @apply p-0;
+    background-color: transparent;
+    border-radius: 0;
+  }
+  .pc-chat--plain .pc-chat__row--assistant .pc-chat__body,
+  .pc-chat--plain .pc-chat__row--system .pc-chat__body {
+    @apply max-w-full flex-1;
   }
   .pc-chat__stream {
     @apply block text-left;
@@ -3293,10 +3873,50 @@
     @apply my-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs dark:border-gray-700;
   }
   .pc-chat__reasoning-summary {
-    @apply cursor-pointer list-none font-medium text-gray-500 select-none dark:text-gray-400;
+    @apply flex cursor-pointer list-none items-center gap-1 font-medium text-gray-500 select-none dark:text-gray-400;
   }
+  .pc-chat__reasoning-summary::-webkit-details-marker {
+    display: none;
+  }
+  .pc-chat__reasoning-chevron {
+    @apply h-3.5 w-3.5 shrink-0 transition-transform duration-150;
+  }
+  .pc-chat__reasoning[open] .pc-chat__reasoning-chevron {
+    @apply rotate-90;
+  }
+  /* normal text flow - pre-wrap faithfully rendered template indentation,
+     which mangled any multi-line HEEx content */
   .pc-chat__reasoning-body {
-    @apply mt-1.5 border-s-2 border-gray-200 ps-2 whitespace-pre-wrap text-gray-600 dark:border-gray-700 dark:text-gray-400;
+    @apply mt-1.5 border-s-2 border-gray-200 ps-2 text-gray-600 dark:border-gray-700 dark:text-gray-400;
+  }
+
+  /* Conversation markers - system notes, status rows, separators */
+  .pc-chat__marker {
+    @apply my-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400;
+  }
+  .pc-chat__marker--separator {
+    /* line colour lives on the parent - dark: variants don't compile inside
+       pseudo-element selectors, they'd silently drop */
+    --pc-chat-marker-line: var(--color-gray-200, #e4e4e7);
+    @apply gap-3 dark:[--pc-chat-marker-line:#ffffff1a];
+  }
+  .pc-chat__marker--separator::before,
+  .pc-chat__marker--separator::after {
+    content: "";
+    @apply h-px flex-1;
+    background-color: var(--pc-chat-marker-line);
+  }
+  .pc-chat__marker--border {
+    @apply border-b border-gray-200 pb-2.5 dark:border-white/10;
+  }
+  .pc-chat__marker-icon {
+    @apply h-3.5 w-3.5 shrink-0;
+  }
+  .pc-chat__marker-spinner {
+    @apply h-3 w-3 shrink-0 animate-spin rounded-full border border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
+  }
+  .pc-chat__marker-text {
+    @apply flex items-center gap-1.5;
   }
 
   /* Message actions (copy / regenerate / feedback) */
@@ -3305,6 +3925,31 @@
   }
   .pc-chat__action {
     @apply rounded px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200;
+  }
+  .pc-chat__action--icon {
+    @apply p-1.5;
+  }
+  .pc-chat__action-icon {
+    @apply h-4 w-4;
+  }
+  /* hover-revealed bar: fades in on message-row hover/focus; touch devices
+     have no hover, so there it always shows */
+  .pc-chat__actions--hover {
+    @apply opacity-0 transition-opacity duration-150;
+  }
+  .pc-chat__row:hover .pc-chat__actions--hover,
+  .pc-chat__row:focus-within .pc-chat__actions--hover {
+    @apply opacity-100;
+  }
+  /* the newest message keeps its bar visible even in hover mode - matches
+     ChatGPT, and the reserved space reads as intentional rather than a gap */
+  .pc-chat__thread > .pc-chat__row:last-child .pc-chat__actions--hover {
+    @apply opacity-100;
+  }
+  @media (hover: none) {
+    .pc-chat__actions--hover {
+      @apply opacity-100;
+    }
   }
 
   /* Prompt suggestion chips */
@@ -3327,22 +3972,57 @@
   }
 
   .pc-chat__composer {
+    @apply flex flex-col gap-2;
+  }
+  .pc-chat__composer-row {
     @apply flex items-end gap-2;
   }
+  /* edit-mode banner - ChatGPT-style header telling you a past message is
+     being edited, with a cancel control */
+  /* the message currently being edited (demo highlight) */
+  .pc-chat__row--editing .pc-chat__bubble {
+    @apply ring-2 ring-primary-500/40;
+  }
+
+  .pc-chat__composer-banner {
+    @apply flex items-center justify-between rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:bg-white/5 dark:text-gray-300;
+  }
+  .pc-chat__composer-banner-label {
+    @apply flex items-center gap-1.5;
+  }
+  .pc-chat__composer-banner-icon {
+    @apply h-3.5 w-3.5 shrink-0;
+  }
+  .pc-chat__composer-banner-cancel {
+    @apply rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-100;
+  }
   .pc-chat__composer-input {
-    @apply flex-1 resize-none overflow-y-hidden rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none disabled:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
+    @apply flex-1 resize-none overflow-y-hidden border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none disabled:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
+    border-radius: var(--pc-radius, 0.625rem);
     field-sizing: content;
   }
   .pc-chat__composer-send {
-    @apply rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40;
+    @apply px-4 py-2 text-sm font-medium disabled:opacity-40;
+    border-radius: var(--pc-radius, 0.625rem);
     background-color: var(--pc-chat-user-bg);
+    color: var(--pc-chat-user-fg);
+  }
+  /* default icon send - the arrow-up convention */
+  .pc-chat__composer-send--icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center p-0;
+  }
+  .pc-chat__composer-send-icon {
+    @apply h-4 w-4;
   }
   .pc-chat__composer-stop {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white;
+    @apply flex h-9 w-9 shrink-0 items-center justify-center;
+    border-radius: var(--pc-radius, 0.625rem);
     background-color: var(--pc-chat-user-bg);
+    color: var(--pc-chat-user-fg);
   }
   .pc-chat__stop-icon {
-    @apply h-3 w-3 rounded-[2px] bg-white;
+    @apply h-3 w-3 rounded-[2px];
+    background-color: currentColor;
   }
 }
 
@@ -3410,15 +4090,16 @@
 
   .pc-nav-menu__link-item,
   .pc-nav-menu__trigger {
-    @apply inline-flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white;
+    @apply inline-flex items-center gap-x-1 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-item[aria-current="page"] {
-    @apply text-primary-600 dark:text-primary-400;
+    @apply text-primary-600 dark:text-primary-300;
   }
 
   .pc-nav-menu__trigger[aria-expanded="true"] {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white;
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
   }
 
   .pc-nav-menu__chevron {
@@ -3435,7 +4116,8 @@
      width is clamped to the viewport and the panel scrolls if it is taller than
      the screen, so it is never clipped off the bottom on a phone. */
   .pc-nav-menu__panel {
-    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10 sm:max-h-none sm:overflow-hidden;
+    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto border border-gray-200 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-zinc-900 sm:max-h-none sm:overflow-hidden;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
 
   /* Each width is clamped to the viewport so a wide panel shrinks to fit instead
@@ -3464,19 +4146,21 @@
 
   /* Mega menu: spans the nearest positioned ancestor (give your header `relative`). */
   .pc-nav-menu__panel--full {
-    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-t border-gray-100 p-6 dark:border-gray-700;
+    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-x-0 border-t border-gray-200 p-6 dark:border-white/10;
   }
 
   .pc-nav-menu__link {
-    @apply flex gap-x-4 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50;
+    @apply flex gap-x-4 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-white/5;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-icon {
-    @apply flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 transition-colors group-hover:bg-white dark:bg-gray-700 dark:group-hover:bg-gray-600;
+    @apply flex h-11 w-11 flex-none items-center justify-center bg-gray-100 transition-colors group-hover:bg-white dark:bg-white/5 dark:group-hover:bg-white/10;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-icon-svg {
-    @apply h-6 w-6 text-gray-600 group-hover:text-primary-600 dark:text-gray-300 dark:group-hover:text-primary-400;
+    @apply h-6 w-6 text-gray-600 group-hover:text-primary-600 dark:text-gray-300 dark:group-hover:text-primary-300;
   }
 
   .pc-nav-menu__link-body {
@@ -3493,7 +4177,7 @@
 
   /* Footer: negative margins escape the panel's p-4 (p-6 when full) for a full-bleed strip */
   .pc-nav-menu__footer {
-    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-900/5 bg-gray-50 dark:divide-white/10 dark:bg-gray-900/40;
+    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-200 bg-gray-50 dark:divide-white/10 dark:bg-white/[0.03];
   }
 
   .pc-nav-menu__panel--full .pc-nav-menu__footer {
@@ -3501,11 +4185,32 @@
   }
 
   .pc-nav-menu__footer-link {
-    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700/60;
+    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10;
   }
 
   .pc-nav-menu__footer-link-icon {
     @apply h-5 w-5 flex-none text-gray-400;
+  }
+
+  /* Hover mode (default): the PetalNavMenu hook opens panels on hover with a
+     close grace period (so the trigger-to-panel gap doesn't drop them) and
+     nudges them to stay in the viewport. Visibility is driven entirely by the
+     --open class it toggles - never :focus-within, so a click that focuses the
+     trigger can still close the panel. */
+  .pc-nav-menu--hover .pc-nav-menu__panel {
+    display: none;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__panel {
+    display: block;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__trigger {
+    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+  }
+
+  .pc-nav-menu--hover .pc-nav-menu__item--open .pc-nav-menu__chevron {
+    @apply rotate-180;
   }
 
 
@@ -3560,6 +4265,110 @@
   .pc-shine-border :is(input, select, textarea):focus-visible {
     outline: 2px solid var(--color-primary-500);
     outline-offset: -2px;
+  }
+
+  /* Aurora */
+
+  .pc-aurora {
+    @apply relative overflow-hidden;
+    /* the stripe texture and the invert filter flip TOGETHER per mode: white
+       stripes + invert on light, black stripes + no invert on dark. The
+       difference blend against matching stripes is what restores the palette's
+       true hues - mismatched pairs shift every colour (blue turns gold). */
+    --pc-aurora-stripes-light: repeating-linear-gradient(
+      100deg,
+      #fff 0%,
+      #fff 7%,
+      transparent 10%,
+      transparent 12%,
+      #fff 16%
+    );
+    --pc-aurora-stripes-dark: repeating-linear-gradient(
+      100deg,
+      #000 0%,
+      #000 7%,
+      transparent 10%,
+      transparent 12%,
+      #000 16%
+    );
+    --pc-aurora-stripes: var(--pc-aurora-stripes-light);
+    --pc-aurora-invert: invert(1);
+    @apply dark:[--pc-aurora-stripes:var(--pc-aurora-stripes-dark)] dark:[--pc-aurora-invert:invert(0)];
+  }
+
+  /* force the light-style rendering in both modes */
+  .pc-aurora.pc-aurora--invert {
+    --pc-aurora-stripes: var(--pc-aurora-stripes-light);
+    --pc-aurora-invert: invert(1);
+  }
+
+  /* force the dark-style rendering in both modes */
+  .pc-aurora.pc-aurora--no-invert {
+    --pc-aurora-stripes: var(--pc-aurora-stripes-dark);
+    --pc-aurora-invert: invert(0);
+  }
+
+  .pc-aurora__backdrop {
+    @apply pointer-events-none absolute inset-0 overflow-hidden;
+  }
+
+  .pc-aurora__lights {
+    @apply pointer-events-none absolute will-change-transform;
+    inset: -10px;
+    background-image: var(--pc-aurora-stripes), var(--pc-aurora-gradient);
+    background-size: 300%, 200%;
+    background-position:
+      50% 50%,
+      50% 50%;
+    opacity: var(--pc-aurora-opacity, 0.5);
+    filter: blur(var(--pc-aurora-blur, 10px)) var(--pc-aurora-invert);
+    -webkit-mask-image: radial-gradient(
+      ellipse at var(--pc-aurora-mask-position, 100% 0),
+      #000 var(--pc-aurora-mask-coverage, 10%, 70%)
+    );
+    mask-image: radial-gradient(
+      ellipse at var(--pc-aurora-mask-position, 100% 0),
+      #000 var(--pc-aurora-mask-coverage, 10%, 70%)
+    );
+  }
+
+  .pc-aurora__lights::after {
+    content: "";
+    @apply absolute inset-0;
+    background-image: var(--pc-aurora-stripes), var(--pc-aurora-gradient);
+    background-size: 200%, 100%;
+    background-attachment: fixed;
+    mix-blend-mode: difference;
+    animation: pc-aurora var(--pc-aurora-speed, 60s) linear infinite;
+  }
+
+  /* the PetalAurora hook pauses the drift while off-screen */
+  .pc-aurora__lights.pc-aurora--paused::after {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-aurora__lights::after {
+      animation: none;
+    }
+  }
+
+  /* content paints above the glow, so text stays crisp */
+  .pc-aurora__content {
+    @apply relative;
+  }
+
+  @keyframes pc-aurora {
+    0% {
+      background-position:
+        50% 50%,
+        50% 50%;
+    }
+    100% {
+      background-position:
+        350% 50%,
+        350% 50%;
+    }
   }
 
   /* Border Beam */

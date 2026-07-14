@@ -21,7 +21,8 @@ defmodule PetalComponents.AccordionTest do
     refute html =~ "<script"
     assert html =~ "phx-click"
     assert has_icon?(html)
-    assert html =~ "pc-accordion-item"
+    assert html =~ "pc-accordion-item--row"
+    assert html =~ "pc-accordion-row"
 
     html =
       rendered_to_string(~H"""
@@ -32,29 +33,10 @@ defmodule PetalComponents.AccordionTest do
       </.accordion>
       """)
 
-    assert html =~ "pc-accordion--ghost"
+    # ghost is a legacy alias of the row default now
+    assert html =~ "pc-accordion--rows"
+    refute html =~ "pc-accordion--ghost"
     refute html =~ "x-data"
-  end
-
-  test "ghost variant renders exactly one visible icon per item (server-side, no hide-until-JS)" do
-    assigns = %{}
-
-    html =
-      rendered_to_string(~H"""
-      <.accordion variant="ghost" open_index={0}>
-        <:item heading="Open">a</:item>
-        <:item heading="Closed">b</:item>
-      </.accordion>
-      """)
-
-    # The server must hide the wrong icon directly via the `hidden` class, not
-    # via a data-js-loading attribute that only JS clears (regression: that hid
-    # both icons on LiveView pages, or showed both when the class was dropped).
-    refute html =~ "data-js-loading"
-    # open item -> plus hidden, minus shown
-    assert html =~ "pc-accordion-item__plus hidden"
-    # closed item -> minus hidden, plus shown
-    assert html =~ "pc-accordion-item__minus hidden"
   end
 
   test "rest works" do
@@ -238,5 +220,21 @@ defmodule PetalComponents.AccordionTest do
       """)
 
     assert html =~ ~s|phx-update="ignore"|
+  end
+
+  test "bordered variant renders the boxed card-accordion" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.accordion variant="bordered">
+        <:item heading="One">1</:item>
+        <:item heading="Two">2</:item>
+      </.accordion>
+      """)
+
+    assert html =~ "pc-accordion-item accordion-button"
+    assert html =~ "pc-accordion-item--first"
+    assert html =~ "pc-accordion-item__content-container"
   end
 end

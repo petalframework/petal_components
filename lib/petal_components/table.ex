@@ -25,16 +25,46 @@ defmodule PetalComponents.Table do
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col slot"
 
+  attr :density, :string,
+    default: "comfortable",
+    values: ["comfortable", "compact"],
+    doc: "row height. compact halves the vertical padding for data-heavy screens"
+
+  attr :sticky_header, :boolean,
+    default: false,
+    doc:
+      "keep the header row pinned while the table scrolls (the table needs a scrollable ancestor)"
+
+  attr :striped, :boolean, default: false, doc: "wash alternate rows for easier scanning"
+
+  attr :sort_by, :any, default: nil, doc: "the currently sorted column's sort_key"
+
+  attr :sort_dir, :string,
+    default: "asc",
+    values: ["asc", "desc"],
+    doc: "the current sort direction"
+
+  attr :on_sort, :any,
+    default: "sort",
+    doc:
+      "event name (or JS command) fired when a sortable header is clicked; receives phx-value-sort of the column's sort_key"
+
   slot :col do
     attr :label, :string
     attr :class, :any
     attr :row_class, :any
+    attr :sortable, :boolean, doc: "render the header as a sort button"
+    attr :sort_key, :string, doc: "the key sent with on_sort (defaults to the downcased label)"
   end
 
   slot :empty_state,
     doc: "A message to show when the table is empty, to be used together with :col" do
     attr :row_class, :any
   end
+
+  slot :footer,
+    doc:
+      "a totals/summary row pinned under the body - supply <.td> cells (colspan works), e.g. <.td colspan={3}>Total</.td><.td>$2,500</.td>"
 
   attr :rest, :global, include: ~w(colspan rowspan)
 
@@ -47,15 +77,45 @@ defmodule PetalComponents.Table do
     assigns = assign_new(assigns, :id, fn -> "table_#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <table class={["pc-table--#{@variant}", @class]} {@rest}>
+    <table
+      class={[
+        "pc-table--#{@variant}",
+        @density == "compact" && "pc-table--compact",
+        @striped && "pc-table--striped",
+        @class
+      ]}
+      {@rest}
+    >
       <%= if @col != [] do %>
         <thead>
           <.tr>
-            <.th :for={col <- @col} class={col[:class]}>{col[:label]}</.th>
+            <.th
+              :for={col <- @col}
+              class={[col[:class], @sticky_header && "pc-table__th--sticky"]}
+              aria-sort={col[:sortable] && aria_sort(sort_state(col, @sort_by, @sort_dir))}
+            >
+              <%= if col[:sortable] do %>
+                <button
+                  type="button"
+                  class="pc-table__sort"
+                  phx-click={@on_sort}
+                  phx-value-sort={sort_key(col)}
+                >
+                  {col[:label]}
+                  <.sort_icon state={sort_state(col, @sort_by, @sort_dir)} />
+                </button>
+              <% else %>
+                {col[:label]}
+              <% end %>
+            </.th>
           </.tr>
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
-          <.tr :if={@empty_state != []} id={@id <> "-empty"} class="hidden only:table-row">
+          <.tr
+            :if={@empty_state != []}
+            id={@id <> "-empty"}
+            class="pc-table__tr--empty hidden only:table-row"
+          >
             <.td
               :for={empty_state <- @empty_state}
               colspan={length(@col)}
@@ -82,10 +142,46 @@ defmodule PetalComponents.Table do
             </.td>
           </.tr>
         </tbody>
+        <tfoot :if={@footer != []} class="pc-table__tfoot">
+          <.tr>
+            {render_slot(@footer)}
+          </.tr>
+        </tfoot>
       <% else %>
         {render_slot(@inner_block)}
       <% end %>
     </table>
+    """
+  end
+
+  defp sort_key(col), do: col[:sort_key] || String.downcase(col[:label] || "")
+
+  defp sort_state(col, sort_by, sort_dir) do
+    if sort_by && to_string(sort_by) == sort_key(col), do: sort_dir, else: "none"
+  end
+
+  defp aria_sort("asc"), do: "ascending"
+  defp aria_sort("desc"), do: "descending"
+  defp aria_sort(_state), do: nil
+
+  attr :state, :string, required: true
+
+  defp sort_icon(assigns) do
+    ~H"""
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class={["pc-table__sort-icon", @state != "none" && "pc-table__sort-icon--active"]}
+      aria-hidden="true"
+    >
+      <path :if={@state == "asc"} d="m5 15 7-7 7 7" />
+      <path :if={@state == "desc"} d="m19 9-7 7-7-7" />
+      <g :if={@state == "none"}><path d="m7 9 5-5 5 5" /><path d="m7 15 5 5 5-5" /></g>
+    </svg>
     """
   end
 

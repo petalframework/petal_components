@@ -315,4 +315,33 @@ defmodule PetalComponents.CardTest do
       end
     end
   end
+
+  test "card_header renders title, description and action" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.card_header title="Login to your account" description="Enter your email below">
+        <:action><button>Sign up</button></:action>
+      </.card_header>
+      """)
+
+    assert html =~ "pc-card__header"
+    assert html =~ "pc-card__title"
+    assert html =~ "Login to your account"
+    assert html =~ "pc-card__description"
+    assert html =~ "pc-card__header-action"
+    assert html =~ "Sign up"
+  end
+
+  test "muted variant renders the tinted well" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.card variant="muted">hi</.card>
+      """)
+
+    assert html =~ "pc-card--muted"
+  end
 end
