@@ -46,4 +46,24 @@ defmodule PetalComponents.Showcase.Accordion do
     </.accordion>
     """
   end
+
+  example :dynamic_accordion, "Dynamic",
+    description:
+      "Data-driven - pass a list of entries and render each with the item slot. Handy for FAQ or CMS content." do
+    ~H"""
+    <.accordion
+      class="w-full max-w-xl mx-auto"
+      entries={[
+        %{heading: "Where do the entries come from?", content: "A plain list of maps you pass in."},
+        %{
+          heading: "How is each row rendered?",
+          content: "The item slot receives the entry via :let."
+        },
+        %{heading: "Can the content be anything?", content: "Yes - it's a slot, so any markup works."}
+      ]}
+    >
+      <:item :let={entry}>{entry.content}</:item>
+    </.accordion>
+    """
+  end
 end
