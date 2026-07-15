@@ -20,6 +20,11 @@ defmodule PetalComponents.Showcase.Frame do
 
   attr :example, Example, required: true
 
+  attr :id, :string,
+    default: nil,
+    doc:
+      "DOM id for the frame; defaults to one derived from the example id. Set it if the same example renders twice on one page"
+
   attr :locked, :boolean,
     default: false,
     doc: "blur the code behind a login CTA (the surface decides)"
@@ -35,11 +40,13 @@ defmodule PetalComponents.Showcase.Frame do
 
   @doc "Renders one showcase example: preview panel + collapsible code panel."
   def showcase_example(assigns) do
+    # The id must be deterministic (derived from the example, not a counter):
+    # LiveView re-renders regenerate function-component assigns, and a changing
+    # id would defeat the phx-update="ignore" below, resetting the user's
+    # expanded/collapsed state on every patch.
     assigns =
       assigns
-      |> assign_new(:frame_id, fn ->
-        "pcsx-" <> Integer.to_string(System.unique_integer([:positive]))
-      end)
+      |> assign(:frame_id, assigns.id || "pcsx-#{assigns.example.id}")
       |> assign(:collapsible, collapsible?(assigns.example.code))
       |> assign(:code_html, code_html(assigns.example))
 
@@ -49,7 +56,11 @@ defmodule PetalComponents.Showcase.Frame do
         {@example.render.(assigns)}
       </div>
 
-      <div :if={@show_code} class="pc-showcase-code">
+      <%!-- phx-update="ignore": the panel is static content and the checkbox
+      holds client-side UI state (expanded/collapsed). Without this, any
+      LiveView patch on the page would reset an opened panel - the original
+      marketing implementation carried the same guard. --%>
+      <div :if={@show_code} id={"#{@frame_id}-code"} phx-update="ignore" class="pc-showcase-code">
         <input
           type="checkbox"
           id={"#{@frame_id}-toggle"}

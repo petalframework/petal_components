@@ -97,6 +97,25 @@ defmodule PetalComponents.ShowcaseTest do
       assert html =~ "pc-showcase-code__lock"
       refute html =~ "PetalCopy"
     end
+
+    test "frame ids are deterministic across renders (stable under LV patches)" do
+      assigns = %{example: hd(PetalComponents.Showcase.Command.examples())}
+
+      a = rendered_to_string(~H"<.showcase_example example={@example} />")
+      b = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert a == b
+      assert a =~ ~s(id="pcsx-inline_palette")
+    end
+
+    test "the code panel is guarded from LiveView patches (phx-update=ignore + id)" do
+      assigns = %{example: hd(PetalComponents.Showcase.Command.examples())}
+
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html =~ ~s(id="pcsx-inline_palette-code")
+      assert html =~ ~s(phx-update="ignore")
+    end
   end
 
   describe "showcase_props/1" do
