@@ -9,6 +9,8 @@ defmodule PetalComponents.Showcase.Registry do
   """
 
   @modules [
+    PetalComponents.Showcase.Accordion,
+    PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.BorderBeam,
     PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.Command
