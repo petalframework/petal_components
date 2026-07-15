@@ -39,6 +39,10 @@ defmodule PetalComponents.Showcase do
       Module.register_attribute(__MODULE__, :showcase_examples, accumulate: true)
       @showcase_component unquote(opts[:component])
       @showcase_title unquote(opts[:title])
+      # Functions to document in the props table. Multi-function components
+      # (chat, command) list several; single-function ones default to the
+      # component's primary function (its last-segment underscored).
+      @showcase_functions unquote(opts[:functions])
       @before_compile PetalComponents.Showcase
     end
   end
@@ -64,14 +68,30 @@ defmodule PetalComponents.Showcase do
 
       @doc ~S|URL-friendly slug derived from the component module, e.g. "border-beam".|
       def showcase_slug, do: PetalComponents.Showcase.__slug__(@showcase_component)
+
+      @doc "Component functions to document in the props table."
+      def showcase_functions do
+        PetalComponents.Showcase.__functions__(@showcase_functions, @showcase_component)
+      end
     end
   end
+
+  @doc false
+  def __functions__(nil, component), do: __default_functions__(component)
+  def __functions__(functions, _component) when is_list(functions), do: functions
 
   @doc false
   def __slug__(nil), do: nil
 
   def __slug__(component) when is_atom(component) do
     component |> Module.split() |> List.last() |> Macro.underscore() |> String.replace("_", "-")
+  end
+
+  @doc false
+  def __default_functions__(nil), do: []
+
+  def __default_functions__(component) when is_atom(component) do
+    [component |> Module.split() |> List.last() |> Macro.underscore() |> String.to_atom()]
   end
 
   @doc """
