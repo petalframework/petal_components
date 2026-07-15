@@ -48,14 +48,10 @@ defmodule PetalComponents.Showcase.Chat do
 
   example :prompt_input, "Prompt input",
     description:
-      "The composer - an autogrowing textarea with a send button. Enter submits, Shift+Enter adds a line." do
+      "The composer - an autogrowing textarea with the arrow-up send button. Enter submits, Shift+Enter adds a line." do
     ~H"""
     <div class="w-full max-w-xl mx-auto">
-      <.prompt_input
-        id="showcase-chat-composer"
-        placeholder="Message the assistant..."
-        submit_label="Send"
-      />
+      <.prompt_input id="showcase-chat-composer" placeholder="Message the assistant..." />
     </div>
     """
   end

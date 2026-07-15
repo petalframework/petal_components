@@ -3972,6 +3972,11 @@
   }
 
   .pc-chat__composer {
+    /* The composer is commonly pinned outside the .pc-chat scroll container
+       (or used standalone), so it carries the user-bubble tokens its send
+       button rides - otherwise the send button loses its fill. */
+    --pc-chat-user-bg: var(--color-primary-600, #2563eb);
+    --pc-chat-user-fg: var(--pc-button-solid-fg, #ffffff);
     @apply flex flex-col gap-2;
   }
   .pc-chat__composer-row {
