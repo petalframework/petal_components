@@ -1,0 +1,114 @@
+defmodule PetalComponents.Showcase.BorderBeam do
+  @moduledoc false
+  use PetalComponents.Showcase, component: PetalComponents.BorderBeam, title: "Border Beam"
+
+  example :basic_border_beam, "Basic Border Beam",
+    description:
+      "Wrap your content and you get the panel plus a single beam on the default gradient." do
+    ~H"""
+    <.border_beam id="showcase-beam-basic" class="w-full max-w-md mx-auto">
+      <div class="flex items-center justify-center px-8 py-16">
+        <h3 class="text-2xl font-bold">Default border beam</h3>
+      </div>
+    </.border_beam>
+    """
+  end
+
+  example :custom_colors, "Custom Colors",
+    description: "Set color_from and color_to for the gradient, and duration for the lap time." do
+    ~H"""
+    <.border_beam
+      id="showcase-beam-cyan"
+      color_from="#22d3ee"
+      color_to="#0891b2"
+      duration="5s"
+      class="w-full max-w-md mx-auto"
+    >
+      <div class="flex items-center justify-center px-8 py-16">
+        <h3 class="text-2xl font-bold">Cyan beam</h3>
+      </div>
+    </.border_beam>
+    """
+  end
+
+  example :beam_with_content, "Beam with Content",
+    description: "No z-index dance - drop a full call-to-action straight inside the panel." do
+    ~H"""
+    <.border_beam
+      id="showcase-beam-content"
+      color_from="#8b5cf6"
+      color_to="#ec4899"
+      class="w-full max-w-md mx-auto"
+    >
+      <div class="flex flex-col items-center px-8 py-12 text-center">
+        <h3 class="text-2xl font-bold">Ready when you are</h3>
+        <p class="max-w-sm mt-2 text-gray-600 dark:text-gray-300">
+          Clone the repo, run the generators, ship by the weekend.
+        </p>
+        <.button label="Get started" class="mt-5" />
+      </div>
+    </.border_beam>
+    """
+  end
+
+  example :pricing_cards, "Pricing Cards",
+    description: "The classic use: run a beam around the plan you want people to pick." do
+    ~H"""
+    <.border_beam
+      id="showcase-beam-pricing"
+      color_from="#f59e0b"
+      color_to="#ef4444"
+      size="200px"
+      class="w-full max-w-xs mx-auto"
+    >
+      <div class="px-8 py-8 text-center">
+        <div class="text-sm font-semibold text-primary-600 dark:text-primary-400">Pro</div>
+        <div class="mt-2 text-4xl font-bold">
+          $99<span class="text-base font-normal text-gray-500">/mo</span>
+        </div>
+        <.button label="Choose Pro" class="w-full mt-6" />
+      </div>
+    </.border_beam>
+    """
+  end
+
+  example :feature_highlight, "Glow and Multiple Beams",
+    description: "glow swaps the sharp head for a soft comet; beams runs several evenly spaced." do
+    ~H"""
+    <div class="grid w-full max-w-2xl gap-6 mx-auto sm:grid-cols-2">
+      <.border_beam id="showcase-beam-glow" glow size="320px" color_from="#38bdf8" color_to="#818cf8">
+        <div class="flex items-center justify-center px-8 py-16">
+          <h3 class="text-xl font-bold">glow</h3>
+        </div>
+      </.border_beam>
+      <.border_beam id="showcase-beam-multi" beams={3} color_from="#34d399" color_to="#10b981">
+        <div class="flex items-center justify-center px-8 py-16">
+          <h3 class="font-mono text-xl font-bold">beams=3</h3>
+        </div>
+      </.border_beam>
+    </div>
+    """
+  end
+
+  example :newsletter_beam, "Newsletter Signup",
+    description: "A subtle beam turns a plain signup box into something worth stopping for." do
+    ~H"""
+    <.border_beam
+      id="showcase-beam-newsletter"
+      color_from="#a855f7"
+      color_to="#6366f1"
+      duration="10s"
+      class="w-full max-w-md mx-auto"
+    >
+      <div class="px-8 py-10 text-center">
+        <h3 class="text-xl font-bold">Join the list</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">One email a week. No noise.</p>
+        <div class="flex max-w-sm gap-2 mx-auto mt-5">
+          <.input type="email" name="email" value="" placeholder="you@example.com" class="flex-1" />
+          <.button label="Subscribe" />
+        </div>
+      </div>
+    </.border_beam>
+    """
+  end
+end

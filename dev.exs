@@ -100,6 +100,7 @@ defmodule Dev.PlaygroundLive do
     global_prefixes: ~w(x-)
 
   use PetalComponents
+  import PetalComponents.Showcase.Frame
 
   alias Phoenix.LiveView.JS
   alias PetalComponents.Chat
@@ -2654,75 +2655,21 @@ defmodule Dev.PlaygroundLive do
         client-side - keystrokes never wait on the server.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Inline palette - try typing
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="max-w-md mx-auto">
-          <.command
-            id="demo-command"
-            loop
-            class="border border-gray-200 dark:border-white/15 shadow-xs"
-          >
-            <.command_input placeholder="Type a command or search..." />
-            <.command_list>
-              <.command_empty>No results found.</.command_empty>
-              <.command_group heading="Suggestions">
-                <.command_item keywords={["date", "schedule"]}>
-                  <.icon name="hero-calendar" /> Calendar
-                </.command_item>
-                <.command_item keywords={["smile"]}>
-                  <.icon name="hero-face-smile" /> Search emoji
-                </.command_item>
-                <.command_item disabled>
-                  <.icon name="hero-calculator" /> Calculator
-                </.command_item>
-              </.command_group>
-              <.command_separator />
-              <.command_group heading="Settings">
-                <.command_item keywords={["account", "user"]}>
-                  <.icon name="hero-user" /> Profile
-                  <.command_shortcut>⌘P</.command_shortcut>
-                </.command_item>
-                <.command_item keywords={["payment", "card"]}>
-                  <.icon name="hero-credit-card" /> Billing
-                  <.command_shortcut>⌘B</.command_shortcut>
-                </.command_item>
-                <.command_item>
-                  <.icon name="hero-cog-6-tooth" /> Settings
-                  <.command_shortcut>⌘S</.command_shortcut>
-                </.command_item>
-              </.command_group>
-            </.command_list>
-          </.command>
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.Command.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-zinc-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
-        Dialog - the classic ⌘K
-      </div>
-      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-col items-center gap-3">
-          <.button
-            color="gray"
-            variant="outline"
-            phx-click={PetalComponents.Command.open_command("pg-cmdk")}
-          >
-            <.icon name="hero-magnifying-glass" class="w-4 h-4 mr-1" /> Open the palette
-          </.button>
-          <p class="text-sm text-gray-500 dark:text-zinc-400">
-            or press <kbd class="pc-kbd">⌘K</kbd> anywhere in the playground
-          </p>
-        </div>
-      </div>
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Command} function={:command} />
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        This page's dialog IS the playground's own search - the topbar button and ⌘K both
-        open a command_dialog listing every page. The dialog is a native &lt;dialog&gt;, so the
-        top layer, focus trap, backdrop and Escape come from the browser. Keyboard model is
-        the WAI-ARIA combobox pattern: focus stays in the input, the highlight is virtual
-        (aria-activedescendant), and Enter clicks the highlighted item. Items hide but never
-        reorder - the server owns DOM order, so LiveView patches stay safe.
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Command</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
       </div>
     </div>
     """
