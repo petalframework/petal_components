@@ -119,22 +119,32 @@ defmodule PetalComponents.ShowcaseTest do
   end
 
   describe "showcase_props/1" do
-    test "renders a props table for each registered component from introspection" do
+    test "renders a props table per documented function for each component" do
       for mod <- Registry.all(), component = mod.showcase_component(), component do
-        fun =
-          component
-          |> Module.split()
-          |> List.last()
-          |> Macro.underscore()
-          |> String.to_existing_atom()
+        assigns = %{component: component, functions: mod.showcase_functions()}
 
-        assigns = %{component: component, fun: fun}
-
-        html = rendered_to_string(~H"<.showcase_props component={@component} function={@fun} />")
+        html =
+          rendered_to_string(
+            ~H"<.showcase_props component={@component} functions={@functions} />"
+          )
 
         assert html =~ "pc-showcase-props"
         assert html =~ "Attribute"
       end
+    end
+
+    test "a multi-function component renders a labelled table per function" do
+      assigns = %{
+        component: PetalComponents.Chat,
+        functions: [:conversation, :chat_message, :marker]
+      }
+
+      html =
+        rendered_to_string(~H"<.showcase_props component={@component} functions={@functions} />")
+
+      assert html =~ "conversation"
+      assert html =~ "chat_message"
+      assert count_substring(html, "pc-showcase-props__table") == 3
     end
   end
 end

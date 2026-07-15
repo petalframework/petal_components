@@ -1,6 +1,9 @@
 defmodule PetalComponents.Showcase.Command do
   @moduledoc false
-  use PetalComponents.Showcase, component: PetalComponents.Command, title: "Command"
+  use PetalComponents.Showcase,
+    component: PetalComponents.Command,
+    title: "Command",
+    functions: [:command, :command_dialog]
 
   example :inline_palette, "Inline palette",
     description:

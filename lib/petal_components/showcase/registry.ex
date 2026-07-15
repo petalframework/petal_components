@@ -10,6 +10,7 @@ defmodule PetalComponents.Showcase.Registry do
 
   @modules [
     PetalComponents.Showcase.BorderBeam,
+    PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.Command
   ]
 

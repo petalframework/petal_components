@@ -153,67 +153,82 @@ defmodule PetalComponents.Showcase.Frame do
 
   attr :component, :atom,
     required: true,
-    doc: "the component module, e.g. PetalComponents.BorderBeam"
+    doc: "the component module, e.g. PetalComponents.Chat"
 
-  attr :function, :atom, required: true, doc: "the component function, e.g. :border_beam"
+  attr :function, :atom, default: nil, doc: "a single component function, e.g. :border_beam"
+
+  attr :functions, :list,
+    default: nil,
+    doc:
+      "several functions to document (one table each) - for multi-function components like chat"
+
   attr :class, :any, default: nil
 
   @doc """
-  Renders a component's attributes and slots as a table, straight from
-  `Phoenix.Component.__components__/0` - so props docs can never drift from the
-  component's real API.
+  Renders a component's attributes and slots as a table (one per function),
+  straight from `Phoenix.Component.__components__/0` - so props docs can never
+  drift from the component's real API. Pass `function` for a single-function
+  component, or `functions` for a multi-function one (chat, command).
   """
   def showcase_props(assigns) do
-    info =
-      assigns.component.__components__()
-      |> Map.get(assigns.function, %{attrs: [], slots: []})
+    funcs = assigns.functions || List.wrap(assigns.function)
+    defs = assigns.component.__components__()
 
-    assigns = assign(assigns, attrs: info.attrs, slots: info.slots)
+    tables =
+      Enum.map(funcs, fn f ->
+        info = Map.get(defs, f, %{attrs: [], slots: []})
+        %{name: f, attrs: info.attrs, slots: info.slots}
+      end)
+
+    assigns = assign(assigns, tables: tables, multi: length(tables) > 1)
 
     ~H"""
     <div class={["pc-showcase-props not-prose", @class]}>
-      <table class="pc-showcase-props__table">
-        <thead>
-          <tr>
-            <th>Attribute</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr :for={a <- @attrs}>
-            <td>
-              <code class="pc-showcase-props__name">{a.name}</code><span
-                :if={a.required}
-                class="pc-showcase-props__req"
-                title="required"
-              >*</span>
-            </td>
-            <td><code class="pc-showcase-props__type">{format_type(a.type)}</code></td>
-            <td>
-              <code :if={Keyword.has_key?(a.opts, :default)} class="pc-showcase-props__default">{inspect(
-                a.opts[:default]
-              )}</code>
-            </td>
-            <td>
-              {a.doc}
-              <div :if={a.opts[:values]} class="pc-showcase-props__values">
-                one of: {Enum.map_join(a.opts[:values], ", ", &inspect/1)}
-              </div>
-            </td>
-          </tr>
-          <tr :for={s <- @slots}>
-            <td>
-              <code class="pc-showcase-props__name">:{s.name}</code>
-              <span class="pc-showcase-props__slot">slot</span>
-            </td>
-            <td><code class="pc-showcase-props__type">slot</code></td>
-            <td></td>
-            <td>{s.doc}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div :for={t <- @tables} class="pc-showcase-props__group">
+        <div :if={@multi} class="pc-showcase-props__fn">&lt;.{t.name}&gt;</div>
+        <table class="pc-showcase-props__table">
+          <thead>
+            <tr>
+              <th>Attribute</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :for={a <- t.attrs}>
+              <td>
+                <code class="pc-showcase-props__name">{a.name}</code><span
+                  :if={a.required}
+                  class="pc-showcase-props__req"
+                  title="required"
+                >*</span>
+              </td>
+              <td><code class="pc-showcase-props__type">{format_type(a.type)}</code></td>
+              <td>
+                <code :if={Keyword.has_key?(a.opts, :default)} class="pc-showcase-props__default">{inspect(
+                  a.opts[:default]
+                )}</code>
+              </td>
+              <td>
+                {a.doc}
+                <div :if={a.opts[:values]} class="pc-showcase-props__values">
+                  one of: {Enum.map_join(a.opts[:values], ", ", &inspect/1)}
+                </div>
+              </td>
+            </tr>
+            <tr :for={s <- t.slots}>
+              <td>
+                <code class="pc-showcase-props__name">:{s.name}</code>
+                <span class="pc-showcase-props__slot">slot</span>
+              </td>
+              <td><code class="pc-showcase-props__type">slot</code></td>
+              <td></td>
+              <td>{s.doc}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     """
   end
