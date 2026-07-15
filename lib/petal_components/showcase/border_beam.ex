@@ -73,20 +73,45 @@ defmodule PetalComponents.Showcase.BorderBeam do
   end
 
   example :feature_highlight, "Glow and Multiple Beams",
-    description: "glow swaps the sharp head for a soft comet; beams runs several evenly spaced." do
+    description:
+      "glow swaps the sharp head for a soft comet - which unlocks the full beam length, since a long sharp beam clamps at the corners for safety. beams runs several at once." do
     ~H"""
-    <div class="grid w-full max-w-2xl gap-6 mx-auto sm:grid-cols-2">
-      <.border_beam id="showcase-beam-glow" glow size="140px" color_from="#38bdf8" color_to="#818cf8">
-        <div class="flex items-center justify-center px-8 py-16">
-          <h3 class="text-xl font-bold">glow</h3>
+    <.border_beam
+      id="showcase-beam-glow"
+      glow
+      beams={2}
+      size="400px"
+      duration="9s"
+      color_from="#f43f5e"
+      color_to="#3b82f6"
+      class="w-full max-w-sm mx-auto"
+    >
+      <div class="p-6">
+        <div class="font-semibold leading-none text-gray-900 dark:text-gray-100">Now playing</div>
+        <div class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+          Stairway to Heaven - Led Zeppelin
         </div>
-      </.border_beam>
-      <.border_beam id="showcase-beam-multi" beams={3} color_from="#34d399" color_to="#10b981">
-        <div class="flex items-center justify-center px-8 py-16">
-          <h3 class="font-mono text-xl font-bold">beams=3</h3>
+        <div class="w-40 h-40 mx-auto mt-5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
         </div>
-      </.border_beam>
-    </div>
+        <div class="mt-5">
+          <.progress value={34} size="xs" />
+        </div>
+        <div class="flex justify-between mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <span>2:45</span><span>8:02</span>
+        </div>
+        <div class="flex justify-center gap-3 mt-4">
+          <.button variant="outline" size="icon" radius="full" aria-label="Previous">
+            <.icon name="hero-backward" />
+          </.button>
+          <.button size="icon" radius="full" aria-label="Play">
+            <.icon name="hero-play" />
+          </.button>
+          <.button variant="outline" size="icon" radius="full" aria-label="Next">
+            <.icon name="hero-forward" />
+          </.button>
+        </div>
+      </div>
+    </.border_beam>
     """
   end
 
