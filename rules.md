@@ -31,10 +31,11 @@ Open `assets/css/app.css`. Find the `@import "tailwindcss";` line and add the tw
 ```css
 @import "tailwindcss";
 @source "../deps/petal_components/**/*.*ex";
+@source not "../deps/petal_components/lib/petal_components/showcase";
 @import "../deps/petal_components/assets/default.css";
 ```
 
-The `@source` line tells Tailwind to scan petal_components source for class usage. The `@import` line brings in the default component styles (the `pc-*` CSS prefix).
+The `@source` line tells Tailwind to scan petal_components source for class usage. The `@source not` line skips the `showcase/` example modules - those power petal.build's own docs, not your app, so scanning them would only add unused utility classes to your CSS. (`@source not` needs Tailwind v4.1+. On v4.0 it's harmless to drop the line; you just get a little extra CSS.) The `@import` line brings in the default component styles (the `pc-*` CSS prefix).
 
 If `@import "tailwindcss";` is missing, the project is on Tailwind v3 and petal_components 4.x will not work. Tell the user to upgrade to Tailwind v4, or pin to `petal_components ~> 1.0` for Tailwind v3 support.
 

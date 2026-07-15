@@ -61,7 +61,17 @@ defmodule PetalComponents.Showcase do
 
       @doc "The human title for this component's page."
       def showcase_title, do: @showcase_title
+
+      @doc ~S|URL-friendly slug derived from the component module, e.g. "border-beam".|
+      def showcase_slug, do: PetalComponents.Showcase.__slug__(@showcase_component)
     end
+  end
+
+  @doc false
+  def __slug__(nil), do: nil
+
+  def __slug__(component) when is_atom(component) do
+    component |> Module.split() |> List.last() |> Macro.underscore() |> String.replace("_", "-")
   end
 
   @doc """
@@ -89,6 +99,7 @@ defmodule PetalComponents.Showcase do
 
   defp __build__(id, title, meta, block) do
     code = __source__(block)
+    highlighted = __highlight__(code)
     fun = :"__showcase_render_#{id}"
 
     quote do
@@ -96,13 +107,44 @@ defmodule PetalComponents.Showcase do
         id: unquote(id),
         title: unquote(title),
         description: unquote(Keyword.get(meta, :description)),
-        code: unquote(code)
+        code: unquote(code),
+        highlighted: unquote(Macro.escape(highlighted))
       }
 
       @doc false
       def unquote(fun)(var!(assigns)) do
         _ = var!(assigns)
         unquote(block)
+      end
+    end
+  end
+
+  # Highlight the example ONCE, at compile time, so there is no per-render MDEx
+  # cost - the One Dark HTML is baked into the compiled module. Guarded and
+  # rescued: without mdex + lumis (or on any error) we store nil, and the frame
+  # falls back to plain markup. The compile-time env equals the render-time env
+  # (same app), so if lumis is unavailable here it is unavailable at render too.
+  @doc false
+  def __highlight__(code) do
+    if Code.ensure_loaded?(MDEx) do
+      try do
+        opts = [
+          syntax_highlight: [formatter: :html_inline],
+          sanitize: MDEx.Document.default_sanitize_options()
+        ]
+
+        html =
+          case MDEx.to_html("```heex\n" <> code <> "\n```", opts) do
+            {:ok, h} -> h
+            h when is_binary(h) -> h
+            _ -> nil
+          end
+
+        if is_binary(html) and String.contains?(html, ~s|class="lumis"|),
+          do: {:safe, html},
+          else: nil
+      rescue
+        _ -> nil
       end
     end
   end

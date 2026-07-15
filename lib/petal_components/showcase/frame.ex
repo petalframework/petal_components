@@ -55,6 +55,7 @@ defmodule PetalComponents.Showcase.Frame do
           id={"#{@frame_id}-toggle"}
           class="pc-showcase-code__toggle sr-only"
           checked={!@collapsible}
+          aria-label="Show the code for this example"
         />
 
         <div class="pc-showcase-code__bar">

@@ -1,4 +1,14 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **Showcase registry - one source of truth for examples.** Component examples now live in `PetalComponents.Showcase.*` modules, authored once as a `~H` block. Both the dev playground and petal.build render the same registry, so the code you copy can never drift from the live preview (the `example` macro captures the block's exact source and compiles it to a render function). Two new components power it: `<.showcase_example>` (a preview joined to a collapsible, syntax-highlighted code panel with a copy button - pure CSS, no Alpine) and `<.showcase_props>` (an attrs/slots table straight from `Phoenix.Component.__components__/0`, so props docs can't go stale). The `showcase/` modules are docs tooling, not app components - add `@source not ".../lib/petal_components/showcase"` to your Tailwind setup (see the install rules) so they add nothing to your CSS.
+
+#### Fixed
+
+- **Chat code highlighting.** The optional `lumis` highlighter is pinned to `~> 0.6` now - `0.5.0` is incompatible with `mdex_native 0.2.5` and silently disabled highlighting, so code blocks rendered plain. If you use the chat's markdown with `mdex` + `lumis`, make sure `lumis` resolves to 0.6+ and set `config :mdex_native, syntax_highlighter: :lumis`.
+
 ### 4.5.0 - 2026-07-14
 
 The interaction release. Two new components - a ⌘K command palette and an ambient aurora backdrop - arrive alongside a ground-up overhaul of the AI chat kit and a navigation menu that opens on hover. Under that, a consistency pass pulls the last components onto the shared surface and radius system from 4.4. Mostly additive, with a few default changes to know about - see Upgrading.

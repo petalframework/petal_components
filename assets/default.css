@@ -4722,6 +4722,13 @@
     display: flex;
   }
 
+  /* keyboard focus lands on the visually-hidden checkbox; surface a ring on the
+     visible toggle buttons so keyboard users can see where they are */
+  .pc-showcase-code:has(.pc-showcase-code__toggle:focus-visible) .pc-showcase-code__peek-btn,
+  .pc-showcase-code:has(.pc-showcase-code__toggle:focus-visible) .pc-showcase-code__hide {
+    @apply outline-none ring-2 ring-primary-400;
+  }
+
   /* props / slots table */
   .pc-showcase-props {
     @apply my-6 overflow-x-auto border border-gray-200 rounded-xl dark:border-white/10;
