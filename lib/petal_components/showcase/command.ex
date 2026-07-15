@@ -3,7 +3,7 @@ defmodule PetalComponents.Showcase.Command do
   use PetalComponents.Showcase,
     component: PetalComponents.Command,
     title: "Command",
-    functions: [:command, :command_dialog]
+    functions: [:command, :command_dialog, :command_item]
 
   example :inline_palette, "Inline palette",
     description:

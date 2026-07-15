@@ -96,4 +96,27 @@ defmodule PetalComponents.Showcase.Aurora do
     </.aurora>
     """
   end
+
+  example :testimonial_aurora, "Testimonial with Aurora",
+    description:
+      "Push the mask out with mask_position and mask_coverage to flood more of the container - a testimonial that pulls the eye without shouting." do
+    ~H"""
+    <.aurora
+      id="showcase-aurora-testimonial"
+      colors={["#c084fc", "#a855f7", "#9333ea", "#7e22ce"]}
+      opacity="0.35"
+      mask_position="center top"
+      mask_coverage="0%, 100%"
+      class="w-full max-w-2xl mx-auto rounded-xl"
+    >
+      <div class="flex flex-col items-center px-8 py-16 text-center">
+        <p class="max-w-2xl mb-8 text-xl text-gray-900 dark:text-white">
+          "The aurora took our landing page from fine to the thing people mention on calls. Two attributes and it was done."
+        </p>
+        <div class="font-bold text-gray-900 dark:text-white">Jordan Lee</div>
+        <div class="text-purple-700 dark:text-purple-300">Founder, Northwind</div>
+      </div>
+    </.aurora>
+    """
+  end
 end
