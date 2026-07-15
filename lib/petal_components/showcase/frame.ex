@@ -121,7 +121,13 @@ defmodule PetalComponents.Showcase.Frame do
 
   defp code_html(%Example{code: code}) do
     if Code.ensure_loaded?(MDEx) and Code.ensure_loaded?(PetalComponents.Chat) do
-      PetalComponents.Chat.to_html("```heex\n" <> code <> "\n```")
+      # Never let a highlighter misconfiguration (e.g. lumis present but
+      # unconfigured, which raises) take down a page - fall back to plain code.
+      try do
+        PetalComponents.Chat.to_html("```heex\n" <> code <> "\n```")
+      rescue
+        _ -> fallback_pre(code)
+      end
     else
       fallback_pre(code)
     end

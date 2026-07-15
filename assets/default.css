@@ -4649,7 +4649,7 @@
 
   .pc-showcase-code {
     @apply relative overflow-hidden border-t border-gray-200 rounded-b-xl dark:border-white/10;
-    background-color: #292d3e;
+    background-color: #282c34;
   }
 
   .pc-showcase-code__bar {
@@ -4684,7 +4684,7 @@
 
   .pc-showcase-code__peek {
     @apply absolute inset-0 flex items-center justify-center cursor-pointer;
-    background-image: linear-gradient(to top, #292d3e, rgb(41 45 62 / 0.85), transparent);
+    background-image: linear-gradient(to top, #282c34, rgb(40 44 52 / 0.85), transparent);
   }
 
   .pc-showcase-code__peek-btn {

@@ -57,7 +57,7 @@ defmodule PetalComponents.MixProject do
       # mdex's optional syntax highlighter - present here so the dev playground
       # highlights chat code blocks; optional for consumers (chat falls back to
       # plain rendering without it).
-      {:lumis, "~> 0.5", optional: true},
+      {:lumis, "~> 0.6", optional: true},
       {:jason, "~> 1.2"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:phoenix_ecto, "~> 4.4"},

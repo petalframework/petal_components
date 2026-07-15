@@ -76,7 +76,7 @@ defmodule PetalComponents.Showcase.BorderBeam do
     description: "glow swaps the sharp head for a soft comet; beams runs several evenly spaced." do
     ~H"""
     <div class="grid w-full max-w-2xl gap-6 mx-auto sm:grid-cols-2">
-      <.border_beam id="showcase-beam-glow" glow size="320px" color_from="#38bdf8" color_to="#818cf8">
+      <.border_beam id="showcase-beam-glow" glow size="140px" color_from="#38bdf8" color_to="#818cf8">
         <div class="flex items-center justify-center px-8 py-16">
           <h3 class="text-xl font-bold">glow</h3>
         </div>
