@@ -3879,7 +3879,10 @@
     display: none;
   }
   .pc-chat__reasoning-chevron {
-    @apply h-3.5 w-3.5 shrink-0 transition-transform duration-150;
+    @apply shrink-0 transition-transform duration-150;
+    /* !important so a consumer's heroicons plugin (utilities layer) can't resize it */
+    width: 0.875rem !important;
+    height: 0.875rem !important;
   }
   .pc-chat__reasoning[open] .pc-chat__reasoning-chevron {
     @apply rotate-90;
@@ -3910,7 +3913,10 @@
     @apply border-b border-gray-200 pb-2.5 dark:border-white/10;
   }
   .pc-chat__marker-icon {
-    @apply h-3.5 w-3.5 shrink-0;
+    @apply shrink-0;
+    /* !important so a consumer's heroicons plugin (utilities layer) can't resize it */
+    width: 0.875rem !important;
+    height: 0.875rem !important;
   }
   .pc-chat__marker-spinner {
     @apply h-3 w-3 shrink-0 animate-spin rounded-full border border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
