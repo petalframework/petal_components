@@ -3929,8 +3929,12 @@
   .pc-chat__action--icon {
     @apply p-1.5;
   }
+  /* !important for the same reason as the composer send icon: a consumer's
+     heroicons plugin sizes .hero-* in the utilities layer and would otherwise
+     win, squashing these action-bar icons to 24x16. */
   .pc-chat__action-icon {
-    @apply h-4 w-4;
+    width: 1rem !important;
+    height: 1rem !important;
   }
   /* hover-revealed bar: fades in on message-row hover/focus; touch devices
      have no hover, so there it always shows */
@@ -4016,8 +4020,13 @@
   .pc-chat__composer-send--icon {
     @apply flex h-9 w-9 shrink-0 items-center justify-center p-0;
   }
+  /* A consumer's heroicons plugin sizes every `.hero-*` in the utilities layer
+     (width: spacing.6; height: 1lh), which beats this component-layer size by
+     layer order - the send arrow blew up to 24x20. !important wins across
+     layers so the icon keeps its intended size under a stock heroicons setup. */
   .pc-chat__composer-send-icon {
-    @apply h-4 w-4;
+    width: 1rem !important;
+    height: 1rem !important;
   }
   .pc-chat__composer-stop {
     @apply flex h-9 w-9 shrink-0 items-center justify-center;
