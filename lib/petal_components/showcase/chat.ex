@@ -22,6 +22,55 @@ defmodule PetalComponents.Showcase.Chat do
   # Chat is not pulled in by `use PetalComponents`, so import it here.
   import PetalComponents.Chat
 
+  example :flagship, "A complete chat",
+    description:
+      "The pieces below, assembled - a thread, a tool call, a markdown answer with a highlighted code block, an action bar, starter chips and the composer." do
+    ~H"""
+    <.conversation id="showcase-chat-flagship" class="w-full max-w-xl mx-auto">
+      <.marker variant="separator">Today</.marker>
+      <.chat_message role="user">How do I install petal_components?</.chat_message>
+      <.tool_call name="search_docs" status={:complete} label="Searched the docs">
+        <div class="flex items-center gap-3 text-sm">
+          <.icon name="hero-book-open" class="w-8 h-8 text-primary-500" />
+          <div>
+            <div class="font-medium text-gray-900 dark:text-gray-100">Installation guide</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">hexdocs.pm/petal_components</div>
+          </div>
+        </div>
+      </.tool_call>
+      <.chat_message role="assistant">
+        <.markdown
+          id="showcase-chat-flagship-md"
+          content={"Add the dep and pull it in:\n\n```elixir\ndef deps do\n  [{:petal_components, \"~> 4.5\"}]\nend\n```\n\nThen `use PetalComponents` in your web module and every component is a plain HEEx tag."}
+        />
+        <:actions>
+          <.message_actions visible="always">
+            <.copy_button
+              id="showcase-chat-flagship-copy"
+              text={"{:petal_components, \"~> 4.5\"}"}
+              icon
+            />
+            <.action_button icon="hero-hand-thumb-up" label="Good response" phx-click="noop" />
+            <.action_button icon="hero-hand-thumb-down" label="Bad response" phx-click="noop" />
+            <.action_button icon="hero-arrow-path" label="Regenerate" phx-click="noop" />
+          </.message_actions>
+        </:actions>
+      </.chat_message>
+      <:footer>
+        <.suggestions
+          class="mb-2"
+          items={["What makes this different from React AI kits?", "Show me a tool call"]}
+          on_select="noop"
+        />
+        <.prompt_input
+          id="showcase-chat-flagship-composer"
+          placeholder="Ask about petal_components..."
+        />
+      </:footer>
+    </.conversation>
+    """
+  end
+
   example :conversation, "Conversation",
     description:
       "The default plain variant - full-width turns, the ChatGPT / Claude look. Messages are just slots." do
