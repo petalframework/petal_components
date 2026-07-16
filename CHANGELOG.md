@@ -1,5 +1,7 @@
 # Changelog
-### Unreleased
+### 4.6.0 - 2026-07-16
+
+The single-source-examples release. Component examples move into the package as a versioned artifact, so the dev playground and petal.build render the exact same previews - the code you copy always matches what you see. Additive; nothing to change in your app.
 
 #### Added
 
@@ -7,6 +9,7 @@
 
 #### Fixed
 
+- **Chat icons under a heroicons plugin.** The composer send button, message-action icons, reasoning chevron and marker icons are sized in the component layer, which a stock Phoenix heroicons plugin overrides (it sizes every `.hero-*` in the utilities layer). In a consumer app they rendered oversized - the send arrow at 24x20 instead of 16x16. They're pinned with `!important` now so they hold their intended size everywhere.
 - **Chat code highlighting.** The optional `lumis` highlighter is pinned to `~> 0.6` now - `0.5.0` is incompatible with `mdex_native 0.2.5` and silently disabled highlighting, so code blocks rendered plain. If you use the chat's markdown with `mdex` + `lumis`, make sure `lumis` resolves to 0.6+ and set `config :mdex_native, syntax_highlighter: :lumis`.
 
 ### 4.5.0 - 2026-07-14
