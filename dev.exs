@@ -2085,12 +2085,12 @@ defmodule Dev.PlaygroundLive do
             class="w-full max-w-sm"
           >
             <div class="p-8">
-              <div class="text-xs font-medium tracking-wide uppercase text-gray-400">Launch</div>
+              <div class="text-xs font-medium tracking-wide uppercase text-gray-400">Now free</div>
               <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                4.4.0 is coming
+                Aurora and border beam
               </div>
               <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-                Theme tokens, one surface system, and the forms overhaul.
+                Both live in the open source library now.
               </p>
             </div>
           </.border_beam>
