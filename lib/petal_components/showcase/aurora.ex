@@ -28,7 +28,7 @@ defmodule PetalComponents.Showcase.Aurora do
       <.aurora
         id="showcase-aurora-sunset"
         colors={["#f97316", "#f43f5e", "#fbbf24", "#fb7185"]}
-        class="border border-gray-200 rounded-xl dark:border-zinc-800"
+        class="border border-gray-200 rounded-xl dark:border-gray-800"
       >
         <div class="flex items-end px-4 h-32">
           <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">sunset</span>
@@ -37,7 +37,7 @@ defmodule PetalComponents.Showcase.Aurora do
       <.aurora
         id="showcase-aurora-emerald"
         colors={["#10b981", "#5eead4", "#a7f3d0", "#34d399"]}
-        class="border border-gray-200 rounded-xl dark:border-zinc-800"
+        class="border border-gray-200 rounded-xl dark:border-gray-800"
       >
         <div class="flex items-end px-4 h-32">
           <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">emerald</span>
@@ -46,7 +46,7 @@ defmodule PetalComponents.Showcase.Aurora do
       <.aurora
         id="showcase-aurora-violet"
         colors={["#8b5cf6", "#f0abfc", "#c4b5fd", "#a78bfa"]}
-        class="border border-gray-200 rounded-xl dark:border-zinc-800"
+        class="border border-gray-200 rounded-xl dark:border-gray-800"
       >
         <div class="flex items-end px-4 h-32">
           <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">violet</span>
