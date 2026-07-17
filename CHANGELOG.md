@@ -1,4 +1,11 @@
 # Changelog
+### 4.6.1 - 2026-07-17
+
+A theming fix. If you remap `gray` to another neutral, fifteen components now follow you instead of quietly staying zinc. Nothing changes on a stock install.
+
+#### Fixed
+
+- **Dark surfaces follow your `gray`, not a hardcoded `zinc`.** The library styles its dark material with `gray-*` and defines gray's values as zinc, so remapping `--color-gray-*` in an `@theme` block re-skins the whole library. Seventeen declarations missed that rule and named `zinc` outright, so on an app with a remapped gray these fifteen components stayed zinc while everything around them changed: `dropdown`, `command`, `popover`, `avatar`, `avatar_group`, `tab`, `card`, `accordion`, `modal`, `slide_over`, `rating`, `navigation_menu`, `shine_border`, `border_beam` and `spotlight_card`. They ride the dial now. On a stock install the compiled CSS is byte-identical, so there is nothing to do and nothing to see.
 ### 4.6.0 - 2026-07-16
 
 The single-source-examples release. Component examples move into the package as a versioned artifact, so the dev playground and petal.build render the exact same previews - the code you copy always matches what you see. Additive; nothing to change in your app.
