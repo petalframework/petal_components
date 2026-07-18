@@ -1,4 +1,11 @@
 # Changelog
+### 4.6.2 - 2026-07-18
+
+The dark "ghost" material now carries your neutral's hue. If you remap `gray` to slate, stone, or any tinted neutral, inputs, hover fills and hairline borders finally match your panels instead of reading as colourless zinc next to them. On a stock zinc or neutral install nothing changes.
+
+#### Changed
+
+- **Ghost surfaces follow the temperature of your gray.** The dark material for inputs, interactive fills and hairline borders was built on `gray-100` at low alpha - technically on your gray, but the 100 step has almost no colour in any ramp, so the hue never survived the mix. The carrier moves to the ramp's chroma peak (`gray-400`) at lightness-matched alphas, so brightness is unchanged and the hue comes through. Remap `--color-gray-*` to slate and your dropdown trigger is slate like its panel; stone and it warms with everything else. Nothing to do on your side.
 ### 4.6.1 - 2026-07-17
 
 A theming fix. If you remap `gray` to another neutral, fifteen components now follow you instead of quietly staying zinc. Nothing changes on a stock install.
