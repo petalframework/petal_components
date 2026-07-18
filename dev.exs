@@ -704,12 +704,15 @@ defmodule Dev.PlaygroundLive do
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
        chart: %{
-         revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710],
+         revenue: gen_wave(1100, 1),
+         expenses: gen_wave(650, 4),
          type: "line",
          shape: "smooth",
          area: "fade",
          dots: false,
          chrome: true,
+         two_series: false,
+         gap: "cozy",
          stacked: false
        }
      )}
@@ -799,9 +802,16 @@ defmodule Dev.PlaygroundLive do
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
 
   def handle_event("chart_randomize", _params, socket) do
-    revenue = Enum.map(1..8, fn i -> 700 + i * 60 + :rand.uniform(500) end)
-    {:noreply, update(socket, :chart, &%{&1 | revenue: revenue})}
+    revenue = Enum.map(1..30, fn i -> 550 + i * 12 + :rand.uniform(600) end)
+    expenses = Enum.map(1..30, fn i -> 300 + i * 6 + :rand.uniform(350) end)
+    {:noreply, update(socket, :chart, &%{&1 | revenue: revenue, expenses: expenses})}
   end
+
+  def handle_event("ctl_chart", %{"k" => "two_series"}, socket),
+    do: {:noreply, update(socket, :chart, &%{&1 | two_series: !socket.assigns.chart.two_series})}
+
+  def handle_event("ctl_chart", %{"k" => "gap", "v" => v}, socket) when v in ~w(cozy tight),
+    do: {:noreply, update(socket, :chart, &%{&1 | gap: v})}
 
   def handle_event("ctl_chart", %{"k" => "type", "v" => v}, socket)
       when v in ~w(line bar),
@@ -1324,67 +1334,91 @@ defmodule Dev.PlaygroundLive do
     open <> ">\n  <div class=\"p-8\">...</div>\n</.shine_border>"
   end
 
+  # Deterministic organic-looking series so the first paint is stable.
+  defp gen_wave(base, phase) do
+    Enum.map(1..30, fn i ->
+      round(
+        base + i * 9 + 260 * :math.sin((i + phase) / 4.3) + 140 * :math.sin((i + phase) / 1.7)
+      )
+    end)
+  end
+
   defp revenue_option(chart) do
-    # The shared id + universalTransition make ECharts morph between the
+    datasets =
+      if chart.two_series,
+        do: [{"revenue", "Revenue", chart.revenue}, {"expenses", "Expenses", chart.expenses}],
+        else: [{"revenue", "Revenue", chart.revenue}]
+
+    # The shared ids + universalTransition make ECharts morph between the
     # line and bar forms when the type toggles.
     series =
-      case chart.type do
-        "line" ->
-          %{
-            id: "revenue",
-            name: "Revenue",
-            type: "line",
-            universalTransition: true,
-            smooth: chart.shape == "smooth",
-            symbolSize: 7,
-            showSymbol: chart.dots,
-            lineStyle: %{width: 2.5},
-            data: chart.revenue
-          }
-          |> then(&if chart.shape == "step", do: Map.put(&1, :step, "middle"), else: &1)
-          |> then(fn s ->
-            case chart.area do
-              "fade" -> Map.put(s, :areaStyle, %{color: "petal:fade"})
-              "solid" -> Map.put(s, :areaStyle, %{opacity: 0.12})
-              "none" -> s
-            end
-          end)
+      for {id, name, data} <- datasets do
+        case chart.type do
+          "line" ->
+            %{
+              id: id,
+              name: name,
+              type: "line",
+              universalTransition: true,
+              smooth: chart.shape == "smooth",
+              symbolSize: 7,
+              showSymbol: chart.dots,
+              lineStyle: %{width: 2.5},
+              data: data
+            }
+            |> then(&if chart.shape == "step", do: Map.put(&1, :step, "middle"), else: &1)
+            |> then(fn s ->
+              case chart.area do
+                "fade" -> Map.put(s, :areaStyle, %{color: "petal:fade"})
+                "solid" -> Map.put(s, :areaStyle, %{opacity: 0.12})
+                "none" -> s
+              end
+            end)
 
-        "bar" ->
-          %{
-            id: "revenue",
-            name: "Revenue",
-            type: "bar",
-            universalTransition: true,
-            barWidth: "55%",
-            data: chart.revenue
-          }
+          "bar" ->
+            %{
+              id: id,
+              name: name,
+              type: "bar",
+              universalTransition: true,
+              barGap: "6%",
+              barCategoryGap: if(chart.gap == "tight", do: "12%", else: "38%"),
+              data: data
+            }
+        end
       end
 
     axis_x = %{
       type: "category",
       boundaryGap: chart.type == "bar",
-      data: ~w(Jan Feb Mar Apr May Jun Jul Aug)
+      axisLabel: %{interval: 3},
+      data: Enum.map(1..30, &"Apr #{&1}")
     }
 
-    if chart.chrome do
-      %{
-        grid: %{left: 44, right: 16, top: 16, bottom: 28},
-        xAxis: axis_x,
-        yAxis: %{type: "value"},
-        tooltip: %{trigger: "axis"},
-        series: [series]
-      }
-    else
-      # Chromeless: no axis labels, no gridlines - just the shape.
-      %{
-        grid: %{left: 8, right: 8, top: 8, bottom: 8},
-        xAxis: Map.put(axis_x, :show, false),
-        yAxis: %{type: "value", show: false},
-        tooltip: %{trigger: "axis"},
-        series: [series]
-      }
-    end
+    base =
+      if chart.chrome do
+        %{
+          grid: %{left: 44, right: 16, top: 16, bottom: 28},
+          xAxis: axis_x,
+          yAxis: %{type: "value"},
+          tooltip: %{trigger: "axis"},
+          series: series
+        }
+      else
+        # Chromeless: no axis labels, no gridlines - just the shape.
+        %{
+          grid: %{left: 8, right: 8, top: 8, bottom: 8},
+          xAxis: Map.put(axis_x, :show, false),
+          yAxis: %{type: "value", show: false},
+          tooltip: %{trigger: "axis"},
+          series: series
+        }
+      end
+
+    if chart.two_series && chart.chrome,
+      do:
+        Map.merge(base, %{legend: %{top: 0}, grid: %{left: 44, right: 16, top: 36, bottom: 28}}),
+      else: base
   end
 
   defp bar_option(chart) do
@@ -2588,6 +2622,31 @@ defmodule Dev.PlaygroundLive do
                 class={seg(@chart.type == t)}
               >
                 {t}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">series</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(!@chart.two_series)}>
+                one
+              </button>
+              <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(@chart.two_series)}>
+                two
+              </button>
+            </div>
+          </div>
+          <div :if={@chart.type == "bar"}>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gap</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={g <- ~w(cozy tight)}
+                phx-click="ctl_chart"
+                phx-value-k="gap"
+                phx-value-v={g}
+                class={seg(@chart.gap == g)}
+              >
+                {g}
               </button>
             </div>
           </div>
