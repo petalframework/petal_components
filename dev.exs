@@ -65,6 +65,8 @@ defmodule Dev.Layouts do
         </script>
         <script src="/assets/phoenix_live_view/phoenix_live_view.js">
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js">
+        </script>
         <script type="module">
           import PetalComponents from "/assets/js/petal_components.js";
           window.liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {
@@ -204,7 +206,8 @@ defmodule Dev.PlaygroundLive do
     %{
       group: "Data",
       items: [
-        %{slug: "table", name: "Table", ready: true}
+        %{slug: "table", name: "Table", ready: true},
+        %{slug: "chart", name: "Chart", ready: true}
       ]
     },
     %{
@@ -699,7 +702,8 @@ defmodule Dev.PlaygroundLive do
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
-       popover: %{placement: "bottom", top_layer: false}
+       popover: %{placement: "bottom", top_layer: false},
+       chart: %{revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710], smooth: true}
      )}
   end
 
@@ -785,6 +789,14 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
+
+  def handle_event("chart_randomize", _params, socket) do
+    revenue = Enum.map(1..8, fn i -> 700 + i * 60 + :rand.uniform(500) end)
+    {:noreply, update(socket, :chart, &%{&1 | revenue: revenue})}
+  end
+
+  def handle_event("chart_smooth", %{"v" => v}, socket),
+    do: {:noreply, update(socket, :chart, &%{&1 | smooth: v == "1"})}
 
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
@@ -1284,6 +1296,76 @@ defmodule Dev.PlaygroundLive do
 
     open = Enum.join(["<.shine_border" | attrs], " ")
     open <> ">\n  <div class=\"p-8\">...</div>\n</.shine_border>"
+  end
+
+  defp revenue_option(chart) do
+    %{
+      grid: %{left: 44, right: 16, top: 16, bottom: 28},
+      xAxis: %{type: "category", boundaryGap: false, data: ~w(Jan Feb Mar Apr May Jun Jul Aug)},
+      yAxis: %{type: "value"},
+      tooltip: %{trigger: "axis"},
+      series: [
+        %{
+          name: "Revenue",
+          type: "line",
+          smooth: chart.smooth,
+          symbolSize: 7,
+          lineStyle: %{width: 2.5},
+          areaStyle: %{opacity: 0.12},
+          data: chart.revenue
+        }
+      ]
+    }
+  end
+
+  defp bar_option do
+    %{
+      grid: %{left: 40, right: 8, top: 32, bottom: 28},
+      legend: %{top: 0},
+      tooltip: %{trigger: "axis"},
+      xAxis: %{type: "category", data: ~w(Q1 Q2 Q3 Q4)},
+      yAxis: %{type: "value"},
+      series: [
+        %{name: "Pro", type: "bar", barGap: 0, data: [320, 402, 391, 534]},
+        %{name: "Teams", type: "bar", data: [120, 182, 231, 290]}
+      ]
+    }
+  end
+
+  defp donut_option do
+    %{
+      tooltip: %{trigger: "item"},
+      legend: %{bottom: 0},
+      series: [
+        %{
+          name: "Plan",
+          type: "pie",
+          radius: ["48%", "72%"],
+          center: ["50%", "44%"],
+          avoidLabelOverlap: true,
+          itemStyle: %{borderRadius: 5, borderWidth: 2},
+          label: %{show: false},
+          data: [
+            %{value: 580, name: "Individual"},
+            %{value: 260, name: "Team"},
+            %{value: 120, name: "Legacy"}
+          ]
+        }
+      ]
+    }
+  end
+
+  defp chart_snippet do
+    ~S"""
+    <.chart
+      id="revenue"
+      option={%{
+        xAxis: %{type: "category", data: ~w(Jan Feb Mar Apr)},
+        yAxis: %{type: "value"},
+        series: [%{type: "line", smooth: true, areaStyle: %{}, data: @revenue}]
+      }}
+    />
+    """
   end
 
   defp meteor_color("sky"), do: "#38bdf8"
@@ -2389,6 +2471,72 @@ defmodule Dev.PlaygroundLive do
           />
         </.shine_border>
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "chart"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Chart</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Apache ECharts behind a declarative HEEx component. The spec is a plain Elixir map,
+        and every colour derives from your tokens at mount - flip the primary or gray dial
+        up top and the charts follow. Updating an assign animates the chart in place.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Live updates - change the assign, the chart morphs
+      </div>
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-6">
+          <.chart id="pg-chart-revenue" option={revenue_option(@chart)} height="16rem" />
+        </div>
+        <div class="flex flex-wrap items-center gap-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <.button size="sm" variant="outline" phx-click="chart_randomize" label="Randomize data" />
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <button phx-click="chart_smooth" phx-value-v="1" class={seg(@chart.smooth)}>smooth</button>
+            <button phx-click="chart_smooth" phx-value-v="0" class={seg(!@chart.smooth)}>linear</button>
+          </div>
+        </div>
+      </div>
+      <pre class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"><code>{chart_snippet()}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Bar + donut - the palette is the --pc-chart-* token group
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+          <.chart id="pg-chart-bar" option={bar_option()} height="14rem" />
+        </div>
+        <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+          <.chart id="pg-chart-donut" option={donut_option()} height="14rem" />
+        </div>
+      </div>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Sparkline - pure server-rendered SVG, zero JavaScript
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div
+          :for={
+            {label, value, delta, data, color} <- [
+              {"MRR", "$12,480", "+8.2%", [8, 9, 9, 11, 10, 12, 13, 14], "text-primary-500"},
+              {"Signups", "1,204", "+3.1%", [30, 34, 31, 38, 36, 41, 40, 44], "text-success-500"},
+              {"Churn", "1.9%", "-0.4%", [9, 8, 9, 7, 8, 6, 7, 5], "text-danger-500"}
+            ]
+          }
+          class="flex items-center justify-between px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800"
+        >
+          <div>
+            <div class="text-xs text-gray-400 dark:text-gray-500">{label}</div>
+            <div class="mt-1 text-xl font-semibold">{value}</div>
+            <div class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{delta} this month</div>
+          </div>
+          <.sparkline data={data} class={"h-10 w-28 #{color}"} />
+        </div>
+      </div>
+      <pre class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"><code>{~s|<.sparkline data={[8, 9, 9, 11, 10, 12, 13, 14]} class="h-10 w-28 text-primary-500" />|}</code></pre>
     </div>
     """
   end

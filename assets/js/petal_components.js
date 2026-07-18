@@ -398,6 +398,186 @@ export const PetalDualRangeSlider = {
 // Number ticker: counts up to data-value when the element scrolls into view,
 // and re-animates from the previous value whenever data-value changes (so a
 // LiveView assign update animates the delta). Formatting via Intl.NumberFormat.
+// Apache ECharts wrapper. The engine is bring-your-own (window.echarts), the
+// option spec arrives as data-option JSON, and every color the user didn't set
+// explicitly derives from the CSS tokens at the element (chart palette from
+// --pc-chart-N with a semantic-ramp fallback; axes/labels/gridlines from the
+// gray ramp, ghost alphas in dark). Assign-driven updates land via updated();
+// push_event("chart:update:<id>") is the merge escape hatch for streams.
+export const PetalChart = {
+  mounted() {
+    if (!window.echarts) {
+      console.warn(
+        "[petal] PetalChart: window.echarts not found. Add ECharts to your app " +
+          "(e.g. <script src=\"https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js\"></script>)."
+      );
+      return;
+    }
+    this.canvasEl = this.el.querySelector(".pc-chart__canvas");
+    this.initChart();
+
+    this.handleEvent(`chart:update:${this.el.id}`, ({ option }) => {
+      if (this.chart) this.chart.setOption(option);
+    });
+
+    // Re-derive the theme when dark mode flips or the token dial changes.
+    // Theme state in real apps lives in classes ("dark") or data attributes
+    // on <html>/<body>/wrappers, so watch those (debounced; a no-op when the
+    // token signature is unchanged). window "petal:retheme" is the manual
+    // escape hatch for apps that retheme some other way.
+    this.retheme = () => {
+      clearTimeout(this.rethemeTimer);
+      this.rethemeTimer = setTimeout(() => this.rethemeIfChanged(), 120);
+    };
+    const themeAttrs = [
+      "class",
+      "data-theme",
+      "data-primary",
+      "data-secondary",
+      "data-gray",
+      "data-radius",
+    ];
+    this.schemeObserver = new MutationObserver(this.retheme);
+    this.schemeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: themeAttrs,
+    });
+    this.schemeObserver.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: themeAttrs,
+    });
+    window.addEventListener("petal:retheme", this.retheme);
+
+    if ("ResizeObserver" in window) {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.chart) this.chart.resize();
+      });
+      this.resizeObserver.observe(this.canvasEl);
+    }
+  },
+
+  updated() {
+    if (this.chart) this.chart.setOption(this.option(), { notMerge: true });
+  },
+
+  destroyed() {
+    clearTimeout(this.rethemeTimer);
+    if (this.schemeObserver) this.schemeObserver.disconnect();
+    if (this.resizeObserver) this.resizeObserver.disconnect();
+    if (this.retheme) window.removeEventListener("petal:retheme", this.retheme);
+    if (this.chart) this.chart.dispose();
+  },
+
+  initChart() {
+    this.themeSignature = this.currentSignature();
+    this.chart = window.echarts.init(this.canvasEl, this.buildTheme(), {
+      renderer: this.el.dataset.renderer || "canvas",
+    });
+    this.chart.setOption(this.option());
+    const group = this.el.dataset.group;
+    if (group) {
+      this.chart.group = group;
+      window.echarts.connect(group);
+    }
+  },
+
+  option() {
+    try {
+      return JSON.parse(this.el.dataset.option || "{}");
+    } catch (_e) {
+      console.warn("[petal] PetalChart: invalid data-option JSON on #" + this.el.id);
+      return {};
+    }
+  },
+
+  rethemeIfChanged() {
+    if (!this.chart) return;
+    const sig = this.currentSignature();
+    if (sig === this.themeSignature) return;
+    this.chart.dispose();
+    this.initChart();
+  },
+
+  isDark() {
+    return !!this.el.closest(".dark");
+  },
+
+  // Resolve any CSS color expression to a concrete computed color at the
+  // element (so wrapper-scoped token overrides, var() chains, light-dark()
+  // and color-mix() all come out as something a canvas can paint). Returns
+  // "" when the expression doesn't resolve to a color.
+  resolveColor(expression) {
+    if (!this.probeEl) {
+      this.probeEl = document.createElement("span");
+      this.probeEl.style.display = "none";
+    }
+    if (!this.probeEl.isConnected) this.el.appendChild(this.probeEl);
+    this.probeEl.style.color = "";
+    this.probeEl.style.color = expression;
+    if (!this.probeEl.style.color) return "";
+    return getComputedStyle(this.probeEl).color;
+  },
+
+  token(name) {
+    return getComputedStyle(this.el).getPropertyValue(name).trim();
+  },
+
+  palette() {
+    const custom = [];
+    for (let i = 1; i <= 8; i++) {
+      if (!this.token(`--pc-chart-${i}`)) continue;
+      const v = this.resolveColor(`var(--pc-chart-${i})`);
+      if (v) custom.push(v);
+    }
+    if (custom.length) return custom;
+    return ["primary", "info", "success", "warning", "danger", "secondary"]
+      .map((role) => this.resolveColor(`var(--color-${role}-500)`))
+      .filter(Boolean);
+  },
+
+  currentSignature() {
+    return this.palette().join("|") + "|" + this.resolveColor("var(--color-gray-500)") + "|" + this.isDark();
+  },
+
+  alpha(expression, pct) {
+    return this.resolveColor(`color-mix(in oklab, ${expression} ${pct}%, transparent)`);
+  },
+
+  buildTheme() {
+    const dark = this.isDark();
+    const gray = (stop) => this.resolveColor(`var(--color-gray-${stop})`);
+    const text = dark ? gray(400) : gray(500);
+    const strongText = dark ? gray(100) : gray(900);
+    const axisLine = dark ? this.alpha("var(--color-gray-400)", 25) : gray(300);
+    const splitLine = dark ? this.alpha("var(--color-gray-400)", 17) : gray(200);
+    const axisStyles = {
+      axisLine: { lineStyle: { color: axisLine } },
+      axisTick: { lineStyle: { color: axisLine } },
+      axisLabel: { color: text },
+      splitLine: { lineStyle: { color: splitLine } },
+      splitArea: { show: false },
+    };
+
+    return {
+      color: this.palette(),
+      backgroundColor: "transparent",
+      textStyle: { color: text },
+      title: { textStyle: { color: strongText }, subtextStyle: { color: text } },
+      legend: { textStyle: { color: text } },
+      categoryAxis: { ...axisStyles, splitLine: { show: false, lineStyle: { color: splitLine } } },
+      valueAxis: axisStyles,
+      timeAxis: axisStyles,
+      logAxis: axisStyles,
+      tooltip: {
+        backgroundColor: dark ? gray(900) : "#ffffff",
+        borderColor: dark ? this.alpha(gray(400), 25) : gray(200),
+        textStyle: { color: dark ? gray(100) : gray(700) },
+      },
+    };
+  },
+};
+
 export const PetalNumberTicker = {
   mounted() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -1290,6 +1470,7 @@ export const PetalNavMenu = {
 };
 
 export default {
+  PetalChart,
   PetalChatStream,
   PetalChatComposer,
   PetalCopy,

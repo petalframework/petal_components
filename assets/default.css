@@ -4533,6 +4533,20 @@
     @apply inline-block tabular-nums;
   }
 
+  /* Chart (ECharts mount) */
+  .pc-chart {
+    @apply relative w-full;
+  }
+
+  .pc-chart__canvas {
+    @apply w-full;
+  }
+
+  /* Sparkline */
+  .pc-sparkline {
+    @apply inline-block h-8 w-24 align-middle;
+  }
+
   /* Confetti mount point */
   .pc-confetti {
     @apply hidden;
