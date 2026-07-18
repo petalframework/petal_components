@@ -669,7 +669,7 @@ export const PetalChart = {
         textStyle: { color: dark ? gray(100) : gray(700), fontSize: 12 },
         padding: [8, 12],
         extraCssText:
-          "border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0.25rem); " +
+          "border-radius: clamp(0.25rem, calc(var(--pc-radius, 0.625rem) - 0.125rem), 0.875rem); " +
           "box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);",
       },
     };

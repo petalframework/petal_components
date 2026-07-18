@@ -708,6 +708,7 @@ defmodule Dev.PlaygroundLive do
          shape: "smooth",
          area: "fade",
          dots: false,
+         chrome: true,
          stacked: false
        }
      )}
@@ -811,6 +812,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_chart", %{"k" => "dots"}, socket),
     do: {:noreply, update(socket, :chart, &%{&1 | dots: !socket.assigns.chart.dots})}
+
+  def handle_event("ctl_chart", %{"k" => "chrome"}, socket),
+    do: {:noreply, update(socket, :chart, &%{&1 | chrome: !socket.assigns.chart.chrome})}
 
   def handle_event("ctl_chart", %{"k" => "stacked"}, socket),
     do: {:noreply, update(socket, :chart, &%{&1 | stacked: !socket.assigns.chart.stacked})}
@@ -1335,13 +1339,29 @@ defmodule Dev.PlaygroundLive do
         end
       end)
 
-    %{
-      grid: %{left: 44, right: 16, top: 16, bottom: 28},
-      xAxis: %{type: "category", boundaryGap: false, data: ~w(Jan Feb Mar Apr May Jun Jul Aug)},
-      yAxis: %{type: "value"},
-      tooltip: %{trigger: "axis"},
-      series: [series]
-    }
+    if chart.chrome do
+      %{
+        grid: %{left: 44, right: 16, top: 16, bottom: 28},
+        xAxis: %{type: "category", boundaryGap: false, data: ~w(Jan Feb Mar Apr May Jun Jul Aug)},
+        yAxis: %{type: "value"},
+        tooltip: %{trigger: "axis"},
+        series: [series]
+      }
+    else
+      # Chromeless: no axis labels, no gridlines - just the shape.
+      %{
+        grid: %{left: 8, right: 8, top: 8, bottom: 8},
+        xAxis: %{
+          type: "category",
+          boundaryGap: false,
+          show: false,
+          data: ~w(Jan Feb Mar Apr May Jun Jul Aug)
+        },
+        yAxis: %{type: "value", show: false},
+        tooltip: %{trigger: "axis"},
+        series: [series]
+      }
+    end
   end
 
   defp bar_option(chart) do
@@ -2567,6 +2587,15 @@ defmodule Dev.PlaygroundLive do
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button phx-click="ctl_chart" phx-value-k="dots" class={seg(@chart.dots)}>on</button>
               <button phx-click="ctl_chart" phx-value-k="dots" class={seg(!@chart.dots)}>off</button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(@chart.chrome)}>on</button>
+              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(!@chart.chrome)}>
+                off
+              </button>
             </div>
           </div>
         </div>
