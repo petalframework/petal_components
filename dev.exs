@@ -705,6 +705,7 @@ defmodule Dev.PlaygroundLive do
        popover: %{placement: "bottom", top_layer: false},
        chart: %{
          revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710],
+         type: "line",
          shape: "smooth",
          area: "fade",
          dots: false,
@@ -801,6 +802,10 @@ defmodule Dev.PlaygroundLive do
     revenue = Enum.map(1..8, fn i -> 700 + i * 60 + :rand.uniform(500) end)
     {:noreply, update(socket, :chart, &%{&1 | revenue: revenue})}
   end
+
+  def handle_event("ctl_chart", %{"k" => "type", "v" => v}, socket)
+      when v in ~w(line bar),
+      do: {:noreply, update(socket, :chart, &%{&1 | type: v})}
 
   def handle_event("ctl_chart", %{"k" => "shape", "v" => v}, socket)
       when v in ~w(smooth linear step),
@@ -1320,29 +1325,52 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp revenue_option(chart) do
+    # The shared id + universalTransition make ECharts morph between the
+    # line and bar forms when the type toggles.
     series =
-      %{
-        name: "Revenue",
-        type: "line",
-        smooth: chart.shape == "smooth",
-        symbolSize: 7,
-        showSymbol: chart.dots,
-        lineStyle: %{width: 2.5},
-        data: chart.revenue
-      }
-      |> then(&if chart.shape == "step", do: Map.put(&1, :step, "middle"), else: &1)
-      |> then(fn s ->
-        case chart.area do
-          "fade" -> Map.put(s, :areaStyle, %{color: "petal:fade"})
-          "solid" -> Map.put(s, :areaStyle, %{opacity: 0.12})
-          "none" -> s
-        end
-      end)
+      case chart.type do
+        "line" ->
+          %{
+            id: "revenue",
+            name: "Revenue",
+            type: "line",
+            universalTransition: true,
+            smooth: chart.shape == "smooth",
+            symbolSize: 7,
+            showSymbol: chart.dots,
+            lineStyle: %{width: 2.5},
+            data: chart.revenue
+          }
+          |> then(&if chart.shape == "step", do: Map.put(&1, :step, "middle"), else: &1)
+          |> then(fn s ->
+            case chart.area do
+              "fade" -> Map.put(s, :areaStyle, %{color: "petal:fade"})
+              "solid" -> Map.put(s, :areaStyle, %{opacity: 0.12})
+              "none" -> s
+            end
+          end)
+
+        "bar" ->
+          %{
+            id: "revenue",
+            name: "Revenue",
+            type: "bar",
+            universalTransition: true,
+            barWidth: "55%",
+            data: chart.revenue
+          }
+      end
+
+    axis_x = %{
+      type: "category",
+      boundaryGap: chart.type == "bar",
+      data: ~w(Jan Feb Mar Apr May Jun Jul Aug)
+    }
 
     if chart.chrome do
       %{
         grid: %{left: 44, right: 16, top: 16, bottom: 28},
-        xAxis: %{type: "category", boundaryGap: false, data: ~w(Jan Feb Mar Apr May Jun Jul Aug)},
+        xAxis: axis_x,
         yAxis: %{type: "value"},
         tooltip: %{trigger: "axis"},
         series: [series]
@@ -1351,12 +1379,7 @@ defmodule Dev.PlaygroundLive do
       # Chromeless: no axis labels, no gridlines - just the shape.
       %{
         grid: %{left: 8, right: 8, top: 8, bottom: 8},
-        xAxis: %{
-          type: "category",
-          boundaryGap: false,
-          show: false,
-          data: ~w(Jan Feb Mar Apr May Jun Jul Aug)
-        },
+        xAxis: Map.put(axis_x, :show, false),
         yAxis: %{type: "value", show: false},
         tooltip: %{trigger: "axis"},
         series: [series]
@@ -2555,6 +2578,20 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-6 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <.button size="sm" variant="outline" phx-click="chart_randomize" label="Randomize data" />
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={t <- ~w(line bar)}
+                phx-click="ctl_chart"
+                phx-value-k="type"
+                phx-value-v={t}
+                class={seg(@chart.type == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">area</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -2568,7 +2605,7 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
-          <div>
+          <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -2582,7 +2619,7 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
-          <div>
+          <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dots</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button phx-click="ctl_chart" phx-value-k="dots" class={seg(@chart.dots)}>on</button>
