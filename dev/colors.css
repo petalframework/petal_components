@@ -82,17 +82,17 @@
   --color-info-900: var(--color-sky-900);
   --color-info-950: var(--color-sky-950);
 
-  --color-gray-50: var(--color-zinc-50);
-  --color-gray-100: var(--color-zinc-100);
-  --color-gray-200: var(--color-zinc-200);
-  --color-gray-300: var(--color-zinc-300);
-  --color-gray-400: var(--color-zinc-400);
-  --color-gray-500: var(--color-zinc-500);
-  --color-gray-600: var(--color-zinc-600);
-  --color-gray-700: var(--color-zinc-700);
-  --color-gray-800: var(--color-zinc-800);
-  --color-gray-900: var(--color-zinc-900);
-  --color-gray-950: var(--color-zinc-950);
+  --color-gray-50: var(--pg-gray-50);
+  --color-gray-100: var(--pg-gray-100);
+  --color-gray-200: var(--pg-gray-200);
+  --color-gray-300: var(--pg-gray-300);
+  --color-gray-400: var(--pg-gray-400);
+  --color-gray-500: var(--pg-gray-500);
+  --color-gray-600: var(--pg-gray-600);
+  --color-gray-700: var(--pg-gray-700);
+  --color-gray-800: var(--pg-gray-800);
+  --color-gray-900: var(--pg-gray-900);
+  --color-gray-950: var(--pg-gray-950);
 }
 
 /* light-dark() resolves off color-scheme; dark mode is class-based here. */
@@ -351,3 +351,76 @@
   --color-secondary-900: var(--pg-accent2-900);
   --color-secondary-950: var(--pg-accent2-950);
 }
+
+/* Neutral dial - the gray every surface (and the ghost material)
+   derives from. Default zinc; literals from tailwindcss@4 theme.css. */
+:root, [data-gray="zinc"] {
+  --pg-gray-50: oklch(98.5% 0 none);
+  --pg-gray-100: oklch(96.7% 0.001 286.375);
+  --pg-gray-200: oklch(92% 0.004 286.32);
+  --pg-gray-300: oklch(87.1% 0.006 286.286);
+  --pg-gray-400: oklch(70.5% 0.015 286.067);
+  --pg-gray-500: oklch(55.2% 0.016 285.938);
+  --pg-gray-600: oklch(44.2% 0.017 285.786);
+  --pg-gray-700: oklch(37% 0.013 285.805);
+  --pg-gray-800: oklch(27.4% 0.006 286.033);
+  --pg-gray-900: oklch(21% 0.006 285.885);
+  --pg-gray-950: oklch(14.1% 0.005 285.823);
+}
+
+[data-gray="slate"] {
+  --pg-gray-50: oklch(98.4% 0.003 247.858);
+  --pg-gray-100: oklch(96.8% 0.007 247.896);
+  --pg-gray-200: oklch(92.9% 0.013 255.508);
+  --pg-gray-300: oklch(86.9% 0.022 252.894);
+  --pg-gray-400: oklch(70.4% 0.04 256.788);
+  --pg-gray-500: oklch(55.4% 0.046 257.417);
+  --pg-gray-600: oklch(44.6% 0.043 257.281);
+  --pg-gray-700: oklch(37.2% 0.044 257.287);
+  --pg-gray-800: oklch(27.9% 0.041 260.031);
+  --pg-gray-900: oklch(20.8% 0.042 265.755);
+  --pg-gray-950: oklch(12.9% 0.042 264.695);
+}
+
+[data-gray="gray"] {
+  --pg-gray-50: oklch(98.5% 0.002 247.839);
+  --pg-gray-100: oklch(96.7% 0.003 264.542);
+  --pg-gray-200: oklch(92.8% 0.006 264.531);
+  --pg-gray-300: oklch(87.2% 0.01 258.338);
+  --pg-gray-400: oklch(70.7% 0.022 261.325);
+  --pg-gray-500: oklch(55.1% 0.027 264.364);
+  --pg-gray-600: oklch(44.6% 0.03 256.802);
+  --pg-gray-700: oklch(37.3% 0.034 259.733);
+  --pg-gray-800: oklch(27.8% 0.033 256.848);
+  --pg-gray-900: oklch(21% 0.034 264.665);
+  --pg-gray-950: oklch(13% 0.028 261.692);
+}
+
+[data-gray="neutral"] {
+  --pg-gray-50: oklch(98.5% 0 none);
+  --pg-gray-100: oklch(97% 0 none);
+  --pg-gray-200: oklch(92.2% 0 none);
+  --pg-gray-300: oklch(87% 0 none);
+  --pg-gray-400: oklch(70.8% 0 none);
+  --pg-gray-500: oklch(55.6% 0 none);
+  --pg-gray-600: oklch(43.9% 0 none);
+  --pg-gray-700: oklch(37.1% 0 none);
+  --pg-gray-800: oklch(26.9% 0 none);
+  --pg-gray-900: oklch(20.5% 0 none);
+  --pg-gray-950: oklch(14.5% 0 none);
+}
+
+[data-gray="stone"] {
+  --pg-gray-50: oklch(98.5% 0.001 106.423);
+  --pg-gray-100: oklch(97% 0.001 106.424);
+  --pg-gray-200: oklch(92.3% 0.003 48.717);
+  --pg-gray-300: oklch(86.9% 0.005 56.366);
+  --pg-gray-400: oklch(70.9% 0.01 56.259);
+  --pg-gray-500: oklch(55.3% 0.013 58.071);
+  --pg-gray-600: oklch(44.4% 0.011 73.639);
+  --pg-gray-700: oklch(37.4% 0.01 67.558);
+  --pg-gray-800: oklch(26.8% 0.007 34.298);
+  --pg-gray-900: oklch(21.6% 0.006 56.043);
+  --pg-gray-950: oklch(14.7% 0.004 49.25);
+}
+

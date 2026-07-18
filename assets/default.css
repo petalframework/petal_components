@@ -184,7 +184,7 @@
     @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/25 dark:active:bg-primary-500/30;
   }
   .pc-button--primary-outline {
-    @apply bg-transparent border-primary-600/30 text-primary-700 shadow-xs hover:bg-primary-50 hover:border-primary-600/50 hover:text-primary-800 active:bg-primary-100 dark:bg-white/5 dark:border-primary-500/40 dark:text-primary-300 dark:hover:bg-primary-500/10 dark:hover:text-primary-300 dark:hover:border-primary-500/60 dark:active:bg-primary-500/20;
+    @apply bg-transparent border-primary-600/30 text-primary-700 shadow-xs hover:bg-primary-50 hover:border-primary-600/50 hover:text-primary-800 active:bg-primary-100 dark:bg-gray-400/8 dark:border-primary-500/40 dark:text-primary-300 dark:hover:bg-primary-500/10 dark:hover:text-primary-300 dark:hover:border-primary-500/60 dark:active:bg-primary-500/20;
   }
   .pc-button--primary-inverted {
     @apply border-primary-400 dark:border-primary-400 dark:hover:border-primary-700 dark:hover:text-white dark:hover:bg-primary-700 dark:text-primary-400 hover:border-primary-600 text-primary-600 hover:text-white active:bg-primary-700 hover:bg-primary-600;
@@ -205,7 +205,7 @@
     @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-500/15 dark:text-secondary-300 dark:hover:bg-secondary-500/25 dark:active:bg-secondary-500/30;
   }
   .pc-button--secondary-outline {
-    @apply bg-transparent border-secondary-600/30 text-secondary-700 shadow-xs hover:bg-secondary-50 hover:border-secondary-600/50 hover:text-secondary-800 active:bg-secondary-100 dark:bg-white/5 dark:border-secondary-500/40 dark:text-secondary-300 dark:hover:bg-secondary-500/10 dark:hover:text-secondary-300 dark:hover:border-secondary-500/60 dark:active:bg-secondary-500/20;
+    @apply bg-transparent border-secondary-600/30 text-secondary-700 shadow-xs hover:bg-secondary-50 hover:border-secondary-600/50 hover:text-secondary-800 active:bg-secondary-100 dark:bg-gray-400/8 dark:border-secondary-500/40 dark:text-secondary-300 dark:hover:bg-secondary-500/10 dark:hover:text-secondary-300 dark:hover:border-secondary-500/60 dark:active:bg-secondary-500/20;
   }
   .pc-button--secondary-inverted {
     @apply border-secondary-400 dark:border-secondary-400 dark:hover:border-secondary-700 dark:hover:text-white dark:hover:bg-secondary-700 dark:text-secondary-400 hover:border-secondary-600 text-secondary-600 hover:text-white active:bg-secondary-700 hover:bg-secondary-600;
@@ -220,7 +220,7 @@
     @apply text-gray-700 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-white dark:hover:bg-gray-200 dark:hover:border-transparent dark:border-transparent;
   }
   .pc-button--white-outline {
-    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
+    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-200 dark:hover:bg-gray-400/17 dark:hover:text-gray-50 dark:active:bg-gray-400/25;
   }
   .pc-button--white-inverted {
     @apply text-gray-600 border-gray-400 dark:border-white dark:hover:border-gray-700 dark:hover:text-black dark:hover:bg-white dark:text-gray-300 hover:border-gray-600 hover:text-black active:bg-gray-700 hover:bg-white;
@@ -241,7 +241,7 @@
     @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-500/15 dark:text-info-300 dark:hover:bg-info-500/25 dark:active:bg-info-500/30;
   }
   .pc-button--info-outline {
-    @apply bg-transparent border-info-600/30 text-info-700 shadow-xs hover:bg-info-50 hover:border-info-600/50 hover:text-info-800 active:bg-info-100 dark:bg-white/5 dark:border-info-500/40 dark:text-info-300 dark:hover:bg-info-500/10 dark:hover:text-info-300 dark:hover:border-info-500/60 dark:active:bg-info-500/20;
+    @apply bg-transparent border-info-600/30 text-info-700 shadow-xs hover:bg-info-50 hover:border-info-600/50 hover:text-info-800 active:bg-info-100 dark:bg-gray-400/8 dark:border-info-500/40 dark:text-info-300 dark:hover:bg-info-500/10 dark:hover:text-info-300 dark:hover:border-info-500/60 dark:active:bg-info-500/20;
   }
   .pc-button--info-inverted {
     @apply text-info-600 border-info-400 dark:border-info-400 dark:hover:border-info-700 dark:hover:text-white dark:hover:bg-info-700 dark:text-info-400 hover:border-info-600 hover:text-white active:bg-info-800 hover:bg-info-600;
@@ -262,7 +262,7 @@
     @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-500/15 dark:text-success-300 dark:hover:bg-success-500/25 dark:active:bg-success-500/30;
   }
   .pc-button--success-outline {
-    @apply bg-transparent border-success-600/30 text-success-700 shadow-xs hover:bg-success-50 hover:border-success-600/50 hover:text-success-800 active:bg-success-100 dark:bg-white/5 dark:border-success-500/40 dark:text-success-300 dark:hover:bg-success-500/10 dark:hover:text-success-300 dark:hover:border-success-500/60 dark:active:bg-success-500/20;
+    @apply bg-transparent border-success-600/30 text-success-700 shadow-xs hover:bg-success-50 hover:border-success-600/50 hover:text-success-800 active:bg-success-100 dark:bg-gray-400/8 dark:border-success-500/40 dark:text-success-300 dark:hover:bg-success-500/10 dark:hover:text-success-300 dark:hover:border-success-500/60 dark:active:bg-success-500/20;
   }
   .pc-button--success-inverted {
     @apply text-success-600 border-success-400 dark:border-success-400 dark:hover:border-success-700 dark:hover:text-white dark:hover:bg-success-700 dark:text-success-400 hover:border-success-600 hover:text-white active:bg-success-800 hover:bg-success-600;
@@ -283,7 +283,7 @@
     @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-500/15 dark:text-warning-300 dark:hover:bg-warning-500/25 dark:active:bg-warning-500/30;
   }
   .pc-button--warning-outline {
-    @apply bg-transparent border-warning-600/30 text-warning-700 shadow-xs hover:bg-warning-50 hover:border-warning-600/50 hover:text-warning-800 active:bg-warning-100 dark:bg-white/5 dark:border-warning-500/40 dark:text-warning-300 dark:hover:bg-warning-500/10 dark:hover:text-warning-300 dark:hover:border-warning-500/60 dark:active:bg-warning-500/20;
+    @apply bg-transparent border-warning-600/30 text-warning-700 shadow-xs hover:bg-warning-50 hover:border-warning-600/50 hover:text-warning-800 active:bg-warning-100 dark:bg-gray-400/8 dark:border-warning-500/40 dark:text-warning-300 dark:hover:bg-warning-500/10 dark:hover:text-warning-300 dark:hover:border-warning-500/60 dark:active:bg-warning-500/20;
   }
   .pc-button--warning-inverted {
     @apply text-warning-600 border-warning-400 dark:border-warning-400 dark:hover:border-warning-700 dark:hover:text-white dark:hover:bg-warning-700 dark:text-warning-400 hover:border-warning-600 hover:text-white active:bg-warning-800 hover:bg-warning-600;
@@ -304,7 +304,7 @@
     @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-500/15 dark:text-danger-300 dark:hover:bg-danger-500/25 dark:active:bg-danger-500/30;
   }
   .pc-button--danger-outline {
-    @apply bg-transparent border-danger-600/30 text-danger-700 shadow-xs hover:bg-danger-50 hover:border-danger-600/50 hover:text-danger-800 active:bg-danger-100 dark:bg-white/5 dark:border-danger-500/40 dark:text-danger-300 dark:hover:bg-danger-500/10 dark:hover:text-danger-300 dark:hover:border-danger-500/60 dark:active:bg-danger-500/20;
+    @apply bg-transparent border-danger-600/30 text-danger-700 shadow-xs hover:bg-danger-50 hover:border-danger-600/50 hover:text-danger-800 active:bg-danger-100 dark:bg-gray-400/8 dark:border-danger-500/40 dark:text-danger-300 dark:hover:bg-danger-500/10 dark:hover:text-danger-300 dark:hover:border-danger-500/60 dark:active:bg-danger-500/20;
   }
   .pc-button--danger-inverted {
     @apply text-danger-600 border-danger-400 dark:border-danger-400 dark:hover:border-danger-700 dark:hover:text-white dark:hover:bg-danger-700 dark:text-danger-400 hover:border-danger-600 hover:text-white active:bg-danger-800 hover:bg-danger-600;
@@ -325,7 +325,7 @@
     @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-500/15 dark:text-gray-300 dark:hover:bg-gray-500/25 dark:active:bg-gray-500/30;
   }
   .pc-button--gray-outline {
-    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
+    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-200 dark:hover:bg-gray-400/17 dark:hover:text-gray-50 dark:active:bg-gray-400/25;
   }
   .pc-button--gray-inverted {
     @apply text-gray-600 border-gray-400 dark:border-gray-400 dark:hover:border-gray-700 dark:hover:text-white dark:hover:bg-gray-700 dark:text-gray-400 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600;
@@ -334,13 +334,13 @@
     @apply text-white bg-gray-600 border-transparent shadow-xl active:bg-gray-800 hover:bg-gray-700 shadow-gray-500/30 dark:hover:shadow-gray-600/30 dark:active:shadow-gray-700/30;
   }
   .pc-button--gray-ghost {
-    @apply bg-transparent border-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
+    @apply bg-transparent border-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-400/17 dark:hover:text-gray-50 dark:active:bg-gray-400/25;
   }
   .pc-button--light {
     @apply text-gray-900 bg-white border-gray-300 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 active:border-gray-400 active:bg-gray-200 active:text-black dark:bg-gray-800 dark:text-white dark:hover:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:active:border-gray-700 dark:active:bg-gray-800 dark:active:text-white;
   }
   .pc-button--light-outline {
-    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
+    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-200 dark:hover:bg-gray-400/17 dark:hover:text-gray-50 dark:active:bg-gray-400/25;
   }
   .pc-button--light-inverted {
     @apply text-gray-900 border-gray-300 hover:border-gray-600 hover:text-white active:bg-gray-700 hover:bg-gray-600 dark:hover:text-black dark:hover:bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:border-white dark:active:bg-gray-300 dark:active:border-gray-300;
@@ -352,7 +352,7 @@
     @apply text-white border-transparent bg-gray-950 dark:text-gray-950 dark:bg-white dark:hover:text-gray-900 dark:hover:bg-gray-100 dark:active:bg-gray-300 dark:active:text-black hover:bg-gray-800 active:bg-gray-900;
   }
   .pc-button--dark-outline {
-    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50 dark:active:bg-white/15;
+    @apply bg-transparent border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-200 dark:hover:bg-gray-400/17 dark:hover:text-gray-50 dark:active:bg-gray-400/25;
   }
   .pc-button--dark-inverted {
     @apply border-gray-950 text-gray-950 hover:border-transparent hover:text-white active:bg-gray-800 hover:bg-gray-950 dark:hover:bg-white dark:hover:text-black dark:bg-gray-950 dark:text-white dark:active:bg-gray-200 dark:active:border-gray-200 dark:border-white;
@@ -586,7 +586,7 @@
   }
 
   .pc-button-group__separator {
-    @apply w-px shrink-0 self-stretch bg-gray-300 dark:bg-white/15;
+    @apply w-px shrink-0 self-stretch bg-gray-300 dark:bg-gray-400/25;
   }
 
   /* between primary solids the hairline tints from the label colour instead */
@@ -599,7 +599,7 @@
   }
 
   .pc-button-group__text {
-    @apply flex items-center gap-2 border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-300;
+    @apply flex items-center gap-2 border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 shadow-xs dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-300;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -753,10 +753,10 @@
     @apply mb-6 text-xl leading-relaxed text-gray-500 dark:text-gray-400;
   }
   .pc-blockquote {
-    @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-white/15 dark:text-gray-100;
+    @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-inline-code {
-    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-white/10 dark:text-gray-100;
+    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-gray-400/17 dark:text-gray-100;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
   }
   .pc-text-muted {
@@ -816,7 +816,7 @@
     color: var(--pc-button-solid-fg, #fff);
   }
   .pc-badge--primary-outline {
-    @apply bg-transparent text-primary-700 border-primary-600/30 dark:bg-white/5 dark:text-primary-300 dark:border-primary-500/40;
+    @apply bg-transparent text-primary-700 border-primary-600/30 dark:bg-gray-400/8 dark:text-primary-300 dark:border-primary-500/40;
   }
 
   .pc-badge--secondary-light {
@@ -829,7 +829,7 @@
     @apply text-white bg-secondary-600 border-secondary-600;
   }
   .pc-badge--secondary-outline {
-    @apply bg-transparent text-secondary-700 border-secondary-600/30 dark:bg-white/5 dark:text-secondary-300 dark:border-secondary-500/40;
+    @apply bg-transparent text-secondary-700 border-secondary-600/30 dark:bg-gray-400/8 dark:text-secondary-300 dark:border-secondary-500/40;
   }
 
   .pc-badge--info-light {
@@ -842,7 +842,7 @@
     @apply text-white bg-info-600 border-info-600;
   }
   .pc-badge--info-outline {
-    @apply bg-transparent text-info-700 border-info-600/30 dark:bg-white/5 dark:text-info-300 dark:border-info-500/40;
+    @apply bg-transparent text-info-700 border-info-600/30 dark:bg-gray-400/8 dark:text-info-300 dark:border-info-500/40;
   }
 
   .pc-badge--success-light {
@@ -855,7 +855,7 @@
     @apply text-white bg-success-600 border-success-600;
   }
   .pc-badge--success-outline {
-    @apply bg-transparent text-success-700 border-success-600/30 dark:bg-white/5 dark:text-success-300 dark:border-success-500/40;
+    @apply bg-transparent text-success-700 border-success-600/30 dark:bg-gray-400/8 dark:text-success-300 dark:border-success-500/40;
   }
 
   .pc-badge--warning-light {
@@ -868,7 +868,7 @@
     @apply text-white bg-warning-600 border-warning-600;
   }
   .pc-badge--warning-outline {
-    @apply bg-transparent text-warning-700 border-warning-600/30 dark:bg-white/5 dark:text-warning-300 dark:border-warning-500/40;
+    @apply bg-transparent text-warning-700 border-warning-600/30 dark:bg-gray-400/8 dark:text-warning-300 dark:border-warning-500/40;
   }
 
   .pc-badge--danger-light {
@@ -881,7 +881,7 @@
     @apply text-white bg-danger-600 border-danger-600;
   }
   .pc-badge--danger-outline {
-    @apply bg-transparent text-danger-700 border-danger-600/30 dark:bg-white/5 dark:text-danger-300 dark:border-danger-500/40;
+    @apply bg-transparent text-danger-700 border-danger-600/30 dark:bg-gray-400/8 dark:text-danger-300 dark:border-danger-500/40;
   }
 
   .pc-badge--gray-light {
@@ -894,7 +894,7 @@
     @apply text-white bg-gray-600 border-gray-600 dark:bg-gray-700 dark:border-gray-700;
   }
   .pc-badge--gray-outline {
-    @apply bg-transparent text-gray-700 border-gray-300 dark:bg-white/5 dark:text-gray-200 dark:border-white/15;
+    @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
   }
 
   /* Alerts */
@@ -933,7 +933,7 @@
     @apply text-white bg-info-600;
   }
   .pc-alert--info-outline {
-    @apply bg-transparent text-info-700 border-info-600/30 dark:bg-white/5 dark:text-info-300 dark:border-info-500/40;
+    @apply bg-transparent text-info-700 border-info-600/30 dark:bg-gray-400/8 dark:text-info-300 dark:border-info-500/40;
   }
 
   /* Success variants */
@@ -947,7 +947,7 @@
     @apply text-white bg-success-600;
   }
   .pc-alert--success-outline {
-    @apply bg-transparent text-success-700 border-success-600/30 dark:bg-white/5 dark:text-success-300 dark:border-success-500/40;
+    @apply bg-transparent text-success-700 border-success-600/30 dark:bg-gray-400/8 dark:text-success-300 dark:border-success-500/40;
   }
 
   /* Warning variants */
@@ -961,7 +961,7 @@
     @apply text-white bg-warning-600;
   }
   .pc-alert--warning-outline {
-    @apply bg-transparent text-warning-700 border-warning-600/30 dark:bg-white/5 dark:text-warning-300 dark:border-warning-500/40;
+    @apply bg-transparent text-warning-700 border-warning-600/30 dark:bg-gray-400/8 dark:text-warning-300 dark:border-warning-500/40;
   }
 
   /* Danger variants */
@@ -975,7 +975,7 @@
     @apply text-white bg-danger-600;
   }
   .pc-alert--danger-outline {
-    @apply bg-transparent text-danger-700 border-danger-600/30 dark:bg-white/5 dark:text-danger-300 dark:border-danger-500/40;
+    @apply bg-transparent text-danger-700 border-danger-600/30 dark:bg-gray-400/8 dark:text-danger-300 dark:border-danger-500/40;
   }
 
   /* Alerts - dismiss button variants */
@@ -991,7 +991,7 @@
     @apply text-white hover:bg-info-500;
   }
   .pc-alert__dismiss-button--info-outline {
-    @apply text-info-700 hover:bg-info-50 dark:text-info-300 dark:hover:bg-white/10;
+    @apply text-info-700 hover:bg-info-50 dark:text-info-300 dark:hover:bg-gray-400/17;
   }
 
   /* Success dismiss button variants */
@@ -1005,7 +1005,7 @@
     @apply text-white hover:bg-success-500;
   }
   .pc-alert__dismiss-button--success-outline {
-    @apply text-success-700 hover:bg-success-50 dark:text-success-300 dark:hover:bg-white/10;
+    @apply text-success-700 hover:bg-success-50 dark:text-success-300 dark:hover:bg-gray-400/17;
   }
 
   /* Warning dismiss button variants */
@@ -1019,7 +1019,7 @@
     @apply text-white hover:bg-warning-500;
   }
   .pc-alert__dismiss-button--warning-outline {
-    @apply text-warning-700 hover:bg-warning-50 dark:text-warning-300 dark:hover:bg-white/10;
+    @apply text-warning-700 hover:bg-warning-50 dark:text-warning-300 dark:hover:bg-gray-400/17;
   }
 
   /* Danger dismiss button variants */
@@ -1033,7 +1033,7 @@
     @apply text-white hover:bg-danger-500;
   }
   .pc-alert__dismiss-button--danger-outline {
-    @apply text-danger-700 hover:bg-danger-50 dark:text-danger-300 dark:hover:bg-white/10;
+    @apply text-danger-700 hover:bg-danger-50 dark:text-danger-300 dark:hover:bg-gray-400/17;
   }
 
   /* Alert - gray (monochrome) */
@@ -1048,7 +1048,7 @@
     @apply text-white bg-gray-600;
   }
   .pc-alert--gray-outline {
-    @apply bg-transparent text-gray-700 border-gray-300 dark:bg-white/5 dark:text-gray-200 dark:border-white/15;
+    @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
   }
   .pc-alert__dismiss-button--gray-light {
     @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-300 dark:hover:text-gray-800;
@@ -1060,7 +1060,7 @@
     @apply text-white hover:bg-gray-500;
   }
   .pc-alert__dismiss-button--gray-outline {
-    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/10;
+    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-400/17;
   }
 
   /* Alerts - with icon */
@@ -1144,7 +1144,7 @@
     @apply w-14 h-7;
   }
   .pc-switch__fake-input {
-    @apply absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-transparent rounded-full pointer-events-none dark:bg-white/15 peer-checked:bg-primary-600 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500/50;
+    @apply absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-transparent rounded-full pointer-events-none dark:bg-gray-400/25 peer-checked:bg-primary-600 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500/50;
   }
   .pc-switch__fake-input--xs {
     @apply h-4 w-7;
@@ -1185,7 +1185,7 @@
     @apply peer-checked:translate-x-7;
   }
   .pc-text-input {
-    @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 placeholder:text-gray-400 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-white/5 dark:border-white/15 dark:text-gray-100 dark:placeholder:text-gray-500;
+    @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 placeholder:text-gray-400 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100 dark:placeholder:text-gray-500;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -1259,7 +1259,7 @@
 
   /* Date and Time Field Styles */
   .pc-date-input {
-    @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-white/5 dark:border-white/15 dark:text-gray-100;
+    @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
     @apply [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-gray-900 dark:[&::-webkit-date-and-time-value]:text-gray-100 pe-[40px];
     border-radius: var(--pc-radius, 0.625rem);
   }
@@ -1283,7 +1283,7 @@
   }
 
   .pc-select {
-    @apply block w-full py-2 pl-3 pr-10 text-base bg-transparent border-gray-300 shadow-xs text-gray-900 cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-white/5 dark:border-white/15 dark:text-gray-100;
+    @apply block w-full py-2 pl-3 pr-10 text-base bg-transparent border-gray-300 shadow-xs text-gray-900 cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
     border-radius: var(--pc-radius, 0.625rem);
   }
   select.pc-text-input[multiple],
@@ -1306,7 +1306,7 @@
   }
 
   .pc-file-input {
-    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-4 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-white/15 dark:file:bg-white/5 dark:file:text-gray-200 dark:hover:file:bg-white/10 file:transition-colors file:duration-200;
+    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-4 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-gray-400/25 dark:file:bg-gray-400/8 dark:file:text-gray-200 dark:hover:file:bg-gray-400/17 file:transition-colors file:duration-200;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-file-input::file-selector-button {
@@ -1315,7 +1315,7 @@
   /* Input Group */
 
   .pc-input-group {
-    @apply flex flex-col w-full bg-transparent border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-white/5 dark:border-white/15;
+    @apply flex flex-col w-full bg-transparent border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-gray-400/8 dark:border-gray-400/25;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-input-group:has(input:disabled, select:disabled, textarea:disabled) {
@@ -1355,7 +1355,7 @@
 
   /* kbd hints: shadcn-calibre chip, nested radius */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
-    @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-white/10 dark:text-gray-400;
+    @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
   }
   .pc-input-group__addon--trailing:has(> kbd) {
@@ -1390,7 +1390,7 @@
     @apply flex items-center;
   }
   .pc-otp__slot {
-    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-white/5 dark:border-white/15 dark:text-gray-100;
+    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-otp__group .pc-otp__slot + .pc-otp__slot {
     @apply -ml-px;
@@ -1432,7 +1432,7 @@
 
 
   .pc-color-input {
-    @apply h-10 w-14 bg-transparent border-gray-300 shadow-xs cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white/5 dark:border-white/15;
+    @apply h-10 w-14 bg-transparent border-gray-300 shadow-xs cursor-pointer transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-400/8 dark:border-gray-400/25;
     @apply [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:border-0;
     border-radius: var(--pc-radius, 0.625rem);
   }
@@ -1529,7 +1529,7 @@
 
   /* -------------------------------------------------------------------- */
   .pc-checkbox {
-    @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-gray-400/8 dark:border-gray-400/25 disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: clamp(0px, calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.25rem);
   }
   .pc-checkbox-group {
@@ -1548,7 +1548,7 @@
     @apply inline-flex items-center gap-3 cursor-pointer;
   }
   .pc-radio {
-    @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-white/5 dark:border-white/15 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-gray-400/8 dark:border-gray-400/25 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .pc-radio-group {
     @apply pt-2;
@@ -1631,19 +1631,19 @@
   }
 
   .pc-radio-card--outline .pc-radio-card__fake-input {
-    @apply bg-transparent border border-gray-300 dark:bg-white/5 dark:border-white/15;
+    @apply bg-transparent border border-gray-300 dark:bg-gray-400/8 dark:border-gray-400/25;
   }
 
   .pc-radio-card--outline:hover .pc-radio-card__fake-input {
-    @apply bg-gray-50 dark:bg-white/10;
+    @apply bg-gray-50 dark:bg-gray-400/17;
   }
 
   .pc-radio-card--classic .pc-radio-card__fake-input {
-    @apply bg-gray-100 border border-transparent dark:bg-white/10;
+    @apply bg-gray-100 border border-transparent dark:bg-gray-400/17;
   }
 
   .pc-radio-card--classic:hover .pc-radio-card__fake-input {
-    @apply bg-gray-200/70 dark:bg-white/15;
+    @apply bg-gray-200/70 dark:bg-gray-400/25;
   }
 
   /* Checked State Styles */
@@ -1728,7 +1728,7 @@
     @apply w-5 h-5 ml-2 -mr-1 dark:text-gray-100;
   }
   .pc-dropdown__menu-items-wrapper {
-    @apply absolute z-30 w-56 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-white/10;
+    @apply absolute z-30 w-56 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-dropdown__menu-items-wrapper-placement--left {
@@ -1738,15 +1738,15 @@
     @apply left-0 origin-top-left;
   }
   .pc-dropdown__menu-item {
-    @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10;
+    @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-400/17;
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
   .pc-dropdown__trigger-button--no-label {
-    @apply flex items-center p-1.5 text-gray-400 bg-transparent transition-colors duration-200 ease-out hover:text-gray-600 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:text-gray-300 dark:hover:bg-white/10;
+    @apply flex items-center p-1.5 text-gray-400 bg-transparent transition-colors duration-200 ease-out hover:text-gray-600 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:text-gray-300 dark:hover:bg-gray-400/17;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-dropdown__trigger-button--with-label {
-    @apply inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium bg-transparent border border-gray-300 text-gray-700 shadow-xs transition-colors duration-200 ease-out hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-gray-50;
+    @apply inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium bg-transparent border border-gray-300 text-gray-700 shadow-xs transition-colors duration-200 ease-out hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-200 dark:hover:bg-gray-400/17 dark:hover:text-gray-50;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-dropdown__trigger-button--with-label-and-trigger-element {
@@ -1759,7 +1759,7 @@
     @apply w-5 h-5;
   }
   .pc-dropdown__separator {
-    @apply h-px my-1 -mx-1 bg-gray-200 dark:bg-white/10;
+    @apply h-px my-1 -mx-1 bg-gray-200 dark:bg-gray-400/17;
   }
   .pc-dropdown__label {
     @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
@@ -1773,7 +1773,7 @@
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-command__input-wrap {
-    @apply flex items-center gap-2 border-b border-gray-200 px-3 dark:border-white/10;
+    @apply flex items-center gap-2 border-b border-gray-200 px-3 dark:border-gray-400/17;
   }
   .pc-command__input-icon {
     @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
@@ -1799,7 +1799,7 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-command__item[data-selected] {
-    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-400/17 dark:text-white;
   }
   .pc-command__item[data-disabled] {
     @apply pointer-events-none opacity-50;
@@ -1811,7 +1811,7 @@
     @apply text-gray-600 dark:text-gray-300;
   }
   .pc-command__separator {
-    @apply -mx-1 my-1 h-px bg-gray-200 dark:bg-white/10;
+    @apply -mx-1 my-1 h-px bg-gray-200 dark:bg-gray-400/17;
   }
   .pc-command__shortcut {
     @apply ml-auto text-xs tracking-widest text-gray-400 dark:text-gray-500;
@@ -1893,7 +1893,7 @@
     @apply relative inline-block;
   }
   .pc-popover__panel {
-    @apply absolute z-40 w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-white/10;
+    @apply absolute z-40 w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-popover__panel--top {
@@ -2023,10 +2023,10 @@
   }
 
   .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-white/10;
+    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-400/17;
   }
   .pc-avatar--with-placeholder-initials {
-    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-white/10 dark:text-gray-300;
+    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-400/17 dark:text-gray-300;
   }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-950;
@@ -2173,17 +2173,17 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item--is-current {
-    @apply border border-gray-300 bg-transparent font-medium text-gray-900 shadow-xs dark:border-white/15 dark:bg-white/5 dark:text-gray-100;
+    @apply border border-gray-300 bg-transparent font-medium text-gray-900 shadow-xs dark:border-gray-400/25 dark:bg-gray-400/8 dark:text-gray-100;
   }
   .pc-pagination__item--is-not-current {
-    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200;
+    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
   }
   .pc-pagination__item--current {
     @apply inline-flex h-9 min-w-9 items-center justify-center px-2;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous {
-    @apply mr-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-white/10 enabled:dark:hover:text-gray-200 transition-colors duration-150;
+    @apply mr-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-gray-400/17 enabled:dark:hover:text-gray-200 transition-colors duration-150;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous__chevron {
@@ -2191,7 +2191,7 @@
     @apply w-5! h-5! text-gray-600 dark:text-gray-400;
   }
   .pc-pagination__item__next {
-    @apply ml-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-white/10 enabled:dark:hover:text-gray-200 transition-colors duration-150;
+    @apply ml-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-gray-400/17 enabled:dark:hover:text-gray-200 transition-colors duration-150;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__next__chevron {
@@ -2226,7 +2226,7 @@
     @apply flex gap-x-2 gap-y-2;
   }
   .pc-tabs--underline {
-    @apply gap-x-6 border-b border-gray-200 dark:border-white/10;
+    @apply gap-x-6 border-b border-gray-200 dark:border-gray-400/17;
   }
 
   /* Tabs - Pill */
@@ -2239,10 +2239,10 @@
     @apply bg-primary-100 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
   }
   .pc-tab__pill--is-not-active {
-    @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-white/10 hover:bg-gray-100;
+    @apply text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-400/17 hover:bg-gray-100;
   }
   .pc-tabs--segmented {
-    @apply inline-flex items-center gap-1 bg-gray-100 p-1 dark:bg-white/10;
+    @apply inline-flex items-center gap-1 bg-gray-100 p-1 dark:bg-gray-400/17;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-tab__segment {
@@ -2320,12 +2320,12 @@
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-card--basic {
-    @apply border border-gray-200 shadow-xs dark:border-white/10;
+    @apply border border-gray-200 shadow-xs dark:border-gray-400/17;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   /* legacy alias of basic - visually identical; slated for removal in 5.0 */
   .pc-card--outline {
-    @apply border border-gray-200 shadow-xs dark:border-white/10;
+    @apply border border-gray-200 shadow-xs dark:border-gray-400/17;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
@@ -2365,7 +2365,7 @@
     @apply shrink-0 object-cover w-full;
   }
   .pc-card__image-placeholder {
-    @apply shrink-0 w-full bg-gray-300 dark:bg-white/10;
+    @apply shrink-0 w-full bg-gray-300 dark:bg-gray-400/17;
   }
 
   /* Cards - footer */
@@ -2377,17 +2377,17 @@
   /* Table */
 
   .pc-table--basic {
-    @apply min-w-full overflow-hidden shadow-sm table-auto ring-1 ring-gray-200 dark:ring-white/10;
+    @apply min-w-full overflow-hidden shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-table--ghost {
     @apply min-w-full overflow-hidden table-auto;
   }
   .pc-table__th {
-    @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-white/5 dark:text-white;
+    @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-gray-400/8 dark:text-white;
   }
   .pc-table__tfoot {
-    @apply border-t border-gray-200 bg-gray-50 font-medium text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-100;
+    @apply border-t border-gray-200 bg-gray-50 font-medium text-gray-900 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-100;
   }
   /* a totals row under "no data" is nonsense - hide the footer whenever the
      body is showing only its empty-state row (works for lists AND streams,
@@ -2399,7 +2399,7 @@
     @apply border-0 bg-transparent;
   }
   .pc-table__tr {
-    @apply bg-white border-b border-gray-200 dark:border-white/10 dark:bg-transparent last:border-none;
+    @apply bg-white border-b border-gray-200 dark:border-gray-400/17 dark:bg-transparent last:border-none;
   }
   .pc-table__tr--row-click {
     @apply transition-colors duration-150;
@@ -2423,7 +2423,7 @@
     @apply px-3 py-3;
   }
   .pc-table--ghost .pc-table__tr {
-    @apply border-gray-100 dark:border-white/5;
+    @apply border-gray-100 dark:border-gray-400/8;
   }
   .pc-table--compact .pc-table__th {
     @apply py-2;
@@ -2462,7 +2462,7 @@
   /* Accordion */
 
   .pc-accordion-item {
-    @apply flex w-full items-center justify-between border border-gray-200 bg-white p-4 text-left text-gray-900 transition-colors duration-200 hover:bg-gray-50 dark:border-white/10 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-white/5;
+    @apply flex w-full items-center justify-between border border-gray-200 bg-white p-4 text-left text-gray-900 transition-colors duration-200 hover:bg-gray-50 dark:border-gray-400/17 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-400/8;
   }
   .pc-accordion-item--first {
     border-start-start-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
@@ -2481,14 +2481,14 @@
     @apply shrink-0 w-6 h-6 ml-3 text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
   .pc-accordion-item__content-container {
-    @apply border border-gray-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-gray-500 dark:border-white/10 dark:bg-gray-900 dark:text-gray-400;
+    @apply border border-gray-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-gray-500 dark:border-gray-400/17 dark:bg-gray-900 dark:text-gray-400;
   }
   .pc-accordion-item__content-container--not-last {
     @apply border-b-0;
   }
   /* default: the shadcn row style - hairline dividers, no boxes */
   .pc-accordion-row {
-    @apply border-b border-gray-200 last:border-b-0 dark:border-white/10;
+    @apply border-b border-gray-200 last:border-b-0 dark:border-gray-400/17;
   }
   .pc-accordion-item--row {
     @apply flex w-full items-start justify-between gap-4 py-4 text-left text-sm font-medium text-gray-900 transition-all hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-100;
@@ -2525,12 +2525,12 @@
   }
   /* only the bordered variant highlights its open header - rows stay clean */
   .pc-accordion-item.pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes {
-    @apply bg-gray-50 dark:bg-white/5;
+    @apply bg-gray-50 dark:bg-gray-400/8;
   }
 
   /* Ghost variant */
   .pc-accordion--ghost {
-    @apply w-full mx-auto divide-y divide-gray-900/10 dark:divide-gray-100/10;
+    @apply w-full mx-auto divide-y divide-gray-900/10 dark:divide-gray-400/17;
   }
 
   .pc-accordion-item--ghost {
@@ -2635,7 +2635,7 @@
   .pc-review-card {
     @apply relative md:w-64 cursor-pointer overflow-hidden border p-4
       border-black/10 bg-black/[0.01] hover:bg-black/[0.05]
-      dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/[0.15];
+      dark:border-gray-400/17 dark:bg-gray-400/17 dark:hover:bg-white/[0.15];
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
@@ -2696,7 +2696,7 @@
     @apply fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6;
   }
   .pc-modal__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-white/10;
+    @apply w-full max-h-full overflow-auto bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-modal__box--sm {
@@ -2742,7 +2742,7 @@
      per-brick animation classes beat the group cascade, which beats the
      pulse default (the :where() keeps base/cascade at zero specificity). */
   .pc-skeleton {
-    @apply bg-gray-200 dark:bg-white/10;
+    @apply bg-gray-200 dark:bg-gray-400/17;
   }
   .pc-skeleton--block {
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
@@ -3189,7 +3189,7 @@
     @apply max-w-full;
   }
   .pc-slideover__header {
-    @apply flex-none px-5 py-4 border-b border-gray-100 dark:border-white/10;
+    @apply flex-none px-5 py-4 border-b border-gray-100 dark:border-gray-400/17;
   }
   .pc-slideover__header__titles {
     @apply flex min-w-0 flex-col gap-1;
@@ -3204,14 +3204,14 @@
     @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-white/10 dark:hover:text-gray-300;
+    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-slideover__header__close-svg {
     @apply h-4 w-4 fill-current;
   }
   .pc-slideover__footer {
-    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-white/10;
+    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-400/17;
   }
   .pc-slideover__content {
     @apply p-5 flex-1 overflow-y-auto;
@@ -3250,7 +3250,7 @@
 
   /* Indicator */
   .pc-stepper__indicator {
-    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-white/15 dark:text-gray-400;
+    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-gray-400/25 dark:text-gray-400;
   }
 
   .pc-stepper__node--complete .pc-stepper__indicator {
@@ -3362,7 +3362,7 @@
 
   /* Connector */
   .pc-stepper__connector {
-    @apply shrink bg-gray-200 transition-colors dark:bg-white/10;
+    @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/17;
   }
 
   .pc-stepper__connector--complete {
@@ -3577,11 +3577,11 @@
   }
 
   .pc-vertical-menu-item--active {
-    @apply text-primary-700 dark:text-primary-300 bg-gray-50 dark:bg-white/10;
+    @apply text-primary-700 dark:text-primary-300 bg-gray-50 dark:bg-gray-400/17;
   }
 
   .pc-vertical-menu-item--inactive {
-    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-white/10;
+    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white dark:hover:bg-gray-400/17;
   }
 
   .pc-vertical-menu__menu-group__wrapper {
@@ -3676,7 +3676,7 @@
     --pc-chat-assistant-bg: var(--color-gray-100, #f3f4f6);
     --pc-chat-assistant-fg: var(--color-gray-900, #111827);
     @apply flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
-    @apply dark:[--pc-chat-assistant-bg:#ffffff0f] dark:[--pc-chat-assistant-fg:#f4f4f5];
+    @apply dark:[--pc-chat-assistant-bg:color-mix(in_oklab,var(--color-gray-400)_10%,transparent)] dark:[--pc-chat-assistant-fg:var(--color-gray-100)];
   }
   .pc-chat__thread {
     @apply flex flex-1 flex-col gap-3 overflow-y-auto p-4;
@@ -3815,13 +3815,13 @@
   }
   /* Inline code (code blocks carry their own theme colours from the highlighter). */
   .pc-chat__markdown :not(pre) > code {
-    @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-white/10;
+    @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-gray-400/17;
   }
   .pc-chat__markdown pre {
     @apply relative my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
   }
   .pc-chat__code-copy {
-    @apply absolute right-2 top-2 rounded bg-white/10 px-2 py-0.5 text-[11px] text-white/80 hover:bg-white/20;
+    @apply absolute right-2 top-2 rounded bg-gray-100/10 px-2 py-0.5 text-[11px] text-white/80 hover:bg-white/20;
   }
   .pc-chat__markdown table {
     @apply my-2 w-full border-collapse text-left;
@@ -3831,7 +3831,7 @@
     @apply border border-gray-200 px-2 py-1 dark:border-gray-700;
   }
   .pc-chat__markdown th {
-    @apply bg-black/5 font-semibold dark:bg-white/10;
+    @apply bg-black/5 font-semibold dark:bg-gray-400/17;
   }
   /* Tool-call card (generative-UI widgets) */
   .pc-chat__tool {
@@ -3901,7 +3901,7 @@
     /* line colour lives on the parent - dark: variants don't compile inside
        pseudo-element selectors, they'd silently drop */
     --pc-chat-marker-line: var(--color-gray-200, #e4e4e7);
-    @apply gap-3 dark:[--pc-chat-marker-line:#ffffff1a];
+    @apply gap-3 dark:[--pc-chat-marker-line:color-mix(in_oklab,var(--color-gray-100)_10%,transparent)];
   }
   .pc-chat__marker--separator::before,
   .pc-chat__marker--separator::after {
@@ -3910,7 +3910,7 @@
     background-color: var(--pc-chat-marker-line);
   }
   .pc-chat__marker--border {
-    @apply border-b border-gray-200 pb-2.5 dark:border-white/10;
+    @apply border-b border-gray-200 pb-2.5 dark:border-gray-400/17;
   }
   .pc-chat__marker-icon {
     @apply shrink-0;
@@ -4000,7 +4000,7 @@
   }
 
   .pc-chat__composer-banner {
-    @apply flex items-center justify-between rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:bg-white/5 dark:text-gray-300;
+    @apply flex items-center justify-between rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:bg-gray-400/8 dark:text-gray-300;
   }
   .pc-chat__composer-banner-label {
     @apply flex items-center gap-1.5;
@@ -4009,7 +4009,7 @@
     @apply h-3.5 w-3.5 shrink-0;
   }
   .pc-chat__composer-banner-cancel {
-    @apply rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-100;
+    @apply rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-400/17 dark:hover:text-gray-100;
   }
   .pc-chat__composer-input {
     @apply flex-1 resize-none overflow-y-hidden border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none disabled:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
@@ -4110,7 +4110,7 @@
 
   .pc-nav-menu__link-item,
   .pc-nav-menu__trigger {
-    @apply inline-flex items-center gap-x-1 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white;
+    @apply inline-flex items-center gap-x-1 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-300 dark:hover:bg-gray-400/17 dark:hover:text-white;
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
@@ -4119,7 +4119,7 @@
   }
 
   .pc-nav-menu__trigger[aria-expanded="true"] {
-    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-400/17 dark:text-white;
   }
 
   .pc-nav-menu__chevron {
@@ -4136,7 +4136,7 @@
      width is clamped to the viewport and the panel scrolls if it is taller than
      the screen, so it is never clipped off the bottom on a phone. */
   .pc-nav-menu__panel {
-    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto border border-gray-200 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-gray-900 sm:max-h-none sm:overflow-hidden;
+    @apply absolute left-0 top-full z-20 mt-3 max-h-[85vh] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-400/17 dark:bg-gray-900 sm:max-h-none sm:overflow-hidden;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
 
@@ -4166,16 +4166,16 @@
 
   /* Mega menu: spans the nearest positioned ancestor (give your header `relative`). */
   .pc-nav-menu__panel--full {
-    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-x-0 border-t border-gray-200 p-6 dark:border-white/10;
+    @apply inset-x-0 mt-0 w-auto max-w-none rounded-none border-x-0 border-t border-gray-200 p-6 dark:border-gray-400/17;
   }
 
   .pc-nav-menu__link {
-    @apply flex gap-x-4 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-white/5;
+    @apply flex gap-x-4 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-400/8;
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-nav-menu__link-icon {
-    @apply flex h-11 w-11 flex-none items-center justify-center bg-gray-100 transition-colors group-hover:bg-white dark:bg-white/5 dark:group-hover:bg-white/10;
+    @apply flex h-11 w-11 flex-none items-center justify-center bg-gray-100 transition-colors group-hover:bg-white dark:bg-gray-400/8 dark:group-hover:bg-gray-400/17;
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
@@ -4197,7 +4197,7 @@
 
   /* Footer: negative margins escape the panel's p-4 (p-6 when full) for a full-bleed strip */
   .pc-nav-menu__footer {
-    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-200 bg-gray-50 dark:divide-white/10 dark:bg-white/[0.03];
+    @apply -mx-4 -mb-4 mt-4 grid auto-cols-fr grid-flow-col divide-x divide-gray-200 bg-gray-50 dark:divide-gray-400/17 dark:bg-white/[0.03];
   }
 
   .pc-nav-menu__panel--full .pc-nav-menu__footer {
@@ -4205,7 +4205,7 @@
   }
 
   .pc-nav-menu__footer-link {
-    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10;
+    @apply flex items-center justify-center gap-x-2.5 p-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-400/17;
   }
 
   .pc-nav-menu__footer-link-icon {
@@ -4226,7 +4226,7 @@
   }
 
   .pc-nav-menu--hover .pc-nav-menu__item--open > .pc-nav-menu__trigger {
-    @apply bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white;
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-400/17 dark:text-white;
   }
 
   .pc-nav-menu--hover .pc-nav-menu__item--open .pc-nav-menu__chevron {
@@ -4236,7 +4236,7 @@
 
   /* Shine Border */
   .pc-shine-border {
-    @apply relative bg-white border-gray-200 dark:bg-gray-900 dark:border-white/10;
+    @apply relative bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-width: var(--pc-shine-border-width, 1px);
     border-style: solid;
     border-radius: var(--pc-shine-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
@@ -4393,7 +4393,7 @@
 
   /* Border Beam */
   .pc-border-beam {
-    @apply relative bg-white border-gray-200 dark:bg-gray-900 dark:border-white/10;
+    @apply relative bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-style: solid;
     border-width: var(--pc-beam-border-width, 1px);
     border-radius: var(--pc-beam-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
@@ -4540,7 +4540,7 @@
 
   /* Spotlight Card */
   .pc-spotlight-card {
-    @apply relative overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-900;
+    @apply relative overflow-hidden border border-gray-200 bg-white dark:border-gray-400/17 dark:bg-gray-900;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
 
@@ -4656,7 +4656,7 @@
  * Pure-CSS collapse (hidden checkbox + :has()), no Alpine, no hook. */
 @layer components {
   .pc-showcase {
-    @apply relative mt-5 mb-10 border border-gray-200 rounded-xl dark:border-white/10;
+    @apply relative mt-5 mb-10 border border-gray-200 rounded-xl dark:border-gray-400/17;
   }
 
   .pc-showcase__preview {
@@ -4668,7 +4668,7 @@
   }
 
   .pc-showcase-code {
-    @apply relative overflow-hidden border-t border-gray-200 rounded-b-xl dark:border-white/10;
+    @apply relative overflow-hidden border-t border-gray-200 rounded-b-xl dark:border-gray-400/17;
     background-color: #282c34;
   }
 
@@ -4755,11 +4755,11 @@
   }
 
   .pc-showcase-props__group {
-    @apply overflow-x-auto border border-gray-200 rounded-xl dark:border-white/10;
+    @apply overflow-x-auto border border-gray-200 rounded-xl dark:border-gray-400/17;
   }
 
   .pc-showcase-props__fn {
-    @apply px-4 py-2 font-mono text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-white/5 dark:border-white/10;
+    @apply px-4 py-2 font-mono text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-gray-400/8 dark:border-gray-400/17;
   }
 
   .pc-showcase-props__table {
@@ -4767,11 +4767,11 @@
   }
 
   .pc-showcase-props__table th {
-    @apply px-4 py-2.5 text-xs font-semibold tracking-wide text-gray-500 uppercase bg-gray-50 border-b border-gray-200 dark:text-gray-400 dark:bg-white/5 dark:border-white/10;
+    @apply px-4 py-2.5 text-xs font-semibold tracking-wide text-gray-500 uppercase bg-gray-50 border-b border-gray-200 dark:text-gray-400 dark:bg-gray-400/8 dark:border-gray-400/17;
   }
 
   .pc-showcase-props__table td {
-    @apply px-4 py-2.5 align-top text-gray-700 border-b border-gray-100 dark:text-gray-300 dark:border-white/5;
+    @apply px-4 py-2.5 align-top text-gray-700 border-b border-gray-100 dark:text-gray-300 dark:border-gray-400/8;
   }
 
   .pc-showcase-props__table tr:last-child td {

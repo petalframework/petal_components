@@ -263,6 +263,17 @@ defmodule Dev.PlaygroundLive do
   ]
   @primary_names Enum.map(@primaries, &elem(&1, 0))
 
+  # Neutral dial - which gray every surface (and the ghost material) derives
+  # from. Dots show each ramp's 500.
+  @grays [
+    {"zinc", "oklch(55.2% 0.016 285.938)"},
+    {"slate", "oklch(55.4% 0.046 257.417)"},
+    {"gray", "oklch(55.1% 0.027 264.364)"},
+    {"neutral", "oklch(55.6% 0 none)"},
+    {"stone", "oklch(55.3% 0.013 58.071)"}
+  ]
+  @gray_names Enum.map(@grays, &elem(&1, 0))
+
   # Secondary dial - the brand accent. Dots show each ramp's 600.
   @secondaries [
     {"pink", "oklch(59.2% 0.249 0.584)"},
@@ -610,6 +621,7 @@ defmodule Dev.PlaygroundLive do
      assign(socket,
        nav: @nav,
        primaries: @primaries,
+       grays: @grays,
        secondaries: @secondaries,
        tw_palette: @tw_palette,
        radii: @radii,
@@ -697,12 +709,15 @@ defmodule Dev.PlaygroundLive do
      socket
      |> assign(:active, allow(params["c"], @slugs, "button"))
      |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
+     |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
      |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
      |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
      |> assign(:dark, params["dark"] == "1")}
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
+
+  def handle_event("set_gray", %{"gray" => g}, socket), do: patch_theme(socket, %{gray: g})
 
   def handle_event("set_primary", %{"primary" => p}, socket),
     do: patch_theme(socket, %{primary: p})
@@ -1154,7 +1169,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :primary, :secondary, :radius, :dark])
+      |> Map.take([:active, :primary, :secondary, :gray, :radius, :dark])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -1165,6 +1180,7 @@ defmodule Dev.PlaygroundLive do
     |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
+    |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
     |> then(&if t.primary != "neutral", do: [{"primary", t.primary} | &1], else: &1)
     |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
     |> case do
@@ -1528,14 +1544,15 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div
       class={[
-        "flex flex-col h-screen bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50",
+        "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50",
         @dark && "dark"
       ]}
       data-primary={@primary}
+      data-gray={@gray}
       data-secondary={@secondary}
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
-      <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-zinc-800">
+      <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
           <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
             <path
@@ -1567,12 +1584,12 @@ defmodule Dev.PlaygroundLive do
               fill="#D445AB"
             />
           </svg>
-          petal <span class="font-normal text-gray-400 dark:text-zinc-500">playground</span>
+          petal <span class="font-normal text-gray-400 dark:text-gray-500">playground</span>
         </div>
         <div class="flex items-center gap-1.5">
           <button
             phx-click={PetalComponents.Command.open_command("pg-cmdk")}
-            class="hidden md:flex items-center gap-2 h-8 pl-3 pr-2 mr-1 text-sm text-gray-400 border rounded-lg w-56 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900"
+            class="hidden md:flex items-center gap-2 h-8 pl-3 pr-2 mr-1 text-sm text-gray-400 border rounded-lg w-56 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
           >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
             <span>Search components</span>
@@ -1581,7 +1598,7 @@ defmodule Dev.PlaygroundLive do
           <a
             href="https://github.com/petalframework/petal_components"
             target="_blank"
-            class="flex items-center h-8 gap-1.5 px-2.5 text-sm rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+            class="flex items-center h-8 gap-1.5 px-2.5 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
           >
             <svg viewBox="0 0 438.549 438.549" class="w-4 h-4" fill="currentColor"><path d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z" /></svg>
             <span class="text-xs tabular-nums">{fmt_stars(@stars)}</span>
@@ -1590,7 +1607,7 @@ defmodule Dev.PlaygroundLive do
             href="https://discord.com/invite/exbwVbjAct"
             target="_blank"
             aria-label="Discord"
-            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
           >
             <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z" /></svg>
           </a>
@@ -1598,14 +1615,14 @@ defmodule Dev.PlaygroundLive do
             href="https://x.com/PetalFramework"
             target="_blank"
             aria-label="X"
-            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
           >
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </a>
           <button
             phx-click={JS.dispatch("pg:theme-switch") |> JS.push("toggle_dark")}
             aria-label="Toggle dark mode"
-            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
           >
             <.icon :if={@dark} name="hero-sun" class="w-4 h-4" />
             <.icon :if={!@dark} name="hero-moon" class="w-3.5 h-3.5" />
@@ -1613,9 +1630,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </header>
 
-      <div class="flex items-center flex-none h-11 gap-5 px-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/60 dark:bg-zinc-900/30">
+      <div class="flex items-center flex-none h-11 gap-5 px-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/30">
         <div class="flex items-center gap-2.5">
-          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">primary</span>
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">primary</span>
           <div class="flex items-center gap-1.5">
             <button
               :for={{name, css} <- @primaries}
@@ -1625,14 +1642,14 @@ defmodule Dev.PlaygroundLive do
               class={[
                 "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
                 @primary == name &&
-                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
+                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
               ]}
               style={"background:#{css}"}
             ></button>
           </div>
         </div>
         <div class="flex items-center gap-2.5">
-          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">secondary</span>
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">secondary</span>
           <div class="flex items-center gap-1.5">
             <button
               :for={{name, css} <- @secondaries}
@@ -1642,15 +1659,33 @@ defmodule Dev.PlaygroundLive do
               class={[
                 "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
                 @secondary == name &&
-                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 ring-offset-gray-50 dark:ring-offset-zinc-950"
+                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
               ]}
               style={"background:#{css}"}
             ></button>
           </div>
         </div>
         <div class="flex items-center gap-2.5">
-          <span class="text-[11px] font-medium text-gray-400 dark:text-zinc-500">radius</span>
-          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">gray</span>
+          <div class="flex items-center gap-1.5">
+            <button
+              :for={{name, css} <- @grays}
+              phx-click="set_gray"
+              phx-value-gray={name}
+              aria-label={"gray #{name}"}
+              title={name}
+              class={[
+                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                @gray == name &&
+                  "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
+              ]}
+              style={"background:#{css}"}
+            ></button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">radius</span>
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
             <button
               :for={{label, _value} <- @radii}
               phx-click="set_radius"
@@ -1662,7 +1697,7 @@ defmodule Dev.PlaygroundLive do
             </button>
           </div>
         </div>
-        <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-zinc-600 sm:block">
+        <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-gray-600 sm:block">
           theme is in the URL, share the look
         </span>
       </div>
@@ -1690,9 +1725,9 @@ defmodule Dev.PlaygroundLive do
       </.command_dialog>
 
       <div class="flex flex-1 min-h-0">
-        <nav class="flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-zinc-800">
+        <nav class="flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
           <div :for={grp <- @nav}>
-            <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-zinc-500">
+            <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
               {grp.group}
             </div>
             <button
@@ -1702,14 +1737,14 @@ defmodule Dev.PlaygroundLive do
               class={[
                 "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
                 (@active == it.slug &&
-                   "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-50 font-medium") ||
-                  "text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-900 hover:text-gray-900 dark:hover:text-zinc-100"
+                   "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
+                  "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
               ]}
             >
               {it.name}
               <span
                 :if={not it.ready}
-                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800/80 text-gray-400 dark:text-zinc-500"
+                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
               >
                 soon
               </span>
@@ -1729,12 +1764,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Button</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Triggers an action. Five variants, plus a semantic range for when the action carries meaning.
         The colour dials and radius up top restyle everything live.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.button
             variant={@variant}
@@ -1747,10 +1782,10 @@ defmodule Dev.PlaygroundLive do
             Get started
           </.button>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_color"
@@ -1763,7 +1798,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(solid soft light outline ghost)}
                 phx-click="ctl_variant"
@@ -1776,7 +1811,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={s <- ~w(xs sm md lg xl)}
                 phx-click="ctl_size"
@@ -1798,7 +1833,7 @@ defmodule Dev.PlaygroundLive do
         </div>
         <p
           :if={@variant in ~w(outline ghost) and @color in ~w(primary secondary gray)}
-          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500"
         >
           colour always tints - the default primary is monochrome, so its outline reads neutral until you dial a hue up top; secondary follows the second dial
         </p>
@@ -1807,18 +1842,18 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{button_snippet(assigns)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <.button>Solid</.button>
         <.button variant="soft">Soft</.button>
         <.button variant="light">Light</.button>
@@ -1826,18 +1861,18 @@ defmodule Dev.PlaygroundLive do
         <.button variant="ghost">Ghost</.button>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Semantic colours
       </div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.button color="info" variant={@variant}>Info</.button>
         <.button color="success" variant={@variant}>Success</.button>
         <.button color="warning" variant={@variant}>Warning</.button>
         <.button color="danger" variant={@variant}>Danger</.button>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.button size="xs">Extra small</.button>
         <.button size="sm">Small</.button>
         <.button size="md">Medium</.button>
@@ -1845,16 +1880,16 @@ defmodule Dev.PlaygroundLive do
         <.button size="xl">Extra large</.button>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">States</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.button>Default</.button>
         <.button icon="hero-rocket-launch">With icon</.button>
         <.button loading>Loading</.button>
         <.button disabled>Disabled</.button>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Icon button</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Icon button</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.button size="icon" aria-label="Submit">
           <.icon name="hero-arrow-up" class="w-5 h-5" />
         </.button>
@@ -1873,12 +1908,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Input</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         One field surface for every type: label, control, help and error.
         Border, radius and focus ring follow the rail above.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-sm">
             <.field
@@ -1920,10 +1955,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={t <- ~w(text email password search date time select textarea file color)}
                 phx-click="ctl_input"
@@ -1949,18 +1984,18 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{field_snippet(@input)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Anatomy</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Anatomy</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="email"
@@ -1974,8 +2009,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Error state</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Error state</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="email"
@@ -1988,10 +2023,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         In-field actions
       </div>
-      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto space-y-6">
           <.field
             type="password"
@@ -2020,8 +2055,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Input group</div>
-      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Input group</div>
+      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto space-y-6">
           <.input_group>
             <:leading>https://</:leading>
@@ -2040,10 +2075,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Select and checkbox
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="select"
@@ -2066,13 +2101,13 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Border beam</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A light beam tracing the border - pure CSS on an offset-path, with the
         tail fading smoothly around corners at any aspect ratio. The panel
         follows the rail radius.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.border_beam
             id={"pg-beam-#{@beam.duration}-#{@beam.beams}-#{@beam.reverse}-#{@beam.easing}-#{@beam.glow}"}
@@ -2089,16 +2124,16 @@ defmodule Dev.PlaygroundLive do
               <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Aurora and border beam
               </div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Both live in the open source library now.
               </p>
             </div>
           </.border_beam>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={d <- ~w(4s 8s 12s)}
                 phx-click="ctl_beam"
@@ -2112,7 +2147,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">beams</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={n <- ~w(1 2 3)}
                 phx-click="ctl_beam"
@@ -2126,7 +2161,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={{lbl, v} <- [{"sm", "40px"}, {"md", "60px"}, {"lg", "160px"}]}
                 phx-click="ctl_beam"
@@ -2140,7 +2175,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">motion</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={e <- ~w(linear spring)}
                 phx-click="ctl_beam"
@@ -2164,13 +2199,13 @@ defmodule Dev.PlaygroundLive do
         </div>
         <p
           :if={@beam.easing == "spring" and @beam.beams > 1}
-          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500"
         >
           spring is a single-beam motion - with multiple beams the chase runs at constant speed
         </p>
         <p
           :if={@beam.size == "160px" and not @beam.glow}
-          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-zinc-500"
+          class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500"
         >
           a long sharp beam clamps to the panel for corner safety - turn on glow for the full length
         </p>
@@ -2179,20 +2214,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{beam_snippet(@beam)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Now playing (two long glow beams)
       </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
         <.border_beam
           glow
           beams={2}
@@ -2206,7 +2241,7 @@ defmodule Dev.PlaygroundLive do
             <div class="font-semibold leading-none text-gray-900 dark:text-gray-100">
               Now playing
             </div>
-            <div class="mt-1.5 text-sm text-gray-500 dark:text-zinc-400">
+            <div class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
               Stairway to Heaven - Led Zeppelin
             </div>
             <div class="w-40 h-40 mx-auto mt-5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
@@ -2214,7 +2249,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mt-5">
               <.progress value={34} size="xs" />
             </div>
-            <div class="flex justify-between mt-2 text-sm text-gray-500 dark:text-zinc-400">
+            <div class="flex justify-between mt-2 text-sm text-gray-500 dark:text-gray-400">
               <span>2:45</span><span>8:02</span>
             </div>
             <div class="flex justify-center gap-3 mt-4">
@@ -2232,10 +2267,10 @@ defmodule Dev.PlaygroundLive do
         </.border_beam>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Spring release (a button-sized lap)
       </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.border_beam
             glow
@@ -2260,12 +2295,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Shine border</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A slow, ambient shimmer sweeping the border - the quiet sibling of the
         border beam. Pure CSS, and it holds still for reduced-motion users.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.shine_border
             shine_color={shine_colors(@shine.scheme)}
@@ -2277,16 +2312,16 @@ defmodule Dev.PlaygroundLive do
               <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Upgrade to Pro
               </div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Unlimited projects and priority support.
               </p>
             </div>
           </.shine_border>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(mono blend)}
                 phx-click="ctl_shine"
@@ -2300,7 +2335,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sweep</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={{lbl, v} <- [{"fast", "6s"}, {"med", "14s"}, {"slow", "24s"}]}
                 phx-click="ctl_shine"
@@ -2314,7 +2349,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={w <- ~w(1px 2px 3px)}
                 phx-click="ctl_shine"
@@ -2332,20 +2367,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{shine_snippet(@shine)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         On an input (thicker border)
       </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
         <.shine_border shine_color="#3b82f6" border_width="2px" class="w-full max-w-sm mx-auto">
           <input
             type="text"
@@ -2362,14 +2397,14 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Meteors</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A meteor shower inside any container - positions generated server-side,
         so it costs zero JavaScript and never jumps on re-render.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="px-6 py-8">
-          <div class="relative w-full overflow-hidden bg-zinc-950 rounded-xl h-56">
+          <div class="relative w-full overflow-hidden bg-gray-950 rounded-xl h-56">
             <.meteors
               count={@meteors.count}
               angle={@meteors.angle}
@@ -2379,14 +2414,14 @@ defmodule Dev.PlaygroundLive do
             />
             <div class="relative flex flex-col items-center justify-center h-full text-center">
               <div class="text-lg font-semibold text-white">Ship something tonight</div>
-              <div class="mt-1 text-sm text-zinc-400">Meteors sit behind your content.</div>
+              <div class="mt-1 text-sm text-gray-400">Meteors sit behind your content.</div>
             </div>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={n <- ~w(10 20 40)}
                 phx-click="ctl_meteors"
@@ -2400,7 +2435,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">angle</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={{lbl, v} <- [{"shallow", "200deg"}, {"default", "215deg"}, {"steep", "235deg"}]}
                 phx-click="ctl_meteors"
@@ -2414,7 +2449,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(slate sky violet)}
                 phx-click="ctl_meteors"
@@ -2441,21 +2476,21 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{meteor_snippet(@meteors)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Deterministic (same seed, same sky)
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="relative w-full max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="relative w-full max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-gray-800 dark:bg-gray-900">
           <.meteors count={8} seed={42} />
         </div>
       </div>
@@ -2467,13 +2502,13 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Typography</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The refined 4.2 scale: self-composing vertical rhythm, balanced
         headings, and a three-tier emphasis system that holds in both modes.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Headings</div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Headings</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.h1>The quick brown fox</.h1>
         <.h2>The quick brown fox</.h2>
         <.h3>The quick brown fox</.h3>
@@ -2481,10 +2516,10 @@ defmodule Dev.PlaygroundLive do
         <.h5>The quick brown fox</.h5>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Body and emphasis tiers
       </div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.lead>
           A lead paragraph sits between heading and body - one size up, muted a step.
         </.lead>
@@ -2498,8 +2533,8 @@ defmodule Dev.PlaygroundLive do
         <.text_muted>Muted text is the quiet tier - captions, hints, timestamps.</.text_muted>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Structure</div>
-      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Structure</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.blockquote>
           Design is the silent ambassador of your brand.
         </.blockquote>
@@ -2521,7 +2556,7 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Colours</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Four roles: primary is your base action colour (monochrome by
         default), secondary is your brand accent, semantics carry meaning,
         gray is the chrome. One rule everywhere: colour picks the ramp,
@@ -2529,10 +2564,10 @@ defmodule Dev.PlaygroundLive do
         component live.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Primary (first dial - monochrome by default)
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex overflow-hidden rounded-lg">
           <div
             :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
@@ -2552,10 +2587,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Secondary (second dial - the brand accent)
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex overflow-hidden rounded-lg">
           <div
             :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
@@ -2575,12 +2610,12 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Semantic ramps (fixed hues)
       </div>
-      <div class="px-6 py-6 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 space-y-3 border border-gray-200 rounded-xl dark:border-gray-800">
         <div :for={c <- ~w(info success warning danger)} class="flex items-center gap-3">
-          <div class="w-16 text-xs text-gray-500 dark:text-zinc-400">{c}</div>
+          <div class="w-16 text-xs text-gray-500 dark:text-gray-400">{c}</div>
           <div class="flex flex-1 overflow-hidden rounded-lg">
             <div
               :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
@@ -2593,10 +2628,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Gray (zinc) - the chrome family
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex overflow-hidden rounded-lg">
           <div
             :for={stop <- ~w(50 100 200 300 400 500 600 700 800 900 950)}
@@ -2616,7 +2651,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         In your app, primary and secondary are plain ramps in colors.css -
         map each to any hue below (or keep primary monochrome for the
         shadcn look). The surface tokens - washes at 500/15, borders at
@@ -2624,12 +2659,12 @@ defmodule Dev.PlaygroundLive do
         ramps, which is why one dial swap restyles every component.
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         The Tailwind palette - what you map primary and secondary from
       </div>
-      <div class="px-6 py-6 space-y-2 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 space-y-2 border border-gray-200 rounded-xl dark:border-gray-800">
         <div :for={{hue, ramp} <- @tw_palette} class="flex items-center gap-3">
-          <div class="w-16 text-xs text-gray-500 dark:text-zinc-400">{hue}</div>
+          <div class="w-16 text-xs text-gray-500 dark:text-gray-400">{hue}</div>
           <div class="flex flex-1 overflow-hidden rounded-md">
             <div
               :for={{stop, value} <- Enum.zip(~w(50 100 200 300 400 500 600 700 800 900 950), ramp)}
@@ -2649,7 +2684,7 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Command</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The ⌘K palette. Type to filter, arrows to move, Enter to run. Items are real
         links and buttons, so navigate/patch and any phx binding just work. Filtering is
         client-side - keystrokes never wait on the server.
@@ -2657,7 +2692,7 @@ defmodule Dev.PlaygroundLive do
 
       <div :for={ex <- PetalComponents.Showcase.Command.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
-        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-zinc-400">
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
           {ex.description}
         </p>
         <.showcase_example example={ex} />
@@ -2666,7 +2701,7 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Command} function={:command} />
 
-      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Command</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
@@ -2679,13 +2714,13 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Dropdown</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Menus on the floating-panel surface: group labels, separators, icons,
         keyboard hints and destructive items. Triggers follow the rail radius.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Account menu</div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-72">
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Account menu</div>
+      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-gray-800 pb-72">
         <div class="flex justify-center">
           <.dropdown label="you@example.com">
             <.dropdown_menu_label>My account</.dropdown_menu_label>
@@ -2717,10 +2752,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Row actions (ellipsis trigger) and a custom trigger
       </div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-zinc-800 pb-56">
+      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-gray-800 pb-56">
         <div class="flex items-start justify-center gap-16">
           <.dropdown>
             <.dropdown_menu_item link_type="button">
@@ -2752,7 +2787,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Triggers are chrome: the built-in labelled trigger and the ghost
         ellipsis stay neutral gray whatever your palette (only their focus
         ring rides primary). A custom trigger is your own button - brand it
@@ -2770,12 +2805,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Dialog on the panel surface with a proper scrim. Escape and
         click-away close it; the box radius scales gently with the rail.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
           <.button color="gray" variant="outline" phx-click={show_modal("pg-modal")}>
             Open modal
@@ -2784,7 +2819,7 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <.modal id="pg-modal" title="Invite your team" hide max_width="sm">
-        <p class="text-sm text-gray-500 dark:text-zinc-400">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
           Share this link with your teammates and they'll join the workspace
           with member access.
         </p>
@@ -2800,7 +2835,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </.modal>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
         to any phx-click. close_on_click_away and close_on_escape default on.
       </div>
@@ -2812,12 +2847,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Determinate progress on a washed track. The bar animates between
         values - click the value control and watch it move.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
           <div class="w-full max-w-md">
             <.progress
@@ -2835,10 +2870,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(15 40 60 85 100)}
                 phx-click="ctl_progress"
@@ -2852,7 +2887,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_progress"
@@ -2866,7 +2901,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_progress"
@@ -2880,7 +2915,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={l <- ~w(none inside top)}
                 phx-click="ctl_progress"
@@ -2898,20 +2933,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{progress_snippet(@progress)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Semantic colours
       </div>
-      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-md mx-auto space-y-4">
           <.progress value={80} color="success" />
           <.progress value={55} color="info" />
@@ -2920,8 +2955,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-md mx-auto space-y-4">
           <.progress :for={z <- ~w(xs sm md lg)} value={60} size={z} />
           <.progress value={60} size="xl" label="60%" />
@@ -2936,12 +2971,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Rating</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Click one - it's a real radio group, so it posts in forms, arrow keys work, and the
         hover preview is pure CSS. Zero JavaScript.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
           <form :if={@rating.icon == "star"} phx-change="rate">
             <.rating
@@ -2980,10 +3015,10 @@ defmodule Dev.PlaygroundLive do
           </form>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={i <- ~w(star heart face)}
                 phx-click="ctl_rating"
@@ -2997,7 +3032,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={sz <- ~w(sm md lg)}
                 phx-click="ctl_rating"
@@ -3011,7 +3046,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 phx-click="ctl_rating"
                 phx-value-k="step"
@@ -3039,7 +3074,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={l <- ~w(none right bottom)}
                 phx-click="ctl_rating"
@@ -3056,20 +3091,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{rating_snippet(assigns)}</code></pre>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         The sentiment scale - each face is its own expression and colour
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-6">
           <.rating
             interactive
@@ -3079,14 +3114,14 @@ defmodule Dev.PlaygroundLive do
             size="lg"
             label="How was your experience?"
           />
-          <p class="text-sm text-gray-500 dark:text-zinc-400">How was your support experience?</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">How was your support experience?</p>
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Display only - fractional values, any total
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-4">
           <.rating rating={3.5} include_label />
           <.rating rating={3.5} icon="heart" include_label />
@@ -3094,10 +3129,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Bring your own glyph - the :glyph slot + one colour token
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-2">
           <.rating
             interactive
@@ -3116,11 +3151,11 @@ defmodule Dev.PlaygroundLive do
               </svg>
             </:glyph>
           </.rating>
-          <p class="text-sm text-gray-500 dark:text-zinc-400">Spice level</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Spice level</p>
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Interactive mode is a fieldset of radios: the value posts under name like any form
         field, arrows move between options, and focus-visible rings the focused icon.
         precision="half" doubles the hit areas so 3.5 is clickable (and arrow keys step by
@@ -3138,12 +3173,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Slide over</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         An edge-attached panel (a "sheet") for forms and detail views that don't warrant a
         full page. Slides from any edge, scrolls its body, pins its footer.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
           <.button
             color="gray"
@@ -3154,10 +3189,10 @@ defmodule Dev.PlaygroundLive do
           </.button>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={o <- ~w(left right top bottom)}
                 phx-click="ctl_slideover"
@@ -3173,7 +3208,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               max width (left/right)
             </div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={w <- ~w(sm md lg)}
                 phx-click="ctl_slideover"
@@ -3217,10 +3252,10 @@ defmodule Dev.PlaygroundLive do
         </:footer>
       </.slide_over>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         A cart - scrolling body, pinned summary footer
       </div>
-      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.button
             color="gray"
@@ -3277,8 +3312,8 @@ defmodule Dev.PlaygroundLive do
         </:footer>
       </.slide_over>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
-        The panel is the floating surface: white / zinc-900 with a hairline border on its
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The panel is the floating surface: white / gray-900 with a hairline border on its
         attached edge. title and description wire aria-labelledby/describedby; the footer
         slot pins action rows below the scrolling body. Escape and click-away close by
         default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
@@ -3292,12 +3327,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Skeleton</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         One composable brick - size it with classes, pick a shape, pick a motion.
         Compose any loading state instead of picking from prebuilt layouts.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center px-6 py-14">
           <.skeleton_group
             label="Loading article"
@@ -3316,10 +3351,10 @@ defmodule Dev.PlaygroundLive do
           </.skeleton_group>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={a <- ~w(pulse shimmer none)}
                 phx-click="ctl_skeleton"
@@ -3334,10 +3369,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         The real pattern - skeleton while loading, content when ready
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="mx-auto max-w-md">
           <%= if @skeleton.loading do %>
             <.skeleton_group
@@ -3375,10 +3410,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Shapes
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-end justify-center gap-8">
           <div class="flex flex-col items-center gap-2">
             <.skeleton class="h-16 w-24" />
@@ -3395,7 +3430,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         skeleton_group is the accessibility wrapper: role="status" + aria-busy announces
         loading once (set the label), while the bricks stay aria-hidden. Its animation
         cascades to everything inside; a brick's own animation wins. Blocks follow the
@@ -3411,11 +3446,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Button group</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Fuses buttons, inputs and text segments into one control - split buttons,
         toolbars, mixed rails.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-6 px-6 py-12">
           <.button_group aria_label="Merge options">
             <.button color="gray" variant="outline" label="Merge pull request" />
@@ -3466,10 +3501,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Toolbar - nested groups gap apart, buttons inside fuse
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.button_group aria_label="Editor toolbar">
             <.button_group aria_label="History">
@@ -3498,10 +3533,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Sizes - the buttons carry it, the group just joins
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-4">
           <div :for={sz <- ~w(sm md lg)} class="flex items-center gap-3">
             <.button_group aria_label={"Pager " <> sz}>
@@ -3513,10 +3548,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Split button - solid buttons have no borders, the separator is the divider
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.button_group aria_label="Save options">
             <.button label="Save changes" />
@@ -3528,10 +3563,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Mixed rail - text prefix, input and button share one surface
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-5">
           <.button_group aria_label="Site address" class="w-full max-w-sm">
             <.button_group_text>https://</.button_group_text>
@@ -3547,10 +3582,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Vertical - fuses top to bottom
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.button_group aria_label="Zoom" orientation="vertical">
             <.button color="gray" variant="outline" size="icon" aria-label="Zoom in">
@@ -3563,7 +3598,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Drop real components in and the group fuses them: outer corners keep the radius
         token, inner borders collapse to a single line. Outline buttons and inputs carry
         their own dividers; solid buttons have transparent borders, so put a
@@ -3580,11 +3615,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Loading</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The spinner. Buttons already know it (loading attr) - use it standalone for
         anything else that waits.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-6 px-6 py-12">
           <div class="flex flex-wrap items-center justify-center gap-3">
             <.button loading>Saving changes</.button>
@@ -3596,21 +3631,21 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         A loading panel
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
-        <div class="flex flex-col items-center justify-center max-w-md gap-3 py-12 mx-auto border border-gray-200 border-dashed rounded-xl dark:border-zinc-700">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center justify-center max-w-md gap-3 py-12 mx-auto border border-gray-200 border-dashed rounded-xl dark:border-gray-700">
           <.spinner size="md" />
           <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Generating preview</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">This usually takes a few seconds</p>
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Sizes and colour
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-end justify-center gap-10">
           <div :for={sz <- ~w(sm md lg)} class="flex flex-col items-center gap-2">
             <.spinner size={sz} />
@@ -3623,7 +3658,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Buttons take loading directly (spinner swaps in, label stays). Standalone, pair
         the spinner with a status line or a panel state. show toggles visibility without
         unmounting; size_class takes over sizing and colour (currentColor, so text-*
@@ -3638,10 +3673,10 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Breadcrumbs</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Where am I, and how do I get back up. Links from a plain list.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center px-6 py-12">
           <.breadcrumbs
             separator={@crumbs.separator}
@@ -3652,10 +3687,10 @@ defmodule Dev.PlaygroundLive do
             ]}
           />
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={sp <- ~w(chevron slash)}
                 phx-click="ctl_crumbs"
@@ -3669,7 +3704,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         links take label and/or icon (the first crumb here is a home icon), to, and
         link_type (a / live_patch / live_redirect / button). The last crumb renders as
         the current page - strong text + aria-current. The nav carries an aria_label.
@@ -3682,11 +3717,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Stepper</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Multi-step progress - onboarding, checkout, wizards. This one's live: walk the
         Back/Continue flow, or click any step to jump.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class={[
           "px-6 pt-8 pb-8",
           @stepper.orientation == "vertical" && "md:flex md:items-start md:gap-8"
@@ -3809,10 +3844,10 @@ defmodule Dev.PlaygroundLive do
             <% end %>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={o <- ~w(horizontal vertical)}
                 phx-click="ctl_stepper"
@@ -3826,7 +3861,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={sz <- ~w(sm md lg)}
                 phx-click="ctl_stepper"
@@ -3840,7 +3875,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Steps are plain maps: name, description, complete?, active?, on_click (any JS
         command - this demo pushes an event). aria-current and completed labels are wired
         for screen readers.
@@ -3853,13 +3888,13 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Avatar</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Images, initials fallbacks, presence dots, and stacked groups.
       </p>
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Sizes - xs to xl
       </div>
-      <div class="border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-end justify-center gap-4 px-6 py-12">
           <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
             <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
@@ -3868,10 +3903,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Fallback chain - photo, initials, icon
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center gap-6">
           <div class="flex flex-col items-center gap-2">
             <.avatar src="/dev-static/avatars/p44.jpg" alt="Photo" />
@@ -3892,10 +3927,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Presence - a team list with status dots
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto divide-y divide-gray-100 dark:divide-white/10">
           <div
             :for={
@@ -3918,10 +3953,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Groups - stacked, with a +N overflow
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-5">
           <.avatar_group
             size="md"
@@ -3948,7 +3983,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The fallback chain is automatic: src renders the photo, name renders initials
         (random_color hashes a stable hue from the name), neither renders the person
         icon. status adds a ringed presence dot that scales with the avatar (online /
@@ -3963,10 +3998,10 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Card</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The container for everything - media, content, footer, composed from parts.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center px-6 py-12">
           <.card class="w-full max-w-sm">
             <.card_header
@@ -4004,10 +4039,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Media card - full-bleed image, category, heading
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.card>
             <.card_media src="/dev-static/covers/release.jpg" alt="Release cover" />
@@ -4022,10 +4057,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Variants - the panel and the well
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="grid max-w-2xl gap-6 mx-auto md:grid-cols-2">
           <.card>
             <.card_header title="Basic" description="The card" />
@@ -4044,7 +4079,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         card_header carries title + description + a top-right :action; card_content and
         card_footer pad themselves so media can run full-bleed. Two variants, two jobs:
         the panel asserts, the well recedes. (variant="outline" still renders - it is a
@@ -4059,11 +4094,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Accordion</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Expandable sections for FAQs and dense settings. Pure LiveView.JS - no server
         round-trip to toggle.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="px-6 py-10">
           <div class="max-w-xl mx-auto">
             <.accordion
@@ -4086,10 +4121,10 @@ defmodule Dev.PlaygroundLive do
             </.accordion>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(default bordered)}
                 phx-click="ctl_accordion"
@@ -4103,7 +4138,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={sz <- ~w(md sm)}
                 phx-click="ctl_accordion"
@@ -4129,7 +4164,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         default is the shadcn row style - hairline dividers, headings underline on
         hover, no highlight on open; bordered is the boxed card-accordion, whose open
         header keeps a soft fill so you can see which section is expanded. "Allow
@@ -4146,11 +4181,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Marquee</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         An infinite scroller for logos, testimonials, anything. Pure CSS animation with
         edge fade.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="px-2 py-10">
           <.marquee
             reverse={@marquee_ctl.reverse}
@@ -4161,14 +4196,14 @@ defmodule Dev.PlaygroundLive do
           >
             <div
               :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)}
-              class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-zinc-700"
+              class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-gray-700"
             >
               <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
               <span class="text-sm font-medium">{name}</span>
             </div>
           </.marquee>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
@@ -4183,7 +4218,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         repeat controls how many copies keep the loop seamless; duration and gap tune the
         feel; overlay_gradient fades the edges. Holds still under prefers-reduced-motion.
       </div>
@@ -4195,10 +4230,10 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Spotlight card</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A radial glow follows your cursor across the card. Move your mouse over them.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="grid gap-6 px-6 py-12 md:grid-cols-2">
           <.spotlight_card id="spot-1" class="p-8">
             <h3 class="text-lg font-semibold">Default glow</h3>
@@ -4219,7 +4254,7 @@ defmodule Dev.PlaygroundLive do
           </.spotlight_card>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Powered by the tiny PetalSpotlight hook (pointer position only - the paint is pure
         CSS). Reads best on dark panels.
       </div>
@@ -4231,11 +4266,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Number ticker</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Numbers that count up to their value. Feed it new numbers and it animates the
         difference.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-6 px-6 py-12">
           <div class="text-5xl font-bold tabular-nums tracking-tight">
             <.number_ticker id="pg-ticker" value={@ticker.value} prefix="$" />
@@ -4265,7 +4300,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         prefix/suffix/decimal_places/locale handle formatting; duration tunes the count.
         The PetalNumberTicker hook animates on mount and on every value change.
       </div>
@@ -4277,10 +4312,10 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Text animation</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Four ways to make words move: gradient sweep, shimmer, typing, and word rotation.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-10 px-6 py-14 text-center">
           <.gradient_text class="text-4xl font-bold">Ship something tonight</.gradient_text>
           <.shimmer_text class="text-2xl font-semibold">Generating your app...</.shimmer_text>
@@ -4299,7 +4334,7 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         gradient_text and shimmer_text are pure CSS (colours + duration attrs);
         word_rotate and typing_effect use tiny hooks. All respect
         prefers-reduced-motion.
@@ -4312,22 +4347,22 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Confetti</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Zero-dependency canvas confetti. Fire it from the client or push it from the
         server on the moments that matter.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-4 px-6 py-16">
           <.confetti id="pg-confetti" />
           <.button phx-click={Phoenix.LiveView.JS.dispatch("pc:confetti", to: "#pg-confetti")}>
             <.icon name="hero-sparkles" class="w-4 h-4 mr-1.5" /> Celebrate
           </.button>
-          <p class="text-sm text-gray-500 dark:text-zinc-400">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
             no server round-trip - it's a JS.dispatch
           </p>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Tune particle_count, spread, angle, velocity, colors and origin. From LiveView:
         push_event(socket, "pc-confetti", %{}) fires it server-side - ship it on signup
         complete, plan upgraded, streak kept.
@@ -4340,12 +4375,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Tabs</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Three styles: segmented (a raised pill on a muted track), underline, and pill.
         Tabs are links or buttons - wire them to live_patch, JS commands or events.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-6 px-6 py-12">
           <.tabs variant={@tabs.variant}>
             <.tab
@@ -4368,7 +4403,7 @@ defmodule Dev.PlaygroundLive do
               {name}
             </.tab>
           </.tabs>
-          <div class="w-full max-w-md p-5 text-sm border border-gray-200 rounded-lg text-gray-500 dark:border-zinc-800 dark:text-zinc-400">
+          <div class="w-full max-w-md p-5 text-sm border border-gray-200 rounded-lg text-gray-500 dark:border-gray-800 dark:text-gray-400">
             {case @tabs.active do
               "overview" -> "Your project at a glance - traffic, revenue and recent activity."
               "analytics" -> "Charts and breakdowns. This panel swapped without a page load."
@@ -4378,10 +4413,10 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(segmented underline pill)}
                 phx-click="ctl_tabs"
@@ -4402,10 +4437,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         With icons - anything goes in the tab body
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.tabs variant="segmented">
             <.tab variant="segmented" is_active link_type="button">
@@ -4421,7 +4456,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         segmented is the modern default for in-page switching (the active tab is a raised
         white pill, nested-radius on the track); underline suits page-level navigation;
         pill is the roomy classic. The legacy underline flag still works - variant wins
@@ -4435,12 +4470,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Pagination</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Discrete page buttons with a solid primary current page. Works as links
         (path templates) or pure events - this one is events.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-4 px-6 py-14">
           <.pagination
             event
@@ -4449,15 +4484,15 @@ defmodule Dev.PlaygroundLive do
             sibling_count={@page.sibling}
             boundary_count={@page.boundary}
           />
-          <p class="text-sm tabular-nums text-gray-500 dark:text-zinc-400">
+          <p class="text-sm tabular-nums text-gray-500 dark:text-gray-400">
             Page {@page.current} of 12
           </p>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={n <- ~w(0 1 2)}
                 phx-click="ctl_page"
@@ -4471,7 +4506,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">boundary count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={n <- ~w(1 2)}
                 phx-click="ctl_page"
@@ -4486,7 +4521,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The current page carries the outline surface (border + wash - the same recipe as
         outline buttons), everything else is quiet ghost chrome with hover washes.
         sibling and boundary counts
@@ -4502,12 +4537,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Table</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Sortable headers, density, stripes - the presentation layer for data. Click
         Name or Age to sort; the component fires the event, your app reorders the rows.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="px-6 py-8">
           <.table
             rows={if @table.empty, do: [], else: table_rows(@table)}
@@ -4529,7 +4564,7 @@ defmodule Dev.PlaygroundLive do
               />
             </:col>
             <:empty_state>
-              <div class="py-8 text-center text-gray-500 dark:text-zinc-400">
+              <div class="py-8 text-center text-gray-500 dark:text-gray-400">
                 No people match. The empty_state slot renders whenever rows is empty.
               </div>
             </:empty_state>
@@ -4541,10 +4576,10 @@ defmodule Dev.PlaygroundLive do
           </.table>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-zinc-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={d <- ~w(comfortable compact)}
                 phx-click="ctl_table"
@@ -4558,7 +4593,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(basic ghost)}
                 phx-click="ctl_table"
@@ -4580,10 +4615,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         People cells - avatar + name + sub-label in one helper
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.table rows={[
           %{name: "Alex Rivera", email: "alex@example.com", plan: "Team"},
           %{name: "Ada Lovelace", email: "ada@analytical.engine", plan: "Pro"}
@@ -4599,7 +4634,7 @@ defmodule Dev.PlaygroundLive do
         </.table>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Sorting is honest: the header is a real button firing on_sort (default event
         "sort") with the column's sort_key, aria-sort announces the state, and the arrow
         shows direction - your app owns the actual reorder. sticky_header pins the header
@@ -4619,12 +4654,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Tooltip</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A label on hover or keyboard focus. Pure CSS - no JS, no dependencies.
         The bubble inverts against the page in both modes.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
           <.tooltip
             label="Copied to clipboard"
@@ -4634,10 +4669,10 @@ defmodule Dev.PlaygroundLive do
             <.button color="gray" variant="outline">Hover me</.button>
           </.tooltip>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={pl <- ~w(top bottom left right)}
                 phx-click="ctl_tooltip"
@@ -4661,20 +4696,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{tooltip_snippet(@tooltip)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Icon buttons (the classic use)
       </div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center gap-3">
           <.tooltip label="Bold">
             <.button color="gray" variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
@@ -4688,8 +4723,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Rich content</div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Rich content</div>
+      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center">
           <.tooltip placement="bottom">
             <:content>
@@ -4707,12 +4742,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Popover</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Click-to-open panel with light dismiss. Optional top_layer mode uses the
         native popover API to escape clipped containers.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-20">
           <.popover
             id={"pg-popover-#{@popover.placement}-#{@popover.top_layer}"}
@@ -4723,16 +4758,16 @@ defmodule Dev.PlaygroundLive do
             <:trigger>Open popover</:trigger>
             <div class="max-w-56">
               <div class="text-sm font-semibold">Dimensions</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Set the width and height for the layer.
               </p>
             </div>
           </.popover>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={pl <- ~w(top bottom left right)}
                 phx-click="ctl_popover"
@@ -4758,22 +4793,22 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{popover_snippet(@popover)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         top_layer escapes clipped containers
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-md mx-auto">
-          <div class="relative h-24 p-4 overflow-hidden border border-dashed rounded-lg border-gray-300 dark:border-zinc-700">
+          <div class="relative h-24 p-4 overflow-hidden border border-dashed rounded-lg border-gray-300 dark:border-gray-700">
             <div class="mb-2 text-xs text-gray-400">overflow: hidden container</div>
             <.popover
               id="pg-popover-clipped"
@@ -4798,12 +4833,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Input OTP</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A segmented one-time-code input. One real input under the hood, so
         paste, SMS autofill and form posts all just work. Try typing in it.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.input_otp
             id={"pg-otp-#{@otp.length}-#{@otp.grouped}-#{@otp.pattern}-#{@otp.disabled}"}
@@ -4814,10 +4849,10 @@ defmodule Dev.PlaygroundLive do
             disabled={@otp.disabled}
           />
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={l <- ~w(4 6)}
                 phx-click="ctl_otp"
@@ -4831,7 +4866,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">pattern</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={pt <- ~w(numeric alphanumeric)}
                 phx-click="ctl_otp"
@@ -4856,27 +4891,27 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{otp_snippet(@otp)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Grouped</div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Grouped</div>
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <.input_otp id="otp-grouped-demo" name="grouped_code" length={6} group_size={3} />
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         In a form field (error state)
       </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center">
           <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0!">
             <.input_otp id="otp-error-demo" name="error_code" length={6} value="123" />
@@ -4892,12 +4927,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Switch</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         On or off, applied immediately. Switches are pill-shaped by nature, so
         the radius rail deliberately leaves them alone.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-sm">
             <.field
@@ -4912,10 +4947,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_switch"
@@ -4942,18 +4977,18 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{switch_snippet(@switch)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">States</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">States</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
           <.field type="switch" name="st_off" label="Off" no_margin />
           <.field type="switch" name="st_on" label="On" checked no_margin />
@@ -4962,8 +4997,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
           <.field
             :for={z <- ~w(xs sm md lg xl)}
@@ -4984,12 +5019,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Radio</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Plain radio groups, plus radio cards - selectable panels with labels and
         descriptions that most libraries make you hand-roll.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-lg">
             <.field
@@ -5009,10 +5044,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(outline classic)}
                 phx-click="ctl_radio"
@@ -5026,7 +5061,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={z <- ~w(sm md lg)}
                 phx-click="ctl_radio"
@@ -5040,7 +5075,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={l <- ~w(row col)}
                 phx-click="ctl_radio"
@@ -5058,18 +5093,18 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{radio_snippet(@radio)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Radio group</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Radio group</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="radio-group"
@@ -5082,10 +5117,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         With radio indicator
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="radio-card"
@@ -5104,10 +5139,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Disabled option
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-lg mx-auto">
           <.field
             type="radio-card"
@@ -5130,12 +5165,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Select</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The native select on the shared field surface: prompt, option groups and
         multiple selection, no JS required.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-sm">
             <.field
@@ -5152,7 +5187,7 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
@@ -5167,18 +5202,18 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{select_snippet(@select)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Option groups</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Option groups</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="select"
@@ -5195,8 +5230,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Multiple</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Multiple</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="select"
@@ -5218,12 +5253,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Checkbox</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Single agreements and multi-select groups. The box nests the rail radius;
         the ring only shows for keyboard focus.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-sm">
             <.field
@@ -5239,10 +5274,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={l <- ~w(row col)}
                 phx-click="ctl_checkbox"
@@ -5269,20 +5304,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{checkbox_snippet(@checkbox)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         States (click one - no ring; tab to it - ring)
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
           <.field type="checkbox" name="s_off" label="Unchecked" no_margin />
           <.field type="checkbox" name="s_on" label="Checked" checked no_margin />
@@ -5291,10 +5326,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Single checkbox
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="checkbox"
@@ -5313,12 +5348,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Aurora</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A drifting aurora glow behind your content - the hero-section backdrop.
         Pure CSS; pauses off-screen.
       </p>
       <div class="mt-8">
-        <.aurora class="border border-gray-200 rounded-2xl dark:border-zinc-800">
+        <.aurora class="border border-gray-200 rounded-2xl dark:border-gray-800">
           <div class="flex flex-col items-center px-8 text-center py-24">
             <.badge color="primary" variant="outline" label="Now in petal_components" />
             <h2 class="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
@@ -5335,7 +5370,7 @@ defmodule Dev.PlaygroundLive do
         </.aurora>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Any palette - colors builds the gradient for you
       </div>
       <div class="grid gap-4 sm:grid-cols-3">
@@ -5346,7 +5381,7 @@ defmodule Dev.PlaygroundLive do
             {"violet", ["#8b5cf6", "#f0abfc", "#c4b5fd", "#a78bfa"]}
           ]
         }>
-          <.aurora colors={colors} class="border border-gray-200 rounded-xl dark:border-zinc-800">
+          <.aurora colors={colors} class="border border-gray-200 rounded-xl dark:border-gray-800">
             <div class="flex items-end px-4 h-36">
               <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">{label}</span>
             </div>
@@ -5354,14 +5389,14 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Tuning - flood the whole container, or slow the drift
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <.aurora
           mask_position="50% 0"
           mask_coverage="30%, 100%"
-          class="border border-gray-200 rounded-xl dark:border-zinc-800"
+          class="border border-gray-200 rounded-xl dark:border-gray-800"
         >
           <div class="flex items-end px-4 h-36">
             <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">
@@ -5372,7 +5407,7 @@ defmodule Dev.PlaygroundLive do
         <.aurora
           speed="20s"
           opacity="0.7"
-          class="border border-gray-200 rounded-xl dark:border-zinc-800"
+          class="border border-gray-200 rounded-xl dark:border-gray-800"
         >
           <div class="flex items-end px-4 h-36">
             <span class="pb-3 font-mono text-xs text-gray-500 dark:text-gray-400">
@@ -5382,7 +5417,7 @@ defmodule Dev.PlaygroundLive do
         </.aurora>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The wrapper sizes to its content - pad a hero and it just works. By default the
         effect inverts on light backgrounds and renders natural in dark
         (invert="always"/"none" to force). The PetalAurora hook pauses the drift while
@@ -5397,11 +5432,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Links</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The routing primitive. One tag, four behaviours - plain anchor, LiveView
         patch, LiveView redirect, or a styled-as-link button.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-lg px-6 py-10 mx-auto text-sm leading-7 text-gray-600 dark:text-gray-300">
           Petal ships with
           <.a
@@ -5430,10 +5465,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Behaviours - same tag, different navigation
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
           <div
             :for={
@@ -5464,7 +5499,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         &lt;.a&gt; is deliberately unstyled - it is the primitive under button, breadcrumbs,
         pagination and dropdown items. Style it with classes (or just use those
         components). disabled turns an anchor into a real disabled button, since
@@ -5478,11 +5513,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Icons</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Every Heroicon by name - outline, solid, mini and micro. Sized and coloured
         with classes like any other element.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="grid grid-cols-4 gap-1 p-4 sm:grid-cols-6">
           <div
             :for={
@@ -5497,10 +5532,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Variants - outline, solid, mini, micro
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-end justify-center gap-8">
           <div
             :for={
@@ -5519,10 +5554,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Size and colour are just classes
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-end justify-center gap-6">
           <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
           <.icon name="hero-bolt" class="w-5 h-5 text-gray-600 dark:text-gray-300" />
@@ -5532,7 +5567,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Any hero-* name from heroicons.com works - this grid is a sample, not the set.
         Icons render as masked spans, so text colour utilities colour them. The other
         petal components (button icon attr, breadcrumbs, alerts) use this same
@@ -5546,12 +5581,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-4xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Menu</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The sidebar menu - a workspace switcher, grouped nav with collapsible
         sub-items, and an account menu. All composed from menu, dropdown and avatar.
       </p>
 
-      <div class="mt-8 flex h-[34rem] overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 flex h-[34rem] overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <aside class="flex flex-col w-64 border-r shrink-0 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
           <div class="p-2 border-b border-gray-200 dark:border-white/10">
             <.dropdown
@@ -5637,7 +5672,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </aside>
 
-        <div class="flex-col flex-1 hidden min-w-0 sm:flex bg-white dark:bg-zinc-950">
+        <div class="flex-col flex-1 hidden min-w-0 sm:flex bg-white dark:bg-gray-950">
           <div class="flex items-center h-12 gap-2 px-4 text-sm text-gray-500 border-b shrink-0 border-gray-200 dark:border-white/10 dark:text-gray-400">
             <.icon name="hero-bars-3" class="w-4 h-4" />
             <span class="w-px h-4 bg-gray-200 dark:bg-white/10"></span>
@@ -5654,7 +5689,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The whole sidebar is composition, not a new component: vertical_menu for the
         grouped nav (menu_items with a nested menu_items renders a collapsible
         sub-menu - Playground is open because a child is the current_page), dropdown
@@ -5670,11 +5705,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Navigation menu</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The marketing-site top nav - plain links and flyout panels with rich link
         rows and a CTA footer.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center px-6 pt-6 pb-72">
           <.navigation_menu id={"pg-nav-demo-#{@nav_trigger}"} trigger={@nav_trigger}>
             <:item label="Product" width="md">
@@ -5705,9 +5740,9 @@ defmodule Dev.PlaygroundLive do
             <:item label="Docs" to="#" current />
           </.navigation_menu>
         </div>
-        <div class="px-6 py-4 border-t border-gray-100 dark:border-zinc-800/80">
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
-          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
             <button
               :for={t <- ~w(hover click)}
               phx-click="ctl_navmenu"
@@ -5720,7 +5755,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Hover Product (or tab to it) to open the flyout. A close grace period keeps
         it open while you move from the trigger down into the panel, and the panel
         nudges itself to stay inside the viewport - no manual align needed.
@@ -5736,11 +5771,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-5xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Container</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         Centred max-width wrapper with responsive gutters - the outermost div of
         every page.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col gap-3 py-8">
           <.container :for={mw <- ~w(sm md lg xl full)} max_width={mw}>
             <div class="flex items-center justify-between px-4 py-2.5 text-xs font-mono rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">
@@ -5758,7 +5793,7 @@ defmodule Dev.PlaygroundLive do
           </.container>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Wrap page content once and forget about horizontal padding - gutters are
         responsive (none on mobile with no_padding_on_mobile). Larger sizes clamp to
         their parent - lg upwards is capped by this demo panel. The playground pages
@@ -5772,11 +5807,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">AI Chat</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         The LiveView-native AI chat kit. Tokens stream over the socket you already
         have - no client AI SDK. This demo is live: ask it something.
       </p>
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <Chat.conversation id="pg-chat" variant={@chat.variant}>
           <div :if={!@chat.history} class="flex justify-center">
             <button
@@ -5867,10 +5902,10 @@ defmodule Dev.PlaygroundLive do
             />
           </:footer>
         </Chat.conversation>
-        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-zinc-800/80">
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(plain bubbles)}
                 phx-click="ctl_chat"
@@ -5884,7 +5919,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">action bar</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(always hover)}
                 phx-click="ctl_chat"
@@ -5898,7 +5933,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Streaming is real here: the LiveView pushes word-sized tokens with
         push_event and the PetalChatStream hook appends them - then the bubble
         snaps to rendered markdown when the answer commits. Sending always drops
@@ -5917,10 +5952,10 @@ defmodule Dev.PlaygroundLive do
         style; variant="bubbles" puts both sides in bubbles (messenger style).
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Markers - system notes, status rows, separators
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-md mx-auto">
           <Chat.marker variant="separator">Today</Chat.marker>
           <Chat.marker icon="hero-magnifying-glass">Searched the web - 8 sources</Chat.marker>
@@ -5934,10 +5969,10 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Tool calls, reasoning and errors
       </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col max-w-md gap-3 mx-auto">
           <Chat.tool_call name="get_weather" status={:complete} label="Checked the weather">
             <div class="flex items-center gap-3 text-sm">
@@ -5957,7 +5992,7 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-zinc-800 dark:text-zinc-400">
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Chat isn't pulled in by use PetalComponents - alias PetalComponents.Chat
         and call it namespaced (it owns generic names like markdown). Markdown
         needs the optional :mdex dep. Reactions and read receipts are social-chat
@@ -5971,12 +6006,12 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Alert</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A prominent message tied to state: information, success, caution or failure.
         Radius follows the rail above.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-xl">
             <.alert
@@ -5989,10 +6024,10 @@ defmodule Dev.PlaygroundLive do
             </.alert>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(gray info success warning danger)}
                 phx-click="ctl_alert"
@@ -6006,7 +6041,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(light soft dark outline)}
                 phx-click="ctl_alert"
@@ -6031,20 +6066,20 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{alert_snippet(@alert)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Semantic colours
       </div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-gray-800">
         <.alert color="info" variant={@alert.variant} with_icon>
           A new version of this page is available.
         </.alert>
@@ -6055,8 +6090,8 @@ defmodule Dev.PlaygroundLive do
         </.alert>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
+      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-gray-800">
         <.alert color="gray" variant="light" with_icon>
           Light, the default. Stays light even in dark mode.
         </.alert>
@@ -6065,10 +6100,10 @@ defmodule Dev.PlaygroundLive do
         <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Dismissible (click the cross)
       </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.alert color="success" with_icon heading="Invite sent" close_button_properties={[]}>
           We emailed Ana a link to join your workspace.
         </.alert>
@@ -6081,11 +6116,11 @@ defmodule Dev.PlaygroundLive do
     ~H"""
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Badge</h1>
-      <p class="mt-2 text-gray-500 dark:text-zinc-400">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
         A small label for counts, statuses and categories. Radius follows the rail above.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.badge
             color={@badge.color}
@@ -6096,10 +6131,10 @@ defmodule Dev.PlaygroundLive do
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_badge"
@@ -6113,7 +6148,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={v <- ~w(light soft dark outline)}
                 phx-click="ctl_badge"
@@ -6127,7 +6162,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-zinc-700">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_badge"
@@ -6151,28 +6186,28 @@ defmodule Dev.PlaygroundLive do
       <button
         phx-click="flip"
         phx-value-k="show_code"
-        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
       >
         <.icon name="hero-code-bracket" class="w-4 h-4" />
         {if @show_code, do: "Hide code", else: "View code"}
       </button>
       <pre
         :if={@show_code}
-        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-zinc-900 rounded-xl dark:border dark:border-zinc-800"
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{badge_snippet(@badge)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.badge label="Light" />
         <.badge variant="soft" label="Soft" />
         <.badge variant="dark" label="Dark" />
         <.badge variant="outline" label="Outline" />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Semantic colours
       </div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.badge
           :for={c <- ~w(primary secondary info success warning danger gray)}
           color={c}
@@ -6181,8 +6216,8 @@ defmodule Dev.PlaygroundLive do
         />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-zinc-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-zinc-800">
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
+      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
       </div>
     </div>
@@ -6192,9 +6227,9 @@ defmodule Dev.PlaygroundLive do
   defp render_page(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-full px-8 text-center">
-      <.icon name="hero-cube-transparent" class="w-10 h-10 text-gray-300 dark:text-zinc-700" />
+      <.icon name="hero-cube-transparent" class="w-10 h-10 text-gray-300 dark:text-gray-700" />
       <p class="mt-4 text-lg font-medium capitalize">{@active}</p>
-      <p class="max-w-sm mt-1 text-sm text-gray-500 dark:text-zinc-400">
+      <p class="max-w-sm mt-1 text-sm text-gray-500 dark:text-gray-400">
         This page gets the same treatment next. We're locking the shell and the pattern on Button first.
       </p>
     </div>
@@ -6205,7 +6240,7 @@ defmodule Dev.PlaygroundLive do
 
   defp seg(false),
     do:
-      "px-2.5 py-1 text-xs text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+      "px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
 
   defp tog(true),
     do:
@@ -6213,7 +6248,7 @@ defmodule Dev.PlaygroundLive do
 
   defp tog(false),
     do:
-      "px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
+      "px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
 end
 
 defmodule Dev.Router do
