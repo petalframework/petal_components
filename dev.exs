@@ -707,7 +707,7 @@ defmodule Dev.PlaygroundLive do
          revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710],
          shape: "smooth",
          area: "fade",
-         dots: true,
+         dots: false,
          stacked: false
        }
      )}

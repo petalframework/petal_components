@@ -493,8 +493,11 @@ export const PetalChart = {
 
   // Server-side specs can't know the resolved palette, so a series may ask
   // for the shadcn-style soft fade with areaStyle: %{color: "petal:fade"} -
-  // replace it with a vertical gradient of that series' own color.
+  // replace it with a vertical gradient of that series' own color. Also
+  // turns on ECharts' aria description generation unless the option says
+  // otherwise (screen readers get a summary of the chart).
   prepareOption(opt) {
+    if (!("aria" in opt)) opt.aria = { enabled: true };
     const series = Array.isArray(opt.series) ? opt.series : opt.series ? [opt.series] : [];
     const palette = series.some((s) => s.areaStyle && s.areaStyle.color === "petal:fade")
       ? this.palette()
@@ -637,10 +640,13 @@ export const PetalChart = {
     const strongText = dark ? gray(100) : gray(900);
     const axisLine = dark ? this.alpha("var(--color-gray-400)", 25) : gray(300);
     const splitLine = dark ? this.alpha("var(--color-gray-400)", 17) : gray(200);
+    // Label-only axes (no axis lines, no tick marks) and horizontal-only
+    // gridlines - the clean dashboard look shadcn also defaults to. Any of
+    // it comes back with one line in the option, which always wins.
     const axisStyles = {
-      axisLine: { lineStyle: { color: axisLine } },
-      axisTick: { lineStyle: { color: axisLine } },
-      axisLabel: { color: text },
+      axisLine: { show: false, lineStyle: { color: axisLine } },
+      axisTick: { show: false, lineStyle: { color: axisLine } },
+      axisLabel: { color: text, margin: 10, fontSize: 12 },
       splitLine: { lineStyle: { color: splitLine } },
       splitArea: { show: false },
     };
@@ -651,7 +657,8 @@ export const PetalChart = {
       textStyle: { color: text },
       title: { textStyle: { color: strongText }, subtextStyle: { color: text } },
       legend: { textStyle: { color: text } },
-      bar: { itemStyle: { borderRadius: [3, 3, 0, 0] } },
+      bar: { itemStyle: { borderRadius: [4, 4, 0, 0] } },
+      line: { showSymbol: false, symbolSize: 6 },
       categoryAxis: { ...axisStyles, splitLine: { show: false, lineStyle: { color: splitLine } } },
       valueAxis: axisStyles,
       timeAxis: axisStyles,
@@ -659,7 +666,11 @@ export const PetalChart = {
       tooltip: {
         backgroundColor: dark ? gray(900) : "#ffffff",
         borderColor: dark ? this.alpha(gray(400), 25) : gray(200),
-        textStyle: { color: dark ? gray(100) : gray(700) },
+        textStyle: { color: dark ? gray(100) : gray(700), fontSize: 12 },
+        padding: [8, 12],
+        extraCssText:
+          "border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0.25rem); " +
+          "box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);",
       },
     };
   },
