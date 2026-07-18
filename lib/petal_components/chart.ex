@@ -42,6 +42,16 @@ defmodule PetalComponents.Chart do
 
   Anything you set explicitly in `option` wins over the derived theme.
 
+  Two conveniences fill the gap between a server-side spec and colors only
+  the client knows:
+
+    * `areaStyle: %{color: "petal:fade"}` on a line series renders the
+      soft vertical gradient fade (the series' own color at 35% fading to
+      transparent) without you having to know the resolved palette.
+    * When falling back to the semantic ramps, ramps whose hue collides with
+      an earlier pick (success green under an emerald primary, say) are
+      pushed to the back of the palette so adjacent series stay distinct.
+
   The theme re-derives automatically when dark mode flips or theme attributes
   change anywhere above the chart (`class`, `data-theme`, `data-primary`,
   `data-gray`, ...). If your app rethemes some other way, dispatch

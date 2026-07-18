@@ -484,11 +484,44 @@ export const PetalChart = {
 
   option() {
     try {
-      return JSON.parse(this.el.dataset.option || "{}");
+      return this.prepareOption(JSON.parse(this.el.dataset.option || "{}"));
     } catch (_e) {
       console.warn("[petal] PetalChart: invalid data-option JSON on #" + this.el.id);
       return {};
     }
+  },
+
+  // Server-side specs can't know the resolved palette, so a series may ask
+  // for the shadcn-style soft fade with areaStyle: %{color: "petal:fade"} -
+  // replace it with a vertical gradient of that series' own color.
+  prepareOption(opt) {
+    const series = Array.isArray(opt.series) ? opt.series : opt.series ? [opt.series] : [];
+    const palette = series.some((s) => s.areaStyle && s.areaStyle.color === "petal:fade")
+      ? this.palette()
+      : null;
+    series.forEach((s, i) => {
+      if (!(s.areaStyle && s.areaStyle.color === "petal:fade")) return;
+      const base =
+        this.normalizeColor(s.color || (s.itemStyle && s.itemStyle.color) || "") ||
+        palette[i % palette.length];
+      const stop = (alphaPct) =>
+        base.replace(/rgba\(([^)]+),\s*[\d.]+\)/, `rgba($1, ${alphaPct / 100})`);
+      s.areaStyle = {
+        ...s.areaStyle,
+        color: {
+          type: "linear",
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: stop(35) },
+            { offset: 1, color: stop(0) },
+          ],
+        },
+      };
+    });
+    return opt;
   },
 
   rethemeIfChanged() {
@@ -503,10 +536,13 @@ export const PetalChart = {
     return !!this.el.closest(".dark");
   },
 
-  // Resolve any CSS color expression to a concrete computed color at the
-  // element (so wrapper-scoped token overrides, var() chains, light-dark()
-  // and color-mix() all come out as something a canvas can paint). Returns
-  // "" when the expression doesn't resolve to a color.
+  // Resolve any CSS color expression to a concrete rgba() at the element
+  // (so wrapper-scoped token overrides, var() chains, light-dark() and
+  // color-mix() all resolve). The final canvas round-trip matters: computed
+  // values can come back as oklch()/color() strings, which the browser
+  // paints fine but ECharts' own color math (hover emphasis, gradients,
+  // animation lerp) cannot parse - series would vanish on hover. Returns ""
+  // when the expression doesn't resolve to a color.
   resolveColor(expression) {
     if (!this.probeEl) {
       this.probeEl = document.createElement("span");
@@ -516,7 +552,27 @@ export const PetalChart = {
     this.probeEl.style.color = "";
     this.probeEl.style.color = expression;
     if (!this.probeEl.style.color) return "";
-    return getComputedStyle(this.probeEl).color;
+    return this.normalizeColor(getComputedStyle(this.probeEl).color);
+  },
+
+  normalizeColor(color) {
+    if (!color) return "";
+    if (/^rgba\(/.test(color)) return color;
+    const rgb = color.match(/^rgb\(([^)]+)\)$/);
+    if (rgb) return `rgba(${rgb[1]}, 1)`;
+    if (!this.normCtx) {
+      this.normCtx = document.createElement("canvas").getContext("2d", {
+        willReadFrequently: true,
+      });
+      this.normCtx.canvas.width = 1;
+      this.normCtx.canvas.height = 1;
+    }
+    const ctx = this.normCtx;
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
   },
 
   token(name) {
@@ -531,9 +587,39 @@ export const PetalChart = {
       if (v) custom.push(v);
     }
     if (custom.length) return custom;
-    return ["primary", "info", "success", "warning", "danger", "secondary"]
+
+    // Fallback: semantic ramps, in fixed order, except that any ramp whose
+    // hue collides with an earlier pick (e.g. success green when primary is
+    // emerald) is pushed to the back so adjacent series stay tellable-apart.
+    const candidates = ["primary", "info", "warning", "danger", "success", "secondary"]
       .map((role) => this.resolveColor(`var(--color-${role}-500)`))
       .filter(Boolean);
+    const picked = [];
+    const demoted = [];
+    for (const color of candidates) {
+      const h = this.hueOf(color);
+      const clashes = picked.some((p) => {
+        const d = Math.abs(this.hueOf(p) - h);
+        return Math.min(d, 360 - d) < 25;
+      });
+      (clashes ? demoted : picked).push(color);
+    }
+    return picked.concat(demoted);
+  },
+
+  hueOf(rgba) {
+    const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return 0;
+    const [r, g, b] = [+m[1] / 255, +m[2] / 255, +m[3] / 255];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    if (max === min) return 0;
+    const d = max - min;
+    let h;
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    return (h * 60 + 360) % 360;
   },
 
   currentSignature() {
@@ -565,6 +651,7 @@ export const PetalChart = {
       textStyle: { color: text },
       title: { textStyle: { color: strongText }, subtextStyle: { color: text } },
       legend: { textStyle: { color: text } },
+      bar: { itemStyle: { borderRadius: [3, 3, 0, 0] } },
       categoryAxis: { ...axisStyles, splitLine: { show: false, lineStyle: { color: splitLine } } },
       valueAxis: axisStyles,
       timeAxis: axisStyles,

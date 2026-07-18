@@ -703,7 +703,13 @@ defmodule Dev.PlaygroundLive do
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
-       chart: %{revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710], smooth: true}
+       chart: %{
+         revenue: [820, 932, 901, 1290, 1330, 1520, 1400, 1710],
+         shape: "smooth",
+         area: "fade",
+         dots: true,
+         stacked: false
+       }
      )}
   end
 
@@ -795,8 +801,19 @@ defmodule Dev.PlaygroundLive do
     {:noreply, update(socket, :chart, &%{&1 | revenue: revenue})}
   end
 
-  def handle_event("chart_smooth", %{"v" => v}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | smooth: v == "1"})}
+  def handle_event("ctl_chart", %{"k" => "shape", "v" => v}, socket)
+      when v in ~w(smooth linear step),
+      do: {:noreply, update(socket, :chart, &%{&1 | shape: v})}
+
+  def handle_event("ctl_chart", %{"k" => "area", "v" => v}, socket)
+      when v in ~w(fade solid none),
+      do: {:noreply, update(socket, :chart, &%{&1 | area: v})}
+
+  def handle_event("ctl_chart", %{"k" => "dots"}, socket),
+    do: {:noreply, update(socket, :chart, &%{&1 | dots: !socket.assigns.chart.dots})}
+
+  def handle_event("ctl_chart", %{"k" => "stacked"}, socket),
+    do: {:noreply, update(socket, :chart, &%{&1 | stacked: !socket.assigns.chart.stacked})}
 
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
@@ -1299,26 +1316,37 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp revenue_option(chart) do
+    series =
+      %{
+        name: "Revenue",
+        type: "line",
+        smooth: chart.shape == "smooth",
+        symbolSize: 7,
+        showSymbol: chart.dots,
+        lineStyle: %{width: 2.5},
+        data: chart.revenue
+      }
+      |> then(&if chart.shape == "step", do: Map.put(&1, :step, "middle"), else: &1)
+      |> then(fn s ->
+        case chart.area do
+          "fade" -> Map.put(s, :areaStyle, %{color: "petal:fade"})
+          "solid" -> Map.put(s, :areaStyle, %{opacity: 0.12})
+          "none" -> s
+        end
+      end)
+
     %{
       grid: %{left: 44, right: 16, top: 16, bottom: 28},
       xAxis: %{type: "category", boundaryGap: false, data: ~w(Jan Feb Mar Apr May Jun Jul Aug)},
       yAxis: %{type: "value"},
       tooltip: %{trigger: "axis"},
-      series: [
-        %{
-          name: "Revenue",
-          type: "line",
-          smooth: chart.smooth,
-          symbolSize: 7,
-          lineStyle: %{width: 2.5},
-          areaStyle: %{opacity: 0.12},
-          data: chart.revenue
-        }
-      ]
+      series: [series]
     }
   end
 
-  defp bar_option do
+  defp bar_option(chart) do
+    stack = if chart.stacked, do: "total"
+
     %{
       grid: %{left: 40, right: 8, top: 32, bottom: 28},
       legend: %{top: 0},
@@ -1326,8 +1354,9 @@ defmodule Dev.PlaygroundLive do
       xAxis: %{type: "category", data: ~w(Q1 Q2 Q3 Q4)},
       yAxis: %{type: "value"},
       series: [
-        %{name: "Pro", type: "bar", barGap: 0, data: [320, 402, 391, 534]},
-        %{name: "Teams", type: "bar", data: [120, 182, 231, 290]}
+        %{name: "Pro", type: "bar", barGap: 0, stack: stack, data: [320, 402, 391, 534]}
+        |> then(&if chart.stacked, do: Map.put(&1, :itemStyle, %{borderRadius: 0}), else: &1),
+        %{name: "Teams", type: "bar", stack: stack, data: [120, 182, 231, 290]}
       ]
     }
   end
@@ -1336,6 +1365,15 @@ defmodule Dev.PlaygroundLive do
     %{
       tooltip: %{trigger: "item"},
       legend: %{bottom: 0},
+      title: %{
+        text: "960",
+        subtext: "customers",
+        left: "center",
+        top: "33%",
+        itemGap: 2,
+        textStyle: %{fontSize: 24, fontWeight: 650},
+        subtextStyle: %{fontSize: 12}
+      },
       series: [
         %{
           name: "Plan",
@@ -1362,7 +1400,9 @@ defmodule Dev.PlaygroundLive do
       option={%{
         xAxis: %{type: "category", data: ~w(Jan Feb Mar Apr)},
         yAxis: %{type: "value"},
-        series: [%{type: "line", smooth: true, areaStyle: %{}, data: @revenue}]
+        series: [
+          %{type: "line", smooth: true, areaStyle: %{color: "petal:fade"}, data: @revenue}
+        ]
       }}
     />
     """
@@ -2492,11 +2532,42 @@ defmodule Dev.PlaygroundLive do
         <div class="px-6 py-6">
           <.chart id="pg-chart-revenue" option={revenue_option(@chart)} height="16rem" />
         </div>
-        <div class="flex flex-wrap items-center gap-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-6 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <.button size="sm" variant="outline" phx-click="chart_randomize" label="Randomize data" />
-          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
-            <button phx-click="chart_smooth" phx-value-v="1" class={seg(@chart.smooth)}>smooth</button>
-            <button phx-click="chart_smooth" phx-value-v="0" class={seg(!@chart.smooth)}>linear</button>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">area</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={a <- ~w(fade solid none)}
+                phx-click="ctl_chart"
+                phx-value-k="area"
+                phx-value-v={a}
+                class={seg(@chart.area == a)}
+              >
+                {a}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={s <- ~w(smooth linear step)}
+                phx-click="ctl_chart"
+                phx-value-k="shape"
+                phx-value-v={s}
+                class={seg(@chart.shape == s)}
+              >
+                {s}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dots</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_chart" phx-value-k="dots" class={seg(@chart.dots)}>on</button>
+              <button phx-click="ctl_chart" phx-value-k="dots" class={seg(!@chart.dots)}>off</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2507,7 +2578,17 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="grid gap-6 sm:grid-cols-2">
         <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-          <.chart id="pg-chart-bar" option={bar_option()} height="14rem" />
+          <.chart id="pg-chart-bar" option={bar_option(@chart)} height="14rem" />
+          <div class="flex justify-center mt-3">
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_chart" phx-value-k="stacked" class={seg(!@chart.stacked)}>
+                grouped
+              </button>
+              <button phx-click="ctl_chart" phx-value-k="stacked" class={seg(@chart.stacked)}>
+                stacked
+              </button>
+            </div>
+          </div>
         </div>
         <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
           <.chart id="pg-chart-donut" option={donut_option()} height="14rem" />
