@@ -713,6 +713,7 @@ defmodule Dev.PlaygroundLive do
          chrome: true,
          two_series: false,
          gap: "cozy",
+         points: 14,
          stacked: false
        }
      )}
@@ -812,6 +813,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_chart", %{"k" => "gap", "v" => v}, socket) when v in ~w(cozy tight),
     do: {:noreply, update(socket, :chart, &%{&1 | gap: v})}
+
+  def handle_event("ctl_chart", %{"k" => "points", "v" => v}, socket) when v in ~w(7 14 30),
+    do: {:noreply, update(socket, :chart, &%{&1 | points: String.to_integer(v)})}
 
   def handle_event("ctl_chart", %{"k" => "type", "v" => v}, socket)
       when v in ~w(line bar),
@@ -1344,10 +1348,13 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp revenue_option(chart) do
+    revenue = Enum.take(chart.revenue, chart.points)
+    expenses = Enum.take(chart.expenses, chart.points)
+
     datasets =
       if chart.two_series,
-        do: [{"revenue", "Revenue", chart.revenue}, {"expenses", "Expenses", chart.expenses}],
-        else: [{"revenue", "Revenue", chart.revenue}]
+        do: [{"revenue", "Revenue", revenue}, {"expenses", "Expenses", expenses}],
+        else: [{"revenue", "Revenue", revenue}]
 
     # The shared ids + universalTransition make ECharts morph between the
     # line and bar forms when the type toggles.
@@ -1391,8 +1398,8 @@ defmodule Dev.PlaygroundLive do
     axis_x = %{
       type: "category",
       boundaryGap: chart.type == "bar",
-      axisLabel: %{interval: 3},
-      data: Enum.map(1..30, &"Apr #{&1}")
+      axisLabel: %{interval: if(chart.points <= 7, do: 0, else: 3)},
+      data: Enum.map(1..chart.points, &"Apr #{&1}")
     }
 
     base =
@@ -2633,6 +2640,20 @@ defmodule Dev.PlaygroundLive do
               </button>
               <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(@chart.two_series)}>
                 two
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">days</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={p <- ~w(7 14 30)}
+                phx-click="ctl_chart"
+                phx-value-k="points"
+                phx-value-v={p}
+                class={seg(to_string(@chart.points) == p)}
+              >
+                {p}
               </button>
             </div>
           </div>
