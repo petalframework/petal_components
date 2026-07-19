@@ -1402,13 +1402,18 @@ defmodule Dev.PlaygroundLive do
       data: Enum.map(1..chart.points, &"Apr #{&1}")
     }
 
+    tooltip = %{trigger: "axis", valueFormatter: "petal:currency:USD"}
+
     base =
       if chart.chrome do
         %{
-          grid: %{left: 44, right: 16, top: 16, bottom: 28},
+          grid: %{left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
           xAxis: axis_x,
-          yAxis: %{type: "value"},
-          tooltip: %{trigger: "axis"},
+          yAxis: %{
+            type: "value",
+            axisLabel: %{formatter: "petal:currency-compact:USD"}
+          },
+          tooltip: tooltip,
           series: series
         }
       else
@@ -1417,14 +1422,17 @@ defmodule Dev.PlaygroundLive do
           grid: %{left: 8, right: 8, top: 8, bottom: 8},
           xAxis: Map.put(axis_x, :show, false),
           yAxis: %{type: "value", show: false},
-          tooltip: %{trigger: "axis"},
+          tooltip: tooltip,
           series: series
         }
       end
 
     if chart.two_series && chart.chrome,
       do:
-        Map.merge(base, %{legend: %{top: 0}, grid: %{left: 44, right: 16, top: 36, bottom: 28}}),
+        Map.merge(base, %{
+          legend: %{top: 0},
+          grid: %{left: 8, right: 16, top: 36, bottom: 8, containLabel: true}
+        }),
       else: base
   end
 

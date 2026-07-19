@@ -38,6 +38,24 @@ defmodule PetalComponents.ChartTest do
       assert html =~ "height: 10rem"
     end
 
+    test "loading state travels as a data attribute" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.chart id="c3" option={%{}} loading={true} />
+        """)
+
+      assert html =~ ~s(data-loading="true")
+
+      html =
+        rendered_to_string(~H"""
+        <.chart id="c4" option={%{}} />
+        """)
+
+      assert html =~ ~s(data-loading="false")
+    end
+
     test "renderer, group and custom classes pass through" do
       assigns = %{}
 

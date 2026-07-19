@@ -458,7 +458,9 @@ export const PetalChart = {
   },
 
   updated() {
-    if (this.chart) this.chart.setOption(this.option(), { notMerge: true });
+    if (!this.chart) return;
+    this.chart.setOption(this.option(), { notMerge: true });
+    this.syncLoading();
   },
 
   destroyed() {
@@ -475,10 +477,28 @@ export const PetalChart = {
       renderer: this.el.dataset.renderer || "canvas",
     });
     this.chart.setOption(this.option());
+    this.syncLoading();
     const group = this.el.dataset.group;
     if (group) {
       this.chart.group = group;
       window.echarts.connect(group);
+    }
+  },
+
+  syncLoading() {
+    if (this.el.dataset.loading === "true") {
+      const dark = this.isDark();
+      this.chart.showLoading("default", {
+        text: "",
+        color: this.palette()[0],
+        maskColor: dark
+          ? this.alpha("var(--color-gray-900)", 60)
+          : "rgba(255, 255, 255, 0.6)",
+        spinnerRadius: 12,
+        lineWidth: 3,
+      });
+    } else {
+      this.chart.hideLoading();
     }
   },
 
@@ -498,6 +518,7 @@ export const PetalChart = {
   // otherwise (screen readers get a summary of the chart).
   prepareOption(opt) {
     if (!("aria" in opt)) opt.aria = { enabled: true };
+    this.substituteFormatters(opt);
     const series = Array.isArray(opt.series) ? opt.series : opt.series ? [opt.series] : [];
     const palette = series.some((s) => s.areaStyle && s.areaStyle.color === "petal:fade")
       ? this.palette()
@@ -533,6 +554,50 @@ export const PetalChart = {
     if (sig === this.themeSignature) return;
     this.chart.dispose();
     this.initChart();
+  },
+
+  // ECharts formats numbers via JS callbacks, which can't travel the wire.
+  // Named "petal:*" formatter strings become Intl.NumberFormat functions
+  // wherever ECharts accepts a formatter.
+  formatterFor(spec) {
+    const m = /^petal:(number|percent|currency|currency-compact)(?::([A-Za-z]{3}))?$/.exec(spec);
+    if (!m) return null;
+    const wrap = (nf, suffix) => (value) =>
+      typeof value === "number" ? nf.format(value) + (suffix || "") : value;
+    switch (m[1]) {
+      case "number":
+        return wrap(new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }));
+      case "percent":
+        return wrap(new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }), "%");
+      case "currency":
+        return wrap(new Intl.NumberFormat(undefined, { style: "currency", currency: m[2] || "USD", maximumFractionDigits: 0 }));
+      case "currency-compact":
+        return wrap(
+          new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: m[2] || "USD",
+            notation: "compact",
+            maximumFractionDigits: 1,
+          })
+        );
+    }
+  },
+
+  substituteFormatters(node) {
+    if (Array.isArray(node)) {
+      node.forEach((child) => this.substituteFormatters(child));
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    for (const key of Object.keys(node)) {
+      const value = node[key];
+      if ((key === "formatter" || key === "valueFormatter") && typeof value === "string") {
+        const fn = this.formatterFor(value);
+        if (fn) node[key] = fn;
+      } else {
+        this.substituteFormatters(value);
+      }
+    }
   },
 
   isDark() {
@@ -656,7 +721,10 @@ export const PetalChart = {
       backgroundColor: "transparent",
       textStyle: { color: text },
       title: { textStyle: { color: strongText }, subtextStyle: { color: text } },
-      legend: { textStyle: { color: text } },
+      legend: {
+        textStyle: { color: text },
+        inactiveColor: dark ? this.alpha("var(--color-gray-400)", 35) : gray(300),
+      },
       bar: { itemStyle: { borderRadius: [4, 4, 0, 0] } },
       line: { showSymbol: false, symbolSize: 6 },
       categoryAxis: { ...axisStyles, splitLine: { show: false, lineStyle: { color: splitLine } } },
@@ -667,6 +735,11 @@ export const PetalChart = {
         backgroundColor: dark ? gray(900) : "#ffffff",
         borderColor: dark ? this.alpha(gray(400), 25) : gray(200),
         textStyle: { color: dark ? gray(100) : gray(700), fontSize: 12 },
+        axisPointer: {
+          lineStyle: { color: dark ? this.alpha(gray(400), 30) : gray(300) },
+          crossStyle: { color: dark ? this.alpha(gray(400), 30) : gray(300) },
+          shadowStyle: { color: this.alpha(gray(400), dark ? 8 : 12) },
+        },
         padding: [8, 12],
         extraCssText:
           "border-radius: clamp(0.25rem, calc(var(--pc-radius, 0.625rem) - 0.125rem), 0.875rem); " +

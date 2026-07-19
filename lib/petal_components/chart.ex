@@ -42,8 +42,8 @@ defmodule PetalComponents.Chart do
 
   Anything you set explicitly in `option` wins over the derived theme.
 
-  Two conveniences fill the gap between a server-side spec and colors only
-  the client knows:
+  A few conveniences fill the gap between a server-side spec and things only
+  the client knows (resolved colors, number formatting functions):
 
     * `areaStyle: %{color: "petal:fade"}` on a line series renders the
       soft vertical gradient fade (the series' own color at 35% fading to
@@ -51,6 +51,19 @@ defmodule PetalComponents.Chart do
     * When falling back to the semantic ramps, ramps whose hue collides with
       an earlier pick (success green under an emerald primary, say) are
       pushed to the back of the palette so adjacent series stay distinct.
+    * **Named formatters** - ECharts formats numbers via JavaScript callback
+      functions, which can't travel the wire. Anywhere ECharts accepts a
+      formatter (`axisLabel`, `tooltip.valueFormatter`, series labels), pass
+      one of these strings instead and the hook substitutes an
+      `Intl.NumberFormat`-backed function:
+
+        * `"petal:number"` - compact: 1234 → "1.2K"
+        * `"petal:percent"` - value as given plus %: 8.3 → "8.3%"
+        * `"petal:currency:USD"` - full: 12480 → "$12,480" (any ISO code)
+        * `"petal:currency-compact:USD"` - axes: 12480 → "$12K"
+
+      For example: `yAxis: %{axisLabel: %{formatter: "petal:currency-compact:USD"}},
+      tooltip: %{trigger: "axis", valueFormatter: "petal:currency:USD"}`.
 
   The theme re-derives automatically when dark mode flips or theme attributes
   change anywhere above the chart (`class`, `data-theme`, `data-primary`,
@@ -91,6 +104,10 @@ defmodule PetalComponents.Chart do
     default: nil,
     doc: "charts sharing a group name get connected tooltips/zoom (echarts.connect)"
 
+  attr :loading, :boolean,
+    default: false,
+    doc: "shows a theme-colored loading spinner over the chart while your data is on its way"
+
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -106,6 +123,7 @@ defmodule PetalComponents.Chart do
       data-option={Jason.encode!(@option)}
       data-renderer={@renderer}
       data-group={@group}
+      data-loading={to_string(@loading)}
       {@rest}
     >
       <div
