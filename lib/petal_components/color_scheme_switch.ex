@@ -165,7 +165,7 @@ defmodule PetalComponents.ColorSchemeSwitch do
       class={["pc-scheme-dropdown", @class]}
       {@rest}
     >
-      <Dropdown.dropdown placement="right">
+      <Dropdown.dropdown placement="right" menu_items_wrapper_class="pc-scheme-dropdown__menu">
         <:trigger_element>
           <span class="pc-scheme-toggle pc-scheme-dropdown__trigger" aria-label="Colour scheme">
             <.icon name="hero-sun" class="pc-scheme-toggle__sun" />
@@ -177,12 +177,12 @@ defmodule PetalComponents.ColorSchemeSwitch do
           type="button"
           role="menuitemradio"
           aria-checked="false"
+          aria-label={label}
+          title={label}
           data-scheme={value}
           class="pc-scheme-dropdown__item"
         >
           <.icon name={icon} class="pc-scheme-dropdown__item-icon" />
-          {label}
-          <.icon name="hero-check" class="pc-scheme-dropdown__check" />
         </button>
       </Dropdown.dropdown>
     </div>
