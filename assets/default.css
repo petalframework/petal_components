@@ -4603,7 +4603,7 @@
   }
 
   .pc-scheme-dropdown__menu {
-    @apply !w-auto !min-w-0;
+    @apply !w-auto !min-w-0 !left-1/2 !right-auto -translate-x-1/2;
   }
 
   .pc-scheme-dropdown__item {
