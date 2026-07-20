@@ -713,8 +713,7 @@ defmodule Dev.PlaygroundLive do
          chrome: true,
          two_series: false,
          gap: "cozy",
-         points: 14,
-         stacked: false
+         points: 14
        }
      )}
   end
@@ -834,9 +833,6 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_chart", %{"k" => "chrome"}, socket),
     do: {:noreply, update(socket, :chart, &%{&1 | chrome: !socket.assigns.chart.chrome})}
-
-  def handle_event("ctl_chart", %{"k" => "stacked"}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | stacked: !socket.assigns.chart.stacked})}
 
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
@@ -1434,55 +1430,6 @@ defmodule Dev.PlaygroundLive do
           grid: %{left: 8, right: 16, top: 36, bottom: 8, containLabel: true}
         }),
       else: base
-  end
-
-  defp bar_option(chart) do
-    stack = if chart.stacked, do: "total"
-
-    %{
-      grid: %{left: 40, right: 8, top: 32, bottom: 28},
-      legend: %{top: 0},
-      tooltip: %{trigger: "axis"},
-      xAxis: %{type: "category", data: ~w(Q1 Q2 Q3 Q4)},
-      yAxis: %{type: "value"},
-      series: [
-        %{name: "Pro", type: "bar", barGap: 0, stack: stack, data: [320, 402, 391, 534]}
-        |> then(&if chart.stacked, do: Map.put(&1, :itemStyle, %{borderRadius: 0}), else: &1),
-        %{name: "Teams", type: "bar", stack: stack, data: [120, 182, 231, 290]}
-      ]
-    }
-  end
-
-  defp donut_option do
-    %{
-      tooltip: %{trigger: "item"},
-      legend: %{bottom: 0},
-      title: %{
-        text: "960",
-        subtext: "customers",
-        left: "center",
-        top: "33%",
-        itemGap: 2,
-        textStyle: %{fontSize: 24, fontWeight: 650},
-        subtextStyle: %{fontSize: 12}
-      },
-      series: [
-        %{
-          name: "Plan",
-          type: "pie",
-          radius: ["48%", "72%"],
-          center: ["50%", "44%"],
-          avoidLabelOverlap: true,
-          itemStyle: %{borderRadius: 5, borderWidth: 2},
-          label: %{show: false},
-          data: [
-            %{value: 580, name: "Individual"},
-            %{value: 260, name: "Team"},
-            %{value: 120, name: "Legacy"}
-          ]
-        }
-      ]
-    }
   end
 
   defp chart_snippet do
@@ -2727,51 +2674,34 @@ defmodule Dev.PlaygroundLive do
       </div>
       <pre class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"><code>{chart_snippet()}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Bar + donut - the palette is the --pc-chart-* token group
-      </div>
-      <div class="grid gap-6 sm:grid-cols-2">
-        <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-          <.chart id="pg-chart-bar" option={bar_option(@chart)} height="14rem" />
-          <div class="flex justify-center mt-3">
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
-              <button phx-click="ctl_chart" phx-value-k="stacked" class={seg(!@chart.stacked)}>
-                grouped
-              </button>
-              <button phx-click="ctl_chart" phx-value-k="stacked" class={seg(@chart.stacked)}>
-                stacked
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="px-4 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-          <.chart id="pg-chart-donut" option={donut_option()} height="14rem" />
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.Chart.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Sparkline - pure server-rendered SVG, zero JavaScript
+      <div :for={ex <- PetalComponents.Showcase.Sparkline.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div
-          :for={
-            {label, value, delta, data, color} <- [
-              {"MRR", "$12,480", "+8.2%", [8, 9, 9, 11, 10, 12, 13, 14], "text-primary-500"},
-              {"Signups", "1,204", "+3.1%", [30, 34, 31, 38, 36, 41, 40, 44], "text-success-500"},
-              {"Churn", "1.9%", "-0.4%", [9, 8, 9, 7, 8, 6, 7, 5], "text-danger-500"}
-            ]
-          }
-          class="flex items-center justify-between px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800"
-        >
-          <div>
-            <div class="text-xs text-gray-400 dark:text-gray-500">{label}</div>
-            <div class="mt-1 text-xl font-semibold">{value}</div>
-            <div class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{delta} this month</div>
-          </div>
-          <.sparkline data={data} class={"h-10 w-28 #{color}"} />
-        </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Chart} function={:chart} />
+      <div class="mt-6">
+        <.showcase_props component={PetalComponents.Sparkline} function={:sparkline} />
       </div>
-      <pre class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"><code>{~s|<.sparkline data={[8, 9, 9, 11, 10, 12, 13, 14]} class="h-10 w-28 text-primary-500" />|}</code></pre>
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Chart</code>
+        and <code>Sparkline</code>
+        registries - the same source petal.build renders, so the
+        playground and the marketing docs can't drift.
+      </div>
     </div>
     """
   end

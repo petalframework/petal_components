@@ -72,6 +72,16 @@ const liveSocket = new LiveSocket("/live", Socket, {
 
 If the project has no `assets/js/app.js` (an API-only or minimal app), skip this — the hooks are only needed for those interactive components.
 
+### 5b. Charts (only if the app uses `<.chart>`)
+
+The `<.chart>` component drives Apache ECharts but does not bundle it — the engine is bring-your-own, exactly like Alpine. Add it ONLY when the app actually renders a `<.chart>`; skip otherwise. Either a script tag in the root layout:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+```
+
+or `npm i echarts` plus `import * as echarts from "echarts"; window.echarts = echarts;` in `app.js`. The `PetalChart` hook picks it up from `window.echarts` and warns in the console if it's missing (the chart area renders empty). `<.sparkline>` is pure server-rendered SVG and needs nothing.
+
 ### 6. Verify
 
 ```sh

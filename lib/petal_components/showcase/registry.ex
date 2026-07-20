@@ -12,8 +12,10 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Accordion,
     PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.BorderBeam,
+    PetalComponents.Showcase.Chart,
     PetalComponents.Showcase.Chat,
-    PetalComponents.Showcase.Command
+    PetalComponents.Showcase.Command,
+    PetalComponents.Showcase.Sparkline
   ]
 
   @doc "Every showcase module, sorted by title."

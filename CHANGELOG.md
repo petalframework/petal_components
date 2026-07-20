@@ -1,4 +1,18 @@
 # Changelog
+### 4.7.0 - unreleased
+
+The charts release. A declarative `<.chart>` powered by Apache ECharts that themes itself from your design tokens, and a zero-JavaScript `<.sparkline>` for inline trends.
+
+#### Added
+
+- **`chart` - declarative charts on Apache ECharts.** The spec is a plain Elixir map (the ECharts option object), so the whole chart lives server-side and travels the LiveView wire as data: update the assign and the chart animates in place; `push_event("chart:update:<id>", ...)` merges partials for high-frequency streams. Colours derive from your CSS tokens at mount - series palette from `--pc-chart-1..8` (falling back to the semantic ramps, with hue collisions demoted so adjacent series stay distinct), axes/gridlines/tooltips from the `gray` ramp using the dark ghost alphas - and the theme re-derives automatically when dark mode or theme attributes change (`window.dispatchEvent(new Event("petal:retheme"))` is the manual hook). Presentation defaults are the modern dashboard look: label-only axes, horizontal-only gridlines, rounded bar ends, dotless lines with a hover point, a radius-token tooltip. Two conveniences bridge server specs and client-only knowledge: `areaStyle: %{color: "petal:fade"}` renders the soft gradient fade in the series' own colour, and named formatters (`"petal:number"`, `"petal:percent"`, `"petal:currency:USD"`, `"petal:currency-compact:USD"`) stand in for the JavaScript callbacks ECharts normally wants anywhere a `formatter`/`valueFormatter` accepts them. A `loading` attr shows a theme-coloured spinner for async data, `renderer="svg"` swaps the paint engine, `group` connects tooltips across charts, and ECharts' aria description generation is on by default. **The engine is bring-your-own** (like Alpine): add the ECharts script or npm package and the `PetalChart` hook finds `window.echarts` - see the install rules.
+- **`sparkline` - inline trends as pure server-rendered SVG.** Zero JavaScript, works in stat cards, table cells and anywhere else HTML renders. Catmull-Rom smoothing (or straight segments), an optional soft area fill, `currentColor` stroke so a text class sets the colour, and non-scaling stroke so any CSS size keeps the line weight.
+- **Showcase registry entries for both** (`Showcase.Chart`, `Showcase.Sparkline`), so the playground and petal.build render the same examples.
+
+#### Playground
+
+A new **Chart** page under Data: a flagship line/bar chart that morphs between types (shared series id + `universalTransition`), with dials for series count, day count, area fade/solid/none, line shape, dots, bar gap density and chromeless mode - plus the registry examples and props tables. The theme dials up top recolour every chart live.
+
 ### 4.6.2 - 2026-07-18
 
 The dark "ghost" material now carries your neutral's hue. If you remap `gray` to slate, stone, or any tinted neutral, inputs, hover fills and hairline borders finally match your panels instead of reading as colourless zinc next to them. On a stock zinc or neutral install nothing changes.

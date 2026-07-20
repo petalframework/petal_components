@@ -666,22 +666,27 @@ export const PetalChart = {
     const demoted = [];
     for (const color of candidates) {
       const h = this.hueOf(color);
-      const clashes = picked.some((p) => {
-        const d = Math.abs(this.hueOf(p) - h);
-        return Math.min(d, 360 - d) < 25;
-      });
+      const clashes =
+        h !== null &&
+        picked.some((p) => {
+          const ph = this.hueOf(p);
+          if (ph === null) return false;
+          const d = Math.abs(ph - h);
+          return Math.min(d, 360 - d) < 25;
+        });
       (clashes ? demoted : picked).push(color);
     }
     return picked.concat(demoted);
   },
 
+  // null for achromatic colors - they have no hue and never clash.
   hueOf(rgba) {
     const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    if (!m) return 0;
+    if (!m) return null;
     const [r, g, b] = [+m[1] / 255, +m[2] / 255, +m[3] / 255];
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    if (max === min) return 0;
+    if (max - min < 0.04) return null;
     const d = max - min;
     let h;
     if (max === r) h = ((g - b) / d) % 6;
