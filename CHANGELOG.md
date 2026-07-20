@@ -1,5 +1,5 @@
 # Changelog
-### 4.7.0 - unreleased
+### 4.7.0 - 2026-07-20
 
 The charts release. A declarative `<.chart>` powered by Apache ECharts that themes itself from your design tokens, and a zero-JavaScript `<.sparkline>` for inline trends.
 
