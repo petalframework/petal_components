@@ -94,6 +94,11 @@ defmodule PetalComponents.ColorSchemeSwitch do
   attr :light_label, :string, default: "Light", doc: "label/aria text (i18n)"
   attr :dark_label, :string, default: "Dark", doc: "label/aria text (i18n)"
   attr :system_label, :string, default: "System", doc: "label/aria text (i18n)"
+
+  attr :labels, :boolean,
+    default: false,
+    doc: "dropdown variant only: show text labels beside the icons instead of the icon-only rail"
+
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -178,11 +183,15 @@ defmodule PetalComponents.ColorSchemeSwitch do
           role="menuitemradio"
           aria-checked="false"
           aria-label={label}
-          title={label}
+          title={if !@labels, do: label}
           data-scheme={value}
-          class="pc-scheme-dropdown__item"
+          class={[
+            "pc-scheme-dropdown__item",
+            @labels && "pc-scheme-dropdown__item--labeled"
+          ]}
         >
           <.icon name={icon} class="pc-scheme-dropdown__item-icon" />
+          <span :if={@labels} class="pc-scheme-dropdown__item-label">{label}</span>
         </button>
       </Dropdown.dropdown>
     </div>

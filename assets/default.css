@@ -4615,8 +4615,16 @@
     @apply bg-gray-900/5 text-gray-900 dark:bg-gray-400/15 dark:text-white;
   }
 
+  .pc-scheme-dropdown__item--labeled {
+    @apply w-full justify-start gap-2 px-3 text-sm;
+  }
+
   .pc-scheme-dropdown__item-icon {
-    @apply w-5 h-5;
+    @apply w-5 h-5 shrink-0;
+  }
+
+  .pc-scheme-dropdown__item-label {
+    @apply pr-1;
   }
 
   /* Confetti mount point */

@@ -70,6 +70,19 @@ defmodule PetalComponents.ColorSchemeSwitchTest do
       assert html =~ ~s(role="menuitemradio")
     end
 
+    test "dropdown labels attr shows text beside icons" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.color_scheme_switch id="scheme" variant="dropdown" labels />
+        """)
+
+      assert html =~ "pc-scheme-dropdown__item--labeled"
+      assert html =~ ">Light</span>"
+      assert html =~ ">System</span>"
+    end
+
     test "labels are overridable for i18n" do
       assigns = %{}
 

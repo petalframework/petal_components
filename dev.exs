@@ -2747,8 +2747,9 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Dropdown - compact, with a system option
       </div>
-      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="flex items-center justify-center gap-10 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <.color_scheme_switch id="pg-scheme-dropdown" variant="dropdown" />
+        <.color_scheme_switch id="pg-scheme-dropdown-labeled" variant="dropdown" labels />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
