@@ -32,6 +32,7 @@ defmodule Dev.Layouts do
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
         <.live_title>Petal Components Playground</.live_title>
+        <PetalComponents.ColorSchemeSwitch.color_scheme_script />
         <meta name="pg-rev" content="alert-badge-1" />
         <link rel="stylesheet" href="/assets/app.css" />
       </head>
@@ -178,7 +179,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
-        %{slug: "input-otp", name: "Input OTP", ready: true}
+        %{slug: "input-otp", name: "Input OTP", ready: true},
+        %{slug: "color-scheme", name: "Color scheme", ready: true}
       ]
     },
     %{
@@ -2720,6 +2722,48 @@ defmodule Dev.PlaygroundLive do
         and <code>Sparkline</code>
         registries - the same source petal.build renders, so the
         playground and the marketing docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "color-scheme"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Color scheme</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Light, dark and system switching in three faces, sharing one no-flash
+        scheme contract. System follows the OS live, explicit choices persist,
+        and every open tab stays in sync.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Toggle - instant light/dark for tight navbars
+      </div>
+      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-toggle" variant="toggle" />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Dropdown - compact, with a system option
+      </div>
+      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-dropdown" variant="dropdown" />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Segmented - all three states visible
+      </div>
+      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-segmented" variant="segmented" />
+      </div>
+
+      <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These switch the real <code>document</code>
+        class - unlike the topbar's
+        URL-driven dark toggle, which themes only this preview. Both mechanisms
+        coexist; apps ship the document one via <code>&lt;.color_scheme_script /&gt;</code>
+        in the layout head.
       </div>
     </div>
     """

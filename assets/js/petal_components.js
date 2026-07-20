@@ -754,6 +754,63 @@ export const PetalChart = {
   },
 };
 
+// Colour-scheme switch (toggle / dropdown / segmented). Requires the
+// window.PetalColorScheme contract from <.color_scheme_script /> in <head>.
+// All instances stay in sync via the petal:scheme-changed window event.
+export const PetalColorScheme = {
+  mounted() {
+    if (!window.PetalColorScheme) {
+      console.warn(
+        "[petal] PetalColorScheme: render <.color_scheme_script /> in your layout's <head>."
+      );
+      return;
+    }
+    this.variant = this.el.dataset.variant;
+    this.sync = () => this.reflect();
+    window.addEventListener("petal:scheme-changed", this.sync);
+
+    if (this.variant === "toggle") {
+      this.onClick = () => {
+        const next = window.PetalColorScheme.resolved() === "dark" ? "light" : "dark";
+        window.PetalColorScheme.set(next);
+      };
+      this.el.addEventListener("click", this.onClick);
+    } else if (this.variant === "segmented") {
+      this.onChange = (e) => {
+        if (e.target instanceof HTMLInputElement) window.PetalColorScheme.set(e.target.value);
+      };
+      this.el.addEventListener("change", this.onChange);
+    } else {
+      this.onClick = (e) => {
+        const item = e.target.closest("[data-scheme]");
+        if (item) window.PetalColorScheme.set(item.dataset.scheme);
+      };
+      this.el.addEventListener("click", this.onClick);
+    }
+
+    this.reflect();
+  },
+
+  updated() {
+    this.reflect();
+  },
+
+  destroyed() {
+    window.removeEventListener("petal:scheme-changed", this.sync);
+  },
+
+  reflect() {
+    if (!window.PetalColorScheme) return;
+    const pref = window.PetalColorScheme.preference();
+    this.el.querySelectorAll('input[type="radio"]').forEach((r) => {
+      r.checked = r.value === pref;
+    });
+    this.el.querySelectorAll("[data-scheme]").forEach((n) => {
+      n.setAttribute("aria-checked", n.dataset.scheme === pref ? "true" : "false");
+    });
+  },
+};
+
 export const PetalNumberTicker = {
   mounted() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -1647,6 +1704,7 @@ export const PetalNavMenu = {
 
 export default {
   PetalChart,
+  PetalColorScheme,
   PetalChatStream,
   PetalChatComposer,
   PetalCopy,

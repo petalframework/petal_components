@@ -4547,6 +4547,77 @@
     @apply inline-block h-8 w-24 align-middle;
   }
 
+  /* Colour scheme switch */
+  .pc-scheme-toggle {
+    @apply relative inline-flex items-center justify-center w-9 h-9 cursor-pointer text-gray-500 transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-scheme-toggle__sun,
+  .pc-scheme-toggle__moon {
+    @apply w-5 h-5 transition-all duration-300;
+  }
+
+  .pc-scheme-toggle__sun {
+    @apply rotate-0 scale-100;
+  }
+
+  .dark .pc-scheme-toggle__sun {
+    @apply -rotate-90 scale-0;
+  }
+
+  .pc-scheme-toggle__moon {
+    @apply absolute rotate-90 scale-0;
+  }
+
+  .dark .pc-scheme-toggle__moon {
+    @apply rotate-0 scale-100;
+  }
+
+  .pc-scheme-segmented {
+    @apply relative inline-grid grid-cols-3 gap-0.5 rounded-full p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+  }
+
+  .pc-scheme-segmented__option {
+    @apply relative rounded-full p-1.5 cursor-pointer transition-colors duration-150;
+  }
+
+  .pc-scheme-segmented__option:has(:checked) {
+    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+  }
+
+  .pc-scheme-segmented__option:has(:focus-visible) {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-scheme-segmented__input {
+    @apply absolute inset-0 w-full h-full appearance-none border-0 bg-transparent rounded-full cursor-pointer focus:outline-none;
+  }
+
+  .pc-scheme-segmented__icon {
+    @apply relative w-5 h-5 pointer-events-none;
+  }
+
+  .pc-scheme-dropdown {
+    @apply inline-block;
+  }
+
+  .pc-scheme-dropdown__item {
+    @apply flex items-center gap-2 w-full px-4 py-2 text-sm text-left text-gray-700 cursor-pointer hover:bg-gray-900/5 dark:text-gray-300 dark:hover:bg-gray-400/10;
+  }
+
+  .pc-scheme-dropdown__item-icon {
+    @apply w-4 h-4;
+  }
+
+  .pc-scheme-dropdown__check {
+    @apply w-4 h-4 ml-auto opacity-0;
+  }
+
+  .pc-scheme-dropdown__item[aria-checked="true"] .pc-scheme-dropdown__check {
+    @apply opacity-100;
+  }
+
   /* Confetti mount point */
   .pc-confetti {
     @apply hidden;
