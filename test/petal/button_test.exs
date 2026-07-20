@@ -191,6 +191,44 @@ defmodule PetalComponents.ButtonTest do
 
       assert has_icon?(html, "hero-home")
     end
+
+    test "icon_placement puts the icon after the label", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.button icon="hero-arrow-right" icon_placement="right" label="Continue" />
+        """)
+
+      assert has_icon?(html, "hero-arrow-right")
+      # the icon markup comes after the label text in document order
+      {label_at, _} = :binary.match(html, "Continue")
+      {icon_at, _} = :binary.match(html, "hero-arrow-right")
+      assert icon_at > label_at
+    end
+
+    test "the loading spinner takes the icon's side", %{assigns: assigns} do
+      left =
+        rendered_to_string(~H"""
+        <.button icon="hero-home" loading label="Save" />
+        """)
+
+      right =
+        rendered_to_string(~H"""
+        <.button icon="hero-arrow-right" icon_placement="right" loading label="Save" />
+        """)
+
+      # spinner replaces the icon in both cases
+      refute has_icon?(left, "hero-home")
+      refute has_icon?(right, "hero-arrow-right")
+
+      # and sits on the matching side of the label
+      {label_at_left, _} = :binary.match(left, "Save")
+      {spinner_at_left, _} = :binary.match(left, "pc-button__spinner-icon")
+      assert spinner_at_left < label_at_left
+
+      {label_at_right, _} = :binary.match(right, "Save")
+      {spinner_at_right, _} = :binary.match(right, "pc-button__spinner-icon")
+      assert spinner_at_right > label_at_right
+    end
   end
 
   describe "button/1 - accessibility" do

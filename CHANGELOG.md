@@ -1,4 +1,14 @@
 # Changelog
+### 4.8.0 - unreleased
+
+#### Added
+
+- **`icon_placement` on `button`.** `icon_placement="right"` puts the icon after the label - arrows, external-link, clipboard. The loading spinner takes the icon's side, so a button doesn't reflow when it enters its loading state. Defaults to `"left"`; nothing changes for existing callers.
+
+#### Changed
+
+- **Icon spacing is part of the base button.** `.pc-button` carries the gap itself now, so composed icons - `<.button>Continue <.icon name="hero-arrow-right" class="w-4 h-4" /></.button>` - space correctly with no extra attr. `with_icon` is a legacy no-op, kept for compatibility and removed in 5.0.
+
 ### 4.7.0 - 2026-07-20
 
 The charts release. A declarative `<.chart>` powered by Apache ECharts that themes itself from your design tokens, and a zero-JavaScript `<.sparkline>` for inline trends.

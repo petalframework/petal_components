@@ -632,7 +632,7 @@ defmodule Dev.PlaygroundLive do
        variant: "outline",
        color: "primary",
        size: "md",
-       icon: false,
+       icon: nil,
        loading: false,
        disabled: false,
        show_code: false,
@@ -756,11 +756,14 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_size", %{"v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, assign(socket, :size, v)}
 
-  def handle_event("flip", %{"k" => "icon"}, socket),
-    do: {:noreply, socket |> update(:icon, &(!&1)) |> assign(:loading, false)}
+  def handle_event("ctl_icon", %{"v" => "off"}, socket),
+    do: {:noreply, assign(socket, :icon, nil)}
+
+  def handle_event("ctl_icon", %{"v" => v}, socket) when v in ~w(left right),
+    do: {:noreply, assign(socket, :icon, v)}
 
   def handle_event("flip", %{"k" => "loading"}, socket),
-    do: {:noreply, socket |> update(:loading, &(!&1)) |> assign(:icon, false)}
+    do: {:noreply, update(socket, :loading, &(!&1))}
 
   def handle_event("flip", %{"k" => "disabled"}, socket),
     do: {:noreply, update(socket, :disabled, &(!&1))}
@@ -1256,13 +1259,17 @@ defmodule Dev.PlaygroundLive do
 
   defp fmt_stars(n), do: "#{n}"
 
+  defp icon_for_side("right"), do: "hero-arrow-right"
+  defp icon_for_side(_), do: "hero-rocket-launch"
+
   defp button_snippet(a) do
     attrs =
       [
         a.variant != "solid" && ~s(variant="#{a.variant}"),
         a.color != "primary" && ~s(color="#{a.color}"),
         a.size != "md" && ~s(size="#{a.size}"),
-        a.icon && ~s(icon="hero-rocket-launch"),
+        a.icon && ~s(icon="#{icon_for_side(a.icon)}"),
+        a.icon == "right" && ~s(icon_placement="right"),
         a.loading && "loading",
         a.disabled && "disabled"
       ]
@@ -1936,7 +1943,8 @@ defmodule Dev.PlaygroundLive do
             variant={@variant}
             color={@color}
             size={@size}
-            icon={if @icon, do: "hero-rocket-launch"}
+            icon={if @icon, do: icon_for_side(@icon)}
+            icon_placement={@icon || "left"}
             loading={@loading}
             disabled={@disabled}
           >
@@ -1984,9 +1992,20 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_icon" phx-value-v="off" class={seg(@icon == nil)}>off</button>
+              <button phx-click="ctl_icon" phx-value-v="left" class={seg(@icon == "left")}>
+                left
+              </button>
+              <button phx-click="ctl_icon" phx-value-v="right" class={seg(@icon == "right")}>
+                right
+              </button>
+            </div>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
-              <button phx-click="flip" phx-value-k="icon" class={tog(@icon)}>icon</button>
               <button phx-click="flip" phx-value-k="loading" class={tog(@loading)}>loading</button>
               <button phx-click="flip" phx-value-k="disabled" class={tog(@disabled)}>disabled</button>
             </div>
