@@ -4575,11 +4575,15 @@
   }
 
   .pc-scheme-segmented {
-    @apply relative inline-grid grid-cols-3 gap-0.5 rounded-full p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    @apply relative inline-grid grid-cols-3 gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    /* 2.4x the radius token: a full pill at the shipped default (24px on a
+       36px control), concentric with the 2x chips, sharp at radius 0. */
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
   }
 
   .pc-scheme-segmented__option {
-    @apply relative flex items-center justify-center rounded-full p-1.5 cursor-pointer transition-colors duration-150;
+    @apply relative flex items-center justify-center p-1.5 cursor-pointer transition-colors duration-150;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
   }
 
   .pc-scheme-segmented__option:has(:checked) {
@@ -4591,7 +4595,8 @@
   }
 
   .pc-scheme-segmented__input {
-    @apply absolute inset-0 w-full h-full opacity-0 rounded-full cursor-pointer focus:outline-none;
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
   }
 
   .pc-scheme-segmented__icon {
