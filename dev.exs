@@ -742,6 +742,7 @@ defmodule Dev.PlaygroundLive do
          transition: "fade",
          buttons: "overlay",
          indicators: "bars",
+         ind_pos: "overlay",
          orientation: "horizontal",
          loop: true,
          autoplay: false,
@@ -1076,6 +1077,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_carousel", %{"k" => "indicators", "v" => v}, socket)
       when v in ~w(bars dots off),
       do: {:noreply, update(socket, :car, &%{&1 | indicators: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "ind_pos", "v" => v}, socket)
+      when v in ~w(overlay below),
+      do: {:noreply, update(socket, :car, &%{&1 | ind_pos: v})}
 
   def handle_event("ctl_carousel", %{"k" => "loop"}, socket),
     do: {:noreply, update(socket, :car, &%{&1 | loop: !&1.loop})}
@@ -3020,7 +3025,7 @@ defmodule Dev.PlaygroundLive do
         ocean: "/dev-static/carousel/sneaker.jpg",
         code: "/dev-static/carousel/code.jpg",
         car_id:
-          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.orientation}-#{assigns.car.loop}-#{assigns.car.autoplay}-#{assigns.car.thumbnails}"
+          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.ind_pos}-#{assigns.car.orientation}-#{assigns.car.loop}-#{assigns.car.autoplay}-#{assigns.car.thumbnails}"
       )
 
     ~H"""
@@ -3040,6 +3045,7 @@ defmodule Dev.PlaygroundLive do
             button_style={@car.buttons}
             indicator={@car.indicators != "off"}
             indicator_style={(@car.indicators == "off" && "bars") || @car.indicators}
+            indicator_position={@car.ind_pos}
             orientation={@car.orientation}
             loop={@car.loop}
             autoplay={@car.autoplay}
@@ -3103,6 +3109,20 @@ defmodule Dev.PlaygroundLive do
                 class={seg(@car.indicators == i)}
               >
                 {i}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={ip <- ~w(overlay below)}
+                phx-click="ctl_carousel"
+                phx-value-k="ind_pos"
+                phx-value-v={ip}
+                class={seg(@car.ind_pos == ip)}
+              >
+                {ip}
               </button>
             </div>
           </div>
