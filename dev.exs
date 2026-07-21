@@ -230,7 +230,8 @@ defmodule Dev.PlaygroundLive do
       group: "Data",
       items: [
         %{slug: "table", name: "Table", ready: true},
-        %{slug: "chart", name: "Chart", ready: true}
+        %{slug: "chart", name: "Chart", ready: true},
+        %{slug: "local-time", name: "Local time", ready: true}
       ]
     },
     %{
@@ -2827,6 +2828,135 @@ defmodule Dev.PlaygroundLive do
         class through one contract: <code>&lt;.color_scheme_script /&gt;</code>
         rendered once in the layout head. Change any of them and the rest
         follow - including other open tabs.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "local-time"} = assigns) do
+    now = DateTime.utc_now()
+
+    assigns =
+      assign(assigns,
+        lt_rows: [
+          {"15 seconds ago", DateTime.add(now, -15)},
+          {"8 minutes ago", DateTime.add(now, -8 * 60)},
+          {"3 hours ago", DateTime.add(now, -3 * 3600)},
+          {"30 hours ago", DateTime.add(now, -30 * 3600)},
+          {"6 days ago", DateTime.add(now, -6 * 86_400)},
+          {"45 days ago (past threshold)", DateTime.add(now, -45 * 86_400)},
+          {"45 minutes ahead", DateTime.add(now, 45 * 60)}
+        ],
+        lt_two_hours: DateTime.add(now, -2 * 3600),
+        lt_fixed: ~U[2026-07-21 08:30:00Z]
+      )
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Local time</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Timestamps in the visitor's own timezone, language and calendar. The
+        server sends the UTC instant in a semantic <code>&lt;time&gt;</code>;
+        the browser's <code>Intl</code> does the rest - no timezone tables,
+        no date library.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Relative - ticks live, decaying cadence, hover for the full date
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div
+          :for={{{label, at}, i} <- Enum.with_index(@lt_rows)}
+          class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 dark:border-gray-800/60"
+        >
+          <span class="font-mono text-xs text-gray-400">{label}</span>
+          <.local_time id={"lt-rel-#{i}"} at={at} format="relative" class="text-sm" />
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Past the threshold (7 days by default) the relative form flips to the
+          absolute one - "45 days ago" above is really rendering the date.
+          Tighten it per element: <code>threshold=&lbrace;3600&rbrace;</code>
+          renders the two-hour-old timestamp below as absolute.
+        </p>
+        <div class="flex items-center justify-between pt-2 mt-2 border-t border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">2 hours ago, threshold 1h</span>
+          <.local_time
+            id="lt-rel-threshold"
+            at={@lt_two_hours}
+            format="relative"
+            threshold={3600}
+            class="text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Absolute - presets and raw Intl options
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">default</span>
+          <.local_time id="lt-abs-default" at={@lt_fixed} class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">format="date"</span>
+          <.local_time id="lt-abs-date" at={@lt_fixed} format="date" class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">format="time"</span>
+          <.local_time id="lt-abs-time" at={@lt_fixed} format="time" class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span class="font-mono text-xs text-gray-400">Intl options map</span>
+          <.local_time
+            id="lt-abs-custom"
+            at={@lt_fixed}
+            format={
+              %{weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"}
+            }
+            class="text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Pinned locale and timezone - the same instant, three colleagues
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">your browser</span>
+          <.local_time id="lt-zone-browser" at={@lt_fixed} class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">de-DE / Europe/Berlin</span>
+          <.local_time
+            id="lt-zone-berlin"
+            at={@lt_fixed}
+            locale="de-DE"
+            timezone="Europe/Berlin"
+            class="text-sm"
+          />
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span class="font-mono text-xs text-gray-400">en-AU / Australia/Sydney</span>
+          <.local_time
+            id="lt-zone-sydney"
+            at={@lt_fixed}
+            locale="en-AU"
+            timezone="Australia/Sydney"
+            class="text-sm"
+          />
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.LocalTime} function={:local_time} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Before the hook runs - and anywhere JavaScript never runs - the element
+        shows the UTC ISO string: honest, sortable, machine-readable. Relative
+        timestamps re-render the moment a background tab wakes, so a page left
+        open overnight never greets you with "2 minutes ago".
       </div>
     </div>
     """

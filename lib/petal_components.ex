@@ -43,6 +43,7 @@ defmodule PetalComponents do
         InputOtp,
         Link,
         Loading,
+        LocalTime,
         Marquee,
         Meteors,
         Modal,

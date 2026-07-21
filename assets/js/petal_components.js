@@ -1706,9 +1706,117 @@ export const PetalNavMenu = {
   },
 };
 
+
+// Localised timestamps: formats the <time datetime> UTC instant with the
+// browser's Intl. Relative forms tick on a decaying cadence and re-render
+// when a hidden tab becomes visible (browsers throttle background timers).
+export const PetalLocalTime = {
+  mounted() {
+    this.render = this.render.bind(this);
+    this.onVisible = () => {
+      if (!document.hidden) this.render();
+    };
+    document.addEventListener("visibilitychange", this.onVisible);
+    this.render();
+  },
+
+  updated() {
+    // LiveView patches restore the SSR ISO fallback - format it again
+    this.render();
+  },
+
+  destroyed() {
+    clearTimeout(this.timer);
+    document.removeEventListener("visibilitychange", this.onVisible);
+  },
+
+  config() {
+    const d = this.el.dataset;
+    let options = null;
+    if (d.options) {
+      try {
+        options = JSON.parse(d.options);
+      } catch (_e) {
+        console.warn("[petal] PetalLocalTime: invalid data-options JSON on #" + this.el.id);
+      }
+    }
+    return {
+      format: d.format || "datetime",
+      options,
+      locale: d.locale || undefined,
+      timezone: d.timezone || undefined,
+      threshold: parseInt(d.threshold || "604800", 10),
+      title: d.title !== "false",
+    };
+  },
+
+  absolute(date, cfg) {
+    const presets = {
+      datetime: { dateStyle: "medium", timeStyle: "short" },
+      date: { dateStyle: "medium" },
+      time: { timeStyle: "short" },
+    };
+    const opts = cfg.options || presets[cfg.format] || presets.datetime;
+    return new Intl.DateTimeFormat(cfg.locale, { timeZone: cfg.timezone, ...opts }).format(date);
+  },
+
+  relative(cfg, ageSeconds) {
+    const rtf = new Intl.RelativeTimeFormat(cfg.locale, { numeric: "auto" });
+    const abs = Math.abs(ageSeconds);
+    const units = [
+      ["year", 31536000],
+      ["month", 2592000],
+      ["week", 604800],
+      ["day", 86400],
+      ["hour", 3600],
+      ["minute", 60],
+      ["second", 1],
+    ];
+    for (const [unit, secs] of units) {
+      if (abs >= secs || unit === "second") {
+        return rtf.format(Math.round(-ageSeconds / secs), unit);
+      }
+    }
+  },
+
+  render() {
+    clearTimeout(this.timer);
+    const cfg = this.config();
+    const date = new Date(this.el.getAttribute("datetime"));
+    if (isNaN(date)) return;
+
+    if (cfg.format === "relative") {
+      const age = (Date.now() - date.getTime()) / 1000;
+
+      if (Math.abs(age) > cfg.threshold) {
+        this.el.textContent = this.absolute(date, { ...cfg, format: "datetime", options: null });
+        return;
+      }
+
+      this.el.textContent = this.relative(cfg, age);
+
+      if (cfg.title) {
+        this.el.title = new Intl.DateTimeFormat(cfg.locale, {
+          timeZone: cfg.timezone,
+          dateStyle: "full",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      // decaying cadence: fresh timestamps tick fast, old ones barely at all
+      const abs = Math.abs(age);
+      const next = abs < 60 ? 5 : abs < 3600 ? 30 : abs < 86400 ? 900 : 3600;
+      this.timer = setTimeout(this.render, next * 1000);
+    } else {
+      this.el.textContent = this.absolute(date, cfg);
+    }
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
+  PetalLocalTime,
   PetalChatStream,
   PetalChatComposer,
   PetalCopy,

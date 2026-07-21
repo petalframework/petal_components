@@ -15,6 +15,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Chart,
     PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.Command,
+    PetalComponents.Showcase.LocalTime,
     PetalComponents.Showcase.Sparkline
   ]
 
