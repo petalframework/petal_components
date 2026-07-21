@@ -30,7 +30,7 @@ defmodule PetalComponents.Avatar do
   attr(:initials, :boolean,
     default: false,
     doc:
-      "art variants only: overlay the monogram on the art. Because the palette is generated server-side, text colour and pattern contrast adjust automatically - a dark hue-tinted monogram over slightly lifted tones"
+      "mesh only: overlay the monogram on the art as a dark hue-tinted monogram (the mesh reads light, so it always contrasts). Ignored for dither - a discrete pixel pattern never lets text sit cleanly, so dither stays pure art"
   )
 
   attr(:shape, :string,
@@ -78,7 +78,7 @@ defmodule PetalComponents.Avatar do
           @class
         ]}
       >
-        {if @initials && @name, do: generate_initials(@name)}
+        {if @initials && @art == "mesh" && @name, do: generate_initials(@name)}
       </div>
     <% else %>
       <img
@@ -236,45 +236,28 @@ defmodule PetalComponents.Avatar do
 
   # Two hues blended across the diagonal through an ordered 4x4 Bayer
   # threshold - the retro print look. Rendered as a tiny inline SVG so the
-  # pixels stay crisp at any display size. With initials on, the generator
-  # clears a soft quiet zone in the centre: the pixel band flows around a
-  # calm disc of the base tone, so the monogram sits on solid colour
-  # instead of fighting the texture.
-  defp art_style("dither", name, initials?) do
-    "background-image: url('#{dither_data_uri(name, initials?)}');" <>
-      if(initials?, do: " color: hsl(#{hue_from_string(name)}, 60%, 16%);", else: "")
+  # pixels stay crisp at any display size. Always pure art: a discrete
+  # pixel pattern never lets text sit cleanly, so initials is a no-op here.
+  defp art_style("dither", name, _initials?) do
+    "background-image: url('#{dither_data_uri(name)}');"
   end
 
   @bayer {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}}
   @dither_cells 12
 
-  defp dither_data_uri(name, quiet_center?) do
-    # Pure art: the full diagonal blend on a fine grid. With initials: a
-    # chunkier grid where a radial ramp keeps a large solid centre and
-    # sprinkles a sparse, symmetric pixel ring around the rim.
-    n = if quiet_center?, do: 10, else: @dither_cells
+  defp dither_data_uri(name) do
+    n = @dither_cells
     h1 = hue_from_string(name)
     h2 = rem(h1 + 70 + :erlang.phash2({name, :spread}, 150), 360)
     flip? = :erlang.phash2({name, :dir}, 2) == 1
 
     cells =
       for y <- 0..(n - 1), x <- 0..(n - 1) do
-        t =
-          if quiet_center? do
-            # distance of the cell centre from the avatar centre, 0..1 at
-            # the circle edge; pixels only past 64% radius, capped sparse
-            d =
-              :math.sqrt(:math.pow(x + 0.5 - n / 2, 2) + :math.pow(y + 0.5 - n / 2, 2)) / (n / 2)
-
-            max(0.0, (d - 0.64) / 0.36) * 0.55
-          else
-            # steepen the diagonal ramp so the corners go solid and the
-            # dither concentrates in a band across the middle - without
-            # the gain the whole circle reads as uniform checkerboard
-            fx = if flip?, do: n - 1 - x, else: x
-            ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
-          end
-
+        fx = if flip?, do: n - 1 - x, else: x
+        # steepen the diagonal ramp so the corners go solid and the dither
+        # concentrates in a band across the middle - without the gain the
+        # whole circle reads as uniform checkerboard
+        t = ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
         threshold = (@bayer |> elem(rem(y, 4)) |> elem(rem(x, 4))) / 16 + 0.03
         if t > threshold, do: "M#{x} #{y}h1v1h-1z"
       end

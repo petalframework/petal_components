@@ -4567,7 +4567,7 @@ defmodule Dev.PlaygroundLive do
             <.avatar src="/dev-static/avatars/p32.jpg" shape="rounded" size="lg" />
             <.avatar name="Acme Corp" shape="rounded" random_gradient size="lg" />
             <.avatar name="Petal Framework" shape="rounded" art="mesh" size="lg" />
-            <.avatar name="Design Guild" shape="rounded" art="dither" initials size="lg" />
+            <.avatar name="Design Guild" shape="rounded" art="dither" size="lg" />
             <.avatar
               src="/dev-static/avatars/p65.jpg"
               shape="rounded"
@@ -4625,21 +4625,14 @@ defmodule Dev.PlaygroundLive do
               initials
               size="lg"
             />
-            <.avatar
-              :for={name <- ["Amelia Ward", "Jonah Reyes", "Priya Anand", "Maya Okafor"]}
-              name={name}
-              art="dither"
-              initials
-              size="lg"
-            />
           </div>
           <p class="text-xs text-center text-gray-400 dark:text-gray-500">
             <code>art="mesh"</code>
             and <code>art="dither"</code>
             draw the avatar instead of initials - deterministic per name, pure
             CSS and inline SVG, no JavaScript. Add <code>initials</code>
-            to overlay the monogram: the text goes dark in the base hue and
-            the dither texture quiets down to keep it readable. A photo <code>src</code>
+            to the mesh to overlay a dark hue-tinted monogram; dither stays
+            pure art - pixels and letters never mix cleanly. A photo <code>src</code>
             still wins when present.
           </p>
         </div>
