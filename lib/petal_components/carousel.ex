@@ -286,6 +286,19 @@ defmodule PetalComponents.Carousel do
         </button>
       </div>
 
+      <button
+        :if={@control && @button_style == "sides"}
+        id={"#{@id}-carousel-next"}
+        phx-update="ignore"
+        class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
+        aria-label={(@is_vertical && "Next slide (down)") || "Next slide"}
+      >
+        <.icon
+          name={(@is_vertical && "hero-chevron-down") || "hero-chevron-right"}
+          class="w-3 h-3 md:w-4 md:h-4"
+        />
+      </button>
+
       <div
         :if={@thumbnails}
         id={"#{@id}-carousel-thumbs"}
@@ -308,19 +321,6 @@ defmodule PetalComponents.Carousel do
           <span :if={!slide[:image]} class="pc-carousel__thumb-fallback">{index + 1}</span>
         </button>
       </div>
-
-      <button
-        :if={@control && @button_style == "sides"}
-        id={"#{@id}-carousel-next"}
-        phx-update="ignore"
-        class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
-        aria-label={(@is_vertical && "Next slide (down)") || "Next slide"}
-      >
-        <.icon
-          name={(@is_vertical && "hero-chevron-down") || "hero-chevron-right"}
-          class="w-3 h-3 md:w-4 md:h-4"
-        />
-      </button>
     </div>
     """
   end

@@ -5041,7 +5041,7 @@
   }
 
   .pc-carousel-wrapper--sides {
-    @apply flex items-center w-full gap-3 md:gap-4;
+    @apply flex flex-wrap items-center w-full gap-3 md:gap-4;
   }
 
   .pc-carousel {
@@ -5237,7 +5237,7 @@
 
   /* Synced thumbnails */
   .pc-carousel__thumbs {
-    @apply flex justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
+    @apply flex w-full justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
   }
 
   .pc-carousel__thumb {
