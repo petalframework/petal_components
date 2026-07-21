@@ -726,8 +726,10 @@ defmodule Dev.PlaygroundLive do
          transition: "fade",
          buttons: "overlay",
          indicators: "bars",
+         orientation: "horizontal",
          loop: true,
-         autoplay: false
+         autoplay: false,
+         thumbnails: false
        },
        nav_trigger: "hover",
        crumbs: %{separator: "chevron"},
@@ -1036,6 +1038,13 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_carousel", %{"k" => "autoplay"}, socket),
     do: {:noreply, update(socket, :car, &%{&1 | autoplay: !&1.autoplay})}
+
+  def handle_event("ctl_carousel", %{"k" => "thumbnails"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | thumbnails: !&1.thumbnails})}
+
+  def handle_event("ctl_carousel", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(horizontal vertical),
+      do: {:noreply, update(socket, :car, &%{&1 | orientation: v})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
@@ -2870,7 +2879,7 @@ defmodule Dev.PlaygroundLive do
         ocean: "/dev-static/carousel/sneaker.jpg",
         code: "/dev-static/carousel/code.jpg",
         car_id:
-          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.loop}-#{assigns.car.autoplay}"
+          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.orientation}-#{assigns.car.loop}-#{assigns.car.autoplay}-#{assigns.car.thumbnails}"
       )
 
     ~H"""
@@ -2890,9 +2899,11 @@ defmodule Dev.PlaygroundLive do
             button_style={@car.buttons}
             indicator={@car.indicators != "off"}
             indicator_style={(@car.indicators == "off" && "bars") || @car.indicators}
+            orientation={@car.orientation}
             loop={@car.loop}
             autoplay={@car.autoplay}
             autoplay_interval={3500}
+            thumbnails={@car.thumbnails}
           >
             <:slide
               image={@forest}
@@ -2955,6 +2966,20 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={o <- ~w(horizontal vertical)}
+                phx-click="ctl_carousel"
+                phx-value-k="orientation"
+                phx-value-v={o}
+                class={seg(@car.orientation == o)}
+              >
+                {o}
+              </button>
+            </div>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <div class="flex gap-1.5">
               <button phx-click="ctl_carousel" phx-value-k="loop" class={tog(@car.loop)}>
@@ -2963,23 +2988,13 @@ defmodule Dev.PlaygroundLive do
               <button phx-click="ctl_carousel" phx-value-k="autoplay" class={tog(@car.autoplay)}>
                 autoplay
               </button>
+              <button phx-click="ctl_carousel" phx-value-k="thumbnails" class={tog(@car.thumbnails)}>
+                thumbnails
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Synced thumbnails - click to jump, the active thumb follows
-      </div>
-      <.carousel id="pg-car-thumbs" transition_type="slide" thumbnails button_style="none">
-        <:slide
-          image={@forest}
-          title="Thumbnails"
-          description="Auto-derived from each slide's image."
-        />
-        <:slide image={@ocean} title="Click one" description="Jump straight to any slide." />
-        <:slide image={@code} title="Stays in sync" description="Swipe or drag - the strip follows." />
-      </.carousel>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Multi-slide gallery - three per view with edge gradients
@@ -2998,19 +3013,6 @@ defmodule Dev.PlaygroundLive do
         <:slide image={@forest} title="Four" />
         <:slide image={@ocean} title="Five" />
         <:slide image={@code} title="Six" />
-      </.carousel>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Vertical - scrolls on the y axis
-      </div>
-      <.carousel id="pg-car-vert" transition_type="slide" orientation="vertical" indicator>
-        <:slide
-          image={@code}
-          title="Up and down"
-          description="Vertical scroll-snap with up/down chevrons."
-        />
-        <:slide image={@forest} title="Same API" />
-        <:slide image={@ocean} title="Same hook" />
       </.carousel>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
