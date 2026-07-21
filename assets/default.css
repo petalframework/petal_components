@@ -5253,25 +5253,19 @@
 
   /* At rest every thumb is full colour - dimming the strip washed it
      out, especially in light mode; the ring carries the active state.
-     Hovering the strip dims the thumbs you are NOT pointing at, which
-     reads as focus rather than washout. Focus-visible is the same
-     solid primary ring OFFSET from the edge, so a keyboard-focused
-     active thumb never looks softer than a clicked one. Radius clamps
-     like every small control - full themes get a soft corner, never a
-     pill. */
+     The thumb under the cursor dims slightly - the classic image-link
+     pressable feedback. Focus-visible is the same solid primary ring
+     OFFSET from the edge, so a keyboard-focused active thumb never
+     looks softer than a clicked one. Radius clamps like every small
+     control - full themes get a soft corner, never a pill. */
   .pc-carousel__thumb {
-    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer transition-all duration-200 ease-out;
+    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer transition-all duration-200 ease-out hover:opacity-75;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
     border-radius: min(max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem), 0.625rem);
   }
 
-  .pc-carousel__thumbs:hover .pc-carousel__thumb:not(:hover) {
-    @apply opacity-70;
-  }
-
-  .pc-carousel__thumb--active,
-  .pc-carousel__thumbs:hover .pc-carousel__thumb--active:not(:hover) {
-    @apply opacity-100 ring-2 ring-primary-500;
+  .pc-carousel__thumb--active {
+    @apply ring-2 ring-primary-500;
   }
 
   .pc-carousel__thumb img {
