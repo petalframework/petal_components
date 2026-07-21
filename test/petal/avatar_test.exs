@@ -94,6 +94,48 @@ defmodule PetalComponents.AvatarTest do
     refute html =~ "background-color:"
   end
 
+  test "art mesh draws a deterministic radial mesh with no initials" do
+    assigns = %{}
+
+    render = fn ->
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" />
+      """)
+    end
+
+    html = render.()
+    assert html =~ "pc-avatar--art"
+    assert html =~ "radial-gradient"
+    # no initials render; the name still labels the avatar
+    refute html =~ ">AL<"
+    assert html =~ ~s(aria-label="Ada Lovelace")
+    assert html == render.()
+  end
+
+  test "art dither embeds an inline svg data uri" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" />
+      """)
+
+    assert html =~ "data:image/svg+xml"
+    assert html =~ "pc-avatar--art"
+  end
+
+  test "a photo src wins over art" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" name="Ada Lovelace" art="mesh" />
+      """)
+
+    assert html =~ "pc-avatar--with-image"
+    refute html =~ "pc-avatar--art"
+  end
+
   test "dark mode" do
     assigns = %{}
 

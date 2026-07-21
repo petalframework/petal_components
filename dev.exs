@@ -4558,6 +4558,37 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Generative art - mesh and dither, hashed from the name
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center gap-6">
+          <div class="flex items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
+              name={name}
+              art="mesh"
+              size="lg"
+            />
+          </div>
+          <div class="flex items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
+              name={name}
+              art="dither"
+              size="lg"
+            />
+          </div>
+          <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+            <code>art="mesh"</code>
+            and <code>art="dither"</code>
+            draw the avatar instead of initials - deterministic per name, pure
+            CSS and inline SVG, no JavaScript. A photo <code>src</code>
+            still wins when present.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Presence - a team list with status dots
       </div>
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">

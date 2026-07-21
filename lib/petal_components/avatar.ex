@@ -20,6 +20,13 @@ defmodule PetalComponents.Avatar do
       "generates a gradient background for placeholder initials, hashed from the name like random_color - same name, same gradient. Wins over random_color when both are set"
   )
 
+  attr(:art, :string,
+    default: nil,
+    values: [nil, "mesh", "dither"],
+    doc:
+      "generative art instead of initials: mesh is a soft multi-hue gradient, dither an ordered-dither blend - both hashed from the name, so the same name always draws the same avatar. No initials render (the palettes are too light for text); the name still labels the avatar for screen readers. A photo src wins when present"
+  )
+
   attr(:status, :string,
     default: nil,
     values: [nil, "online", "offline", "busy", "away"],
@@ -42,6 +49,32 @@ defmodule PetalComponents.Avatar do
   end
 
   def avatar(assigns), do: avatar_media(assigns)
+
+  defp avatar_media(%{art: art} = assigns) when not is_nil(art) do
+    ~H"""
+    <%= if src_blank?(@src) do %>
+      <div
+        {@rest}
+        role="img"
+        aria-label={@name || "avatar"}
+        style={art_style(@art, @name || "")}
+        class={[
+          "pc-avatar--art",
+          "pc-avatar--#{@size}",
+          @class
+        ]}
+      >
+      </div>
+    <% else %>
+      <img
+        {@rest}
+        src={@src}
+        alt={@alt || @name}
+        class={["pc-avatar--with-image", "pc-avatar--#{@size}", @class]}
+      />
+    <% end %>
+    """
+  end
 
   defp avatar_media(assigns) do
     ~H"""
@@ -149,6 +182,64 @@ defmodule PetalComponents.Avatar do
     |> String.to_charlist()
     |> Enum.reduce(0, fn x, acc -> x + acc end)
     |> rem(360)
+  end
+
+  # Generative art placeholders. Everything derives from hashes of the name,
+  # so the same name always draws the same avatar - no state, no JS, no deps.
+
+  # Soft multi-hue mesh: two or three radial blobs at hashed positions over a
+  # base tone, hues spread around the wheel for the aurora look.
+  defp art_style("mesh", name) do
+    h = hue_from_string(name)
+    [x1, y1, x2, y2, x3, y3] = for i <- 1..6, do: 10 + :erlang.phash2({name, i}, 81)
+    spread1 = 70 + :erlang.phash2({name, :spread1}, 90)
+    spread2 = 160 + :erlang.phash2({name, :spread2}, 120)
+
+    "background-color: hsl(#{h}, 75%, 62%); background-image: " <>
+      "radial-gradient(at #{x1}% #{y1}%, hsl(#{rem(h + spread1, 360)}, 90%, 70%) 0px, transparent 55%), " <>
+      "radial-gradient(at #{x2}% #{y2}%, hsl(#{rem(h + spread2, 360)}, 85%, 66%) 0px, transparent 55%), " <>
+      "radial-gradient(at #{x3}% #{y3}%, hsl(#{h}, 95%, 76%) 0px, transparent 60%);"
+  end
+
+  # Two hues blended across the diagonal through an ordered 4x4 Bayer
+  # threshold - the retro print look. Rendered as a tiny inline SVG so the
+  # pixels stay crisp at any display size.
+  defp art_style("dither", name), do: "background-image: url('#{dither_data_uri(name)}');"
+
+  @bayer {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}}
+  @dither_cells 12
+
+  defp dither_data_uri(name) do
+    n = @dither_cells
+    h1 = hue_from_string(name)
+    h2 = rem(h1 + 70 + :erlang.phash2({name, :spread}, 150), 360)
+    flip? = :erlang.phash2({name, :dir}, 2) == 1
+
+    cells =
+      for y <- 0..(n - 1), x <- 0..(n - 1) do
+        fx = if flip?, do: n - 1 - x, else: x
+        # steepen the diagonal ramp so the corners go solid and the dither
+        # concentrates in a band across the middle - without the gain the
+        # whole circle reads as uniform checkerboard
+        t = ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
+        threshold = (@bayer |> elem(rem(y, 4)) |> elem(rem(x, 4))) / 16 + 0.03
+        if t > threshold, do: "M#{x} #{y}h1v1h-1z"
+      end
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join()
+
+    svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{n} #{n}' shape-rendering='crispEdges'>" <>
+        "<rect width='#{n}' height='#{n}' fill='hsl(#{h1},85%,66%)'/>" <>
+        "<path fill='hsl(#{h2},85%,52%)' d='#{cells}'/></svg>"
+
+    "data:image/svg+xml," <>
+      (svg
+       |> String.replace("<", "%3C")
+       |> String.replace(">", "%3E")
+       |> String.replace("#", "%23")
+       |> String.replace("'", "%27")
+       |> String.replace(" ", "%20"))
   end
 
   defp generate_initials(name) when is_binary(name) do

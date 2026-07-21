@@ -2054,6 +2054,11 @@
   .pc-avatar-group__overflow {
     @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
   }
+
+  /* Generative art placeholders (art="mesh" | "dither") */
+  .pc-avatar--art {
+    @apply inline-block rounded-full bg-cover;
+  }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-950;
   }

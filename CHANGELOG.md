@@ -9,6 +9,7 @@
 
 - **`label_placement="bottom"` on `stepper`.** The classic wizard look - circles in a row, labels centred underneath, connectors pinned to the circle centres. Horizontal only (vertical always keeps labels beside); the stacked mobile layout is unchanged. Default stays `"beside"`.
 - **`random_gradient` on `avatar`.** A fancier `random_color`: a diagonal two-stop gradient hashed from the name, so the same person always gets the same gradient. Wins over `random_color` when both are set.
+- **`art` on `avatar` - generative art placeholders.** `art="mesh"` draws a soft multi-hue gradient orb (layered radial blobs at hashed positions), `art="dither"` a two-tone ordered-dither blend with solid corners and a chunky pixel band across the diagonal - the boringavatars school, natively. Deterministic per name, pure CSS plus a ~1KB inline SVG, no JavaScript, no dependencies. These render instead of initials (the palettes are too light for text); the name still labels the avatar for screen readers, and a photo `src` wins when present.
 
 #### Changed
 
