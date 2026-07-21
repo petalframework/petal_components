@@ -236,20 +236,22 @@ defmodule PetalComponents.Avatar do
 
   # Two hues blended across the diagonal through an ordered 4x4 Bayer
   # threshold - the retro print look. Rendered as a tiny inline SVG so the
-  # pixels stay crisp at any display size. With initials on, the two tones
-  # lift and move closer so the texture quiets down behind the monogram.
+  # pixels stay crisp at any display size. With initials on, the generator
+  # clears a soft quiet zone in the centre: the pixel band flows around a
+  # calm disc of the base tone, so the monogram sits on solid colour
+  # instead of fighting the texture.
   defp art_style("dither", name, initials?) do
-    {l1, l2} = if initials?, do: {72, 60}, else: {66, 52}
-
-    "background-image: url('#{dither_data_uri(name, l1, l2)}');" <>
+    "background-image: url('#{dither_data_uri(name, initials?)}');" <>
       if(initials?, do: " color: hsl(#{hue_from_string(name)}, 60%, 16%);", else: "")
   end
 
   @bayer {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}}
   @dither_cells 12
 
-  defp dither_data_uri(name, l1, l2) do
+  defp dither_data_uri(name, quiet_center?) do
     n = @dither_cells
+    center = (n - 1) / 2
+    quiet_r = n * 0.42
     h1 = hue_from_string(name)
     h2 = rem(h1 + 70 + :erlang.phash2({name, :spread}, 150), 360)
     flip? = :erlang.phash2({name, :dir}, 2) == 1
@@ -260,17 +262,26 @@ defmodule PetalComponents.Avatar do
         # steepen the diagonal ramp so the corners go solid and the dither
         # concentrates in a band across the middle - without the gain the
         # whole circle reads as uniform checkerboard
-        t = ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
+        ramp = ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
+
+        damp =
+          if quiet_center? do
+            dist = :math.sqrt(:math.pow(x - center, 2) + :math.pow(y - center, 2))
+            max(0.0, 1 - dist / quiet_r) * 1.4
+          else
+            0.0
+          end
+
         threshold = (@bayer |> elem(rem(y, 4)) |> elem(rem(x, 4))) / 16 + 0.03
-        if t > threshold, do: "M#{x} #{y}h1v1h-1z"
+        if ramp - damp > threshold, do: "M#{x} #{y}h1v1h-1z"
       end
       |> Enum.reject(&is_nil/1)
       |> Enum.join()
 
     svg =
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{n} #{n}' shape-rendering='crispEdges'>" <>
-        "<rect width='#{n}' height='#{n}' fill='hsl(#{h1},85%,#{l1}%)'/>" <>
-        "<path fill='hsl(#{h2},85%,#{l2}%)' d='#{cells}'/></svg>"
+        "<rect width='#{n}' height='#{n}' fill='hsl(#{h1},85%,66%)'/>" <>
+        "<path fill='hsl(#{h2},85%,52%)' d='#{cells}'/></svg>"
 
     "data:image/svg+xml," <>
       (svg
