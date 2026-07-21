@@ -3350,6 +3350,51 @@
     @apply mt-0.5 text-xs text-gray-500 dark:text-gray-400;
   }
 
+  /* Labels scale with the size dial, like the circles do */
+  .pc-stepper--sm .pc-stepper__title {
+    @apply text-xs;
+  }
+
+  .pc-stepper--sm .pc-stepper__description {
+    @apply text-[11px];
+  }
+
+  .pc-stepper--lg .pc-stepper__title {
+    @apply text-base;
+  }
+
+  .pc-stepper--lg .pc-stepper__description {
+    @apply text-sm;
+  }
+
+  /* Labels under the circles - the classic wizard look. Applies at the
+     md+ breakpoint where the stepper is genuinely horizontal; below it
+     the stacked mobile layout keeps labels beside. Connectors pin to the
+     circle centres (half the indicator height minus half the line). */
+  .pc-stepper--labels-bottom .pc-stepper__item-content {
+    @apply md:flex-col md:items-center md:gap-2 md:text-center;
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
+    @apply md:items-start;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__connector-wrapper {
+    @apply md:self-start;
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__connector-wrapper {
+    @apply md:mt-[13px];
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--md .pc-stepper__connector-wrapper {
+    @apply md:mt-[15px];
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--lg .pc-stepper__connector-wrapper {
+    @apply md:mt-[19px];
+  }
+
   /* Connector Wrapper */
   .pc-stepper__connector-wrapper {
     @apply flex shrink justify-center self-start md:self-center;

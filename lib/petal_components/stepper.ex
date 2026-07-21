@@ -5,6 +5,13 @@ defmodule PetalComponents.Stepper do
   attr :steps, :list, required: true
   attr :orientation, :string, default: "horizontal", values: ["horizontal", "vertical"]
   attr :size, :string, default: "md", values: ["sm", "md", "lg"]
+
+  attr :label_placement, :string,
+    default: "beside",
+    values: ["beside", "bottom"],
+    doc:
+      "horizontal only: bottom centres the labels under the circles (the classic wizard look); ignored when vertical, where labels always sit beside"
+
   attr :class, :string, default: ""
 
   def stepper(assigns) do
@@ -14,6 +21,8 @@ defmodule PetalComponents.Stepper do
         "pc-stepper",
         "pc-stepper--#{@orientation}",
         "pc-stepper--#{@size}",
+        @orientation == "horizontal" && @label_placement == "bottom" &&
+          "pc-stepper--labels-bottom",
         @class
       ]}
       role="list"
