@@ -1184,6 +1184,13 @@
     @apply w-7 h-7;
     @apply peer-checked:translate-x-7;
   }
+  /* Multiline surfaces clamp the radius: a full-radius theme on a
+     textarea over-rounds into the text. Single-line inputs keep the
+     pill option - that's a real style. */
+  textarea.pc-text-input {
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
   .pc-text-input {
     @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 placeholder:text-gray-400 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100 dark:placeholder:text-gray-500;
     border-radius: var(--pc-radius, 0.625rem);
@@ -5046,7 +5053,7 @@
 
   .pc-carousel {
     @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.5rem);
   }
 
@@ -5242,8 +5249,14 @@
     @apply flex w-full justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
   }
 
+  /* Inactive thumbs dim only slightly - heavy dimming washes the strip
+     out, especially in light mode; the ring carries the active state.
+     Focus is the same solid primary ring OFFSET from the edge, so a
+     keyboard-focused active thumb never looks softer than a clicked
+     one (both rings solid; focus adds the gap). */
   .pc-carousel__thumb {
-    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer opacity-55 transition-all duration-200 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer opacity-80 transition-all duration-200 ease-out hover:opacity-100;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 

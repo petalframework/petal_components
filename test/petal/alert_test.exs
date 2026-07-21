@@ -345,4 +345,29 @@ defmodule PetalComponents.AlertTest do
       end
     end
   end
+
+  describe "on_dismiss nil-safety" do
+    test "nil renders no dismiss button instead of crashing" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" on_dismiss={nil}>Body</.alert>
+        """)
+
+      assert html =~ "Body"
+      refute html =~ "pc-alert__dismiss-button"
+    end
+
+    test "a real command renders the dismiss button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" on_dismiss={Phoenix.LiveView.JS.dispatch("x:y")}>Body</.alert>
+        """)
+
+      assert html =~ "pc-alert__dismiss-button"
+    end
+  end
 end

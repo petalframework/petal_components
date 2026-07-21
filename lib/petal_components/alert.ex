@@ -29,7 +29,7 @@ defmodule PetalComponents.Alert do
   attr :on_dismiss, JS,
     default: %JS{},
     doc:
-      "JS commands to run when the alert is dismissed. Automatically adds a close button with built-in hide behavior."
+      "JS commands to run when the alert is dismissed. Any non-empty command (e.g. JS.dispatch(\"my-app:alert-dismissed\")) adds a close button with built-in hide behaviour; the empty default and nil render no button - so conditionally passing nil is safe."
 
   slot(:inner_block)
 
@@ -71,7 +71,7 @@ defmodule PetalComponents.Alert do
               </div>
             </div>
 
-            <%= if @on_dismiss.ops != [] do %>
+            <%= if @on_dismiss && @on_dismiss.ops != [] do %>
               <button
                 class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
                 phx-click={

@@ -21,6 +21,8 @@
 
 #### Fixed
 
+- **`alert` no longer crashes when `on_dismiss` is nil.** Conditionally passing the attr - `on_dismiss={if @dismissible, do: JS.dispatch(...)}` - is a natural pattern, and the nil case raised at render. Nil now behaves like the empty default: no dismiss button.
+- **Textareas clamp the radius token.** A full-radius theme turned multiline fields into over-rounded pills that ate their own text; textareas now cap at 1rem while single-line inputs keep the pill option - that one is a real style.
 - **The avatar group's +N chip is opaque in dark mode again.** The chip shares an element with the initials placeholder, whose dark ghost alpha was winning the cascade - so the overlapped avatar photo bled through the count. The opaque chip rule now sits after the placeholder rule it has to beat.
 - **Radio dots and checkbox ticks survive a monochrome primary in dark mode.** The forms plugin bakes a white glyph into its svg, which vanishes when `primary-600` resolves light (the shadcn-style inverted monochrome accent). The radio dot is now drawn as a gradient riding `--pc-button-solid-fg` - the same on-primary token solid button labels use - so it inverts automatically. The checkbox tick can't be a gradient, so the tick image itself is now the `--pc-checkbox-check` token; themes with an inverting primary point it at a dark tick in dark mode.
 
