@@ -5224,6 +5224,34 @@
     @apply relative w-full h-full overflow-hidden;
   }
 
+  /* Default slide radius rides the theme token - the carousel is a
+     surface, so it follows the dial like cards and buttons do. */
+  .pc-carousel__slide-content--radius {
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Synced thumbnails */
+  .pc-carousel__thumbs {
+    @apply flex justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
+  }
+
+  .pc-carousel__thumb {
+    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer opacity-55 transition-all duration-200 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-carousel__thumb--active {
+    @apply opacity-100 ring-2 ring-primary-500;
+  }
+
+  .pc-carousel__thumb img {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-carousel__thumb-fallback {
+    @apply flex items-center justify-center w-full h-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-400/17 dark:text-gray-300;
+  }
+
   .pc-carousel__image-wrapper {
     @apply absolute inset-0 z-0;
   }

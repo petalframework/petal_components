@@ -108,6 +108,58 @@ defmodule PetalComponents.CarouselTest do
       assert html =~ ~s|aria-label="Previous slide (up)"|
     end
 
+    test "thumbnails render a synced strip with image and numbered fallbacks" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel id="c" thumbnails>
+          <:slide image="/a.jpg" title="One" />
+          <:slide title="Two" />
+        </.carousel>
+        """)
+
+      assert html =~ "pc-carousel__thumbs"
+      assert html =~ ~s(data-thumb-index="0")
+      assert html =~ ~s(data-thumb-index="1")
+      assert html =~ ~s(aria-label="Go to slide 2")
+      # image slide gets its image; imageless slide gets a numbered chip
+      assert html =~ ~s(src="/a.jpg")
+      assert html =~ "pc-carousel__thumb-fallback"
+      # first thumb active on initial render
+      assert html =~ "pc-carousel__thumb--active"
+    end
+
+    test "slide radius rides the theme token by default, none opts out" do
+      assigns = %{}
+
+      default =
+        rendered_to_string(~H"""
+        <.carousel id="c">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      square =
+        rendered_to_string(~H"""
+        <.carousel id="c" rounded="none">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      pinned =
+        rendered_to_string(~H"""
+        <.carousel id="c" rounded="xl">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      assert default =~ "pc-carousel__slide-content--radius"
+      refute square =~ "pc-carousel__slide-content--radius"
+      assert pinned =~ "rounded-xl"
+      refute pinned =~ "pc-carousel__slide-content--radius"
+    end
+
     test "clickable slides render a covering link with an indicator" do
       assigns = %{}
 

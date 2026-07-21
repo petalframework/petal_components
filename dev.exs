@@ -722,6 +722,13 @@ defmodule Dev.PlaygroundLive do
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
        stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       car: %{
+         transition: "fade",
+         buttons: "overlay",
+         indicators: "bars",
+         loop: true,
+         autoplay: false
+       },
        nav_trigger: "hover",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
@@ -1011,6 +1018,24 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
       when v in ~w(beside bottom),
       do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "transition", "v" => v}, socket)
+      when v in ~w(fade slide),
+      do: {:noreply, update(socket, :car, &%{&1 | transition: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "buttons", "v" => v}, socket)
+      when v in ~w(overlay below sides none),
+      do: {:noreply, update(socket, :car, &%{&1 | buttons: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "indicators", "v" => v}, socket)
+      when v in ~w(bars dots off),
+      do: {:noreply, update(socket, :car, &%{&1 | indicators: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "loop"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | loop: !&1.loop})}
+
+  def handle_event("ctl_carousel", %{"k" => "autoplay"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | autoplay: !&1.autoplay})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
@@ -2846,7 +2871,9 @@ defmodule Dev.PlaygroundLive do
         ocean:
           "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=1600&auto=format&fit=crop",
         code:
-          "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop"
+          "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop",
+        car_id:
+          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.loop}-#{assigns.car.autoplay}"
       )
 
     ~H"""
@@ -2854,90 +2881,108 @@ defmodule Dev.PlaygroundLive do
       <h1 class="text-3xl font-bold tracking-tight">Carousel</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Fade or scroll-snap slide transitions, swipe and drag, keyboard
-        navigation, autoplay, indicators, and clickable slides - zero
-        JavaScript dependencies, one hook.
+        navigation, autoplay, indicators, synced thumbnails, and clickable
+        slides - zero JavaScript dependencies, one hook.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        The classic - images, fade transition, overlay controls, bar indicators
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-4">
+          <.carousel
+            id={@car_id}
+            transition_type={@car.transition}
+            button_style={@car.buttons}
+            indicator={@car.indicators != "off"}
+            indicator_style={(@car.indicators == "off" && "bars") || @car.indicators}
+            loop={@car.loop}
+            autoplay={@car.autoplay}
+            autoplay_interval={3500}
+          >
+            <:slide
+              image={@forest}
+              title="Every mode, one component"
+              description="Flip the dials below - the carousel remounts with the new configuration."
+            />
+            <:slide
+              image={@ocean}
+              title="Drag me on slide mode"
+              description="Scroll-snap gives native momentum; fade crossfades in place."
+            />
+            <:slide
+              image={@code}
+              title="Keyboard works too"
+              description="Focus the carousel and use the arrow keys."
+            />
+          </.carousel>
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">transition</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={t <- ~w(fade slide)}
+                phx-click="ctl_carousel"
+                phx-value-k="transition"
+                phx-value-v={t}
+                class={seg(@car.transition == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">buttons</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={b <- ~w(overlay below sides none)}
+                phx-click="ctl_carousel"
+                phx-value-k="buttons"
+                phx-value-v={b}
+                class={seg(@car.buttons == b)}
+              >
+                {b}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicators</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={i <- ~w(bars dots off)}
+                phx-click="ctl_carousel"
+                phx-value-k="indicators"
+                phx-value-v={i}
+                class={seg(@car.indicators == i)}
+              >
+                {i}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_carousel" phx-value-k="loop" class={tog(@car.loop)}>
+                loop
+              </button>
+              <button phx-click="ctl_carousel" phx-value-k="autoplay" class={tog(@car.autoplay)}>
+                autoplay
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <.carousel id="pg-car-hero" transition_type="fade" indicator>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Synced thumbnails - click to jump, the active thumb follows
+      </div>
+      <.carousel id="pg-car-thumbs" transition_type="slide" thumbnails button_style="none">
         <:slide
           image={@forest}
-          title="Ship the forest"
-          description="Fade transitions crossfade between slides."
+          title="Thumbnails"
+          description="Auto-derived from each slide's image."
         />
-        <:slide
-          image={@ocean}
-          title="Calm as the ocean"
-          description="Arrow keys work when the carousel is focused."
-        />
-        <:slide
-          image={@code}
-          title="Made for builders"
-          description="Overlay buttons float on the image."
-        />
+        <:slide image={@ocean} title="Click one" description="Jump straight to any slide." />
+        <:slide image={@code} title="Stays in sync" description="Swipe or drag - the strip follows." />
       </.carousel>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Slide transition - scroll-snap with swipe and mouse drag
-      </div>
-      <.carousel
-        id="pg-car-slide"
-        transition_type="slide"
-        indicator
-        indicator_style="dots"
-        rounded="xl"
-      >
-        <:slide
-          image={@ocean}
-          title="Drag me"
-          description="Scroll-snap slides - swipe on touch, drag with the mouse."
-        />
-        <:slide image={@code} title="Snappy" description="Each slide snaps to centre." />
-        <:slide image={@forest} title="Looping" description="Wraps around by default." />
-      </.carousel>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Autoplay - advances every 3.5s, pauses while you interact
-      </div>
-      <.carousel
-        id="pg-car-auto"
-        transition_type="slide"
-        autoplay
-        autoplay_interval={3500}
-        indicator
-        rounded="xl"
-      >
-        <:slide image={@code} title="Autoplay" />
-        <:slide image={@forest} title="Keeps moving" />
-        <:slide image={@ocean} title="Until you touch it" />
-      </.carousel>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Buttons below or beside - and a non-looping gallery
-      </div>
-      <div class="space-y-8">
-        <.carousel
-          id="pg-car-below"
-          transition_type="slide"
-          button_style="below"
-          loop={false}
-          rounded="xl"
-        >
-          <:slide
-            image={@forest}
-            title="First"
-            description="loop={false}: buttons disable at the ends."
-          />
-          <:slide image={@ocean} title="Middle" />
-          <:slide image={@code} title="Last" />
-        </.carousel>
-        <.carousel id="pg-car-sides" transition_type="slide" button_style="sides" rounded="xl">
-          <:slide image={@ocean} title="Side buttons" description="Controls sit outside the frame." />
-          <:slide image={@code} title="Clean frame" />
-        </.carousel>
-      </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Multi-slide gallery - three per view with edge gradients
@@ -2947,7 +2992,6 @@ defmodule Dev.PlaygroundLive do
         transition_type="slide"
         slides_per_view={3}
         gap="0.75rem"
-        rounded="lg"
         overlay_gradient
         button_style="sides"
       >
@@ -2962,13 +3006,7 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Vertical - scrolls on the y axis
       </div>
-      <.carousel
-        id="pg-car-vert"
-        transition_type="slide"
-        orientation="vertical"
-        indicator
-        rounded="xl"
-      >
+      <.carousel id="pg-car-vert" transition_type="slide" orientation="vertical" indicator>
         <:slide
           image={@code}
           title="Up and down"
@@ -2981,7 +3019,7 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Clickable slides - the whole slide is the link
       </div>
-      <.carousel id="pg-car-links" transition_type="fade" rounded="xl">
+      <.carousel id="pg-car-links" transition_type="fade">
         <:slide
           image={@forest}
           title="External link"
@@ -3000,10 +3038,11 @@ defmodule Dev.PlaygroundLive do
       <.showcase_props component={PetalComponents.Carousel} function={:carousel} />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Ported from the battle-tested petal_marketing carousel - the
-        interaction logic (929-line hook: scroll-snap, drag physics, resize
-        handling, keyboard, autoplay) is unchanged. Material pass and synced
-        thumbnails land next.
+        Slide corners ride the radius dial up top (the carousel is a surface;
+        <code>rounded="none"</code>
+        opts out, or pin a size). Every slide change dispatches <code>petal:carousel-change</code>
+        with the id, index and count. Ported from the battle-tested
+        petal_marketing carousel - the interaction logic is unchanged.
       </div>
     </div>
     """

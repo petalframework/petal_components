@@ -1826,6 +1826,9 @@ export const PetalCarousel = {
     this.navdots = Array.from(
       this.el.querySelectorAll(".pc-carousel__indicator")
     );
+    this.thumbs = Array.from(
+      this.wrapper.querySelectorAll("[data-thumb-index]")
+    );
 
     this.activeIndex = parseInt(this.el.dataset.activeIndex) || 0;
     this.transitionType = this.el.dataset.transitionType || "fade";
@@ -1861,6 +1864,7 @@ export const PetalCarousel = {
 
     this.setupNavigation();
     this.setupIndicators();
+    this.setupThumbnails();
     this.setupKeyboardNavigation();
 
     if (this.autoplay) {
@@ -2476,6 +2480,23 @@ export const PetalCarousel = {
     this.updateIndicators();
   },
 
+  // Synced thumbnails: same contract as indicators - click to jump,
+  // active state follows the carousel.
+  setupThumbnails() {
+    this.thumbs.forEach((thumb, index) => {
+      thumb.addEventListener("click", () => {
+        if (this.transitionType === "slide") {
+          this.activeIndex = index;
+          this.goto(index);
+          this.updateIndicators();
+        } else {
+          this.goToSlide(index);
+        }
+        this.resetAutoplay();
+      });
+    });
+  },
+
   setupKeyboardNavigation() {
     // Add keyboard navigation for accessibility
     this.keyboardHandler = (e) => {
@@ -2691,6 +2712,34 @@ export const PetalCarousel = {
         slide.setAttribute("aria-current", "false");
       }
     });
+
+    // Sync thumbnails with the active slide
+    this.thumbs.forEach((thumb, index) => {
+      thumb.classList.toggle(
+        "pc-carousel__thumb--active",
+        index === this.activeIndex
+      );
+      thumb.setAttribute(
+        "aria-current",
+        index === this.activeIndex ? "true" : "false"
+      );
+    });
+
+    // Notify listeners once per actual change (updateIndicators also runs
+    // on resize and re-init passes where the index hasn't moved)
+    if (this._lastEventIndex !== this.activeIndex) {
+      this._lastEventIndex = this.activeIndex;
+      this.el.dispatchEvent(
+        new CustomEvent("petal:carousel-change", {
+          detail: {
+            id: this.el.id,
+            index: this.activeIndex,
+            count: this.n_slides,
+          },
+          bubbles: true,
+        })
+      );
+    }
 
     // Announce slide change to screen readers
     this.announceSlideChange();

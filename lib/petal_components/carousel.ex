@@ -57,6 +57,11 @@ defmodule PetalComponents.Carousel do
     default: "bars",
     doc: "Style of indicators: 'bars' (horizontal bars) or 'dots' (circular dots)"
 
+  attr :thumbnails, :boolean,
+    default: false,
+    doc:
+      "Synced thumbnail strip below the carousel - image slides show their image, others a numbered chip. Click to jump; the active thumbnail follows the carousel"
+
   attr :control, :boolean, default: true, doc: "Determines whether to show navigation controls"
   attr :active_index, :integer, default: 0, doc: "Index of the active slide (starts at 0)"
   attr :autoplay, :boolean, default: false, doc: "Enable or disable autoplay functionality"
@@ -75,7 +80,8 @@ defmodule PetalComponents.Carousel do
 
   attr :rounded, :string,
     default: nil,
-    doc: "Border radius for images: 'sm', 'md', 'lg', 'xl', '2xl', '3xl', or 'full'"
+    doc:
+      "Border radius for slides. Unset rides the --pc-radius theme token (the carousel is a surface, so it follows the dial); 'none' forces square corners; or pin one of 'sm', 'md', 'lg', 'xl', '2xl', '3xl', 'full'"
 
   attr :slides_per_view, :integer,
     default: 1,
@@ -137,6 +143,7 @@ defmodule PetalComponents.Carousel do
       <button
         :if={@control && @button_style == "sides"}
         id={"#{@id}-carousel-prev"}
+        phx-update="ignore"
         class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--sides"
         aria-label={(@is_vertical && "Previous slide (up)") || "Previous slide"}
       >
@@ -252,6 +259,8 @@ defmodule PetalComponents.Carousel do
 
       <div
         :if={@control && @button_style == "below"}
+        id={"#{@id}-carousel-controls"}
+        phx-update="ignore"
         class="pc-carousel__controls pc-carousel__controls--below"
       >
         <button
@@ -277,9 +286,33 @@ defmodule PetalComponents.Carousel do
         </button>
       </div>
 
+      <div
+        :if={@thumbnails}
+        id={"#{@id}-carousel-thumbs"}
+        phx-update="ignore"
+        class="pc-carousel__thumbs"
+        aria-label="Slide thumbnails"
+      >
+        <button
+          :for={{slide, index} <- Enum.with_index(@slide)}
+          type="button"
+          data-thumb-index={index}
+          aria-label={"Go to slide #{index + 1}"}
+          aria-current={if index == @active_index, do: "true", else: "false"}
+          class={[
+            "pc-carousel__thumb",
+            index == @active_index && "pc-carousel__thumb--active"
+          ]}
+        >
+          <img :if={slide[:image]} src={slide[:image]} alt="" loading="lazy" />
+          <span :if={!slide[:image]} class="pc-carousel__thumb-fallback">{index + 1}</span>
+        </button>
+      </div>
+
       <button
         :if={@control && @button_style == "sides"}
         id={"#{@id}-carousel-next"}
+        phx-update="ignore"
         class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
         aria-label={(@is_vertical && "Next slide (down)") || "Next slide"}
       >
@@ -345,7 +378,8 @@ defmodule PetalComponents.Carousel do
   defp button_wrapper_class("sides"), do: "pc-carousel-wrapper--sides"
   defp button_wrapper_class(_), do: ""
 
-  defp slide_rounded_class(nil), do: ""
+  defp slide_rounded_class(nil), do: "pc-carousel__slide-content--radius"
+  defp slide_rounded_class("none"), do: ""
   defp slide_rounded_class("sm"), do: "rounded-sm"
   defp slide_rounded_class("md"), do: "rounded-md"
   defp slide_rounded_class("lg"), do: "rounded-lg"
