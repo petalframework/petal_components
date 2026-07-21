@@ -47,6 +47,28 @@ defmodule PetalComponents.CarouselTest do
       refute without =~ "pc-carousel__button"
     end
 
+    test "outside placement flanks the frame; sides is a legacy alias" do
+      assigns = %{}
+
+      outside =
+        rendered_to_string(~H"""
+        <.carousel id="c" button_style="outside">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      legacy =
+        rendered_to_string(~H"""
+        <.carousel id="c" button_style="sides">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      assert outside =~ "pc-carousel-wrapper--outside"
+      assert outside =~ "pc-carousel__button--outside"
+      assert legacy == outside
+    end
+
     test "indicators are opt-in with bar and dot styles" do
       assigns = %{}
 

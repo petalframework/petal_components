@@ -76,7 +76,7 @@ defmodule PetalComponents.Carousel do
   attr :button_style, :string,
     default: "overlay",
     doc:
-      "Button style: 'overlay' (on sides), 'below' (under carousel), 'sides' (outside carousel), or 'none'"
+      "Button placement: 'overlay' (floating on the frame), 'below' (under the carousel), 'outside' (flanking the frame along the travel axis - left/right when horizontal, above/below when vertical), or 'none'. 'sides' is accepted as a legacy alias for 'outside'"
 
   attr :rounded, :string,
     default: nil,
@@ -129,6 +129,10 @@ defmodule PetalComponents.Carousel do
   def carousel(assigns) do
     assigns =
       assigns
+      |> assign(
+        :button_style,
+        if(assigns.button_style == "sides", do: "outside", else: assigns.button_style)
+      )
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
       |> assign_new(:is_vertical, fn -> assigns.orientation == "vertical" end)
@@ -141,10 +145,10 @@ defmodule PetalComponents.Carousel do
       @is_vertical && "pc-carousel-wrapper--vertical"
     ]}>
       <button
-        :if={@control && @button_style == "sides"}
+        :if={@control && @button_style == "outside"}
         id={"#{@id}-carousel-prev"}
         phx-update="ignore"
-        class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--sides"
+        class="pc-carousel__button pc-carousel__button--prev pc-carousel__button--outside"
         aria-label={(@is_vertical && "Previous slide (up)") || "Previous slide"}
       >
         <.icon
@@ -287,10 +291,10 @@ defmodule PetalComponents.Carousel do
       </div>
 
       <button
-        :if={@control && @button_style == "sides"}
+        :if={@control && @button_style == "outside"}
         id={"#{@id}-carousel-next"}
         phx-update="ignore"
-        class="pc-carousel__button pc-carousel__button--next pc-carousel__button--sides"
+        class="pc-carousel__button pc-carousel__button--next pc-carousel__button--outside"
         aria-label={(@is_vertical && "Next slide (down)") || "Next slide"}
       >
         <.icon
@@ -370,12 +374,12 @@ defmodule PetalComponents.Carousel do
 
   defp button_style_class("overlay"), do: "pc-carousel--overlay-buttons"
   defp button_style_class("below"), do: "pc-carousel--below-buttons"
-  defp button_style_class("sides"), do: "pc-carousel--sides-buttons"
+  defp button_style_class("outside"), do: "pc-carousel--outside-buttons"
   defp button_style_class("none"), do: ""
   defp button_style_class(_), do: "pc-carousel--overlay-buttons"
 
   defp button_wrapper_class("below"), do: "pc-carousel-wrapper--below"
-  defp button_wrapper_class("sides"), do: "pc-carousel-wrapper--sides"
+  defp button_wrapper_class("outside"), do: "pc-carousel-wrapper--outside"
   defp button_wrapper_class(_), do: ""
 
   defp slide_rounded_class(nil), do: "pc-carousel__slide-content--radius"

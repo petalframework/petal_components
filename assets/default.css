@@ -5040,7 +5040,7 @@
     @apply flex flex-col items-center gap-3;
   }
 
-  .pc-carousel-wrapper--sides {
+  .pc-carousel-wrapper--outside {
     @apply flex flex-wrap items-center w-full gap-3 md:gap-4;
   }
 
@@ -5049,12 +5049,12 @@
   }
 
   /* When using sides buttons, carousel should flex to fit between buttons */
-  .pc-carousel-wrapper--sides .pc-carousel {
+  .pc-carousel-wrapper--outside .pc-carousel {
     @apply flex-1;
   }
 
   /* Vertical carousel with sides buttons should maintain fixed height */
-  .pc-carousel-wrapper--vertical.pc-carousel-wrapper--sides .pc-carousel {
+  .pc-carousel-wrapper--vertical.pc-carousel-wrapper--outside .pc-carousel {
     @apply flex-none h-96;
   }
 
@@ -5094,8 +5094,8 @@
     @apply flex items-center justify-center gap-3 mt-4;
   }
 
-  /* Side button styles - same as below but positioned in wrapper */
-  .pc-carousel__button--sides {
+  /* Outside button styles - flank the frame along the travel axis */
+  .pc-carousel__button--outside {
     @apply flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
     @apply text-gray-700 bg-white shadow-xs dark:text-gray-300 dark:bg-gray-400/10;
@@ -5109,7 +5109,7 @@
   .pc-carousel__button:disabled,
   .pc-carousel__button--overlay:disabled,
   .pc-carousel__button--below:disabled,
-  .pc-carousel__button--sides:disabled {
+  .pc-carousel__button--outside:disabled {
     @apply opacity-40 cursor-default;
   }
 
@@ -5218,7 +5218,7 @@
     @apply flex flex-col;
   }
 
-  .pc-carousel-wrapper--vertical .pc-carousel__button--sides {
+  .pc-carousel-wrapper--vertical .pc-carousel__button--outside {
     @apply relative mx-auto my-2;
   }
 

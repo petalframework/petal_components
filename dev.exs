@@ -1026,7 +1026,7 @@ defmodule Dev.PlaygroundLive do
       do: {:noreply, update(socket, :car, &%{&1 | transition: v})}
 
   def handle_event("ctl_carousel", %{"k" => "buttons", "v" => v}, socket)
-      when v in ~w(overlay below sides none),
+      when v in ~w(overlay below outside none),
       do: {:noreply, update(socket, :car, &%{&1 | buttons: v})}
 
   def handle_event("ctl_carousel", %{"k" => "indicators", "v" => v}, socket)
@@ -2941,7 +2941,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">buttons</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
-                :for={b <- ~w(overlay below sides none)}
+                :for={b <- ~w(overlay below outside none)}
                 phx-click="ctl_carousel"
                 phx-value-k="buttons"
                 phx-value-v={b}
@@ -3005,7 +3005,7 @@ defmodule Dev.PlaygroundLive do
         slides_per_view={3}
         gap="0.75rem"
         overlay_gradient
-        button_style="sides"
+        button_style="outside"
       >
         <:slide image={@forest} title="One" />
         <:slide image={@ocean} title="Two" />
