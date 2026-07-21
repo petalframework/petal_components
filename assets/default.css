@@ -5046,6 +5046,8 @@
 
   .pc-carousel {
     @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.5rem);
   }
 
   /* When using sides buttons, carousel should flex to fit between buttons */
@@ -5345,6 +5347,44 @@
     .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
       scroll-behavior: auto;
     }
+  }
+
+  /* Aspect-driven sizing - height derives from width, so a width-
+     constrained wrapper (max-w-sm) gives the compact product-card look.
+     Later in the file than the fixed-height rules, so it wins. */
+  .pc-carousel--aspect-video {
+    @apply h-auto aspect-video;
+  }
+
+  .pc-carousel--aspect-photo {
+    @apply h-auto aspect-[4/3];
+  }
+
+  .pc-carousel--aspect-square {
+    @apply h-auto aspect-square;
+  }
+
+  /* Thumbnails match the frame's ratio */
+  .pc-carousel-wrapper--aspect-video .pc-carousel__thumb {
+    @apply w-16 h-auto aspect-video;
+  }
+
+  .pc-carousel-wrapper--aspect-photo .pc-carousel__thumb {
+    @apply w-14 h-auto aspect-[4/3];
+  }
+
+  .pc-carousel-wrapper--aspect-square .pc-carousel__thumb {
+    @apply w-12 h-auto aspect-square;
+  }
+
+  /* Indicators under the frame, in page colours (the overlay's white
+     dots are for imagery) */
+  .pc-carousel__indicators--below {
+    @apply static inset-auto w-full py-0 mt-3;
+  }
+
+  .pc-carousel__indicators--below .pc-carousel__indicator {
+    @apply bg-gray-400 dark:bg-gray-500;
   }
 
   .pc-carousel-gradient-overlay-bottom {

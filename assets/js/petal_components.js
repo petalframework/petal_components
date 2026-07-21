@@ -1824,7 +1824,7 @@ export const PetalCarousel = {
     this.slideWrapper = this.el.querySelector(".pc-carousel__slides");
     this.slides = Array.from(this.el.querySelectorAll(".pc-carousel__slide"));
     this.navdots = Array.from(
-      this.el.querySelectorAll(".pc-carousel__indicator")
+      this.wrapper.querySelectorAll(".pc-carousel__indicator")
     );
     this.thumbs = Array.from(
       this.wrapper.querySelectorAll("[data-thumb-index]")
@@ -1898,7 +1898,7 @@ export const PetalCarousel = {
       this.resizeObserver.disconnect();
     }
     if (this.keyboardHandler) {
-      this.el.removeEventListener("keydown", this.keyboardHandler);
+      this.wrapper.removeEventListener("keydown", this.keyboardHandler);
     }
     if (this.hoverPause) {
       this.el.removeEventListener("mouseenter", this.hoverPause);
@@ -1931,6 +1931,10 @@ export const PetalCarousel = {
   cloneSlide(slideToClone) {
     const clone = slideToClone.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
+    // clones must not duplicate ids (LiveView warns, and getElementById
+    // would resolve to the wrong node)
+    clone.removeAttribute("id");
+    clone.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
     this.applySlideDimensions(clone);
     return clone;
   },
@@ -2548,7 +2552,7 @@ export const PetalCarousel = {
     }
 
     // Add event listener
-    this.el.addEventListener("keydown", this.keyboardHandler);
+    this.wrapper.addEventListener("keydown", this.keyboardHandler);
   },
 
   startAutoplay() {
@@ -2721,7 +2725,7 @@ export const PetalCarousel = {
   },
 
   updateIndicators() {
-    const indicators = this.el.querySelectorAll(".pc-carousel__indicator");
+    const indicators = this.wrapper.querySelectorAll(".pc-carousel__indicator");
 
     indicators.forEach((indicator, index) => {
       if (index === this.activeIndex) {
@@ -2740,7 +2744,8 @@ export const PetalCarousel = {
       }
     });
 
-    // Sync thumbnails with the active slide
+    // Sync thumbnails with the active slide; if focus is on a thumb,
+    // it follows the active one so arrow keys read as moving the ring
     this.thumbs.forEach((thumb, index) => {
       thumb.classList.toggle(
         "pc-carousel__thumb--active",
@@ -2751,6 +2756,11 @@ export const PetalCarousel = {
         index === this.activeIndex ? "true" : "false"
       );
     });
+
+    if (this.thumbs.includes(document.activeElement)) {
+      const activeThumb = this.thumbs[this.activeIndex];
+      if (activeThumb) activeThumb.focus({ preventScroll: true });
+    }
 
     // Notify listeners once per actual change (updateIndicators also runs
     // on resize and re-init passes where the index hasn't moved)

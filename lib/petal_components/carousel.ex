@@ -113,6 +113,18 @@ defmodule PetalComponents.Carousel do
     values: ["horizontal", "vertical"],
     doc: "Orientation of the carousel: 'horizontal' (default) or 'vertical'"
 
+  attr :aspect, :string,
+    default: nil,
+    values: [nil, "video", "photo", "square"],
+    doc:
+      "Height derives from width at a fixed ratio - 16:9 (video), 4:3 (photo) or 1:1 (square) - instead of the default fixed responsive heights. Constrain the width with a wrapper (e.g. max-w-sm) for the compact product-card look; thumbnails match the ratio"
+
+  attr :indicator_position, :string,
+    default: "overlay",
+    values: ["overlay", "below"],
+    doc:
+      "overlay floats the indicators on the imagery; below places them under the frame in page colours"
+
   slot :slide, required: true do
     attr :title, :string, doc: "Title of the slide"
     attr :description, :string, doc: "Description of the slide"
@@ -138,7 +150,8 @@ defmodule PetalComponents.Carousel do
     <div class={[
       "pc-carousel-wrapper",
       button_wrapper_class(@button_style),
-      @is_vertical && "pc-carousel-wrapper--vertical"
+      @is_vertical && "pc-carousel-wrapper--vertical",
+      @aspect && "pc-carousel-wrapper--aspect-#{@aspect}"
     ]}>
       <button
         :if={@control && @button_style == "outside"}
@@ -171,6 +184,7 @@ defmodule PetalComponents.Carousel do
         data-loop={to_string(@loop)}
         class={[
           "pc-carousel",
+          @aspect && "pc-carousel--aspect-#{@aspect}",
           @transition_class,
           size_class(@size),
           padding_class(@padding),
@@ -244,7 +258,13 @@ defmodule PetalComponents.Carousel do
         >
         </div>
 
-        <.slide_indicators :if={@indicator} id={@id} count={length(@slide)} style={@indicator_style} />
+        <.slide_indicators
+          :if={@indicator && @indicator_position == "overlay"}
+          id={@id}
+          count={length(@slide)}
+          style={@indicator_style}
+          position="overlay"
+        />
 
         <%= if @overlay_gradient do %>
           <%= if @is_vertical do %>
@@ -299,6 +319,14 @@ defmodule PetalComponents.Carousel do
         />
       </button>
 
+      <.slide_indicators
+        :if={@indicator && @indicator_position == "below"}
+        id={@id}
+        count={length(@slide)}
+        style={@indicator_style}
+        position="below"
+      />
+
       <div
         :if={@thumbnails}
         id={"#{@id}-carousel-thumbs"}
@@ -331,7 +359,14 @@ defmodule PetalComponents.Carousel do
     assigns = assign(assigns, :indicator_class, indicator_class)
 
     ~H"""
-    <div id={"#{@id}-carousel-slide-indicator"} class="pc-carousel__indicators">
+    <div
+      id={"#{@id}-carousel-slide-indicator"}
+      phx-update="ignore"
+      class={[
+        "pc-carousel__indicators",
+        @position == "below" && "pc-carousel__indicators--below"
+      ]}
+    >
       <button
         :for={indicator_item <- 1..@count}
         id={"#{@id}-carousel-indicator-#{indicator_item}"}

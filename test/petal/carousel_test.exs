@@ -174,6 +174,43 @@ defmodule PetalComponents.CarouselTest do
       refute pinned =~ "pc-carousel__slide-content--radius"
     end
 
+    test "aspect derives height from width and sizes thumbnails to match" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel id="c" aspect="square" thumbnails>
+          <:slide image="/a.jpg" />
+        </.carousel>
+        """)
+
+      assert html =~ "pc-carousel--aspect-square"
+      assert html =~ "pc-carousel-wrapper--aspect-square"
+    end
+
+    test "indicator_position below moves the dots out of the frame" do
+      assigns = %{}
+
+      below =
+        rendered_to_string(~H"""
+        <.carousel id="c" indicator indicator_position="below">
+          <:slide title="One" />
+          <:slide title="Two" />
+        </.carousel>
+        """)
+
+      overlay =
+        rendered_to_string(~H"""
+        <.carousel id="c" indicator>
+          <:slide title="One" />
+          <:slide title="Two" />
+        </.carousel>
+        """)
+
+      assert below =~ "pc-carousel__indicators--below"
+      refute overlay =~ "pc-carousel__indicators--below"
+    end
+
     test "clickable slides render a covering link with an indicator" do
       assigns = %{}
 

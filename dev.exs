@@ -3087,6 +3087,28 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Product view - aspect="square" in a narrow wrapper, dots below, matched thumbnails
+      </div>
+      <div class="flex justify-center px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="w-full max-w-sm">
+          <.carousel
+            id="pg-car-product"
+            transition_type="slide"
+            aspect="square"
+            thumbnails
+            indicator
+            indicator_style="dots"
+            indicator_position="below"
+            button_style="none"
+          >
+            <:slide image={@forest} />
+            <:slide image={@ocean} />
+            <:slide image={@code} />
+          </.carousel>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Multi-slide gallery - three per view with edge gradients
       </div>
       <.carousel
