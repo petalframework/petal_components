@@ -2866,12 +2866,9 @@ defmodule Dev.PlaygroundLive do
   defp render_page(%{active: "carousel"} = assigns) do
     assigns =
       assign(assigns,
-        forest:
-          "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1600&auto=format&fit=crop",
-        ocean:
-          "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=1600&auto=format&fit=crop",
-        code:
-          "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop",
+        forest: "/dev-static/carousel/forest.jpg",
+        ocean: "/dev-static/carousel/sneaker.jpg",
+        code: "/dev-static/carousel/code.jpg",
         car_id:
           "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.loop}-#{assigns.car.autoplay}"
       )
