@@ -681,7 +681,14 @@ defmodule Dev.PlaygroundLive do
          editing: nil,
          sent: false
        },
-       alert: %{color: "gray", variant: "outline", icon: true, heading: false},
+       alert: %{
+         color: "gray",
+         variant: "outline",
+         icon: true,
+         heading: false,
+         dismissible: false,
+         rev: 0
+       },
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
@@ -689,7 +696,14 @@ defmodule Dev.PlaygroundLive do
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
-       progress: %{value: 60, color: "primary", size: "xs", label: "top"},
+       progress: %{
+         value: 0,
+         color: "primary",
+         size: "xs",
+         label: "top",
+         live: true,
+         ticking: false
+       },
        beam: %{
          duration: "8s",
          beams: 1,
@@ -756,14 +770,31 @@ defmodule Dev.PlaygroundLive do
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
   def handle_params(params, _uri, socket) do
-    {:noreply,
-     socket
-     |> assign(:active, allow(params["c"], @slugs, "button"))
-     |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
-     |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
-     |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
-     |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
-     |> assign(:dark, false)}
+    socket =
+      socket
+      |> assign(:active, allow(params["c"], @slugs, "button"))
+      |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
+      |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
+      |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
+      |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:dark, false)
+
+    {:noreply, maybe_start_progress_sim(socket)}
+  end
+
+  # The progress flagship simulates a live upload while you watch. One
+  # timer at a time; it dies quietly when you leave the page or take
+  # manual control via the value dial.
+  defp maybe_start_progress_sim(socket) do
+    %{live: live, ticking: ticking} = socket.assigns.progress
+
+    if socket.assigns.active == "progress" && live && !ticking &&
+         Phoenix.LiveView.connected?(socket) do
+      Process.send_after(self(), :pg_progress_tick, 700)
+      update(socket, :progress, &%{&1 | ticking: true, value: 0})
+    else
+      socket
+    end
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
@@ -817,7 +848,7 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
-      do: {:noreply, update(socket, :progress, &%{&1 | value: String.to_integer(v)})}
+      do: {:noreply, update(socket, :progress, &%{&1 | live: false, value: String.to_integer(v)})}
 
   def handle_event("ctl_progress", %{"k" => "color", "v" => v}, socket)
       when v in ~w(primary secondary info success warning danger gray),
@@ -1258,17 +1289,37 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :checkbox, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_progress", %{"k" => "live"}, socket) do
+    socket = update(socket, :progress, &%{&1 | live: !&1.live})
+    {:noreply, maybe_start_progress_sim(socket)}
+  end
+
+  def handle_info(:pg_progress_tick, socket) do
+    %{live: live, value: value} = socket.assigns.progress
+
+    if socket.assigns.active == "progress" && live do
+      next = if value >= 100, do: 0, else: min(100, value + Enum.random(7..16))
+      Process.send_after(self(), :pg_progress_tick, 900)
+      {:noreply, update(socket, :progress, &%{&1 | value: next})}
+    else
+      {:noreply, update(socket, :progress, &%{&1 | ticking: false})}
+    end
+  end
+
   def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
-    do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
+    do: {:noreply, update(socket, :alert, &%{&1 | color: v, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "variant", "v" => v}, socket) when v in @tint_variants,
-    do: {:noreply, update(socket, :alert, &%{&1 | variant: v})}
+    do: {:noreply, update(socket, :alert, &%{&1 | variant: v, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "icon"}, socket),
-    do: {:noreply, update(socket, :alert, &%{&1 | icon: !&1.icon})}
+    do: {:noreply, update(socket, :alert, &%{&1 | icon: !&1.icon, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "heading"}, socket),
-    do: {:noreply, update(socket, :alert, &%{&1 | heading: !&1.heading})}
+    do: {:noreply, update(socket, :alert, &%{&1 | heading: !&1.heading, rev: &1.rev + 1})}
+
+  def handle_event("ctl_alert", %{"k" => "dismissible"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | dismissible: !&1.dismissible, rev: &1.rev + 1})}
 
   def handle_event("ctl_badge", %{"k" => "color", "v" => v}, socket) when v in @badge_colors,
     do: {:noreply, update(socket, :badge, &%{&1 | color: v})}
@@ -3889,8 +3940,9 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Determinate progress on a washed track. The bar animates between
-        values - click the value control and watch it move.
+        Determinate progress on a washed track. The flagship simulates a
+        live upload - or take the wheel with the value control (which
+        pauses the simulation).
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -3912,6 +3964,14 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">simulate</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_progress" phx-value-k="live" class={tog(@progress.live)}>
+                live
+              </button>
+            </div>
+          </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
@@ -7173,6 +7233,9 @@ defmodule Dev.PlaygroundLive do
               variant={@alert.variant}
               with_icon={@alert.icon}
               heading={if @alert.heading, do: "Heads up"}
+              on_dismiss={
+                if @alert.dismissible, do: Phoenix.LiveView.JS.dispatch("pg:alert-dismissed")
+              }
             >
               Your subscription renews on 12 August.
             </.alert>
@@ -7212,6 +7275,12 @@ defmodule Dev.PlaygroundLive do
             <div class="flex gap-1.5">
               <button phx-click="ctl_alert" phx-value-k="icon" class={tog(@alert.icon)}>icon</button>
               <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
+              <button phx-click="ctl_alert" phx-value-k="dismissible" class={tog(@alert.dismissible)}>
+                dismissible
+              </button>
+            </div>
+            <div :if={@alert.dismissible} class="mt-1.5 text-[10px] text-gray-400">
+              dismissing hides it - flip any dial to bring it back
             </div>
           </div>
         </div>
