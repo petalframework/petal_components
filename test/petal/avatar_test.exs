@@ -124,6 +124,35 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ "pc-avatar--art"
   end
 
+  test "art initials overlays a contrast-managed monogram" do
+    assigns = %{}
+
+    mesh =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" initials />
+      """)
+
+    dither =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" initials />
+      """)
+
+    assert mesh =~ "AL"
+    # dark hue-tinted monogram
+    assert mesh =~ "color: hsl("
+    assert dither =~ "AL"
+    assert dither =~ "color: hsl("
+
+    # the quieted dither palette differs from the pure-art one
+    pure =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" />
+      """)
+
+    refute pure =~ "AL"
+    refute dither == pure
+  end
+
   test "a photo src wins over art" do
     assigns = %{}
 

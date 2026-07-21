@@ -4578,11 +4578,29 @@ defmodule Dev.PlaygroundLive do
               size="lg"
             />
           </div>
+          <div class="flex items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ["Amelia Ward", "Jonah Reyes", "Priya Anand", "Maya Okafor"]}
+              name={name}
+              art="mesh"
+              initials
+              size="lg"
+            />
+            <.avatar
+              :for={name <- ["Amelia Ward", "Jonah Reyes", "Priya Anand", "Maya Okafor"]}
+              name={name}
+              art="dither"
+              initials
+              size="lg"
+            />
+          </div>
           <p class="text-xs text-center text-gray-400 dark:text-gray-500">
             <code>art="mesh"</code>
             and <code>art="dither"</code>
             draw the avatar instead of initials - deterministic per name, pure
-            CSS and inline SVG, no JavaScript. A photo <code>src</code>
+            CSS and inline SVG, no JavaScript. Add <code>initials</code>
+            to overlay the monogram: the text goes dark in the base hue and
+            the dither texture quiets down to keep it readable. A photo <code>src</code>
             still wins when present.
           </p>
         </div>

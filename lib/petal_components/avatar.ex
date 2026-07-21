@@ -24,7 +24,13 @@ defmodule PetalComponents.Avatar do
     default: nil,
     values: [nil, "mesh", "dither"],
     doc:
-      "generative art instead of initials: mesh is a soft multi-hue gradient, dither an ordered-dither blend - both hashed from the name, so the same name always draws the same avatar. No initials render (the palettes are too light for text); the name still labels the avatar for screen readers. A photo src wins when present"
+      "generative art instead of initials: mesh is a soft multi-hue gradient, dither an ordered-dither blend - both hashed from the name, so the same name always draws the same avatar. Pure art by default; the name still labels the avatar for screen readers, and a photo src wins when present"
+  )
+
+  attr(:initials, :boolean,
+    default: false,
+    doc:
+      "art variants only: overlay the monogram on the art. Because the palette is generated server-side, text colour and pattern contrast adjust automatically - a dark hue-tinted monogram over slightly lifted tones"
   )
 
   attr(:status, :string,
@@ -57,13 +63,14 @@ defmodule PetalComponents.Avatar do
         {@rest}
         role="img"
         aria-label={@name || "avatar"}
-        style={art_style(@art, @name || "")}
+        style={art_style(@art, @name || "", @initials)}
         class={[
           "pc-avatar--art",
           "pc-avatar--#{@size}",
           @class
         ]}
       >
+        {if @initials && @name, do: generate_initials(@name)}
       </div>
     <% else %>
       <img
@@ -188,8 +195,10 @@ defmodule PetalComponents.Avatar do
   # so the same name always draws the same avatar - no state, no JS, no deps.
 
   # Soft multi-hue mesh: two or three radial blobs at hashed positions over a
-  # base tone, hues spread around the wheel for the aurora look.
-  defp art_style("mesh", name) do
+  # base tone, hues spread around the wheel for the aurora look. With
+  # initials on, the monogram goes dark in the base hue - the mesh reads
+  # light, so a tinted-dark monogram always contrasts.
+  defp art_style("mesh", name, initials?) do
     h = hue_from_string(name)
     [x1, y1, x2, y2, x3, y3] = for i <- 1..6, do: 10 + :erlang.phash2({name, i}, 81)
     spread1 = 70 + :erlang.phash2({name, :spread1}, 90)
@@ -198,18 +207,25 @@ defmodule PetalComponents.Avatar do
     "background-color: hsl(#{h}, 75%, 62%); background-image: " <>
       "radial-gradient(at #{x1}% #{y1}%, hsl(#{rem(h + spread1, 360)}, 90%, 70%) 0px, transparent 55%), " <>
       "radial-gradient(at #{x2}% #{y2}%, hsl(#{rem(h + spread2, 360)}, 85%, 66%) 0px, transparent 55%), " <>
-      "radial-gradient(at #{x3}% #{y3}%, hsl(#{h}, 95%, 76%) 0px, transparent 60%);"
+      "radial-gradient(at #{x3}% #{y3}%, hsl(#{h}, 95%, 76%) 0px, transparent 60%);" <>
+      if(initials?, do: " color: hsl(#{h}, 60%, 18%);", else: "")
   end
 
   # Two hues blended across the diagonal through an ordered 4x4 Bayer
   # threshold - the retro print look. Rendered as a tiny inline SVG so the
-  # pixels stay crisp at any display size.
-  defp art_style("dither", name), do: "background-image: url('#{dither_data_uri(name)}');"
+  # pixels stay crisp at any display size. With initials on, the two tones
+  # lift and move closer so the texture quiets down behind the monogram.
+  defp art_style("dither", name, initials?) do
+    {l1, l2} = if initials?, do: {72, 60}, else: {66, 52}
+
+    "background-image: url('#{dither_data_uri(name, l1, l2)}');" <>
+      if(initials?, do: " color: hsl(#{hue_from_string(name)}, 60%, 16%);", else: "")
+  end
 
   @bayer {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}}
   @dither_cells 12
 
-  defp dither_data_uri(name) do
+  defp dither_data_uri(name, l1, l2) do
     n = @dither_cells
     h1 = hue_from_string(name)
     h2 = rem(h1 + 70 + :erlang.phash2({name, :spread}, 150), 360)
@@ -230,8 +246,8 @@ defmodule PetalComponents.Avatar do
 
     svg =
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{n} #{n}' shape-rendering='crispEdges'>" <>
-        "<rect width='#{n}' height='#{n}' fill='hsl(#{h1},85%,66%)'/>" <>
-        "<path fill='hsl(#{h2},85%,52%)' d='#{cells}'/></svg>"
+        "<rect width='#{n}' height='#{n}' fill='hsl(#{h1},85%,#{l1}%)'/>" <>
+        "<path fill='hsl(#{h2},85%,#{l2}%)' d='#{cells}'/></svg>"
 
     "data:image/svg+xml," <>
       (svg
