@@ -2679,7 +2679,12 @@ export const PetalCarousel = {
   },
 
   goToSlide(newIndex) {
-    if (this.isTransitioning) return;
+    // Navigating to the slide you're already on must be a no-op: in the
+    // fade path current and next would be the SAME element, and the
+    // sequence ends opacity 1 then 0 - a permanently blank slide. Easily
+    // reached by clicking the active thumbnail or indicator dot, or by a
+    // single-slide fade carousel wrapping onto itself.
+    if (this.isTransitioning || newIndex === this.activeIndex) return;
 
     this.isTransitioning = true;
     const oldIndex = this.activeIndex;
