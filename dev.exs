@@ -2838,14 +2838,14 @@ defmodule Dev.PlaygroundLive do
 
     assigns =
       assign(assigns,
-        lt_rows: [
-          {"15 seconds ago", DateTime.add(now, -15)},
-          {"8 minutes ago", DateTime.add(now, -8 * 60)},
-          {"3 hours ago", DateTime.add(now, -3 * 3600)},
-          {"30 hours ago", DateTime.add(now, -30 * 3600)},
-          {"6 days ago", DateTime.add(now, -6 * 86_400)},
-          {"45 days ago (past threshold)", DateTime.add(now, -45 * 86_400)},
-          {"45 minutes ahead", DateTime.add(now, 45 * 60)}
+        lt_feed: [
+          {"Amelia Ward", "pushed to main", DateTime.add(now, -20)},
+          {"Deploy Bot", "released v4.8.0", DateTime.add(now, -8 * 60)},
+          {"Jonah Reyes", "commented on PR #58", DateTime.add(now, -3 * 3600)},
+          {"Priya Anand", "signed in", DateTime.add(now, -30 * 3600)},
+          {"Billing", "sent invoice #204", DateTime.add(now, -6 * 86_400)},
+          {"Maya Okafor", "created the workspace", DateTime.add(now, -45 * 86_400)},
+          {"Status Page", "scheduled maintenance", DateTime.add(now, 45 * 60)}
         ],
         lt_two_hours: DateTime.add(now, -2 * 3600),
         lt_fixed: ~U[2026-07-21 08:30:00Z]
@@ -2862,32 +2862,58 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Relative - ticks live, decaying cadence, hover for the full date
+        Relative, in context - an activity feed that ticks live
       </div>
-      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="px-6 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div
-          :for={{{label, at}, i} <- Enum.with_index(@lt_rows)}
-          class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 dark:border-gray-800/60"
+          :for={{{who, what, at}, i} <- Enum.with_index(@lt_feed)}
+          class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0 dark:border-gray-800/60"
         >
-          <span class="font-mono text-xs text-gray-400">{label}</span>
-          <.local_time id={"lt-rel-#{i}"} at={at} format="relative" class="text-sm" />
+          <.avatar size="xs" name={who} random_color />
+          <span class="flex-1 text-sm truncate">
+            <span class="font-medium">{who}</span>
+            <span class="text-gray-500 dark:text-gray-400">{what}</span>
+          </span>
+          <.local_time
+            id={"lt-feed-#{i}"}
+            at={at}
+            format="relative"
+            class="text-xs text-gray-400 shrink-0 dark:text-gray-500"
+          />
         </div>
         <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
-          Past the threshold (7 days by default) the relative form flips to the
-          absolute one - "45 days ago" above is really rendering the date.
-          Tighten it per element: <code>threshold=&lbrace;3600&rbrace;</code>
-          renders the two-hour-old timestamp below as absolute.
+          Events are seeded relative to when this page loaded, then the
+          timestamps live their own lives - leave the page open and watch the
+          top rows age. Hover any of them for the full date. Maya's row is older
+          than the 7-day threshold, so it renders the date instead;
+          the maintenance window is in the future ("in 45 minutes").
         </p>
-        <div class="flex items-center justify-between pt-2 mt-2 border-t border-gray-100 dark:border-gray-800/60">
-          <span class="font-mono text-xs text-gray-400">2 hours ago, threshold 1h</span>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Tighter threshold - flip to absolute sooner
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between">
+          <span class="flex-1 text-sm truncate">
+            <span class="font-medium">Data export</span>
+            <span class="text-gray-500 dark:text-gray-400">
+              finished two hours before page load
+            </span>
+          </span>
           <.local_time
             id="lt-rel-threshold"
             at={@lt_two_hours}
             format="relative"
             threshold={3600}
-            class="text-sm"
+            class="text-xs text-gray-400 shrink-0 dark:text-gray-500"
           />
         </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Same relative format, but <code>threshold=&lbrace;3600&rbrace;</code>
+          flips anything older than an hour to the absolute form - so a
+          two-hour-old event shows its date and time, not "2 hours ago".
+        </p>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
