@@ -3369,30 +3369,64 @@
 
   /* Labels under the circles - the classic wizard look. Applies at the
      md+ breakpoint where the stepper is genuinely horizontal; below it
-     the stacked mobile layout keeps labels beside. Connectors pin to the
-     circle centres (half the indicator height minus half the line). */
-  .pc-stepper--labels-bottom .pc-stepper__item-content {
-    @apply md:flex-col md:items-center md:gap-2 md:text-center;
+     the stacked mobile layout keeps labels beside (which is why the
+     sibling connectors are only md:hidden, not removed).
+
+     Items share the row equally and each item after the first draws its
+     own connector as an absolutely-positioned line running from the
+     previous circle's edge to its own - independent of label width, so
+     wide labels never push the line away from the circles. Offsets are
+     half the indicator height (top) and half the item width back plus
+     the circle radius and a little air (left/right), per size. */
+  .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
+    @apply md:items-start md:gap-0;
   }
 
-  .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
-    @apply md:items-start;
+  .pc-stepper--labels-bottom .pc-stepper__item {
+    @apply md:relative md:min-w-0 md:flex-1;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__item-content {
+    @apply md:w-full md:flex-col md:items-center md:gap-2;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__content {
+    @apply md:text-center;
   }
 
   .pc-stepper--labels-bottom .pc-stepper__connector-wrapper {
-    @apply md:self-start;
+    @apply md:hidden;
   }
 
-  .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply md:mt-[13px];
+  .pc-stepper--labels-bottom .pc-stepper__item:not(:first-child)::before {
+    @apply hidden bg-gray-200 transition-colors md:block dark:bg-gray-400/17;
+    content: "";
+    position: absolute;
+    height: 2px;
   }
 
-  .pc-stepper--labels-bottom.pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply md:mt-[15px];
+  /* :not(:first-child) mirrors the base line rule's specificity, which
+     would otherwise beat this one and keep completed lines gray */
+  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child)::before {
+    @apply bg-primary-600 dark:bg-primary-600;
   }
 
-  .pc-stepper--labels-bottom.pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply md:mt-[19px];
+  .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__item:not(:first-child)::before {
+    top: 13px;
+    left: calc(-50% + 20px);
+    right: calc(50% + 20px);
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--md .pc-stepper__item:not(:first-child)::before {
+    top: 15px;
+    left: calc(-50% + 22px);
+    right: calc(50% + 22px);
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--lg .pc-stepper__item:not(:first-child)::before {
+    top: 19px;
+    left: calc(-50% + 26px);
+    right: calc(50% + 26px);
   }
 
   /* Connector Wrapper */

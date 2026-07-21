@@ -31,7 +31,14 @@ defmodule PetalComponents.Stepper do
       <div class="pc-stepper__container">
         <%= for {step, index} <- Enum.with_index(@steps) do %>
           <!-- Step Item -->
-          <div class="pc-stepper__item" role="listitem">
+          <div
+            class={[
+              "pc-stepper__item",
+              index > 0 && step.complete? && Enum.at(@steps, index - 1).complete? &&
+                "pc-stepper__item--line-complete"
+            ]}
+            role="listitem"
+          >
             <button
               type="button"
               class="pc-stepper__item-content"
