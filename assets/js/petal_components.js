@@ -1865,6 +1865,15 @@ export const PetalCarousel = {
     this.setupNavigation();
     this.setupIndicators();
     this.setupThumbnails();
+
+    // W3C carousel pattern: autoplay pauses while the pointer is over
+    // the carousel and resumes when it leaves
+    if (this.autoplay) {
+      this.hoverPause = () => this.stopAutoplay();
+      this.hoverResume = () => this.startAutoplay();
+      this.el.addEventListener("mouseenter", this.hoverPause);
+      this.el.addEventListener("mouseleave", this.hoverResume);
+    }
     this.setupKeyboardNavigation();
 
     if (this.autoplay) {
@@ -1890,6 +1899,10 @@ export const PetalCarousel = {
     }
     if (this.keyboardHandler) {
       this.el.removeEventListener("keydown", this.keyboardHandler);
+    }
+    if (this.hoverPause) {
+      this.el.removeEventListener("mouseenter", this.hoverPause);
+      this.el.removeEventListener("mouseleave", this.hoverResume);
     }
   },
 
@@ -2539,8 +2552,19 @@ export const PetalCarousel = {
   },
 
   startAutoplay() {
+    // Respect the OS motion preference: a carousel that moves by itself
+    // is exactly what prefers-reduced-motion asks to stop
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     // Clear any existing timer first to prevent duplicates
     this.stopAutoplay();
+
+    // W3C carousel pattern: don't announce auto-advancing slides - a
+    // polite region firing every few seconds spams screen readers
+    const live = this.el.querySelector("[aria-live]");
+    if (live) live.setAttribute("aria-live", "off");
 
     this.autoplayTimer = setInterval(() => {
       this.nextSlide();
@@ -2552,6 +2576,9 @@ export const PetalCarousel = {
       clearInterval(this.autoplayTimer);
       this.autoplayTimer = null;
     }
+
+    const live = this.el.querySelector("[aria-live]");
+    if (live) live.setAttribute("aria-live", "polite");
   },
 
   prevSlide() {

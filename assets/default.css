@@ -5059,13 +5059,15 @@
   }
 
   /* Overlay button styles - inspired by Embla Carousel */
+  /* Light glass in both schemes on purpose: these float on imagery,
+     not on the page surface. */
   .pc-carousel__button--overlay {
-    @apply absolute top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-14 md:h-14 rounded-full;
+    @apply absolute top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
-    @apply shadow-lg text-gray-800/70 bg-white/50;
+    @apply shadow-lg text-gray-800/80 bg-white/55 backdrop-blur-md ring-1 ring-white/30;
     @apply transition-all duration-200 ease-in-out;
     @apply hover:bg-white/75 hover:shadow-xl;
-    @apply focus:outline-none;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/70;
     @apply border-0;
   }
 
@@ -5081,11 +5083,11 @@
   .pc-carousel__button--below {
     @apply w-8 h-8 md:w-10 md:h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
-    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
+    @apply text-gray-700 bg-white shadow-xs dark:text-gray-300 dark:bg-gray-400/10;
     @apply transition-all duration-200 ease-in-out;
-    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
-    @apply focus:outline-none;
-    @apply border border-gray-200 dark:border-gray-600;
+    @apply hover:bg-gray-50 hover:text-gray-900 dark:hover:bg-gray-400/15 dark:hover:text-gray-100;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply border border-gray-200 dark:border-gray-400/25;
   }
 
   .pc-carousel__controls--below {
@@ -5096,11 +5098,11 @@
   .pc-carousel__button--sides {
     @apply flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full;
     @apply flex items-center justify-center cursor-pointer;
-    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
+    @apply text-gray-700 bg-white shadow-xs dark:text-gray-300 dark:bg-gray-400/10;
     @apply transition-all duration-200 ease-in-out;
-    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
-    @apply focus:outline-none;
-    @apply border border-gray-200 dark:border-gray-600;
+    @apply hover:bg-gray-50 hover:text-gray-900 dark:hover:bg-gray-400/15 dark:hover:text-gray-100;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply border border-gray-200 dark:border-gray-400/25;
   }
 
   /* Disabled button states (when loop is disabled and at boundary) */
@@ -5288,17 +5290,15 @@
 
   .pc-carousel__link-indicator {
     @apply absolute z-30 flex items-center justify-center w-10 h-10 top-4 right-4;
-    @apply bg-white rounded-full shadow-lg dark:bg-gray-800;
-    @apply text-gray-700 dark:text-gray-200;
+    @apply rounded-full shadow-lg bg-white/85 backdrop-blur-md ring-1 ring-black/10;
+    @apply text-gray-800;
     @apply transition-all duration-300;
-    @apply border-2 border-gray-200 dark:border-gray-600;
     @apply pointer-events-none;
   }
 
   .pc-carousel__link:hover + .pc-carousel__link-indicator,
   .pc-carousel__slide:has(.pc-carousel__link:hover) .pc-carousel__link-indicator {
-    @apply shadow-2xl ring-2 ring-white/50 dark:ring-gray-400/50;
-    @apply bg-white dark:bg-gray-700;
+    @apply shadow-2xl ring-2 ring-white/60 bg-white;
   }
 
   .pc-carousel__indicators {
@@ -5306,7 +5306,8 @@
   }
 
   .pc-carousel__indicator {
-    @apply transition-all duration-500 ease-in-out opacity-50 bg-gray-50 hover:opacity-100;
+    @apply transition-all duration-500 ease-in-out opacity-50 bg-white rounded-full cursor-pointer hover:opacity-90;
+    @apply focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/80;
   }
 
   .pc-carousel__indicator--bars {
@@ -5319,22 +5320,32 @@
 
   /* Carousel gradient overlays */
   .pc-carousel-gradient-overlay-left {
-    @apply absolute top-0 bottom-0 left-0 w-1/6 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    @apply absolute top-0 bottom-0 left-0 w-1/6 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
     z-index: 20;
   }
 
   .pc-carousel-gradient-overlay-right {
-    @apply absolute top-0 bottom-0 right-0 w-1/6 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-900/0 dark:to-gray-900;
+    @apply absolute top-0 bottom-0 right-0 w-1/6 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-950/0 dark:to-gray-950;
     z-index: 20;
   }
 
   .pc-carousel-gradient-overlay-top {
-    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
     z-index: 20;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .pc-carousel__slide {
+      transition-duration: 1ms !important;
+    }
+
+    .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
+      scroll-behavior: auto;
+    }
+  }
+
   .pc-carousel-gradient-overlay-bottom {
-    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
     z-index: 20;
   }
 
