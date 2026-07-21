@@ -2041,15 +2041,18 @@
   .pc-avatar__status--xl {
     @apply h-3.5 w-3.5;
   }
-  .pc-avatar-group__overflow {
-    @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
-  }
-
   .pc-avatar--with-placeholder-icon {
     @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-400/17;
   }
   .pc-avatar--with-placeholder-initials {
     @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-400/17 dark:text-gray-300;
+  }
+  /* After the placeholder rule, which it shares an element with: the +N
+     chip overlaps the avatar behind it, so its background must stay
+     opaque where the placeholder's ghost alpha would let the photo
+     bleed through. */
+  .pc-avatar-group__overflow {
+    @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
   }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-950;

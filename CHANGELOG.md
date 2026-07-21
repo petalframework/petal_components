@@ -12,6 +12,7 @@
 
 #### Fixed
 
+- **The avatar group's +N chip is opaque in dark mode again.** The chip shares an element with the initials placeholder, whose dark ghost alpha was winning the cascade - so the overlapped avatar photo bled through the count. The opaque chip rule now sits after the placeholder rule it has to beat.
 - **Radio dots and checkbox ticks survive a monochrome primary in dark mode.** The forms plugin bakes a white glyph into its svg, which vanishes when `primary-600` resolves light (the shadcn-style inverted monochrome accent). The radio dot is now drawn as a gradient riding `--pc-button-solid-fg` - the same on-primary token solid button labels use - so it inverts automatically. The checkbox tick can't be a gradient, so the tick image itself is now the `--pc-checkbox-check` token; themes with an inverting primary point it at a dark tick in dark mode.
 
 ### 4.7.0 - 2026-07-20
