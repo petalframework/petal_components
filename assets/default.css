@@ -5226,10 +5226,13 @@
     @apply relative w-full h-full overflow-hidden;
   }
 
-  /* Default slide radius rides the theme token - the carousel is a
-     surface, so it follows the dial like cards and buttons do. */
+  /* Default slide radius derives from the theme token rather than
+     copying it: on a frame this large the raw control radius is nearly
+     invisible, and a "full" token would go stadium-shaped. Amplify so
+     the dial's steps register at surface scale, clamp at a media-card
+     maximum (same doctrine as the tooltip's 14px clamp, scaled up). */
   .pc-carousel__slide-content--radius {
-    border-radius: var(--pc-radius, 0.625rem);
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.6), 1.5rem);
   }
 
   /* Synced thumbnails */

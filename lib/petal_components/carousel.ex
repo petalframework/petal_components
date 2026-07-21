@@ -81,7 +81,7 @@ defmodule PetalComponents.Carousel do
   attr :rounded, :string,
     default: nil,
     doc:
-      "Border radius for slides. Unset rides the --pc-radius theme token (the carousel is a surface, so it follows the dial); 'none' forces square corners; or pin one of 'sm', 'md', 'lg', 'xl', '2xl', '3xl', 'full'"
+      "Border radius for slides. Unset derives from the --pc-radius theme token - amplified for the large surface and clamped at 24px so a full-radius theme gets a media-card corner, never a stadium. 'none' forces square corners; or pin one of 'sm', 'md', 'lg', 'xl', '2xl', '3xl', 'full'"
 
   attr :slides_per_view, :integer,
     default: 1,
