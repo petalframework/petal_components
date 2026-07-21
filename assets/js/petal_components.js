@@ -783,7 +783,11 @@ export const PetalColorScheme = {
     } else {
       this.onClick = (e) => {
         const item = e.target.closest("[data-scheme]");
-        if (item) window.PetalColorScheme.set(item.dataset.scheme);
+        if (!item) return;
+        window.PetalColorScheme.set(item.dataset.scheme);
+        // menus dismiss on select - retoggle via the trigger
+        const trigger = this.el.querySelector(".pc-dropdown button");
+        if (trigger) trigger.click();
       };
       this.el.addEventListener("click", this.onClick);
     }

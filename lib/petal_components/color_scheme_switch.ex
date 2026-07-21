@@ -50,7 +50,13 @@ defmodule PetalComponents.ColorSchemeSwitch do
       (() => {
         const KEY = "scheme";
         const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const preference = () => localStorage.getItem(KEY) || "system";
+        const preference = () => {
+          try {
+            return localStorage.getItem(KEY) || "system";
+          } catch (_e) {
+            return "system";
+          }
+        };
         const resolved = () => {
           const pref = preference();
           return pref === "system" ? (media.matches ? "dark" : "light") : pref;
@@ -67,8 +73,12 @@ defmodule PetalComponents.ColorSchemeSwitch do
           preference,
           resolved,
           set(pref) {
-            if (pref === "system") localStorage.removeItem(KEY);
-            else localStorage.setItem(KEY, pref);
+            // storage can throw (private browsing, sandboxed iframes) -
+            // the scheme still applies for this page view
+            try {
+              if (pref === "system") localStorage.removeItem(KEY);
+              else localStorage.setItem(KEY, pref);
+            } catch (_e) {}
             apply();
           },
         };
@@ -102,8 +112,18 @@ defmodule PetalComponents.ColorSchemeSwitch do
   attr :class, :any, default: nil
   attr :rest, :global
 
+  slot :light_icon, doc: "replaces the sun icon - drop in any svg, it is sized to fill"
+  slot :dark_icon, doc: "replaces the moon icon - drop in any svg, it is sized to fill"
+  slot :system_icon, doc: "replaces the monitor icon - drop in any svg, it is sized to fill"
+
   @doc """
   Renders a colour-scheme switch bound to the `PetalColorScheme` hook.
+
+  The default icons are Heroicons (sun / moon / computer-desktop) to match
+  the rest of the library. To use icons from another set, pass them in via
+  the `light_icon` / `dark_icon` / `system_icon` slots - the slot content
+  replaces the default and inherits the sizing and (for the toggle) the
+  rotate transition.
   """
   def color_scheme_switch(%{variant: "toggle"} = assigns) do
     ~H"""
@@ -116,8 +136,14 @@ defmodule PetalComponents.ColorSchemeSwitch do
       aria-label={"#{@light_label} / #{@dark_label}"}
       {@rest}
     >
-      <.icon name="hero-sun" class="pc-scheme-toggle__sun" />
-      <.icon name="hero-moon" class="pc-scheme-toggle__moon" />
+      <span class="pc-scheme-toggle__sun">
+        <.icon :if={@light_icon == []} name="hero-sun" />
+        {render_slot(@light_icon)}
+      </span>
+      <span class="pc-scheme-toggle__moon">
+        <.icon :if={@dark_icon == []} name="hero-moon" />
+        {render_slot(@dark_icon)}
+      </span>
     </button>
     """
   end
@@ -125,9 +151,9 @@ defmodule PetalComponents.ColorSchemeSwitch do
   def color_scheme_switch(%{variant: "segmented"} = assigns) do
     assigns =
       assign(assigns, :options, [
-        {"system", "hero-computer-desktop", assigns.system_label},
-        {"light", "hero-sun", assigns.light_label},
-        {"dark", "hero-moon", assigns.dark_label}
+        {"system", "hero-computer-desktop", assigns.system_label, assigns.system_icon},
+        {"light", "hero-sun", assigns.light_label, assigns.light_icon},
+        {"dark", "hero-moon", assigns.dark_label, assigns.dark_icon}
       ])
 
     ~H"""
@@ -140,7 +166,7 @@ defmodule PetalComponents.ColorSchemeSwitch do
       class={["pc-scheme-segmented", @class]}
       {@rest}
     >
-      <label :for={{value, icon, label} <- @options} class="pc-scheme-segmented__option">
+      <label :for={{value, icon, label, custom} <- @options} class="pc-scheme-segmented__option">
         <input
           type="radio"
           name={"#{@id}-scheme"}
@@ -148,7 +174,10 @@ defmodule PetalComponents.ColorSchemeSwitch do
           aria-label={label}
           class="pc-scheme-segmented__input"
         />
-        <.icon name={icon} class="pc-scheme-segmented__icon" />
+        <span class="pc-scheme-segmented__icon">
+          <.icon :if={custom == []} name={icon} />
+          {render_slot(custom)}
+        </span>
       </label>
     </div>
     """
@@ -157,9 +186,9 @@ defmodule PetalComponents.ColorSchemeSwitch do
   def color_scheme_switch(%{variant: "dropdown"} = assigns) do
     assigns =
       assign(assigns, :options, [
-        {"light", "hero-sun", assigns.light_label},
-        {"dark", "hero-moon", assigns.dark_label},
-        {"system", "hero-computer-desktop", assigns.system_label}
+        {"light", "hero-sun", assigns.light_label, assigns.light_icon},
+        {"dark", "hero-moon", assigns.dark_label, assigns.dark_icon},
+        {"system", "hero-computer-desktop", assigns.system_label, assigns.system_icon}
       ])
 
     ~H"""
@@ -173,12 +202,18 @@ defmodule PetalComponents.ColorSchemeSwitch do
       <Dropdown.dropdown placement="right" menu_items_wrapper_class="pc-scheme-dropdown__menu">
         <:trigger_element>
           <span class="pc-scheme-toggle pc-scheme-dropdown__trigger" aria-label="Colour scheme">
-            <.icon name="hero-sun" class="pc-scheme-toggle__sun" />
-            <.icon name="hero-moon" class="pc-scheme-toggle__moon" />
+            <span class="pc-scheme-toggle__sun">
+              <.icon :if={@light_icon == []} name="hero-sun" />
+              {render_slot(@light_icon)}
+            </span>
+            <span class="pc-scheme-toggle__moon">
+              <.icon :if={@dark_icon == []} name="hero-moon" />
+              {render_slot(@dark_icon)}
+            </span>
           </span>
         </:trigger_element>
         <button
-          :for={{value, icon, label} <- @options}
+          :for={{value, icon, label, custom} <- @options}
           type="button"
           role="menuitemradio"
           aria-checked="false"
@@ -190,7 +225,10 @@ defmodule PetalComponents.ColorSchemeSwitch do
             @labels && "pc-scheme-dropdown__item--labeled"
           ]}
         >
-          <.icon name={icon} class="pc-scheme-dropdown__item-icon" />
+          <span class="pc-scheme-dropdown__item-icon">
+            <.icon :if={custom == []} name={icon} />
+            {render_slot(custom)}
+          </span>
           <span :if={@labels} class="pc-scheme-dropdown__item-label">{label}</span>
         </button>
       </Dropdown.dropdown>

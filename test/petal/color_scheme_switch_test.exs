@@ -83,6 +83,38 @@ defmodule PetalComponents.ColorSchemeSwitchTest do
       assert html =~ ">System</span>"
     end
 
+    test "icon slots replace the Heroicons defaults" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.color_scheme_switch id="scheme" variant="toggle">
+          <:dark_icon><svg data-custom-moon viewBox="0 0 28 28"></svg></:dark_icon>
+        </.color_scheme_switch>
+        """)
+
+      assert html =~ "data-custom-moon"
+      refute has_icon?(html, "hero-moon")
+      # the untouched slot keeps its default
+      assert has_icon?(html, "hero-sun")
+    end
+
+    test "icon slots apply across segmented options" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.color_scheme_switch id="scheme" variant="segmented">
+          <:system_icon><svg data-custom-system viewBox="0 0 28 28"></svg></:system_icon>
+        </.color_scheme_switch>
+        """)
+
+      assert html =~ "data-custom-system"
+      refute has_icon?(html, "hero-computer-desktop")
+      assert has_icon?(html, "hero-sun")
+      assert has_icon?(html, "hero-moon")
+    end
+
     test "labels are overridable for i18n" do
       assigns = %{}
 
