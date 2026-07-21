@@ -33,6 +33,16 @@ defmodule Dev.Layouts do
         <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
         <.live_title>Petal Components Playground</.live_title>
         <PetalComponents.ColorSchemeSwitch.color_scheme_script />
+        <script phx-no-curly-interpolation>
+          // Playground-only capture override: ?dark=1 / ?dark=0 force the
+          // scheme on load (headless screenshots), without touching the
+          // visitor's stored preference.
+          (() => {
+            const dark = new URLSearchParams(location.search).get("dark");
+            if (dark === "1") document.documentElement.classList.add("dark");
+            if (dark === "0") document.documentElement.classList.remove("dark");
+          })();
+        </script>
         <meta name="pg-rev" content="alert-badge-1" />
         <link rel="stylesheet" href="/assets/app.css" />
       </head>
@@ -75,6 +85,16 @@ defmodule Dev.Layouts do
             uploaders: {},
           });
           window.liveSocket.connect();
+          window.addEventListener("phx:pg:toggle-scheme", () => {
+            if (window.PetalColorScheme) {
+              window.PetalColorScheme.set(
+                window.PetalColorScheme.resolved() === "dark" ? "light" : "dark"
+              );
+            }
+          });
+          window.addEventListener("petal:scheme-changed", () => {
+            window.dispatchEvent(new Event("pg:theme-switch"));
+          });
           window.addEventListener("pg:theme-switch", () => {
             const style = document.createElement("style");
             style.textContent = "* { transition: none !important; }";
@@ -729,7 +749,7 @@ defmodule Dev.PlaygroundLive do
      |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
      |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
      |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
-     |> assign(:dark, params["dark"] == "1")}
+     |> assign(:dark, false)}
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
@@ -745,7 +765,7 @@ defmodule Dev.PlaygroundLive do
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
 
   def handle_event("toggle_dark", _params, socket),
-    do: patch_theme(socket, %{dark: !socket.assigns.dark})
+    do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
 
   def handle_event("ctl_variant", %{"v" => v}, socket)
       when v in ~w(solid soft light outline ghost),
@@ -1222,7 +1242,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :primary, :secondary, :gray, :radius, :dark])
+      |> Map.take([:active, :primary, :secondary, :gray, :radius])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -1230,7 +1250,6 @@ defmodule Dev.PlaygroundLive do
 
   defp theme_path(t) do
     []
-    |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
@@ -1715,12 +1734,11 @@ defmodule Dev.PlaygroundLive do
     <div
       class={
         [
-          "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50",
-          # On the color-scheme page the component owns dark mode via the real
-          # document class; a wrapper-level dark from ?dark=1 would stack on top
-          # (Tailwind's variant matches any ancestor) and make the switches
-          # look stuck. One authority per page.
-          @dark && @active != "color-scheme" && "dark"
+          # Dark mode is owned by the document class via the library's own
+          # color_scheme_script - the playground dogfoods color_scheme_switch
+          # in the topbar. The old ?dark=1 URL param survives only as a
+          # capture override in the layout head (headless screenshots).
+          "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50"
         ]
       }
       data-primary={@primary}
@@ -1795,14 +1813,7 @@ defmodule Dev.PlaygroundLive do
           >
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </a>
-          <button
-            phx-click={JS.dispatch("pg:theme-switch") |> JS.push("toggle_dark")}
-            aria-label="Toggle dark mode"
-            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
-          >
-            <.icon :if={@dark} name="hero-sun" class="w-4 h-4" />
-            <.icon :if={!@dark} name="hero-moon" class="w-3.5 h-3.5" />
-          </button>
+          <.color_scheme_switch id="pg-topbar-scheme" variant="dropdown" />
         </div>
       </header>
 
