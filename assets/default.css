@@ -915,9 +915,15 @@
   .pc-alert__label {
     @apply py-1 font-medium;
   }
+  /* House close-button grammar: comfortable hit area that never
+     participates in layout (negative margins cancel the padding), glyph
+     brightens on hover with a faint wash in the surface's own family,
+     focus-visible ring, never dims. Alert washes stay tinted per colour
+     - a gray ghost wash would fight the coloured surface. */
   .pc-alert__dismiss-button {
-    @apply flex p-2 hover:cursor-pointer transition-colors duration-150;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    @apply flex p-1.5 -m-1.5 hover:cursor-pointer transition-colors duration-150;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   /* Alerts - colors and variants */
@@ -2775,7 +2781,10 @@
     @apply font-semibold text-gray-800 dark:text-gray-200;
   }
   .pc-modal__header__button {
-    @apply text-gray-400 hover:text-gray-500;
+    @apply flex-none self-start p-1 -m-1 text-gray-400 transition-colors cursor-pointer;
+    @apply hover:bg-gray-900/5 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
   .pc-modal__header__close-svg {
     @apply w-5 h-5 fill-current;
@@ -3252,8 +3261,8 @@
     @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    @apply flex-none self-start p-1 -m-1 text-gray-400 transition-colors cursor-pointer hover:bg-gray-900/5 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
   .pc-slideover__header__close-svg {
     @apply h-4 w-4 fill-current;
@@ -5561,8 +5570,10 @@
   }
 
   .pc-toast__close {
-    @apply shrink-0 -m-1 mt-0 p-1 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-150 dark:hover:text-gray-200;
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 rounded-md;
+    @apply shrink-0 -m-1 mt-0 p-1 cursor-pointer text-gray-400 transition-colors duration-150;
+    @apply hover:bg-gray-900/5 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-toast__close-icon {

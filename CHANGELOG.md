@@ -21,6 +21,7 @@
 
 #### Fixed
 
+- **One close-button grammar across alert, modal, slide-over and toast.** The four X buttons had drifted into four behaviours: the alert's oversized hit area grew headingless alerts when dismissible, the modal's X had no dark-mode styles at all (so hovering *dimmed* it on dark), washes and focus rings were present or absent at random. Now every X follows the same rules: a comfortable hit area that never participates in layout (negative margins), the glyph brightens on hover with a faint wash in the surface's own family (ghost gray on panels, the alert keeps its per-colour tints), a focus-visible ring, and it never dims.
 - **`alert` no longer crashes when `on_dismiss` is nil.** Conditionally passing the attr - `on_dismiss={if @dismissible, do: JS.dispatch(...)}` - is a natural pattern, and the nil case raised at render. Nil now behaves like the empty default: no dismiss button.
 - **Textareas clamp the radius token.** A full-radius theme turned multiline fields into over-rounded pills that ate their own text; textareas now cap at 1rem while single-line inputs keep the pill option - that one is a real style.
 - **The avatar group's +N chip is opaque in dark mode again.** The chip shares an element with the initials placeholder, whose dark ghost alpha was winning the cascade - so the overlapped avatar photo bled through the count. The opaque chip rule now sits after the placeholder rule it has to beat.
