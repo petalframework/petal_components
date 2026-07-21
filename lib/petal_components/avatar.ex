@@ -33,6 +33,13 @@ defmodule PetalComponents.Avatar do
       "art variants only: overlay the monogram on the art. Because the palette is generated server-side, text colour and pattern contrast adjust automatically - a dark hue-tinted monogram over slightly lifted tones"
   )
 
+  attr(:shape, :string,
+    default: "circle",
+    values: ["circle", "rounded"],
+    doc:
+      "circle is the convention for people; rounded (proportional soft corners) suits orgs, teams and workspaces. Deliberately independent of the --pc-radius dial - avatars are identity, not surface, and a sharp-cornered theme still wants soft avatars"
+  )
+
   attr(:status, :string,
     default: nil,
     values: [nil, "online", "offline", "busy", "away"],
@@ -67,6 +74,7 @@ defmodule PetalComponents.Avatar do
         class={[
           "pc-avatar--art",
           "pc-avatar--#{@size}",
+          @shape == "rounded" && "pc-avatar--rounded",
           @class
         ]}
       >
@@ -77,7 +85,12 @@ defmodule PetalComponents.Avatar do
         {@rest}
         src={@src}
         alt={@alt || @name}
-        class={["pc-avatar--with-image", "pc-avatar--#{@size}", @class]}
+        class={[
+          "pc-avatar--with-image",
+          "pc-avatar--#{@size}",
+          @shape == "rounded" && "pc-avatar--rounded",
+          @class
+        ]}
       />
     <% end %>
     """
@@ -93,6 +106,7 @@ defmodule PetalComponents.Avatar do
         class={[
           "pc-avatar--with-placeholder-icon",
           "pc-avatar--#{@size}",
+          @shape == "rounded" && "pc-avatar--rounded",
           @class
         ]}
       >
@@ -108,6 +122,7 @@ defmodule PetalComponents.Avatar do
           class={[
             "pc-avatar--with-placeholder-initials",
             "pc-avatar--#{@size}",
+            @shape == "rounded" && "pc-avatar--rounded",
             @class
           ]}
         >
@@ -121,6 +136,7 @@ defmodule PetalComponents.Avatar do
           class={[
             "pc-avatar--with-image",
             "pc-avatar--#{@size}",
+            @shape == "rounded" && "pc-avatar--rounded",
             @class
           ]}
         />
@@ -138,6 +154,12 @@ defmodule PetalComponents.Avatar do
     doc: "show at most this many avatars, then a +N overflow bubble for the rest"
   )
 
+  attr(:shape, :string,
+    default: "circle",
+    values: ["circle", "rounded"],
+    doc: "shape passed through to every avatar and the +N bubble"
+  )
+
   attr(:rest, :global)
 
   def avatar_group(assigns) do
@@ -152,13 +174,14 @@ defmodule PetalComponents.Avatar do
     ~H"""
     <div {@rest} class={["pc-avatar-group--#{@size}", @class]}>
       <%= for src <- @shown do %>
-        <.avatar src={src} size={@size} class="pc-avatar-group" />
+        <.avatar src={src} size={@size} shape={@shape} class="pc-avatar-group" />
       <% end %>
       <div
         :if={@overflow > 0}
         class={[
           "pc-avatar--with-placeholder-initials",
           "pc-avatar--#{@size}",
+          @shape == "rounded" && "pc-avatar--rounded",
           "pc-avatar-group",
           "pc-avatar-group__overflow"
         ]}

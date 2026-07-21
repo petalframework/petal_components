@@ -4558,11 +4558,50 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Shape - circles for people, rounded for orgs and teams
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center gap-5">
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <.avatar src="/dev-static/avatars/p32.jpg" size="lg" />
+            <.avatar src="/dev-static/avatars/p32.jpg" shape="rounded" size="lg" />
+            <.avatar name="Acme Corp" shape="rounded" random_gradient size="lg" />
+            <.avatar name="Petal Framework" shape="rounded" art="mesh" size="lg" />
+            <.avatar name="Design Guild" shape="rounded" art="dither" initials size="lg" />
+            <.avatar
+              src="/dev-static/avatars/p65.jpg"
+              shape="rounded"
+              status="online"
+              size="lg"
+            />
+          </div>
+          <.avatar_group
+            size="md"
+            shape="rounded"
+            max={3}
+            avatars={[
+              "/dev-static/avatars/p32.jpg",
+              "/dev-static/avatars/p65.jpg",
+              "/dev-static/avatars/p44.jpg",
+              "/dev-static/avatars/p12.jpg",
+              "/dev-static/avatars/p68.jpg"
+            ]}
+          />
+          <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+            <code>shape="rounded"</code>
+            works across every variant - photos, monograms, art, status dots
+            and groups. Deliberately independent of the radius dial: avatars
+            are identity, not surface.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Generative art - mesh and dither, hashed from the name
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-6">
-          <div class="flex items-center justify-center gap-4">
+          <div class="flex flex-wrap items-center justify-center gap-4">
             <.avatar
               :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
               name={name}
@@ -4570,7 +4609,7 @@ defmodule Dev.PlaygroundLive do
               size="lg"
             />
           </div>
-          <div class="flex items-center justify-center gap-4">
+          <div class="flex flex-wrap items-center justify-center gap-4">
             <.avatar
               :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
               name={name}
@@ -4578,7 +4617,7 @@ defmodule Dev.PlaygroundLive do
               size="lg"
             />
           </div>
-          <div class="flex items-center justify-center gap-4">
+          <div class="flex flex-wrap items-center justify-center gap-4">
             <.avatar
               :for={name <- ["Amelia Ward", "Jonah Reyes", "Priya Anand", "Maya Okafor"]}
               name={name}

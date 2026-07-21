@@ -153,6 +153,47 @@ defmodule PetalComponents.AvatarTest do
     refute dither == pure
   end
 
+  test "shape rounded applies across photo, initials and art variants" do
+    assigns = %{}
+
+    photo =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" shape="rounded" />
+      """)
+
+    initials =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" shape="rounded" />
+      """)
+
+    art =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" shape="rounded" />
+      """)
+
+    for html <- [photo, initials, art], do: assert(html =~ "pc-avatar--rounded")
+
+    # circle default carries no modifier
+    circle =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" />
+      """)
+
+    refute circle =~ "pc-avatar--rounded"
+  end
+
+  test "avatar_group threads shape to children and the overflow bubble" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar_group shape="rounded" max={1} avatars={["/a.jpg", "/b.jpg"]} />
+      """)
+
+    # the shown avatar and the +1 bubble both carry the modifier
+    assert length(String.split(html, "pc-avatar--rounded")) == 3
+  end
+
   test "a photo src wins over art" do
     assigns = %{}
 

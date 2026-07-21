@@ -2006,7 +2006,7 @@
   /* Avatars */
 
   .pc-avatar--with-image {
-    @apply object-cover rounded-full;
+    @apply object-cover rounded-full shrink-0;
   }
   .pc-avatar-anchor {
     @apply relative inline-flex shrink-0;
@@ -2042,10 +2042,10 @@
     @apply h-3.5 w-3.5;
   }
   .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-400/17;
+    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full shrink-0 dark:bg-gray-400/17;
   }
   .pc-avatar--with-placeholder-initials {
-    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-400/17 dark:text-gray-300;
+    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full shrink-0 dark:bg-gray-400/17 dark:text-gray-300;
   }
   /* After the placeholder rule, which it shares an element with: the +N
      chip overlaps the avatar behind it, so its background must stay
@@ -2058,7 +2058,16 @@
   /* Generative art placeholders (art="mesh" | "dither"); the flex/type
      styles only matter when the optional initials overlay renders */
   .pc-avatar--art {
-    @apply flex items-center justify-center font-semibold uppercase select-none rounded-full bg-cover;
+    @apply flex items-center justify-center font-semibold uppercase select-none rounded-full bg-cover shrink-0;
+  }
+
+  /* Rounded shape - orgs, teams, workspaces (people stay circles).
+     Proportional so every size keeps the same character. Deliberately NOT
+     tied to --pc-radius: avatars are identity, not surface, and a
+     sharp-cornered theme still wants soft avatars. Placed after every
+     base avatar rule so it wins their rounded-full at equal specificity. */
+  .pc-avatar--rounded {
+    border-radius: 25%;
   }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-950;
