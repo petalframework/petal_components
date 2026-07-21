@@ -7,8 +7,12 @@
 - **`local_time` - timestamps in the visitor's own timezone and language.** The server renders a semantic `<time datetime>` carrying the UTC instant (accepts a `DateTime` in any zone - normalised without a timezone database - a `NaiveDateTime`, or an ISO string); the `PetalLocalTime` hook formats it with the browser's `Intl` - no timezone tables, no date library. Presets for `datetime`/`date`/`time`, a map passes raw `Intl.DateTimeFormat` options straight through, and `format="relative"` gives "12 seconds ago" / "yesterday" / "in 3 weeks" (`Intl.RelativeTimeFormat`, numeric auto) with a decaying live tick (fresh timestamps update every few seconds, old ones hourly), a re-render when a background tab wakes so a page left open never greets you with a stale "2 minutes ago", a hover `title` carrying the full date, and a `threshold` beyond which the absolute form renders instead. `locale` and `timezone` pin specific renderings per element. The SSR fallback - and the no-JS story - is the honest UTC ISO string.
 - **`icon_placement` on `button`.** `icon_placement="right"` puts the icon after the label - arrows, external-link, clipboard. The loading spinner takes the icon's side, so a button doesn't reflow when it enters its loading state. Defaults to `"left"`; nothing changes for existing callers.
 
+- **`label_placement="bottom"` on `stepper`.** The classic wizard look - circles in a row, labels centred underneath, connectors pinned to the circle centres. Horizontal only (vertical always keeps labels beside); the stacked mobile layout is unchanged. Default stays `"beside"`.
+- **`random_gradient` on `avatar`.** A fancier `random_color`: a diagonal two-stop gradient hashed from the name, so the same person always gets the same gradient. Wins over `random_color` when both are set.
+
 #### Changed
 
+- **Stepper labels scale with the size dial.** `sm`/`lg` used to resize only the circles while titles and descriptions stayed fixed (true since the component first shipped); now the type follows - `sm` tightens to caption sizes, `lg` steps up to base.
 - **Icon spacing is part of the base button.** `.pc-button` carries the gap itself now, so composed icons - `<.button>Continue <.icon name="hero-arrow-right" class="w-4 h-4" /></.button>` - space correctly with no extra attr. `with_icon` is a legacy no-op, kept for compatibility and removed in 5.0.
 
 #### Fixed

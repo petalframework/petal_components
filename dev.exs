@@ -720,7 +720,7 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
-       stepper: %{orientation: "horizontal", size: "md", at: 0, done: false},
+       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
        nav_trigger: "hover",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
@@ -1006,6 +1006,10 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
+
+  def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
+      when v in ~w(beside bottom),
+      do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
@@ -2839,13 +2843,17 @@ defmodule Dev.PlaygroundLive do
     assigns =
       assign(assigns,
         lt_feed: [
-          {"Amelia Ward", "pushed to main", DateTime.add(now, -20)},
-          {"Deploy Bot", "released v4.8.0", DateTime.add(now, -8 * 60)},
-          {"Jonah Reyes", "commented on PR #58", DateTime.add(now, -3 * 3600)},
-          {"Priya Anand", "signed in", DateTime.add(now, -30 * 3600)},
-          {"Billing", "sent invoice #204", DateTime.add(now, -6 * 86_400)},
-          {"Maya Okafor", "created the workspace", DateTime.add(now, -45 * 86_400)},
-          {"Status Page", "scheduled maintenance", DateTime.add(now, 45 * 60)}
+          {"Amelia Ward", "pushed to main", DateTime.add(now, -20),
+           "/dev-static/avatars/p32.jpg"},
+          {"Deploy Bot", "released v4.8.0", DateTime.add(now, -8 * 60), nil},
+          {"Jonah Reyes", "commented on PR #58", DateTime.add(now, -3 * 3600),
+           "/dev-static/avatars/p65.jpg"},
+          {"Priya Anand", "signed in", DateTime.add(now, -30 * 3600),
+           "/dev-static/avatars/p44.jpg"},
+          {"Billing", "sent invoice #204", DateTime.add(now, -6 * 86_400), nil},
+          {"Maya Okafor", "created the workspace", DateTime.add(now, -45 * 86_400),
+           "/dev-static/avatars/p12.jpg"},
+          {"Status Page", "scheduled maintenance", DateTime.add(now, 45 * 60), nil}
         ],
         lt_two_hours: DateTime.add(now, -2 * 3600),
         lt_fixed: ~U[2026-07-21 08:30:00Z]
@@ -2866,10 +2874,10 @@ defmodule Dev.PlaygroundLive do
       </div>
       <div class="px-6 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div
-          :for={{{who, what, at}, i} <- Enum.with_index(@lt_feed)}
+          :for={{{who, what, at, photo}, i} <- Enum.with_index(@lt_feed)}
           class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0 dark:border-gray-800/60"
         >
-          <.avatar size="xs" name={who} random_color />
+          <.avatar size="xs" src={photo} name={who} random_gradient />
           <span class="flex-1 text-sm truncate">
             <span class="font-medium">{who}</span>
             <span class="text-gray-500 dark:text-gray-400">{what}</span>
@@ -4334,6 +4342,7 @@ defmodule Dev.PlaygroundLive do
               steps={pg_steps(@stepper.at, @stepper.done)}
               orientation={@stepper.orientation}
               size={@stepper.size}
+              label_placement={@stepper.labels}
             />
           </div>
           <div class={[
@@ -4443,7 +4452,7 @@ defmodule Dev.PlaygroundLive do
             <% end %>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
@@ -4470,6 +4479,24 @@ defmodule Dev.PlaygroundLive do
               >
                 {sz}
               </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={lp <- ~w(beside bottom)}
+                phx-click="ctl_stepper"
+                phx-value-k="labels"
+                phx-value-v={lp}
+                class={seg(@stepper.labels == lp)}
+                disabled={@stepper.orientation == "vertical"}
+              >
+                {lp}
+              </button>
+            </div>
+            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
+              horizontal only
             </div>
           </div>
         </div>
@@ -4518,6 +4545,10 @@ defmodule Dev.PlaygroundLive do
           <div class="flex flex-col items-center gap-2">
             <.avatar name="Grace Hopper" random_color />
             <span class="text-[11px] text-gray-400">random_color</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <.avatar name="Ada Lovelace" random_gradient />
+            <span class="text-[11px] text-gray-400">random_gradient</span>
           </div>
           <div class="flex flex-col items-center gap-2">
             <.avatar />
