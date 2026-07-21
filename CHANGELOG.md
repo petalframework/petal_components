@@ -3,12 +3,16 @@
 
 #### Added
 
-- **`color_scheme_switch` - light / dark / system, in three faces.** `variant="toggle"` flips light/dark instantly with the rotating sun/moon; `variant="dropdown"` opens Light / Dark / System from the same compact trigger (icon-only rail by default; `labels` adds text); `variant="segmented"` is the three-way pill with every state visible. All three share one no-flash contract: render `<.color_scheme_script />` once in your layout's `<head>` and it applies the scheme before first paint, follows the OS live while the preference is system (`matchMedia`), keeps every open tab in sync (`storage` events), and dispatches `petal:scheme-changed` with `{preference, resolved}` for your own code. Stores explicit choices in `localStorage.scheme` - drop-in compatible with existing petal apps. Requires the `PetalColorScheme` hook from the bundle.
+- **`color_scheme_switch` - light / dark / system, in three faces.** `variant="toggle"` flips light/dark instantly with the rotating sun/moon; `variant="dropdown"` opens Light / Dark / System from the same compact trigger (icon-only rail by default; `labels` adds text) and dismisses on select, like every menu should; `variant="segmented"` is the three-way pill with every state visible. All three share one no-flash contract: render `<.color_scheme_script />` once in your layout's `<head>` and it applies the scheme before first paint, follows the OS live while the preference is system (`matchMedia`), keeps every open tab in sync (`storage` events), and dispatches `petal:scheme-changed` with `{preference, resolved}` for your own code. Stores explicit choices in `localStorage.scheme` - drop-in compatible with existing petal apps, and safe where storage is blocked (private browsing, sandboxed iframes). Default icons are Heroicons; `light_icon` / `dark_icon` / `system_icon` slots take any svg - it inherits the sizing and the toggle's rotate transition (which honours `prefers-reduced-motion`). Requires the `PetalColorScheme` hook from the bundle.
 - **`icon_placement` on `button`.** `icon_placement="right"` puts the icon after the label - arrows, external-link, clipboard. The loading spinner takes the icon's side, so a button doesn't reflow when it enters its loading state. Defaults to `"left"`; nothing changes for existing callers.
 
 #### Changed
 
 - **Icon spacing is part of the base button.** `.pc-button` carries the gap itself now, so composed icons - `<.button>Continue <.icon name="hero-arrow-right" class="w-4 h-4" /></.button>` - space correctly with no extra attr. `with_icon` is a legacy no-op, kept for compatibility and removed in 5.0.
+
+#### Fixed
+
+- **Radio dots and checkbox ticks survive a monochrome primary in dark mode.** The forms plugin bakes a white glyph into its svg, which vanishes when `primary-600` resolves light (the shadcn-style inverted monochrome accent). The radio dot is now drawn as a gradient riding `--pc-button-solid-fg` - the same on-primary token solid button labels use - so it inverts automatically. The checkbox tick can't be a gradient, so the tick image itself is now the `--pc-checkbox-check` token; themes with an inverting primary point it at a dark tick in dark mode.
 
 ### 4.7.0 - 2026-07-20
 
