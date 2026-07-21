@@ -5054,7 +5054,9 @@
   .pc-carousel {
     @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
-    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.5rem);
+    /* Same derivation as the slide surface, so the focus ring hugs the
+       visible image corner at every dial position */
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.6), 1.5rem);
   }
 
   /* When using sides buttons, carousel should flex to fit between buttons */
@@ -5062,9 +5064,9 @@
     @apply flex-1;
   }
 
-  /* Vertical carousel with sides buttons should maintain fixed height */
+  /* Vertical with outside buttons keeps its own height (not flex-1) */
   .pc-carousel-wrapper--vertical.pc-carousel-wrapper--outside .pc-carousel {
-    @apply flex-none h-96;
+    @apply flex-none;
   }
 
   /* Overlay button styles - inspired by Embla Carousel */
@@ -5193,7 +5195,7 @@
 
   /* Vertical orientation */
   .pc-carousel--vertical {
-    @apply w-full h-96;
+    @apply w-full;
   }
 
   .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides {
@@ -5249,18 +5251,26 @@
     @apply flex w-full justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
   }
 
-  /* Inactive thumbs dim only slightly - heavy dimming washes the strip
+  /* At rest every thumb is full colour - dimming the strip washed it
      out, especially in light mode; the ring carries the active state.
-     Focus is the same solid primary ring OFFSET from the edge, so a
-     keyboard-focused active thumb never looks softer than a clicked
-     one (both rings solid; focus adds the gap). */
+     Hovering the strip dims the thumbs you are NOT pointing at, which
+     reads as focus rather than washout. Focus-visible is the same
+     solid primary ring OFFSET from the edge, so a keyboard-focused
+     active thumb never looks softer than a clicked one. Radius clamps
+     like every small control - full themes get a soft corner, never a
+     pill. */
   .pc-carousel__thumb {
-    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer opacity-80 transition-all duration-200 ease-out hover:opacity-100;
+    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer transition-all duration-200 ease-out;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    border-radius: min(max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem), 0.625rem);
   }
 
-  .pc-carousel__thumb--active {
+  .pc-carousel__thumbs:hover .pc-carousel__thumb:not(:hover) {
+    @apply opacity-70;
+  }
+
+  .pc-carousel__thumb--active,
+  .pc-carousel__thumbs:hover .pc-carousel__thumb--active:not(:hover) {
     @apply opacity-100 ring-2 ring-primary-500;
   }
 
@@ -5326,6 +5336,14 @@
   .pc-carousel__indicator {
     @apply transition-all duration-500 ease-in-out opacity-50 bg-white rounded-full cursor-pointer hover:opacity-90;
     @apply focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/80;
+  }
+
+  /* The hook marks the active indicator by adding a literal
+     "opacity-100" class. That string lives in hook-built DOM, which no
+     host app's Tailwind scan ever sees - so the utility may not exist.
+     Ship the rule ourselves. */
+  .pc-carousel__indicator.opacity-100 {
+    opacity: 1;
   }
 
   .pc-carousel__indicator--bars {
