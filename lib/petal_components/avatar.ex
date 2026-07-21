@@ -14,6 +14,12 @@ defmodule PetalComponents.Avatar do
     doc: "generates a random color for placeholder initials avatar"
   )
 
+  attr(:random_gradient, :boolean,
+    default: false,
+    doc:
+      "generates a gradient background for placeholder initials, hashed from the name like random_color - same name, same gradient. Wins over random_color when both are set"
+  )
+
   attr(:status, :string,
     default: nil,
     values: [nil, "online", "offline", "busy", "away"],
@@ -56,7 +62,7 @@ defmodule PetalComponents.Avatar do
       <%= if src_blank?(@src) && @name do %>
         <div
           {@rest}
-          style={maybe_generate_random_color(@random_color, @name)}
+          style={placeholder_background(@random_color, @random_gradient, @name)}
           role="img"
           aria-label="user avatar"
           class={[
@@ -126,19 +132,23 @@ defmodule PetalComponents.Avatar do
 
   defp src_blank?(src), do: !src || src == ""
 
-  defp maybe_generate_random_color(false, _), do: nil
+  defp placeholder_background(_color, true, name) do
+    hue = hue_from_string(name)
 
-  defp maybe_generate_random_color(true, name) do
-    "background-color: #{generate_color_from_string(name)}; color: white;"
+    "background-image: linear-gradient(135deg, hsl(#{hue}, 88%, 52%), hsl(#{rem(hue + 65, 360)}, 88%, 32%)); color: white;"
   end
 
-  defp generate_color_from_string(string) do
-    a_number =
-      string
-      |> String.to_charlist()
-      |> Enum.reduce(0, fn x, acc -> x + acc end)
+  defp placeholder_background(true, _gradient, name) do
+    "background-color: hsl(#{hue_from_string(name)}, 100%, 35%); color: white;"
+  end
 
-    "hsl(#{rem(a_number, 360)}, 100%, 35%)"
+  defp placeholder_background(_color, _gradient, _name), do: nil
+
+  defp hue_from_string(string) do
+    string
+    |> String.to_charlist()
+    |> Enum.reduce(0, fn x, acc -> x + acc end)
+    |> rem(360)
   end
 
   defp generate_initials(name) when is_binary(name) do

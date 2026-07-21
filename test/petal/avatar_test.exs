@@ -67,6 +67,33 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ "background-color:"
   end
 
+  test "random_gradient renders a deterministic gradient hashed from the name" do
+    assigns = %{}
+
+    render = fn ->
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" random_gradient />
+      """)
+    end
+
+    html = render.()
+    assert html =~ "linear-gradient"
+    # same name, same gradient
+    assert html == render.()
+  end
+
+  test "random_gradient wins over random_color when both are set" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" random_color random_gradient />
+      """)
+
+    assert html =~ "linear-gradient"
+    refute html =~ "background-color:"
+  end
+
   test "dark mode" do
     assigns = %{}
 
