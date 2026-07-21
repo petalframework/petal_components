@@ -4521,8 +4521,8 @@ defmodule Dev.PlaygroundLive do
         Sizes - xs to xl
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-end justify-center gap-4 px-6 py-12">
-          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
+        <div class="flex flex-wrap items-end justify-center gap-4 px-6 py-12">
+          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
             <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
             <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
@@ -4533,24 +4533,24 @@ defmodule Dev.PlaygroundLive do
         Fallback chain - photo, initials, icon
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center gap-6">
-          <div class="flex flex-col items-center gap-2">
+        <div class="flex flex-wrap items-center justify-center gap-6">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar src="/dev-static/avatars/p44.jpg" alt="Photo" />
             <span class="text-[11px] text-gray-400">src</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar name="Ada Lovelace" />
             <span class="text-[11px] text-gray-400">initials</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar name="Grace Hopper" random_color />
             <span class="text-[11px] text-gray-400">random_color</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar name="Ada Lovelace" random_gradient />
             <span class="text-[11px] text-gray-400">random_gradient</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar />
             <span class="text-[11px] text-gray-400">no name</span>
           </div>
