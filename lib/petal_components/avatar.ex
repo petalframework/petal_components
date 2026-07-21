@@ -249,31 +249,34 @@ defmodule PetalComponents.Avatar do
   @dither_cells 12
 
   defp dither_data_uri(name, quiet_center?) do
-    n = @dither_cells
-    center = (n - 1) / 2
-    quiet_r = n * 0.42
+    # Pure art: the full diagonal blend on a fine grid. With initials: a
+    # chunkier grid where a radial ramp keeps a large solid centre and
+    # sprinkles a sparse, symmetric pixel ring around the rim.
+    n = if quiet_center?, do: 10, else: @dither_cells
     h1 = hue_from_string(name)
     h2 = rem(h1 + 70 + :erlang.phash2({name, :spread}, 150), 360)
     flip? = :erlang.phash2({name, :dir}, 2) == 1
 
     cells =
       for y <- 0..(n - 1), x <- 0..(n - 1) do
-        fx = if flip?, do: n - 1 - x, else: x
-        # steepen the diagonal ramp so the corners go solid and the dither
-        # concentrates in a band across the middle - without the gain the
-        # whole circle reads as uniform checkerboard
-        ramp = ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
-
-        damp =
+        t =
           if quiet_center? do
-            dist = :math.sqrt(:math.pow(x - center, 2) + :math.pow(y - center, 2))
-            max(0.0, 1 - dist / quiet_r) * 1.4
+            # distance of the cell centre from the avatar centre, 0..1 at
+            # the circle edge; pixels only past 64% radius, capped sparse
+            d =
+              :math.sqrt(:math.pow(x + 0.5 - n / 2, 2) + :math.pow(y + 0.5 - n / 2, 2)) / (n / 2)
+
+            max(0.0, (d - 0.64) / 0.36) * 0.55
           else
-            0.0
+            # steepen the diagonal ramp so the corners go solid and the
+            # dither concentrates in a band across the middle - without
+            # the gain the whole circle reads as uniform checkerboard
+            fx = if flip?, do: n - 1 - x, else: x
+            ((fx + y) / (2 * (n - 1)) - 0.5) * 2.2 + 0.5
           end
 
         threshold = (@bayer |> elem(rem(y, 4)) |> elem(rem(x, 4))) / 16 + 0.03
-        if ramp - damp > threshold, do: "M#{x} #{y}h1v1h-1z"
+        if t > threshold, do: "M#{x} #{y}h1v1h-1z"
       end
       |> Enum.reject(&is_nil/1)
       |> Enum.join()
