@@ -2780,10 +2780,10 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Bring your own icons - slots replace the Heroicons defaults
       </div>
-      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="flex flex-col items-center justify-center gap-6 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <.color_scheme_switch id="pg-scheme-custom" variant="toggle">
           <:light_icon>
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="4.25 4.25 19.5 19.5" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="14" cy="14" r="4.5" stroke="currentColor" stroke-linejoin="round" />
               <path
                 d="M14 5.5v2M14 20.5v2M22.5 14h-2M7.5 14h-2M20.01 7.99l-1.42 1.42M9.41 18.59l-1.42 1.42M20.01 20.01l-1.42-1.42M9.41 9.41 7.99 7.99"
@@ -2793,7 +2793,7 @@ defmodule Dev.PlaygroundLive do
             </svg>
           </:light_icon>
           <:dark_icon>
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="5.25 4.25 18.5 18.5" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M10.5 9.99914C10.5 14.1413 13.8579 17.4991 18 17.4991C19.0332 17.4991 20.0176 17.2902 20.9132 16.9123C19.7761 19.6075 17.109 21.4991 14 21.4991C9.85786 21.4991 6.5 18.1413 6.5 13.9991C6.5 10.8902 8.39167 8.22304 11.0868 7.08594C10.7089 7.98159 10.5 8.96597 10.5 9.99914Z"
                 stroke="currentColor"
@@ -2816,6 +2816,10 @@ defmodule Dev.PlaygroundLive do
             </svg>
           </:dark_icon>
         </.color_scheme_switch>
+        <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+          Tip: many icon sets pad their artwork. Crop the viewBox around the
+          glyph so a dropped-in icon matches Heroicons' optical density.
+        </p>
       </div>
 
       <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -5978,19 +5982,28 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-end justify-center gap-8">
           <div
             :for={
-              {suffix, label} <- [
-                {"", "outline"},
-                {"-solid", "solid"},
-                {"-mini", "mini"},
-                {"-micro", "micro"}
+              {suffix, size_class, size_label} <- [
+                {"", "w-6 h-6", "24px"},
+                {"-solid", "w-6 h-6", "24px"},
+                {"-mini", "w-5 h-5", "20px"},
+                {"-micro", "w-4 h-4", "16px"}
               ]
             }
             class="flex flex-col items-center gap-2"
           >
-            <.icon name={"hero-star" <> suffix} class="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            <.icon
+              name={"hero-star" <> suffix}
+              class={[size_class, "text-gray-700 dark:text-gray-300"]}
+            />
             <span class="font-mono text-[10px] text-gray-400">hero-star{suffix}</span>
+            <span class="text-[10px] text-gray-400">{size_label}</span>
           </div>
         </div>
+        <p class="mt-6 text-xs text-center text-gray-400 dark:text-gray-500">
+          mini and micro are not scaled-down copies - heroicons redraws them for
+          20px and 16px UI, simplifying geometry so they stay crisp at the sizes
+          they're named for. Render each at its native size.
+        </p>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
