@@ -1713,10 +1713,16 @@ defmodule Dev.PlaygroundLive do
   def render(assigns) do
     ~H"""
     <div
-      class={[
-        "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50",
-        @dark && "dark"
-      ]}
+      class={
+        [
+          "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50",
+          # On the color-scheme page the component owns dark mode via the real
+          # document class; a wrapper-level dark from ?dark=1 would stack on top
+          # (Tailwind's variant matches any ancestor) and make the switches
+          # look stuck. One authority per page.
+          @dark && @active != "color-scheme" && "dark"
+        ]
+      }
       data-primary={@primary}
       data-gray={@gray}
       data-secondary={@secondary}
