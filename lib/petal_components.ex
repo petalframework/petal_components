@@ -29,6 +29,7 @@ defmodule PetalComponents do
         Button,
         ButtonGroup,
         Card,
+        Carousel,
         Chart,
         ColorSchemeSwitch,
         Confetti,

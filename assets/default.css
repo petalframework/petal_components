@@ -5030,3 +5030,283 @@
     @apply mt-1 text-xs text-gray-400;
   }
 }
+
+  /* Carousel - ported from petal_marketing; material pass to follow */
+  .pc-carousel-wrapper {
+    @apply relative w-full;
+  }
+
+  .pc-carousel-wrapper--below {
+    @apply flex flex-col items-center gap-3;
+  }
+
+  .pc-carousel-wrapper--sides {
+    @apply flex items-center w-full gap-3 md:gap-4;
+  }
+
+  .pc-carousel {
+    @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
+  }
+
+  /* When using sides buttons, carousel should flex to fit between buttons */
+  .pc-carousel-wrapper--sides .pc-carousel {
+    @apply flex-1;
+  }
+
+  /* Vertical carousel with sides buttons should maintain fixed height */
+  .pc-carousel-wrapper--vertical.pc-carousel-wrapper--sides .pc-carousel {
+    @apply flex-none h-96;
+  }
+
+  /* Overlay button styles - inspired by Embla Carousel */
+  .pc-carousel__button--overlay {
+    @apply absolute top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-14 md:h-14 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply shadow-lg text-gray-800/70 bg-white/50;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-white/75 hover:shadow-xl;
+    @apply focus:outline-none;
+    @apply border-0;
+  }
+
+  .pc-carousel__button--overlay.pc-carousel__button--prev {
+    @apply left-2 md:left-4;
+  }
+
+  .pc-carousel__button--overlay.pc-carousel__button--next {
+    @apply right-2 md:right-4;
+  }
+
+  /* Below button styles - smaller, minimal */
+  .pc-carousel__button--below {
+    @apply w-8 h-8 md:w-10 md:h-10 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
+    @apply focus:outline-none;
+    @apply border border-gray-200 dark:border-gray-600;
+  }
+
+  .pc-carousel__controls--below {
+    @apply flex items-center justify-center gap-3 mt-4;
+  }
+
+  /* Side button styles - same as below but positioned in wrapper */
+  .pc-carousel__button--sides {
+    @apply flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply text-gray-700 bg-white shadow-md dark:text-white dark:bg-gray-800;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:shadow-lg dark:hover:bg-gray-700 dark:hover:shadow-lg;
+    @apply focus:outline-none;
+    @apply border border-gray-200 dark:border-gray-600;
+  }
+
+  /* Disabled button states (when loop is disabled and at boundary) */
+  .pc-carousel__button:disabled,
+  .pc-carousel__button--overlay:disabled,
+  .pc-carousel__button--below:disabled,
+  .pc-carousel__button--sides:disabled {
+    @apply opacity-40 cursor-default;
+  }
+
+  .pc-carousel__icon {
+    @apply text-current;
+  }
+
+  .pc-carousel__slides {
+    @apply relative w-full h-full;
+  }
+
+  .pc-carousel__slide {
+    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out;
+    will-change: transform, opacity;
+  }
+
+  .pc-carousel__slide--active {
+    @apply z-10 opacity-100;
+  }
+
+  .pc-carousel__slide--inactive {
+    @apply z-0;
+  }
+
+  /* Slide transition specific styles - CSS Scroll Snap approach */
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
+    @apply flex overflow-auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    column-gap: 0;
+    max-width: 100%;
+    height: 100%;
+    touch-action: pan-x; /* Enable horizontal swipe, disable vertical scroll */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Disable swipe when data-swipe="false" */
+  .pc-carousel[data-transition-type="slide"][data-swipe="false"] .pc-carousel__slides {
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    min-width: 100%;
+    height: 100%;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Fade transition specific styles */
+  .pc-carousel[data-transition-type="fade"] .pc-carousel__slide {
+    @apply transition-opacity duration-500 ease-in-out;
+  }
+
+  /* Multi-slide view styles */
+
+  /* When showing multiple slides, add gaps and adjust sizing */
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
+    gap: var(--carousel-gap, 1rem);
+  }
+
+  /* Vertical orientation */
+  .pc-carousel--vertical {
+    @apply w-full h-96;
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides {
+    @apply flex-col overflow-x-hidden overflow-y-auto;
+    scroll-snap-type: y mandatory;
+    touch-action: pan-y; /* Enable vertical swipe, disable horizontal scroll */
+    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slide {
+    @apply w-full min-h-full;
+    min-width: auto;
+    scroll-snap-align: center;
+  }
+
+  /* Vertical fade transition needs explicit dimensions */
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slides {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slide {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel-wrapper--vertical {
+    @apply flex flex-col;
+  }
+
+  .pc-carousel-wrapper--vertical .pc-carousel__button--sides {
+    @apply relative mx-auto my-2;
+  }
+
+  .pc-carousel__slide-content {
+    @apply relative w-full h-full overflow-hidden;
+  }
+
+  .pc-carousel__image-wrapper {
+    @apply absolute inset-0 z-0;
+  }
+
+  .pc-carousel__image {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-carousel__content {
+    @apply absolute inset-0 z-10 flex items-center justify-center;
+    /* Background gradient is now applied dynamically via inline style based on brightness attribute */
+  }
+
+  .pc-carousel__content-wrapper {
+    @apply flex flex-col w-full gap-5 p-8 sm:p-24;
+  }
+
+  .pc-carousel__title {
+    @apply text-4xl font-bold text-white;
+  }
+
+  .pc-carousel__description {
+    @apply text-xl text-white;
+  }
+
+  .pc-carousel__link {
+    @apply absolute inset-0 z-20 block w-full h-full no-underline cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .pc-carousel__link:hover {
+    @apply bg-black/20;
+  }
+
+  .pc-carousel__link-indicator {
+    @apply absolute z-30 flex items-center justify-center w-10 h-10 top-4 right-4;
+    @apply bg-white rounded-full shadow-lg dark:bg-gray-800;
+    @apply text-gray-700 dark:text-gray-200;
+    @apply transition-all duration-300;
+    @apply border-2 border-gray-200 dark:border-gray-600;
+    @apply pointer-events-none;
+  }
+
+  .pc-carousel__link:hover + .pc-carousel__link-indicator,
+  .pc-carousel__slide:has(.pc-carousel__link:hover) .pc-carousel__link-indicator {
+    @apply shadow-2xl ring-2 ring-white/50 dark:ring-gray-400/50;
+    @apply bg-white dark:bg-gray-700;
+  }
+
+  .pc-carousel__indicators {
+    @apply absolute inset-x-0 bottom-0 z-10 flex justify-center gap-3 py-2.5;
+  }
+
+  .pc-carousel__indicator {
+    @apply transition-all duration-500 ease-in-out opacity-50 bg-gray-50 hover:opacity-100;
+  }
+
+  .pc-carousel__indicator--bars {
+    @apply w-6 h-1;
+  }
+
+  .pc-carousel__indicator--dots {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  /* Carousel gradient overlays */
+  .pc-carousel-gradient-overlay-left {
+    @apply absolute top-0 bottom-0 left-0 w-1/6 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    z-index: 20;
+  }
+
+  .pc-carousel-gradient-overlay-right {
+    @apply absolute top-0 bottom-0 right-0 w-1/6 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-900/0 dark:to-gray-900;
+    z-index: 20;
+  }
+
+  .pc-carousel-gradient-overlay-top {
+    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    z-index: 20;
+  }
+
+  .pc-carousel-gradient-overlay-bottom {
+    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-900 dark:to-gray-900/0;
+    z-index: 20;
+  }
+

@@ -239,6 +239,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "avatar", name: "Avatar", ready: true},
         %{slug: "card", name: "Card", ready: true},
+        %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
@@ -2832,6 +2833,177 @@ defmodule Dev.PlaygroundLive do
         class through one contract: <code>&lt;.color_scheme_script /&gt;</code>
         rendered once in the layout head. Change any of them and the rest
         follow - including other open tabs.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "carousel"} = assigns) do
+    assigns =
+      assign(assigns,
+        forest:
+          "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1600&auto=format&fit=crop",
+        ocean:
+          "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=1600&auto=format&fit=crop",
+        code:
+          "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1600&auto=format&fit=crop"
+      )
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Carousel</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Fade or scroll-snap slide transitions, swipe and drag, keyboard
+        navigation, autoplay, indicators, and clickable slides - zero
+        JavaScript dependencies, one hook.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        The classic - images, fade transition, overlay controls, bar indicators
+      </div>
+      <.carousel id="pg-car-hero" transition_type="fade" indicator>
+        <:slide
+          image={@forest}
+          title="Ship the forest"
+          description="Fade transitions crossfade between slides."
+        />
+        <:slide
+          image={@ocean}
+          title="Calm as the ocean"
+          description="Arrow keys work when the carousel is focused."
+        />
+        <:slide
+          image={@code}
+          title="Made for builders"
+          description="Overlay buttons float on the image."
+        />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Slide transition - scroll-snap with swipe and mouse drag
+      </div>
+      <.carousel
+        id="pg-car-slide"
+        transition_type="slide"
+        indicator
+        indicator_style="dots"
+        rounded="xl"
+      >
+        <:slide
+          image={@ocean}
+          title="Drag me"
+          description="Scroll-snap slides - swipe on touch, drag with the mouse."
+        />
+        <:slide image={@code} title="Snappy" description="Each slide snaps to centre." />
+        <:slide image={@forest} title="Looping" description="Wraps around by default." />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Autoplay - advances every 3.5s, pauses while you interact
+      </div>
+      <.carousel
+        id="pg-car-auto"
+        transition_type="slide"
+        autoplay
+        autoplay_interval={3500}
+        indicator
+        rounded="xl"
+      >
+        <:slide image={@code} title="Autoplay" />
+        <:slide image={@forest} title="Keeps moving" />
+        <:slide image={@ocean} title="Until you touch it" />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Buttons below or beside - and a non-looping gallery
+      </div>
+      <div class="space-y-8">
+        <.carousel
+          id="pg-car-below"
+          transition_type="slide"
+          button_style="below"
+          loop={false}
+          rounded="xl"
+        >
+          <:slide
+            image={@forest}
+            title="First"
+            description="loop={false}: buttons disable at the ends."
+          />
+          <:slide image={@ocean} title="Middle" />
+          <:slide image={@code} title="Last" />
+        </.carousel>
+        <.carousel id="pg-car-sides" transition_type="slide" button_style="sides" rounded="xl">
+          <:slide image={@ocean} title="Side buttons" description="Controls sit outside the frame." />
+          <:slide image={@code} title="Clean frame" />
+        </.carousel>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Multi-slide gallery - three per view with edge gradients
+      </div>
+      <.carousel
+        id="pg-car-multi"
+        transition_type="slide"
+        slides_per_view={3}
+        gap="0.75rem"
+        rounded="lg"
+        overlay_gradient
+        button_style="sides"
+      >
+        <:slide image={@forest} title="One" />
+        <:slide image={@ocean} title="Two" />
+        <:slide image={@code} title="Three" />
+        <:slide image={@forest} title="Four" />
+        <:slide image={@ocean} title="Five" />
+        <:slide image={@code} title="Six" />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Vertical - scrolls on the y axis
+      </div>
+      <.carousel
+        id="pg-car-vert"
+        transition_type="slide"
+        orientation="vertical"
+        indicator
+        rounded="xl"
+      >
+        <:slide
+          image={@code}
+          title="Up and down"
+          description="Vertical scroll-snap with up/down chevrons."
+        />
+        <:slide image={@forest} title="Same API" />
+        <:slide image={@ocean} title="Same hook" />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Clickable slides - the whole slide is the link
+      </div>
+      <.carousel id="pg-car-links" transition_type="fade" rounded="xl">
+        <:slide
+          image={@forest}
+          title="External link"
+          description="Opens in a new tab - note the corner indicator."
+          href="https://petal.build"
+        />
+        <:slide
+          image={@ocean}
+          title="Internal navigate"
+          description="navigate keeps it in-app."
+          navigate="/?c=avatar"
+        />
+      </.carousel>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Carousel} function={:carousel} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Ported from the battle-tested petal_marketing carousel - the
+        interaction logic (929-line hook: scroll-snap, drag physics, resize
+        handling, keyboard, autoplay) is unchanged. Material pass and synced
+        thumbnails land next.
       </div>
     </div>
     """
