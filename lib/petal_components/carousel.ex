@@ -76,7 +76,7 @@ defmodule PetalComponents.Carousel do
   attr :button_style, :string,
     default: "overlay",
     doc:
-      "Button placement: 'overlay' (floating on the frame), 'below' (under the carousel), 'outside' (flanking the frame along the travel axis - left/right when horizontal, above/below when vertical), or 'none'. 'sides' is accepted as a legacy alias for 'outside'"
+      "Button placement: 'overlay' (floating on the frame), 'below' (under the carousel), 'outside' (flanking the frame along the travel axis - left/right when horizontal, above/below when vertical), or 'none'"
 
   attr :rounded, :string,
     default: nil,
@@ -129,10 +129,6 @@ defmodule PetalComponents.Carousel do
   def carousel(assigns) do
     assigns =
       assigns
-      |> assign(
-        :button_style,
-        if(assigns.button_style == "sides", do: "outside", else: assigns.button_style)
-      )
       |> assign_new(:id, fn -> "carousel-#{random_id()}" end)
       |> assign_new(:transition_class, fn -> transition_class(assigns.transition_type) end)
       |> assign_new(:is_vertical, fn -> assigns.orientation == "vertical" end)
