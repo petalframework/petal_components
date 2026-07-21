@@ -5412,6 +5412,14 @@
     @apply bg-gray-400 dark:bg-gray-500;
   }
 
+  /* On the page, "current" speaks primary - same language as
+     pagination's current page and the stepper's active circle. The
+     overlay variant deliberately stays white: on-image elements can't
+     trust a brand colour for contrast against arbitrary photos. */
+  .pc-carousel__indicators--below .pc-carousel__indicator.opacity-100 {
+    @apply bg-primary-600 dark:bg-primary-500;
+  }
+
   .pc-carousel-gradient-overlay-bottom {
     @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
     z-index: 20;
