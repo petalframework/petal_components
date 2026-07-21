@@ -208,6 +208,7 @@ defmodule Dev.PlaygroundLive do
       group: "Feedback",
       items: [
         %{slug: "alert", name: "Alert", ready: true},
+        %{slug: "toast", name: "Toast", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true},
@@ -722,6 +723,7 @@ defmodule Dev.PlaygroundLive do
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
        stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       toast: %{pos: "bottom-right", undone: 0},
        car: %{
          transition: "fade",
          buttons: "overlay",
@@ -972,6 +974,17 @@ defmodule Dev.PlaygroundLive do
     {:noreply, update(socket, :skeleton, &%{&1 | loading: true})}
   end
 
+  def handle_info(:toast_morph_done, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :success,
+       id: "pg-export",
+       title: "Export ready",
+       description: "report-q3.csv - 2.4 MB",
+       duration: 5000,
+       action: %{label: "Download", event: "toast_undo", value: %{}}
+     )}
+  end
+
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
@@ -1045,6 +1058,82 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_carousel", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(horizontal vertical),
       do: {:noreply, update(socket, :car, &%{&1 | orientation: v})}
+
+  def handle_event("toast_demo", %{"kind" => kind}, socket)
+      when kind in ~w(info success warning danger neutral) do
+    titles = %{
+      "info" => {"Heads up", "A new version of the app is available."},
+      "success" => {"Changes saved", "Your profile is up to date."},
+      "warning" => {"Storage almost full", "You have used 90% of your plan."},
+      "danger" => {"Payment failed", "Your card was declined - try another."},
+      "neutral" => {"Event logged", nil}
+    }
+
+    {title, desc} = titles[kind]
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, String.to_existing_atom(kind),
+       title: title,
+       description: desc
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "morph"}, socket) do
+    Process.send_after(self(), :toast_morph_done, 2500)
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :loading,
+       id: "pg-export",
+       title: "Exporting report...",
+       description: "Crunching 3 months of data."
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "action"}, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :info,
+       title: "Message archived",
+       action: %{label: "Undo", event: "toast_undo", value: %{}}
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "sticky"}, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :warning,
+       duration: :infinity,
+       title: "Scheduled maintenance tonight",
+       description: "Stays until dismissed - no timer, no progress."
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "burst"}, socket) do
+    socket =
+      Enum.reduce(1..6, socket, fn i, acc ->
+        PetalComponents.Toast.send_toast(acc, :neutral,
+          title: "Notification #{i} of 6",
+          duration: 6000
+        )
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "flash"}, socket),
+    do: {:noreply, Phoenix.LiveView.put_flash(socket, :info, "This came through put_flash.")}
+
+  def handle_event("toast_undo", _params, socket) do
+    socket = update(socket, :toast, &%{&1 | undone: &1.undone + 1})
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :success,
+       title: "Restored",
+       description: "Undo #{socket.assigns.toast.undone} handled by the LiveView."
+     )}
+  end
+
+  def handle_event("ctl_toast", %{"k" => "pos", "v" => v}, socket)
+      when v in ~w(top-left top-center top-right bottom-left bottom-center bottom-right),
+      do: {:noreply, update(socket, :toast, &%{&1 | pos: v})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
@@ -1787,6 +1876,7 @@ defmodule Dev.PlaygroundLive do
       data-secondary={@secondary}
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
+      <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
           <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
@@ -3042,6 +3132,118 @@ defmodule Dev.PlaygroundLive do
         opts out, or pin a size). Every slide change dispatches <code>petal:carousel-change</code>
         with the id, index and count. Ported from the battle-tested
         petal_marketing carousel - the interaction logic is unchanged.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "toast"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Toast</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A collapsed stack that expands on hover, timeout progress that pauses
+        while you read, swipe to dismiss, six positions - and the
+        LiveView-native parts: server-pushed toasts, id-addressed updates,
+        action buttons that push events, and a put_flash bridge.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Kinds - hover the stack to expand and pause, swipe or drag sideways to dismiss
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button
+            :for={kind <- ~w(info success warning danger neutral)}
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-kind={kind}
+          >
+            {kind}
+          </.button>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        LiveView-native - things a JS toast library can't do
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button size="sm" phx-click="toast_demo" phx-value-demo="morph">
+            Loading -> success morph
+          </.button>
+          <.button size="sm" variant="soft" phx-click="toast_demo" phx-value-demo="action">
+            Action button (Undo)
+          </.button>
+          <.button size="sm" variant="soft" phx-click="toast_demo" phx-value-demo="flash">
+            put_flash bridge
+          </.button>
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          The morph pushes a sticky loading toast, then 2.5s later updates the
+          same id into a success with an action. Undo pushes a real event back
+          to this LiveView. put_flash renders as a toast and clears itself.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Stack, queue and stickiness
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="burst"
+          >
+            Burst of 6
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="sticky"
+          >
+            Sticky (no timeout)
+          </.button>
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Three stay visible in the collapsed stack; the rest wait behind and
+          surface as older toasts leave.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Position - moves the live group
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+          <button
+            :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
+            phx-click="ctl_toast"
+            phx-value-k="pos"
+            phx-value-v={pos}
+            class={seg(@toast.pos == pos)}
+          >
+            {pos}
+          </button>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Toast} function={:toast_group} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        One <code>&lt;.toast_group flash=&lbrace;@flash&rbrace; /&gt;</code>
+        in the root layout. Push from the server with
+        <code>Toast.send_toast(socket, :success, title: "Saved")</code>
+        or from plain JavaScript via a <code>petal:toast</code>
+        CustomEvent. Danger toasts announce as <code>role="alert"</code>; the rest as polite status.
       </div>
     </div>
     """

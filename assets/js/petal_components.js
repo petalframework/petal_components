@@ -2811,11 +2811,342 @@ export const PetalCarousel = {
   },
 };
 
+// Toasts: a collapsed stack that expands on hover, per-toast timeout with
+// progress, pause on hover, swipe to dismiss, six positions. Server API via
+// push_event("petal:toast", ...), window CustomEvent for plain JS, and a
+// put_flash bridge. The stack DOM is hook-owned (phx-update="ignore").
+export const PetalToast = {
+  mounted() {
+    this.stack = document.getElementById(this.el.id + "-stack");
+    this.top = (this.el.dataset.position || "bottom-right").startsWith("top");
+    this.max = parseInt(this.el.dataset.max) || 3;
+    this.defaultDuration = parseInt(this.el.dataset.duration) || 5000;
+    this.toasts = []; // newest first
+    this.seq = 0;
+    this.expanded = false;
+
+    this.handleEvent("petal:toast", (d) => this.upsert(d || {}));
+    this.onWindowToast = (e) => this.upsert(e.detail || {});
+    window.addEventListener("petal:toast", this.onWindowToast);
+
+    // hover expands the stack and pauses every timer; a short grace on
+    // leave stops flicker when the pointer crosses the gaps between toasts
+    this.onEnter = () => {
+      clearTimeout(this.collapseTimer);
+      if (!this.expanded) {
+        this.expanded = true;
+        this.pauseAll();
+        this.layout();
+      }
+    };
+    this.onLeave = () => {
+      clearTimeout(this.collapseTimer);
+      this.collapseTimer = setTimeout(() => {
+        this.expanded = false;
+        this.resumeAll();
+        this.layout();
+      }, 150);
+    };
+    this.stack.addEventListener("mouseenter", this.onEnter);
+    this.stack.addEventListener("mouseleave", this.onLeave);
+
+    // action + close buttons (event delegation - the DOM is hook-built)
+    this.onClick = (e) => {
+      const closeBtn = e.target.closest("[data-toast-close]");
+      const actionBtn = e.target.closest("[data-toast-action]");
+      const toastEl = e.target.closest(".pc-toast");
+      if (!toastEl) return;
+      const t = this.toasts.find((t) => t.el === toastEl);
+      if (!t) return;
+
+      if (closeBtn) this.dismiss(t);
+
+      if (actionBtn) {
+        const event = actionBtn.dataset.toastAction;
+        let value = {};
+        try {
+          value = JSON.parse(actionBtn.dataset.toastValue || "{}");
+        } catch (_e) {}
+        if (event) this.pushEvent(event, value);
+        this.dismiss(t);
+      }
+    };
+    this.stack.addEventListener("click", this.onClick);
+
+    this.setupSwipe();
+    this.processFlash();
+  },
+
+  updated() {
+    // position can change via a normal patch (the stack itself is ignored)
+    this.top = (this.el.dataset.position || "bottom-right").startsWith("top");
+    this.layout();
+    this.processFlash();
+  },
+
+  destroyed() {
+    window.removeEventListener("petal:toast", this.onWindowToast);
+    clearTimeout(this.collapseTimer);
+    this.toasts.forEach((t) => clearTimeout(t.timer));
+  },
+
+  // ------------------------------------------------------------------ flash
+  processFlash() {
+    let flash = {};
+    try {
+      flash = JSON.parse(this.el.dataset.flash || "{}");
+    } catch (_e) {}
+    Object.keys(flash).forEach((key) => {
+      const msg = flash[key];
+      if (!msg) return;
+      const kind = key === "error" ? "danger" : key === "info" ? "info" : key;
+      this.upsert({ kind, title: msg });
+      this.pushEvent("lv:clear-flash", { key });
+    });
+  },
+
+  // ---------------------------------------------------------------- content
+  esc(s) {
+    return String(s == null ? "" : s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+    );
+  },
+
+  iconFor(kind) {
+    const map = {
+      info: ["hero-information-circle-solid", "pc-toast__icon--info"],
+      success: ["hero-check-circle-solid", "pc-toast__icon--success"],
+      warning: ["hero-exclamation-triangle-solid", "pc-toast__icon--warning"],
+      danger: ["hero-exclamation-circle-solid", "pc-toast__icon--danger"],
+    };
+    if (kind === "loading") return '<span class="pc-toast__spinner" aria-hidden="true"></span>';
+    if (!map[kind]) return "";
+    const [icon, color] = map[kind];
+    return '<span class="pc-toast__icon ' + icon + " " + color + '" aria-hidden="true"></span>';
+  },
+
+  contentFor(t) {
+    const action = t.action
+      ? '<button type="button" class="pc-toast__action" data-toast-action="' +
+        this.esc(t.action.event || "") +
+        "\" data-toast-value='" +
+        this.esc(JSON.stringify(t.action.value || {})) +
+        "'>" +
+        this.esc(t.action.label) +
+        "</button>"
+      : "";
+    const close = t.closeable
+      ? '<button type="button" class="pc-toast__close" data-toast-close aria-label="Dismiss">' +
+        '<span class="hero-x-mark pc-toast__close-icon" aria-hidden="true"></span></button>'
+      : "";
+    const desc = t.description
+      ? '<p class="pc-toast__description">' + this.esc(t.description) + "</p>"
+      : "";
+    const progress =
+      t.duration > 0 && t.progress
+        ? '<div class="pc-toast__progress pc-toast__progress--' +
+          this.esc(t.kind) +
+          '" style="animation-duration: ' +
+          t.duration +
+          'ms"></div>'
+        : "";
+
+    return (
+      '<div class="pc-toast__body">' +
+      this.iconFor(t.kind) +
+      '<div class="pc-toast__text">' +
+      '<div class="pc-toast__title">' +
+      this.esc(t.title) +
+      "</div>" +
+      desc +
+      "</div>" +
+      action +
+      close +
+      "</div>" +
+      progress
+    );
+  },
+
+  // ----------------------------------------------------------------- upsert
+  upsert(d) {
+    const id = d.id != null ? String(d.id) : "pc-toast-" + ++this.seq;
+    const kind = d.kind || "neutral";
+    const duration =
+      d.duration != null ? d.duration : kind === "loading" ? 0 : this.defaultDuration;
+
+    let t = this.toasts.find((t) => t.id === id);
+
+    if (t) {
+      clearTimeout(t.timer);
+      Object.assign(t, {
+        kind,
+        title: d.title != null ? d.title : t.title,
+        description: d.description,
+        action: d.action,
+        duration,
+        remaining: duration,
+        closeable: d.closeable !== false,
+        progress: d.progress !== false,
+      });
+      t.el.className = "pc-toast pc-toast--" + kind;
+      t.el.setAttribute("role", kind === "danger" ? "alert" : "status");
+      t.el.innerHTML = this.contentFor(t);
+    } else {
+      t = {
+        id,
+        kind,
+        title: d.title,
+        description: d.description,
+        action: d.action,
+        duration,
+        remaining: duration,
+        closeable: d.closeable !== false,
+        progress: d.progress !== false,
+        el: document.createElement("div"),
+      };
+      t.el.className = "pc-toast pc-toast--" + kind;
+      t.el.setAttribute("role", kind === "danger" ? "alert" : "status");
+      t.el.dataset.state = "entering";
+      t.el.innerHTML = this.contentFor(t);
+      this.stack.appendChild(t.el);
+      this.toasts.unshift(t);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          t.el.dataset.state = "open";
+        })
+      );
+    }
+
+    if (this.toasts.length > 40) {
+      const drop = this.toasts.pop();
+      clearTimeout(drop.timer);
+      drop.el.remove();
+    }
+
+    this.layout();
+    if (!this.expanded) this.arm(t);
+    return t;
+  },
+
+  dismiss(t, dx) {
+    if (t.closing) return;
+    t.closing = true;
+    clearTimeout(t.timer);
+    t.el.dataset.state = "closing";
+    if (dx) t.el.style.setProperty("--pc-toast-swipe-end", dx + "px");
+    const remove = () => {
+      t.el.remove();
+      this.toasts = this.toasts.filter((x) => x !== t);
+      this.layout();
+    };
+    t.el.addEventListener("transitionend", remove, { once: true });
+    setTimeout(remove, 400); // safety if transitions are off (reduced motion)
+  },
+
+  // ----------------------------------------------------------------- layout
+  layout() {
+    const dir = this.top ? 1 : -1;
+    const gap = 12;
+    let offset = 0;
+
+    this.toasts.forEach((t, i) => {
+      if (t.closing) return;
+      const el = t.el;
+      el.style.zIndex = String(200 - i);
+
+      const hidden = i >= this.max;
+      el.classList.toggle("pc-toast--hidden", hidden);
+      el.setAttribute("aria-hidden", hidden ? "true" : "false");
+
+      if (this.expanded) {
+        el.style.setProperty("--pc-toast-y", dir * offset + "px");
+        el.style.setProperty("--pc-toast-scale", "1");
+        if (!hidden) offset += el.offsetHeight + gap;
+      } else {
+        el.style.setProperty("--pc-toast-y", dir * i * 12 + "px");
+        el.style.setProperty("--pc-toast-scale", String(Math.max(0, 1 - i * 0.06)));
+      }
+    });
+
+    this.stack.classList.toggle("pc-toast-group__stack--expanded", this.expanded);
+  },
+
+  // ----------------------------------------------------------------- timers
+  arm(t) {
+    clearTimeout(t.timer);
+    if (!t.duration || t.remaining <= 0) return;
+    t.startedAt = Date.now();
+    t.timer = setTimeout(() => this.dismiss(t), t.remaining);
+  },
+
+  pauseAll() {
+    this.toasts.forEach((t) => {
+      if (!t.timer) return;
+      clearTimeout(t.timer);
+      t.timer = null;
+      t.remaining -= Date.now() - t.startedAt;
+    });
+    this.stack.classList.add("pc-toast-group__stack--paused");
+  },
+
+  resumeAll() {
+    this.stack.classList.remove("pc-toast-group__stack--paused");
+    this.toasts.forEach((t) => {
+      if (t.duration && t.remaining > 0 && !t.closing) this.arm(t);
+    });
+  },
+
+  // ------------------------------------------------------------------ swipe
+  setupSwipe() {
+    let active = null;
+    let startX = 0;
+
+    this.onPointerDown = (e) => {
+      const toastEl = e.target.closest(".pc-toast");
+      if (!toastEl || e.target.closest("button")) return;
+      const t = this.toasts.find((t) => t.el === toastEl);
+      if (!t || t.closing) return;
+      active = t;
+      startX = e.clientX;
+      toastEl.classList.add("pc-toast--swiping");
+      toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+    };
+
+    this.onPointerMove = (e) => {
+      if (!active) return;
+      const dx = e.clientX - startX;
+      active.el.style.setProperty("--pc-toast-swipe", dx + "px");
+      active.el.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 260));
+    };
+
+    this.onPointerUp = (e) => {
+      if (!active) return;
+      const dx = e.clientX - startX;
+      active.el.classList.remove("pc-toast--swiping");
+      if (Math.abs(dx) > 64) {
+        this.dismiss(active, dx > 0 ? 320 : -320);
+      } else {
+        active.el.style.setProperty("--pc-toast-swipe", "0px");
+        active.el.style.opacity = "";
+      }
+      active = null;
+    };
+
+    this.stack.addEventListener("pointerdown", this.onPointerDown);
+    this.stack.addEventListener("pointermove", this.onPointerMove);
+    this.stack.addEventListener("pointerup", this.onPointerUp);
+    this.stack.addEventListener("pointercancel", this.onPointerUp);
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
   PetalLocalTime,
   PetalCarousel,
+  PetalToast,
   PetalChatStream,
   PetalChatComposer,
   PetalCopy,

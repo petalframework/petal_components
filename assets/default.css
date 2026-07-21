@@ -5352,3 +5352,187 @@
     z-index: 20;
   }
 
+  /* Toast */
+
+  .pc-toast-group {
+    @apply fixed z-50 pointer-events-none;
+  }
+
+  .pc-toast-group--top-left {
+    @apply top-4 left-4;
+  }
+
+  .pc-toast-group--top-center {
+    @apply top-4 left-1/2 -translate-x-1/2;
+  }
+
+  .pc-toast-group--top-right {
+    @apply top-4 right-4;
+  }
+
+  .pc-toast-group--bottom-left {
+    @apply bottom-4 left-4;
+  }
+
+  .pc-toast-group--bottom-center {
+    @apply bottom-4 left-1/2 -translate-x-1/2;
+  }
+
+  .pc-toast-group--bottom-right {
+    @apply bottom-4 right-4;
+  }
+
+  .pc-toast-group__stack {
+    @apply relative w-[356px] max-w-[calc(100vw-2rem)];
+  }
+
+  /* Anchor each toast to the group's edge; the hook drives offset and
+     scale through custom properties so the collapsed stack, the expanded
+     list and the swipe all compose in one transform. */
+  .pc-toast {
+    @apply absolute inset-x-0 pointer-events-auto select-none overflow-hidden;
+    @apply bg-white border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1rem);
+    transform: translateY(var(--pc-toast-y, 0px)) translateX(var(--pc-toast-swipe, 0px))
+      scale(var(--pc-toast-scale, 1));
+    transition:
+      transform 350ms cubic-bezier(0.21, 1.02, 0.73, 1),
+      opacity 250ms ease;
+  }
+
+  .pc-toast-group--top-left .pc-toast,
+  .pc-toast-group--top-center .pc-toast,
+  .pc-toast-group--top-right .pc-toast {
+    @apply top-0;
+  }
+
+  .pc-toast-group--bottom-left .pc-toast,
+  .pc-toast-group--bottom-center .pc-toast,
+  .pc-toast-group--bottom-right .pc-toast {
+    @apply bottom-0;
+  }
+
+  .pc-toast[data-state="entering"] {
+    opacity: 0;
+    transform: translateY(var(--pc-toast-enter, 16px)) scale(0.97);
+  }
+
+  .pc-toast-group--top-left .pc-toast[data-state="entering"],
+  .pc-toast-group--top-center .pc-toast[data-state="entering"],
+  .pc-toast-group--top-right .pc-toast[data-state="entering"] {
+    --pc-toast-enter: -16px;
+  }
+
+  .pc-toast[data-state="closing"] {
+    opacity: 0;
+    transform: translateY(var(--pc-toast-y, 0px))
+      translateX(var(--pc-toast-swipe-end, 0px)) scale(0.95);
+    pointer-events: none;
+  }
+
+  .pc-toast--hidden {
+    @apply opacity-0 pointer-events-none;
+  }
+
+  .pc-toast--swiping {
+    transition: opacity 100ms ease;
+    cursor: grabbing;
+  }
+
+  .pc-toast__body {
+    @apply flex items-start gap-3 p-4;
+  }
+
+  .pc-toast__icon {
+    @apply w-5 h-5 shrink-0 mt-0.5;
+  }
+
+  .pc-toast__icon--info {
+    @apply text-info-500;
+  }
+
+  .pc-toast__icon--success {
+    @apply text-success-500;
+  }
+
+  .pc-toast__icon--warning {
+    @apply text-warning-500;
+  }
+
+  .pc-toast__icon--danger {
+    @apply text-danger-500;
+  }
+
+  .pc-toast__spinner {
+    @apply w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin dark:border-gray-400/25 dark:border-t-gray-300;
+  }
+
+  .pc-toast__text {
+    @apply flex-1 min-w-0;
+  }
+
+  .pc-toast__title {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-toast__description {
+    @apply mt-0.5 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-toast__action {
+    @apply shrink-0 self-center px-2.5 py-1.5 text-xs font-medium cursor-pointer;
+    @apply bg-primary-600 hover:bg-primary-700 transition-colors duration-150;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    color: var(--pc-button-solid-fg, #fff);
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-toast__close {
+    @apply shrink-0 -m-1 mt-0 p-1 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-150 dark:hover:text-gray-200;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 rounded-md;
+  }
+
+  .pc-toast__close-icon {
+    @apply w-4 h-4;
+  }
+
+  .pc-toast__progress {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 origin-left bg-gray-300 dark:bg-gray-400/30;
+    animation: pc-toast-progress linear forwards;
+  }
+
+  .pc-toast__progress--info {
+    @apply bg-info-500;
+  }
+
+  .pc-toast__progress--success {
+    @apply bg-success-500;
+  }
+
+  .pc-toast__progress--warning {
+    @apply bg-warning-500;
+  }
+
+  .pc-toast__progress--danger {
+    @apply bg-danger-500;
+  }
+
+  .pc-toast-group__stack--paused .pc-toast__progress {
+    animation-play-state: paused;
+  }
+
+  @keyframes pc-toast-progress {
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-toast {
+      transition-duration: 1ms;
+    }
+  }
