@@ -2284,7 +2284,7 @@
   /* Progress */
 
   .pc-progress {
-    @apply flex overflow-hidden;
+    @apply relative flex overflow-hidden;
   }
   .pc-progress-wrapper {
     @apply w-full;
@@ -2305,13 +2305,24 @@
   }
 
   .pc-progress__inner {
-    @apply flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
+    @apply relative z-[1] flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
   }
 
-  /* Progress - label (xl only) */
-
+  /* Progress - label (xl only): two copies stacked at the same spot, both
+     spanning the full track and centred, so they line up exactly. The base
+     copy reads on the empty track (below the fill, z-0). The fill copy is
+     clipped to the filled width via clip-path and painted on top (z-2), so
+     it reads on-primary over the fill. Result: dark text on the track,
+     light text on the fill, wiping as the bar grows - legible at any
+     percentage, not white-on-light until the fill catches up. */
   .pc-progress__label {
-    @apply px-4 text-xs font-medium leading-6 text-center whitespace-nowrap;
+    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium whitespace-nowrap pointer-events-none;
+  }
+  .pc-progress__label--track {
+    @apply z-0 text-gray-700 dark:text-gray-200;
+  }
+  .pc-progress__label--fill {
+    @apply z-[2] transition-[clip-path] duration-500 ease-out;
     color: var(--pc-button-solid-fg, #fff);
   }
 

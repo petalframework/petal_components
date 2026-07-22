@@ -715,6 +715,7 @@ defmodule Dev.PlaygroundLive do
          color: "primary",
          size: "xs",
          label: "top",
+         status: true,
          live: true,
          ticking: false
        },
@@ -1340,6 +1341,9 @@ defmodule Dev.PlaygroundLive do
     {:noreply, maybe_start_progress_sim(socket)}
   end
 
+  def handle_event("ctl_progress", %{"k" => "status"}, socket),
+    do: {:noreply, update(socket, :progress, &%{&1 | status: !&1.status})}
+
   def handle_info(:pg_progress_tick, socket) do
     %{live: live, value: value} = socket.assigns.progress
 
@@ -1582,7 +1586,7 @@ defmodule Dev.PlaygroundLive do
         pr.size != "md" && ~s(size="#{pr.size}"),
         pr.label == "inside" && ~s(label="#{pr.value}%"),
         pr.label == "top" && ~s(label="Download progress" label_position="top"),
-        pr.live && ~s(status="#{progress_status(pr.value)}")
+        pr.status && ~s(status="#{progress_status(pr.value)}")
       ]
       |> Enum.filter(& &1)
 
@@ -4146,16 +4150,19 @@ defmodule Dev.PlaygroundLive do
                 end
               }
               label_position={if @progress.label == "top", do: "top", else: "inside"}
-              status={if @progress.live, do: progress_status(@progress.value)}
+              status={if @progress.status, do: progress_status(@progress.value)}
             />
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">simulate</div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
               <button phx-click="ctl_progress" phx-value-k="live" class={tog(@progress.live)}>
                 live
+              </button>
+              <button phx-click="ctl_progress" phx-value-k="status" class={tog(@progress.status)}>
+                status
               </button>
             </div>
           </div>
