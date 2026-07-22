@@ -1581,7 +1581,7 @@ defmodule Dev.PlaygroundLive do
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
         pr.label == "inside" && ~s(label="#{pr.value}%"),
-        pr.label == "top" && ~s(label="Upload progress" label_position="top"),
+        pr.label == "top" && ~s(label="Download progress" label_position="top"),
         pr.live && ~s(status="#{progress_status(pr.value)}")
       ]
       |> Enum.filter(& &1)
@@ -4141,7 +4141,7 @@ defmodule Dev.PlaygroundLive do
               label={
                 case @progress.label do
                   "inside" -> "#{@progress.value}%"
-                  "top" -> "Upload progress"
+                  "top" -> "Download progress"
                   _ -> nil
                 end
               }
