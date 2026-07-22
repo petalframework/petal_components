@@ -196,6 +196,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "button", name: "Button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
         %{slug: "input", name: "Input", ready: true},
+        %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
@@ -225,7 +226,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
-        %{slug: "navigation-menu", name: "Navigation menu", ready: true}
+        %{slug: "navigation-menu", name: "Navigation menu", ready: true},
+        %{slug: "user-menu", name: "User menu", ready: true}
       ]
     },
     %{
@@ -6324,6 +6326,182 @@ defmodule Dev.PlaygroundLive do
             no_margin
           />
         </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "input-group"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Input group</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One field surface, many parts. The group carries the border, radius and
+        focus ring; any petal input dropped inside sheds its own surface, so
+        text, icons, kbd hints, selects and buttons all compose.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-12">
+          <div class="max-w-sm mx-auto space-y-6">
+            <.input_group>
+              <:leading>https://</:leading>
+              <.input type="text" name="igp_domain" value="" placeholder="example.com" />
+            </.input_group>
+            <.input_group>
+              <:leading>$</:leading>
+              <.input type="number" name="igp_amount" value="" placeholder="0.00" />
+              <:trailing>USD</:trailing>
+            </.input_group>
+            <.input_group>
+              <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
+              <.input type="search" name="igp_q" value="" placeholder="Search components..." />
+              <:trailing><kbd>&#8984;K</kbd></:trailing>
+            </.input_group>
+            <.input_group>
+              <:leading>@</:leading>
+              <.input type="text" name="igp_handle" value="petalframework" disabled />
+            </.input_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Buttons</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.input_group>
+            <.input type="email" name="igp_news" value="" placeholder="you@example.com" />
+            <:trailing><.button size="sm">Subscribe</.button></:trailing>
+          </.input_group>
+          <.input_group>
+            <.input type="text" name="igp_link" value="https://petal.build/join/x1y2z3" readonly />
+            <:trailing>
+              <.button size="sm" color="gray" variant="outline">
+                <.icon name="hero-clipboard" class="w-4 h-4" /> Copy
+              </.button>
+            </:trailing>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Selects</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.input_group>
+            <:leading>
+              <select name="igp_country" class="pc-select" aria-label="Country code">
+                <option>+61</option>
+                <option>+1</option>
+                <option>+44</option>
+              </select>
+            </:leading>
+            <.input type="tel" name="igp_phone" value="" placeholder="400 000 000" />
+          </.input_group>
+          <.input_group>
+            <.input type="number" name="igp_price" value="" placeholder="0.00" />
+            <:trailing>
+              <select name="igp_cur" class="pc-select" aria-label="Currency">
+                <option>USD</option>
+                <option>EUR</option>
+                <option>AUD</option>
+              </select>
+            </:trailing>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Block rows</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.input_group>
+            <:block_start class="gap-1">
+              <.button size="xs" color="gray" variant="ghost" aria-label="Bold">
+                <.icon name="hero-bold" class="w-4 h-4" />
+              </.button>
+              <.button size="xs" color="gray" variant="ghost" aria-label="Italic">
+                <.icon name="hero-italic" class="w-4 h-4" />
+              </.button>
+              <.button size="xs" color="gray" variant="ghost" aria-label="Link">
+                <.icon name="hero-link" class="w-4 h-4" />
+              </.button>
+            </:block_start>
+            <.input
+              type="textarea"
+              name="igp_bio"
+              value="Building a component library for Phoenix."
+              rows="3"
+            />
+            <:block_end class="justify-end text-xs text-gray-400">44/280</:block_end>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Inline addons go in :leading and :trailing; full-width rows in :block_start
+        and :block_end. Focus anything inside and the whole group rings. Disable the
+        input and the group fades with it. Inside a field wrapper with errors, the
+        group border turns the error colour.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "user-menu"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The avatar-with-chevron every app shell ends up needing - an avatar
+        trigger, a dropdown, and a list of menu items from plain maps.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-start justify-center gap-16 px-6 pt-10 pb-40">
+          <div class="text-center">
+            <.user_dropdown_menu
+              current_user_name="Sarah Chen"
+              avatar_src="/dev-static/avatars/p32.jpg"
+              user_menu_items={[
+                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+                %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
+                %{
+                  path: "/?c=user-menu",
+                  icon: "hero-arrow-right-start-on-rectangle",
+                  label: "Sign out"
+                }
+              ]}
+            />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">photo</div>
+          </div>
+          <div class="text-center">
+            <.user_dropdown_menu
+              current_user_name="Sarah Chen"
+              user_menu_items={[
+                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+                %{
+                  path: "/?c=user-menu",
+                  icon: "hero-arrow-right-start-on-rectangle",
+                  label: "Sign out"
+                }
+              ]}
+            />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">initials</div>
+          </div>
+          <div class="text-center">
+            <.user_dropdown_menu user_menu_items={[
+              %{path: "/?c=user-menu", icon: "hero-arrow-left-end-on-rectangle", label: "Sign in"}
+            ]} />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">anonymous</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        user_menu_items is a list of maps with path, icon and label - plus an
+        optional method (:delete for sign out routes). An icon can be a heroicon
+        name, a function component, or a raw svg string. With no name or src the
+        trigger falls back to the placeholder avatar; a name alone renders
+        deterministic initials.
       </div>
     </div>
     """
