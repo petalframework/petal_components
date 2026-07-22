@@ -963,6 +963,14 @@
     @apply text-gray-900 dark:text-gray-100;
   }
 
+  /* Heading + body hierarchy. Neutral surfaces (callout) split into
+     title-strength gray vs muted gray, like the toast. Tinted surfaces
+     keep the monochrome wash and step the body down WITHIN the tint -
+     a neutral gray body on a coloured surface would fragment it. */
+  .pc-alert-base-classes:not([class*="-callout"]):has(.pc-alert__heading) .pc-alert__label {
+    opacity: 0.85;
+  }
+
   .pc-alert__heading {
     @apply pt-1 font-bold;
   }

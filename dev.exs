@@ -7341,6 +7341,9 @@ defmodule Dev.PlaygroundLive do
         <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
         <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
         <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
+        <.alert color="success" variant="callout" with_icon heading="Callout, the toast-cohesive form">
+          Neutral panel, colour as accent - a left bar and a solid icon.
+        </.alert>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
