@@ -1099,8 +1099,14 @@
 
   /* Alerts - with icon */
 
+  /* 20px icon, matching the toast's scale - the old 24px glyph
+     dominated the row and made the spacing read airier than it is */
   .pc-alert__icon-container {
-    @apply self-start shrink-0 pt-0.5 w-6 h-6;
+    @apply self-start shrink-0 pt-0.5 w-5 h-5;
+  }
+
+  .pc-alert__icon-container > * {
+    @apply w-full h-full;
   }
 
   /* Forms */
