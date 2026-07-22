@@ -2444,6 +2444,9 @@ defmodule Dev.PlaygroundLive do
           <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
         </.button>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Button} functions={[:button, :icon_button]} />
     </div>
     """
   end
@@ -2659,6 +2662,9 @@ defmodule Dev.PlaygroundLive do
           </.input_group>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -2972,6 +2978,9 @@ defmodule Dev.PlaygroundLive do
           />
         </.shine_border>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ShineBorder} function={:shine_border} />
     </div>
     """
   end
@@ -3216,6 +3225,9 @@ defmodule Dev.PlaygroundLive do
         rendered once in the layout head. Change any of them and the rest
         follow - including other open tabs.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ColorSchemeSwitch} function={:color_scheme_switch} />
     </div>
     """
   end
@@ -3813,6 +3825,9 @@ defmodule Dev.PlaygroundLive do
           <.meteors count={8} seed={42} />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Meteors} function={:meteors} />
     </div>
     """
   end
@@ -4120,6 +4135,12 @@ defmodule Dev.PlaygroundLive do
         hints, custom classes for destructive actions. dropdown_menu_label
         and dropdown_menu_separator organise groups.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Dropdown}
+        functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
+      />
     </div>
     """
   end
@@ -4162,6 +4183,9 @@ defmodule Dev.PlaygroundLive do
         show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
         to any phx-click. close_on_click_away and close_on_escape default on.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Modal} function={:modal} />
     </div>
     """
   end
@@ -4299,6 +4323,9 @@ defmodule Dev.PlaygroundLive do
           <.progress value={56} size="sm" label="Upload progress" label_position="top" />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Progress} function={:progress} />
     </div>
     """
   end
@@ -4501,6 +4528,9 @@ defmodule Dev.PlaygroundLive do
         instance with --pc-rating-active-color, and the :glyph slot swaps in your own icon
         entirely.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Rating} function={:rating} />
     </div>
     """
   end
@@ -4655,6 +4685,9 @@ defmodule Dev.PlaygroundLive do
         default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
         so no server round-trip is needed to animate.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SlideOver} function={:slide_over} />
     </div>
     """
   end
@@ -4774,6 +4807,12 @@ defmodule Dev.PlaygroundLive do
         widths are deterministic so LiveView re-renders never make it dance. The old
         kind={:card}-style prebuilt layouts still render for compatibility.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Skeleton}
+        functions={[:skeleton, :skeleton_group, :skeleton_text]}
+      />
     </div>
     """
   end
@@ -4943,6 +4982,12 @@ defmodule Dev.PlaygroundLive do
         Nested groups stop fusing and gap into clusters. The :button slot API from
         earlier releases still renders unchanged.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.ButtonGroup}
+        functions={[:button_group, :button_group_separator, :button_group_text]}
+      />
     </div>
     """
   end
@@ -5001,6 +5046,9 @@ defmodule Dev.PlaygroundLive do
         utilities recolour it). For full skeleton states, reach for the skeleton
         component instead.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Loading} function={:spinner} />
     </div>
     """
   end
@@ -5045,6 +5093,9 @@ defmodule Dev.PlaygroundLive do
         link_type (a / live_patch / live_redirect / button). The last crumb renders as
         the current page - strong text + aria-current. The nav carries an aria_label.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Breadcrumbs} function={:breadcrumbs} />
     </div>
     """
   end
@@ -5235,6 +5286,9 @@ defmodule Dev.PlaygroundLive do
         command - this demo pushes an event). aria-current and completed labels are wired
         for screen readers.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Stepper} function={:stepper} />
     </div>
     """
   end
@@ -5430,6 +5484,9 @@ defmodule Dev.PlaygroundLive do
         busy / away / offline). avatar_group stacks with overlap; max caps the row and
         folds the rest into a +N bubble. Demo photos are tiny local files, dev-only.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Avatar} functions={[:avatar, :avatar_group]} />
     </div>
     """
   end
@@ -5526,6 +5583,12 @@ defmodule Dev.PlaygroundLive do
         legacy alias of basic, going away in 5.0.) The cover photo is a 36KB local file,
         dev-only.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Card}
+        functions={[:card, :card_header, :card_content, :card_footer, :card_media, :review_card]}
+      />
     </div>
     """
   end
@@ -5679,6 +5742,9 @@ defmodule Dev.PlaygroundLive do
         repeat controls how many copies keep the loop seamless; duration and gap tune the
         feel; overlay_gradient fades the edges. Holds still under prefers-reduced-motion.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Marquee} function={:marquee} />
     </div>
     """
   end
@@ -5715,6 +5781,9 @@ defmodule Dev.PlaygroundLive do
         Powered by the tiny PetalSpotlight hook (pointer position only - the paint is pure
         CSS). Reads best on dark panels.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SpotlightCard} function={:spotlight_card} />
     </div>
     """
   end
@@ -5761,6 +5830,9 @@ defmodule Dev.PlaygroundLive do
         prefix/suffix/decimal_places/locale handle formatting; duration tunes the count.
         The PetalNumberTicker hook animates on mount and on every value change.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.NumberTicker} function={:number_ticker} />
     </div>
     """
   end
@@ -5796,6 +5868,12 @@ defmodule Dev.PlaygroundLive do
         word_rotate and typing_effect use tiny hooks. All respect
         prefers-reduced-motion.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.TextAnimation}
+        functions={[:gradient_text, :shimmer_text, :typing_effect, :word_rotate]}
+      />
     </div>
     """
   end
@@ -5824,6 +5902,9 @@ defmodule Dev.PlaygroundLive do
         push_event(socket, "pc-confetti", %{}) fires it server-side - ship it on signup
         complete, plan upgraded, streak kept.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Confetti} function={:confetti} />
     </div>
     """
   end
@@ -5919,6 +6000,9 @@ defmodule Dev.PlaygroundLive do
         pill is the roomy classic. The legacy underline flag still works - variant wins
         when both are set.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Tabs} functions={[:tabs, :tab]} />
     </div>
     """
   end
@@ -5986,6 +6070,9 @@ defmodule Dev.PlaygroundLive do
         /users/:page; event mode fires goto-page with phx-value-page. One style by design -
         variants multiply here without earning their keep.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Pagination} function={:pagination} />
     </div>
     """
   end
@@ -6103,6 +6190,9 @@ defmodule Dev.PlaygroundLive do
         where the pro data_table picks up. This component draws the line at presentation:
         it renders state and fires events.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Table} function={:table} />
     </div>
     """
   end
@@ -6191,6 +6281,9 @@ defmodule Dev.PlaygroundLive do
           </.tooltip>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Tooltip} function={:tooltip} />
     </div>
     """
   end
@@ -6282,6 +6375,9 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Popover} function={:popover} />
     </div>
     """
   end
@@ -6376,6 +6472,9 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.InputOtp} function={:input_otp} />
     </div>
     """
   end
@@ -6468,6 +6567,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -6585,6 +6687,9 @@ defmodule Dev.PlaygroundLive do
         the option label - zero JS, though Windows renders flag emoji as letter
         pairs (AU, US), so keep the dial code in the label.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.InputGroup} function={:input_group} />
     </div>
     """
   end
@@ -6646,6 +6751,9 @@ defmodule Dev.PlaygroundLive do
         trigger falls back to the placeholder avatar; a name alone renders
         deterministic initials.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.UserDropdownMenu} function={:user_dropdown_menu} />
     </div>
     """
   end
@@ -6824,6 +6932,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -7122,6 +7233,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -7210,6 +7324,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -7305,6 +7422,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -7487,6 +7607,9 @@ defmodule Dev.PlaygroundLive do
         components). disabled turns an anchor into a real disabled button, since
         anchors can't be disabled.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Link} function={:a} />
     </div>
     """
   end
@@ -7564,6 +7687,9 @@ defmodule Dev.PlaygroundLive do
         petal components (button icon attr, breadcrumbs, alerts) use this same
         component under the hood.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Icon} function={:heroicon} />
     </div>
     """
   end
@@ -7688,6 +7814,12 @@ defmodule Dev.PlaygroundLive do
         avatar for the account. Petal Pro's SidebarLayout wraps this with collapse and
         a mobile drawer.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Menu}
+        functions={[:vertical_menu, :vertical_menu_item, :menu_group]}
+      />
     </div>
     """
   end
@@ -7754,6 +7886,17 @@ defmodule Dev.PlaygroundLive do
         with to render plain links, current marks the active page. width sizes the
         panel sm-xl, full_width spans a mega menu.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.NavigationMenu}
+        functions={[
+          :navigation_menu,
+          :navigation_menu_link,
+          :navigation_menu_footer,
+          :navigation_menu_footer_link
+        ]}
+      />
     </div>
     """
   end
@@ -7790,6 +7933,9 @@ defmodule Dev.PlaygroundLive do
         their parent - lg upwards is capped by this demo panel. The playground pages
         you're reading use the same pattern.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Container} function={:container} />
     </div>
     """
   end
@@ -8127,6 +8273,9 @@ defmodule Dev.PlaygroundLive do
           We emailed Ana a link to join your workspace.
         </.alert>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Alert} function={:alert} />
     </div>
     """
   end
@@ -8239,6 +8388,9 @@ defmodule Dev.PlaygroundLive do
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Badge} function={:badge} />
     </div>
     """
   end
