@@ -3226,6 +3226,14 @@ defmodule Dev.PlaygroundLive do
         follow - including other open tabs.
       </div>
 
+      <div :for={ex <- PetalComponents.Showcase.ColorSchemeSwitch.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.ColorSchemeSwitch} function={:color_scheme_switch} />
     </div>
@@ -3430,6 +3438,14 @@ defmodule Dev.PlaygroundLive do
         />
       </.carousel>
 
+      <div :for={ex <- PetalComponents.Showcase.Carousel.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Carousel} function={:carousel} />
 
@@ -3549,6 +3565,14 @@ defmodule Dev.PlaygroundLive do
             {pos}
           </button>
         </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Toast.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -5483,6 +5507,14 @@ defmodule Dev.PlaygroundLive do
         icon. status adds a ringed presence dot that scales with the avatar (online /
         busy / away / offline). avatar_group stacks with overlap; max caps the row and
         folds the rest into a +N bubble. Demo photos are tiny local files, dev-only.
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Avatar.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
