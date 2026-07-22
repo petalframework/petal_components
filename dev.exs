@@ -762,7 +762,7 @@ defmodule Dev.PlaygroundLive do
          shape: "smooth",
          area: "fade",
          dots: false,
-         chrome: true,
+         chrome: "full",
          two_series: false,
          gap: "cozy",
          points: 14
@@ -903,8 +903,8 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_chart", %{"k" => "dots"}, socket),
     do: {:noreply, update(socket, :chart, &%{&1 | dots: !socket.assigns.chart.dots})}
 
-  def handle_event("ctl_chart", %{"k" => "chrome"}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | chrome: !socket.assigns.chart.chrome})}
+  def handle_event("ctl_chart", %{"k" => "chrome", "v" => v}, socket) when v in ~w(full x off),
+    do: {:noreply, update(socket, :chart, &%{&1 | chrome: v})}
 
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
@@ -1622,29 +1622,42 @@ defmodule Dev.PlaygroundLive do
     tooltip = %{trigger: "axis", valueFormatter: "petal:currency:USD"}
 
     base =
-      if chart.chrome do
-        %{
-          grid: %{left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
-          xAxis: axis_x,
-          yAxis: %{
-            type: "value",
-            axisLabel: %{formatter: "petal:currency-compact:USD"}
-          },
-          tooltip: tooltip,
-          series: series
-        }
-      else
-        # Chromeless: no axis labels, no gridlines - just the shape.
-        %{
-          grid: %{left: 8, right: 8, top: 8, bottom: 8},
-          xAxis: Map.put(axis_x, :show, false),
-          yAxis: %{type: "value", show: false},
-          tooltip: tooltip,
-          series: series
-        }
+      case chart.chrome do
+        "full" ->
+          %{
+            grid: %{left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
+            xAxis: axis_x,
+            yAxis: %{
+              type: "value",
+              axisLabel: %{formatter: "petal:currency-compact:USD"}
+            },
+            tooltip: tooltip,
+            series: series
+          }
+
+        "x" ->
+          # x labels only - the dashboard-card look (values live in the
+          # tooltip, the categories anchor the shape)
+          %{
+            grid: %{left: 8, right: 8, top: 8, bottom: 8, containLabel: true},
+            xAxis: axis_x,
+            yAxis: %{type: "value", show: false},
+            tooltip: tooltip,
+            series: series
+          }
+
+        "off" ->
+          # Chromeless: no axis labels, no gridlines - just the shape.
+          %{
+            grid: %{left: 8, right: 8, top: 8, bottom: 8},
+            xAxis: Map.put(axis_x, :show, false),
+            yAxis: %{type: "value", show: false},
+            tooltip: tooltip,
+            series: series
+          }
       end
 
-    if chart.two_series && chart.chrome,
+    if chart.two_series && chart.chrome != "off",
       do:
         Map.merge(base, %{
           legend: %{top: 0},
@@ -2896,9 +2909,14 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
-              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(@chart.chrome)}>on</button>
-              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(!@chart.chrome)}>
-                off
+              <button
+                :for={c <- ~w(full x off)}
+                phx-click="ctl_chart"
+                phx-value-k="chrome"
+                phx-value-v={c}
+                class={seg(@chart.chrome == c)}
+              >
+                {c}
               </button>
             </div>
           </div>
