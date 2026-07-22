@@ -687,6 +687,7 @@ defmodule Dev.PlaygroundLive do
          icon: true,
          heading: false,
          dismissible: false,
+         actions: false,
          rev: 0
        },
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
@@ -1325,6 +1326,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_alert", %{"k" => "dismissible"}, socket),
     do: {:noreply, update(socket, :alert, &%{&1 | dismissible: !&1.dismissible, rev: &1.rev + 1})}
+
+  def handle_event("ctl_alert", %{"k" => "actions"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | actions: !&1.actions, rev: &1.rev + 1})}
 
   def handle_event("ctl_badge", %{"k" => "color", "v" => v}, socket) when v in @badge_colors,
     do: {:noreply, update(socket, :badge, &%{&1 | color: v})}
@@ -7258,6 +7262,10 @@ defmodule Dev.PlaygroundLive do
               }
             >
               Your subscription renews on 12 August.
+              <:actions :if={@alert.actions}>
+                <.button size="sm" variant="soft">Manage plan</.button>
+                <.button size="sm" variant="ghost" color="gray">Remind me later</.button>
+              </:actions>
             </.alert>
           </div>
         </div>
@@ -7297,6 +7305,9 @@ defmodule Dev.PlaygroundLive do
               <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
               <button phx-click="ctl_alert" phx-value-k="dismissible" class={tog(@alert.dismissible)}>
                 dismissible
+              </button>
+              <button phx-click="ctl_alert" phx-value-k="actions" class={tog(@alert.actions)}>
+                actions
               </button>
             </div>
             <div :if={@alert.dismissible} class="mt-1.5 text-[10px] text-gray-400">
