@@ -11,8 +11,9 @@ defmodule PetalComponents.Alert do
 
   attr(:variant, :string,
     default: "light",
-    values: ["light", "soft", "dark", "outline"],
-    doc: "The variant of the alert"
+    values: ["light", "soft", "dark", "outline", "callout"],
+    doc:
+      "The variant of the alert. light/soft/dark/outline are the tinted-surface school; callout is the toast-cohesive form - neutral panel surface, a coloured left accent bar, and a solid kind icon (colour as accent, not as surface)"
   )
 
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
@@ -53,7 +54,7 @@ defmodule PetalComponents.Alert do
       >
         <%= if @with_icon do %>
           <div class="pc-alert__icon-container">
-            <.get_icon color={@color} />
+            <.get_icon color={@color} variant={@variant} />
           </div>
         <% end %>
 
@@ -125,33 +126,25 @@ defmodule PetalComponents.Alert do
     "pc-alert__dismiss-button--#{color}-#{variant}"
   end
 
-  defp get_icon(%{color: "info"} = assigns) do
-    ~H"""
-    <.icon name="hero-information-circle" />
-    """
-  end
+  # Icon doctrine: tinted surfaces take outline icons (the surface
+  # already carries the semantic; solid would double down), neutral
+  # surfaces take solid icons (the icon IS the semantic) - same rule
+  # the toast follows.
+  defp get_icon(%{color: color} = assigns) when color in ~w(info success warning danger gray) do
+    base =
+      case color do
+        "info" -> "hero-information-circle"
+        "success" -> "hero-check-circle"
+        "warning" -> "hero-exclamation-circle"
+        "danger" -> "hero-x-circle"
+        "gray" -> "hero-information-circle"
+      end
 
-  defp get_icon(%{color: "success"} = assigns) do
-    ~H"""
-    <.icon name="hero-check-circle" />
-    """
-  end
+    assigns =
+      assign(assigns, :name, if(assigns[:variant] == "callout", do: base <> "-solid", else: base))
 
-  defp get_icon(%{color: "warning"} = assigns) do
     ~H"""
-    <.icon name="hero-exclamation-circle" />
-    """
-  end
-
-  defp get_icon(%{color: "danger"} = assigns) do
-    ~H"""
-    <.icon name="hero-x-circle" />
-    """
-  end
-
-  defp get_icon(%{color: "gray"} = assigns) do
-    ~H"""
-    <.icon name="hero-information-circle" />
+    <.icon name={@name} />
     """
   end
 

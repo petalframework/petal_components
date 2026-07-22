@@ -643,7 +643,7 @@ defmodule Dev.PlaygroundLive do
 
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
-  @tint_variants ~w(light soft dark outline)
+  @tint_variants ~w(light soft dark outline callout)
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -7280,7 +7280,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
-                :for={v <- ~w(light soft dark outline)}
+                :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_alert"
                 phx-value-k="variant"
                 phx-value-v={v}
@@ -7393,7 +7393,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
-                :for={v <- ~w(light soft dark outline)}
+                :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_badge"
                 phx-value-k="variant"
                 phx-value-v={v}

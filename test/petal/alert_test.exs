@@ -346,6 +346,33 @@ defmodule PetalComponents.AlertTest do
     end
   end
 
+  describe "callout variant" do
+    test "renders the neutral panel with solid kind icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="success" variant="callout" with_icon heading="Saved">Body</.alert>
+        """)
+
+      assert html =~ "pc-alert--success-callout"
+      # neutral surface, colour as accent: solid icon, not the outline
+      assert html =~ "hero-check-circle-solid"
+    end
+
+    test "tinted variants keep outline icons" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="success" variant="soft" with_icon>Body</.alert>
+        """)
+
+      assert html =~ "hero-check-circle"
+      refute html =~ "hero-check-circle-solid"
+    end
+  end
+
   describe "on_dismiss nil-safety" do
     test "nil renders no dismiss button instead of crashing" do
       assigns = %{}
