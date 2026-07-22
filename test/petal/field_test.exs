@@ -661,6 +661,62 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field radio-card indicator positions and option visuals" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    default_end =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="radio-card"
+          field={@form[:plan]}
+          indicator
+          options={[%{label: "Pro", value: "pro"}]}
+        />
+      </.form>
+      """)
+
+    corner =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="radio-card"
+          field={@form[:plan]}
+          indicator
+          indicator_position="corner"
+          options={[%{label: "Pro", value: "pro", icon: "hero-credit-card"}]}
+        />
+      </.form>
+      """)
+
+    imaged =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="radio-card"
+          field={@form[:reviewer]}
+          options={[%{label: "Sarah", value: "sarah", image: "/avatars/s.jpg"}]}
+        />
+      </.form>
+      """)
+
+    # default "end": dot inside the content row, no corner modifier
+    assert default_end =~ "pc-radio-card__dot"
+    assert default_end =~ "pc-radio-card--indicator-end"
+    refute default_end =~ "pc-radio-card__dot--corner"
+
+    # corner: floating dot + icon circle
+    assert corner =~ "pc-radio-card__dot--corner"
+    assert corner =~ "pc-radio-card__icon"
+    assert has_icon?(corner, "hero-credit-card")
+
+    # image option renders the thumbnail and forces the row layout without indicator
+    assert imaged =~ "pc-radio-card__image"
+    assert imaged =~ ~s|src="/avatars/s.jpg"|
+    assert imaged =~ "pc-radio-card--indicator"
+    refute imaged =~ "pc-radio-card__dot"
+  end
+
   test "field radio-card group-wide disabled greys every card" do
     assigns = %{form: to_form(%{}, as: :user)}
 

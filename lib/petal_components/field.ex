@@ -43,6 +43,12 @@ defmodule PetalComponents.Field do
 
   attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
+  attr :indicator_position, :string,
+    default: "end",
+    values: ~w(start end corner),
+    doc:
+      ~s(where the radio-card dot sits: "end" centres it on the right edge, "corner" floats it top-right - the tile-grid look, "start" leads the text)
+
   attr :indicator, :boolean,
     default: false,
     doc: "radio-card only: shows a radio dot inside each card"
@@ -413,7 +419,8 @@ defmodule PetalComponents.Field do
             "pc-radio-card",
             "pc-radio-card--#{@size}",
             "pc-radio-card--#{@variant}",
-            @indicator && "pc-radio-card--indicator",
+            (@indicator || option[:icon] || option[:image]) && "pc-radio-card--indicator",
+            @indicator && "pc-radio-card--indicator-#{@indicator_position}",
             (option[:disabled] || @rest[:disabled]) && "pc-radio-card--disabled"
           ]}>
             <input
@@ -430,14 +437,35 @@ defmodule PetalComponents.Field do
               {@rest}
             />
             <div class="pc-radio-card__fake-input"></div>
-            <div class={["pc-radio-card__content", @indicator && "pc-radio-card__content--indicator"]}>
-              <span :if={@indicator} class="pc-radio-card__dot" aria-hidden="true"></span>
-              <div>
+            <span
+              :if={@indicator && @indicator_position == "corner"}
+              class="pc-radio-card__dot pc-radio-card__dot--corner"
+              aria-hidden="true"
+            ></span>
+            <div class={[
+              "pc-radio-card__content",
+              (@indicator || option[:icon] || option[:image]) && "pc-radio-card__content--indicator"
+            ]}>
+              <span
+                :if={@indicator && @indicator_position == "start"}
+                class="pc-radio-card__dot"
+                aria-hidden="true"
+              ></span>
+              <img :if={option[:image]} src={option[:image]} alt="" class="pc-radio-card__image" />
+              <span :if={!option[:image] && option[:icon]} class="pc-radio-card__icon">
+                <.icon name={option[:icon]} class="pc-radio-card__icon-glyph" />
+              </span>
+              <div class="pc-radio-card__text">
                 <div class="pc-radio-card__label">{option[:label]}</div>
                 <div :if={option[:description]} class="pc-radio-card__description">
                   {option[:description]}
                 </div>
               </div>
+              <span
+                :if={@indicator && @indicator_position == "end"}
+                class="pc-radio-card__dot"
+                aria-hidden="true"
+              ></span>
             </div>
           </label>
         <% end %>

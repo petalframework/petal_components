@@ -1822,7 +1822,8 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
 
-  /* Indicator variant - a visible radio dot inside the card */
+  /* Indicator variant - a visible radio dot inside the card. Also used when
+     an option carries an icon or image (the row-with-visual layout). */
   .pc-radio-card--indicator {
     @apply justify-start;
   }
@@ -1832,10 +1833,32 @@
   .pc-radio-card__content--indicator {
     @apply flex items-center gap-3;
   }
+  /* Text column grows so an "end" dot rides the right edge */
+  .pc-radio-card__text {
+    @apply min-w-0 flex-1;
+  }
   .pc-radio-card__dot {
     @apply shrink-0 w-4 h-4 rounded-full border border-gray-300 bg-transparent dark:border-white/25;
   }
-  .pc-radio-card__input:checked ~ .pc-radio-card__content .pc-radio-card__dot {
+  /* Corner placement floats over the card's top-right - the tile-grid look */
+  .pc-radio-card__dot--corner {
+    @apply absolute top-3 right-3;
+  }
+  .pc-radio-card--indicator-corner > .pc-radio-card__content {
+    @apply pr-7;
+  }
+  /* Option visuals: a soft icon circle or a rounded image thumbnail */
+  .pc-radio-card__icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-gray-100 dark:bg-gray-400/17;
+  }
+  .pc-radio-card__icon-glyph {
+    @apply w-5 h-5 text-gray-700 dark:text-gray-200;
+  }
+  .pc-radio-card__image {
+    @apply w-9 h-9 rounded-full object-cover shrink-0 select-none;
+  }
+  .pc-radio-card__input:checked ~ .pc-radio-card__content .pc-radio-card__dot,
+  .pc-radio-card__input:checked ~ .pc-radio-card__dot {
     @apply border-primary-600 dark:border-primary-600;
     border-width: 5px;
   }

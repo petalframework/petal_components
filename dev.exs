@@ -703,6 +703,7 @@ defmodule Dev.PlaygroundLive do
          size: "md",
          layout: "row",
          indicator: false,
+         ind_pos: "end",
          disabled: false
        },
        switch: %{size: "md", disabled: false, error: false},
@@ -1307,6 +1308,10 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :radio, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_radio", %{"k" => "ind_pos", "v" => v}, socket)
+      when v in ~w(end corner start),
+      do: {:noreply, update(socket, :radio, &%{&1 | ind_pos: v})}
+
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(outline classic),
       do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -1871,6 +1876,7 @@ defmodule Dev.PlaygroundLive do
         r.size != "md" && ~s(size="#{r.size}"),
         r.layout != "row" && ~s(group_layout="#{r.layout}"),
         r.indicator && "indicator",
+        r.indicator && r.ind_pos != "end" && ~s(indicator_position="#{r.ind_pos}"),
         r.disabled && "disabled",
         ~s(options={[%{value: "starter", label: "Starter", description: "For side projects"}, ...]})
       ]
@@ -6706,6 +6712,7 @@ defmodule Dev.PlaygroundLive do
               size={@radio.size}
               group_layout={@radio.layout}
               indicator={@radio.indicator}
+              indicator_position={@radio.ind_pos}
               disabled={@radio.disabled}
               options={[
                 %{value: "starter", label: "Starter", description: "For side projects"},
@@ -6801,6 +6808,22 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
+          <div :if={@radio.style == "cards" && @radio.indicator}>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              indicator position
+            </div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={p <- ~w(end corner start)}
+                phx-click="ctl_radio"
+                phx-value-k="ind_pos"
+                phx-value-v={p}
+                class={seg(@radio.ind_pos == p)}
+              >
+                {p}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -6832,21 +6855,111 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        With radio indicator
+        Payment method
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="radio-card"
-            name="speed"
-            label="Delivery speed"
-            value="express"
+            name="pg_payment"
+            label="Payment method"
+            value="visa"
+            group_layout="col"
+            indicator
+            indicator_position="corner"
+            options={[
+              %{
+                value: "visa",
+                label: "Visa ending in 4242",
+                description: "Expires 12/26",
+                icon: "hero-credit-card"
+              },
+              %{
+                value: "mastercard",
+                label: "Mastercard ending in 8888",
+                description: "Expires 09/25",
+                icon: "hero-credit-card"
+              },
+              %{value: "new", label: "Add new payment method", icon: "hero-plus"}
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Icon tiles</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-md mx-auto">
+          <.field
+            type="radio-card"
+            name="pg_module"
+            label="Enable a module"
+            value="payments"
+            class="grid grid-cols-2 gap-3"
+            indicator
+            indicator_position="corner"
+            options={[
+              %{
+                value: "payments",
+                label: "Payments",
+                description: "Receive payments from your customers",
+                icon: "hero-banknotes"
+              },
+              %{
+                value: "invoices",
+                label: "Invoices",
+                description: "Create and send invoices to your customers",
+                icon: "hero-document-text"
+              },
+              %{
+                value: "billing",
+                label: "Billing",
+                description: "Manage your billing and subscriptions",
+                icon: "hero-credit-card"
+              },
+              %{
+                value: "reports",
+                label: "Reports",
+                description: "View your reports and analytics",
+                icon: "hero-chart-bar"
+              }
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        People picker
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="radio-card"
+            name="pg_reviewer"
+            label="Assign a reviewer"
+            value="sarah"
             group_layout="col"
             indicator
             options={[
-              %{value: "standard", label: "Standard", description: "4 to 6 business days - free"},
-              %{value: "express", label: "Express", description: "1 to 2 business days - $12"},
-              %{value: "overnight", label: "Overnight", description: "Next business day - $29"}
+              %{
+                value: "sarah",
+                label: "Sarah Chen",
+                description: "@sarahchen",
+                image: "/dev-static/avatars/p32.jpg"
+              },
+              %{
+                value: "alex",
+                label: "Alex Rivera",
+                description: "@alexrivera",
+                image: "/dev-static/avatars/p44.jpg"
+              },
+              %{
+                value: "jordan",
+                label: "Jordan Lee",
+                description: "@jordanlee",
+                image: "/dev-static/avatars/p65.jpg"
+              }
             ]}
             no_margin
           />
