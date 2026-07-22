@@ -160,6 +160,32 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|type="week"|
   end
 
+  test "field range routes through the input and supports fill" do
+    assigns = %{form: to_form(%{}, as: :prefs)}
+
+    plain =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="range" field={@form[:volume]} label="Volume" min="0" max="100" />
+      </.form>
+      """)
+
+    assert plain =~ ~s|type="range"|
+    assert plain =~ "pc-range-input"
+    assert plain =~ "Volume"
+    refute plain =~ "pc-range-input--fill"
+
+    filled =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field type="range" field={@form[:volume]} label="Volume" min="0" max="100" fill />
+      </.form>
+      """)
+
+    assert filled =~ "pc-range-input--fill"
+    assert filled =~ ~s|phx-hook="PetalRangeFill"|
+  end
+
   test "bare field without value or label renders instead of raising" do
     assigns = %{}
 

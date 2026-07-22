@@ -707,7 +707,7 @@ defmodule Dev.PlaygroundLive do
          disabled: false
        },
        switch: %{size: "md", disabled: false, error: false},
-       slider: %{format: "money", disabled: false},
+       slider: %{format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{
@@ -1299,6 +1299,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_slider", %{"k" => "disabled"}, socket),
     do: {:noreply, update(socket, :slider, &%{&1 | disabled: !&1.disabled})}
+
+  def handle_event("ctl_slider", %{"k" => "fill"}, socket),
+    do: {:noreply, update(socket, :slider, &%{&1 | fill: !&1.fill})}
 
   def handle_event("ctl_radio", %{"k" => "style", "v" => v}, socket)
       when v in ~w(cards plain),
@@ -6666,26 +6669,61 @@ defmodule Dev.PlaygroundLive do
       ><code>{slider_snippet(@slider)}</code></pre>
 
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Single range</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-          <.field type="range" name="pg_volume" label="Volume" value="60" min="0" max="100" no_margin />
-          <.field
-            type="range"
-            name="pg_stepped"
-            label="Stepped (10s)"
-            value="40"
-            min="0"
-            max="100"
-            step="10"
-            no_margin
-          />
-          <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-8">
+          <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+            <.field
+              id={"pg-vol-#{@slider.fill}"}
+              type="range"
+              name="pg_volume"
+              label="Volume"
+              value="60"
+              min="0"
+              max="100"
+              fill={@slider.fill}
+              no_margin
+            />
+            <.field
+              id={"pg-step-#{@slider.fill}"}
+              type="range"
+              name="pg_stepped"
+              label="Stepped (10s)"
+              value="40"
+              min="0"
+              max="100"
+              step="10"
+              fill={@slider.fill}
+              no_margin
+            />
+            <.field
+              type="range"
+              name="pg_balance"
+              label="Balance (always plain)"
+              value="50"
+              min="0"
+              max="100"
+              no_margin
+            />
+            <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
+          </div>
         </div>
-        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          <code class="text-xs">type="range"</code>
-          is the native input - zero JavaScript, and the thumb rides the primary color.
-        </p>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">fill</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_slider" phx-value-k="fill" class={tog(@slider.fill)}>
+                fill
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        Plain is the native input, no JavaScript. <code class="text-xs">fill</code>
+        paints the track primary up to the thumb - Firefox does it natively, and a
+        tiny hook keeps the webkit fill in sync. Leave it off for balance and pan
+        controls, where a fill would imply a wrong zero point.
+      </p>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Open-ended bounds

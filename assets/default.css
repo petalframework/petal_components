@@ -1544,12 +1544,45 @@
      look is identical across browsers/OSes (native ranges are not).
      No left-of-thumb fill: webkit cannot draw one in pure CSS with a thumb
      taller than the track, and a Firefox-only fill would fork the look. */
+  /* The track colour rides a variable set on the input itself - a real
+     element, so the dark override resolves. The ::-webkit/::-moz track
+     pseudo-elements only reference it, because a `dark:` variant applied
+     straight to a pseudo-element compiles to a trailing `:where(.dark, ...)`
+     that can never match (a pseudo-element has no ancestor test), which is
+     why the single track used to stay light in dark mode. */
   .pc-range-input {
     @apply w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed;
+    --pc-range-track: var(--color-gray-200);
+  }
+  .pc-range-input:where(.dark, .dark *) {
+    --pc-range-track: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
   }
   .pc-range-input::-webkit-slider-runnable-track {
-    @apply h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
+    @apply h-1.5 rounded-full;
+    background-color: var(--pc-range-track);
   }
+  .pc-range-input::-moz-range-track {
+    @apply h-1.5 rounded-full;
+    background-color: var(--pc-range-track);
+  }
+  /* Optional fill: primary from the start to the thumb. webkit has no native
+     lower-fill, so the runnable-track paints a hard-stop gradient whose split
+     is `--pc-range-fill`, kept in sync by the PetalRangeFill hook; Firefox
+     fills natively via ::-moz-range-progress. */
+  .pc-range-input--fill::-webkit-slider-runnable-track {
+    background: linear-gradient(
+      to right,
+      var(--color-primary-500) var(--pc-range-fill, 0%),
+      var(--pc-range-track) var(--pc-range-fill, 0%)
+    );
+  }
+  .pc-range-input--fill::-moz-range-progress {
+    @apply h-1.5 rounded-full;
+    background-color: var(--color-primary-500);
+  }
+  /* Thumb: a white ring in both schemes - it separates the thumb from a
+     light track and a dark one alike, and reads better than the dark ring
+     the old (never-applied) dark: variant intended. */
   .pc-range-input::-webkit-slider-thumb {
     @apply appearance-none w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
     margin-top: -0.4375rem;
@@ -1559,9 +1592,6 @@
   }
   .pc-range-input:focus-visible::-webkit-slider-thumb {
     @apply scale-110 ring-2 ring-primary-500/50;
-  }
-  .pc-range-input::-moz-range-track {
-    @apply h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
   }
   .pc-range-input::-moz-range-thumb {
     @apply w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;

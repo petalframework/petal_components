@@ -230,4 +230,43 @@ defmodule PetalComponents.InputTest do
     assert html =~ "pc-file-input"
     refute html =~ ~s|value=|
   end
+
+  test "range input is plain by default, fill opts into the hook" do
+    assigns = %{}
+
+    plain =
+      rendered_to_string(~H"""
+      <.input type="range" name="vol" value="60" min="0" max="100" />
+      """)
+
+    assert plain =~ ~s|type="range"|
+    assert plain =~ "pc-range-input"
+    refute plain =~ "pc-range-input--fill"
+    refute plain =~ "PetalRangeFill"
+    refute plain =~ "--pc-range-fill"
+
+    filled =
+      rendered_to_string(~H"""
+      <.input type="range" name="vol" value="60" min="0" max="100" fill />
+      """)
+
+    assert filled =~ "pc-range-input--fill"
+    assert filled =~ ~s|phx-hook="PetalRangeFill"|
+    # server-rendered initial fill so it paints before the hook connects
+    assert filled =~ "--pc-range-fill: 60%"
+    # the hook needs an id
+    assert filled =~ ~s|id="pc-range-|
+  end
+
+  test "range fill clamps and handles non-default bounds" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.input type="range" name="temp" value="30" min="20" max="80" fill />
+      """)
+
+    # (30 - 20) / (80 - 20) = 16.66..% -> rounded 17
+    assert html =~ "--pc-range-fill: 17%"
+  end
 end

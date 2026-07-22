@@ -318,6 +318,33 @@ export const PetalClearableInput = {
   },
 };
 
+// Range fill: keeps --pc-range-fill in sync with a single <input type="range">
+// so webkit can paint a primary fill from the start to the thumb (Firefox does
+// it natively via ::-moz-range-progress). The server sets the initial value; the
+// hook updates it as you drag.
+export const PetalRangeFill = {
+  mounted() {
+    this.sync = () => {
+      const min = parseFloat(this.el.min);
+      const max = parseFloat(this.el.max);
+      const lo = Number.isNaN(min) ? 0 : min;
+      const hi = Number.isNaN(max) ? 100 : max;
+      const val = parseFloat(this.el.value);
+      const v = Number.isNaN(val) ? lo : val;
+      const pct = hi <= lo ? 0 : ((v - lo) / (hi - lo)) * 100;
+      this.el.style.setProperty("--pc-range-fill", Math.max(0, Math.min(100, pct)) + "%");
+    };
+    this.el.addEventListener("input", this.sync);
+    this.sync();
+  },
+  updated() {
+    if (this.sync) this.sync();
+  },
+  destroyed() {
+    if (this.sync) this.el.removeEventListener("input", this.sync);
+  },
+};
+
 // Dual range slider: two stacked <input type="range"> thumbs sharing a coloured track.
 //
 // Attrs read from the container element (set server-side in input.ex):
@@ -3193,6 +3220,7 @@ export default {
   PetalPasswordToggle,
   PetalCopyInput,
   PetalClearableInput,
+  PetalRangeFill,
   PetalDualRangeSlider,
   PetalNumberTicker,
   PetalConfetti,

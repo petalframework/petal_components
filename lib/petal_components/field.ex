@@ -111,6 +111,10 @@ defmodule PetalComponents.Field do
     default: false,
     doc: "is this field required? is passed to the input and adds an asterisk next to the label"
 
+  attr :fill, :boolean,
+    default: false,
+    doc: ~s(type="range" only: fills the track with the primary colour up to the thumb)
+
   # Dual range slider — requires min_field + max_field instead of the standard field attr.
   attr :min_field, Phoenix.HTML.FormField,
     doc: "form field for the minimum value; required for type=\"range-dual\""
@@ -716,6 +720,30 @@ defmodule PetalComponents.Field do
   end
 
   # All other inputs (text, url, etc.) are handled here...
+  # Range routes through Input.input so the fill option gets its hook and
+  # server-rendered initial fill; the wrapper carries the label and help.
+  def field(%{type: "range"} = assigns) do
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label :if={@label} required={@required} for={@id} class={@label_class}>
+        {@label}
+      </.field_label>
+      <PetalComponents.Input.input
+        type="range"
+        fill={@fill}
+        name={@name}
+        id={@id}
+        value={@value}
+        class={@class}
+        required={@required}
+        {@rest}
+      />
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
   def field(assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
