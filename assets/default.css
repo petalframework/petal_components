@@ -1796,9 +1796,11 @@
     @apply bg-gray-200/70 dark:bg-gray-400/25;
   }
 
-  /* Checked State Styles */
+  /* Checked State Styles. Dark uses the dark-calibrated shade: on a
+     monochrome primary, 600 resolves near-white - a glaring frame - while
+     500 reads as the restrained selected border; hue themes stay vivid. */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-600 dark:border-primary-600;
+    @apply border-primary-600 dark:border-primary-500;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
@@ -1830,6 +1832,15 @@
   .pc-radio-card--indicator > .pc-radio-card__content {
     @apply w-full;
   }
+  /* The generous md/lg tile padding is for centred text; the indicator and
+     row-with-visual layouts read left-to-right, so they take row padding -
+     otherwise an "end" dot floats toward the centre and the text squeezes. */
+  .pc-radio-card--md.pc-radio-card--indicator > .pc-radio-card__content {
+    @apply px-4;
+  }
+  .pc-radio-card--lg.pc-radio-card--indicator > .pc-radio-card__content {
+    @apply px-5;
+  }
   .pc-radio-card__content--indicator {
     @apply flex items-center gap-3;
   }
@@ -1840,12 +1851,13 @@
   .pc-radio-card__dot {
     @apply shrink-0 w-4 h-4 rounded-full border border-gray-300 bg-transparent dark:border-white/25;
   }
-  /* Corner placement floats over the card's top-right - the tile-grid look */
+  /* Corner placement floats over the card's reading-end corner (top-right in
+     LTR, flipping automatically in RTL via logical properties) */
   .pc-radio-card__dot--corner {
-    @apply absolute top-3 right-3;
+    @apply absolute top-3 end-3;
   }
-  .pc-radio-card--indicator-corner > .pc-radio-card__content {
-    @apply pr-7;
+  .pc-radio-card--indicator.pc-radio-card--indicator-corner > .pc-radio-card__content {
+    @apply pe-7;
   }
   /* Option visuals: a soft icon circle or a rounded image thumbnail */
   .pc-radio-card__icon {
