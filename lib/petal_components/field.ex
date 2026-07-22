@@ -56,12 +56,12 @@ defmodule PetalComponents.Field do
     doc: "If true, adds a copy button to the field and disables the input"
 
   attr :copy_icon, :string,
-    default: "hero-clipboard-document-solid",
+    default: "hero-clipboard-document",
     doc: "Icon name for the copy button"
 
   attr :copied_icon, :string,
-    default: "hero-clipboard-document-check-solid",
-    doc: "Icon name shown after copying"
+    default: "hero-check",
+    doc: "Icon name shown after copying (rendered in the success colour)"
 
   attr :clearable, :boolean,
     default: false,
@@ -488,12 +488,18 @@ defmodule PetalComponents.Field do
           required={@required}
           {@rest}
         />
-        <button type="button" class="pc-password-field-toggle-button" data-pc-password-toggle>
+        <button
+          type="button"
+          class="pc-password-field-toggle-button"
+          data-pc-password-toggle
+          aria-label="Show password"
+          aria-pressed="false"
+        >
           <span data-pc-icon-show class="pc-password-field-toggle-icon-container">
-            <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
+            <.icon name="hero-eye" class="pc-password-field-toggle-icon" />
           </span>
           <span data-pc-icon-hide class="pc-password-field-toggle-icon-container hidden">
-            <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
+            <.icon name="hero-eye-slash" class="pc-password-field-toggle-icon" />
           </span>
         </button>
       </div>
@@ -529,16 +535,22 @@ defmodule PetalComponents.Field do
           {@rest}
         />
         <!-- Copy Button -->
-        <button type="button" class="pc-copyable-field-button" data-pc-copy-btn>
+        <button
+          type="button"
+          class="pc-copyable-field-button"
+          data-pc-copy-btn
+          aria-label="Copy to clipboard"
+        >
           <!-- Copy Icon -->
           <span data-pc-copy-default class="pc-copyable-field-icon-container">
             <.icon name={@copy_icon} class="pc-copyable-field-icon" />
           </span>
           <!-- Copied Icon -->
           <span data-pc-copy-done class="pc-copyable-field-icon-container hidden">
-            <.icon name={@copied_icon} class="pc-copyable-field-icon" />
+            <.icon name={@copied_icon} class="pc-copyable-field-icon pc-copyable-field-icon--done" />
           </span>
         </button>
+        <span data-pc-copy-announce class="sr-only" aria-live="polite"></span>
       </div>
       <!-- Error Message -->
       <.field_error :for={msg <- @errors}>{msg}</.field_error>

@@ -840,8 +840,14 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "readonly"
     assert html =~ ~s|value="https://example.com/invite/your-invite-code"|
     assert html =~ "pc-copyable-field-button"
-    assert html =~ "clipboard-document-solid"
+    assert html =~ "hero-clipboard-document"
+    refute html =~ "clipboard-document-solid"
     assert html =~ "pc-copyable-field-icon"
+    # success state: check glyph in the success colour, announced politely
+    assert html =~ "pc-copyable-field-icon--done"
+    assert has_icon?(html, "hero-check")
+    assert html =~ ~s|aria-label="Copy to clipboard"|
+    assert html =~ ~s|aria-live="polite"|
     assert html =~ ~s|phx-hook="PetalCopyInput"|
     assert html =~ "data-pc-copy-input"
     assert html =~ "data-pc-copy-btn"
@@ -872,7 +878,10 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "data-pc-password-toggle"
     refute html =~ "x-data"
     assert html =~ "pc-password-field-toggle-button"
-    assert html =~ "hero-eye-solid"
+    assert has_icon?(html, "hero-eye")
+    refute html =~ "hero-eye-solid"
+    assert html =~ ~s|aria-label="Show password"|
+    assert html =~ ~s|aria-pressed="false"|
     assert html =~ "pc-password-field-toggle-icon"
   end
 

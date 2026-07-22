@@ -1270,8 +1270,12 @@
     @apply pr-10;
   }
 
+  /* In-field action buttons (viewable / copyable / clearable) share one
+     grammar: stroke icons at gray-400 that brighten on hover (never dim),
+     a focus-visible ring, and a dial-derived rounding for the ring box. */
   .pc-password-field-toggle-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-password-field-toggle-icon-container {
@@ -1279,7 +1283,7 @@
   }
 
   .pc-password-field-toggle-icon {
-    @apply w-5 h-5 text-gray-400;
+    @apply w-5 h-5;
   }
 
   /* Copyable Field Styles */
@@ -1292,7 +1296,8 @@
   }
 
   .pc-copyable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-copyable-field-icon-container {
@@ -1300,7 +1305,12 @@
   }
 
   .pc-copyable-field-icon {
-    @apply w-5 h-5 text-gray-400;
+    @apply w-5 h-5;
+  }
+
+  /* Copy success: the check reads success and ignores the button's hover color */
+  .pc-copyable-field-icon--done {
+    @apply text-success-600 dark:text-success-500;
   }
 
   /* Clearable Field Styles */
@@ -1318,7 +1328,8 @@
   }
 
   .pc-clearable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-clearable-field-icon-container {
@@ -1326,7 +1337,7 @@
   }
 
   .pc-clearable-field-icon {
-    @apply w-5 h-5 text-gray-500 dark:text-gray-400;
+    @apply w-5 h-5;
   }
 
   /* Date and Time Field Styles */

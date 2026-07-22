@@ -153,12 +153,18 @@ defmodule PetalComponents.Input do
         class={[@class, "pc-password-field-input"]}
         {@rest}
       />
-      <button type="button" class="pc-password-field-toggle-button" data-pc-password-toggle>
+      <button
+        type="button"
+        class="pc-password-field-toggle-button"
+        data-pc-password-toggle
+        aria-label="Show password"
+        aria-pressed="false"
+      >
         <span data-pc-icon-show class="pc-password-field-toggle-icon-container">
-          <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
+          <.icon name="hero-eye" class="pc-password-field-toggle-icon" />
         </span>
         <span data-pc-icon-hide class="pc-password-field-toggle-icon-container hidden">
-          <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
+          <.icon name="hero-eye-slash" class="pc-password-field-toggle-icon" />
         </span>
       </button>
     </div>
@@ -182,14 +188,20 @@ defmodule PetalComponents.Input do
         readonly
         {@rest}
       />
-      <button type="button" class="pc-copyable-field-button" data-pc-copy-btn>
+      <button
+        type="button"
+        class="pc-copyable-field-button"
+        data-pc-copy-btn
+        aria-label="Copy to clipboard"
+      >
         <span data-pc-copy-default class="pc-copyable-field-icon-container">
-          <.icon name="hero-clipboard-document-solid" class="pc-copyable-field-icon" />
+          <.icon name="hero-clipboard-document" class="pc-copyable-field-icon" />
         </span>
         <span data-pc-copy-done class="pc-copyable-field-icon-container hidden">
-          <.icon name="hero-clipboard-document-check-solid" class="pc-copyable-field-icon" />
+          <.icon name="hero-check" class="pc-copyable-field-icon pc-copyable-field-icon--done" />
         </span>
       </button>
+      <span data-pc-copy-announce class="sr-only" aria-live="polite"></span>
     </div>
     """
   end

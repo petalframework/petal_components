@@ -260,28 +260,38 @@ export const PetalPasswordToggle = {
       const revealed = input.type === "text";
       if (eye) eye.classList.toggle("hidden", revealed);
       if (eyeOff) eyeOff.classList.toggle("hidden", !revealed);
+      btn.setAttribute("aria-pressed", String(revealed));
+      btn.setAttribute("aria-label", revealed ? "Hide password" : "Show password");
     });
   },
 };
 
-// Copyable field: copy the (readonly) input value, flip the icon for 2s.
+// Copyable field: copy the (readonly) input value, flip to a success check for
+// 2s, and announce the copy to screen readers via the polite live region.
 export const PetalCopyInput = {
   mounted() {
     const input = this.el.querySelector("[data-pc-copy-input]");
     const btn = this.el.querySelector("[data-pc-copy-btn]");
     const def = this.el.querySelector("[data-pc-copy-default]");
     const done = this.el.querySelector("[data-pc-copy-done]");
+    const announce = this.el.querySelector("[data-pc-copy-announce]");
     if (!input || !btn) return;
 
     btn.addEventListener("click", () => {
       navigator.clipboard?.writeText(input.value);
       if (def) def.classList.add("hidden");
       if (done) done.classList.remove("hidden");
-      setTimeout(() => {
+      if (announce) announce.textContent = "Copied to clipboard";
+      clearTimeout(this.revertTimer);
+      this.revertTimer = setTimeout(() => {
         if (def) def.classList.remove("hidden");
         if (done) done.classList.add("hidden");
+        if (announce) announce.textContent = "";
       }, 2000);
     });
+  },
+  destroyed() {
+    clearTimeout(this.revertTimer);
   },
 };
 
