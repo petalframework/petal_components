@@ -1155,6 +1155,9 @@ defmodule Dev.PlaygroundLive do
     {:noreply, socket}
   end
 
+  def handle_event("toast_demo", %{"demo" => "dismiss_all"}, socket),
+    do: {:noreply, PetalComponents.Toast.dismiss_toast(socket, :all)}
+
   def handle_event("toast_demo", %{"demo" => "flash"}, socket),
     do: {:noreply, Phoenix.LiveView.put_flash(socket, :info, "This came through put_flash.")}
 
@@ -3307,6 +3310,15 @@ defmodule Dev.PlaygroundLive do
             phx-value-demo="sticky"
           >
             Sticky (no timeout)
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="dismiss_all"
+          >
+            Dismiss all
           </.button>
         </div>
         <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">

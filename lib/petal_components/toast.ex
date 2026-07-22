@@ -75,6 +75,22 @@ defmodule PetalComponents.Toast do
     Phoenix.LiveView.push_event(socket, "petal:toast", payload)
   end
 
+  @doc """
+  Dismisses a toast by id, or every toast with `:all` - the retraction
+  half of the API. Useful when an async job is cancelled (dismiss the
+  loading toast instead of morphing it) or on logout.
+
+      socket |> Toast.dismiss_toast("export")
+      socket |> Toast.dismiss_toast(:all)
+  """
+  def dismiss_toast(socket, id_or_all)
+
+  def dismiss_toast(socket, :all),
+    do: Phoenix.LiveView.push_event(socket, "petal:toast-dismiss", %{all: true})
+
+  def dismiss_toast(socket, id),
+    do: Phoenix.LiveView.push_event(socket, "petal:toast-dismiss", %{id: to_string(id)})
+
   defp normalize_kind(:error), do: :danger
   defp normalize_kind(kind), do: kind
 

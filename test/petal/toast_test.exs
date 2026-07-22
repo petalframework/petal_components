@@ -47,6 +47,20 @@ defmodule PetalComponents.ToastTest do
     end
   end
 
+  describe "dismiss_toast/2" do
+    test "pushes dismissal by id and for all" do
+      socket = %Phoenix.LiveView.Socket{}
+
+      by_id = dismiss_toast(socket, "export")
+
+      assert [["petal:toast-dismiss", %{id: "export"}]] =
+               Phoenix.LiveView.Utils.get_push_events(by_id)
+
+      all = dismiss_toast(socket, :all)
+      assert [["petal:toast-dismiss", %{all: true}]] = Phoenix.LiveView.Utils.get_push_events(all)
+    end
+  end
+
   describe "send_toast/3" do
     test "pushes the petal:toast event with a normalised payload" do
       socket = %Phoenix.LiveView.Socket{}

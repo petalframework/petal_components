@@ -2841,6 +2841,13 @@ export const PetalToast = {
     this.expanded = false;
 
     this.handleEvent("petal:toast", (d) => this.upsert(d || {}));
+    this.handleEvent("petal:toast-dismiss", (d) => {
+      if (d && d.all) [...this.toasts].forEach((t) => this.dismiss(t));
+      else if (d && d.id != null) {
+        const t = this.toasts.find((t) => t.id === String(d.id));
+        if (t) this.dismiss(t);
+      }
+    });
     this.onWindowToast = (e) => this.upsert(e.detail || {});
     window.addEventListener("petal:toast", this.onWindowToast);
 
@@ -3049,6 +3056,12 @@ export const PetalToast = {
     if (t.closing) return;
     t.closing = true;
     clearTimeout(t.timer);
+    this.el.dispatchEvent(
+      new CustomEvent("petal:toast-dismissed", {
+        detail: { id: t.id, kind: t.kind },
+        bubbles: true,
+      })
+    );
     t.el.dataset.state = "closing";
     if (dx) t.el.style.setProperty("--pc-toast-swipe-end", dx + "px");
     const remove = () => {
