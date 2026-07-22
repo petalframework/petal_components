@@ -217,4 +217,17 @@ defmodule PetalComponents.InputTest do
     assert html =~ "pc-dual-range--disabled"
     assert html =~ " disabled"
   end
+
+  test "bare input without value renders instead of raising" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.input type="file" name="upload" />
+      """)
+
+    assert html =~ ~s|type="file"|
+    assert html =~ "pc-file-input"
+    refute html =~ ~s|value=|
+  end
 end

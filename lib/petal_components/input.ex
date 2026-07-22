@@ -89,6 +89,13 @@ defmodule PetalComponents.Input do
     |> input()
   end
 
+  # `value` is optional for inputs that never carry one (file pickers foremost);
+  # it has no attr default because the form-field clause above derives it via
+  # assign_new, so this clause backfills it before typed dispatch.
+  def input(assigns) when not is_map_key(assigns, :value) do
+    assigns |> assign(:value, nil) |> input()
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <select id={@id} name={@name} class={[@class, "pc-text-input"]} multiple={@multiple} {@rest}>

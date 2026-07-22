@@ -2518,6 +2518,47 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Every type</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <.field
+            type="tel"
+            name="et_tel"
+            label="Phone"
+            value=""
+            placeholder="0400 000 000"
+            no_margin
+          />
+          <.field
+            type="url"
+            name="et_url"
+            label="Website"
+            value=""
+            placeholder="https://petal.build"
+            no_margin
+          />
+          <.field type="date" name="et_date" label="Date" value="2026-07-22" no_margin />
+          <.field type="time" name="et_time" label="Time" value="09:30" no_margin />
+          <.field
+            type="datetime-local"
+            name="et_dtl"
+            label="Date and time"
+            value="2026-07-22T09:30"
+            no_margin
+          />
+          <.field type="month" name="et_month" label="Month" value="2026-07" no_margin />
+          <.field type="week" name="et_week" label="Week" value="2026-W30" no_margin />
+          <.field type="color" name="et_color" label="Brand color" value="#7c3aed" no_margin />
+          <.field type="file" name="et_file" label="Attachment" no_margin />
+        </div>
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          The date family gets a calendar/clock button that opens the native picker.
+          <code class="text-xs">type="hidden"</code>
+          renders nothing visible - form plumbing only. For <code class="text-xs">range</code>
+          and <code class="text-xs">range-dual</code>, see the Slider page.
+        </p>
+      </div>
+
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Input group</div>
       <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto space-y-6">
@@ -8044,6 +8085,10 @@ PhoenixPlayground.start(
   # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
   port: String.to_integer(System.get_env("PORT", "4000")),
+  # Dual-stack: "localhost" resolves to ::1 or 127.0.0.1 depending on the
+  # client's Happy Eyeballs mood; a v4-only listener makes the LiveView
+  # websocket silently fail on the ::1 pick (dead render, URL params ignored).
+  ip: {0, 0, 0, 0, 0, 0, 0, 0},
   live_reload: true,
   endpoint_options: [
     debug_errors: true,

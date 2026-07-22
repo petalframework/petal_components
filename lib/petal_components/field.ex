@@ -158,6 +158,21 @@ defmodule PetalComponents.Field do
     |> field()
   end
 
+  # Without a form field, `value` and `label` are plain optional attrs - a bare
+  # `<.field type="file" name="upload" />` must render, not raise. They have no
+  # attr default because the form-field clause above derives them via assign_new.
+  # range-dual is exempt: it derives its label from min_field, not name.
+  def field(assigns)
+      when assigns.type != "range-dual" and
+             (not is_map_key(assigns, :value) or not is_map_key(assigns, :label)) do
+    assigns
+    |> assign_new(:value, fn -> nil end)
+    |> assign_new(:label, fn ->
+      if assigns[:name], do: PhoenixHTMLHelpers.Form.humanize(assigns.name)
+    end)
+    |> field()
+  end
+
   def field(%{type: "checkbox"} = assigns) do
     assigns =
       assigns

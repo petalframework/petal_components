@@ -160,6 +160,27 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|type="week"|
   end
 
+  test "bare field without value or label renders instead of raising" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.field type="file" name="upload" />
+      """)
+
+    assert html =~ ~s|type="file"|
+    # label humanises from the name when neither field nor label is given
+    assert html =~ "Upload"
+
+    labelled =
+      rendered_to_string(~H"""
+      <.field type="tel" name="phone" label="Phone" />
+      """)
+
+    assert labelled =~ ~s|type="tel"|
+    assert labelled =~ "Phone"
+  end
+
   test "field text disabled" do
     assigns = %{form: to_form(%{}, as: :user)}
 
