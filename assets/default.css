@@ -1784,8 +1784,11 @@
     @apply bg-transparent border border-gray-300 dark:bg-gray-400/8 dark:border-gray-400/25;
   }
 
-  .pc-radio-card--outline:hover .pc-radio-card__fake-input {
-    @apply bg-gray-50 dark:bg-gray-400/17;
+  /* Hover speaks through the border, not the fill - on a selection surface
+     the fill means "selected", so a hover wash would half-lie. Checked cards
+     keep their selected border (the :not guard). */
+  .pc-radio-card--outline:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
+    @apply border-gray-400 dark:border-gray-400/40;
   }
 
   .pc-radio-card--classic .pc-radio-card__fake-input {
@@ -1796,11 +1799,18 @@
     @apply bg-gray-200/70 dark:bg-gray-400/25;
   }
 
-  /* Checked State Styles. Dark uses the dark-calibrated shade: on a
-     monochrome primary, 600 resolves near-white - a glaring frame - while
-     500 reads as the restrained selected border; hue themes stay vivid. */
+  /* Checked state: the fill shift is the primary signal (alpha tints stay
+     ramp-agnostic - a faint gray step on monochrome, a soft hue glow on
+     colour themes), the border firms up as the secondary, and the dot
+     carries the accent. Alpha also self-calibrates the border: it softens a
+     monochrome's near-white/near-black poles more than it dulls a hue. */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-600 dark:border-primary-500;
+    @apply border-primary-500 bg-primary-600/5 dark:border-primary-500/60 dark:bg-primary-500/10;
+  }
+  /* classic is already a filled chip - the alpha tint would LIGHTEN it, so
+     selection keeps its resting material and speaks through the border */
+  .pc-radio-card--classic > .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
+    @apply bg-gray-100 dark:bg-gray-400/17;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
