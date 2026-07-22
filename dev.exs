@@ -6431,9 +6431,9 @@ defmodule Dev.PlaygroundLive do
           <.input_group>
             <:leading>
               <select name="igp_country" class="pc-select" aria-label="Country code">
-                <option>+61</option>
-                <option>+1</option>
-                <option>+44</option>
+                <option>🇦🇺 +61</option>
+                <option>🇺🇸 +1</option>
+                <option>🇬🇧 +44</option>
               </select>
             </:leading>
             <.input type="tel" name="igp_phone" value="" placeholder="400 000 000" />
@@ -6481,7 +6481,9 @@ defmodule Dev.PlaygroundLive do
         Inline addons go in :leading and :trailing; full-width rows in :block_start
         and :block_end. Focus anything inside and the whole group rings. Disable the
         input and the group fades with it. Inside a field wrapper with errors, the
-        group border turns the error colour.
+        group border turns the error colour. The country flags are plain emoji in
+        the option label - zero JS, though Windows renders flag emoji as letter
+        pairs (AU, US), so keep the dial code in the label.
       </div>
     </div>
     """

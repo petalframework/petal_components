@@ -1405,23 +1405,37 @@
   .pc-input-group__row :is(input, select, textarea):has(+ .pc-input-group__addon--trailing) {
     @apply pr-2;
   }
+  /* Buttons nest as an inset chip: an even 2px frame on every side (the
+     group's height is input-driven, so 2px is the natural vertical gap) and
+     a concentric corner - inner radius = outer radius minus the frame. */
   .pc-input-group__addon:has(> .pc-button) {
-    @apply px-1.5;
+    @apply p-0.5;
+  }
+  .pc-input-group__addon > .pc-button {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  /* Selects shed pc-select's standalone padding (12px text inset + a 40px
+     chevron zone) which otherwise overlaps the field and juts the label in;
+     the addon supplies the outer gap, the chevron hugs its text. */
+  .pc-input-group__addon > select {
+    @apply flex-none w-auto pl-1 pr-7;
+    background-position: right 0.375rem center;
+  }
+  .pc-input-group__addon--leading:has(> select) {
+    @apply pl-1.5;
+  }
+  .pc-input-group__addon--trailing:has(> select) {
+    @apply pr-1.5;
   }
   .pc-input-group__addon [class*="hero-"]:not([class*="w-"]) {
     @apply w-4 h-4;
   }
 
-  /* kbd hints: shadcn-calibre chip, nested radius */
+  /* kbd hints: shadcn-calibre chip, nested radius, edge inset matching the
+     leading icon's so both ends of the field read equally padded */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
     @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
-  }
-  .pc-input-group__addon--trailing:has(> kbd) {
-    @apply pr-2;
-  }
-  .pc-input-group__addon--leading:has(> kbd) {
-    @apply pl-2;
   }
 
   /* Block addons: full-width rows above/below the control (toolbars,
