@@ -915,15 +915,19 @@
   .pc-alert__label {
     @apply py-1 font-medium;
   }
-  /* House close-button grammar: comfortable hit area that never
-     participates in layout (negative margins cancel the padding), glyph
-     brightens on hover with a faint wash in the surface's own family,
-     focus-visible ring, never dims. Alert washes stay tinted per colour
-     - a gray ghost wash would fight the coloured surface. */
+  /* House close-button grammar (corner dismissers): a bare glyph that
+     brightens on hover - no wash box, so nothing can sit misaligned
+     against text. The generous hit area is an invisible ::before
+     extension, so it never participates in layout. Focus-visible ring;
+     never dims. Alert glyphs keep their per-colour tinted hovers. */
   .pc-alert__dismiss-button {
-    @apply flex p-1.5 -m-1.5 hover:cursor-pointer transition-colors duration-150;
+    @apply relative flex items-center h-7 hover:cursor-pointer transition-colors duration-150 rounded-sm;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-alert__dismiss-button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
 
   /* Alerts - colors and variants */
@@ -988,58 +992,58 @@
 
   /* Info dismiss button variants */
   .pc-alert__dismiss-button--info-light {
-    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-300 dark:hover:text-info-800;
+    @apply hover:text-info-800 dark:hover:text-info-800;
   }
   .pc-alert__dismiss-button--info-soft {
-    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-500/25 dark:hover:text-info-200;
+    @apply hover:text-info-800 dark:hover:text-info-200;
   }
   .pc-alert__dismiss-button--info-dark {
-    @apply text-white hover:bg-info-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--info-outline {
-    @apply text-info-700 hover:bg-info-50 dark:text-info-300 dark:hover:bg-gray-400/17;
+    @apply text-info-700 dark:text-info-300;
   }
 
   /* Success dismiss button variants */
   .pc-alert__dismiss-button--success-light {
-    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-300 dark:hover:text-success-800;
+    @apply hover:text-success-800 dark:hover:text-success-800;
   }
   .pc-alert__dismiss-button--success-soft {
-    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-500/25 dark:hover:text-success-200;
+    @apply hover:text-success-800 dark:hover:text-success-200;
   }
   .pc-alert__dismiss-button--success-dark {
-    @apply text-white hover:bg-success-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--success-outline {
-    @apply text-success-700 hover:bg-success-50 dark:text-success-300 dark:hover:bg-gray-400/17;
+    @apply text-success-700 dark:text-success-300;
   }
 
   /* Warning dismiss button variants */
   .pc-alert__dismiss-button--warning-light {
-    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-300 dark:hover:text-warning-800;
+    @apply hover:text-warning-800 dark:hover:text-warning-800;
   }
   .pc-alert__dismiss-button--warning-soft {
-    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-500/25 dark:hover:text-warning-200;
+    @apply hover:text-warning-800 dark:hover:text-warning-200;
   }
   .pc-alert__dismiss-button--warning-dark {
-    @apply text-white hover:bg-warning-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--warning-outline {
-    @apply text-warning-700 hover:bg-warning-50 dark:text-warning-300 dark:hover:bg-gray-400/17;
+    @apply text-warning-700 dark:text-warning-300;
   }
 
   /* Danger dismiss button variants */
   .pc-alert__dismiss-button--danger-light {
-    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-300 dark:hover:text-danger-800;
+    @apply hover:text-danger-800 dark:hover:text-danger-800;
   }
   .pc-alert__dismiss-button--danger-soft {
-    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-500/25 dark:hover:text-danger-200;
+    @apply hover:text-danger-800 dark:hover:text-danger-200;
   }
   .pc-alert__dismiss-button--danger-dark {
-    @apply text-white hover:bg-danger-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--danger-outline {
-    @apply text-danger-700 hover:bg-danger-50 dark:text-danger-300 dark:hover:bg-gray-400/17;
+    @apply text-danger-700 dark:text-danger-300;
   }
 
   /* Alert - gray (monochrome) */
@@ -1057,16 +1061,16 @@
     @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
   }
   .pc-alert__dismiss-button--gray-light {
-    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-300 dark:hover:text-gray-800;
+    @apply hover:text-gray-800 dark:hover:text-gray-800;
   }
   .pc-alert__dismiss-button--gray-soft {
-    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-500/25 dark:hover:text-gray-200;
+    @apply hover:text-gray-800 dark:hover:text-gray-200;
   }
   .pc-alert__dismiss-button--gray-dark {
-    @apply text-white hover:bg-gray-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--gray-outline {
-    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-400/17;
+    @apply text-gray-700 dark:text-gray-300;
   }
 
   /* Alerts - with icon */
@@ -2781,10 +2785,14 @@
     @apply font-semibold text-gray-800 dark:text-gray-200;
   }
   .pc-modal__header__button {
-    @apply flex-none self-start p-1 -m-1 text-gray-400 transition-colors cursor-pointer;
-    @apply hover:bg-gray-900/5 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
+    @apply relative flex-none self-start text-gray-400 transition-colors cursor-pointer rounded-sm;
+    @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-modal__header__button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
   .pc-modal__header__close-svg {
     @apply w-5 h-5 fill-current;
@@ -3261,8 +3269,12 @@
     @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply flex-none self-start p-1 -m-1 text-gray-400 transition-colors cursor-pointer hover:bg-gray-900/5 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    @apply relative flex-none self-start text-gray-400 transition-colors cursor-pointer rounded-sm hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:text-gray-300;
+  }
+
+  .pc-slideover__header__button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
   .pc-slideover__header__close-svg {
     @apply h-4 w-4 fill-current;
@@ -5570,10 +5582,14 @@
   }
 
   .pc-toast__close {
-    @apply shrink-0 -m-1 mt-0 p-1 cursor-pointer text-gray-400 transition-colors duration-150;
-    @apply hover:bg-gray-900/5 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
+    @apply relative shrink-0 cursor-pointer text-gray-400 transition-colors duration-150 rounded-sm;
+    @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-toast__close::before {
+    content: "";
+    @apply absolute -inset-2;
   }
 
   .pc-toast__close-icon {
