@@ -1582,9 +1582,14 @@
   }
   /* Thumb: a white ring in both schemes - it separates the thumb from a
      light track and a dark one alike, and reads better than the dark ring
-     the old (never-applied) dark: variant intended. */
+     the old (never-applied) dark: variant intended.
+     box-border is load-bearing: preflight's border-box reset can't reach
+     these pseudo-elements (the universal selector doesn't match them), and
+     the UA defaults disagree - WebKit sizes the thumb border-box, Firefox
+     content-box - so without it Firefox rendered 26px thumbs (20 + 2x3
+     ring) against WebKit's 20px. */
   .pc-range-input::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    @apply appearance-none box-border w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
     margin-top: -0.4375rem;
   }
   .pc-range-input:hover::-webkit-slider-thumb {
@@ -1594,7 +1599,7 @@
     @apply scale-110 ring-2 ring-primary-500/50;
   }
   .pc-range-input::-moz-range-thumb {
-    @apply w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    @apply box-border w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
   }
   .pc-range-input:hover::-moz-range-thumb {
     transform: scale(1.1);
@@ -1638,15 +1643,17 @@
     height: 0;
   }
 
+  /* box-border: see .pc-range-input::-webkit-slider-thumb - Firefox sizes
+     range thumbs content-box by default, WebKit border-box */
   .pc-dual-range__thumb::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 rounded-full pointer-events-auto cursor-pointer;
+    @apply appearance-none box-border w-5 h-5 rounded-full pointer-events-auto cursor-pointer;
     @apply bg-primary-500 border-[3px] border-white dark:border-gray-900;
     @apply shadow shadow-black/25;
     @apply transition-transform duration-100 ease-out;
   }
 
   .pc-dual-range__thumb::-moz-range-thumb {
-    @apply w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    @apply box-border w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
   }
 
   .pc-dual-range__thumb:hover::-webkit-slider-thumb {
