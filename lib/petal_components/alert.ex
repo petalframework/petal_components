@@ -84,7 +84,7 @@ defmodule PetalComponents.Alert do
                   )
                 }
               >
-                <.icon name="hero-x-mark-solid" class="w-4 h-4" />
+                <.icon name="hero-x-mark" class="w-4 h-4" />
               </button>
             <% else %>
               <%= if @close_button_properties do %>
@@ -92,7 +92,7 @@ defmodule PetalComponents.Alert do
                   class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
                   {@close_button_properties}
                 >
-                  <.icon name="hero-x-mark-solid" class="w-4 h-4" />
+                  <.icon name="hero-x-mark" class="w-4 h-4" />
                 </button>
               <% end %>
             <% end %>

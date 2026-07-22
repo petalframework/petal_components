@@ -921,7 +921,7 @@
      extension, so it never participates in layout. Focus-visible ring;
      never dims. Alert glyphs keep their per-colour tinted hovers. */
   .pc-alert__dismiss-button {
-    @apply relative flex items-center h-7 hover:cursor-pointer transition-colors duration-150 rounded-sm;
+    @apply relative flex items-center h-7 hover:cursor-pointer opacity-60 transition duration-150 hover:opacity-100 rounded-sm;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
 
@@ -991,12 +991,6 @@
   /* Alerts - dismiss button variants */
 
   /* Info dismiss button variants */
-  .pc-alert__dismiss-button--info-light {
-    @apply hover:text-info-800 dark:hover:text-info-800;
-  }
-  .pc-alert__dismiss-button--info-soft {
-    @apply hover:text-info-800 dark:hover:text-info-200;
-  }
   .pc-alert__dismiss-button--info-dark {
     @apply text-white;
   }
@@ -1005,12 +999,6 @@
   }
 
   /* Success dismiss button variants */
-  .pc-alert__dismiss-button--success-light {
-    @apply hover:text-success-800 dark:hover:text-success-800;
-  }
-  .pc-alert__dismiss-button--success-soft {
-    @apply hover:text-success-800 dark:hover:text-success-200;
-  }
   .pc-alert__dismiss-button--success-dark {
     @apply text-white;
   }
@@ -1019,12 +1007,6 @@
   }
 
   /* Warning dismiss button variants */
-  .pc-alert__dismiss-button--warning-light {
-    @apply hover:text-warning-800 dark:hover:text-warning-800;
-  }
-  .pc-alert__dismiss-button--warning-soft {
-    @apply hover:text-warning-800 dark:hover:text-warning-200;
-  }
   .pc-alert__dismiss-button--warning-dark {
     @apply text-white;
   }
@@ -1033,12 +1015,6 @@
   }
 
   /* Danger dismiss button variants */
-  .pc-alert__dismiss-button--danger-light {
-    @apply hover:text-danger-800 dark:hover:text-danger-800;
-  }
-  .pc-alert__dismiss-button--danger-soft {
-    @apply hover:text-danger-800 dark:hover:text-danger-200;
-  }
   .pc-alert__dismiss-button--danger-dark {
     @apply text-white;
   }
@@ -1059,12 +1035,6 @@
   }
   .pc-alert--gray-outline {
     @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
-  }
-  .pc-alert__dismiss-button--gray-light {
-    @apply hover:text-gray-800 dark:hover:text-gray-800;
-  }
-  .pc-alert__dismiss-button--gray-soft {
-    @apply hover:text-gray-800 dark:hover:text-gray-200;
   }
   .pc-alert__dismiss-button--gray-dark {
     @apply text-white;
@@ -2785,7 +2755,7 @@
     @apply font-semibold text-gray-800 dark:text-gray-200;
   }
   .pc-modal__header__button {
-    @apply relative flex-none self-start text-gray-400 transition-colors cursor-pointer rounded-sm;
+    @apply relative flex flex-none text-gray-400 transition-colors cursor-pointer rounded-sm;
     @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
@@ -3269,7 +3239,7 @@
     @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply relative flex-none self-start text-gray-400 transition-colors cursor-pointer rounded-sm hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:text-gray-300;
+    @apply relative flex flex-none self-start items-center h-6 text-gray-400 transition-colors cursor-pointer rounded-sm hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:text-gray-300;
   }
 
   .pc-slideover__header__button::before {
@@ -3277,7 +3247,7 @@
     @apply absolute -inset-2;
   }
   .pc-slideover__header__close-svg {
-    @apply h-4 w-4 fill-current;
+    @apply w-5 h-5 fill-current;
   }
   .pc-slideover__footer {
     @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-400/17;
@@ -5582,7 +5552,7 @@
   }
 
   .pc-toast__close {
-    @apply relative shrink-0 cursor-pointer text-gray-400 transition-colors duration-150 rounded-sm;
+    @apply relative flex shrink-0 items-center h-5 cursor-pointer text-gray-400 transition-colors duration-150 rounded-sm;
     @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
