@@ -2853,6 +2853,23 @@ defmodule Dev.PlaygroundLive do
           </.border_beam>
         </div>
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.BorderBeam.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.BorderBeam} function={:border_beam} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.BorderBeam</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5596,6 +5613,23 @@ defmodule Dev.PlaygroundLive do
         to see it. (variant="ghost" still renders - a legacy alias of default, going
         away in 5.0.)
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Accordion.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Accordion} function={:accordion} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Accordion</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -7355,6 +7389,23 @@ defmodule Dev.PlaygroundLive do
         off-screen, and prefers-reduced-motion freezes it entirely. Ported from Petal Pro
         and rebuilt: pc-prefixed classes, palette-driven gradients, content above the glow.
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Aurora.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Aurora} function={:aurora} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Aurora</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -7892,51 +7943,44 @@ defmodule Dev.PlaygroundLive do
         style; variant="bubbles" puts both sides in bubbles (messenger style).
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Markers - system notes, status rows, separators
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto">
-          <Chat.marker variant="separator">Today</Chat.marker>
-          <Chat.marker icon="hero-magnifying-glass">Searched the web - 8 sources</Chat.marker>
-          <Chat.marker loading>
-            <.shimmer_text class="text-xs font-medium">Running the numbers...</.shimmer_text>
-          </Chat.marker>
-          <Chat.marker variant="border" icon="hero-archive-box">
-            Context compacted - 12k tokens summarised
-          </Chat.marker>
-          <Chat.marker icon="hero-check-circle">Answer complete</Chat.marker>
-        </div>
+      <div
+        :for={ex <- Enum.reject(PetalComponents.Showcase.Chat.examples(), &(&1.id == :flagship))}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Tool calls, reasoning and errors
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col max-w-md gap-3 mx-auto">
-          <Chat.tool_call name="get_weather" status={:complete} label="Checked the weather">
-            <div class="flex items-center gap-3 text-sm">
-              <.icon name="hero-sun" class="w-8 h-8 text-warning-500" />
-              <div>
-                <div class="font-medium text-gray-900 dark:text-gray-100">Paris - 21°C</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Clear skies until 6pm</div>
-              </div>
-            </div>
-          </Chat.tool_call>
-          <Chat.tool_call name="query_db" status={:running} label="Querying the database" />
-          <Chat.reasoning label="Thought for 3s">
-            The user asked about installs. Check the hex package name, then give
-            the two-step answer with a code fence.
-          </Chat.reasoning>
-          <Chat.chat_error on_retry="chat_history">Rate limited - give it a moment.</Chat.chat_error>
-        </div>
-      </div>
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Chat}
+        functions={[
+          :conversation,
+          :chat_message,
+          :streaming_text,
+          :prompt_input,
+          :tool_call,
+          :markdown,
+          :rich_text,
+          :reasoning,
+          :marker,
+          :message_actions,
+          :copy_button,
+          :suggestions,
+          :chat_error
+        ]}
+      />
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Chat isn't pulled in by use PetalComponents - alias PetalComponents.Chat
         and call it namespaced (it owns generic names like markdown). Markdown
-        needs the optional :mdex dep. Reactions and read receipts are social-chat
-        territory, not AI - deliberately out of scope for now.
+        needs the optional :mdex dep. The examples above (the live thread excepted)
+        render from the shared <code>PetalComponents.Showcase.Chat</code> registry -
+        the same source petal.build renders, so the playground and the marketing docs
+        can't drift.
       </div>
     </div>
     """
