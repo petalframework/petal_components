@@ -1502,7 +1502,7 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
   .pc-range-input {
-    @apply w-full cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-full cursor-pointer accent-primary-600 dark:accent-primary-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: var(--pc-radius, 0.625rem);
   }
 

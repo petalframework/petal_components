@@ -23,6 +23,7 @@
 
 #### Fixed
 
+- **The native range input rides the primary colour.** `type="range"` never set `accent-color`, so the thumb rendered in the browser's default blue no matter what the theme said - the only form control that ignored the dial. It now accents with `primary-600` (`primary-500` on dark), matching checkboxes and radios.
 - **One close-button grammar across alert, modal, slide-over and toast.** The four X buttons had drifted into four behaviours: the alert's oversized hit area grew headingless alerts when dismissible, the modal's X had no dark-mode styles at all (so hovering *dimmed* it on dark), washes and focus rings were present or absent at random. Now every X follows the same rules: a bare glyph (no hover box - a wash rectangle in a corner draws chrome where nothing else has any, and can never sit misaligned against text) that brightens on hover, a generous invisible hit area that never participates in layout, a focus-visible ring, and it never dims. The alert's glyph keeps its per-colour tinted hover.
 - **`alert` no longer crashes when `on_dismiss` is nil.** Conditionally passing the attr - `on_dismiss={if @dismissible, do: JS.dispatch(...)}` - is a natural pattern, and the nil case raised at render. Nil now behaves like the empty default: no dismiss button.
 - **Textareas clamp the radius token.** A full-radius theme turned multiline fields into over-rounded pills that ate their own text; textareas now cap at 1rem while single-line inputs keep the pill option - that one is a real style.

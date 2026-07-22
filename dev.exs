@@ -200,6 +200,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
+        %{slug: "slider", name: "Slider", ready: true},
         %{slug: "input-otp", name: "Input OTP", ready: true},
         %{slug: "color-scheme", name: "Color scheme", ready: true}
       ]
@@ -696,6 +697,8 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        radio: %{variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
+       slider: %{format: "money", disabled: false},
+       slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{
          value: 0,
@@ -1275,6 +1278,17 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_slider", %{"k" => "format", "v" => v}, socket)
+      when v in ~w(money percent plain),
+      do:
+        {:noreply,
+         socket
+         |> update(:slider, &%{&1 | format: v})
+         |> assign(:slider_form, slider_form(v))}
+
+  def handle_event("ctl_slider", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :slider, &%{&1 | disabled: !&1.disabled})}
+
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(outline classic),
       do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -1753,6 +1767,47 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.input_otp #{Enum.join(attrs, " ")} />"
+  end
+
+  defp slider_form("money"), do: to_form(%{"min" => "250", "max" => "750"}, as: :pg_range)
+  defp slider_form("percent"), do: to_form(%{"min" => "20", "max" => "80"}, as: :pg_range)
+  defp slider_form("plain"), do: to_form(%{"min" => "25", "max" => "75"}, as: :pg_range)
+
+  defp slider_bounds("money"),
+    do: %{bound_min: 0, bound_max: 1000, step: 25, prefix: "$", suffix: "", label: "Price range"}
+
+  defp slider_bounds("percent"),
+    do: %{bound_min: 0, bound_max: 100, step: 5, prefix: "", suffix: "%", label: "Discount range"}
+
+  defp slider_bounds("plain"),
+    do: %{bound_min: 0, bound_max: 100, step: 1, prefix: "", suffix: "", label: "Value range"}
+
+  defp slider_snippet(s) do
+    b = slider_bounds(s.format)
+
+    attrs =
+      [
+        ~s(type="range-dual"),
+        ~s(min_field={@form[:min]}),
+        ~s(max_field={@form[:max]}),
+        ~s(range_min={#{b.bound_min}}),
+        ~s(range_max={#{b.bound_max}}),
+        b.step != 1 && ~s(step={#{b.step}}),
+        b.prefix != "" && ~s(value_prefix="#{b.prefix}"),
+        b.suffix != "" && ~s(value_suffix="#{b.suffix}"),
+        ~s(label="#{b.label}"),
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("    " <> &1))
+
+    """
+    <.form for={@form} phx-change="filter">
+      <.field
+    #{Enum.join(attrs, "\n")}
+      />
+    </.form>\
+    """
   end
 
   defp switch_snippet(sw) do
@@ -6266,6 +6321,125 @@ defmodule Dev.PlaygroundLive do
             label={z}
             size={z}
             checked
+            no_margin
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "slider"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sb, slider_bounds(assigns.slider.format))
+      |> assign(:price_form, to_form(%{"min" => "100", "max" => "600"}, as: :pg_price))
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Slider</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One thumb or two. The single range is the native input riding the theme
+        tokens; the dual range pairs two thumbs for min/max filtering - no deps,
+        just a hook.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              id={"pg-slider-#{@slider.format}-#{@slider.disabled}"}
+              type="range-dual"
+              min_field={@slider_form[:min]}
+              max_field={@slider_form[:max]}
+              range_min={@sb.bound_min}
+              range_max={@sb.bound_max}
+              step={@sb.step}
+              value_prefix={@sb.prefix}
+              value_suffix={@sb.suffix}
+              label={@sb.label}
+              disabled={@slider.disabled}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={f <- ~w(money percent plain)}
+                phx-click="ctl_slider"
+                phx-value-k="format"
+                phx-value-v={f}
+                class={seg(@slider.format == f)}
+              >
+                {f}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_slider" phx-value-k="disabled" class={tog(@slider.disabled)}>
+                disabled
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{slider_snippet(@slider)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Single range</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+          <.field type="range" name="pg_volume" label="Volume" value="60" min="0" max="100" no_margin />
+          <.field
+            type="range"
+            name="pg_stepped"
+            label="Stepped (10s)"
+            value="40"
+            min="0"
+            max="100"
+            step="10"
+            no_margin
+          />
+          <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
+        </div>
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          <code class="text-xs">type="range"</code>
+          is the native input - zero JavaScript, and the thumb rides the primary color.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Open-ended bounds
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="range-dual"
+            min_field={@price_form[:min]}
+            max_field={@price_form[:max]}
+            range_min={0}
+            range_max={1000}
+            step={50}
+            value_prefix="$"
+            range_max_label="$1,000+"
+            label="Price"
+            help_text={~s(range_max_label caps the scale as "open-ended".)}
             no_margin
           />
         </div>
