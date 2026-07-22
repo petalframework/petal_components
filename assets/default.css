@@ -971,6 +971,10 @@
     opacity: 0.85;
   }
 
+  .pc-alert__actions {
+    @apply flex flex-wrap items-center gap-2 mt-2.5 mb-1;
+  }
+
   .pc-alert__heading {
     @apply pt-1 font-bold;
   }

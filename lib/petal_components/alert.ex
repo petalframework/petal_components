@@ -20,6 +20,13 @@ defmodule PetalComponents.Alert do
   attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
   attr(:label, :string, default: nil, doc: "label your alert")
+
+  attr(:icon, :string,
+    default: nil,
+    doc:
+      "a Heroicon name to use instead of the kind icon (e.g. \"hero-lock-closed\" for a security notice); implies with_icon"
+  )
+
   attr(:rest, :global)
 
   attr(:close_button_properties, :list,
@@ -33,6 +40,10 @@ defmodule PetalComponents.Alert do
       "JS commands to run when the alert is dismissed. Any non-empty command (e.g. JS.dispatch(\"my-app:alert-dismissed\")) adds a close button with built-in hide behaviour; the empty default and nil render no button - so conditionally passing nil is safe."
 
   slot(:inner_block)
+
+  slot(:actions,
+    doc: "buttons or links rendered under the message, indented with the text column"
+  )
 
   def alert(assigns) do
     assigns =
@@ -48,13 +59,17 @@ defmodule PetalComponents.Alert do
         {@rest}
         id={@alert_id}
         class={@classes}
-        role="dialog"
+        role={if @color in ~w(danger warning), do: "alert", else: "status"}
         aria-labelledby={(@heading && @heading_id) || @label_id}
         aria-describedby={@label_id}
       >
-        <%= if @with_icon do %>
+        <%= if @with_icon || @icon do %>
           <div class="pc-alert__icon-container">
-            <.get_icon color={@color} variant={@variant} />
+            <%= if @icon do %>
+              <.icon name={@icon} />
+            <% else %>
+              <.get_icon color={@color} variant={@variant} />
+            <% end %>
           </div>
         <% end %>
 
@@ -69,6 +84,10 @@ defmodule PetalComponents.Alert do
 
               <div id={@label_id} class="pc-alert__label">
                 {render_slot(@inner_block) || @label}
+              </div>
+
+              <div :if={@actions != []} class="pc-alert__actions">
+                {render_slot(@actions)}
               </div>
             </div>
 

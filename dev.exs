@@ -7347,6 +7347,22 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Actions and custom icons
+      </div>
+      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.alert color="info" variant="callout" with_icon heading="Update available">
+          Version 4.8 is ready to install.
+          <:actions>
+            <.button size="sm" variant="soft">View notes</.button>
+            <.button size="sm" variant="ghost" color="gray">Later</.button>
+          </:actions>
+        </.alert>
+        <.alert color="warning" variant="soft" icon="hero-lock-closed" heading="Password expiring">
+          Your password expires in 3 days - a custom icon via icon="hero-lock-closed".
+        </.alert>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Dismissible (click the cross)
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">

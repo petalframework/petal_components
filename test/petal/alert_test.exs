@@ -373,6 +373,55 @@ defmodule PetalComponents.AlertTest do
     end
   end
 
+  describe "roles, actions and icon override" do
+    test "danger and warning announce as alert; info and success as status" do
+      assigns = %{}
+
+      danger =
+        rendered_to_string(~H"""
+        <.alert color="danger">Nope</.alert>
+        """)
+
+      info =
+        rendered_to_string(~H"""
+        <.alert color="info">FYI</.alert>
+        """)
+
+      assert danger =~ ~s(role="alert")
+      assert info =~ ~s(role="status")
+      refute danger =~ ~s(role="dialog")
+    end
+
+    test "actions slot renders under the message" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" heading="Update available">
+          A new version is ready.
+          <:actions>
+            <button>View notes</button>
+          </:actions>
+        </.alert>
+        """)
+
+      assert html =~ "pc-alert__actions"
+      assert html =~ "View notes"
+    end
+
+    test "icon attr overrides the kind icon and implies with_icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="warning" icon="hero-lock-closed">Security notice</.alert>
+        """)
+
+      assert html =~ "hero-lock-closed"
+      refute html =~ "hero-exclamation-circle"
+    end
+  end
+
   describe "on_dismiss nil-safety" do
     test "nil renders no dismiss button instead of crashing" do
       assigns = %{}
