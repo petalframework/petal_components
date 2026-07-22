@@ -414,7 +414,7 @@ defmodule PetalComponents.Field do
             "pc-radio-card--#{@size}",
             "pc-radio-card--#{@variant}",
             @indicator && "pc-radio-card--indicator",
-            option[:disabled] && "pc-radio-card--disabled"
+            (option[:disabled] || @rest[:disabled]) && "pc-radio-card--disabled"
           ]}>
             <input
               type="radio"

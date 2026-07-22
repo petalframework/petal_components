@@ -697,7 +697,14 @@ defmodule Dev.PlaygroundLive do
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
-       radio: %{style: "cards", variant: "outline", size: "md", layout: "row"},
+       radio: %{
+         style: "cards",
+         variant: "outline",
+         size: "md",
+         layout: "row",
+         indicator: false,
+         disabled: false
+       },
        switch: %{size: "md", disabled: false, error: false},
        slider: %{format: "money", disabled: false},
        slider_form: slider_form("money"),
@@ -1295,6 +1302,11 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(cards plain),
       do: {:noreply, update(socket, :radio, &%{&1 | style: v})}
 
+  def handle_event("ctl_radio", %{"k" => k}, socket) when k in ~w(indicator disabled),
+    do:
+      {:noreply,
+       update(socket, :radio, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(outline classic),
       do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -1840,6 +1852,7 @@ defmodule Dev.PlaygroundLive do
         ~s(label="Plan"),
         ~s(value="pro"),
         r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        r.disabled && "disabled",
         ~s|options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}|
       ]
       |> Enum.filter(& &1)
@@ -1857,6 +1870,8 @@ defmodule Dev.PlaygroundLive do
         r.variant != "outline" && ~s(variant="#{r.variant}"),
         r.size != "md" && ~s(size="#{r.size}"),
         r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        r.indicator && "indicator",
+        r.disabled && "disabled",
         ~s(options={[%{value: "starter", label: "Starter", description: "For side projects"}, ...]})
       ]
       |> Enum.filter(& &1)
@@ -6690,6 +6705,8 @@ defmodule Dev.PlaygroundLive do
               variant={@radio.variant}
               size={@radio.size}
               group_layout={@radio.layout}
+              indicator={@radio.indicator}
+              disabled={@radio.disabled}
               options={[
                 %{value: "starter", label: "Starter", description: "For side projects"},
                 %{value: "pro", label: "Pro", description: "For small teams"},
@@ -6704,6 +6721,7 @@ defmodule Dev.PlaygroundLive do
                 label="Plan"
                 value="pro"
                 group_layout={@radio.layout}
+                disabled={@radio.disabled}
                 options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}
                 no_margin
               />
@@ -6764,6 +6782,22 @@ defmodule Dev.PlaygroundLive do
                 class={seg(@radio.layout == l)}
               >
                 {l}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button
+                :if={@radio.style == "cards"}
+                phx-click="ctl_radio"
+                phx-value-k="indicator"
+                class={tog(@radio.indicator)}
+              >
+                indicator
+              </button>
+              <button phx-click="ctl_radio" phx-value-k="disabled" class={tog(@radio.disabled)}>
+                disabled
               </button>
             </div>
           </div>

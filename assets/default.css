@@ -1146,7 +1146,7 @@
     @apply border-danger-500 dark:border-danger-500/70;
   }
   .pc-checkbox-label {
-    @apply inline-flex items-start gap-2 text-sm font-medium text-gray-900 cursor-pointer dark:text-gray-200;
+    @apply inline-flex items-start gap-2 text-sm font-medium text-gray-900 cursor-pointer dark:text-gray-200 has-[input:disabled]:opacity-50 has-[input:disabled]:cursor-not-allowed;
   }
   /* Top-align the control against the first text line (20px line, 16px box) */
   .pc-checkbox-label > .pc-checkbox,

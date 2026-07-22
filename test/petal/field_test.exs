@@ -661,6 +661,29 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "custom-class"
   end
 
+  test "field radio-card group-wide disabled greys every card" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.field
+          type="radio-card"
+          field={@form[:plans]}
+          disabled
+          options={[
+            %{label: "Basic Plan", value: "basic"},
+            %{label: "Pro Plan", value: "pro"}
+          ]}
+        />
+      </.form>
+      """)
+
+    # both cards carry the disabled style, not just per-option disabled ones
+    assert length(String.split(html, "pc-radio-card--disabled")) == 3
+    assert html =~ ~s|disabled|
+  end
+
   test "field radio-card group_layout attr" do
     assigns = %{form: to_form(%{}, as: :user)}
 
