@@ -697,7 +697,7 @@ defmodule Dev.PlaygroundLive do
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
-       radio: %{variant: "outline", size: "md", layout: "row"},
+       radio: %{style: "cards", variant: "outline", size: "md", layout: "row"},
        switch: %{size: "md", disabled: false, error: false},
        slider: %{format: "money", disabled: false},
        slider_form: slider_form("money"),
@@ -1291,6 +1291,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_slider", %{"k" => "disabled"}, socket),
     do: {:noreply, update(socket, :slider, &%{&1 | disabled: !&1.disabled})}
 
+  def handle_event("ctl_radio", %{"k" => "style", "v" => v}, socket)
+      when v in ~w(cards plain),
+      do: {:noreply, update(socket, :radio, &%{&1 | style: v})}
+
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(outline classic),
       do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -1828,6 +1832,21 @@ defmodule Dev.PlaygroundLive do
     "<.field #{Enum.join(attrs, " ")} />"
   end
 
+  defp radio_snippet(%{style: "plain"} = r) do
+    attrs =
+      [
+        ~s(type="radio-group"),
+        ~s(name="plan"),
+        ~s(label="Plan"),
+        ~s(value="pro"),
+        r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        ~s|options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}|
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
   defp radio_snippet(r) do
     attrs =
       [
@@ -2051,7 +2070,7 @@ defmodule Dev.PlaygroundLive do
           >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
             <span>Search components</span>
-            <kbd class="pc-kbd ml-auto">⌘K</kbd>
+            <kbd class="pc-kbd ml-auto"><span>⌘</span>K</kbd>
           </button>
           <a
             href="https://github.com/petalframework/petal_components"
@@ -2574,27 +2593,8 @@ defmodule Dev.PlaygroundLive do
           <.input_group>
             <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
             <.input type="search" name="ig_q" value="" placeholder="Search components..." />
-            <:trailing><kbd>&#8984;K</kbd></:trailing>
+            <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
           </.input_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Select and checkbox
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="plan"
-            label="Plan"
-            value="Pro"
-            options={["Free", "Pro", "Team"]}
-            no_margin
-          />
-          <div class="mt-6">
-            <.field type="checkbox" name="tos" label="I agree to the terms" checked no_margin />
-          </div>
         </div>
       </div>
     </div>
@@ -3970,14 +3970,14 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_label>My account</.dropdown_menu_label>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-user" class="w-4 h-4" /> Profile
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;P</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>P</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> Settings
-              <kbd class="pc-kbd ml-auto">&#8984;,</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>,</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_separator />
             <.dropdown_menu_label>Team</.dropdown_menu_label>
@@ -3990,7 +3990,7 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_separator />
             <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
               <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;Q</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>Q</kbd>
             </.dropdown_menu_item>
           </.dropdown>
         </div>
@@ -4004,11 +4004,11 @@ defmodule Dev.PlaygroundLive do
           <.dropdown>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
-              <kbd class="pc-kbd ml-auto">&#8984;E</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>E</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-document-duplicate" class="w-4 h-4" /> Duplicate
-              <kbd class="pc-kbd ml-auto">&#8984;D</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>D</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-archive-box" class="w-4 h-4" /> Archive
@@ -4016,7 +4016,7 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_separator />
             <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
               <.icon name="hero-trash" class="w-4 h-4" /> Delete
-              <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>⌫</kbd>
             </.dropdown_menu_item>
           </.dropdown>
           <.dropdown placement="right" trigger_class="pc-button pc-button--primary pc-button--md">
@@ -4070,7 +4070,7 @@ defmodule Dev.PlaygroundLive do
         <div class="mt-4">
           <.input_group>
             <.input type="text" name="invite_url" value="https://example.com/join/x1y2z3" readonly />
-            <:trailing><kbd>&#8984;C</kbd></:trailing>
+            <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
           </.input_group>
         </div>
         <div class="flex justify-end gap-2 mt-6">
@@ -6397,7 +6397,7 @@ defmodule Dev.PlaygroundLive do
             <.input_group>
               <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
               <.input type="search" name="igp_q" value="" placeholder="Search components..." />
-              <:trailing><kbd>&#8984;K</kbd></:trailing>
+              <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
             </.input_group>
             <.input_group>
               <:leading>@</:leading>
@@ -6560,9 +6560,9 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Slider</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        One thumb or two. The single range is the native input riding the theme
-        tokens; the dual range pairs two thumbs for min/max filtering - no deps,
-        just a hook.
+        One thumb or two, one grammar: the same track, thumb and focus ring
+        whether you render a single range (pure CSS on the native input) or the
+        dual range (two thumbs and a hook for min/max filtering).
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -6682,6 +6682,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-lg">
             <.field
+              :if={@radio.style == "cards"}
               type="radio-card"
               name="pg_plan"
               label="Plan"
@@ -6696,10 +6697,35 @@ defmodule Dev.PlaygroundLive do
               ]}
               no_margin
             />
+            <div :if={@radio.style == "plain"} class="flex justify-center">
+              <.field
+                type="radio-group"
+                name="pg_plan_plain"
+                label="Plan"
+                value="pro"
+                group_layout={@radio.layout}
+                options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}
+                no_margin
+              />
+            </div>
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">style</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={st <- ~w(cards plain)}
+                phx-click="ctl_radio"
+                phx-value-k="style"
+                phx-value-v={st}
+                class={seg(@radio.style == st)}
+              >
+                {st}
+              </button>
+            </div>
+          </div>
+          <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -6713,7 +6739,7 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
-          <div>
+          <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button

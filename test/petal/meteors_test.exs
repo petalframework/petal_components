@@ -96,6 +96,7 @@ defmodule PetalComponents.MeteorsTest do
       assert html =~ ~s(data-test="meteors")
     end
   end
+
   test "angle and color attrs set the field custom properties" do
     assigns = %{}
 

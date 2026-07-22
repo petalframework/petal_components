@@ -195,12 +195,14 @@ defmodule PetalComponents.Field do
           class={["pc-checkbox", @class]}
           {@rest}
         />
-        <div class={[@required && "pc-label--required"]}>
-          {@label}
+        <div class="pc-checkbox-text">
+          <span class={[@required && "pc-label--required"]}>
+            {@label}
+          </span>
+          <.field_help_text help_text={@help_text} class="pc-checkbox-text__help" />
         </div>
       </label>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end

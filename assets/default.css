@@ -1146,7 +1146,20 @@
     @apply border-danger-500 dark:border-danger-500/70;
   }
   .pc-checkbox-label {
-    @apply inline-flex items-center gap-3 text-sm font-normal text-gray-900 cursor-pointer dark:text-gray-200;
+    @apply inline-flex items-start gap-2 text-sm font-medium text-gray-900 cursor-pointer dark:text-gray-200;
+  }
+  /* Top-align the control against the first text line (20px line, 16px box) */
+  .pc-checkbox-label > .pc-checkbox,
+  .pc-checkbox-label > .pc-radio {
+    @apply mt-0.5 shrink-0;
+  }
+  /* Label + optional description stack in one text column, so a description
+     indents with the label - never under the box */
+  .pc-checkbox-text {
+    @apply flex flex-col gap-0.5;
+  }
+  .pc-checkbox-text .pc-form-help-text {
+    @apply mt-0 font-normal;
   }
   .pc-label {
     @apply block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200;
@@ -1365,7 +1378,7 @@
   }
 
   .pc-file-input {
-    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-4 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-gray-400/25 dark:file:bg-gray-400/8 dark:file:text-gray-200 dark:hover:file:bg-gray-400/17 file:transition-colors file:duration-200;
+    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-3 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-gray-400/25 dark:file:bg-gray-400/8 dark:file:text-gray-200 dark:hover:file:bg-gray-400/17 file:transition-colors file:duration-200;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-file-input::file-selector-button {
@@ -1434,7 +1447,7 @@
   /* kbd hints: shadcn-calibre chip, nested radius, edge inset matching the
      leading icon's so both ends of the field read equally padded */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
-    @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
   }
 
@@ -1515,9 +1528,40 @@
   .pc-color-input::-moz-color-swatch {
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
+  /* Single-thumb slider: custom track + thumb sharing the dual-range's
+     geometry and material, so one thumb or two look like one family and the
+     look is identical across browsers/OSes (native ranges are not).
+     No left-of-thumb fill: webkit cannot draw one in pure CSS with a thumb
+     taller than the track, and a Firefox-only fill would fork the look. */
   .pc-range-input {
-    @apply w-full cursor-pointer accent-primary-600 dark:accent-primary-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
-    border-radius: var(--pc-radius, 0.625rem);
+    @apply w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .pc-range-input::-webkit-slider-runnable-track {
+    @apply h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
+  }
+  .pc-range-input::-webkit-slider-thumb {
+    @apply appearance-none w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    margin-top: -0.4375rem;
+  }
+  .pc-range-input:hover::-webkit-slider-thumb {
+    @apply scale-110;
+  }
+  .pc-range-input:focus-visible::-webkit-slider-thumb {
+    @apply scale-110 ring-2 ring-primary-500/50;
+  }
+  .pc-range-input::-moz-range-track {
+    @apply h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
+  }
+  .pc-range-input::-moz-range-thumb {
+    @apply w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+  }
+  .pc-range-input:hover::-moz-range-thumb {
+    transform: scale(1.1);
+  }
+  .pc-range-input:focus-visible::-moz-range-thumb {
+    transform: scale(1.1);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
   }
 
   /* ---- Dual Range Slider -------------------------------------------- */
@@ -1537,7 +1581,7 @@
 
   /* Full-width grey background track */
   .pc-dual-range__track {
-    @apply absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700;
+    @apply absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
   }
 
   /* Primary-coloured highlight between the two thumbs — position set server-side
@@ -1561,8 +1605,7 @@
   }
 
   .pc-dual-range__thumb::-moz-range-thumb {
-    @apply w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 shadow shadow-black/25 transition-transform duration-100 ease-out;
-    border: 3px solid white;
+    @apply w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
   }
 
   .pc-dual-range__thumb:hover::-webkit-slider-thumb {
@@ -1570,7 +1613,7 @@
   }
 
   .pc-dual-range__thumb:focus-visible::-webkit-slider-thumb {
-    @apply scale-110 ring-4 ring-primary-300 dark:ring-primary-800 ring-offset-0;
+    @apply scale-110 ring-2 ring-primary-500/50 ring-offset-0;
   }
 
   .pc-dual-range__thumb:hover::-moz-range-thumb {
@@ -1580,7 +1623,7 @@
   .pc-dual-range__thumb:focus-visible::-moz-range-thumb {
     transform: scale(1.1);
     outline: none;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-300) 50%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
   }
 
   /* Three-column label row: bound | current values | bound */
