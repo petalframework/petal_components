@@ -707,7 +707,7 @@ defmodule Dev.PlaygroundLive do
          disabled: false
        },
        switch: %{size: "md", disabled: false, error: false},
-       slider: %{format: "money", disabled: false, fill: true},
+       slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{
@@ -1303,6 +1303,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_slider", %{"k" => "fill"}, socket),
     do: {:noreply, update(socket, :slider, &%{&1 | fill: !&1.fill})}
 
+  def handle_event("ctl_slider", %{"k" => "thumbs", "v" => v}, socket)
+      when v in ~w(single dual),
+      do: {:noreply, update(socket, :slider, &%{&1 | thumbs: v})}
+
   def handle_event("ctl_radio", %{"k" => "style", "v" => v}, socket)
       when v in ~w(cards plain),
       do: {:noreply, update(socket, :radio, &%{&1 | style: v})}
@@ -1824,6 +1828,23 @@ defmodule Dev.PlaygroundLive do
 
   defp slider_bounds("plain"),
     do: %{bound_min: 0, bound_max: 100, step: 1, prefix: "", suffix: "", label: "Value range"}
+
+  defp slider_snippet(%{thumbs: "single"} = s) do
+    attrs =
+      [
+        ~s(type="range"),
+        ~s(name="volume"),
+        ~s(label="Volume"),
+        ~s(value="60"),
+        ~s(min="0"),
+        ~s(max="100"),
+        s.fill && "fill",
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
 
   defp slider_snippet(s) do
     b = slider_bounds(s.format)
@@ -6614,6 +6635,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-sm">
             <.field
+              :if={@slider.thumbs == "dual"}
               id={"pg-slider-#{@slider.format}-#{@slider.disabled}"}
               type="range-dual"
               min_field={@slider_form[:min]}
@@ -6627,10 +6649,37 @@ defmodule Dev.PlaygroundLive do
               disabled={@slider.disabled}
               no_margin
             />
+            <.field
+              :if={@slider.thumbs == "single"}
+              id={"pg-single-#{@slider.fill}-#{@slider.disabled}"}
+              type="range"
+              name="pg_flag_volume"
+              label="Volume"
+              value="60"
+              min="0"
+              max="100"
+              fill={@slider.fill}
+              disabled={@slider.disabled}
+              no_margin
+            />
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumbs</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={t <- ~w(single dual)}
+                phx-click="ctl_slider"
+                phx-value-k="thumbs"
+                phx-value-v={t}
+                class={seg(@slider.thumbs == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div :if={@slider.thumbs == "dual"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -6647,6 +6696,14 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
+              <button
+                :if={@slider.thumbs == "single"}
+                phx-click="ctl_slider"
+                phx-value-k="fill"
+                class={tog(@slider.fill)}
+              >
+                fill
+              </button>
               <button phx-click="ctl_slider" phx-value-k="disabled" class={tog(@slider.disabled)}>
                 disabled
               </button>
@@ -6668,62 +6725,50 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{slider_snippet(@slider)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Single range</div>
-      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="px-6 py-8">
-          <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-            <.field
-              id={"pg-vol-#{@slider.fill}"}
-              type="range"
-              name="pg_volume"
-              label="Volume"
-              value="60"
-              min="0"
-              max="100"
-              fill={@slider.fill}
-              no_margin
-            />
-            <.field
-              id={"pg-step-#{@slider.fill}"}
-              type="range"
-              name="pg_stepped"
-              label="Stepped (10s)"
-              value="40"
-              min="0"
-              max="100"
-              step="10"
-              fill={@slider.fill}
-              no_margin
-            />
-            <.field
-              type="range"
-              name="pg_balance"
-              label="Balance (always plain)"
-              value="50"
-              min="0"
-              max="100"
-              no_margin
-            />
-            <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
-          </div>
-        </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">fill</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_slider" phx-value-k="fill" class={tog(@slider.fill)}>
-                fill
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Filled and plain
       </div>
-      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
-        Plain is the native input, no JavaScript. <code class="text-xs">fill</code>
-        paints the track primary up to the thumb - Firefox does it natively, and a
-        tiny hook keeps the webkit fill in sync. Leave it off for balance and pan
-        controls, where a fill would imply a wrong zero point.
-      </p>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+          <.field
+            type="range"
+            name="pg_volume"
+            label="Volume"
+            value="60"
+            min="0"
+            max="100"
+            fill
+            no_margin
+          />
+          <.field
+            type="range"
+            name="pg_stepped"
+            label="Stepped (10s)"
+            value="40"
+            min="0"
+            max="100"
+            step="10"
+            fill
+            no_margin
+          />
+          <.field
+            type="range"
+            name="pg_balance"
+            label="Balance"
+            value="50"
+            min="0"
+            max="100"
+            no_margin
+          />
+          <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
+        </div>
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          Plain is the native input, no JavaScript. <code class="text-xs">fill</code>
+          paints the track primary up to the thumb - Firefox does it natively, a
+          tiny hook keeps the webkit fill in sync. Leave it off for balance and
+          pan controls, where a fill would imply a wrong zero point.
+        </p>
+      </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Open-ended bounds
