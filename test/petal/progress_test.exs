@@ -105,4 +105,35 @@ defmodule PetalComponents.ProgressTest do
     assert html =~ "56%"
     assert html =~ ~s(aria-valuetext="56%")
   end
+
+  test "status renders a live-announced line under the bar" do
+    assigns = %{}
+
+    with_header =
+      rendered_to_string(~H"""
+      <.progress value={40} label="Upload" label_position="top" status="Downloading assets..." />
+      """)
+
+    assert with_header =~ "pc-progress__status"
+    assert with_header =~ "Downloading assets..."
+    assert with_header =~ ~s(aria-live="polite")
+
+    # without a top label the status still gets a wrapper to live in
+    bare =
+      rendered_to_string(~H"""
+      <.progress value={40} status="Downloading assets..." />
+      """)
+
+    assert bare =~ "pc-progress-wrapper"
+    assert bare =~ "pc-progress__status"
+
+    # and no status means no wrapper - the bare bar is unchanged
+    plain =
+      rendered_to_string(~H"""
+      <.progress value={40} />
+      """)
+
+    refute plain =~ "pc-progress-wrapper"
+    refute plain =~ "pc-progress__status"
+  end
 end

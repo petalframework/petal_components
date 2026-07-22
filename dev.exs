@@ -1344,8 +1344,13 @@ defmodule Dev.PlaygroundLive do
     %{live: live, value: value} = socket.assigns.progress
 
     if socket.assigns.active == "progress" && live do
-      next = if value >= 100, do: 0, else: min(100, value + Enum.random(7..16))
-      Process.send_after(self(), :pg_progress_tick, 900)
+      # Small organic steps; linger a beat on "Done!" before restarting
+      {next, delay} =
+        if value >= 100,
+          do: {0, 1600},
+          else: {min(100, value + Enum.random(2..3)), Enum.random(180..300)}
+
+      Process.send_after(self(), :pg_progress_tick, delay)
       {:noreply, update(socket, :progress, &%{&1 | value: next})}
     else
       {:noreply, update(socket, :progress, &%{&1 | ticking: false})}
@@ -1562,6 +1567,13 @@ defmodule Dev.PlaygroundLive do
     "<.field #{Enum.join(attrs, " ")} />"
   end
 
+  defp progress_status(v) when v < 5, do: "Initializing download..."
+  defp progress_status(v) when v < 30, do: "Downloading dependencies..."
+  defp progress_status(v) when v < 60, do: "Downloading assets..."
+  defp progress_status(v) when v < 85, do: "Extracting files..."
+  defp progress_status(v) when v < 100, do: "Finishing up..."
+  defp progress_status(_v), do: "Done!"
+
   defp progress_snippet(pr) do
     attrs =
       [
@@ -1569,7 +1581,8 @@ defmodule Dev.PlaygroundLive do
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
         pr.label == "inside" && ~s(label="#{pr.value}%"),
-        pr.label == "top" && ~s(label="Upload progress" label_position="top")
+        pr.label == "top" && ~s(label="Upload progress" label_position="top"),
+        pr.live && ~s(status="#{progress_status(pr.value)}")
       ]
       |> Enum.filter(& &1)
 
@@ -4133,6 +4146,7 @@ defmodule Dev.PlaygroundLive do
                 end
               }
               label_position={if @progress.label == "top", do: "top", else: "inside"}
+              status={if @progress.live, do: progress_status(@progress.value)}
             />
           </div>
         </div>
