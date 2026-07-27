@@ -8509,9 +8509,15 @@ defmodule Dev.Endpoint do
     from: Path.expand("priv/static", __DIR__),
     at: "/"
 
-  socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
-  plug Phoenix.LiveReloader
-  plug Phoenix.CodeReloader, reloader: &Dev.Reloader.reload/2
+  # Dev-only reload machinery, compiled out when PLAYGROUND_DEPLOY=true:
+  # Phoenix.CodeReloader re-evaluates this ENTIRE file on every request
+  # (~12s each measured) - live_reload: false alone does not disable it,
+  # because these plugs are hardcoded here, not derived from that option.
+  if System.get_env("PLAYGROUND_DEPLOY") != "true" do
+    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+    plug Phoenix.LiveReloader
+    plug Phoenix.CodeReloader, reloader: &Dev.Reloader.reload/2
+  end
 
   plug Plug.Session,
     store: :cookie,
@@ -8581,27 +8587,62 @@ File.mkdir_p!("priv/static/assets")
 # Generate heroicon CSS from SVG files, then build Tailwind
 Dev.HeroiconsCSS.generate()
 
+# PLAYGROUND_DEPLOY=true is the public deployment (playground.petal.build):
+# same file, dev conveniences off. The perf-critical switch lives in
+# Dev.Endpoint below, where this flag compiles out Phoenix.CodeReloader -
+# that plug re-evaluates this whole file on EVERY request (~12s each).
+# Here the flag turns off the live-reload watcher, debug_errors (no
+# stacktraces on a public URL) and the Tailwind watcher, requires a real
+# signing key, and locks the LiveView websocket origin.
+deploy? = System.get_env("PLAYGROUND_DEPLOY") == "true"
+
+secret_key_base =
+  if deploy?,
+    do: System.fetch_env!("SECRET_KEY_BASE"),
+    else: String.duplicate("a", 64)
+
 # Pre-configure endpoint (PhoenixPlayground merges on top of this)
-Application.put_env(:phoenix_playground, Dev.Endpoint, secret_key_base: String.duplicate("a", 64))
+Application.put_env(:phoenix_playground, Dev.Endpoint, secret_key_base: secret_key_base)
 
 # Run initial Tailwind build before starting the server
 Mix.Task.run("tailwind", ["petal_dev"])
 
+deploy_endpoint_options =
+  if deploy? do
+    [
+      # The LiveView websocket rejects cross-origin connects; without this the
+      # deployed site dead-renders and every dial silently stops working.
+      check_origin: [
+        "https://playground.petal.build",
+        "https://petal-components-demo.fly.dev"
+      ],
+      url: [host: System.get_env("PHX_HOST", "playground.petal.build"), scheme: "https"]
+    ]
+  else
+    []
+  end
+
 PhoenixPlayground.start(
   endpoint: Dev.Endpoint,
   # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
-  open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
+  open_browser: not deploy? and System.get_env("OPEN_BROWSER", "true") != "false",
   port: String.to_integer(System.get_env("PORT", "4000")),
   # Dual-stack: "localhost" resolves to ::1 or 127.0.0.1 depending on the
   # client's Happy Eyeballs mood; a v4-only listener makes the LiveView
   # websocket silently fail on the ::1 pick (dead render, URL params ignored).
+  # (Fly's proxy also reaches the app over the v6 private network.)
   ip: {0, 0, 0, 0, 0, 0, 0, 0},
-  live_reload: true,
-  endpoint_options: [
-    debug_errors: true,
-    render_errors: [formats: [html: Dev.ErrorHTML], layout: false],
-    watchers: [
-      tailwind: {Tailwind, :install_and_run, [:petal_dev, ~w(--watch)]}
-    ]
-  ]
+  live_reload: not deploy?,
+  endpoint_options:
+    deploy_endpoint_options ++
+      [
+        debug_errors: not deploy?,
+        render_errors: [formats: [html: Dev.ErrorHTML], layout: false],
+        watchers:
+          if deploy? do
+            []
+          else
+            [tailwind: {Tailwind, :install_and_run, [:petal_dev, ~w(--watch)]}]
+          end
+      ]
 )

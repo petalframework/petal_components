@@ -1,0 +1,23 @@
+# _build and deps MUST stay out of the build context: in local checkouts and
+# worktrees they can be symlinks to absolute macOS paths (dangling on the
+# builder), and even as real dirs they're hundreds of MB the image rebuilds
+# anyway. The generated CSS is rebuilt at boot.
+_build
+deps
+priv/static/assets
+.git
+.github
+.elixir_ls
+test
+guides
+doc
+cover
+tmp
+screenshot.png
+logo.png
+*.md
+!rules.md
+.DS_Store
+fly.toml
+Dockerfile
+.dockerignore

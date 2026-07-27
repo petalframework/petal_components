@@ -1,0 +1,28 @@
+# Fly config for the hosted component playground (playground.petal.build).
+# Deploy: fly deploy --remote-only -a petal-components-demo
+# Requires secret: SECRET_KEY_BASE (mix phx.gen.secret)
+# yyz matches where the app's existing machine already lives - fly deploy
+# updates machines in place and never moves them, so primary_region saying
+# anything else would put future machines in a different region.
+app = "petal-components-demo"
+primary_region = "yyz"
+
+[build]
+
+[env]
+  PLAYGROUND_DEPLOY = "true"
+  PORT = "8080"
+  PHX_HOST = "playground.petal.build"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Keep one machine warm: a cold boot re-runs the tailwind build and
+  # heroicons CSS generation, so first paint after a stop is slow.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
