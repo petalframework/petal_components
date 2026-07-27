@@ -211,6 +211,103 @@ defmodule PetalComponents.CarouselTest do
       refute overlay =~ "pc-carousel__indicators--below"
     end
 
+    test "below placement moves the controls under the frame, shielded from patches" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel id="c" button_style="below">
+          <:slide title="One" />
+          <:slide title="Two" />
+        </.carousel>
+        """)
+
+      assert html =~ "pc-carousel__controls--below"
+      assert html =~ "pc-carousel__button--below"
+      assert html =~ ~s(aria-label="Previous slide")
+      # controls live outside the ignored frame, so they need their own shield
+      # or a parent re-render silently detaches their listeners
+      assert html =~ ~s(id="c-carousel-controls")
+      assert html =~ ~s(phx-update="ignore")
+    end
+
+    test "below controls flip their labels when vertical" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel id="c" button_style="below" orientation="vertical">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      assert html =~ ~s|aria-label="Previous slide (up)"|
+      assert html =~ ~s|aria-label="Next slide (down)"|
+    end
+
+    test "overlay_gradient edges follow the travel axis" do
+      assigns = %{}
+
+      horizontal =
+        rendered_to_string(~H"""
+        <.carousel id="c" overlay_gradient>
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      vertical =
+        rendered_to_string(~H"""
+        <.carousel id="c" overlay_gradient orientation="vertical">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      assert horizontal =~ "pc-carousel-gradient-overlay-left"
+      assert horizontal =~ "pc-carousel-gradient-overlay-right"
+      refute horizontal =~ "pc-carousel-gradient-overlay-top"
+
+      assert vertical =~ "pc-carousel-gradient-overlay-top"
+      assert vertical =~ "pc-carousel-gradient-overlay-bottom"
+      refute vertical =~ "pc-carousel-gradient-overlay-left"
+    end
+
+    test "an id is generated when the caller does not pass one" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.carousel>
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      # the hook keys everything off the id, so one always has to exist
+      assert html =~ ~s(phx-hook="PetalCarousel")
+      assert html =~ ~r/id="carousel-[a-zA-Z0-9_-]+"/
+    end
+
+    test "size picks its type scale, unknown values fall through to none" do
+      assigns = %{}
+
+      small =
+        rendered_to_string(~H"""
+        <.carousel id="c" size="small">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      unknown =
+        rendered_to_string(~H"""
+        <.carousel id="c" size="enormous">
+          <:slide title="One" />
+        </.carousel>
+        """)
+
+      assert small =~ "text-sm"
+      refute unknown =~ "text-sm"
+      refute unknown =~ "text-lg"
+    end
+
     test "clickable slides render a covering link with an indicator" do
       assigns = %{}
 
