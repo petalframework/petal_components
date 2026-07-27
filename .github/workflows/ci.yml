@@ -1,8 +1,14 @@
 on: push
 
+# Runner image is pinned, not `ubuntu-latest`. GitHub's latest image ships
+# git 2.54, and Mix 1.17's sparse git checkout (used by the heroicons dep,
+# `sparse: "optimized"`) fails against it during `mix deps.get`:
+#   ** (File.Error) could not make directory (with -p) ".../heroicons/optimized"
+# CI was green on 20 Jul and broke with no code change. Unpin once the
+# toolchain moves to an Elixir whose Mix handles modern git.
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +43,7 @@ jobs:
   # calls correctly emit "undefined" warnings; only a *compile-time* reference
   # turns into a hard compile error, which is exactly what we want to catch.
   compile-without-optional-deps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       MIX_ENV: dev
     steps:
