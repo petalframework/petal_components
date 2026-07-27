@@ -15,9 +15,14 @@ RUN apt-get update -y && \
 
 WORKDIR /app
 
+# MIX_HOME/HEX_HOME live under /app so the runtime user can read them -
+# the default is /root/.mix, which becomes unreadable after the USER drop
+# and `mix run` still consults it at boot.
 ENV MIX_ENV=dev \
     LANG=C.UTF-8 \
-    OPEN_BROWSER=false
+    OPEN_BROWSER=false \
+    MIX_HOME=/app/.mix \
+    HEX_HOME=/app/.hex
 
 RUN mix local.hex --force && mix local.rebar --force
 
@@ -38,6 +43,13 @@ COPY dev dev
 COPY dev.exs ./
 
 RUN mix compile
+
+# Public app: don't run as root. The whole tree is chowned because boot
+# writes generated files (priv/static/assets CSS, dev/heroicons.css) and
+# mix touches _build manifests.
+RUN useradd --system --create-home --shell /usr/sbin/nologin playground && \
+    chown -R playground:playground /app
+USER playground
 
 EXPOSE 8080
 
