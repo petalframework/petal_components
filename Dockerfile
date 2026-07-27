@@ -44,11 +44,16 @@ COPY dev.exs ./
 
 RUN mix compile
 
-# Public app: don't run as root. The whole tree is chowned because boot
-# writes generated files (priv/static/assets CSS, dev/heroicons.css) and
-# mix touches _build manifests.
+# Public app: don't run as root, and own only what boot actually writes -
+# priv/static (tailwind CSS output), dev (generated heroicons.css) and
+# _build (mix manifests + tailwind binary freshness checks). Source, deps
+# and mix files stay root-owned read-only. --create-home because the BEAM
+# writes ~/.erlang.cookie on first start.
+# mkdir first: priv/static only holds generated output, which .dockerignore
+# keeps out of the context, so the directory may not exist yet.
 RUN useradd --system --create-home --shell /usr/sbin/nologin playground && \
-    chown -R playground:playground /app
+    mkdir -p /app/priv/static/assets && \
+    chown -R playground:playground /app/priv/static /app/dev /app/_build
 USER playground
 
 EXPOSE 8080
