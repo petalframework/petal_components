@@ -1,11 +1,15 @@
 # The directory Mix will write compiled artifacts to.
-/_build/
+# No trailing slash: that only matches directories, so a SYMLINK named _build
+# (what you get sharing a build dir with a worktree) slips past and can be
+# committed. An absolute symlink then dangles on CI and breaks `mix deps.get`.
+/_build
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 
 # The directory Mix downloads your dependencies sources to.
-/deps/
+# No trailing slash, for the same reason as /_build above.
+/deps
 
 # Where third-party dependencies like ExDoc output generated docs.
 /doc/

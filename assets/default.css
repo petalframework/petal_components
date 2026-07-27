@@ -120,7 +120,7 @@
   /* Buttons (New) */
 
   .pc-button {
-    @apply inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap select-none transition-all duration-200 ease-out border focus-visible:ring-2 focus-visible:ring-primary-500/50 active:scale-[0.98];
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -909,15 +909,91 @@
     @apply flex items-center w-full gap-3 px-4 py-3 text-sm border border-transparent focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
+  /* Callout variant - the toast-cohesive alert: neutral panel surface,
+     colour as accent (left bar + solid icon), never as paint. */
+  .pc-alert--gray-callout,
+  .pc-alert--info-callout,
+  .pc-alert--success-callout,
+  .pc-alert--warning-callout,
+  .pc-alert--danger-callout {
+    @apply bg-white text-gray-600 border-gray-200 border-l-[3px] dark:bg-gray-900 dark:text-gray-300 dark:border-gray-400/17;
+  }
+
+  .pc-alert--gray-callout {
+    @apply border-l-gray-400 dark:border-l-gray-500;
+  }
+
+  .pc-alert--info-callout {
+    @apply border-l-info-500 dark:border-l-info-500;
+  }
+
+  .pc-alert--success-callout {
+    @apply border-l-success-500 dark:border-l-success-500;
+  }
+
+  .pc-alert--warning-callout {
+    @apply border-l-warning-500 dark:border-l-warning-500;
+  }
+
+  .pc-alert--danger-callout {
+    @apply border-l-danger-500 dark:border-l-danger-500;
+  }
+
+  [class*="-callout"] > .pc-alert__icon-container {
+    @apply text-gray-400;
+  }
+
+  .pc-alert--info-callout > .pc-alert__icon-container {
+    @apply text-info-500;
+  }
+
+  .pc-alert--success-callout > .pc-alert__icon-container {
+    @apply text-success-500;
+  }
+
+  .pc-alert--warning-callout > .pc-alert__icon-container {
+    @apply text-warning-500;
+  }
+
+  .pc-alert--danger-callout > .pc-alert__icon-container {
+    @apply text-danger-500;
+  }
+
+  [class*="-callout"] .pc-alert__heading {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  /* Heading + body hierarchy. Neutral surfaces (callout) split into
+     title-strength gray vs muted gray, like the toast. Tinted surfaces
+     keep the monochrome wash and step the body down WITHIN the tint -
+     a neutral gray body on a coloured surface would fragment it. */
+  .pc-alert-base-classes:not([class*="-callout"]):has(.pc-alert__heading) .pc-alert__label {
+    opacity: 0.85;
+  }
+
+  .pc-alert__actions {
+    @apply flex flex-wrap items-center gap-2 mt-2.5 mb-1;
+  }
+
   .pc-alert__heading {
     @apply pt-1 font-bold;
   }
   .pc-alert__label {
     @apply py-1 font-medium;
   }
+  /* House close-button grammar (corner dismissers): a bare glyph that
+     brightens on hover - no wash box, so nothing can sit misaligned
+     against text. The generous hit area is an invisible ::before
+     extension, so it never participates in layout. Focus-visible ring;
+     never dims. Alert glyphs keep their per-colour tinted hovers. */
   .pc-alert__dismiss-button {
-    @apply flex p-2 hover:cursor-pointer transition-colors duration-150;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    @apply relative flex items-center h-7 hover:cursor-pointer opacity-60 transition duration-150 hover:opacity-100 rounded-sm;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+  }
+
+  .pc-alert__dismiss-button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
 
   /* Alerts - colors and variants */
@@ -981,59 +1057,35 @@
   /* Alerts - dismiss button variants */
 
   /* Info dismiss button variants */
-  .pc-alert__dismiss-button--info-light {
-    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-300 dark:hover:text-info-800;
-  }
-  .pc-alert__dismiss-button--info-soft {
-    @apply hover:bg-info-200 hover:text-info-800 dark:hover:bg-info-500/25 dark:hover:text-info-200;
-  }
   .pc-alert__dismiss-button--info-dark {
-    @apply text-white hover:bg-info-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--info-outline {
-    @apply text-info-700 hover:bg-info-50 dark:text-info-300 dark:hover:bg-gray-400/17;
+    @apply text-info-700 dark:text-info-300;
   }
 
   /* Success dismiss button variants */
-  .pc-alert__dismiss-button--success-light {
-    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-300 dark:hover:text-success-800;
-  }
-  .pc-alert__dismiss-button--success-soft {
-    @apply hover:bg-success-200 hover:text-success-800 dark:hover:bg-success-500/25 dark:hover:text-success-200;
-  }
   .pc-alert__dismiss-button--success-dark {
-    @apply text-white hover:bg-success-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--success-outline {
-    @apply text-success-700 hover:bg-success-50 dark:text-success-300 dark:hover:bg-gray-400/17;
+    @apply text-success-700 dark:text-success-300;
   }
 
   /* Warning dismiss button variants */
-  .pc-alert__dismiss-button--warning-light {
-    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-300 dark:hover:text-warning-800;
-  }
-  .pc-alert__dismiss-button--warning-soft {
-    @apply hover:bg-warning-200 hover:text-warning-800 dark:hover:bg-warning-500/25 dark:hover:text-warning-200;
-  }
   .pc-alert__dismiss-button--warning-dark {
-    @apply text-white hover:bg-warning-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--warning-outline {
-    @apply text-warning-700 hover:bg-warning-50 dark:text-warning-300 dark:hover:bg-gray-400/17;
+    @apply text-warning-700 dark:text-warning-300;
   }
 
   /* Danger dismiss button variants */
-  .pc-alert__dismiss-button--danger-light {
-    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-300 dark:hover:text-danger-800;
-  }
-  .pc-alert__dismiss-button--danger-soft {
-    @apply hover:bg-danger-200 hover:text-danger-800 dark:hover:bg-danger-500/25 dark:hover:text-danger-200;
-  }
   .pc-alert__dismiss-button--danger-dark {
-    @apply text-white hover:bg-danger-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--danger-outline {
-    @apply text-danger-700 hover:bg-danger-50 dark:text-danger-300 dark:hover:bg-gray-400/17;
+    @apply text-danger-700 dark:text-danger-300;
   }
 
   /* Alert - gray (monochrome) */
@@ -1050,23 +1102,23 @@
   .pc-alert--gray-outline {
     @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
   }
-  .pc-alert__dismiss-button--gray-light {
-    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-300 dark:hover:text-gray-800;
-  }
-  .pc-alert__dismiss-button--gray-soft {
-    @apply hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-500/25 dark:hover:text-gray-200;
-  }
   .pc-alert__dismiss-button--gray-dark {
-    @apply text-white hover:bg-gray-500;
+    @apply text-white;
   }
   .pc-alert__dismiss-button--gray-outline {
-    @apply text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-400/17;
+    @apply text-gray-700 dark:text-gray-300;
   }
 
   /* Alerts - with icon */
 
+  /* 20px icon, matching the toast's scale - the old 24px glyph
+     dominated the row and made the spacing read airier than it is */
   .pc-alert__icon-container {
-    @apply self-start shrink-0 pt-0.5 w-6 h-6;
+    @apply self-start shrink-0 pt-0.5 w-5 h-5;
+  }
+
+  .pc-alert__icon-container > * {
+    @apply w-full h-full;
   }
 
   /* Forms */
@@ -1094,7 +1146,20 @@
     @apply border-danger-500 dark:border-danger-500/70;
   }
   .pc-checkbox-label {
-    @apply inline-flex items-center gap-3 text-sm font-normal text-gray-900 cursor-pointer dark:text-gray-200;
+    @apply inline-flex items-start gap-2 text-sm font-medium text-gray-900 cursor-pointer dark:text-gray-200 has-[input:disabled]:opacity-50 has-[input:disabled]:cursor-not-allowed;
+  }
+  /* Top-align the control against the first text line (20px line, 16px box) */
+  .pc-checkbox-label > .pc-checkbox,
+  .pc-checkbox-label > .pc-radio {
+    @apply mt-0.5 shrink-0;
+  }
+  /* Label + optional description stack in one text column, so a description
+     indents with the label - never under the box */
+  .pc-checkbox-text {
+    @apply flex flex-col gap-0.5;
+  }
+  .pc-checkbox-text .pc-form-help-text {
+    @apply mt-0 font-normal;
   }
   .pc-label {
     @apply block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200;
@@ -1184,6 +1249,13 @@
     @apply w-7 h-7;
     @apply peer-checked:translate-x-7;
   }
+  /* Multiline surfaces clamp the radius: a full-radius theme on a
+     textarea over-rounds into the text. Single-line inputs keep the
+     pill option - that's a real style. */
+  textarea.pc-text-input {
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
   .pc-text-input {
     @apply block w-full bg-transparent border-gray-300 shadow-xs text-gray-900 placeholder:text-gray-400 transition-[color,box-shadow] duration-200 ease-out focus:outline-hidden focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100 dark:placeholder:text-gray-500;
     border-radius: var(--pc-radius, 0.625rem);
@@ -1198,8 +1270,12 @@
     @apply pr-10;
   }
 
+  /* In-field action buttons (viewable / copyable / clearable) share one
+     grammar: stroke icons at gray-400 that brighten on hover (never dim),
+     a focus-visible ring, and a dial-derived rounding for the ring box. */
   .pc-password-field-toggle-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-password-field-toggle-icon-container {
@@ -1207,7 +1283,7 @@
   }
 
   .pc-password-field-toggle-icon {
-    @apply w-5 h-5 text-gray-400;
+    @apply w-5 h-5;
   }
 
   /* Copyable Field Styles */
@@ -1220,7 +1296,8 @@
   }
 
   .pc-copyable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-copyable-field-icon-container {
@@ -1228,7 +1305,12 @@
   }
 
   .pc-copyable-field-icon {
-    @apply w-5 h-5 text-gray-400;
+    @apply w-5 h-5;
+  }
+
+  /* Copy success: the check reads success and ignores the button's hover color */
+  .pc-copyable-field-icon--done {
+    @apply text-success-600 dark:text-success-500;
   }
 
   /* Clearable Field Styles */
@@ -1246,7 +1328,8 @@
   }
 
   .pc-clearable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer;
+    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-clearable-field-icon-container {
@@ -1254,7 +1337,7 @@
   }
 
   .pc-clearable-field-icon {
-    @apply w-5 h-5 text-gray-500 dark:text-gray-400;
+    @apply w-5 h-5;
   }
 
   /* Date and Time Field Styles */
@@ -1306,7 +1389,7 @@
   }
 
   .pc-file-input {
-    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-4 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-gray-400/25 dark:file:bg-gray-400/8 dark:file:text-gray-200 dark:hover:file:bg-gray-400/17 file:transition-colors file:duration-200;
+    @apply text-sm cursor-pointer text-gray-500 dark:text-gray-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 file:mr-3 file:px-4 file:py-2 file:font-medium file:border file:border-solid file:border-gray-300 file:bg-transparent file:text-gray-700 file:shadow-xs hover:file:bg-gray-100 dark:file:border-gray-400/25 dark:file:bg-gray-400/8 dark:file:text-gray-200 dark:hover:file:bg-gray-400/17 file:transition-colors file:duration-200;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-file-input::file-selector-button {
@@ -1346,23 +1429,37 @@
   .pc-input-group__row :is(input, select, textarea):has(+ .pc-input-group__addon--trailing) {
     @apply pr-2;
   }
+  /* Buttons nest as an inset chip: an even 2px frame on every side (the
+     group's height is input-driven, so 2px is the natural vertical gap) and
+     a concentric corner - inner radius = outer radius minus the frame. */
   .pc-input-group__addon:has(> .pc-button) {
-    @apply px-1.5;
+    @apply p-0.5;
+  }
+  .pc-input-group__addon > .pc-button {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  /* Selects shed pc-select's standalone padding (12px text inset + a 40px
+     chevron zone) which otherwise overlaps the field and juts the label in;
+     the addon supplies the outer gap, the chevron hugs its text. */
+  .pc-input-group__addon > select {
+    @apply flex-none w-auto pl-1 pr-7;
+    background-position: right 0.375rem center;
+  }
+  .pc-input-group__addon--leading:has(> select) {
+    @apply pl-1.5;
+  }
+  .pc-input-group__addon--trailing:has(> select) {
+    @apply pr-1.5;
   }
   .pc-input-group__addon [class*="hero-"]:not([class*="w-"]) {
     @apply w-4 h-4;
   }
 
-  /* kbd hints: shadcn-calibre chip, nested radius */
+  /* kbd hints: shadcn-calibre chip, nested radius, edge inset matching the
+     leading icon's so both ends of the field read equally padded */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
-    @apply inline-flex items-center justify-center h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
-  }
-  .pc-input-group__addon--trailing:has(> kbd) {
-    @apply pr-2;
-  }
-  .pc-input-group__addon--leading:has(> kbd) {
-    @apply pl-2;
   }
 
   /* Block addons: full-width rows above/below the control (toolbars,
@@ -1442,9 +1539,75 @@
   .pc-color-input::-moz-color-swatch {
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
   }
+  /* Single-thumb slider: custom track + thumb sharing the dual-range's
+     geometry and material, so one thumb or two look like one family and the
+     look is identical across browsers/OSes (native ranges are not).
+     No left-of-thumb fill: webkit cannot draw one in pure CSS with a thumb
+     taller than the track, and a Firefox-only fill would fork the look. */
+  /* The track colour rides a variable set on the input itself - a real
+     element, so the dark override resolves. The ::-webkit/::-moz track
+     pseudo-elements only reference it, because a `dark:` variant applied
+     straight to a pseudo-element compiles to a trailing `:where(.dark, ...)`
+     that can never match (a pseudo-element has no ancestor test), which is
+     why the single track used to stay light in dark mode. */
   .pc-range-input {
-    @apply w-full cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
-    border-radius: var(--pc-radius, 0.625rem);
+    @apply w-full h-5 appearance-none bg-transparent cursor-pointer focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed;
+    --pc-range-track: var(--color-gray-200);
+  }
+  .pc-range-input:where(.dark, .dark *) {
+    --pc-range-track: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
+  }
+  .pc-range-input::-webkit-slider-runnable-track {
+    @apply h-1.5 rounded-full;
+    background-color: var(--pc-range-track);
+  }
+  .pc-range-input::-moz-range-track {
+    @apply h-1.5 rounded-full;
+    background-color: var(--pc-range-track);
+  }
+  /* Optional fill: primary from the start to the thumb. webkit has no native
+     lower-fill, so the runnable-track paints a hard-stop gradient whose split
+     is `--pc-range-fill`, kept in sync by the PetalRangeFill hook; Firefox
+     fills natively via ::-moz-range-progress. */
+  .pc-range-input--fill::-webkit-slider-runnable-track {
+    background: linear-gradient(
+      to right,
+      var(--color-primary-500) var(--pc-range-fill, 0%),
+      var(--pc-range-track) var(--pc-range-fill, 0%)
+    );
+  }
+  .pc-range-input--fill::-moz-range-progress {
+    @apply h-1.5 rounded-full;
+    background-color: var(--color-primary-500);
+  }
+  /* Thumb: a white ring in both schemes - it separates the thumb from a
+     light track and a dark one alike, and reads better than the dark ring
+     the old (never-applied) dark: variant intended.
+     box-border is load-bearing: preflight's border-box reset can't reach
+     these pseudo-elements (the universal selector doesn't match them), and
+     the UA defaults disagree - WebKit sizes the thumb border-box, Firefox
+     content-box - so without it Firefox rendered 26px thumbs (20 + 2x3
+     ring) against WebKit's 20px. */
+  .pc-range-input::-webkit-slider-thumb {
+    @apply appearance-none box-border w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+    margin-top: -0.4375rem;
+  }
+  .pc-range-input:hover::-webkit-slider-thumb {
+    @apply scale-110;
+  }
+  .pc-range-input:focus-visible::-webkit-slider-thumb {
+    @apply scale-110 ring-2 ring-primary-500/50;
+  }
+  .pc-range-input::-moz-range-thumb {
+    @apply box-border w-5 h-5 rounded-full cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
+  }
+  .pc-range-input:hover::-moz-range-thumb {
+    transform: scale(1.1);
+  }
+  .pc-range-input:focus-visible::-moz-range-thumb {
+    transform: scale(1.1);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
   }
 
   /* ---- Dual Range Slider -------------------------------------------- */
@@ -1464,7 +1627,7 @@
 
   /* Full-width grey background track */
   .pc-dual-range__track {
-    @apply absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700;
+    @apply absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-400/17;
   }
 
   /* Primary-coloured highlight between the two thumbs — position set server-side
@@ -1480,16 +1643,17 @@
     height: 0;
   }
 
+  /* box-border: see .pc-range-input::-webkit-slider-thumb - Firefox sizes
+     range thumbs content-box by default, WebKit border-box */
   .pc-dual-range__thumb::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 rounded-full pointer-events-auto cursor-pointer;
+    @apply appearance-none box-border w-5 h-5 rounded-full pointer-events-auto cursor-pointer;
     @apply bg-primary-500 border-[3px] border-white dark:border-gray-900;
     @apply shadow shadow-black/25;
     @apply transition-transform duration-100 ease-out;
   }
 
   .pc-dual-range__thumb::-moz-range-thumb {
-    @apply w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 shadow shadow-black/25 transition-transform duration-100 ease-out;
-    border: 3px solid white;
+    @apply box-border w-5 h-5 rounded-full pointer-events-auto cursor-pointer bg-primary-500 border-[3px] border-white dark:border-gray-900 shadow shadow-black/25 transition-transform duration-100 ease-out;
   }
 
   .pc-dual-range__thumb:hover::-webkit-slider-thumb {
@@ -1497,7 +1661,7 @@
   }
 
   .pc-dual-range__thumb:focus-visible::-webkit-slider-thumb {
-    @apply scale-110 ring-4 ring-primary-300 dark:ring-primary-800 ring-offset-0;
+    @apply scale-110 ring-2 ring-primary-500/50 ring-offset-0;
   }
 
   .pc-dual-range__thumb:hover::-moz-range-thumb {
@@ -1507,7 +1671,7 @@
   .pc-dual-range__thumb:focus-visible::-moz-range-thumb {
     transform: scale(1.1);
     outline: none;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-300) 50%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
   }
 
   /* Three-column label row: bound | current values | bound */
@@ -1532,6 +1696,17 @@
     @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-gray-400/8 dark:border-gray-400/25 disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: clamp(0px, calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.25rem);
   }
+
+  /* Same story as the radio dot, but a tick can't be drawn as a gradient
+     and var() doesn't work inside data URIs - so the tick image itself is
+     the token. Themes whose primary-600 resolves light (monochrome primary
+     in dark mode) set --pc-checkbox-check to a dark-tick URI. */
+  .pc-checkbox:checked {
+    background-image: var(
+      --pc-checkbox-check,
+      url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")
+    );
+  }
   .pc-checkbox-group {
     @apply pt-2;
   }
@@ -1549,6 +1724,18 @@
   }
   .pc-radio {
     @apply w-4 h-4 transition-shadow duration-200 ease-out bg-transparent border-gray-300 cursor-pointer text-primary-600 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-0 dark:bg-gray-400/8 dark:border-gray-400/25 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* The forms plugin bakes a white dot into an svg data URI, which vanishes
+     when primary-600 resolves light (a monochrome primary in dark mode).
+     Draw the dot as a gradient instead so it follows the on-primary token,
+     exactly like solid button labels. */
+  .pc-radio:checked {
+    background-image: radial-gradient(
+      circle closest-side,
+      var(--pc-button-solid-fg, #fff) 0 36%,
+      transparent 42%
+    );
   }
   .pc-radio-group {
     @apply pt-2;
@@ -1634,8 +1821,11 @@
     @apply bg-transparent border border-gray-300 dark:bg-gray-400/8 dark:border-gray-400/25;
   }
 
-  .pc-radio-card--outline:hover .pc-radio-card__fake-input {
-    @apply bg-gray-50 dark:bg-gray-400/17;
+  /* Hover speaks through the border, not the fill - on a selection surface
+     the fill means "selected", so a hover wash would half-lie. Checked cards
+     keep their selected border (the :not guard). */
+  .pc-radio-card--outline:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
+    @apply border-gray-400 dark:border-gray-400/40;
   }
 
   .pc-radio-card--classic .pc-radio-card__fake-input {
@@ -1646,9 +1836,18 @@
     @apply bg-gray-200/70 dark:bg-gray-400/25;
   }
 
-  /* Checked State Styles */
+  /* Checked state: the fill shift is the primary signal (alpha tints stay
+     ramp-agnostic - a faint gray step on monochrome, a soft hue glow on
+     colour themes), the border firms up as the secondary, and the dot
+     carries the accent. Alpha also self-calibrates the border: it softens a
+     monochrome's near-white/near-black poles more than it dulls a hue. */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-600 dark:border-primary-600;
+    @apply border-primary-500 bg-primary-600/5 dark:border-primary-500/60 dark:bg-primary-500/10;
+  }
+  /* classic is already a filled chip - the alpha tint would LIGHTEN it, so
+     selection keeps its resting material and speaks through the border */
+  .pc-radio-card--classic > .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
+    @apply bg-gray-100 dark:bg-gray-400/17;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
@@ -1672,20 +1871,53 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
 
-  /* Indicator variant - a visible radio dot inside the card */
+  /* Indicator variant - a visible radio dot inside the card. Also used when
+     an option carries an icon or image (the row-with-visual layout). */
   .pc-radio-card--indicator {
     @apply justify-start;
   }
   .pc-radio-card--indicator > .pc-radio-card__content {
     @apply w-full;
   }
+  /* The generous md/lg tile padding is for centred text; the indicator and
+     row-with-visual layouts read left-to-right, so they take row padding -
+     otherwise an "end" dot floats toward the centre and the text squeezes. */
+  .pc-radio-card--md.pc-radio-card--indicator > .pc-radio-card__content {
+    @apply px-4;
+  }
+  .pc-radio-card--lg.pc-radio-card--indicator > .pc-radio-card__content {
+    @apply px-5;
+  }
   .pc-radio-card__content--indicator {
     @apply flex items-center gap-3;
+  }
+  /* Text column grows so an "end" dot rides the right edge */
+  .pc-radio-card__text {
+    @apply min-w-0 flex-1;
   }
   .pc-radio-card__dot {
     @apply shrink-0 w-4 h-4 rounded-full border border-gray-300 bg-transparent dark:border-white/25;
   }
-  .pc-radio-card__input:checked ~ .pc-radio-card__content .pc-radio-card__dot {
+  /* Corner placement floats over the card's reading-end corner (top-right in
+     LTR, flipping automatically in RTL via logical properties) */
+  .pc-radio-card__dot--corner {
+    @apply absolute top-3 end-3;
+  }
+  .pc-radio-card--indicator.pc-radio-card--indicator-corner > .pc-radio-card__content {
+    @apply pe-7;
+  }
+  /* Option visuals: a soft icon circle or a rounded image thumbnail */
+  .pc-radio-card__icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-full shrink-0 bg-gray-100 dark:bg-gray-400/17;
+  }
+  .pc-radio-card__icon-glyph {
+    @apply w-5 h-5 text-gray-700 dark:text-gray-200;
+  }
+  .pc-radio-card__image {
+    @apply w-9 h-9 rounded-full object-cover shrink-0 select-none;
+  }
+  .pc-radio-card__input:checked ~ .pc-radio-card__content .pc-radio-card__dot,
+  .pc-radio-card__input:checked ~ .pc-radio-card__dot {
     @apply border-primary-600 dark:border-primary-600;
     border-width: 5px;
   }
@@ -1983,7 +2215,7 @@
   /* Avatars */
 
   .pc-avatar--with-image {
-    @apply object-cover rounded-full;
+    @apply object-cover rounded-full shrink-0;
   }
   .pc-avatar-anchor {
     @apply relative inline-flex shrink-0;
@@ -2018,15 +2250,33 @@
   .pc-avatar__status--xl {
     @apply h-3.5 w-3.5;
   }
+  .pc-avatar--with-placeholder-icon {
+    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full shrink-0 dark:bg-gray-400/17;
+  }
+  .pc-avatar--with-placeholder-initials {
+    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full shrink-0 dark:bg-gray-400/17 dark:text-gray-300;
+  }
+  /* After the placeholder rule, which it shares an element with: the +N
+     chip overlaps the avatar behind it, so its background must stay
+     opaque where the placeholder's ghost alpha would let the photo
+     bleed through. */
   .pc-avatar-group__overflow {
     @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
   }
 
-  .pc-avatar--with-placeholder-icon {
-    @apply relative inline-block overflow-hidden bg-gray-100 text-gray-300 rounded-full dark:bg-gray-400/17;
+  /* Generative art placeholders (art="mesh" | "dither"); the flex/type
+     styles only matter when the optional initials overlay renders */
+  .pc-avatar--art {
+    @apply flex items-center justify-center font-semibold uppercase select-none rounded-full bg-cover shrink-0;
   }
-  .pc-avatar--with-placeholder-initials {
-    @apply flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-400/17 dark:text-gray-300;
+
+  /* Rounded shape - orgs, teams, workspaces (people stay circles).
+     Proportional so every size keeps the same character. Deliberately NOT
+     tied to --pc-radius: avatars are identity, not surface, and a
+     sharp-cornered theme still wants soft avatars. Placed after every
+     base avatar rule so it wins their rounded-full at equal specificity. */
+  .pc-avatar--rounded {
+    border-radius: 25%;
   }
   .pc-avatar-group {
     @apply ring-white ring-2 dark:ring-gray-950;
@@ -2071,13 +2321,14 @@
   /* Progress */
 
   .pc-progress {
-    @apply flex overflow-hidden;
+    @apply relative flex overflow-hidden;
   }
   .pc-progress-wrapper {
     @apply w-full;
   }
+  /* Header sits at the system's label rhythm (pc-label is mb-2) */
   .pc-progress__header {
-    @apply flex items-center justify-between mb-1.5 text-sm;
+    @apply flex items-center justify-between mb-2 text-sm;
   }
   .pc-progress__title {
     @apply font-medium text-gray-900 dark:text-gray-100;
@@ -2085,15 +2336,30 @@
   .pc-progress__value {
     @apply text-gray-500 tabular-nums dark:text-gray-400;
   }
-
-  .pc-progress__inner {
-    @apply flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
+  /* Status line under the bar - help-text rhythm and tone */
+  .pc-progress__status {
+    @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
   }
 
-  /* Progress - label (xl only) */
+  .pc-progress__inner {
+    @apply relative z-[1] flex flex-col justify-center rounded-full transition-[width] duration-500 ease-out;
+  }
 
+  /* Progress - label (xl only): two copies stacked at the same spot, both
+     spanning the full track and centred, so they line up exactly. The base
+     copy reads on the empty track (below the fill, z-0). The fill copy is
+     clipped to the filled width via clip-path and painted on top (z-2), so
+     it reads on-primary over the fill. Result: dark text on the track,
+     light text on the fill, wiping as the bar grows - legible at any
+     percentage, not white-on-light until the fill catches up. */
   .pc-progress__label {
-    @apply px-4 text-xs font-medium leading-6 text-center whitespace-nowrap;
+    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium whitespace-nowrap pointer-events-none;
+  }
+  .pc-progress__label--track {
+    @apply z-0 text-gray-700 dark:text-gray-200;
+  }
+  .pc-progress__label--fill {
+    @apply z-[2] transition-[clip-path] duration-500 ease-out;
     color: var(--pc-button-solid-fg, #fff);
   }
 
@@ -2727,7 +2993,14 @@
     @apply font-semibold text-gray-800 dark:text-gray-200;
   }
   .pc-modal__header__button {
-    @apply text-gray-400 hover:text-gray-500;
+    @apply relative flex flex-none text-gray-400 transition-colors cursor-pointer rounded-sm;
+    @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+  }
+
+  .pc-modal__header__button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
   .pc-modal__header__close-svg {
     @apply w-5 h-5 fill-current;
@@ -3204,11 +3477,15 @@
     @apply font-semibold text-gray-900 dark:text-gray-100;
   }
   .pc-slideover__header__button {
-    @apply flex-none self-start rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/17 dark:hover:text-gray-300;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    @apply relative flex flex-none self-start items-center h-6 text-gray-400 transition-colors cursor-pointer rounded-sm hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:text-gray-300;
+  }
+
+  .pc-slideover__header__button::before {
+    content: "";
+    @apply absolute -inset-2;
   }
   .pc-slideover__header__close-svg {
-    @apply h-4 w-4 fill-current;
+    @apply w-5 h-5 fill-current;
   }
   .pc-slideover__footer {
     @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-400/17;
@@ -3322,6 +3599,85 @@
   /* Description */
   .pc-stepper__description {
     @apply mt-0.5 text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  /* Labels scale with the size dial, like the circles do */
+  .pc-stepper--sm .pc-stepper__title {
+    @apply text-xs;
+  }
+
+  .pc-stepper--sm .pc-stepper__description {
+    @apply text-[11px];
+  }
+
+  .pc-stepper--lg .pc-stepper__title {
+    @apply text-base;
+  }
+
+  .pc-stepper--lg .pc-stepper__description {
+    @apply text-sm;
+  }
+
+  /* Labels under the circles - the classic wizard look. Applies at the
+     md+ breakpoint where the stepper is genuinely horizontal; below it
+     the stacked mobile layout keeps labels beside (which is why the
+     sibling connectors are only md:hidden, not removed).
+
+     Items share the row equally and each item after the first draws its
+     own connector as an absolutely-positioned line running from the
+     previous circle's edge to its own - independent of label width, so
+     wide labels never push the line away from the circles. Offsets are
+     half the indicator height (top) and half the item width back plus
+     the circle radius and a little air (left/right), per size. */
+  .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
+    @apply md:items-start md:gap-0;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__item {
+    @apply md:relative md:min-w-0 md:flex-1;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__item-content {
+    @apply md:w-full md:flex-col md:items-center md:gap-2;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__content {
+    @apply md:text-center;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__connector-wrapper {
+    @apply md:hidden;
+  }
+
+  .pc-stepper--labels-bottom .pc-stepper__item:not(:first-child)::before {
+    @apply hidden bg-gray-200 transition-colors md:block dark:bg-gray-400/17;
+    content: "";
+    position: absolute;
+    height: 2px;
+  }
+
+  /* :not(:first-child) mirrors the base line rule's specificity, which
+     would otherwise beat this one and keep completed lines gray */
+  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child)::before {
+    @apply bg-primary-600 dark:bg-primary-600;
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__item:not(:first-child)::before {
+    top: 13px;
+    left: calc(-50% + 20px);
+    right: calc(50% + 20px);
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--md .pc-stepper__item:not(:first-child)::before {
+    top: 15px;
+    left: calc(-50% + 22px);
+    right: calc(50% + 22px);
+  }
+
+  .pc-stepper--labels-bottom.pc-stepper--lg .pc-stepper__item:not(:first-child)::before {
+    top: 19px;
+    left: calc(-50% + 26px);
+    right: calc(50% + 26px);
   }
 
   /* Connector Wrapper */
@@ -4547,6 +4903,100 @@
     @apply inline-block h-8 w-24 align-middle;
   }
 
+  /* Colour scheme switch */
+  .pc-scheme-toggle {
+    @apply relative inline-flex items-center justify-center w-9 h-9 cursor-pointer text-gray-500 transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-scheme-toggle__sun,
+  .pc-scheme-toggle__moon {
+    @apply flex items-center justify-center w-5 h-5 transition-all duration-300 motion-reduce:transition-none;
+  }
+
+  /* Icon wrappers size whatever they hold - the default Heroicon or any
+     svg dropped in via the light_icon/dark_icon/system_icon slots. */
+  .pc-scheme-toggle__sun > *,
+  .pc-scheme-toggle__moon > *,
+  .pc-scheme-segmented__icon > *,
+  .pc-scheme-dropdown__item-icon > * {
+    @apply w-full h-full;
+  }
+
+  .pc-scheme-toggle__sun {
+    @apply rotate-0 scale-100;
+  }
+
+  .dark .pc-scheme-toggle__sun {
+    @apply -rotate-90 scale-0;
+  }
+
+  .pc-scheme-toggle__moon {
+    @apply absolute rotate-90 scale-0;
+  }
+
+  .dark .pc-scheme-toggle__moon {
+    @apply rotate-0 scale-100;
+  }
+
+  .pc-scheme-segmented {
+    @apply relative inline-grid grid-cols-3 gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    /* 2.4x the radius token: a full pill at the shipped default (24px on a
+       36px control), concentric with the 2x chips, sharp at radius 0. */
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
+  }
+
+  .pc-scheme-segmented__option {
+    @apply relative flex items-center justify-center p-1.5 cursor-pointer transition-colors duration-150;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+  }
+
+  .pc-scheme-segmented__option:has(:checked) {
+    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+  }
+
+  .pc-scheme-segmented__option:has(:focus-visible) {
+    @apply ring-1 ring-primary-500/50;
+  }
+
+  .pc-scheme-segmented__input {
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+  }
+
+  .pc-scheme-segmented__icon {
+    @apply relative flex items-center justify-center w-5 h-5 pointer-events-none;
+  }
+
+  .pc-scheme-dropdown {
+    @apply inline-block;
+  }
+
+  .pc-scheme-dropdown__menu {
+    @apply !w-auto !min-w-0 !left-1/2 !right-auto -translate-x-1/2;
+  }
+
+  .pc-scheme-dropdown__item {
+    @apply flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-150 hover:bg-gray-900/5 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-scheme-dropdown__item[aria-checked="true"] {
+    @apply bg-gray-900/5 text-gray-900 dark:bg-gray-400/15 dark:text-white;
+  }
+
+  .pc-scheme-dropdown__item--labeled {
+    @apply w-full justify-start gap-2 px-3 text-sm;
+  }
+
+  .pc-scheme-dropdown__item-icon {
+    @apply flex items-center justify-center w-5 h-5 shrink-0;
+  }
+
+  .pc-scheme-dropdown__item-label {
+    @apply pr-1;
+  }
+
   /* Confetti mount point */
   .pc-confetti {
     @apply hidden;
@@ -4816,3 +5266,581 @@
     @apply mt-1 text-xs text-gray-400;
   }
 }
+
+  /* Carousel - ported from petal_marketing; material pass to follow */
+  .pc-carousel-wrapper {
+    @apply relative w-full;
+  }
+
+  .pc-carousel-wrapper--below {
+    @apply flex flex-col items-center gap-3;
+  }
+
+  .pc-carousel-wrapper--outside {
+    @apply flex flex-wrap items-center w-full gap-3 md:gap-4;
+  }
+
+  .pc-carousel {
+    @apply relative w-full h-[240px] sm:h-[300px] md:h-[400px] overflow-hidden bg-transparent;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
+    /* Same derivation as the slide surface, so the focus ring hugs the
+       visible image corner at every dial position */
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.6), 1.5rem);
+  }
+
+  /* When using sides buttons, carousel should flex to fit between buttons */
+  .pc-carousel-wrapper--outside .pc-carousel {
+    @apply flex-1;
+  }
+
+  /* Vertical with outside buttons keeps its own height (not flex-1) */
+  .pc-carousel-wrapper--vertical.pc-carousel-wrapper--outside .pc-carousel {
+    @apply flex-none;
+  }
+
+  /* Overlay button styles - inspired by Embla Carousel */
+  /* Light glass in both schemes on purpose: these float on imagery,
+     not on the page surface. */
+  .pc-carousel__button--overlay {
+    @apply absolute top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply shadow-lg text-gray-800/80 bg-white/55 backdrop-blur-md ring-1 ring-white/30;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-white/75 hover:shadow-xl;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/70;
+    @apply border-0;
+  }
+
+  .pc-carousel__button--overlay.pc-carousel__button--prev {
+    @apply left-2 md:left-4;
+  }
+
+  .pc-carousel__button--overlay.pc-carousel__button--next {
+    @apply right-2 md:right-4;
+  }
+
+  /* Below button styles - smaller, minimal */
+  .pc-carousel__button--below {
+    @apply w-8 h-8 md:w-10 md:h-10 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply text-gray-700 bg-white shadow-xs dark:text-gray-300 dark:bg-gray-400/10;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:text-gray-900 dark:hover:bg-gray-400/15 dark:hover:text-gray-100;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply border border-gray-200 dark:border-gray-400/25;
+  }
+
+  .pc-carousel__controls--below {
+    @apply flex items-center justify-center gap-3 mt-4;
+  }
+
+  /* Outside button styles - flank the frame along the travel axis */
+  .pc-carousel__button--outside {
+    @apply flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply text-gray-700 bg-white shadow-xs dark:text-gray-300 dark:bg-gray-400/10;
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:bg-gray-50 hover:text-gray-900 dark:hover:bg-gray-400/15 dark:hover:text-gray-100;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply border border-gray-200 dark:border-gray-400/25;
+  }
+
+  /* Disabled button states (when loop is disabled and at boundary) */
+  .pc-carousel__button:disabled,
+  .pc-carousel__button--overlay:disabled,
+  .pc-carousel__button--below:disabled,
+  .pc-carousel__button--outside:disabled {
+    @apply opacity-40 cursor-default;
+  }
+
+  .pc-carousel__icon {
+    @apply text-current;
+  }
+
+  .pc-carousel__slides {
+    @apply relative w-full h-full;
+  }
+
+  .pc-carousel__slide {
+    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out;
+    will-change: transform, opacity;
+  }
+
+  .pc-carousel__slide--active {
+    @apply z-10 opacity-100;
+  }
+
+  .pc-carousel__slide--inactive {
+    @apply z-0;
+  }
+
+  /* Slide transition specific styles - CSS Scroll Snap approach */
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
+    @apply flex overflow-auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    column-gap: 0;
+    max-width: 100%;
+    height: 100%;
+    touch-action: pan-x; /* Enable horizontal swipe, disable vertical scroll */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Disable swipe when data-swipe="false" */
+  .pc-carousel[data-transition-type="slide"][data-swipe="false"] .pc-carousel__slides {
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slide {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    min-width: 100%;
+    height: 100%;
+  }
+
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Fade transition specific styles */
+  .pc-carousel[data-transition-type="fade"] .pc-carousel__slide {
+    @apply transition-opacity duration-500 ease-in-out;
+  }
+
+  /* Multi-slide view styles */
+
+  /* When showing multiple slides, add gaps and adjust sizing */
+  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides {
+    gap: var(--carousel-gap, 1rem);
+  }
+
+  /* Vertical orientation */
+  .pc-carousel--vertical {
+    @apply w-full;
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides {
+    @apply flex-col overflow-x-hidden overflow-y-auto;
+    scroll-snap-type: y mandatory;
+    touch-action: pan-y; /* Enable vertical swipe, disable horizontal scroll */
+    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slides::-webkit-scrollbar {
+    display: none; /* Safari and Chromium */
+  }
+
+  .pc-carousel--vertical[data-transition-type="slide"] .pc-carousel__slide {
+    @apply w-full min-h-full;
+    min-width: auto;
+    scroll-snap-align: center;
+  }
+
+  /* Vertical fade transition needs explicit dimensions */
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slides {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel--vertical[data-transition-type="fade"] .pc-carousel__slide {
+    @apply w-full h-full;
+  }
+
+  .pc-carousel-wrapper--vertical {
+    @apply flex flex-col;
+  }
+
+  .pc-carousel-wrapper--vertical .pc-carousel__button--outside {
+    @apply relative mx-auto my-2;
+  }
+
+  .pc-carousel__slide-content {
+    @apply relative w-full h-full overflow-hidden;
+  }
+
+  /* Default slide radius derives from the theme token rather than
+     copying it: on a frame this large the raw control radius is nearly
+     invisible, and a "full" token would go stadium-shaped. Amplify so
+     the dial's steps register at surface scale, clamp at a media-card
+     maximum (same doctrine as the tooltip's 14px clamp, scaled up). */
+  .pc-carousel__slide-content--radius {
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.6), 1.5rem);
+  }
+
+  /* Synced thumbnails */
+  .pc-carousel__thumbs {
+    @apply flex w-full justify-center gap-2 mt-3 overflow-x-auto px-1 py-1;
+  }
+
+  /* At rest every thumb is full colour - dimming the strip washed it
+     out, especially in light mode; the ring carries the active state.
+     The thumb under the cursor dims slightly - the classic image-link
+     pressable feedback. Focus-visible is the same solid primary ring
+     OFFSET from the edge, so a keyboard-focused active thumb never
+     looks softer than a clicked one. Radius clamps like every small
+     control - full themes get a soft corner, never a pill. */
+  .pc-carousel__thumb {
+    @apply relative w-16 h-10 shrink-0 overflow-hidden cursor-pointer transition-all duration-200 ease-out hover:opacity-75;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
+    border-radius: min(max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem), 0.625rem);
+  }
+
+  .pc-carousel__thumb--active {
+    @apply ring-2 ring-primary-500;
+  }
+
+  .pc-carousel__thumb img {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-carousel__thumb-fallback {
+    @apply flex items-center justify-center w-full h-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-400/17 dark:text-gray-300;
+  }
+
+  .pc-carousel__image-wrapper {
+    @apply absolute inset-0 z-0;
+  }
+
+  .pc-carousel__image {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-carousel__content {
+    @apply absolute inset-0 z-10 flex items-center justify-center;
+    /* Background gradient is now applied dynamically via inline style based on brightness attribute */
+  }
+
+  .pc-carousel__content-wrapper {
+    @apply flex flex-col w-full gap-5 p-8 sm:p-24;
+  }
+
+  .pc-carousel__title {
+    @apply text-4xl font-bold text-white;
+  }
+
+  .pc-carousel__description {
+    @apply text-xl text-white;
+  }
+
+  .pc-carousel__link {
+    @apply absolute inset-0 z-20 block w-full h-full no-underline cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .pc-carousel__link:hover {
+    @apply bg-black/20;
+  }
+
+  .pc-carousel__link-indicator {
+    @apply absolute z-30 flex items-center justify-center w-10 h-10 top-4 right-4;
+    @apply rounded-full shadow-lg bg-white/85 backdrop-blur-md ring-1 ring-black/10;
+    @apply text-gray-800;
+    @apply transition-all duration-300;
+    @apply pointer-events-none;
+  }
+
+  .pc-carousel__link:hover + .pc-carousel__link-indicator,
+  .pc-carousel__slide:has(.pc-carousel__link:hover) .pc-carousel__link-indicator {
+    @apply shadow-2xl ring-2 ring-white/60 bg-white;
+  }
+
+  .pc-carousel__indicators {
+    @apply absolute inset-x-0 bottom-0 z-10 flex justify-center gap-3 py-2.5;
+  }
+
+  .pc-carousel__indicator {
+    @apply transition-all duration-500 ease-in-out opacity-50 bg-white rounded-full cursor-pointer hover:opacity-90;
+    @apply focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/80;
+  }
+
+  /* The hook marks the active indicator by adding a literal
+     "opacity-100" class. That string lives in hook-built DOM, which no
+     host app's Tailwind scan ever sees - so the utility may not exist.
+     Ship the rule ourselves. */
+  .pc-carousel__indicator.opacity-100 {
+    opacity: 1;
+  }
+
+  .pc-carousel__indicator--bars {
+    @apply w-6 h-1;
+  }
+
+  .pc-carousel__indicator--dots {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  /* Carousel gradient overlays */
+  .pc-carousel-gradient-overlay-left {
+    @apply absolute top-0 bottom-0 left-0 w-1/6 pointer-events-none bg-gradient-to-r from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
+    z-index: 20;
+  }
+
+  .pc-carousel-gradient-overlay-right {
+    @apply absolute top-0 bottom-0 right-0 w-1/6 pointer-events-none bg-gradient-to-r from-white/0 to-white dark:from-gray-950/0 dark:to-gray-950;
+    z-index: 20;
+  }
+
+  .pc-carousel-gradient-overlay-top {
+    @apply absolute top-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-b from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
+    z-index: 20;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-carousel__slide {
+      transition-duration: 1ms !important;
+    }
+
+    .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Aspect-driven sizing - height derives from width, so a width-
+     constrained wrapper (max-w-sm) gives the compact product-card look.
+     Later in the file than the fixed-height rules, so it wins. */
+  .pc-carousel--aspect-video {
+    @apply h-auto aspect-video;
+  }
+
+  .pc-carousel--aspect-photo {
+    @apply h-auto aspect-[4/3];
+  }
+
+  .pc-carousel--aspect-square {
+    @apply h-auto aspect-square;
+  }
+
+  /* Thumbnails match the frame's ratio */
+  .pc-carousel-wrapper--aspect-video .pc-carousel__thumb {
+    @apply w-16 h-auto aspect-video;
+  }
+
+  .pc-carousel-wrapper--aspect-photo .pc-carousel__thumb {
+    @apply w-14 h-auto aspect-[4/3];
+  }
+
+  .pc-carousel-wrapper--aspect-square .pc-carousel__thumb {
+    @apply w-12 h-auto aspect-square;
+  }
+
+  /* Indicators under the frame, in page colours (the overlay's white
+     dots are for imagery) */
+  .pc-carousel__indicators--below {
+    @apply static inset-auto w-full py-0 mt-3;
+  }
+
+  .pc-carousel__indicators--below .pc-carousel__indicator {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+  /* On the page, "current" speaks primary - same language as
+     pagination's current page and the stepper's active circle. The
+     overlay variant deliberately stays white: on-image elements can't
+     trust a brand colour for contrast against arbitrary photos. */
+  .pc-carousel__indicators--below .pc-carousel__indicator.opacity-100 {
+    @apply bg-primary-600 dark:bg-primary-500;
+  }
+
+  .pc-carousel-gradient-overlay-bottom {
+    @apply absolute bottom-0 left-0 right-0 pointer-events-none h-1/3 bg-gradient-to-t from-white to-white/0 dark:from-gray-950 dark:to-gray-950/0;
+    z-index: 20;
+  }
+
+  /* Toast */
+
+  .pc-toast-group {
+    @apply fixed z-50 pointer-events-none;
+  }
+
+  .pc-toast-group--top-left {
+    @apply top-4 left-4;
+  }
+
+  .pc-toast-group--top-center {
+    @apply top-4 left-1/2 -translate-x-1/2;
+  }
+
+  .pc-toast-group--top-right {
+    @apply top-4 right-4;
+  }
+
+  .pc-toast-group--bottom-left {
+    @apply bottom-4 left-4;
+  }
+
+  .pc-toast-group--bottom-center {
+    @apply bottom-4 left-1/2 -translate-x-1/2;
+  }
+
+  .pc-toast-group--bottom-right {
+    @apply bottom-4 right-4;
+  }
+
+  .pc-toast-group__stack {
+    @apply relative w-[356px] max-w-[calc(100vw-2rem)];
+  }
+
+  /* Anchor each toast to the group's edge; the hook drives offset and
+     scale through custom properties so the collapsed stack, the expanded
+     list and the swipe all compose in one transform. */
+  .pc-toast {
+    @apply absolute inset-x-0 pointer-events-auto select-none overflow-hidden;
+    @apply bg-white border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1rem);
+    transform: translateY(var(--pc-toast-y, 0px)) translateX(var(--pc-toast-swipe, 0px))
+      scale(var(--pc-toast-scale, 1));
+    transition:
+      transform 350ms cubic-bezier(0.21, 1.02, 0.73, 1),
+      opacity 250ms ease;
+  }
+
+  .pc-toast-group--top-left .pc-toast,
+  .pc-toast-group--top-center .pc-toast,
+  .pc-toast-group--top-right .pc-toast {
+    @apply top-0;
+  }
+
+  .pc-toast-group--bottom-left .pc-toast,
+  .pc-toast-group--bottom-center .pc-toast,
+  .pc-toast-group--bottom-right .pc-toast {
+    @apply bottom-0;
+  }
+
+  .pc-toast[data-state="entering"] {
+    opacity: 0;
+    transform: translateY(var(--pc-toast-enter, 16px)) scale(0.97);
+  }
+
+  .pc-toast-group--top-left .pc-toast[data-state="entering"],
+  .pc-toast-group--top-center .pc-toast[data-state="entering"],
+  .pc-toast-group--top-right .pc-toast[data-state="entering"] {
+    --pc-toast-enter: -16px;
+  }
+
+  .pc-toast[data-state="closing"] {
+    opacity: 0;
+    transform: translateY(var(--pc-toast-y, 0px))
+      translateX(var(--pc-toast-swipe-end, 0px)) scale(0.95);
+    pointer-events: none;
+  }
+
+  .pc-toast--hidden {
+    @apply opacity-0 pointer-events-none;
+  }
+
+  .pc-toast--swiping {
+    transition: opacity 100ms ease;
+    cursor: grabbing;
+  }
+
+  .pc-toast__body {
+    @apply flex items-start gap-3 p-4;
+  }
+
+  .pc-toast__icon {
+    @apply w-5 h-5 shrink-0 mt-0.5;
+  }
+
+  .pc-toast__icon--info {
+    @apply text-info-500;
+  }
+
+  .pc-toast__icon--success {
+    @apply text-success-500;
+  }
+
+  .pc-toast__icon--warning {
+    @apply text-warning-500;
+  }
+
+  .pc-toast__icon--danger {
+    @apply text-danger-500;
+  }
+
+  .pc-toast__spinner {
+    @apply w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin dark:border-gray-400/25 dark:border-t-gray-300;
+  }
+
+  .pc-toast__text {
+    @apply flex-1 min-w-0;
+  }
+
+  .pc-toast__title {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-toast__description {
+    @apply mt-0.5 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-toast__action {
+    @apply shrink-0 self-center px-2.5 py-1.5 text-xs font-medium cursor-pointer;
+    @apply bg-primary-600 hover:bg-primary-700 transition-colors duration-150;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    color: var(--pc-button-solid-fg, #fff);
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-toast__close {
+    @apply relative flex shrink-0 items-center h-5 cursor-pointer text-gray-400 transition-colors duration-150 rounded-sm;
+    @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50;
+  }
+
+  .pc-toast__close::before {
+    content: "";
+    @apply absolute -inset-2;
+  }
+
+  .pc-toast__close-icon {
+    @apply w-4 h-4;
+  }
+
+  .pc-toast__progress {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 origin-left bg-gray-300 dark:bg-gray-400/30;
+    animation: pc-toast-progress linear forwards;
+  }
+
+  .pc-toast__progress--info {
+    @apply bg-info-500;
+  }
+
+  .pc-toast__progress--success {
+    @apply bg-success-500;
+  }
+
+  .pc-toast__progress--warning {
+    @apply bg-warning-500;
+  }
+
+  .pc-toast__progress--danger {
+    @apply bg-danger-500;
+  }
+
+  .pc-toast-group__stack--paused .pc-toast__progress {
+    animation-play-state: paused;
+  }
+
+  @keyframes pc-toast-progress {
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-toast {
+      transition-duration: 1ms;
+    }
+  }

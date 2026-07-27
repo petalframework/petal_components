@@ -103,7 +103,8 @@ defmodule PetalComponents.ModalTest do
     end
 
     test "renders all size variants" do
-      ~w(sm md lg xl) |> Enum.each(fn size ->
+      ~w(sm md lg xl)
+      |> Enum.each(fn size ->
         assigns = %{size: size}
 
         html =

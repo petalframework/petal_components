@@ -57,8 +57,7 @@ defmodule PetalComponents.Confetti do
       data-spread={@spread}
       data-colors={if @colors != [], do: Phoenix.json_library().encode!(@colors)}
       {@rest}
-    >
-    </span>
+    ></span>
     """
   end
 end

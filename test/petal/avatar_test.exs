@@ -67,6 +67,143 @@ defmodule PetalComponents.AvatarTest do
     assert html =~ "background-color:"
   end
 
+  test "random_gradient renders a deterministic gradient hashed from the name" do
+    assigns = %{}
+
+    render = fn ->
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" random_gradient />
+      """)
+    end
+
+    html = render.()
+    assert html =~ "linear-gradient"
+    # same name, same gradient
+    assert html == render.()
+  end
+
+  test "random_gradient wins over random_color when both are set" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" random_color random_gradient />
+      """)
+
+    assert html =~ "linear-gradient"
+    refute html =~ "background-color:"
+  end
+
+  test "art mesh draws a deterministic radial mesh with no initials" do
+    assigns = %{}
+
+    render = fn ->
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" />
+      """)
+    end
+
+    html = render.()
+    assert html =~ "pc-avatar--art"
+    assert html =~ "radial-gradient"
+    # no initials render; the name still labels the avatar
+    refute html =~ ">AL<"
+    assert html =~ ~s(aria-label="Ada Lovelace")
+    assert html == render.()
+  end
+
+  test "art dither embeds an inline svg data uri" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" />
+      """)
+
+    assert html =~ "data:image/svg+xml"
+    assert html =~ "pc-avatar--art"
+  end
+
+  test "initials overlays a contrast-managed monogram on mesh only" do
+    assigns = %{}
+
+    mesh =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" initials />
+      """)
+
+    assert mesh =~ "AL"
+    # dark hue-tinted monogram
+    assert mesh =~ "color: hsl("
+
+    # dither stays pure art - initials is a documented no-op
+    dither =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" initials />
+      """)
+
+    pure =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="dither" />
+      """)
+
+    refute dither =~ "AL"
+    assert dither == pure
+  end
+
+  test "shape rounded applies across photo, initials and art variants" do
+    assigns = %{}
+
+    photo =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" shape="rounded" />
+      """)
+
+    initials =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" shape="rounded" />
+      """)
+
+    art =
+      rendered_to_string(~H"""
+      <.avatar name="Ada Lovelace" art="mesh" shape="rounded" />
+      """)
+
+    for html <- [photo, initials, art], do: assert(html =~ "pc-avatar--rounded")
+
+    # circle default carries no modifier
+    circle =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" />
+      """)
+
+    refute circle =~ "pc-avatar--rounded"
+  end
+
+  test "avatar_group threads shape to children and the overflow bubble" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar_group shape="rounded" max={1} avatars={["/a.jpg", "/b.jpg"]} />
+      """)
+
+    # the shown avatar and the +1 bubble both carry the modifier
+    assert length(String.split(html, "pc-avatar--rounded")) == 3
+  end
+
+  test "a photo src wins over art" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.avatar src="/a.jpg" name="Ada Lovelace" art="mesh" />
+      """)
+
+    assert html =~ "pc-avatar--with-image"
+    refute html =~ "pc-avatar--art"
+  end
+
   test "dark mode" do
     assigns = %{}
 

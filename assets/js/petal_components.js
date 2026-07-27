@@ -260,28 +260,38 @@ export const PetalPasswordToggle = {
       const revealed = input.type === "text";
       if (eye) eye.classList.toggle("hidden", revealed);
       if (eyeOff) eyeOff.classList.toggle("hidden", !revealed);
+      btn.setAttribute("aria-pressed", String(revealed));
+      btn.setAttribute("aria-label", revealed ? "Hide password" : "Show password");
     });
   },
 };
 
-// Copyable field: copy the (readonly) input value, flip the icon for 2s.
+// Copyable field: copy the (readonly) input value, flip to a success check for
+// 2s, and announce the copy to screen readers via the polite live region.
 export const PetalCopyInput = {
   mounted() {
     const input = this.el.querySelector("[data-pc-copy-input]");
     const btn = this.el.querySelector("[data-pc-copy-btn]");
     const def = this.el.querySelector("[data-pc-copy-default]");
     const done = this.el.querySelector("[data-pc-copy-done]");
+    const announce = this.el.querySelector("[data-pc-copy-announce]");
     if (!input || !btn) return;
 
     btn.addEventListener("click", () => {
       navigator.clipboard?.writeText(input.value);
       if (def) def.classList.add("hidden");
       if (done) done.classList.remove("hidden");
-      setTimeout(() => {
+      if (announce) announce.textContent = "Copied to clipboard";
+      clearTimeout(this.revertTimer);
+      this.revertTimer = setTimeout(() => {
         if (def) def.classList.remove("hidden");
         if (done) done.classList.add("hidden");
+        if (announce) announce.textContent = "";
       }, 2000);
     });
+  },
+  destroyed() {
+    clearTimeout(this.revertTimer);
   },
 };
 
@@ -305,6 +315,33 @@ export const PetalClearableInput = {
   },
   updated() {
     if (this.sync) this.sync();
+  },
+};
+
+// Range fill: keeps --pc-range-fill in sync with a single <input type="range">
+// so webkit can paint a primary fill from the start to the thumb (Firefox does
+// it natively via ::-moz-range-progress). The server sets the initial value; the
+// hook updates it as you drag.
+export const PetalRangeFill = {
+  mounted() {
+    this.sync = () => {
+      const min = parseFloat(this.el.min);
+      const max = parseFloat(this.el.max);
+      const lo = Number.isNaN(min) ? 0 : min;
+      const hi = Number.isNaN(max) ? 100 : max;
+      const val = parseFloat(this.el.value);
+      const v = Number.isNaN(val) ? lo : val;
+      const pct = hi <= lo ? 0 : ((v - lo) / (hi - lo)) * 100;
+      this.el.style.setProperty("--pc-range-fill", Math.max(0, Math.min(100, pct)) + "%");
+    };
+    this.el.addEventListener("input", this.sync);
+    this.sync();
+  },
+  updated() {
+    if (this.sync) this.sync();
+  },
+  destroyed() {
+    if (this.sync) this.el.removeEventListener("input", this.sync);
   },
 };
 
@@ -751,6 +788,67 @@ export const PetalChart = {
           "box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);",
       },
     };
+  },
+};
+
+// Colour-scheme switch (toggle / dropdown / segmented). Requires the
+// window.PetalColorScheme contract from <.color_scheme_script /> in <head>.
+// All instances stay in sync via the petal:scheme-changed window event.
+export const PetalColorScheme = {
+  mounted() {
+    if (!window.PetalColorScheme) {
+      console.warn(
+        "[petal] PetalColorScheme: render <.color_scheme_script /> in your layout's <head>."
+      );
+      return;
+    }
+    this.variant = this.el.dataset.variant;
+    this.sync = () => this.reflect();
+    window.addEventListener("petal:scheme-changed", this.sync);
+
+    if (this.variant === "toggle") {
+      this.onClick = () => {
+        const next = window.PetalColorScheme.resolved() === "dark" ? "light" : "dark";
+        window.PetalColorScheme.set(next);
+      };
+      this.el.addEventListener("click", this.onClick);
+    } else if (this.variant === "segmented") {
+      this.onChange = (e) => {
+        if (e.target instanceof HTMLInputElement) window.PetalColorScheme.set(e.target.value);
+      };
+      this.el.addEventListener("change", this.onChange);
+    } else {
+      this.onClick = (e) => {
+        const item = e.target.closest("[data-scheme]");
+        if (!item) return;
+        window.PetalColorScheme.set(item.dataset.scheme);
+        // menus dismiss on select - retoggle via the trigger
+        const trigger = this.el.querySelector(".pc-dropdown button");
+        if (trigger) trigger.click();
+      };
+      this.el.addEventListener("click", this.onClick);
+    }
+
+    this.reflect();
+  },
+
+  updated() {
+    this.reflect();
+  },
+
+  destroyed() {
+    window.removeEventListener("petal:scheme-changed", this.sync);
+  },
+
+  reflect() {
+    if (!window.PetalColorScheme) return;
+    const pref = window.PetalColorScheme.preference();
+    this.el.querySelectorAll('input[type="radio"]').forEach((r) => {
+      r.checked = r.value === pref;
+    });
+    this.el.querySelectorAll("[data-scheme]").forEach((n) => {
+      n.setAttribute("aria-checked", n.dataset.scheme === pref ? "true" : "false");
+    });
   },
 };
 
@@ -1645,8 +1743,1483 @@ export const PetalNavMenu = {
   },
 };
 
+
+// Localised timestamps: formats the <time datetime> UTC instant with the
+// browser's Intl. Relative forms tick on a decaying cadence and re-render
+// when a hidden tab becomes visible (browsers throttle background timers).
+export const PetalLocalTime = {
+  mounted() {
+    this.render = this.render.bind(this);
+    this.onVisible = () => {
+      if (!document.hidden) this.render();
+    };
+    document.addEventListener("visibilitychange", this.onVisible);
+    this.render();
+  },
+
+  updated() {
+    // LiveView patches restore the SSR ISO fallback - format it again
+    this.render();
+  },
+
+  destroyed() {
+    clearTimeout(this.timer);
+    document.removeEventListener("visibilitychange", this.onVisible);
+  },
+
+  config() {
+    const d = this.el.dataset;
+    let options = null;
+    if (d.options) {
+      try {
+        options = JSON.parse(d.options);
+      } catch (_e) {
+        console.warn("[petal] PetalLocalTime: invalid data-options JSON on #" + this.el.id);
+      }
+    }
+    return {
+      format: d.format || "datetime",
+      options,
+      locale: d.locale || undefined,
+      timezone: d.timezone || undefined,
+      threshold: parseInt(d.threshold || "604800", 10),
+      title: d.title !== "false",
+    };
+  },
+
+  absolute(date, cfg) {
+    const presets = {
+      datetime: { dateStyle: "medium", timeStyle: "short" },
+      date: { dateStyle: "medium" },
+      time: { timeStyle: "short" },
+    };
+    const opts = cfg.options || presets[cfg.format] || presets.datetime;
+    return new Intl.DateTimeFormat(cfg.locale, { timeZone: cfg.timezone, ...opts }).format(date);
+  },
+
+  relative(cfg, ageSeconds) {
+    const rtf = new Intl.RelativeTimeFormat(cfg.locale, { numeric: "auto" });
+    const abs = Math.abs(ageSeconds);
+    const units = [
+      ["year", 31536000],
+      ["month", 2592000],
+      ["week", 604800],
+      ["day", 86400],
+      ["hour", 3600],
+      ["minute", 60],
+      ["second", 1],
+    ];
+    for (const [unit, secs] of units) {
+      if (abs >= secs || unit === "second") {
+        return rtf.format(Math.round(-ageSeconds / secs), unit);
+      }
+    }
+  },
+
+  render() {
+    clearTimeout(this.timer);
+    const cfg = this.config();
+    const date = new Date(this.el.getAttribute("datetime"));
+    if (isNaN(date)) return;
+
+    if (cfg.format === "relative") {
+      const age = (Date.now() - date.getTime()) / 1000;
+
+      if (Math.abs(age) > cfg.threshold) {
+        this.el.textContent = this.absolute(date, { ...cfg, format: "datetime", options: null });
+        return;
+      }
+
+      this.el.textContent = this.relative(cfg, age);
+
+      if (cfg.title) {
+        this.el.title = new Intl.DateTimeFormat(cfg.locale, {
+          timeZone: cfg.timezone,
+          dateStyle: "full",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      // decaying cadence: fresh timestamps tick fast, old ones barely at all
+      const abs = Math.abs(age);
+      const next = abs < 60 ? 5 : abs < 3600 ? 30 : abs < 86400 ? 900 : 3600;
+      this.timer = setTimeout(this.render, next * 1000);
+    } else {
+      this.el.textContent = this.absolute(date, cfg);
+    }
+  },
+};
+
+// Carousel: ported verbatim from petal_marketing's CarouselHook
+// (921 lines, battle-tested) - interaction logic deliberately untouched.
+export const PetalCarousel = {
+  mounted() {
+    this.id = this.el.id;
+    this.carouselContainer = this.el;
+    // Look for wrapper to support "below" button style
+    this.wrapper = this.el.closest(".pc-carousel-wrapper") || this.el;
+    this.slideWrapper = this.el.querySelector(".pc-carousel__slides");
+    this.slides = Array.from(this.el.querySelectorAll(".pc-carousel__slide"));
+    this.navdots = Array.from(
+      this.wrapper.querySelectorAll(".pc-carousel__indicator")
+    );
+    this.thumbs = Array.from(
+      this.wrapper.querySelectorAll("[data-thumb-index]")
+    );
+
+    this.activeIndex = parseInt(this.el.dataset.activeIndex) || 0;
+    this.transitionType = this.el.dataset.transitionType || "fade";
+    this.autoplay = this.el.dataset.autoplay === "true";
+    this.autoplayInterval = parseInt(this.el.dataset.autoplayInterval) || 5000;
+    this.slidesPerViewDesktop = parseInt(this.el.dataset.slidesPerView) || 1;
+    this.slidesPerView = this.getResponsiveSlidesPerView();
+    this.gap = this.el.dataset.gap || "1rem";
+    this.swipe = this.el.dataset.swipe !== "false"; // Default to true
+    this.loop = this.el.dataset.loop !== "false"; // Default to true
+
+    // Detect vertical orientation
+    this.isVertical = this.el.classList.contains("pc-carousel--vertical");
+
+    // Parameters for CSS Scroll Snap approach
+    this.n_slides = this.slides.length;
+    // For multi-slide view with infinite loop, clone all slides on each side for seamless wrapping
+    // This allows scrolling in both directions through the loop
+    this.n_slidesCloned = this.transitionType === "slide" ? this.n_slides : 0;
+    this.slideWidth = this.slides[0] ? this.slides[0].offsetWidth : 0;
+    // For CSS Scroll Snap, we don't need gaps between slides
+    this.spaceBtwSlides = 0;
+
+    // For infinite carousels, we cycle through all slides
+    // For non-infinite, the last position shows the last N slides
+    this.maxScrollIndex = this.n_slides - 1;
+
+    if (this.transitionType === "slide") {
+      this.initScrollSnapCarousel();
+    } else {
+      this.initFadeCarousel();
+    }
+
+    this.setupNavigation();
+    this.setupIndicators();
+    this.setupThumbnails();
+
+    // W3C carousel pattern: autoplay pauses while the pointer is over
+    // the carousel and resumes when it leaves
+    if (this.autoplay) {
+      this.hoverPause = () => this.stopAutoplay();
+      this.hoverResume = () => this.startAutoplay();
+      this.el.addEventListener("mouseenter", this.hoverPause);
+      this.el.addEventListener("mouseleave", this.hoverResume);
+    }
+    this.setupKeyboardNavigation();
+
+    if (this.autoplay) {
+      this.startAutoplay();
+
+      // Pause on hover
+      this.el.addEventListener("mouseenter", () => {
+        this.stopAutoplay();
+      });
+
+      this.el.addEventListener("mouseleave", () => {
+        this.startAutoplay();
+      });
+    }
+  },
+
+  destroyed() {
+    if (this.autoplayTimer) {
+      clearInterval(this.autoplayTimer);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    if (this.keyboardHandler) {
+      this.wrapper.removeEventListener("keydown", this.keyboardHandler);
+    }
+    if (this.hoverPause) {
+      this.el.removeEventListener("mouseenter", this.hoverPause);
+      this.el.removeEventListener("mouseleave", this.hoverResume);
+    }
+    if (this.scrollbarStyle) {
+      this.scrollbarStyle.remove();
+      this.scrollbarStyle = null;
+    }
+  },
+
+  // Helper function to apply slide dimensions based on orientation
+  applySlideDimensions(slide) {
+    slide.style.flex = `0 0 ${this.slideWidth}px`;
+
+    // CRITICAL: Always use 'start' alignment for consistent scroll positioning calculations
+    // Using 'center' for multi-slide views would require adding centering offsets to all
+    // scroll position calculations (goto, prevSlide, nextSlide, index_slideCurrent)
+    slide.style.scrollSnapAlign = "start";
+
+    if (this.isVertical) {
+      slide.style.height = `${this.slideWidth}px`;
+      slide.style.minHeight = `${this.slideWidth}px`;
+      slide.style.maxHeight = `${this.slideWidth}px`;
+      slide.style.width = "100%";
+    } else {
+      slide.style.width = `${this.slideWidth}px`;
+      slide.style.minWidth = `${this.slideWidth}px`;
+      slide.style.maxWidth = `${this.slideWidth}px`;
+    }
+  },
+
+  // Helper function to clone a slide for infinite scrolling
+  cloneSlide(slideToClone) {
+    const clone = slideToClone.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    // clones must not duplicate ids (LiveView warns, and getElementById
+    // would resolve to the wrong node)
+    clone.removeAttribute("id");
+    clone.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+    this.applySlideDimensions(clone);
+    return clone;
+  },
+
+  // Helper function to reset autoplay after manual interaction
+  resetAutoplay() {
+    if (this.autoplay) {
+      this.stopAutoplay();
+      this.startAutoplay();
+    }
+  },
+
+  getResponsiveSlidesPerView() {
+    // If only 1 slide per view on desktop, no need for responsive logic
+    if (this.slidesPerViewDesktop <= 1) {
+      return 1;
+    }
+
+    const width = window.innerWidth;
+
+    // Mobile portrait: 1 slide
+    if (width < 768) {
+      return 1;
+    }
+    // Tablet and mobile landscape: 2 slides
+    else if (width < 1024) {
+      return Math.min(2, this.slidesPerViewDesktop);
+    }
+    // Desktop: use the configured value
+    else {
+      return this.slidesPerViewDesktop;
+    }
+  },
+
+  initScrollSnapCarousel() {
+    // Set up CSS Scroll Snap carousel (like the Medium article)
+    this.slideWrapper.style.display = "flex";
+    this.slideWrapper.style.overflow = "auto";
+
+    // Set scroll snap direction based on orientation
+    if (this.isVertical) {
+      this.slideWrapper.style.scrollSnapType = "y mandatory";
+      this.slideWrapper.style.height = "100%";
+    } else {
+      this.slideWrapper.style.scrollSnapType = "x mandatory";
+      this.slideWrapper.style.width = "100%";
+      this.slideWrapper.style.maxWidth = "100%";
+    }
+
+    this.slideWrapper.style.scrollbarWidth = "none"; // Firefox
+
+    // Hide webkit scrollbar. The id comes from the caller, and an HTML-valid id
+    // can still contain characters that are special in a selector (".", ":",
+    // digits leading), so escape it - an unescaped one silently produces a rule
+    // that never matches and the scrollbar shows. Kept on `this` so destroyed()
+    // can remove it instead of leaking a style node per remount.
+    this.scrollbarStyle = document.createElement("style");
+    this.scrollbarStyle.textContent = `
+      #${CSS.escape(this.id)} .pc-carousel__slides::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(this.scrollbarStyle);
+
+    // Update slide dimensions before setting up slides
+    this.updateSlideWidth();
+
+    // Set up each slide for scroll snap with explicit dimensions
+    this.slides.forEach((slide) => {
+      this.applySlideDimensions(slide);
+    });
+
+    // Set up infinite scrolling
+    this.setupInfiniteScrolling();
+
+    // Set up scroll event listener
+    this.setupScrollListener();
+
+    // Set up resize observer
+    this.setupResizeObserver();
+
+    // Set up mouse drag support (only if swipe is enabled)
+    if (this.swipe) {
+      this.setupMouseDrag();
+    }
+
+    // Initialize to first real slide (after cloned last slide)
+    setTimeout(() => {
+      this.goto(0, false); // Use goto with smooth=false for initialization
+      this.updateIndicators();
+      this.updateButtonStates();
+    }, 50);
+  },
+
+  initFadeCarousel() {
+    // Keep existing fade logic
+    this.transitionDuration =
+      parseInt(this.el.dataset.transitionDuration) || 500;
+
+    this.slides.forEach((slide, index) => {
+      slide.style.position = "absolute";
+      slide.style.top = "0";
+      slide.style.left = "0";
+      slide.style.width = "100%";
+      slide.style.height = "100%";
+      slide.style.transition = `opacity ${this.transitionDuration}ms ease-in-out`;
+
+      if (index === this.activeIndex) {
+        slide.classList.add("pc-carousel__slide--active");
+        slide.style.opacity = "1";
+        slide.style.zIndex = "10";
+      } else {
+        slide.classList.add("pc-carousel__slide--inactive");
+        slide.style.opacity = "0";
+        slide.style.zIndex = "1";
+      }
+    });
+  },
+
+  // CSS Scroll Snap helper functions (from Medium article)
+  index_slideCurrent() {
+    const scrollPos = this.isVertical
+      ? this.slideWrapper.scrollTop
+      : this.slideWrapper.scrollLeft;
+    const rawPosition = scrollPos / (this.slideWidth + this.spaceBtwSlides);
+    const index = Math.round(rawPosition - this.n_slidesCloned);
+
+    return index;
+  },
+
+  goto(index, smooth = true) {
+    // Account for cloned slides - add offset for the cloned last slide at the beginning
+    const scrollPosition =
+      (this.slideWidth + this.spaceBtwSlides) * (index + this.n_slidesCloned);
+
+    if (smooth) {
+      this.slideWrapper.scrollTo({
+        left: this.isVertical ? 0 : scrollPosition,
+        top: this.isVertical ? scrollPosition : 0,
+        behavior: "smooth",
+      });
+    } else {
+      if (this.isVertical) {
+        this.slideWrapper.scrollTo(0, scrollPosition);
+      } else {
+        this.slideWrapper.scrollTo(scrollPosition, 0);
+      }
+    }
+  },
+
+  setupInfiniteScrolling() {
+    if (this.n_slides === 0) return;
+
+    // Skip cloning if loop is disabled
+    if (!this.loop) {
+      this.n_slidesCloned = 0;
+      return;
+    }
+
+    // Clone ALL slides and append to end for forward scrolling
+    for (let i = 0; i < this.n_slides; i++) {
+      this.slideWrapper.append(this.cloneSlide(this.slides[i]));
+    }
+
+    // Clone ALL slides and prepend to beginning for backward scrolling
+    // Prepend in reverse order so they appear in correct sequence
+    for (let i = this.n_slides - 1; i >= 0; i--) {
+      this.slideWrapper.prepend(this.cloneSlide(this.slides[i]));
+    }
+  },
+
+  setupScrollListener() {
+    let scrollTimer;
+    let indexUpdateTimer;
+    this.isScrolling = false;
+
+    this.slideWrapper.addEventListener("scroll", () => {
+      // Debounce activeIndex update to prevent jumping during smooth scroll
+      if (indexUpdateTimer) clearTimeout(indexUpdateTimer);
+
+      indexUpdateTimer = setTimeout(() => {
+        // Update active index based on current scroll position after scrolling settles
+        const currentIndex = this.index_slideCurrent();
+        if (currentIndex >= 0 && currentIndex < this.n_slides) {
+          this.activeIndex = currentIndex;
+          this.updateIndicators();
+          this.updateButtonStates();
+        }
+      }, 50); // Short delay to wait for scroll to settle
+
+      // Handle infinite scrolling with debouncing (skip if loop is disabled)
+      if (this.loop) {
+        if (scrollTimer) clearTimeout(scrollTimer);
+
+        scrollTimer = setTimeout(() => {
+          const scrollPos = this.isVertical
+            ? this.slideWrapper.scrollTop
+            : this.slideWrapper.scrollLeft;
+
+          // For multi-slide view, use position-based detection instead of threshold
+          // Calculate the current position index
+          const currentPosition = Math.round(
+            scrollPos / (this.slideWidth + this.spaceBtwSlides)
+          );
+
+          // Check if we're at or before the first real slide position
+          // Real slides start at position n_slidesCloned
+          if (currentPosition < this.n_slidesCloned) {
+            this.forward();
+          }
+          // Check if we're at or after the last cloned slide position
+          // Cloned slides at end start at position (n_slidesCloned + n_slides)
+          else if (currentPosition >= this.n_slidesCloned + this.n_slides) {
+            this.rewind();
+          }
+        }, 100);
+      }
+    });
+  },
+
+  rewind() {
+    // Update index immediately for indicators
+    this.activeIndex = 0;
+    this.updateIndicators();
+    this.updateButtonStates();
+
+    setTimeout(() => {
+      this.goto(0, false); // Instant jump to first slide
+    }, 50); // Reduced delay for smoother transition
+  },
+
+  forward() {
+    // Update index immediately for indicators
+    this.activeIndex = this.n_slides - 1;
+    this.updateIndicators();
+    this.updateButtonStates();
+
+    setTimeout(() => {
+      this.goto(this.n_slides - 1, false); // Instant jump to last slide
+    }, 50); // Reduced delay for smoother transition
+  },
+
+  updateSlideWidth() {
+    if (this.slideWrapper) {
+      // Use offsetWidth/offsetHeight which includes padding for accurate measurements
+      const containerSize = this.isVertical
+        ? this.carouselContainer.offsetHeight
+        : this.carouselContainer.offsetWidth;
+
+      // Convert gap to pixels if needed
+      const gapInPx = this.parseGapToPixels(this.gap);
+
+      // Set CSS custom property for gap (applies to all views)
+      this.slideWrapper.style.setProperty("--carousel-gap", this.gap);
+
+      if (this.slidesPerView > 1 && !this.isVertical) {
+        // Multi-slide view: calculate width per slide accounting for gaps
+        // Total gap space = (number of slides - 1) * gap
+        const totalGapSpace = (this.slidesPerView - 1) * gapInPx;
+        this.slideWidth = (containerSize - totalGapSpace) / this.slidesPerView;
+        this.spaceBtwSlides = gapInPx;
+      } else {
+        // Single slide view or vertical: full container size
+        this.slideWidth = containerSize;
+        // Gap still affects scroll positioning even with one slide visible
+        this.spaceBtwSlides = gapInPx;
+      }
+
+      // Measure actual dimensions after browser renders
+      // Verify that CSS gap and slide dimensions match our calculations
+      if (this.slides.length > 1) {
+        // Use setTimeout to measure after browser fully renders (200ms for larger screens)
+        setTimeout(() => {
+          if (!this.slides[0]) return;
+
+          const actualWidth = this.isVertical
+            ? this.slides[0].offsetHeight
+            : this.slides[0].offsetWidth;
+          const actualSpacing = this.isVertical
+            ? this.slides[1].offsetTop - this.slides[0].offsetTop
+            : this.slides[1].offsetLeft - this.slides[0].offsetLeft;
+          const measuredGap = actualSpacing - actualWidth;
+
+          let needsUpdate = false;
+
+          // For single-slide views, trust measured width over calculated
+          if (
+            this.slidesPerView === 1 &&
+            Math.abs(actualWidth - this.slideWidth) > 2
+          ) {
+            this.slideWidth = actualWidth;
+            needsUpdate = true;
+          }
+
+          // For all views, verify gap matches (critical for loop positioning)
+          if (
+            measuredGap > 1 &&
+            Math.abs(measuredGap - this.spaceBtwSlides) > 2
+          ) {
+            this.spaceBtwSlides = measuredGap;
+            needsUpdate = true;
+          }
+
+          // Reapply if measurements differ
+          if (needsUpdate) {
+            const allSlides = this.slideWrapper.querySelectorAll(
+              ".pc-carousel__slide"
+            );
+            allSlides.forEach((slide) => {
+              this.applySlideDimensions(slide);
+            });
+            this.goto(this.activeIndex, false);
+          }
+        }, 200);
+      }
+    }
+  },
+
+  parseGapToPixels(gap) {
+    // Convert rem, em, or px values to pixels
+    if (gap.endsWith("rem")) {
+      const remValue = parseFloat(gap);
+      const rootFontSize = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      );
+      return remValue * rootFontSize;
+    } else if (gap.endsWith("em")) {
+      const emValue = parseFloat(gap);
+      const fontSize = parseFloat(getComputedStyle(this.el).fontSize);
+      return emValue * fontSize;
+    } else if (gap.endsWith("px")) {
+      return parseFloat(gap);
+    } else {
+      // Assume pixels if no unit
+      return parseFloat(gap) || 0;
+    }
+  },
+
+  setupResizeObserver() {
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => {
+        const currentIndex = this.activeIndex;
+
+        // Recalculate responsive slides per view
+        const newSlidesPerView = this.getResponsiveSlidesPerView();
+        const slidesPerViewChanged = newSlidesPerView !== this.slidesPerView;
+
+        if (slidesPerViewChanged) {
+          this.slidesPerView = newSlidesPerView;
+
+          // Need to rebuild clones for new slides per view
+          if (this.transitionType === "slide") {
+            // Remove all cloned slides
+            const allSlides = this.slideWrapper.querySelectorAll(
+              ".pc-carousel__slide"
+            );
+            allSlides.forEach((slide) => {
+              if (slide.getAttribute("aria-hidden") === "true") {
+                slide.remove();
+              }
+            });
+
+            // Recalculate and setup
+            this.updateSlideWidth();
+            this.setupInfiniteScrolling();
+          }
+        } else {
+          this.updateSlideWidth();
+        }
+
+        // Reapply dimensions to all slides after resize
+        if (this.transitionType === "slide") {
+          const allSlides = this.slideWrapper.querySelectorAll(
+            ".pc-carousel__slide"
+          );
+          allSlides.forEach((slide) => {
+            this.applySlideDimensions(slide);
+          });
+
+          this.goto(currentIndex, false); // Instant reposition after resize
+        }
+      });
+      this.resizeObserver.observe(this.slideWrapper);
+    }
+  },
+
+  setupMouseDrag() {
+    let isDragging = false;
+    let startPos = 0;
+    let scrollPos = 0;
+    let currentPos = 0;
+    let animationFrame = null;
+
+    // Add cursor style
+    this.slideWrapper.style.cursor = "grab";
+
+    // Smooth scrolling with requestAnimationFrame
+    const smoothScroll = () => {
+      if (!isDragging) return;
+
+      const walk = (currentPos - startPos) * 1.5; // Adjusted multiplier for smooth feel
+
+      if (this.isVertical) {
+        this.slideWrapper.scrollTop = scrollPos - walk;
+      } else {
+        this.slideWrapper.scrollLeft = scrollPos - walk;
+      }
+
+      animationFrame = requestAnimationFrame(smoothScroll);
+    };
+
+    const handleMouseDown = (e) => {
+      // Don't start drag on buttons or links
+      if (e.target.closest("button") || e.target.closest("a")) {
+        return;
+      }
+
+      isDragging = true;
+      this.slideWrapper.style.cursor = "grabbing";
+      this.slideWrapper.style.userSelect = "none"; // Prevent text selection during drag
+      this.slideWrapper.style.scrollSnapType = "none"; // Disable snap during drag
+
+      if (this.isVertical) {
+        startPos = e.pageY - this.slideWrapper.offsetTop;
+        scrollPos = this.slideWrapper.scrollTop;
+      } else {
+        startPos = e.pageX - this.slideWrapper.offsetLeft;
+        scrollPos = this.slideWrapper.scrollLeft;
+      }
+
+      currentPos = startPos;
+
+      // Start smooth scrolling loop
+      animationFrame = requestAnimationFrame(smoothScroll);
+
+      // Pause autoplay during drag
+      if (this.autoplay) {
+        this.stopAutoplay();
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+
+      e.preventDefault();
+
+      if (this.isVertical) {
+        currentPos = e.pageY - this.slideWrapper.offsetTop;
+      } else {
+        currentPos = e.pageX - this.slideWrapper.offsetLeft;
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isDragging) return;
+
+      isDragging = false;
+      this.slideWrapper.style.cursor = "grab";
+      this.slideWrapper.style.userSelect = "";
+      // Re-enable snap with proper direction
+      this.slideWrapper.style.scrollSnapType = this.isVertical
+        ? "y mandatory"
+        : "x mandatory";
+
+      // Cancel animation frame
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+
+      // Resume autoplay after drag
+      if (this.autoplay) {
+        this.startAutoplay();
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (!isDragging) return;
+
+      isDragging = false;
+      this.slideWrapper.style.cursor = "grab";
+      this.slideWrapper.style.userSelect = "";
+      // Re-enable snap with proper direction
+      this.slideWrapper.style.scrollSnapType = this.isVertical
+        ? "y mandatory"
+        : "x mandatory";
+
+      // Cancel animation frame
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+
+      // Resume autoplay if we were dragging
+      if (this.autoplay) {
+        this.startAutoplay();
+      }
+    };
+
+    // Add event listeners
+    this.slideWrapper.addEventListener("mousedown", handleMouseDown);
+    this.slideWrapper.addEventListener("mousemove", handleMouseMove);
+    this.slideWrapper.addEventListener("mouseup", handleMouseUp);
+    this.slideWrapper.addEventListener("mouseleave", handleMouseLeave);
+
+    // Prevent drag on links and images
+    this.slideWrapper.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+    });
+
+    // Prevent click events if there was significant dragging
+    let clickStartX = 0;
+    this.slideWrapper.addEventListener("mousedown", (e) => {
+      clickStartX = e.pageX;
+    });
+    this.slideWrapper.addEventListener(
+      "click",
+      (e) => {
+        const clickEndX = e.pageX;
+        if (Math.abs(clickEndX - clickStartX) > 5) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true
+    );
+  },
+
+  setupNavigation() {
+    // Look in wrapper to support "below" button style
+    const prevButton = this.wrapper.querySelector(`#${this.id}-carousel-prev`);
+    const nextButton = this.wrapper.querySelector(`#${this.id}-carousel-next`);
+
+    if (prevButton) {
+      prevButton.addEventListener("click", () => {
+        this.prevSlide();
+        this.resetAutoplay();
+      });
+    }
+
+    if (nextButton) {
+      nextButton.addEventListener("click", () => {
+        this.nextSlide();
+        this.resetAutoplay();
+      });
+    }
+  },
+
+  setupIndicators() {
+    this.navdots.forEach((indicator, index) => {
+      indicator.addEventListener("click", () => {
+        if (this.transitionType === "slide") {
+          this.activeIndex = index;
+          this.goto(index);
+          this.updateIndicators();
+        } else {
+          this.goToSlide(index);
+        }
+        this.resetAutoplay();
+      });
+    });
+
+    // Set initial indicator state
+    this.updateIndicators();
+  },
+
+  // Synced thumbnails: same contract as indicators - click to jump,
+  // active state follows the carousel.
+  setupThumbnails() {
+    this.thumbs.forEach((thumb, index) => {
+      thumb.addEventListener("click", () => {
+        if (this.transitionType === "slide") {
+          this.activeIndex = index;
+          this.goto(index);
+          this.updateIndicators();
+        } else {
+          this.goToSlide(index);
+        }
+        this.resetAutoplay();
+      });
+    });
+  },
+
+  setupKeyboardNavigation() {
+    // Add keyboard navigation for accessibility
+    this.keyboardHandler = (e) => {
+      // Only respond to arrow keys
+      const isArrowKey = [
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+      ].includes(e.key);
+      if (!isArrowKey) return;
+
+      // Prevent default scrolling behavior
+      e.preventDefault();
+
+      // Determine direction based on orientation and key
+      const isNext = this.isVertical
+        ? e.key === "ArrowDown"
+        : e.key === "ArrowRight";
+      const isPrev = this.isVertical
+        ? e.key === "ArrowUp"
+        : e.key === "ArrowLeft";
+
+      if (isNext) {
+        this.nextSlide();
+      } else if (isPrev) {
+        this.prevSlide();
+      }
+
+      this.resetAutoplay();
+    };
+
+    // Make carousel focusable
+    if (!this.el.hasAttribute("tabindex")) {
+      this.el.setAttribute("tabindex", "0");
+    }
+
+    // Add event listener
+    this.wrapper.addEventListener("keydown", this.keyboardHandler);
+  },
+
+  startAutoplay() {
+    // Respect the OS motion preference: a carousel that moves by itself
+    // is exactly what prefers-reduced-motion asks to stop
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    // Clear any existing timer first to prevent duplicates
+    this.stopAutoplay();
+
+    // W3C carousel pattern: don't announce auto-advancing slides - a
+    // polite region firing every few seconds spams screen readers
+    const live = this.el.querySelector("[aria-live]");
+    if (live) live.setAttribute("aria-live", "off");
+
+    this.autoplayTimer = setInterval(() => {
+      this.nextSlide();
+    }, this.autoplayInterval);
+  },
+
+  stopAutoplay() {
+    if (this.autoplayTimer) {
+      clearInterval(this.autoplayTimer);
+      this.autoplayTimer = null;
+    }
+
+    const live = this.el.querySelector("[aria-live]");
+    if (live) live.setAttribute("aria-live", "polite");
+  },
+
+  prevSlide() {
+    // Prevent rapid consecutive calls
+    if (this.isTransitioning) {
+      return;
+    }
+
+    if (this.transitionType === "slide") {
+      this.isTransitioning = true;
+
+      if (this.activeIndex === 0) {
+        // If loop is disabled, prevent going past the first slide
+        if (!this.loop) {
+          this.isTransitioning = false;
+          return;
+        }
+
+        // At first slide with loop enabled, scroll to the cloned slides at the beginning
+        const scrollPosition =
+          (this.slideWidth + this.spaceBtwSlides) * (this.n_slidesCloned - 1);
+        this.slideWrapper.scrollTo({
+          left: this.isVertical ? 0 : scrollPosition,
+          top: this.isVertical ? scrollPosition : 0,
+          behavior: "smooth",
+        });
+      } else {
+        // Normal previous slide
+        this.activeIndex = this.activeIndex - 1;
+        this.goto(this.activeIndex);
+      }
+
+      // Release lock after transition completes
+      setTimeout(() => {
+        this.isTransitioning = false;
+      }, 600); // Slightly longer than CSS transition
+    } else {
+      // Fade transition
+      if (!this.loop && this.activeIndex === 0) {
+        // At first slide with loop disabled, prevent going previous
+        return;
+      }
+      const newIndex = (this.activeIndex - 1 + this.n_slides) % this.n_slides;
+      this.goToSlide(newIndex);
+    }
+  },
+
+  nextSlide() {
+    // Prevent rapid consecutive calls
+    if (this.isTransitioning) {
+      return;
+    }
+
+    if (this.transitionType === "slide") {
+      this.isTransitioning = true;
+
+      if (this.activeIndex >= this.n_slides - 1) {
+        // If loop is disabled, prevent going past the last slide
+        if (!this.loop) {
+          this.isTransitioning = false;
+          return;
+        }
+
+        // At last slide with loop enabled, smoothly scroll to the first slide position
+        this.activeIndex = 0;
+        // Scroll past all slides to trigger rewind
+        const scrollPosition =
+          (this.slideWidth + this.spaceBtwSlides) *
+          (this.n_slides + this.n_slidesCloned);
+        this.slideWrapper.scrollTo({
+          left: this.isVertical ? 0 : scrollPosition,
+          top: this.isVertical ? scrollPosition : 0,
+          behavior: "smooth",
+        });
+      } else {
+        // Normal next slide
+        this.activeIndex = this.activeIndex + 1;
+        this.goto(this.activeIndex);
+      }
+
+      // Release lock after transition completes
+      setTimeout(() => {
+        this.isTransitioning = false;
+      }, 600); // Slightly longer than CSS transition
+    } else {
+      // Fade transition
+      if (!this.loop && this.activeIndex >= this.n_slides - 1) {
+        // At last slide with loop disabled, prevent going next
+        return;
+      }
+      const newIndex = (this.activeIndex + 1) % this.n_slides;
+      this.goToSlide(newIndex);
+    }
+  },
+
+  goToSlide(newIndex) {
+    // Navigating to the slide you're already on must be a no-op: in the
+    // fade path current and next would be the SAME element, and the
+    // sequence ends opacity 1 then 0 - a permanently blank slide. Easily
+    // reached by clicking the active thumbnail or indicator dot, or by a
+    // single-slide fade carousel wrapping onto itself.
+    if (this.isTransitioning || newIndex === this.activeIndex) return;
+
+    this.isTransitioning = true;
+    const oldIndex = this.activeIndex;
+    this.activeIndex = newIndex;
+
+    if (this.transitionType === "slide") {
+      // For direct navigation, we'll use a simple approach
+      // This could be enhanced to animate to the target slide
+      this.isTransitioning = false;
+      this.updateIndicators();
+    } else {
+      // Fade transition - works for both forward and backward
+      const currentSlide = this.slides[oldIndex];
+      const nextSlide = this.slides[newIndex];
+
+      // Update classes
+      currentSlide.classList.remove("pc-carousel__slide--active");
+      currentSlide.classList.add("pc-carousel__slide--inactive");
+      nextSlide.classList.remove("pc-carousel__slide--inactive");
+      nextSlide.classList.add("pc-carousel__slide--active");
+
+      // Set up the incoming slide
+      nextSlide.style.zIndex = "10";
+      nextSlide.style.opacity = "0";
+
+      // Force reflow to ensure opacity 0 is applied before transition
+      void nextSlide.offsetWidth;
+
+      // Start fade in AND fade out simultaneously
+      nextSlide.style.opacity = "1";
+      currentSlide.style.opacity = "0";
+
+      // Clean up after transition completes
+      setTimeout(() => {
+        currentSlide.style.zIndex = "1";
+        this.isTransitioning = false;
+      }, this.transitionDuration);
+    }
+
+    // Update indicators and button states
+    this.updateIndicators();
+    this.updateButtonStates();
+  },
+
+  updateIndicators() {
+    const indicators = this.wrapper.querySelectorAll(".pc-carousel__indicator");
+
+    indicators.forEach((indicator, index) => {
+      if (index === this.activeIndex) {
+        indicator.classList.add("opacity-100");
+      } else {
+        indicator.classList.remove("opacity-100");
+      }
+    });
+
+    // Update aria-current on slides
+    this.slides.forEach((slide, index) => {
+      if (index === this.activeIndex) {
+        slide.setAttribute("aria-current", "true");
+      } else {
+        slide.setAttribute("aria-current", "false");
+      }
+    });
+
+    // Sync thumbnails with the active slide; if focus is on a thumb,
+    // it follows the active one so arrow keys read as moving the ring
+    this.thumbs.forEach((thumb, index) => {
+      thumb.classList.toggle(
+        "pc-carousel__thumb--active",
+        index === this.activeIndex
+      );
+      thumb.setAttribute(
+        "aria-current",
+        index === this.activeIndex ? "true" : "false"
+      );
+    });
+
+    if (this.thumbs.includes(document.activeElement)) {
+      const activeThumb = this.thumbs[this.activeIndex];
+      if (activeThumb) activeThumb.focus({ preventScroll: true });
+    }
+
+    // Notify listeners once per actual change (updateIndicators also runs
+    // on resize and re-init passes where the index hasn't moved)
+    if (this._lastEventIndex !== this.activeIndex) {
+      this._lastEventIndex = this.activeIndex;
+      this.el.dispatchEvent(
+        new CustomEvent("petal:carousel-change", {
+          detail: {
+            id: this.el.id,
+            index: this.activeIndex,
+            count: this.n_slides,
+          },
+          bubbles: true,
+        })
+      );
+    }
+
+    // Announce slide change to screen readers
+    this.announceSlideChange();
+  },
+
+  announceSlideChange() {
+    const liveRegion = this.el.querySelector(`#${this.id}-live-region`);
+    if (liveRegion) {
+      liveRegion.textContent = `Slide ${this.activeIndex + 1} of ${
+        this.n_slides
+      }`;
+    }
+  },
+
+  updateButtonStates() {
+    // Only update button states when loop is disabled
+    if (this.loop) {
+      // When loop is enabled, ensure buttons are always enabled
+      const prevButton = this.wrapper.querySelector(
+        `#${this.id}-carousel-prev`
+      );
+      const nextButton = this.wrapper.querySelector(
+        `#${this.id}-carousel-next`
+      );
+
+      if (prevButton) prevButton.disabled = false;
+      if (nextButton) nextButton.disabled = false;
+      return;
+    }
+
+    // When loop is disabled, disable buttons at boundaries
+    const prevButton = this.wrapper.querySelector(`#${this.id}-carousel-prev`);
+    const nextButton = this.wrapper.querySelector(`#${this.id}-carousel-next`);
+
+    if (prevButton) {
+      prevButton.disabled = this.activeIndex === 0;
+    }
+
+    if (nextButton) {
+      nextButton.disabled = this.activeIndex >= this.n_slides - 1;
+    }
+  },
+};
+
+// Toasts: a collapsed stack that expands on hover, per-toast timeout with
+// progress, pause on hover, swipe to dismiss, six positions. Server API via
+// push_event("petal:toast", ...), window CustomEvent for plain JS, and a
+// put_flash bridge. The stack DOM is hook-owned (phx-update="ignore").
+export const PetalToast = {
+  mounted() {
+    this.stack = document.getElementById(this.el.id + "-stack");
+    this.top = (this.el.dataset.position || "bottom-right").startsWith("top");
+    this.max = parseInt(this.el.dataset.max) || 3;
+    this.defaultDuration = parseInt(this.el.dataset.duration) || 5000;
+    this.toasts = []; // newest first
+    this.seq = 0;
+    this.expanded = false;
+
+    this.handleEvent("petal:toast", (d) => this.upsert(d || {}));
+    this.handleEvent("petal:toast-dismiss", (d) => {
+      if (d && d.all) [...this.toasts].forEach((t) => this.dismiss(t));
+      else if (d && d.id != null) {
+        const t = this.toasts.find((t) => t.id === String(d.id));
+        if (t) this.dismiss(t);
+      }
+    });
+    this.onWindowToast = (e) => this.upsert(e.detail || {});
+    window.addEventListener("petal:toast", this.onWindowToast);
+
+    // hover expands the stack and pauses every timer; a short grace on
+    // leave stops flicker when the pointer crosses the gaps between toasts
+    this.onEnter = () => {
+      clearTimeout(this.collapseTimer);
+      if (!this.expanded) {
+        this.expanded = true;
+        this.pauseAll();
+        this.layout();
+      }
+    };
+    this.onLeave = () => {
+      clearTimeout(this.collapseTimer);
+      this.collapseTimer = setTimeout(() => {
+        this.expanded = false;
+        this.resumeAll();
+        this.layout();
+      }, 150);
+    };
+    this.stack.addEventListener("mouseenter", this.onEnter);
+    this.stack.addEventListener("mouseleave", this.onLeave);
+
+    // action + close buttons (event delegation - the DOM is hook-built)
+    this.onClick = (e) => {
+      const closeBtn = e.target.closest("[data-toast-close]");
+      const actionBtn = e.target.closest("[data-toast-action]");
+      const toastEl = e.target.closest(".pc-toast");
+      if (!toastEl) return;
+      const t = this.toasts.find((t) => t.el === toastEl);
+      if (!t) return;
+
+      if (closeBtn) this.dismiss(t);
+
+      if (actionBtn) {
+        const event = actionBtn.dataset.toastAction;
+        let value = {};
+        try {
+          value = JSON.parse(actionBtn.dataset.toastValue || "{}");
+        } catch (_e) {}
+        if (event) this.pushEvent(event, value);
+        this.dismiss(t);
+      }
+    };
+    this.stack.addEventListener("click", this.onClick);
+
+    this.setupSwipe();
+    this.processFlash();
+  },
+
+  updated() {
+    // position can change via a normal patch (the stack itself is ignored)
+    this.top = (this.el.dataset.position || "bottom-right").startsWith("top");
+    this.layout();
+    this.processFlash();
+  },
+
+  destroyed() {
+    window.removeEventListener("petal:toast", this.onWindowToast);
+    clearTimeout(this.collapseTimer);
+    this.toasts.forEach((t) => clearTimeout(t.timer));
+  },
+
+  // ------------------------------------------------------------------ flash
+  processFlash() {
+    let flash = {};
+    try {
+      flash = JSON.parse(this.el.dataset.flash || "{}");
+    } catch (_e) {}
+    Object.keys(flash).forEach((key) => {
+      const msg = flash[key];
+      if (!msg) return;
+      const kind = key === "error" ? "danger" : key === "info" ? "info" : key;
+      this.upsert({ kind, title: msg });
+      this.pushEvent("lv:clear-flash", { key });
+    });
+  },
+
+  // ---------------------------------------------------------------- content
+  esc(s) {
+    return String(s == null ? "" : s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+    );
+  },
+
+  iconFor(kind) {
+    const map = {
+      info: ["hero-information-circle-solid", "pc-toast__icon--info"],
+      success: ["hero-check-circle-solid", "pc-toast__icon--success"],
+      warning: ["hero-exclamation-triangle-solid", "pc-toast__icon--warning"],
+      danger: ["hero-exclamation-circle-solid", "pc-toast__icon--danger"],
+    };
+    if (kind === "loading") return '<span class="pc-toast__spinner" aria-hidden="true"></span>';
+    if (!map[kind]) return "";
+    const [icon, color] = map[kind];
+    return '<span class="pc-toast__icon ' + icon + " " + color + '" aria-hidden="true"></span>';
+  },
+
+  contentFor(t) {
+    const action = t.action
+      ? '<button type="button" class="pc-toast__action" data-toast-action="' +
+        this.esc(t.action.event || "") +
+        "\" data-toast-value='" +
+        this.esc(JSON.stringify(t.action.value || {})) +
+        "'>" +
+        this.esc(t.action.label) +
+        "</button>"
+      : "";
+    const close = t.closeable
+      ? '<button type="button" class="pc-toast__close" data-toast-close aria-label="Dismiss">' +
+        '<span class="hero-x-mark pc-toast__close-icon" aria-hidden="true"></span></button>'
+      : "";
+    const desc = t.description
+      ? '<p class="pc-toast__description">' + this.esc(t.description) + "</p>"
+      : "";
+    const progress =
+      t.duration > 0 && t.progress
+        ? '<div class="pc-toast__progress pc-toast__progress--' +
+          this.esc(t.kind) +
+          '" style="animation-duration: ' +
+          t.duration +
+          'ms"></div>'
+        : "";
+
+    return (
+      '<div class="pc-toast__body">' +
+      this.iconFor(t.kind) +
+      '<div class="pc-toast__text">' +
+      '<div class="pc-toast__title">' +
+      this.esc(t.title) +
+      "</div>" +
+      desc +
+      "</div>" +
+      action +
+      close +
+      "</div>" +
+      progress
+    );
+  },
+
+  // ----------------------------------------------------------------- upsert
+  upsert(d) {
+    const id = d.id != null ? String(d.id) : "pc-toast-" + ++this.seq;
+    const kind = d.kind || "neutral";
+    const duration =
+      d.duration != null ? d.duration : kind === "loading" ? 0 : this.defaultDuration;
+
+    let t = this.toasts.find((t) => t.id === id);
+
+    if (t) {
+      clearTimeout(t.timer);
+      Object.assign(t, {
+        kind,
+        title: d.title != null ? d.title : t.title,
+        description: d.description,
+        action: d.action,
+        duration,
+        remaining: duration,
+        closeable: d.closeable !== false,
+        progress: d.progress !== false,
+      });
+      t.el.className = "pc-toast pc-toast--" + kind;
+      t.el.setAttribute("role", kind === "danger" ? "alert" : "status");
+      t.el.innerHTML = this.contentFor(t);
+    } else {
+      t = {
+        id,
+        kind,
+        title: d.title,
+        description: d.description,
+        action: d.action,
+        duration,
+        remaining: duration,
+        closeable: d.closeable !== false,
+        progress: d.progress !== false,
+        el: document.createElement("div"),
+      };
+      t.el.className = "pc-toast pc-toast--" + kind;
+      t.el.setAttribute("role", kind === "danger" ? "alert" : "status");
+      t.el.dataset.state = "entering";
+      t.el.innerHTML = this.contentFor(t);
+      this.stack.appendChild(t.el);
+      this.toasts.unshift(t);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          t.el.dataset.state = "open";
+        })
+      );
+    }
+
+    if (this.toasts.length > 40) {
+      const drop = this.toasts.pop();
+      clearTimeout(drop.timer);
+      drop.el.remove();
+    }
+
+    this.layout();
+    if (!this.expanded) this.arm(t);
+    return t;
+  },
+
+  dismiss(t, dx) {
+    if (t.closing) return;
+    t.closing = true;
+    clearTimeout(t.timer);
+    this.el.dispatchEvent(
+      new CustomEvent("petal:toast-dismissed", {
+        detail: { id: t.id, kind: t.kind },
+        bubbles: true,
+      })
+    );
+    t.el.dataset.state = "closing";
+    if (dx) t.el.style.setProperty("--pc-toast-swipe-end", dx + "px");
+    const remove = () => {
+      t.el.remove();
+      this.toasts = this.toasts.filter((x) => x !== t);
+      this.layout();
+    };
+    t.el.addEventListener("transitionend", remove, { once: true });
+    setTimeout(remove, 400); // safety if transitions are off (reduced motion)
+  },
+
+  // ----------------------------------------------------------------- layout
+  layout() {
+    const dir = this.top ? 1 : -1;
+    const gap = 12;
+    let offset = 0;
+
+    this.toasts.forEach((t, i) => {
+      if (t.closing) return;
+      const el = t.el;
+      el.style.zIndex = String(200 - i);
+
+      const hidden = i >= this.max;
+      el.classList.toggle("pc-toast--hidden", hidden);
+      el.setAttribute("aria-hidden", hidden ? "true" : "false");
+
+      if (this.expanded) {
+        el.style.setProperty("--pc-toast-y", dir * offset + "px");
+        el.style.setProperty("--pc-toast-scale", "1");
+        if (!hidden) offset += el.offsetHeight + gap;
+      } else {
+        el.style.setProperty("--pc-toast-y", dir * i * 12 + "px");
+        el.style.setProperty("--pc-toast-scale", String(Math.max(0, 1 - i * 0.06)));
+      }
+    });
+
+    this.stack.classList.toggle("pc-toast-group__stack--expanded", this.expanded);
+  },
+
+  // ----------------------------------------------------------------- timers
+  arm(t) {
+    clearTimeout(t.timer);
+    if (!t.duration || t.remaining <= 0) return;
+    t.startedAt = Date.now();
+    t.timer = setTimeout(() => this.dismiss(t), t.remaining);
+  },
+
+  pauseAll() {
+    this.toasts.forEach((t) => {
+      if (!t.timer) return;
+      clearTimeout(t.timer);
+      t.timer = null;
+      t.remaining -= Date.now() - t.startedAt;
+    });
+    this.stack.classList.add("pc-toast-group__stack--paused");
+  },
+
+  resumeAll() {
+    this.stack.classList.remove("pc-toast-group__stack--paused");
+    this.toasts.forEach((t) => {
+      if (t.duration && t.remaining > 0 && !t.closing) this.arm(t);
+    });
+  },
+
+  // ------------------------------------------------------------------ swipe
+  setupSwipe() {
+    let active = null;
+    let startX = 0;
+
+    this.onPointerDown = (e) => {
+      const toastEl = e.target.closest(".pc-toast");
+      if (!toastEl || e.target.closest("button")) return;
+      const t = this.toasts.find((t) => t.el === toastEl);
+      if (!t || t.closing) return;
+      active = t;
+      startX = e.clientX;
+      toastEl.classList.add("pc-toast--swiping");
+      toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+    };
+
+    this.onPointerMove = (e) => {
+      if (!active) return;
+      const dx = e.clientX - startX;
+      active.el.style.setProperty("--pc-toast-swipe", dx + "px");
+      active.el.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 260));
+    };
+
+    this.onPointerUp = (e) => {
+      if (!active) return;
+      const dx = e.clientX - startX;
+      active.el.classList.remove("pc-toast--swiping");
+      if (Math.abs(dx) > 64) {
+        this.dismiss(active, dx > 0 ? 320 : -320);
+      } else {
+        active.el.style.setProperty("--pc-toast-swipe", "0px");
+        active.el.style.opacity = "";
+      }
+      active = null;
+    };
+
+    this.stack.addEventListener("pointerdown", this.onPointerDown);
+    this.stack.addEventListener("pointermove", this.onPointerMove);
+    this.stack.addEventListener("pointerup", this.onPointerUp);
+    this.stack.addEventListener("pointercancel", this.onPointerUp);
+  },
+};
+
 export default {
   PetalChart,
+  PetalColorScheme,
+  PetalLocalTime,
+  PetalCarousel,
+  PetalToast,
   PetalChatStream,
   PetalChatComposer,
   PetalCopy,
@@ -1655,6 +3228,7 @@ export default {
   PetalPasswordToggle,
   PetalCopyInput,
   PetalClearableInput,
+  PetalRangeFill,
   PetalDualRangeSlider,
   PetalNumberTicker,
   PetalConfetti,

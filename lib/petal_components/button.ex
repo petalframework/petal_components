@@ -41,8 +41,18 @@ defmodule PetalComponents.Button do
   attr :to, :string, default: nil, doc: "link path"
   attr :loading, :boolean, default: false, doc: "indicates a loading state"
   attr :disabled, :boolean, default: false, doc: "indicates a disabled state"
-  attr :icon, :any, default: nil, doc: "name of a Heroicon at the front of the button"
-  attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
+  attr :icon, :any, default: nil, doc: "name of a Heroicon rendered beside the label"
+
+  attr :icon_placement, :string,
+    default: "left",
+    values: ["left", "right"],
+    doc:
+      "which side of the label the icon sits on - and where the loading spinner appears, so the layout doesn't jump when a button enters its loading state"
+
+  attr :with_icon, :boolean,
+    default: false,
+    doc:
+      "legacy: icon spacing is part of the base button now; kept for compatibility, removed in 5.0"
 
   attr :link_type, :string,
     default: "button",
@@ -63,16 +73,22 @@ defmodule PetalComponents.Button do
 
     ~H"""
     <Link.a to={@to} link_type={@link_type} class={@classes} disabled={@disabled} {@rest}>
-      <%= if @loading do %>
-        <Loading.spinner show={true} size_class={"pc-button__spinner-icon--#{@size}"} />
-      <% else %>
-        <%= if @icon do %>
-          <.icon name={@icon} class={"pc-button__spinner-icon--#{@size}"} />
-        <% end %>
-      <% end %>
-
+      <.button_icon :if={@icon_placement == "left"} loading={@loading} icon={@icon} size={@size} />
       {render_slot(@inner_block) || @label}
+      <.button_icon :if={@icon_placement == "right"} loading={@loading} icon={@icon} size={@size} />
     </Link.a>
+    """
+  end
+
+  # The icon slot of a button: the loading spinner takes the icon's place (on
+  # either side) so the button doesn't reflow when it enters a loading state.
+  defp button_icon(assigns) do
+    ~H"""
+    <%= if @loading do %>
+      <Loading.spinner show={true} size_class={"pc-button__spinner-icon--#{@size}"} />
+    <% else %>
+      <.icon :if={@icon} name={@icon} class={"pc-button__spinner-icon--#{@size}"} />
+    <% end %>
     """
   end
 

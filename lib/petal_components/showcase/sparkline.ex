@@ -10,26 +10,29 @@ defmodule PetalComponents.Showcase.Sparkline do
       "Pure server-rendered SVG - zero JavaScript. The line inherits currentColor, so a text class sets the colour." do
     ~H"""
     <div class="grid w-full gap-4 sm:grid-cols-3">
-      <div class="flex items-center justify-between px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div>
           <div class="text-xs text-gray-400 dark:text-gray-500">MRR</div>
           <div class="mt-1 text-xl font-semibold">$12,480</div>
         </div>
-        <.sparkline data={[8, 9, 9, 11, 10, 12, 13, 14]} class="h-10 w-24 text-primary-500" />
+        <.sparkline data={[8, 9, 9, 11, 10, 12, 13, 14]} class="h-10 w-24 min-w-0 text-primary-500" />
       </div>
-      <div class="flex items-center justify-between px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div>
           <div class="text-xs text-gray-400 dark:text-gray-500">Signups</div>
           <div class="mt-1 text-xl font-semibold">1,204</div>
         </div>
-        <.sparkline data={[30, 34, 31, 38, 36, 41, 40, 44]} class="h-10 w-24 text-success-500" />
+        <.sparkline
+          data={[30, 34, 31, 38, 36, 41, 40, 44]}
+          class="h-10 w-24 min-w-0 text-success-500"
+        />
       </div>
-      <div class="flex items-center justify-between px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
         <div>
           <div class="text-xs text-gray-400 dark:text-gray-500">Churn</div>
           <div class="mt-1 text-xl font-semibold">1.9%</div>
         </div>
-        <.sparkline data={[9, 8, 9, 7, 8, 6, 7, 5]} class="h-10 w-24 text-danger-500" />
+        <.sparkline data={[9, 8, 9, 7, 8, 6, 7, 5]} class="h-10 w-24 min-w-0 text-danger-500" />
       </div>
     </div>
     """

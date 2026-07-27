@@ -32,6 +32,17 @@ defmodule Dev.Layouts do
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
         <.live_title>Petal Components Playground</.live_title>
+        <PetalComponents.ColorSchemeSwitch.color_scheme_script />
+        <script phx-no-curly-interpolation>
+          // Playground-only capture override: ?dark=1 / ?dark=0 force the
+          // scheme on load (headless screenshots), without touching the
+          // visitor's stored preference.
+          (() => {
+            const dark = new URLSearchParams(location.search).get("dark");
+            if (dark === "1") document.documentElement.classList.add("dark");
+            if (dark === "0") document.documentElement.classList.remove("dark");
+          })();
+        </script>
         <meta name="pg-rev" content="alert-badge-1" />
         <link rel="stylesheet" href="/assets/app.css" />
       </head>
@@ -74,9 +85,20 @@ defmodule Dev.Layouts do
             uploaders: {},
           });
           window.liveSocket.connect();
+          window.addEventListener("phx:pg:toggle-scheme", () => {
+            if (window.PetalColorScheme) {
+              window.PetalColorScheme.set(
+                window.PetalColorScheme.resolved() === "dark" ? "light" : "dark"
+              );
+            }
+          });
+          window.addEventListener("petal:scheme-changed", () => {
+            window.dispatchEvent(new Event("pg:theme-switch"));
+          });
           window.addEventListener("pg:theme-switch", () => {
             const style = document.createElement("style");
-            style.textContent = "* { transition: none !important; }";
+            style.textContent =
+              "*:not(.pc-scheme-toggle__sun):not(.pc-scheme-toggle__moon) { transition: none !important; }";
             document.head.appendChild(style);
             setTimeout(() => style.remove(), 250);
           });
@@ -174,17 +196,21 @@ defmodule Dev.PlaygroundLive do
         %{slug: "button", name: "Button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
         %{slug: "input", name: "Input", ready: true},
+        %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
-        %{slug: "input-otp", name: "Input OTP", ready: true}
+        %{slug: "slider", name: "Slider", ready: true},
+        %{slug: "input-otp", name: "Input OTP", ready: true},
+        %{slug: "color-scheme", name: "Color scheme", ready: true}
       ]
     },
     %{
       group: "Feedback",
       items: [
         %{slug: "alert", name: "Alert", ready: true},
+        %{slug: "toast", name: "Toast", ready: true},
         %{slug: "badge", name: "Badge", ready: true},
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true},
@@ -200,14 +226,16 @@ defmodule Dev.PlaygroundLive do
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
-        %{slug: "navigation-menu", name: "Navigation menu", ready: true}
+        %{slug: "navigation-menu", name: "Navigation menu", ready: true},
+        %{slug: "user-menu", name: "User menu", ready: true}
       ]
     },
     %{
       group: "Data",
       items: [
         %{slug: "table", name: "Table", ready: true},
-        %{slug: "chart", name: "Chart", ready: true}
+        %{slug: "chart", name: "Chart", ready: true},
+        %{slug: "local-time", name: "Local time", ready: true}
       ]
     },
     %{
@@ -215,6 +243,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "avatar", name: "Avatar", ready: true},
         %{slug: "card", name: "Card", ready: true},
+        %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
@@ -256,7 +285,7 @@ defmodule Dev.PlaygroundLive do
 
   # {name, rail swatch css}. Neutral adapts to the mode, hence the split dot.
   @primaries [
-    {"neutral", "linear-gradient(135deg,#18181b 50%,#e4e4e7 50%)"},
+    {"neutral", "linear-gradient(135deg,var(--pg-gray-900) 50%,var(--pg-gray-200) 50%)"},
     {"blue", "#2563eb"},
     {"indigo", "#4f46e5"},
     {"violet", "#7c3aed"},
@@ -617,7 +646,7 @@ defmodule Dev.PlaygroundLive do
 
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
-  @tint_variants ~w(light soft dark outline)
+  @tint_variants ~w(light soft dark outline callout)
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -632,7 +661,7 @@ defmodule Dev.PlaygroundLive do
        variant: "outline",
        color: "primary",
        size: "md",
-       icon: false,
+       icon: nil,
        loading: false,
        disabled: false,
        show_code: false,
@@ -655,15 +684,41 @@ defmodule Dev.PlaygroundLive do
          editing: nil,
          sent: false
        },
-       alert: %{color: "gray", variant: "outline", icon: true, heading: false},
+       alert: %{
+         color: "gray",
+         variant: "outline",
+         icon: true,
+         heading: false,
+         dismissible: false,
+         actions: false,
+         rev: 0
+       },
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
-       radio: %{variant: "outline", size: "md", layout: "row"},
+       radio: %{
+         style: "cards",
+         variant: "outline",
+         size: "md",
+         layout: "row",
+         indicator: false,
+         ind_pos: "end",
+         disabled: false
+       },
        switch: %{size: "md", disabled: false, error: false},
+       slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
+       slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
-       progress: %{value: 60, color: "primary", size: "xs", label: "top"},
+       progress: %{
+         value: 0,
+         color: "primary",
+         size: "xs",
+         label: "top",
+         status: true,
+         live: true,
+         ticking: false
+       },
        beam: %{
          duration: "8s",
          beams: 1,
@@ -696,7 +751,18 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
-       stepper: %{orientation: "horizontal", size: "md", at: 0, done: false},
+       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       toast: %{pos: "bottom-right", undone: 0},
+       car: %{
+         transition: "fade",
+         buttons: "overlay",
+         indicators: "bars",
+         ind_pos: "overlay",
+         orientation: "horizontal",
+         loop: true,
+         autoplay: false,
+         thumbnails: false
+       },
        nav_trigger: "hover",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
@@ -710,7 +776,7 @@ defmodule Dev.PlaygroundLive do
          shape: "smooth",
          area: "fade",
          dots: false,
-         chrome: true,
+         chrome: "full",
          two_series: false,
          gap: "cozy",
          points: 14
@@ -720,14 +786,31 @@ defmodule Dev.PlaygroundLive do
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
   def handle_params(params, _uri, socket) do
-    {:noreply,
-     socket
-     |> assign(:active, allow(params["c"], @slugs, "button"))
-     |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
-     |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
-     |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
-     |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
-     |> assign(:dark, params["dark"] == "1")}
+    socket =
+      socket
+      |> assign(:active, allow(params["c"], @slugs, "button"))
+      |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
+      |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
+      |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
+      |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:dark, false)
+
+    {:noreply, maybe_start_progress_sim(socket)}
+  end
+
+  # The progress flagship simulates a live upload while you watch. One
+  # timer at a time; it dies quietly when you leave the page or take
+  # manual control via the value dial.
+  defp maybe_start_progress_sim(socket) do
+    %{live: live, ticking: ticking} = socket.assigns.progress
+
+    if socket.assigns.active == "progress" && live && !ticking &&
+         Phoenix.LiveView.connected?(socket) do
+      Process.send_after(self(), :pg_progress_tick, 700)
+      update(socket, :progress, &%{&1 | ticking: true, value: 0})
+    else
+      socket
+    end
   end
 
   def handle_event("select", %{"slug" => slug}, socket), do: patch_theme(socket, %{active: slug})
@@ -743,7 +826,7 @@ defmodule Dev.PlaygroundLive do
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
 
   def handle_event("toggle_dark", _params, socket),
-    do: patch_theme(socket, %{dark: !socket.assigns.dark})
+    do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
 
   def handle_event("ctl_variant", %{"v" => v}, socket)
       when v in ~w(solid soft light outline ghost),
@@ -756,11 +839,14 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_size", %{"v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, assign(socket, :size, v)}
 
-  def handle_event("flip", %{"k" => "icon"}, socket),
-    do: {:noreply, socket |> update(:icon, &(!&1)) |> assign(:loading, false)}
+  def handle_event("ctl_icon", %{"v" => "off"}, socket),
+    do: {:noreply, assign(socket, :icon, nil)}
+
+  def handle_event("ctl_icon", %{"v" => v}, socket) when v in ~w(left right),
+    do: {:noreply, assign(socket, :icon, v)}
 
   def handle_event("flip", %{"k" => "loading"}, socket),
-    do: {:noreply, socket |> update(:loading, &(!&1)) |> assign(:icon, false)}
+    do: {:noreply, update(socket, :loading, &(!&1))}
 
   def handle_event("flip", %{"k" => "disabled"}, socket),
     do: {:noreply, update(socket, :disabled, &(!&1))}
@@ -778,7 +864,7 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
-      do: {:noreply, update(socket, :progress, &%{&1 | value: String.to_integer(v)})}
+      do: {:noreply, update(socket, :progress, &%{&1 | live: false, value: String.to_integer(v)})}
 
   def handle_event("ctl_progress", %{"k" => "color", "v" => v}, socket)
       when v in ~w(primary secondary info success warning danger gray),
@@ -831,8 +917,8 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_chart", %{"k" => "dots"}, socket),
     do: {:noreply, update(socket, :chart, &%{&1 | dots: !socket.assigns.chart.dots})}
 
-  def handle_event("ctl_chart", %{"k" => "chrome"}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | chrome: !socket.assigns.chart.chrome})}
+  def handle_event("ctl_chart", %{"k" => "chrome", "v" => v}, socket) when v in ~w(full x off),
+    do: {:noreply, update(socket, :chart, &%{&1 | chrome: v})}
 
   def handle_event("ctl_meteors", %{"k" => "count", "v" => v}, socket) when v in ~w(10 20 40),
     do: {:noreply, update(socket, :meteors, &%{&1 | count: String.to_integer(v)})}
@@ -935,6 +1021,17 @@ defmodule Dev.PlaygroundLive do
     {:noreply, update(socket, :skeleton, &%{&1 | loading: true})}
   end
 
+  def handle_info(:toast_morph_done, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :success,
+       id: "pg-export",
+       title: "Export ready",
+       description: "report-q3.csv - 2.4 MB",
+       duration: 5000,
+       action: %{label: "Download", event: "toast_undo", value: %{}}
+     )}
+  end
+
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
@@ -979,6 +1076,118 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
+
+  def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
+      when v in ~w(beside bottom),
+      do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "transition", "v" => v}, socket)
+      when v in ~w(fade slide),
+      do: {:noreply, update(socket, :car, &%{&1 | transition: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "buttons", "v" => v}, socket)
+      when v in ~w(overlay below outside none),
+      do: {:noreply, update(socket, :car, &%{&1 | buttons: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "indicators", "v" => v}, socket)
+      when v in ~w(bars dots off),
+      do: {:noreply, update(socket, :car, &%{&1 | indicators: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "ind_pos", "v" => v}, socket)
+      when v in ~w(overlay below),
+      do: {:noreply, update(socket, :car, &%{&1 | ind_pos: v})}
+
+  def handle_event("ctl_carousel", %{"k" => "loop"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | loop: !&1.loop})}
+
+  def handle_event("ctl_carousel", %{"k" => "autoplay"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | autoplay: !&1.autoplay})}
+
+  def handle_event("ctl_carousel", %{"k" => "thumbnails"}, socket),
+    do: {:noreply, update(socket, :car, &%{&1 | thumbnails: !&1.thumbnails})}
+
+  def handle_event("ctl_carousel", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(horizontal vertical),
+      do: {:noreply, update(socket, :car, &%{&1 | orientation: v})}
+
+  def handle_event("toast_demo", %{"kind" => kind}, socket)
+      when kind in ~w(info success warning danger neutral) do
+    titles = %{
+      "info" => {"Heads up", "A new version of the app is available."},
+      "success" => {"Changes saved", "Your profile is up to date."},
+      "warning" => {"Storage almost full", "You have used 90% of your plan."},
+      "danger" => {"Payment failed", "Your card was declined - try another."},
+      "neutral" => {"Event logged", nil}
+    }
+
+    {title, desc} = titles[kind]
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, String.to_existing_atom(kind),
+       title: title,
+       description: desc
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "morph"}, socket) do
+    Process.send_after(self(), :toast_morph_done, 2500)
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :loading,
+       id: "pg-export",
+       title: "Exporting report...",
+       description: "Crunching 3 months of data."
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "action"}, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :info,
+       title: "Message archived",
+       action: %{label: "Undo", event: "toast_undo", value: %{}}
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "sticky"}, socket) do
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :warning,
+       duration: :infinity,
+       title: "Scheduled maintenance tonight",
+       description: "Stays until dismissed - no timer, no progress."
+     )}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "burst"}, socket) do
+    socket =
+      Enum.reduce(1..6, socket, fn i, acc ->
+        PetalComponents.Toast.send_toast(acc, :neutral,
+          title: "Notification #{i} of 6",
+          duration: 6000
+        )
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toast_demo", %{"demo" => "dismiss_all"}, socket),
+    do: {:noreply, PetalComponents.Toast.dismiss_toast(socket, :all)}
+
+  def handle_event("toast_demo", %{"demo" => "flash"}, socket),
+    do: {:noreply, Phoenix.LiveView.put_flash(socket, :info, "This came through put_flash.")}
+
+  def handle_event("toast_undo", _params, socket) do
+    socket = update(socket, :toast, &%{&1 | undone: &1.undone + 1})
+
+    {:noreply,
+     PetalComponents.Toast.send_toast(socket, :success,
+       title: "Restored",
+       description: "Undo #{socket.assigns.toast.undone} handled by the LiveView."
+     )}
+  end
+
+  def handle_event("ctl_toast", %{"k" => "pos", "v" => v}, socket)
+      when v in ~w(top-left top-center top-right bottom-left bottom-center bottom-right),
+      do: {:noreply, update(socket, :toast, &%{&1 | pos: v})}
 
   def handle_event("ctl_stepper", %{"k" => "goto", "v" => v}, socket),
     do: {:noreply, update(socket, :stepper, &%{&1 | at: String.to_integer(v), done: false})}
@@ -1080,6 +1289,37 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_slider", %{"k" => "format", "v" => v}, socket)
+      when v in ~w(money percent plain),
+      do:
+        {:noreply,
+         socket
+         |> update(:slider, &%{&1 | format: v})
+         |> assign(:slider_form, slider_form(v))}
+
+  def handle_event("ctl_slider", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :slider, &%{&1 | disabled: !&1.disabled})}
+
+  def handle_event("ctl_slider", %{"k" => "fill"}, socket),
+    do: {:noreply, update(socket, :slider, &%{&1 | fill: !&1.fill})}
+
+  def handle_event("ctl_slider", %{"k" => "thumbs", "v" => v}, socket)
+      when v in ~w(single dual),
+      do: {:noreply, update(socket, :slider, &%{&1 | thumbs: v})}
+
+  def handle_event("ctl_radio", %{"k" => "style", "v" => v}, socket)
+      when v in ~w(cards plain),
+      do: {:noreply, update(socket, :radio, &%{&1 | style: v})}
+
+  def handle_event("ctl_radio", %{"k" => k}, socket) when k in ~w(indicator disabled),
+    do:
+      {:noreply,
+       update(socket, :radio, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_radio", %{"k" => "ind_pos", "v" => v}, socket)
+      when v in ~w(end corner start),
+      do: {:noreply, update(socket, :radio, &%{&1 | ind_pos: v})}
+
   def handle_event("ctl_radio", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(outline classic),
       do: {:noreply, update(socket, :radio, &%{&1 | variant: v})}
@@ -1103,17 +1343,48 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :checkbox, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_progress", %{"k" => "live"}, socket) do
+    socket = update(socket, :progress, &%{&1 | live: !&1.live})
+    {:noreply, maybe_start_progress_sim(socket)}
+  end
+
+  def handle_event("ctl_progress", %{"k" => "status"}, socket),
+    do: {:noreply, update(socket, :progress, &%{&1 | status: !&1.status})}
+
+  def handle_info(:pg_progress_tick, socket) do
+    %{live: live, value: value} = socket.assigns.progress
+
+    if socket.assigns.active == "progress" && live do
+      # Small organic steps; linger a beat on "Done!" before restarting
+      {next, delay} =
+        if value >= 100,
+          do: {0, 1600},
+          else: {min(100, value + Enum.random(2..3)), Enum.random(180..300)}
+
+      Process.send_after(self(), :pg_progress_tick, delay)
+      {:noreply, update(socket, :progress, &%{&1 | value: next})}
+    else
+      {:noreply, update(socket, :progress, &%{&1 | ticking: false})}
+    end
+  end
+
   def handle_event("ctl_alert", %{"k" => "color", "v" => v}, socket) when v in @alert_colors,
-    do: {:noreply, update(socket, :alert, &%{&1 | color: v})}
+    do: {:noreply, update(socket, :alert, &%{&1 | color: v, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "variant", "v" => v}, socket) when v in @tint_variants,
-    do: {:noreply, update(socket, :alert, &%{&1 | variant: v})}
+    do: {:noreply, update(socket, :alert, &%{&1 | variant: v, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "icon"}, socket),
-    do: {:noreply, update(socket, :alert, &%{&1 | icon: !&1.icon})}
+    do: {:noreply, update(socket, :alert, &%{&1 | icon: !&1.icon, rev: &1.rev + 1})}
 
   def handle_event("ctl_alert", %{"k" => "heading"}, socket),
-    do: {:noreply, update(socket, :alert, &%{&1 | heading: !&1.heading})}
+    do: {:noreply, update(socket, :alert, &%{&1 | heading: !&1.heading, rev: &1.rev + 1})}
+
+  def handle_event("ctl_alert", %{"k" => "dismissible"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | dismissible: !&1.dismissible, rev: &1.rev + 1})}
+
+  def handle_event("ctl_alert", %{"k" => "actions"}, socket),
+    do: {:noreply, update(socket, :alert, &%{&1 | actions: !&1.actions, rev: &1.rev + 1})}
 
   def handle_event("ctl_badge", %{"k" => "color", "v" => v}, socket) when v in @badge_colors,
     do: {:noreply, update(socket, :badge, &%{&1 | color: v})}
@@ -1217,7 +1488,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :primary, :secondary, :gray, :radius, :dark])
+      |> Map.take([:active, :primary, :secondary, :gray, :radius])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -1225,7 +1496,6 @@ defmodule Dev.PlaygroundLive do
 
   defp theme_path(t) do
     []
-    |> then(&if t.dark, do: [{"dark", "1"} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
@@ -1256,13 +1526,17 @@ defmodule Dev.PlaygroundLive do
 
   defp fmt_stars(n), do: "#{n}"
 
+  defp icon_for_side("right"), do: "hero-arrow-right"
+  defp icon_for_side(_), do: "hero-rocket-launch"
+
   defp button_snippet(a) do
     attrs =
       [
         a.variant != "solid" && ~s(variant="#{a.variant}"),
         a.color != "primary" && ~s(color="#{a.color}"),
         a.size != "md" && ~s(size="#{a.size}"),
-        a.icon && ~s(icon="hero-rocket-launch"),
+        a.icon && ~s(icon="#{icon_for_side(a.icon)}"),
+        a.icon == "right" && ~s(icon_placement="right"),
         a.loading && "loading",
         a.disabled && "disabled"
       ]
@@ -1304,6 +1578,13 @@ defmodule Dev.PlaygroundLive do
     "<.field #{Enum.join(attrs, " ")} />"
   end
 
+  defp progress_status(v) when v < 5, do: "Initializing download..."
+  defp progress_status(v) when v < 30, do: "Downloading dependencies..."
+  defp progress_status(v) when v < 60, do: "Downloading assets..."
+  defp progress_status(v) when v < 85, do: "Extracting files..."
+  defp progress_status(v) when v < 100, do: "Finishing up..."
+  defp progress_status(_v), do: "Done!"
+
   defp progress_snippet(pr) do
     attrs =
       [
@@ -1311,7 +1592,8 @@ defmodule Dev.PlaygroundLive do
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
         pr.label == "inside" && ~s(label="#{pr.value}%"),
-        pr.label == "top" && ~s(label="Upload progress" label_position="top")
+        pr.label == "top" && ~s(label="Download progress" label_position="top"),
+        pr.status && ~s(status="#{progress_status(pr.value)}")
       ]
       |> Enum.filter(& &1)
 
@@ -1401,29 +1683,42 @@ defmodule Dev.PlaygroundLive do
     tooltip = %{trigger: "axis", valueFormatter: "petal:currency:USD"}
 
     base =
-      if chart.chrome do
-        %{
-          grid: %{left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
-          xAxis: axis_x,
-          yAxis: %{
-            type: "value",
-            axisLabel: %{formatter: "petal:currency-compact:USD"}
-          },
-          tooltip: tooltip,
-          series: series
-        }
-      else
-        # Chromeless: no axis labels, no gridlines - just the shape.
-        %{
-          grid: %{left: 8, right: 8, top: 8, bottom: 8},
-          xAxis: Map.put(axis_x, :show, false),
-          yAxis: %{type: "value", show: false},
-          tooltip: tooltip,
-          series: series
-        }
+      case chart.chrome do
+        "full" ->
+          %{
+            grid: %{left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
+            xAxis: axis_x,
+            yAxis: %{
+              type: "value",
+              axisLabel: %{formatter: "petal:currency-compact:USD"}
+            },
+            tooltip: tooltip,
+            series: series
+          }
+
+        "x" ->
+          # x labels only - the dashboard-card look (values live in the
+          # tooltip, the categories anchor the shape)
+          %{
+            grid: %{left: 8, right: 8, top: 8, bottom: 8, containLabel: true},
+            xAxis: axis_x,
+            yAxis: %{type: "value", show: false},
+            tooltip: tooltip,
+            series: series
+          }
+
+        "off" ->
+          # Chromeless: no axis labels, no gridlines - just the shape.
+          %{
+            grid: %{left: 8, right: 8, top: 8, bottom: 8},
+            xAxis: Map.put(axis_x, :show, false),
+            yAxis: %{type: "value", show: false},
+            tooltip: tooltip,
+            series: series
+          }
       end
 
-    if chart.two_series && chart.chrome,
+    if chart.two_series && chart.chrome != "off",
       do:
         Map.merge(base, %{
           legend: %{top: 0},
@@ -1521,6 +1816,64 @@ defmodule Dev.PlaygroundLive do
     "<.input_otp #{Enum.join(attrs, " ")} />"
   end
 
+  defp slider_form("money"), do: to_form(%{"min" => "250", "max" => "750"}, as: :pg_range)
+  defp slider_form("percent"), do: to_form(%{"min" => "20", "max" => "80"}, as: :pg_range)
+  defp slider_form("plain"), do: to_form(%{"min" => "25", "max" => "75"}, as: :pg_range)
+
+  defp slider_bounds("money"),
+    do: %{bound_min: 0, bound_max: 1000, step: 25, prefix: "$", suffix: "", label: "Price range"}
+
+  defp slider_bounds("percent"),
+    do: %{bound_min: 0, bound_max: 100, step: 5, prefix: "", suffix: "%", label: "Discount range"}
+
+  defp slider_bounds("plain"),
+    do: %{bound_min: 0, bound_max: 100, step: 1, prefix: "", suffix: "", label: "Value range"}
+
+  defp slider_snippet(%{thumbs: "single"} = s) do
+    attrs =
+      [
+        ~s(type="range"),
+        ~s(name="volume"),
+        ~s(label="Volume"),
+        ~s(value="60"),
+        ~s(min="0"),
+        ~s(max="100"),
+        s.fill && "fill",
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp slider_snippet(s) do
+    b = slider_bounds(s.format)
+
+    attrs =
+      [
+        ~s(type="range-dual"),
+        ~s(min_field={@form[:min]}),
+        ~s(max_field={@form[:max]}),
+        ~s(range_min={#{b.bound_min}}),
+        ~s(range_max={#{b.bound_max}}),
+        b.step != 1 && ~s(step={#{b.step}}),
+        b.prefix != "" && ~s(value_prefix="#{b.prefix}"),
+        b.suffix != "" && ~s(value_suffix="#{b.suffix}"),
+        ~s(label="#{b.label}"),
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("    " <> &1))
+
+    """
+    <.form for={@form} phx-change="filter">
+      <.field
+    #{Enum.join(attrs, "\n")}
+      />
+    </.form>\
+    """
+  end
+
   defp switch_snippet(sw) do
     attrs =
       [
@@ -1537,6 +1890,22 @@ defmodule Dev.PlaygroundLive do
     "<.field #{Enum.join(attrs, " ")} />"
   end
 
+  defp radio_snippet(%{style: "plain"} = r) do
+    attrs =
+      [
+        ~s(type="radio-group"),
+        ~s(name="plan"),
+        ~s(label="Plan"),
+        ~s(value="pro"),
+        r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        r.disabled && "disabled",
+        ~s|options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}|
+      ]
+      |> Enum.filter(& &1)
+
+    "<.field #{Enum.join(attrs, " ")} />"
+  end
+
   defp radio_snippet(r) do
     attrs =
       [
@@ -1547,6 +1916,9 @@ defmodule Dev.PlaygroundLive do
         r.variant != "outline" && ~s(variant="#{r.variant}"),
         r.size != "md" && ~s(size="#{r.size}"),
         r.layout != "row" && ~s(group_layout="#{r.layout}"),
+        r.indicator && "indicator",
+        r.indicator && r.ind_pos != "end" && ~s(indicator_position="#{r.ind_pos}"),
+        r.disabled && "disabled",
         ~s(options={[%{value: "starter", label: "Starter", description: "For side projects"}, ...]})
       ]
       |> Enum.filter(& &1)
@@ -1704,15 +2076,21 @@ defmodule Dev.PlaygroundLive do
   def render(assigns) do
     ~H"""
     <div
-      class={[
-        "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50",
-        @dark && "dark"
-      ]}
+      class={
+        [
+          # Dark mode is owned by the document class via the library's own
+          # color_scheme_script - the playground dogfoods color_scheme_switch
+          # in the topbar. The old ?dark=1 URL param survives only as a
+          # capture override in the layout head (headless screenshots).
+          "flex flex-col h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-50"
+        ]
+      }
       data-primary={@primary}
       data-gray={@gray}
       data-secondary={@secondary}
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
+      <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
       <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800">
         <div class="flex items-center gap-2 text-[15px] font-semibold">
           <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
@@ -1754,7 +2132,7 @@ defmodule Dev.PlaygroundLive do
           >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
             <span>Search components</span>
-            <kbd class="pc-kbd ml-auto">⌘K</kbd>
+            <kbd class="pc-kbd ml-auto"><span>⌘</span>K</kbd>
           </button>
           <a
             href="https://github.com/petalframework/petal_components"
@@ -1780,14 +2158,7 @@ defmodule Dev.PlaygroundLive do
           >
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </a>
-          <button
-            phx-click={JS.dispatch("pg:theme-switch") |> JS.push("toggle_dark")}
-            aria-label="Toggle dark mode"
-            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900"
-          >
-            <.icon :if={@dark} name="hero-sun" class="w-4 h-4" />
-            <.icon :if={!@dark} name="hero-moon" class="w-3.5 h-3.5" />
-          </button>
+          <.color_scheme_switch id="pg-topbar-scheme" variant="toggle" />
         </div>
       </header>
 
@@ -1936,7 +2307,8 @@ defmodule Dev.PlaygroundLive do
             variant={@variant}
             color={@color}
             size={@size}
-            icon={if @icon, do: "hero-rocket-launch"}
+            icon={if @icon, do: icon_for_side(@icon)}
+            icon_placement={@icon || "left"}
             loading={@loading}
             disabled={@disabled}
           >
@@ -1984,9 +2356,20 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button phx-click="ctl_icon" phx-value-v="off" class={seg(@icon == nil)}>off</button>
+              <button phx-click="ctl_icon" phx-value-v="left" class={seg(@icon == "left")}>
+                left
+              </button>
+              <button phx-click="ctl_icon" phx-value-v="right" class={seg(@icon == "right")}>
+                right
+              </button>
+            </div>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
-              <button phx-click="flip" phx-value-k="icon" class={tog(@icon)}>icon</button>
               <button phx-click="flip" phx-value-k="loading" class={tog(@loading)}>loading</button>
               <button phx-click="flip" phx-value-k="disabled" class={tog(@disabled)}>disabled</button>
             </div>
@@ -2061,6 +2444,9 @@ defmodule Dev.PlaygroundLive do
           <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
         </.button>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Button} functions={[:button, :icon_button]} />
     </div>
     """
   end
@@ -2216,6 +2602,47 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Every type</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <.field
+            type="tel"
+            name="et_tel"
+            label="Phone"
+            value=""
+            placeholder="0400 000 000"
+            no_margin
+          />
+          <.field
+            type="url"
+            name="et_url"
+            label="Website"
+            value=""
+            placeholder="https://petal.build"
+            no_margin
+          />
+          <.field type="date" name="et_date" label="Date" value="2026-07-22" no_margin />
+          <.field type="time" name="et_time" label="Time" value="09:30" no_margin />
+          <.field
+            type="datetime-local"
+            name="et_dtl"
+            label="Date and time"
+            value="2026-07-22T09:30"
+            no_margin
+          />
+          <.field type="month" name="et_month" label="Month" value="2026-07" no_margin />
+          <.field type="week" name="et_week" label="Week" value="2026-W30" no_margin />
+          <.field type="color" name="et_color" label="Brand color" value="#7c3aed" no_margin />
+          <.field type="file" name="et_file" label="Attachment" no_margin />
+        </div>
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          The date family gets a calendar/clock button that opens the native picker.
+          <code class="text-xs">type="hidden"</code>
+          renders nothing visible - form plumbing only. For <code class="text-xs">range</code>
+          and <code class="text-xs">range-dual</code>, see the Slider page.
+        </p>
+      </div>
+
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Input group</div>
       <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto space-y-6">
@@ -2231,29 +2658,13 @@ defmodule Dev.PlaygroundLive do
           <.input_group>
             <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
             <.input type="search" name="ig_q" value="" placeholder="Search components..." />
-            <:trailing><kbd>&#8984;K</kbd></:trailing>
+            <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
           </.input_group>
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Select and checkbox
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="plan"
-            label="Plan"
-            value="Pro"
-            options={["Free", "Pro", "Team"]}
-            no_margin
-          />
-          <div class="mt-6">
-            <.field type="checkbox" name="tos" label="I agree to the terms" checked no_margin />
-          </div>
-        </div>
-      </div>
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -2448,6 +2859,23 @@ defmodule Dev.PlaygroundLive do
           </.border_beam>
         </div>
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.BorderBeam.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.BorderBeam} function={:border_beam} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.BorderBeam</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -2550,6 +2978,9 @@ defmodule Dev.PlaygroundLive do
           />
         </.shine_border>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ShineBorder} function={:shine_border} />
     </div>
     """
   end
@@ -2664,9 +3095,14 @@ defmodule Dev.PlaygroundLive do
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
-              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(@chart.chrome)}>on</button>
-              <button phx-click="ctl_chart" phx-value-k="chrome" class={seg(!@chart.chrome)}>
-                off
+              <button
+                :for={c <- ~w(full x off)}
+                phx-click="ctl_chart"
+                phx-value-k="chrome"
+                phx-value-v={c}
+                class={seg(@chart.chrome == c)}
+              >
+                {c}
               </button>
             </div>
           </div>
@@ -2701,6 +3137,612 @@ defmodule Dev.PlaygroundLive do
         and <code>Sparkline</code>
         registries - the same source petal.build renders, so the
         playground and the marketing docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "color-scheme"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Color scheme</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Light, dark and system switching in three faces, sharing one no-flash
+        scheme contract. System follows the OS live, explicit choices persist,
+        and every open tab stays in sync.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Toggle - instant light/dark for tight navbars
+      </div>
+      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-toggle" variant="toggle" />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Dropdown - compact, with a system option
+      </div>
+      <div class="flex items-center justify-center gap-10 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-dropdown" variant="dropdown" />
+        <.color_scheme_switch id="pg-scheme-dropdown-labeled" variant="dropdown" labels />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Segmented - all three states visible
+      </div>
+      <div class="flex items-center justify-center px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-segmented" variant="segmented" />
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Bring your own icons - slots replace the Heroicons defaults
+      </div>
+      <div class="flex flex-col items-center justify-center gap-6 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.color_scheme_switch id="pg-scheme-custom" variant="toggle">
+          <:light_icon>
+            <svg viewBox="4.25 4.25 19.5 19.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="4.5" stroke="currentColor" stroke-linejoin="round" />
+              <path
+                d="M14 5.5v2M14 20.5v2M22.5 14h-2M7.5 14h-2M20.01 7.99l-1.42 1.42M9.41 18.59l-1.42 1.42M20.01 20.01l-1.42-1.42M9.41 9.41 7.99 7.99"
+                stroke="currentColor"
+                stroke-linecap="round"
+              />
+            </svg>
+          </:light_icon>
+          <:dark_icon>
+            <svg viewBox="5.25 4.25 18.5 18.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M10.5 9.99914C10.5 14.1413 13.8579 17.4991 18 17.4991C19.0332 17.4991 20.0176 17.2902 20.9132 16.9123C19.7761 19.6075 17.109 21.4991 14 21.4991C9.85786 21.4991 6.5 18.1413 6.5 13.9991C6.5 10.8902 8.39167 8.22304 11.0868 7.08594C10.7089 7.98159 10.5 8.96597 10.5 9.99914Z"
+                stroke="currentColor"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M16.3561 6.50754L16.5 5.5L16.6439 6.50754C16.7068 6.94752 17.0525 7.29321 17.4925 7.35607L18.5 7.5L17.4925 7.64393C17.0525 7.70679 16.7068 8.05248 16.6439 8.49246L16.5 9.5L16.3561 8.49246C16.2932 8.05248 15.9475 7.70679 15.5075 7.64393L14.5 7.5L15.5075 7.35607C15.9475 7.29321 16.2932 6.94752 16.3561 6.50754Z"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M20.3561 11.5075L20.5 10.5L20.6439 11.5075C20.7068 11.9475 21.0525 12.2932 21.4925 12.3561L22.5 12.5L21.4925 12.6439C21.0525 12.7068 20.7068 13.0525 20.6439 13.4925L20.5 14.5L20.3561 13.4925C20.2932 13.0525 19.9475 12.7068 19.5075 12.6439L18.5 12.5L19.5075 12.3561C19.9475 12.2932 20.2932 11.9475 20.3561 11.5075Z"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </:dark_icon>
+        </.color_scheme_switch>
+        <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+          Tip: many icon sets pad their artwork. Crop the viewBox around the
+          glyph so a dropped-in icon matches Heroicons' optical density.
+        </p>
+      </div>
+
+      <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Every switch on this page and the toggle in the topbar drive the same <code>document</code>
+        class through one contract: <code>&lt;.color_scheme_script /&gt;</code>
+        rendered once in the layout head. Change any of them and the rest
+        follow - including other open tabs.
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.ColorSchemeSwitch.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ColorSchemeSwitch} function={:color_scheme_switch} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "carousel"} = assigns) do
+    assigns =
+      assign(assigns,
+        forest: "/dev-static/carousel/forest.jpg",
+        ocean: "/dev-static/carousel/sneaker.jpg",
+        code: "/dev-static/carousel/code.jpg",
+        car_id:
+          "pg-car-flag-#{assigns.car.transition}-#{assigns.car.buttons}-#{assigns.car.indicators}-#{assigns.car.ind_pos}-#{assigns.car.orientation}-#{assigns.car.loop}-#{assigns.car.autoplay}-#{assigns.car.thumbnails}"
+      )
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Carousel</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Fade or scroll-snap slide transitions, swipe and drag, keyboard
+        navigation, autoplay, indicators, synced thumbnails, and clickable
+        slides - zero JavaScript dependencies, one hook.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-4">
+          <.carousel
+            id={@car_id}
+            transition_type={@car.transition}
+            button_style={@car.buttons}
+            indicator={@car.indicators != "off"}
+            indicator_style={(@car.indicators == "off" && "bars") || @car.indicators}
+            indicator_position={@car.ind_pos}
+            orientation={@car.orientation}
+            loop={@car.loop}
+            autoplay={@car.autoplay}
+            autoplay_interval={3500}
+            thumbnails={@car.thumbnails}
+          >
+            <:slide
+              image={@forest}
+              title="Every mode, one component"
+              description="Flip the dials below - the carousel remounts with the new configuration."
+            />
+            <:slide
+              image={@ocean}
+              title="Drag me on slide mode"
+              description="Scroll-snap gives native momentum; fade crossfades in place."
+            />
+            <:slide
+              image={@code}
+              title="Keyboard works too"
+              description="Focus the carousel and use the arrow keys."
+            />
+          </.carousel>
+        </div>
+        <div class="flex flex-wrap gap-x-8 gap-y-5 px-6 py-5 border-t border-gray-100 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">transition</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={t <- ~w(fade slide)}
+                phx-click="ctl_carousel"
+                phx-value-k="transition"
+                phx-value-v={t}
+                class={seg(@car.transition == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">buttons</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={b <- ~w(overlay below outside none)}
+                phx-click="ctl_carousel"
+                phx-value-k="buttons"
+                phx-value-v={b}
+                class={seg(@car.buttons == b)}
+              >
+                {b}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicators</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={i <- ~w(bars dots off)}
+                phx-click="ctl_carousel"
+                phx-value-k="indicators"
+                phx-value-v={i}
+                class={seg(@car.indicators == i)}
+              >
+                {i}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={ip <- ~w(overlay below)}
+                phx-click="ctl_carousel"
+                phx-value-k="ind_pos"
+                phx-value-v={ip}
+                class={seg(@car.ind_pos == ip)}
+              >
+                {ip}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={o <- ~w(horizontal vertical)}
+                phx-click="ctl_carousel"
+                phx-value-k="orientation"
+                phx-value-v={o}
+                class={seg(@car.orientation == o)}
+              >
+                {o}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_carousel" phx-value-k="loop" class={tog(@car.loop)}>
+                loop
+              </button>
+              <button phx-click="ctl_carousel" phx-value-k="autoplay" class={tog(@car.autoplay)}>
+                autoplay
+              </button>
+              <button phx-click="ctl_carousel" phx-value-k="thumbnails" class={tog(@car.thumbnails)}>
+                thumbnails
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Product view - aspect="square" in a narrow wrapper, dots below, matched thumbnails
+      </div>
+      <div class="flex justify-center px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="w-full max-w-sm">
+          <.carousel
+            id="pg-car-product"
+            transition_type="slide"
+            aspect="square"
+            thumbnails
+            indicator
+            indicator_style="dots"
+            indicator_position="below"
+            button_style="none"
+          >
+            <:slide image={@forest} />
+            <:slide image={@ocean} />
+            <:slide image={@code} />
+          </.carousel>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Multi-slide gallery - three per view with edge gradients
+      </div>
+      <.carousel
+        id="pg-car-multi"
+        transition_type="slide"
+        slides_per_view={3}
+        gap="0.75rem"
+        overlay_gradient
+        button_style="outside"
+      >
+        <:slide image={@forest} title="One" />
+        <:slide image={@ocean} title="Two" />
+        <:slide image={@code} title="Three" />
+        <:slide image={@forest} title="Four" />
+        <:slide image={@ocean} title="Five" />
+        <:slide image={@code} title="Six" />
+      </.carousel>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Clickable slides - the whole slide is the link
+      </div>
+      <.carousel id="pg-car-links" transition_type="fade">
+        <:slide
+          image={@forest}
+          title="External link"
+          description="Opens in a new tab - note the corner indicator."
+          href="https://petal.build"
+        />
+        <:slide
+          image={@ocean}
+          title="Internal navigate"
+          description="navigate keeps it in-app."
+          navigate="/?c=avatar"
+        />
+      </.carousel>
+
+      <div :for={ex <- PetalComponents.Showcase.Carousel.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Carousel} function={:carousel} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Slide corners ride the radius dial up top (the carousel is a surface;
+        <code>rounded="none"</code>
+        opts out, or pin a size). Every slide change dispatches <code>petal:carousel-change</code>
+        with the id, index and count. Ported from the battle-tested
+        petal_marketing carousel - the interaction logic is unchanged.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "toast"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Toast</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A collapsed stack that expands on hover, timeout progress that pauses
+        while you read, swipe to dismiss, six positions - and the
+        LiveView-native parts: server-pushed toasts, id-addressed updates,
+        action buttons that push events, and a put_flash bridge.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Kinds - hover the stack to expand and pause, swipe or drag sideways to dismiss
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button
+            :for={kind <- ~w(info success warning danger neutral)}
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-kind={kind}
+          >
+            {kind}
+          </.button>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        LiveView-native - things a JS toast library can't do
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button size="sm" phx-click="toast_demo" phx-value-demo="morph">
+            Loading -> success morph
+          </.button>
+          <.button size="sm" variant="soft" phx-click="toast_demo" phx-value-demo="action">
+            Action button (Undo)
+          </.button>
+          <.button size="sm" variant="soft" phx-click="toast_demo" phx-value-demo="flash">
+            put_flash bridge
+          </.button>
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          The morph pushes a sticky loading toast, then 2.5s later updates the
+          same id into a success with an action. Undo pushes a real event back
+          to this LiveView. put_flash renders as a toast and clears itself.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Stack, queue and stickiness
+      </div>
+      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap gap-2">
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="burst"
+          >
+            Burst of 6
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="sticky"
+          >
+            Sticky (no timeout)
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            color="gray"
+            phx-click="toast_demo"
+            phx-value-demo="dismiss_all"
+          >
+            Dismiss all
+          </.button>
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Three stay visible in the collapsed stack; the rest wait behind and
+          surface as older toasts leave.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Position - moves the live group
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+          <button
+            :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
+            phx-click="ctl_toast"
+            phx-value-k="pos"
+            phx-value-v={pos}
+            class={seg(@toast.pos == pos)}
+          >
+            {pos}
+          </button>
+        </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Toast.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Toast} function={:toast_group} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        One <code>&lt;.toast_group flash=&lbrace;@flash&rbrace; /&gt;</code>
+        in the root layout. Push from the server with
+        <code>Toast.send_toast(socket, :success, title: "Saved")</code>
+        or from plain JavaScript via a <code>petal:toast</code>
+        CustomEvent. Danger toasts announce as <code>role="alert"</code>; the rest as polite status.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "local-time"} = assigns) do
+    now = DateTime.utc_now()
+
+    assigns =
+      assign(assigns,
+        lt_feed: [
+          {"Amelia Ward", "pushed to main", DateTime.add(now, -20),
+           "/dev-static/avatars/p32.jpg"},
+          {"Deploy Bot", "released v4.8.0", DateTime.add(now, -8 * 60), nil},
+          {"Jonah Reyes", "commented on PR #58", DateTime.add(now, -3 * 3600),
+           "/dev-static/avatars/p65.jpg"},
+          {"Priya Anand", "signed in", DateTime.add(now, -30 * 3600),
+           "/dev-static/avatars/p44.jpg"},
+          {"Billing", "sent invoice #204", DateTime.add(now, -6 * 86_400), nil},
+          {"Maya Okafor", "created the workspace", DateTime.add(now, -45 * 86_400),
+           "/dev-static/avatars/p12.jpg"},
+          {"Status Page", "scheduled maintenance", DateTime.add(now, 45 * 60), nil}
+        ],
+        lt_two_hours: DateTime.add(now, -2 * 3600),
+        lt_fixed: ~U[2026-07-21 08:30:00Z]
+      )
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Local time</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Timestamps in the visitor's own timezone, language and calendar. The
+        server sends the UTC instant in a semantic <code>&lt;time&gt;</code>;
+        the browser's <code>Intl</code> does the rest - no timezone tables,
+        no date library.
+      </p>
+
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Relative, in context - an activity feed that ticks live
+      </div>
+      <div class="px-6 py-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div
+          :for={{{who, what, at, photo}, i} <- Enum.with_index(@lt_feed)}
+          class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0 dark:border-gray-800/60"
+        >
+          <.avatar size="xs" src={photo} name={who} random_gradient />
+          <span class="flex-1 text-sm truncate">
+            <span class="font-medium">{who}</span>
+            <span class="text-gray-500 dark:text-gray-400">{what}</span>
+          </span>
+          <.local_time
+            id={"lt-feed-#{i}"}
+            at={at}
+            format="relative"
+            class="text-xs text-gray-400 shrink-0 dark:text-gray-500"
+          />
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Events are seeded relative to when this page loaded, then the
+          timestamps live their own lives - leave the page open and watch the
+          top rows age. Hover any of them for the full date. Maya's row is older
+          than the 7-day threshold, so it renders the date instead;
+          the maintenance window is in the future ("in 45 minutes").
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Tighter threshold - flip to absolute sooner
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between">
+          <span class="flex-1 text-sm truncate">
+            <span class="font-medium">Data export</span>
+            <span class="text-gray-500 dark:text-gray-400">
+              finished two hours before page load
+            </span>
+          </span>
+          <.local_time
+            id="lt-rel-threshold"
+            at={@lt_two_hours}
+            format="relative"
+            threshold={3600}
+            class="text-xs text-gray-400 shrink-0 dark:text-gray-500"
+          />
+        </div>
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Same relative format, but <code>threshold=&lbrace;3600&rbrace;</code>
+          flips anything older than an hour to the absolute form - so a
+          two-hour-old event shows its date and time, not "2 hours ago".
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Absolute - presets and raw Intl options
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">default</span>
+          <.local_time id="lt-abs-default" at={@lt_fixed} class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">format="date"</span>
+          <.local_time id="lt-abs-date" at={@lt_fixed} format="date" class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">format="time"</span>
+          <.local_time id="lt-abs-time" at={@lt_fixed} format="time" class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span class="font-mono text-xs text-gray-400">Intl options map</span>
+          <.local_time
+            id="lt-abs-custom"
+            at={@lt_fixed}
+            format={
+              %{weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"}
+            }
+            class="text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Pinned locale and timezone - the same instant, three colleagues
+      </div>
+      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">your browser</span>
+          <.local_time id="lt-zone-browser" at={@lt_fixed} class="text-sm" />
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <span class="font-mono text-xs text-gray-400">de-DE / Europe/Berlin</span>
+          <.local_time
+            id="lt-zone-berlin"
+            at={@lt_fixed}
+            locale="de-DE"
+            timezone="Europe/Berlin"
+            class="text-sm"
+          />
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span class="font-mono text-xs text-gray-400">en-AU / Australia/Sydney</span>
+          <.local_time
+            id="lt-zone-sydney"
+            at={@lt_fixed}
+            locale="en-AU"
+            timezone="Australia/Sydney"
+            class="text-sm"
+          />
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.LocalTime} function={:local_time} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Before the hook runs - and anywhere JavaScript never runs - the element
+        shows the UTC ISO string: honest, sortable, machine-readable. Relative
+        timestamps re-render the moment a background tab wakes, so a page left
+        open overnight never greets you with "2 minutes ago".
       </div>
     </div>
     """
@@ -2807,6 +3849,9 @@ defmodule Dev.PlaygroundLive do
           <.meteors count={8} seed={42} />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Meteors} function={:meteors} />
     </div>
     """
   end
@@ -2878,7 +3923,9 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Primary (first dial - monochrome by default)
+        Primary (first dial - {if @primary == "neutral",
+          do: "monochrome, tinted by your gray dial",
+          else: @primary})
       </div>
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex overflow-hidden rounded-lg">
@@ -2942,7 +3989,7 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Gray (zinc) - the chrome family
+        Gray ({@gray} - the chrome family)
       </div>
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex overflow-hidden rounded-lg">
@@ -2966,10 +4013,12 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         In your app, primary and secondary are plain ramps in colors.css -
-        map each to any hue below (or keep primary monochrome for the
-        shadcn look). The surface tokens - washes at 500/15, borders at
-        600/30 light and 500/40 dark, solids at 600 - are derived from the
-        ramps, which is why one dial swap restyles every component.
+        map each to any hue below, or keep primary monochrome for the
+        shadcn look. The monochrome ramp derives from your gray dial, so
+        a slate chrome gives a slate-tinted accent. The surface tokens -
+        washes at 500/15, borders at 600/30 light and 500/40 dark, solids
+        at 600 - are derived from the ramps, which is why one dial swap
+        restyles every component.
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -3039,14 +4088,14 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_label>My account</.dropdown_menu_label>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-user" class="w-4 h-4" /> Profile
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;P</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>P</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> Settings
-              <kbd class="pc-kbd ml-auto">&#8984;,</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>,</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_separator />
             <.dropdown_menu_label>Team</.dropdown_menu_label>
@@ -3059,7 +4108,7 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_separator />
             <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
               <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
-              <kbd class="pc-kbd ml-auto">&#8679;&#8984;Q</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>Q</kbd>
             </.dropdown_menu_item>
           </.dropdown>
         </div>
@@ -3073,11 +4122,11 @@ defmodule Dev.PlaygroundLive do
           <.dropdown>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
-              <kbd class="pc-kbd ml-auto">&#8984;E</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>E</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-document-duplicate" class="w-4 h-4" /> Duplicate
-              <kbd class="pc-kbd ml-auto">&#8984;D</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>D</kbd>
             </.dropdown_menu_item>
             <.dropdown_menu_item link_type="button">
               <.icon name="hero-archive-box" class="w-4 h-4" /> Archive
@@ -3085,7 +4134,7 @@ defmodule Dev.PlaygroundLive do
             <.dropdown_menu_separator />
             <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
               <.icon name="hero-trash" class="w-4 h-4" /> Delete
-              <kbd class="pc-kbd ml-auto">&#8984;&#9003;</kbd>
+              <kbd class="pc-kbd ml-auto"><span>⌘</span>⌫</kbd>
             </.dropdown_menu_item>
           </.dropdown>
           <.dropdown placement="right" trigger_class="pc-button pc-button--primary pc-button--md">
@@ -3110,6 +4159,12 @@ defmodule Dev.PlaygroundLive do
         hints, custom classes for destructive actions. dropdown_menu_label
         and dropdown_menu_separator organise groups.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Dropdown}
+        functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
+      />
     </div>
     """
   end
@@ -3139,7 +4194,7 @@ defmodule Dev.PlaygroundLive do
         <div class="mt-4">
           <.input_group>
             <.input type="text" name="invite_url" value="https://example.com/join/x1y2z3" readonly />
-            <:trailing><kbd>&#8984;C</kbd></:trailing>
+            <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
           </.input_group>
         </div>
         <div class="flex justify-end gap-2 mt-6">
@@ -3152,6 +4207,9 @@ defmodule Dev.PlaygroundLive do
         show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
         to any phx-click. close_on_click_away and close_on_escape default on.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Modal} function={:modal} />
     </div>
     """
   end
@@ -3161,8 +4219,9 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-8 py-10 mx-auto">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Determinate progress on a washed track. The bar animates between
-        values - click the value control and watch it move.
+        Determinate progress on a washed track. The flagship simulates a
+        live upload - or take the wheel with the value control (which
+        pauses the simulation).
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -3175,15 +4234,27 @@ defmodule Dev.PlaygroundLive do
               label={
                 case @progress.label do
                   "inside" -> "#{@progress.value}%"
-                  "top" -> "Upload progress"
+                  "top" -> "Download progress"
                   _ -> nil
                 end
               }
               label_position={if @progress.label == "top", do: "top", else: "inside"}
+              status={if @progress.status, do: progress_status(@progress.value)}
             />
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button phx-click="ctl_progress" phx-value-k="live" class={tog(@progress.live)}>
+                live
+              </button>
+              <button phx-click="ctl_progress" phx-value-k="status" class={tog(@progress.status)}>
+                status
+              </button>
+            </div>
+          </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
@@ -3276,6 +4347,9 @@ defmodule Dev.PlaygroundLive do
           <.progress value={56} size="sm" label="Upload progress" label_position="top" />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Progress} function={:progress} />
     </div>
     """
   end
@@ -3478,6 +4552,9 @@ defmodule Dev.PlaygroundLive do
         instance with --pc-rating-active-color, and the :glyph slot swaps in your own icon
         entirely.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Rating} function={:rating} />
     </div>
     """
   end
@@ -3632,6 +4709,9 @@ defmodule Dev.PlaygroundLive do
         default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
         so no server round-trip is needed to animate.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SlideOver} function={:slide_over} />
     </div>
     """
   end
@@ -3751,6 +4831,12 @@ defmodule Dev.PlaygroundLive do
         widths are deterministic so LiveView re-renders never make it dance. The old
         kind={:card}-style prebuilt layouts still render for compatibility.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Skeleton}
+        functions={[:skeleton, :skeleton_group, :skeleton_text]}
+      />
     </div>
     """
   end
@@ -3920,6 +5006,12 @@ defmodule Dev.PlaygroundLive do
         Nested groups stop fusing and gap into clusters. The :button slot API from
         earlier releases still renders unchanged.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.ButtonGroup}
+        functions={[:button_group, :button_group_separator, :button_group_text]}
+      />
     </div>
     """
   end
@@ -3978,6 +5070,9 @@ defmodule Dev.PlaygroundLive do
         utilities recolour it). For full skeleton states, reach for the skeleton
         component instead.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Loading} function={:spinner} />
     </div>
     """
   end
@@ -4022,6 +5117,9 @@ defmodule Dev.PlaygroundLive do
         link_type (a / live_patch / live_redirect / button). The last crumb renders as
         the current page - strong text + aria-current. The nav carries an aria_label.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Breadcrumbs} function={:breadcrumbs} />
     </div>
     """
   end
@@ -4048,6 +5146,7 @@ defmodule Dev.PlaygroundLive do
               steps={pg_steps(@stepper.at, @stepper.done)}
               orientation={@stepper.orientation}
               size={@stepper.size}
+              label_placement={@stepper.labels}
             />
           </div>
           <div class={[
@@ -4157,7 +5256,7 @@ defmodule Dev.PlaygroundLive do
             <% end %>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
@@ -4186,6 +5285,24 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={lp <- ~w(beside bottom)}
+                phx-click="ctl_stepper"
+                phx-value-k="labels"
+                phx-value-v={lp}
+                class={seg(@stepper.labels == lp)}
+                disabled={@stepper.orientation == "vertical"}
+              >
+                {lp}
+              </button>
+            </div>
+            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
+              horizontal only
+            </div>
+          </div>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -4193,6 +5310,9 @@ defmodule Dev.PlaygroundLive do
         command - this demo pushes an event). aria-current and completed labels are wired
         for screen readers.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Stepper} function={:stepper} />
     </div>
     """
   end
@@ -4208,8 +5328,8 @@ defmodule Dev.PlaygroundLive do
         Sizes - xs to xl
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-end justify-center gap-4 px-6 py-12">
-          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2">
+        <div class="flex flex-wrap items-end justify-center gap-4 px-6 py-12">
+          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
             <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
             <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
@@ -4220,23 +5340,108 @@ defmodule Dev.PlaygroundLive do
         Fallback chain - photo, initials, icon
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center gap-6">
-          <div class="flex flex-col items-center gap-2">
+        <div class="flex flex-wrap items-center justify-center gap-6">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar src="/dev-static/avatars/p44.jpg" alt="Photo" />
             <span class="text-[11px] text-gray-400">src</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar name="Ada Lovelace" />
             <span class="text-[11px] text-gray-400">initials</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar name="Grace Hopper" random_color />
             <span class="text-[11px] text-gray-400">random_color</span>
           </div>
-          <div class="flex flex-col items-center gap-2">
+          <div class="flex flex-col items-center gap-2 shrink-0">
+            <.avatar name="Ada Lovelace" random_gradient />
+            <span class="text-[11px] text-gray-400">random_gradient</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 shrink-0">
             <.avatar />
             <span class="text-[11px] text-gray-400">no name</span>
           </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Shape - circles for people, rounded for orgs and teams
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center gap-5">
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <.avatar src="/dev-static/avatars/p32.jpg" size="lg" />
+            <.avatar src="/dev-static/avatars/p32.jpg" shape="rounded" size="lg" />
+            <.avatar name="Acme Corp" shape="rounded" random_gradient size="lg" />
+            <.avatar name="Petal Framework" shape="rounded" art="mesh" size="lg" />
+            <.avatar name="Design Guild" shape="rounded" art="dither" size="lg" />
+            <.avatar
+              src="/dev-static/avatars/p65.jpg"
+              shape="rounded"
+              status="online"
+              size="lg"
+            />
+          </div>
+          <.avatar_group
+            size="md"
+            shape="rounded"
+            max={3}
+            avatars={[
+              "/dev-static/avatars/p32.jpg",
+              "/dev-static/avatars/p65.jpg",
+              "/dev-static/avatars/p44.jpg",
+              "/dev-static/avatars/p12.jpg",
+              "/dev-static/avatars/p68.jpg"
+            ]}
+          />
+          <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+            <code>shape="rounded"</code>
+            works across every variant - photos, monograms, art, status dots
+            and groups. Deliberately independent of the radius dial: avatars
+            are identity, not surface.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Generative art - mesh and dither, hashed from the name
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center gap-6">
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
+              name={name}
+              art="mesh"
+              size="lg"
+            />
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ~w(Amelia Jonah Priya Maya Deploy Billing Status Petal)}
+              name={name}
+              art="dither"
+              size="lg"
+            />
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <.avatar
+              :for={name <- ["Amelia Ward", "Jonah Reyes", "Priya Anand", "Maya Okafor"]}
+              name={name}
+              art="mesh"
+              initials
+              size="lg"
+            />
+          </div>
+          <p class="text-xs text-center text-gray-400 dark:text-gray-500">
+            <code>art="mesh"</code>
+            and <code>art="dither"</code>
+            draw the avatar instead of initials - deterministic per name, pure
+            CSS and inline SVG, no JavaScript. Add <code>initials</code>
+            to the mesh to overlay a dark hue-tinted monogram; dither stays
+            pure art - pixels and letters never mix cleanly. A photo <code>src</code>
+            still wins when present.
+          </p>
         </div>
       </div>
 
@@ -4303,6 +5508,17 @@ defmodule Dev.PlaygroundLive do
         busy / away / offline). avatar_group stacks with overlap; max caps the row and
         folds the rest into a +N bubble. Demo photos are tiny local files, dev-only.
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Avatar.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Avatar} functions={[:avatar, :avatar_group]} />
     </div>
     """
   end
@@ -4399,6 +5615,12 @@ defmodule Dev.PlaygroundLive do
         legacy alias of basic, going away in 5.0.) The cover photo is a 36KB local file,
         dev-only.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Card}
+        functions={[:card, :card_header, :card_content, :card_footer, :card_media, :review_card]}
+      />
     </div>
     """
   end
@@ -4486,6 +5708,23 @@ defmodule Dev.PlaygroundLive do
         to see it. (variant="ghost" still renders - a legacy alias of default, going
         away in 5.0.)
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Accordion.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Accordion} function={:accordion} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Accordion</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -4535,6 +5774,9 @@ defmodule Dev.PlaygroundLive do
         repeat controls how many copies keep the loop seamless; duration and gap tune the
         feel; overlay_gradient fades the edges. Holds still under prefers-reduced-motion.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Marquee} function={:marquee} />
     </div>
     """
   end
@@ -4571,6 +5813,9 @@ defmodule Dev.PlaygroundLive do
         Powered by the tiny PetalSpotlight hook (pointer position only - the paint is pure
         CSS). Reads best on dark panels.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SpotlightCard} function={:spotlight_card} />
     </div>
     """
   end
@@ -4617,6 +5862,9 @@ defmodule Dev.PlaygroundLive do
         prefix/suffix/decimal_places/locale handle formatting; duration tunes the count.
         The PetalNumberTicker hook animates on mount and on every value change.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.NumberTicker} function={:number_ticker} />
     </div>
     """
   end
@@ -4652,6 +5900,12 @@ defmodule Dev.PlaygroundLive do
         word_rotate and typing_effect use tiny hooks. All respect
         prefers-reduced-motion.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.TextAnimation}
+        functions={[:gradient_text, :shimmer_text, :typing_effect, :word_rotate]}
+      />
     </div>
     """
   end
@@ -4680,6 +5934,9 @@ defmodule Dev.PlaygroundLive do
         push_event(socket, "pc-confetti", %{}) fires it server-side - ship it on signup
         complete, plan upgraded, streak kept.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Confetti} function={:confetti} />
     </div>
     """
   end
@@ -4775,6 +6032,9 @@ defmodule Dev.PlaygroundLive do
         pill is the roomy classic. The legacy underline flag still works - variant wins
         when both are set.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Tabs} functions={[:tabs, :tab]} />
     </div>
     """
   end
@@ -4842,6 +6102,9 @@ defmodule Dev.PlaygroundLive do
         /users/:page; event mode fires goto-page with phx-value-page. One style by design -
         variants multiply here without earning their keep.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Pagination} function={:pagination} />
     </div>
     """
   end
@@ -4959,6 +6222,9 @@ defmodule Dev.PlaygroundLive do
         where the pro data_table picks up. This component draws the line at presentation:
         it renders state and fires events.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Table} function={:table} />
     </div>
     """
   end
@@ -5047,6 +6313,9 @@ defmodule Dev.PlaygroundLive do
           </.tooltip>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Tooltip} function={:tooltip} />
     </div>
     """
   end
@@ -5138,6 +6407,9 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Popover} function={:popover} />
     </div>
     """
   end
@@ -5232,6 +6504,9 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.InputOtp} function={:input_otp} />
     </div>
     """
   end
@@ -5324,6 +6599,374 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "input-group"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Input group</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One field surface, many parts. The group carries the border, radius and
+        focus ring; any petal input dropped inside sheds its own surface, so
+        text, icons, kbd hints, selects and buttons all compose.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-12">
+          <div class="max-w-sm mx-auto space-y-6">
+            <.input_group>
+              <:leading>https://</:leading>
+              <.input type="text" name="igp_domain" value="" placeholder="example.com" />
+            </.input_group>
+            <.input_group>
+              <:leading>$</:leading>
+              <.input type="number" name="igp_amount" value="" placeholder="0.00" />
+              <:trailing>USD</:trailing>
+            </.input_group>
+            <.input_group>
+              <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
+              <.input type="search" name="igp_q" value="" placeholder="Search components..." />
+              <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
+            </.input_group>
+            <.input_group>
+              <:leading>@</:leading>
+              <.input type="text" name="igp_handle" value="petalframework" disabled />
+            </.input_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Buttons</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.input_group>
+            <.input type="email" name="igp_news" value="" placeholder="you@example.com" />
+            <:trailing><.button size="sm">Subscribe</.button></:trailing>
+          </.input_group>
+          <.input_group>
+            <.input type="text" name="igp_link" value="https://petal.build/join/x1y2z3" readonly />
+            <:trailing>
+              <.button size="sm" color="gray" variant="outline">
+                <.icon name="hero-clipboard" class="w-4 h-4" /> Copy
+              </.button>
+            </:trailing>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Selects</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto space-y-6">
+          <.input_group>
+            <:leading>
+              <select name="igp_country" class="pc-select" aria-label="Country code">
+                <option>🇦🇺 +61</option>
+                <option>🇺🇸 +1</option>
+                <option>🇬🇧 +44</option>
+              </select>
+            </:leading>
+            <.input type="tel" name="igp_phone" value="" placeholder="400 000 000" />
+          </.input_group>
+          <.input_group>
+            <.input type="number" name="igp_price" value="" placeholder="0.00" />
+            <:trailing>
+              <select name="igp_cur" class="pc-select" aria-label="Currency">
+                <option>USD</option>
+                <option>EUR</option>
+                <option>AUD</option>
+              </select>
+            </:trailing>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Block rows</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.input_group>
+            <:block_start class="gap-1">
+              <.button size="xs" color="gray" variant="ghost" aria-label="Bold">
+                <.icon name="hero-bold" class="w-4 h-4" />
+              </.button>
+              <.button size="xs" color="gray" variant="ghost" aria-label="Italic">
+                <.icon name="hero-italic" class="w-4 h-4" />
+              </.button>
+              <.button size="xs" color="gray" variant="ghost" aria-label="Link">
+                <.icon name="hero-link" class="w-4 h-4" />
+              </.button>
+            </:block_start>
+            <.input
+              type="textarea"
+              name="igp_bio"
+              value="Building a component library for Phoenix."
+              rows="3"
+            />
+            <:block_end class="justify-end text-xs text-gray-400">44/280</:block_end>
+          </.input_group>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Inline addons go in :leading and :trailing; full-width rows in :block_start
+        and :block_end. Focus anything inside and the whole group rings. Disable the
+        input and the group fades with it. Inside a field wrapper with errors, the
+        group border turns the error colour. The country flags are plain emoji in
+        the option label - zero JS, though Windows renders flag emoji as letter
+        pairs (AU, US), so keep the dial code in the label.
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.InputGroup} function={:input_group} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "user-menu"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The avatar-with-chevron every app shell ends up needing - an avatar
+        trigger, a dropdown, and a list of menu items from plain maps.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-start justify-center gap-16 px-6 pt-10 pb-40">
+          <div class="text-center">
+            <.user_dropdown_menu
+              current_user_name="Sarah Chen"
+              avatar_src="/dev-static/avatars/p32.jpg"
+              user_menu_items={[
+                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+                %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
+                %{
+                  path: "/?c=user-menu",
+                  icon: "hero-arrow-right-start-on-rectangle",
+                  label: "Sign out"
+                }
+              ]}
+            />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">photo</div>
+          </div>
+          <div class="text-center">
+            <.user_dropdown_menu
+              current_user_name="Sarah Chen"
+              user_menu_items={[
+                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+                %{
+                  path: "/?c=user-menu",
+                  icon: "hero-arrow-right-start-on-rectangle",
+                  label: "Sign out"
+                }
+              ]}
+            />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">initials</div>
+          </div>
+          <div class="text-center">
+            <.user_dropdown_menu user_menu_items={[
+              %{path: "/?c=user-menu", icon: "hero-arrow-left-end-on-rectangle", label: "Sign in"}
+            ]} />
+            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">anonymous</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        user_menu_items is a list of maps with path, icon and label - plus an
+        optional method (:delete for sign out routes). An icon can be a heroicon
+        name, a function component, or a raw svg string. With no name or src the
+        trigger falls back to the placeholder avatar; a name alone renders
+        deterministic initials.
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.UserDropdownMenu} function={:user_dropdown_menu} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "slider"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sb, slider_bounds(assigns.slider.format))
+      |> assign(:price_form, to_form(%{"min" => "100", "max" => "600"}, as: :pg_price))
+
+    ~H"""
+    <div class="max-w-3xl px-8 py-10 mx-auto">
+      <h1 class="text-3xl font-bold tracking-tight">Slider</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One thumb or two, one grammar: the same track, thumb and focus ring
+        whether you render a single range (pure CSS on the native input) or the
+        dual range (two thumbs and a hook for min/max filtering).
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-sm">
+            <.field
+              :if={@slider.thumbs == "dual"}
+              id={"pg-slider-#{@slider.format}-#{@slider.disabled}"}
+              type="range-dual"
+              min_field={@slider_form[:min]}
+              max_field={@slider_form[:max]}
+              range_min={@sb.bound_min}
+              range_max={@sb.bound_max}
+              step={@sb.step}
+              value_prefix={@sb.prefix}
+              value_suffix={@sb.suffix}
+              label={@sb.label}
+              disabled={@slider.disabled}
+              no_margin
+            />
+            <.field
+              :if={@slider.thumbs == "single"}
+              id={"pg-single-#{@slider.fill}-#{@slider.disabled}"}
+              type="range"
+              name="pg_flag_volume"
+              label="Volume"
+              value="60"
+              min="0"
+              max="100"
+              fill={@slider.fill}
+              disabled={@slider.disabled}
+              no_margin
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumbs</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={t <- ~w(single dual)}
+                phx-click="ctl_slider"
+                phx-value-k="thumbs"
+                phx-value-v={t}
+                class={seg(@slider.thumbs == t)}
+              >
+                {t}
+              </button>
+            </div>
+          </div>
+          <div :if={@slider.thumbs == "dual"}>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={f <- ~w(money percent plain)}
+                phx-click="ctl_slider"
+                phx-value-k="format"
+                phx-value-v={f}
+                class={seg(@slider.format == f)}
+              >
+                {f}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button
+                :if={@slider.thumbs == "single"}
+                phx-click="ctl_slider"
+                phx-value-k="fill"
+                class={tog(@slider.fill)}
+              >
+                fill
+              </button>
+              <button phx-click="ctl_slider" phx-value-k="disabled" class={tog(@slider.disabled)}>
+                disabled
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{slider_snippet(@slider)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Filled and plain
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+          <.field
+            type="range"
+            name="pg_volume"
+            label="Volume"
+            value="60"
+            min="0"
+            max="100"
+            fill
+            no_margin
+          />
+          <.field
+            type="range"
+            name="pg_stepped"
+            label="Stepped (10s)"
+            value="40"
+            min="0"
+            max="100"
+            step="10"
+            fill
+            no_margin
+          />
+          <.field
+            type="range"
+            name="pg_balance"
+            label="Balance"
+            value="50"
+            min="0"
+            max="100"
+            no_margin
+          />
+          <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
+        </div>
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          Plain is the native input, no JavaScript. <code class="text-xs">fill</code>
+          paints the track primary up to the thumb - Firefox does it natively, a
+          tiny hook keeps the webkit fill in sync. Leave it off for balance and
+          pan controls, where a fill would imply a wrong zero point.
+        </p>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Open-ended bounds
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="range-dual"
+            min_field={@price_form[:min]}
+            max_field={@price_form[:max]}
+            range_min={0}
+            range_max={1000}
+            step={50}
+            value_prefix="$"
+            range_max_label="$1,000+"
+            label="Price"
+            help_text={~s(range_max_label caps the scale as "open-ended".)}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -5341,6 +6984,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-center justify-center px-6 py-12">
           <div class="w-full max-w-lg">
             <.field
+              :if={@radio.style == "cards"}
               type="radio-card"
               name="pg_plan"
               label="Plan"
@@ -5348,6 +6992,9 @@ defmodule Dev.PlaygroundLive do
               variant={@radio.variant}
               size={@radio.size}
               group_layout={@radio.layout}
+              indicator={@radio.indicator}
+              indicator_position={@radio.ind_pos}
+              disabled={@radio.disabled}
               options={[
                 %{value: "starter", label: "Starter", description: "For side projects"},
                 %{value: "pro", label: "Pro", description: "For small teams"},
@@ -5355,10 +7002,36 @@ defmodule Dev.PlaygroundLive do
               ]}
               no_margin
             />
+            <div :if={@radio.style == "plain"} class="flex justify-center">
+              <.field
+                type="radio-group"
+                name="pg_plan_plain"
+                label="Plan"
+                value="pro"
+                group_layout={@radio.layout}
+                disabled={@radio.disabled}
+                options={[{"Starter", "starter"}, {"Pro", "pro"}, {"Team", "team"}]}
+                no_margin
+              />
+            </div>
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">style</div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={st <- ~w(cards plain)}
+                phx-click="ctl_radio"
+                phx-value-k="style"
+                phx-value-v={st}
+                class={seg(@radio.style == st)}
+              >
+                {st}
+              </button>
+            </div>
+          </div>
+          <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -5372,7 +7045,7 @@ defmodule Dev.PlaygroundLive do
               </button>
             </div>
           </div>
-          <div>
+          <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
@@ -5397,6 +7070,38 @@ defmodule Dev.PlaygroundLive do
                 class={seg(@radio.layout == l)}
               >
                 {l}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <div class="flex gap-1.5">
+              <button
+                :if={@radio.style == "cards"}
+                phx-click="ctl_radio"
+                phx-value-k="indicator"
+                class={tog(@radio.indicator)}
+              >
+                indicator
+              </button>
+              <button phx-click="ctl_radio" phx-value-k="disabled" class={tog(@radio.disabled)}>
+                disabled
+              </button>
+            </div>
+          </div>
+          <div :if={@radio.style == "cards" && @radio.indicator}>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              indicator position
+            </div>
+            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+              <button
+                :for={p <- ~w(end corner start)}
+                phx-click="ctl_radio"
+                phx-value-k="ind_pos"
+                phx-value-v={p}
+                class={seg(@radio.ind_pos == p)}
+              >
+                {p}
               </button>
             </div>
           </div>
@@ -5431,21 +7136,111 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        With radio indicator
+        Payment method
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
           <.field
             type="radio-card"
-            name="speed"
-            label="Delivery speed"
-            value="express"
+            name="pg_payment"
+            label="Payment method"
+            value="visa"
+            group_layout="col"
+            indicator
+            indicator_position="corner"
+            options={[
+              %{
+                value: "visa",
+                label: "Visa ending in 4242",
+                description: "Expires 12/26",
+                icon: "hero-credit-card"
+              },
+              %{
+                value: "mastercard",
+                label: "Mastercard ending in 8888",
+                description: "Expires 09/25",
+                icon: "hero-credit-card"
+              },
+              %{value: "new", label: "Add new payment method", icon: "hero-plus"}
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Icon tiles</div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-md mx-auto">
+          <.field
+            type="radio-card"
+            name="pg_module"
+            label="Enable a module"
+            value="payments"
+            class="grid grid-cols-2 gap-3"
+            indicator
+            indicator_position="corner"
+            options={[
+              %{
+                value: "payments",
+                label: "Payments",
+                description: "Receive payments from your customers",
+                icon: "hero-banknotes"
+              },
+              %{
+                value: "invoices",
+                label: "Invoices",
+                description: "Create and send invoices to your customers",
+                icon: "hero-document-text"
+              },
+              %{
+                value: "billing",
+                label: "Billing",
+                description: "Manage your billing and subscriptions",
+                icon: "hero-credit-card"
+              },
+              %{
+                value: "reports",
+                label: "Reports",
+                description: "View your reports and analytics",
+                icon: "hero-chart-bar"
+              }
+            ]}
+            no_margin
+          />
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        People picker
+      </div>
+      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm mx-auto">
+          <.field
+            type="radio-card"
+            name="pg_reviewer"
+            label="Assign a reviewer"
+            value="sarah"
             group_layout="col"
             indicator
             options={[
-              %{value: "standard", label: "Standard", description: "4 to 6 business days - free"},
-              %{value: "express", label: "Express", description: "1 to 2 business days - $12"},
-              %{value: "overnight", label: "Overnight", description: "Next business day - $29"}
+              %{
+                value: "sarah",
+                label: "Sarah Chen",
+                description: "@sarahchen",
+                image: "/dev-static/avatars/p32.jpg"
+              },
+              %{
+                value: "alex",
+                label: "Alex Rivera",
+                description: "@alexrivera",
+                image: "/dev-static/avatars/p44.jpg"
+              },
+              %{
+                value: "jordan",
+                label: "Jordan Lee",
+                description: "@jordanlee",
+                image: "/dev-static/avatars/p65.jpg"
+              }
             ]}
             no_margin
           />
@@ -5470,6 +7265,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -5558,6 +7356,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -5653,6 +7454,9 @@ defmodule Dev.PlaygroundLive do
           />
         </div>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Field} function={:field} />
     </div>
     """
   end
@@ -5737,6 +7541,23 @@ defmodule Dev.PlaygroundLive do
         off-screen, and prefers-reduced-motion freezes it entirely. Ported from Petal Pro
         and rebuilt: pc-prefixed classes, palette-driven gradients, content above the glow.
       </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Aurora.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Aurora} function={:aurora} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Aurora</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5818,6 +7639,9 @@ defmodule Dev.PlaygroundLive do
         components). disabled turns an anchor into a real disabled button, since
         anchors can't be disabled.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Link} function={:a} />
     </div>
     """
   end
@@ -5852,19 +7676,28 @@ defmodule Dev.PlaygroundLive do
         <div class="flex items-end justify-center gap-8">
           <div
             :for={
-              {suffix, label} <- [
-                {"", "outline"},
-                {"-solid", "solid"},
-                {"-mini", "mini"},
-                {"-micro", "micro"}
+              {suffix, size_class, size_label} <- [
+                {"", "w-6 h-6", "24px"},
+                {"-solid", "w-6 h-6", "24px"},
+                {"-mini", "w-5 h-5", "20px"},
+                {"-micro", "w-4 h-4", "16px"}
               ]
             }
             class="flex flex-col items-center gap-2"
           >
-            <.icon name={"hero-star" <> suffix} class="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            <.icon
+              name={"hero-star" <> suffix}
+              class={[size_class, "text-gray-700 dark:text-gray-300"]}
+            />
             <span class="font-mono text-[10px] text-gray-400">hero-star{suffix}</span>
+            <span class="text-[10px] text-gray-400">{size_label}</span>
           </div>
         </div>
+        <p class="mt-6 text-xs text-center text-gray-400 dark:text-gray-500">
+          mini and micro are not scaled-down copies - heroicons redraws them for
+          20px and 16px UI, simplifying geometry so they stay crisp at the sizes
+          they're named for. Render each at its native size.
+        </p>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -5886,6 +7719,9 @@ defmodule Dev.PlaygroundLive do
         petal components (button icon attr, breadcrumbs, alerts) use this same
         component under the hood.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Icon} function={:heroicon} />
     </div>
     """
   end
@@ -6010,6 +7846,12 @@ defmodule Dev.PlaygroundLive do
         avatar for the account. Petal Pro's SidebarLayout wraps this with collapse and
         a mobile drawer.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Menu}
+        functions={[:vertical_menu, :vertical_menu_item, :menu_group]}
+      />
     </div>
     """
   end
@@ -6076,6 +7918,17 @@ defmodule Dev.PlaygroundLive do
         with to render plain links, current marks the active page. width sizes the
         panel sm-xl, full_width spans a mega menu.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.NavigationMenu}
+        functions={[
+          :navigation_menu,
+          :navigation_menu_link,
+          :navigation_menu_footer,
+          :navigation_menu_footer_link
+        ]}
+      />
     </div>
     """
   end
@@ -6112,6 +7965,9 @@ defmodule Dev.PlaygroundLive do
         their parent - lg upwards is capped by this demo panel. The playground pages
         you're reading use the same pattern.
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Container} function={:container} />
     </div>
     """
   end
@@ -6265,51 +8121,44 @@ defmodule Dev.PlaygroundLive do
         style; variant="bubbles" puts both sides in bubbles (messenger style).
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Markers - system notes, status rows, separators
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto">
-          <Chat.marker variant="separator">Today</Chat.marker>
-          <Chat.marker icon="hero-magnifying-glass">Searched the web - 8 sources</Chat.marker>
-          <Chat.marker loading>
-            <.shimmer_text class="text-xs font-medium">Running the numbers...</.shimmer_text>
-          </Chat.marker>
-          <Chat.marker variant="border" icon="hero-archive-box">
-            Context compacted - 12k tokens summarised
-          </Chat.marker>
-          <Chat.marker icon="hero-check-circle">Answer complete</Chat.marker>
-        </div>
+      <div
+        :for={ex <- Enum.reject(PetalComponents.Showcase.Chat.examples(), &(&1.id == :flagship))}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Tool calls, reasoning and errors
-      </div>
-      <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col max-w-md gap-3 mx-auto">
-          <Chat.tool_call name="get_weather" status={:complete} label="Checked the weather">
-            <div class="flex items-center gap-3 text-sm">
-              <.icon name="hero-sun" class="w-8 h-8 text-warning-500" />
-              <div>
-                <div class="font-medium text-gray-900 dark:text-gray-100">Paris - 21°C</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Clear skies until 6pm</div>
-              </div>
-            </div>
-          </Chat.tool_call>
-          <Chat.tool_call name="query_db" status={:running} label="Querying the database" />
-          <Chat.reasoning label="Thought for 3s">
-            The user asked about installs. Check the hex package name, then give
-            the two-step answer with a code fence.
-          </Chat.reasoning>
-          <Chat.chat_error on_retry="chat_history">Rate limited - give it a moment.</Chat.chat_error>
-        </div>
-      </div>
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Chat}
+        functions={[
+          :conversation,
+          :chat_message,
+          :streaming_text,
+          :prompt_input,
+          :tool_call,
+          :markdown,
+          :rich_text,
+          :reasoning,
+          :marker,
+          :message_actions,
+          :copy_button,
+          :suggestions,
+          :chat_error
+        ]}
+      />
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Chat isn't pulled in by use PetalComponents - alias PetalComponents.Chat
         and call it namespaced (it owns generic names like markdown). Markdown
-        needs the optional :mdex dep. Reactions and read receipts are social-chat
-        territory, not AI - deliberately out of scope for now.
+        needs the optional :mdex dep. The examples above (the live thread excepted)
+        render from the shared <code>PetalComponents.Showcase.Chat</code> registry -
+        the same source petal.build renders, so the playground and the marketing docs
+        can't drift.
       </div>
     </div>
     """
@@ -6332,8 +8181,15 @@ defmodule Dev.PlaygroundLive do
               variant={@alert.variant}
               with_icon={@alert.icon}
               heading={if @alert.heading, do: "Heads up"}
+              on_dismiss={
+                if @alert.dismissible, do: Phoenix.LiveView.JS.dispatch("pg:alert-dismissed")
+              }
             >
               Your subscription renews on 12 August.
+              <:actions :if={@alert.actions}>
+                <.button size="sm" variant="soft">Manage plan</.button>
+                <.button size="sm" variant="ghost" color="gray">Remind me later</.button>
+              </:actions>
             </.alert>
           </div>
         </div>
@@ -6356,7 +8212,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
-                :for={v <- ~w(light soft dark outline)}
+                :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_alert"
                 phx-value-k="variant"
                 phx-value-v={v}
@@ -6371,6 +8227,15 @@ defmodule Dev.PlaygroundLive do
             <div class="flex gap-1.5">
               <button phx-click="ctl_alert" phx-value-k="icon" class={tog(@alert.icon)}>icon</button>
               <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
+              <button phx-click="ctl_alert" phx-value-k="dismissible" class={tog(@alert.dismissible)}>
+                dismissible
+              </button>
+              <button phx-click="ctl_alert" phx-value-k="actions" class={tog(@alert.actions)}>
+                actions
+              </button>
+            </div>
+            <div :if={@alert.dismissible} class="mt-1.5 text-[10px] text-gray-400">
+              dismissing hides it - flip any dial to bring it back
             </div>
           </div>
         </div>
@@ -6411,6 +8276,25 @@ defmodule Dev.PlaygroundLive do
         <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
         <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
         <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
+        <.alert color="success" variant="callout" with_icon heading="Callout, the toast-cohesive form">
+          Neutral panel, colour as accent - a left bar and a solid icon.
+        </.alert>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Actions and custom icons
+      </div>
+      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.alert color="info" variant="callout" with_icon heading="Update available">
+          Version 4.8 is ready to install.
+          <:actions>
+            <.button size="sm" variant="soft">View notes</.button>
+            <.button size="sm" variant="ghost" color="gray">Later</.button>
+          </:actions>
+        </.alert>
+        <.alert color="warning" variant="soft" icon="hero-lock-closed" heading="Password expiring">
+          Your password expires in 3 days - a custom icon via icon="hero-lock-closed".
+        </.alert>
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -6421,6 +8305,9 @@ defmodule Dev.PlaygroundLive do
           We emailed Ana a link to join your workspace.
         </.alert>
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Alert} function={:alert} />
     </div>
     """
   end
@@ -6463,7 +8350,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
               <button
-                :for={v <- ~w(light soft dark outline)}
+                :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_badge"
                 phx-value-k="variant"
                 phx-value-v={v}
@@ -6533,6 +8420,9 @@ defmodule Dev.PlaygroundLive do
       <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
       </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Badge} function={:badge} />
     </div>
     """
   end
@@ -6702,6 +8592,10 @@ PhoenixPlayground.start(
   # OPEN_BROWSER=false for headless runs (CI, agents); PORT to avoid clashes
   open_browser: System.get_env("OPEN_BROWSER", "true") != "false",
   port: String.to_integer(System.get_env("PORT", "4000")),
+  # Dual-stack: "localhost" resolves to ::1 or 127.0.0.1 depending on the
+  # client's Happy Eyeballs mood; a v4-only listener makes the LiveView
+  # websocket silently fail on the ::1 pick (dead render, URL params ignored).
+  ip: {0, 0, 0, 0, 0, 0, 0, 0},
   live_reload: true,
   endpoint_options: [
     debug_errors: true,

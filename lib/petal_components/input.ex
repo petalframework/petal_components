@@ -30,6 +30,10 @@ defmodule PetalComponents.Input do
     default: false,
     doc: "If true, adds a clear button to clear the field value"
 
+  attr :fill, :boolean,
+    default: false,
+    doc: ~s(type="range" only: fills the track with the primary colour up to the thumb)
+
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
@@ -89,6 +93,13 @@ defmodule PetalComponents.Input do
     |> input()
   end
 
+  # `value` is optional for inputs that never carry one (file pickers foremost);
+  # it has no attr default because the form-field clause above derives it via
+  # assign_new, so this clause backfills it before typed dispatch.
+  def input(assigns) when not is_map_key(assigns, :value) do
+    assigns |> assign(:value, nil) |> input()
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <select id={@id} name={@name} class={[@class, "pc-text-input"]} multiple={@multiple} {@rest}>
@@ -146,12 +157,18 @@ defmodule PetalComponents.Input do
         class={[@class, "pc-password-field-input"]}
         {@rest}
       />
-      <button type="button" class="pc-password-field-toggle-button" data-pc-password-toggle>
+      <button
+        type="button"
+        class="pc-password-field-toggle-button"
+        data-pc-password-toggle
+        aria-label="Show password"
+        aria-pressed="false"
+      >
         <span data-pc-icon-show class="pc-password-field-toggle-icon-container">
-          <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
+          <.icon name="hero-eye" class="pc-password-field-toggle-icon" />
         </span>
         <span data-pc-icon-hide class="pc-password-field-toggle-icon-container hidden">
-          <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
+          <.icon name="hero-eye-slash" class="pc-password-field-toggle-icon" />
         </span>
       </button>
     </div>
@@ -175,14 +192,20 @@ defmodule PetalComponents.Input do
         readonly
         {@rest}
       />
-      <button type="button" class="pc-copyable-field-button" data-pc-copy-btn>
+      <button
+        type="button"
+        class="pc-copyable-field-button"
+        data-pc-copy-btn
+        aria-label="Copy to clipboard"
+      >
         <span data-pc-copy-default class="pc-copyable-field-icon-container">
-          <.icon name="hero-clipboard-document-solid" class="pc-copyable-field-icon" />
+          <.icon name="hero-clipboard-document" class="pc-copyable-field-icon" />
         </span>
         <span data-pc-copy-done class="pc-copyable-field-icon-container hidden">
-          <.icon name="hero-clipboard-document-check-solid" class="pc-copyable-field-icon" />
+          <.icon name="hero-check" class="pc-copyable-field-icon pc-copyable-field-icon--done" />
         </span>
       </button>
+      <span data-pc-copy-announce class="sr-only" aria-live="polite"></span>
     </div>
     """
   end
@@ -328,6 +351,26 @@ defmodule PetalComponents.Input do
     """
   end
 
+  def input(%{type: "range"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:pct, range_fill_pct(assigns.value, assigns.rest[:min], assigns.rest[:max]))
+      |> assign(:id, assigns.id || "pc-range-#{Ecto.UUID.generate()}")
+
+    ~H"""
+    <input
+      type="range"
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value("range", @value)}
+      class={["pc-range-input", @fill && "pc-range-input--fill", @class]}
+      phx-hook={@fill && "PetalRangeFill"}
+      style={@fill && "--pc-range-fill: #{@pct}%"}
+      {@rest}
+    />
+    """
+  end
+
   def input(assigns) do
     ~H"""
     <input
@@ -382,5 +425,20 @@ defmodule PetalComponents.Input do
   defp calculate_slider_position(value, range_min, range_max) do
     value = coerce_range_value(value, range_min)
     round((value - range_min) / (range_max - range_min) * 100)
+  end
+
+  # Server-rendered initial fill percentage for a single range's --pc-range-fill,
+  # so a filled slider paints correctly before its hook connects (and with JS off).
+  defp range_fill_pct(value, min, max) do
+    lo = coerce_range_value(min, 0)
+    hi = coerce_range_value(max, 100)
+    v = coerce_range_value(value, lo)
+
+    cond do
+      hi <= lo -> 0
+      v <= lo -> 0
+      v >= hi -> 100
+      true -> round((v - lo) / (hi - lo) * 100)
+    end
   end
 end

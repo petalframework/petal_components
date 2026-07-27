@@ -107,6 +107,23 @@ defmodule PetalComponents.StepperTest do
       assert vertical_html =~ "pc-stepper--vertical"
     end
 
+    test "label_placement bottom applies only when horizontal" do
+      assigns = %{sample_steps: @sample_steps}
+
+      horizontal_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} label_placement="bottom" />
+        """)
+
+      vertical_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} orientation="vertical" label_placement="bottom" />
+        """)
+
+      assert horizontal_html =~ "pc-stepper--labels-bottom"
+      refute vertical_html =~ "pc-stepper--labels-bottom"
+    end
+
     test "correctly applies size variants" do
       assigns = %{sample_steps: @sample_steps}
 

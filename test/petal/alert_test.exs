@@ -345,4 +345,105 @@ defmodule PetalComponents.AlertTest do
       end
     end
   end
+
+  describe "callout variant" do
+    test "renders the neutral panel with solid kind icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="success" variant="callout" with_icon heading="Saved">Body</.alert>
+        """)
+
+      assert html =~ "pc-alert--success-callout"
+      # neutral surface, colour as accent: solid icon, not the outline
+      assert html =~ "hero-check-circle-solid"
+    end
+
+    test "tinted variants keep outline icons" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="success" variant="soft" with_icon>Body</.alert>
+        """)
+
+      assert html =~ "hero-check-circle"
+      refute html =~ "hero-check-circle-solid"
+    end
+  end
+
+  describe "roles, actions and icon override" do
+    test "danger and warning announce as alert; info and success as status" do
+      assigns = %{}
+
+      danger =
+        rendered_to_string(~H"""
+        <.alert color="danger">Nope</.alert>
+        """)
+
+      info =
+        rendered_to_string(~H"""
+        <.alert color="info">FYI</.alert>
+        """)
+
+      assert danger =~ ~s(role="alert")
+      assert info =~ ~s(role="status")
+      refute danger =~ ~s(role="dialog")
+    end
+
+    test "actions slot renders under the message" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" heading="Update available">
+          A new version is ready.
+          <:actions>
+            <button>View notes</button>
+          </:actions>
+        </.alert>
+        """)
+
+      assert html =~ "pc-alert__actions"
+      assert html =~ "View notes"
+    end
+
+    test "icon attr overrides the kind icon and implies with_icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="warning" icon="hero-lock-closed">Security notice</.alert>
+        """)
+
+      assert html =~ "hero-lock-closed"
+      refute html =~ "hero-exclamation-circle"
+    end
+  end
+
+  describe "on_dismiss nil-safety" do
+    test "nil renders no dismiss button instead of crashing" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" on_dismiss={nil}>Body</.alert>
+        """)
+
+      assert html =~ "Body"
+      refute html =~ "pc-alert__dismiss-button"
+    end
+
+    test "a real command renders the dismiss button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert color="info" on_dismiss={Phoenix.LiveView.JS.dispatch("x:y")}>Body</.alert>
+        """)
+
+      assert html =~ "pc-alert__dismiss-button"
+    end
+  end
 end

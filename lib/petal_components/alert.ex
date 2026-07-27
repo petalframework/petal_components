@@ -11,14 +11,22 @@ defmodule PetalComponents.Alert do
 
   attr(:variant, :string,
     default: "light",
-    values: ["light", "soft", "dark", "outline"],
-    doc: "The variant of the alert"
+    values: ["light", "soft", "dark", "outline", "callout"],
+    doc:
+      "The variant of the alert. light/soft/dark/outline are the tinted-surface school; callout is the toast-cohesive form - neutral panel surface, a coloured left accent bar, and a solid kind icon (colour as accent, not as surface)"
   )
 
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
   attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:heading, :string, default: nil, doc: "label your heading")
   attr(:label, :string, default: nil, doc: "label your alert")
+
+  attr(:icon, :string,
+    default: nil,
+    doc:
+      "a Heroicon name to use instead of the kind icon (e.g. \"hero-lock-closed\" for a security notice); implies with_icon"
+  )
+
   attr(:rest, :global)
 
   attr(:close_button_properties, :list,
@@ -29,9 +37,13 @@ defmodule PetalComponents.Alert do
   attr :on_dismiss, JS,
     default: %JS{},
     doc:
-      "JS commands to run when the alert is dismissed. Automatically adds a close button with built-in hide behavior."
+      "JS commands to run when the alert is dismissed. Any non-empty command (e.g. JS.dispatch(\"my-app:alert-dismissed\")) adds a close button with built-in hide behaviour; the empty default and nil render no button - so conditionally passing nil is safe."
 
   slot(:inner_block)
+
+  slot(:actions,
+    doc: "buttons or links rendered under the message, indented with the text column"
+  )
 
   def alert(assigns) do
     assigns =
@@ -47,13 +59,17 @@ defmodule PetalComponents.Alert do
         {@rest}
         id={@alert_id}
         class={@classes}
-        role="dialog"
+        role={if @color in ~w(danger warning), do: "alert", else: "status"}
         aria-labelledby={(@heading && @heading_id) || @label_id}
         aria-describedby={@label_id}
       >
-        <%= if @with_icon do %>
+        <%= if @with_icon || @icon do %>
           <div class="pc-alert__icon-container">
-            <.get_icon color={@color} />
+            <%= if @icon do %>
+              <.icon name={@icon} />
+            <% else %>
+              <.get_icon color={@color} variant={@variant} />
+            <% end %>
           </div>
         <% end %>
 
@@ -69,9 +85,13 @@ defmodule PetalComponents.Alert do
               <div id={@label_id} class="pc-alert__label">
                 {render_slot(@inner_block) || @label}
               </div>
+
+              <div :if={@actions != []} class="pc-alert__actions">
+                {render_slot(@actions)}
+              </div>
             </div>
 
-            <%= if @on_dismiss.ops != [] do %>
+            <%= if @on_dismiss && @on_dismiss.ops != [] do %>
               <button
                 class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
                 phx-click={
@@ -84,7 +104,7 @@ defmodule PetalComponents.Alert do
                   )
                 }
               >
-                <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
+                <.icon name="hero-x-mark" class="w-4 h-4" />
               </button>
             <% else %>
               <%= if @close_button_properties do %>
@@ -92,7 +112,7 @@ defmodule PetalComponents.Alert do
                   class={["pc-alert__dismiss-button", get_dismiss_icon_classes(@color, @variant)]}
                   {@close_button_properties}
                 >
-                  <.icon name="hero-x-mark-solid" class="self-start w-4 h-4" />
+                  <.icon name="hero-x-mark" class="w-4 h-4" />
                 </button>
               <% end %>
             <% end %>
@@ -125,33 +145,25 @@ defmodule PetalComponents.Alert do
     "pc-alert__dismiss-button--#{color}-#{variant}"
   end
 
-  defp get_icon(%{color: "info"} = assigns) do
-    ~H"""
-    <.icon name="hero-information-circle" />
-    """
-  end
+  # Icon doctrine: tinted surfaces take outline icons (the surface
+  # already carries the semantic; solid would double down), neutral
+  # surfaces take solid icons (the icon IS the semantic) - same rule
+  # the toast follows.
+  defp get_icon(%{color: color} = assigns) when color in ~w(info success warning danger gray) do
+    base =
+      case color do
+        "info" -> "hero-information-circle"
+        "success" -> "hero-check-circle"
+        "warning" -> "hero-exclamation-circle"
+        "danger" -> "hero-x-circle"
+        "gray" -> "hero-information-circle"
+      end
 
-  defp get_icon(%{color: "success"} = assigns) do
-    ~H"""
-    <.icon name="hero-check-circle" />
-    """
-  end
+    assigns =
+      assign(assigns, :name, if(assigns[:variant] == "callout", do: base <> "-solid", else: base))
 
-  defp get_icon(%{color: "warning"} = assigns) do
     ~H"""
-    <.icon name="hero-exclamation-circle" />
-    """
-  end
-
-  defp get_icon(%{color: "danger"} = assigns) do
-    ~H"""
-    <.icon name="hero-x-circle" />
-    """
-  end
-
-  defp get_icon(%{color: "gray"} = assigns) do
-    ~H"""
-    <.icon name="hero-information-circle" />
+    <.icon name={@name} />
     """
   end
 

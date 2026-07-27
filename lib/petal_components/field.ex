@@ -43,6 +43,12 @@ defmodule PetalComponents.Field do
 
   attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
+  attr :indicator_position, :string,
+    default: "end",
+    values: ~w(start end corner),
+    doc:
+      ~s(where the radio-card dot sits: "end" centres it on the right edge, "corner" floats it top-right - the tile-grid look, "start" leads the text)
+
   attr :indicator, :boolean,
     default: false,
     doc: "radio-card only: shows a radio dot inside each card"
@@ -56,12 +62,12 @@ defmodule PetalComponents.Field do
     doc: "If true, adds a copy button to the field and disables the input"
 
   attr :copy_icon, :string,
-    default: "hero-clipboard-document-solid",
+    default: "hero-clipboard-document",
     doc: "Icon name for the copy button"
 
   attr :copied_icon, :string,
-    default: "hero-clipboard-document-check-solid",
-    doc: "Icon name shown after copying"
+    default: "hero-check",
+    doc: "Icon name shown after copying (rendered in the success colour)"
 
   attr :clearable, :boolean,
     default: false,
@@ -104,6 +110,10 @@ defmodule PetalComponents.Field do
   attr :required, :boolean,
     default: false,
     doc: "is this field required? is passed to the input and adds an asterisk next to the label"
+
+  attr :fill, :boolean,
+    default: false,
+    doc: ~s(type="range" only: fills the track with the primary colour up to the thumb)
 
   # Dual range slider — requires min_field + max_field instead of the standard field attr.
   attr :min_field, Phoenix.HTML.FormField,
@@ -158,6 +168,21 @@ defmodule PetalComponents.Field do
     |> field()
   end
 
+  # Without a form field, `value` and `label` are plain optional attrs - a bare
+  # `<.field type="file" name="upload" />` must render, not raise. They have no
+  # attr default because the form-field clause above derives them via assign_new.
+  # range-dual is exempt: it derives its label from min_field, not name.
+  def field(assigns)
+      when assigns.type != "range-dual" and
+             (not is_map_key(assigns, :value) or not is_map_key(assigns, :label)) do
+    assigns
+    |> assign_new(:value, fn -> nil end)
+    |> assign_new(:label, fn ->
+      if assigns[:name], do: PhoenixHTMLHelpers.Form.humanize(assigns.name)
+    end)
+    |> field()
+  end
+
   def field(%{type: "checkbox"} = assigns) do
     assigns =
       assigns
@@ -180,12 +205,14 @@ defmodule PetalComponents.Field do
           class={["pc-checkbox", @class]}
           {@rest}
         />
-        <div class={[@required && "pc-label--required"]}>
-          {@label}
+        <div class="pc-checkbox-text">
+          <span class={[@required && "pc-label--required"]}>
+            {@label}
+          </span>
+          <.field_help_text help_text={@help_text} class="pc-checkbox-text__help" />
         </div>
       </label>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
-      <.field_help_text help_text={@help_text} />
     </.field_wrapper>
     """
   end
@@ -396,8 +423,9 @@ defmodule PetalComponents.Field do
             "pc-radio-card",
             "pc-radio-card--#{@size}",
             "pc-radio-card--#{@variant}",
-            @indicator && "pc-radio-card--indicator",
-            option[:disabled] && "pc-radio-card--disabled"
+            (@indicator || option[:icon] || option[:image]) && "pc-radio-card--indicator",
+            @indicator && "pc-radio-card--indicator-#{@indicator_position}",
+            (option[:disabled] || @rest[:disabled]) && "pc-radio-card--disabled"
           ]}>
             <input
               type="radio"
@@ -413,14 +441,35 @@ defmodule PetalComponents.Field do
               {@rest}
             />
             <div class="pc-radio-card__fake-input"></div>
-            <div class={["pc-radio-card__content", @indicator && "pc-radio-card__content--indicator"]}>
-              <span :if={@indicator} class="pc-radio-card__dot" aria-hidden="true"></span>
-              <div>
+            <span
+              :if={@indicator && @indicator_position == "corner"}
+              class="pc-radio-card__dot pc-radio-card__dot--corner"
+              aria-hidden="true"
+            ></span>
+            <div class={[
+              "pc-radio-card__content",
+              (@indicator || option[:icon] || option[:image]) && "pc-radio-card__content--indicator"
+            ]}>
+              <span
+                :if={@indicator && @indicator_position == "start"}
+                class="pc-radio-card__dot"
+                aria-hidden="true"
+              ></span>
+              <img :if={option[:image]} src={option[:image]} alt="" class="pc-radio-card__image" />
+              <span :if={!option[:image] && option[:icon]} class="pc-radio-card__icon">
+                <.icon name={option[:icon]} class="pc-radio-card__icon-glyph" />
+              </span>
+              <div class="pc-radio-card__text">
                 <div class="pc-radio-card__label">{option[:label]}</div>
                 <div :if={option[:description]} class="pc-radio-card__description">
                   {option[:description]}
                 </div>
               </div>
+              <span
+                :if={@indicator && @indicator_position == "end"}
+                class="pc-radio-card__dot"
+                aria-hidden="true"
+              ></span>
             </div>
           </label>
         <% end %>
@@ -471,12 +520,18 @@ defmodule PetalComponents.Field do
           required={@required}
           {@rest}
         />
-        <button type="button" class="pc-password-field-toggle-button" data-pc-password-toggle>
+        <button
+          type="button"
+          class="pc-password-field-toggle-button"
+          data-pc-password-toggle
+          aria-label="Show password"
+          aria-pressed="false"
+        >
           <span data-pc-icon-show class="pc-password-field-toggle-icon-container">
-            <.icon name="hero-eye-solid" class="pc-password-field-toggle-icon" />
+            <.icon name="hero-eye" class="pc-password-field-toggle-icon" />
           </span>
           <span data-pc-icon-hide class="pc-password-field-toggle-icon-container hidden">
-            <.icon name="hero-eye-slash-solid" class="pc-password-field-toggle-icon" />
+            <.icon name="hero-eye-slash" class="pc-password-field-toggle-icon" />
           </span>
         </button>
       </div>
@@ -512,16 +567,22 @@ defmodule PetalComponents.Field do
           {@rest}
         />
         <!-- Copy Button -->
-        <button type="button" class="pc-copyable-field-button" data-pc-copy-btn>
+        <button
+          type="button"
+          class="pc-copyable-field-button"
+          data-pc-copy-btn
+          aria-label="Copy to clipboard"
+        >
           <!-- Copy Icon -->
           <span data-pc-copy-default class="pc-copyable-field-icon-container">
             <.icon name={@copy_icon} class="pc-copyable-field-icon" />
           </span>
           <!-- Copied Icon -->
           <span data-pc-copy-done class="pc-copyable-field-icon-container hidden">
-            <.icon name={@copied_icon} class="pc-copyable-field-icon" />
+            <.icon name={@copied_icon} class="pc-copyable-field-icon pc-copyable-field-icon--done" />
           </span>
         </button>
+        <span data-pc-copy-announce class="sr-only" aria-live="polite"></span>
       </div>
       <!-- Error Message -->
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
@@ -659,6 +720,30 @@ defmodule PetalComponents.Field do
   end
 
   # All other inputs (text, url, etc.) are handled here...
+  # Range routes through Input.input so the fill option gets its hook and
+  # server-rendered initial fill; the wrapper carries the label and help.
+  def field(%{type: "range"} = assigns) do
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label :if={@label} required={@required} for={@id} class={@label_class}>
+        {@label}
+      </.field_label>
+      <PetalComponents.Input.input
+        type="range"
+        fill={@fill}
+        name={@name}
+        id={@id}
+        value={@value}
+        class={@class}
+        required={@required}
+        {@rest}
+      />
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
   def field(assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 

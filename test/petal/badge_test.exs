@@ -59,7 +59,8 @@ defmodule PetalComponents.BadgeTest do
     end
 
     test "renders all color variants with light style by default" do
-      colors() |> Enum.each(fn color ->
+      colors()
+      |> Enum.each(fn color ->
         assigns = %{color: color}
 
         html =
@@ -73,7 +74,8 @@ defmodule PetalComponents.BadgeTest do
     end
 
     test "renders all variants for a given color" do
-      variants() |> Enum.each(fn variant ->
+      variants()
+      |> Enum.each(fn variant ->
         assigns = %{variant: variant}
 
         html =
@@ -138,7 +140,8 @@ defmodule PetalComponents.BadgeTest do
     end
 
     test "renders all size variants" do
-      sizes() |> Enum.each(fn size ->
+      sizes()
+      |> Enum.each(fn size ->
         assigns = %{size: size}
 
         html =
