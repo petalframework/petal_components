@@ -2101,9 +2101,15 @@ defmodule Dev.PlaygroundLive do
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
       <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
-      <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800">
+      <%!-- inert while the menu is open: complete background isolation for
+      keyboard AND assistive tech (focus_wrap alone only fences Tab). --%>
+      <header
+        inert={@nav_open}
+        class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800"
+      >
         <div class="flex items-center gap-2 text-[15px] font-semibold">
           <button
+            id="pg-menu-burger"
             phx-click="toggle_nav"
             aria-label="Open component menu"
             class="relative flex items-center justify-center w-8 h-8 -ml-1.5 mr-0.5 rounded-lg lg:hidden text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 before:absolute before:content-[''] before:-inset-1"
@@ -2182,7 +2188,10 @@ defmodule Dev.PlaygroundLive do
       <%!-- Dial strip: on touch widths it scrolls sideways (scrollbar hidden)
       rather than wrapping - wrapping would push the canvas below the fold,
       and the dials are the point of the playground. --%>
-      <div class="flex items-center flex-none h-12 sm:h-11 gap-5 px-4 overflow-x-auto border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/30 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        inert={@nav_open}
+        class="flex items-center flex-none h-12 sm:h-11 gap-5 px-4 overflow-x-auto border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/30 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">primary</span>
           <div class="flex items-center gap-2 sm:gap-1.5">
@@ -2283,12 +2292,14 @@ defmodule Dev.PlaygroundLive do
       planned for 4.9 replaces this and inherits its grammar. --%>
       <div
         :if={@nav_open}
+        id="pg-menu-overlay"
         class="fixed inset-0 z-50 lg:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Component menu"
         phx-window-keydown="close_nav"
         phx-key="escape"
+        phx-remove={JS.focus(to: "#pg-menu-burger")}
       >
         <.focus_wrap
           id="pg-menu-focus"
@@ -2337,7 +2348,7 @@ defmodule Dev.PlaygroundLive do
         </.focus_wrap>
       </div>
 
-      <div class="flex flex-1 min-h-0">
+      <div inert={@nav_open} class="flex flex-1 min-h-0">
         <nav class="hidden lg:block flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
           <div :for={grp <- @nav}>
             <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
