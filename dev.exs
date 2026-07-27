@@ -658,6 +658,7 @@ defmodule Dev.PlaygroundLive do
        tw_palette: @tw_palette,
        radii: @radii,
        stars: @stars,
+       nav_open: false,
        variant: "outline",
        color: "primary",
        size: "md",
@@ -794,6 +795,9 @@ defmodule Dev.PlaygroundLive do
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
       |> assign(:dark, false)
+      # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
+      # mobile menu so picking a component reveals it immediately.
+      |> assign(:nav_open, false)
 
     {:noreply, maybe_start_progress_sim(socket)}
   end
@@ -824,6 +828,12 @@ defmodule Dev.PlaygroundLive do
     do: patch_theme(socket, %{secondary: x})
 
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
+
+  def handle_event("toggle_nav", _params, socket),
+    do: {:noreply, assign(socket, nav_open: !socket.assigns.nav_open)}
+
+  def handle_event("close_nav", _params, socket),
+    do: {:noreply, assign(socket, nav_open: false)}
 
   def handle_event("toggle_dark", _params, socket),
     do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
@@ -2091,8 +2101,21 @@ defmodule Dev.PlaygroundLive do
       style={"--pc-radius: #{radius_css(@radius)}"}
     >
       <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
-      <header class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800">
+      <%!-- inert while the menu is open: complete background isolation for
+      keyboard AND assistive tech (focus_wrap alone only fences Tab). --%>
+      <header
+        inert={@nav_open}
+        class="flex items-center justify-between flex-none px-4 border-b h-14 border-gray-200 dark:border-gray-800"
+      >
         <div class="flex items-center gap-2 text-[15px] font-semibold">
+          <button
+            id="pg-menu-burger"
+            phx-click="toggle_nav"
+            aria-label="Open component menu"
+            class="relative flex items-center justify-center w-8 h-8 -ml-1.5 mr-0.5 rounded-lg lg:hidden text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 before:absolute before:content-[''] before:-inset-1"
+          >
+            <.icon name="hero-bars-3" class="w-5 h-5" />
+          </button>
           <svg viewBox="0 0 512 512" class="w-5 h-5" aria-hidden="true">
             <path
               d="M230.003 125.876C240.013 163.648 236.787 202.614 225.872 222.08C205.825 218.645 165.131 177.459 154.643 142.091C146.575 114.884 141.211 61.5546 163.147 42.9603C181.2 48.0856 206.638 59.5304 230.003 125.876Z"
@@ -2162,17 +2185,23 @@ defmodule Dev.PlaygroundLive do
         </div>
       </header>
 
-      <div class="flex items-center flex-none h-11 gap-5 px-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/30">
-        <div class="flex items-center gap-2.5">
+      <%!-- Dial strip: on touch widths it scrolls sideways (scrollbar hidden)
+      rather than wrapping - wrapping would push the canvas below the fold,
+      and the dials are the point of the playground. --%>
+      <div
+        inert={@nav_open}
+        class="flex items-center flex-none h-12 sm:h-11 gap-5 px-4 overflow-x-auto border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/30 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">primary</span>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2 sm:gap-1.5">
             <button
               :for={{name, css} <- @primaries}
               phx-click="set_primary"
               phx-value-primary={name}
               aria-label={"primary #{name}"}
               class={[
-                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                "w-6 h-6 sm:w-4.5 sm:h-4.5 shrink-0 rounded-full transition-transform hover:scale-110",
                 @primary == name &&
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
               ]}
@@ -2180,16 +2209,16 @@ defmodule Dev.PlaygroundLive do
             ></button>
           </div>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">secondary</span>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2 sm:gap-1.5">
             <button
               :for={{name, css} <- @secondaries}
               phx-click="set_secondary"
               phx-value-secondary={name}
               aria-label={"secondary #{name}"}
               class={[
-                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                "w-6 h-6 sm:w-4.5 sm:h-4.5 shrink-0 rounded-full transition-transform hover:scale-110",
                 @secondary == name &&
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
               ]}
@@ -2197,9 +2226,9 @@ defmodule Dev.PlaygroundLive do
             ></button>
           </div>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">gray</span>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2 sm:gap-1.5">
             <button
               :for={{name, css} <- @grays}
               phx-click="set_gray"
@@ -2207,7 +2236,7 @@ defmodule Dev.PlaygroundLive do
               aria-label={"gray #{name}"}
               title={name}
               class={[
-                "w-4.5 h-4.5 rounded-full transition-transform hover:scale-110",
+                "w-6 h-6 sm:w-4.5 sm:h-4.5 shrink-0 rounded-full transition-transform hover:scale-110",
                 @gray == name &&
                   "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 ring-offset-gray-50 dark:ring-offset-gray-950"
               ]}
@@ -2215,9 +2244,9 @@ defmodule Dev.PlaygroundLive do
             ></button>
           </div>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">radius</span>
-          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+          <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               :for={{label, _value} <- @radii}
               phx-click="set_radius"
@@ -2256,8 +2285,71 @@ defmodule Dev.PlaygroundLive do
         </.command_list>
       </.command_dialog>
 
-      <div class="flex flex-1 min-h-0">
-        <nav class="flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
+      <%!-- Full-screen component menu, tablet down (shadcn/reui grammar: a
+      menu you READ - large-text list, muted group labels - not a shrunken
+      sidebar). Server-owned open state; any select patches the URL, and
+      handle_params closes it. Hand-rolled on purpose: the sidebar primitive
+      planned for 4.9 replaces this and inherits its grammar. --%>
+      <div
+        :if={@nav_open}
+        id="pg-menu-overlay"
+        class="fixed inset-0 z-50 lg:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Component menu"
+        phx-window-keydown="close_nav"
+        phx-key="escape"
+        phx-remove={JS.focus(to: "#pg-menu-burger")}
+      >
+        <.focus_wrap
+          id="pg-menu-focus"
+          class="flex flex-col h-full bg-white/95 dark:bg-gray-950/95 backdrop-blur"
+        >
+          <div class="flex items-center justify-between flex-none h-14 px-4 border-b border-gray-200/60 dark:border-gray-800/60">
+            <div class="flex items-center gap-3">
+              <button
+                phx-click="toggle_nav"
+                aria-label="Close menu"
+                class="relative flex items-center justify-center w-8 h-8 -ml-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 before:absolute before:content-[''] before:-inset-2"
+              >
+                <.icon name="hero-x-mark" class="w-5 h-5" />
+              </button>
+              <span class="text-[15px] font-semibold">Menu</span>
+            </div>
+            <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
+          </div>
+          <nav class="flex-1 px-6 py-6 overflow-y-auto">
+            <div :for={grp <- @nav} class="mb-10">
+              <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
+                {grp.group}
+              </div>
+              <div class="flex flex-col">
+                <button
+                  :for={it <- grp.items}
+                  phx-click="select"
+                  phx-value-slug={it.slug}
+                  class={[
+                    "flex items-center py-1.5 text-2xl font-medium text-left",
+                    (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
+                      "text-gray-600 dark:text-gray-400"
+                  ]}
+                >
+                  {it.name}
+                  <span
+                    :if={not it.ready}
+                    class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                  >
+                    soon
+                  </span>
+                </button>
+              </div>
+            </div>
+          </nav>
+        </.focus_wrap>
+      </div>
+
+      <div inert={@nav_open} class="flex flex-1 min-h-0">
+        <nav class="hidden lg:block flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
           <div :for={grp <- @nav}>
             <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
               {grp.group}
@@ -2294,7 +2386,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "button"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Button</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Triggers an action. Five variants, plus a semantic range for when the action carries meaning.
@@ -2315,10 +2407,10 @@ defmodule Dev.PlaygroundLive do
             Get started
           </.button>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_color"
@@ -2331,7 +2423,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(solid soft light outline ghost)}
                 phx-click="ctl_variant"
@@ -2344,7 +2436,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={s <- ~w(xs sm md lg xl)}
                 phx-click="ctl_size"
@@ -2357,7 +2449,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button phx-click="ctl_icon" phx-value-v="off" class={seg(@icon == nil)}>off</button>
               <button phx-click="ctl_icon" phx-value-v="left" class={seg(@icon == "left")}>
                 left
@@ -2453,7 +2545,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "input"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Input</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         One field surface for every type: label, control, help and error.
@@ -2502,10 +2594,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={t <- ~w(text email password search date time select textarea file color)}
                 phx-click="ctl_input"
@@ -2671,7 +2763,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "border-beam"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Border beam</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A light beam tracing the border - pure CSS on an offset-path, with the
@@ -2702,10 +2794,10 @@ defmodule Dev.PlaygroundLive do
             </div>
           </.border_beam>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={d <- ~w(4s 8s 12s)}
                 phx-click="ctl_beam"
@@ -2719,7 +2811,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">beams</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={n <- ~w(1 2 3)}
                 phx-click="ctl_beam"
@@ -2733,7 +2825,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={{lbl, v} <- [{"sm", "40px"}, {"md", "60px"}, {"lg", "160px"}]}
                 phx-click="ctl_beam"
@@ -2747,7 +2839,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">motion</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={e <- ~w(linear spring)}
                 phx-click="ctl_beam"
@@ -2882,7 +2974,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "shine-border"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Shine border</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A slow, ambient shimmer sweeping the border - the quiet sibling of the
@@ -2907,10 +2999,10 @@ defmodule Dev.PlaygroundLive do
             </div>
           </.shine_border>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(mono blend)}
                 phx-click="ctl_shine"
@@ -2924,7 +3016,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sweep</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={{lbl, v} <- [{"fast", "6s"}, {"med", "14s"}, {"slow", "24s"}]}
                 phx-click="ctl_shine"
@@ -2938,7 +3030,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={w <- ~w(1px 2px 3px)}
                 phx-click="ctl_shine"
@@ -2987,7 +3079,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "chart"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Chart</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Apache ECharts behind a declarative HEEx component. The spec is a plain Elixir map,
@@ -3006,7 +3098,7 @@ defmodule Dev.PlaygroundLive do
           <.button size="sm" variant="outline" phx-click="chart_randomize" label="Randomize data" />
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={t <- ~w(line bar)}
                 phx-click="ctl_chart"
@@ -3020,7 +3112,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">series</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(!@chart.two_series)}>
                 one
               </button>
@@ -3031,7 +3123,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">days</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={p <- ~w(7 14 30)}
                 phx-click="ctl_chart"
@@ -3045,7 +3137,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@chart.type == "bar"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gap</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={g <- ~w(cozy tight)}
                 phx-click="ctl_chart"
@@ -3059,7 +3151,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">area</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={a <- ~w(fade solid none)}
                 phx-click="ctl_chart"
@@ -3073,7 +3165,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={s <- ~w(smooth linear step)}
                 phx-click="ctl_chart"
@@ -3087,14 +3179,14 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dots</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button phx-click="ctl_chart" phx-value-k="dots" class={seg(@chart.dots)}>on</button>
               <button phx-click="ctl_chart" phx-value-k="dots" class={seg(!@chart.dots)}>off</button>
             </div>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(full x off)}
                 phx-click="ctl_chart"
@@ -3144,7 +3236,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "color-scheme"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Color scheme</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Light, dark and system switching in three faces, sharing one no-flash
@@ -3251,7 +3343,7 @@ defmodule Dev.PlaygroundLive do
       )
 
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Carousel</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Fade or scroll-snap slide transitions, swipe and drag, keyboard
@@ -3294,7 +3386,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap gap-x-8 gap-y-5 px-6 py-5 border-t border-gray-100 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">transition</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={t <- ~w(fade slide)}
                 phx-click="ctl_carousel"
@@ -3308,7 +3400,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">buttons</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={b <- ~w(overlay below outside none)}
                 phx-click="ctl_carousel"
@@ -3322,7 +3414,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicators</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={i <- ~w(bars dots off)}
                 phx-click="ctl_carousel"
@@ -3336,7 +3428,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={ip <- ~w(overlay below)}
                 phx-click="ctl_carousel"
@@ -3350,7 +3442,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={o <- ~w(horizontal vertical)}
                 phx-click="ctl_carousel"
@@ -3462,7 +3554,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "toast"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Toast</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A collapsed stack that expands on hover, timeout progress that pauses
@@ -3554,7 +3646,7 @@ defmodule Dev.PlaygroundLive do
         Position - moves the live group
       </div>
       <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+        <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
             phx-click="ctl_toast"
@@ -3612,7 +3704,7 @@ defmodule Dev.PlaygroundLive do
       )
 
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Local time</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Timestamps in the visitor's own timezone, language and calendar. The
@@ -3750,7 +3842,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "meteors"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Meteors</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A meteor shower inside any container - positions generated server-side,
@@ -3773,10 +3865,10 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={n <- ~w(10 20 40)}
                 phx-click="ctl_meteors"
@@ -3790,7 +3882,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">angle</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={{lbl, v} <- [{"shallow", "200deg"}, {"default", "215deg"}, {"steep", "235deg"}]}
                 phx-click="ctl_meteors"
@@ -3804,7 +3896,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(slate sky violet)}
                 phx-click="ctl_meteors"
@@ -3858,7 +3950,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "typography"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Typography</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The refined 4.2 scale: self-composing vertical rhythm, balanced
@@ -3912,7 +4004,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "colors"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Colours</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Four roles: primary is your base action colour (monochrome by
@@ -4044,7 +4136,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "command"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Command</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The ⌘K palette. Type to filter, arrows to move, Enter to run. Items are real
@@ -4074,7 +4166,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "dropdown"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Dropdown</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Menus on the floating-panel surface: group labels, separators, icons,
@@ -4171,7 +4263,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "modal"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Dialog on the panel surface with a proper scrim. Escape and
@@ -4216,7 +4308,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "progress"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Determinate progress on a washed track. The flagship simulates a
@@ -4243,7 +4335,7 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
@@ -4257,7 +4349,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(15 40 60 85 100)}
                 phx-click="ctl_progress"
@@ -4271,7 +4363,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_progress"
@@ -4285,7 +4377,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_progress"
@@ -4299,7 +4391,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={l <- ~w(none inside top)}
                 phx-click="ctl_progress"
@@ -4356,7 +4448,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "rating"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Rating</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Click one - it's a real radio group, so it posts in forms, arrow keys work, and the
@@ -4405,7 +4497,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={i <- ~w(star heart face)}
                 phx-click="ctl_rating"
@@ -4419,7 +4511,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={sz <- ~w(sm md lg)}
                 phx-click="ctl_rating"
@@ -4433,7 +4525,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 phx-click="ctl_rating"
                 phx-value-k="step"
@@ -4461,7 +4553,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={l <- ~w(none right bottom)}
                 phx-click="ctl_rating"
@@ -4561,7 +4653,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "slide-over"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Slide over</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         An edge-attached panel (a "sheet") for forms and detail views that don't warrant a
@@ -4582,7 +4674,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={o <- ~w(left right top bottom)}
                 phx-click="ctl_slideover"
@@ -4598,7 +4690,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               max width (left/right)
             </div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={w <- ~w(sm md lg)}
                 phx-click="ctl_slideover"
@@ -4718,7 +4810,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "skeleton"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Skeleton</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         One composable brick - size it with classes, pick a shape, pick a motion.
@@ -4747,7 +4839,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={a <- ~w(pulse shimmer none)}
                 phx-click="ctl_skeleton"
@@ -4843,7 +4935,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "button-group"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Button group</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Fuses buttons, inputs and text segments into one control - split buttons,
@@ -5018,7 +5110,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "loading"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Loading</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The spinner. Buttons already know it (loading attr) - use it standalone for
@@ -5079,7 +5171,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "breadcrumbs"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Breadcrumbs</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Where am I, and how do I get back up. Links from a plain list.
@@ -5098,7 +5190,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={sp <- ~w(chevron slash)}
                 phx-click="ctl_crumbs"
@@ -5126,7 +5218,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "stepper"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Stepper</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Multi-step progress - onboarding, checkout, wizards. This one's live: walk the
@@ -5259,7 +5351,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={o <- ~w(horizontal vertical)}
                 phx-click="ctl_stepper"
@@ -5273,7 +5365,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={sz <- ~w(sm md lg)}
                 phx-click="ctl_stepper"
@@ -5287,7 +5379,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={lp <- ~w(beside bottom)}
                 phx-click="ctl_stepper"
@@ -5319,7 +5411,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "avatar"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Avatar</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Images, initials fallbacks, presence dots, and stacked groups.
@@ -5525,7 +5617,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "card"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Card</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The container for everything - media, content, footer, composed from parts.
@@ -5627,7 +5719,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "accordion"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Accordion</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Expandable sections for FAQs and dense settings. Pure LiveView.JS - no server
@@ -5659,7 +5751,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(default bordered)}
                 phx-click="ctl_accordion"
@@ -5673,7 +5765,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={sz <- ~w(md sm)}
                 phx-click="ctl_accordion"
@@ -5731,7 +5823,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "marquee"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Marquee</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         An infinite scroller for logos, testimonials, anything. Pure CSS animation with
@@ -5783,7 +5875,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "spotlight-card"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Spotlight card</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A radial glow follows your cursor across the card. Move your mouse over them.
@@ -5822,7 +5914,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "number-ticker"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Number ticker</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Numbers that count up to their value. Feed it new numbers and it animates the
@@ -5871,7 +5963,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "text-animation"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Text animation</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Four ways to make words move: gradient sweep, shimmer, typing, and word rotation.
@@ -5912,7 +6004,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "confetti"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Confetti</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Zero-dependency canvas confetti. Fire it from the client or push it from the
@@ -5943,7 +6035,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "tabs"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Tabs</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Three styles: segmented (a raised pill on a muted track), underline, and pill.
@@ -5986,7 +6078,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(segmented underline pill)}
                 phx-click="ctl_tabs"
@@ -6041,7 +6133,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "pagination"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Pagination</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Discrete page buttons with a solid primary current page. Works as links
@@ -6065,7 +6157,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={n <- ~w(0 1 2)}
                 phx-click="ctl_page"
@@ -6079,7 +6171,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">boundary count</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={n <- ~w(1 2)}
                 phx-click="ctl_page"
@@ -6111,7 +6203,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "table"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Table</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Sortable headers, density, stripes - the presentation layer for data. Click
@@ -6155,7 +6247,7 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={d <- ~w(comfortable compact)}
                 phx-click="ctl_table"
@@ -6169,7 +6261,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(basic ghost)}
                 phx-click="ctl_table"
@@ -6231,7 +6323,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "tooltip"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Tooltip</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A label on hover or keyboard focus. Pure CSS - no JS, no dependencies.
@@ -6248,10 +6340,10 @@ defmodule Dev.PlaygroundLive do
             <.button color="gray" variant="outline">Hover me</.button>
           </.tooltip>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={pl <- ~w(top bottom left right)}
                 phx-click="ctl_tooltip"
@@ -6322,7 +6414,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "popover"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Popover</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Click-to-open panel with light dismiss. Optional top_layer mode uses the
@@ -6346,10 +6438,10 @@ defmodule Dev.PlaygroundLive do
             </div>
           </.popover>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={pl <- ~w(top bottom left right)}
                 phx-click="ctl_popover"
@@ -6416,7 +6508,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "input-otp"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Input OTP</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A segmented one-time-code input. One real input under the hood, so
@@ -6434,10 +6526,10 @@ defmodule Dev.PlaygroundLive do
             disabled={@otp.disabled}
           />
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={l <- ~w(4 6)}
                 phx-click="ctl_otp"
@@ -6451,7 +6543,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">pattern</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={pt <- ~w(numeric alphanumeric)}
                 phx-click="ctl_otp"
@@ -6513,7 +6605,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "switch"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Switch</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         On or off, applied immediately. Switches are pill-shaped by nature, so
@@ -6535,10 +6627,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_switch"
@@ -6608,7 +6700,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "input-group"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Input group</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         One field surface, many parts. The group carries the border, radius and
@@ -6728,7 +6820,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "user-menu"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The avatar-with-chevron every app shell ends up needing - an avatar
@@ -6797,7 +6889,7 @@ defmodule Dev.PlaygroundLive do
       |> assign(:price_form, to_form(%{"min" => "100", "max" => "600"}, as: :pg_price))
 
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Slider</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         One thumb or two, one grammar: the same track, thumb and focus ring
@@ -6838,10 +6930,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumbs</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={t <- ~w(single dual)}
                 phx-click="ctl_slider"
@@ -6855,7 +6947,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@slider.thumbs == "dual"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={f <- ~w(money percent plain)}
                 phx-click="ctl_slider"
@@ -6973,7 +7065,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "radio"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Radio</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Plain radio groups, plus radio cards - selectable panels with labels and
@@ -7016,10 +7108,10 @@ defmodule Dev.PlaygroundLive do
             </div>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">style</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={st <- ~w(cards plain)}
                 phx-click="ctl_radio"
@@ -7033,7 +7125,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(outline classic)}
                 phx-click="ctl_radio"
@@ -7047,7 +7139,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={z <- ~w(sm md lg)}
                 phx-click="ctl_radio"
@@ -7061,7 +7153,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={l <- ~w(row col)}
                 phx-click="ctl_radio"
@@ -7093,7 +7185,7 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               indicator position
             </div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={p <- ~w(end corner start)}
                 phx-click="ctl_radio"
@@ -7274,7 +7366,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "select"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Select</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The native select on the shared field surface: prompt, option groups and
@@ -7298,7 +7390,7 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <div class="flex gap-1.5">
@@ -7365,7 +7457,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "checkbox"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Checkbox</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Single agreements and multi-select groups. The box nests the rail radius;
@@ -7388,10 +7480,10 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={l <- ~w(row col)}
                 phx-click="ctl_checkbox"
@@ -7463,7 +7555,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "aurora"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Aurora</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A drifting aurora glow behind your content - the hero-section backdrop.
@@ -7564,7 +7656,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "links"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Links</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The routing primitive. One tag, four behaviours - plain anchor, LiveView
@@ -7648,7 +7740,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "icons"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Icons</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Every Heroicon by name - outline, solid, mini and micro. Sized and coloured
@@ -7728,7 +7820,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "menu"} = assigns) do
     ~H"""
-    <div class="max-w-4xl px-8 py-10 mx-auto">
+    <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The sidebar menu - a workspace switcher, grouped nav with collapsible
@@ -7858,7 +7950,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "navigation-menu"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Navigation menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The marketing-site top nav - plain links and flyout panels with rich link
@@ -7897,7 +7989,7 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
-          <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+          <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               :for={t <- ~w(hover click)}
               phx-click="ctl_navmenu"
@@ -7935,7 +8027,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "container"} = assigns) do
     ~H"""
-    <div class="max-w-5xl px-8 py-10 mx-auto">
+    <div class="max-w-5xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Container</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Centred max-width wrapper with responsive gutters - the outermost div of
@@ -7974,7 +8066,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "chat"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">AI Chat</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The LiveView-native AI chat kit. Tokens stream over the socket you already
@@ -8074,7 +8166,7 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(plain bubbles)}
                 phx-click="ctl_chat"
@@ -8088,7 +8180,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">action bar</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(always hover)}
                 phx-click="ctl_chat"
@@ -8166,7 +8258,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "alert"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Alert</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A prominent message tied to state: information, success, caution or failure.
@@ -8193,10 +8285,10 @@ defmodule Dev.PlaygroundLive do
             </.alert>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(gray info success warning danger)}
                 phx-click="ctl_alert"
@@ -8210,7 +8302,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_alert"
@@ -8314,7 +8406,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "badge"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-8 py-10 mx-auto">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Badge</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A small label for counts, statuses and categories. Radius follows the rail above.
@@ -8331,10 +8423,10 @@ defmodule Dev.PlaygroundLive do
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={c <- ~w(primary secondary info success warning danger gray)}
                 phx-click="ctl_badge"
@@ -8348,7 +8440,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={v <- ~w(light soft dark outline callout)}
                 phx-click="ctl_badge"
@@ -8362,7 +8454,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex overflow-hidden border rounded-lg border-gray-200 dark:border-gray-700">
+            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 :for={z <- ~w(xs sm md lg xl)}
                 phx-click="ctl_badge"
@@ -8614,7 +8706,12 @@ deploy_endpoint_options =
       # deployed site dead-renders and every dial silently stops working.
       check_origin: [
         "https://playground.petal.build",
-        "https://petal-components-demo.fly.dev"
+        "https://petal-components-demo.fly.dev",
+        # Local deploy-mode smoke tests: dev mode's per-request re-eval is
+        # slower than browser nav timeouts, so interactions get verified
+        # against PLAYGROUND_DEPLOY=true locally - the websocket needs the
+        # loopback origin. Harmless in prod: public demo, no auth, no data.
+        "http://localhost:#{System.get_env("PORT", "4000")}"
       ],
       url: [host: System.get_env("PHX_HOST", "playground.petal.build"), scheme: "https"]
     ]
