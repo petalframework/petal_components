@@ -1,8 +1,11 @@
 # Fly config for the hosted component playground (playground.petal.build).
 # Deploy: fly deploy --remote-only -a petal-components-demo
 # Requires secret: SECRET_KEY_BASE (mix phx.gen.secret)
+# yyz matches where the app's existing machine already lives - fly deploy
+# updates machines in place and never moves them, so primary_region saying
+# anything else would put future machines in a different region.
 app = "petal-components-demo"
-primary_region = "ewr"
+primary_region = "yyz"
 
 [build]
 
