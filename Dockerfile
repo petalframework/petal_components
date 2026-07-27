@@ -46,9 +46,13 @@ RUN mix compile
 
 # Public app: don't run as root, and own only what boot actually writes -
 # priv/static (tailwind CSS output), dev (generated heroicons.css) and
-# _build (mix manifests + tailwind binary freshness checks). Source, deps
-# and mix files stay root-owned read-only. --create-home because the BEAM
-# writes ~/.erlang.cookie on first start.
+# _build. Source, deps and mix files stay root-owned read-only.
+# _build stays writable ON PURPOSE: the entrypoint is `mix run`, and Mix
+# (1.17) takes file locks under the build path on every invocation, so a
+# read-only _build can crash boot. The marginal risk (overwriting compiled
+# beams) buys nothing here - an attacker positioned to do that is already
+# executing inside the BEAM. --create-home because the BEAM writes
+# ~/.erlang.cookie on first start.
 # mkdir first: priv/static only holds generated output, which .dockerignore
 # keeps out of the context, so the directory may not exist yet.
 RUN useradd --system --create-home --shell /usr/sbin/nologin playground && \
