@@ -1941,6 +1941,10 @@ export const PetalCarousel = {
       this.el.removeEventListener("mouseenter", this.hoverPause);
       this.el.removeEventListener("mouseleave", this.hoverResume);
     }
+    if (this.scrollbarStyle) {
+      this.scrollbarStyle.remove();
+      this.scrollbarStyle = null;
+    }
   },
 
   // Helper function to apply slide dimensions based on orientation
@@ -2023,14 +2027,18 @@ export const PetalCarousel = {
 
     this.slideWrapper.style.scrollbarWidth = "none"; // Firefox
 
-    // Hide webkit scrollbar
-    const style = document.createElement("style");
-    style.textContent = `
-      #${this.id} .pc-carousel__slides::-webkit-scrollbar {
+    // Hide webkit scrollbar. The id comes from the caller, and an HTML-valid id
+    // can still contain characters that are special in a selector (".", ":",
+    // digits leading), so escape it - an unescaped one silently produces a rule
+    // that never matches and the scrollbar shows. Kept on `this` so destroyed()
+    // can remove it instead of leaking a style node per remount.
+    this.scrollbarStyle = document.createElement("style");
+    this.scrollbarStyle.textContent = `
+      #${CSS.escape(this.id)} .pc-carousel__slides::-webkit-scrollbar {
         display: none;
       }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(this.scrollbarStyle);
 
     // Update slide dimensions before setting up slides
     this.updateSlideWidth();
