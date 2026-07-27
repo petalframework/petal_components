@@ -80,8 +80,8 @@ defmodule PetalComponents.Showcase.BorderBeam do
       id="showcase-beam-glow"
       glow
       beams={2}
-      size="400px"
-      duration="9s"
+      size="250px"
+      duration="6s"
       color_from="#f43f5e"
       color_to="#3b82f6"
       class="w-full max-w-sm mx-auto"
