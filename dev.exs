@@ -832,6 +832,9 @@ defmodule Dev.PlaygroundLive do
   def handle_event("toggle_nav", _params, socket),
     do: {:noreply, assign(socket, nav_open: !socket.assigns.nav_open)}
 
+  def handle_event("close_nav", _params, socket),
+    do: {:noreply, assign(socket, nav_open: false)}
+
   def handle_event("toggle_dark", _params, socket),
     do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
 
@@ -2280,48 +2283,58 @@ defmodule Dev.PlaygroundLive do
       planned for 4.9 replaces this and inherits its grammar. --%>
       <div
         :if={@nav_open}
-        class="fixed inset-0 z-50 flex flex-col bg-white/95 dark:bg-gray-950/95 backdrop-blur lg:hidden"
+        class="fixed inset-0 z-50 lg:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Component menu"
+        phx-window-keydown="close_nav"
+        phx-key="escape"
       >
-        <div class="flex items-center justify-between flex-none h-14 px-4 border-b border-gray-200/60 dark:border-gray-800/60">
-          <div class="flex items-center gap-3">
-            <button
-              phx-click="toggle_nav"
-              aria-label="Close menu"
-              class="relative flex items-center justify-center w-8 h-8 -ml-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 before:absolute before:content-[''] before:-inset-2"
-            >
-              <.icon name="hero-x-mark" class="w-5 h-5" />
-            </button>
-            <span class="text-[15px] font-semibold">Menu</span>
-          </div>
-          <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
-        </div>
-        <nav class="flex-1 px-6 py-6 overflow-y-auto">
-          <div :for={grp <- @nav} class="mb-10">
-            <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
-              {grp.group}
-            </div>
-            <div class="flex flex-col">
+        <.focus_wrap
+          id="pg-menu-focus"
+          class="flex flex-col h-full bg-white/95 dark:bg-gray-950/95 backdrop-blur"
+        >
+          <div class="flex items-center justify-between flex-none h-14 px-4 border-b border-gray-200/60 dark:border-gray-800/60">
+            <div class="flex items-center gap-3">
               <button
-                :for={it <- grp.items}
-                phx-click="select"
-                phx-value-slug={it.slug}
-                class={[
-                  "flex items-center py-1.5 text-2xl font-medium text-left",
-                  (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
-                    "text-gray-600 dark:text-gray-400"
-                ]}
+                phx-click="toggle_nav"
+                aria-label="Close menu"
+                class="relative flex items-center justify-center w-8 h-8 -ml-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 before:absolute before:content-[''] before:-inset-2"
               >
-                {it.name}
-                <span
-                  :if={not it.ready}
-                  class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
-                >
-                  soon
-                </span>
+                <.icon name="hero-x-mark" class="w-5 h-5" />
               </button>
+              <span class="text-[15px] font-semibold">Menu</span>
             </div>
+            <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
           </div>
-        </nav>
+          <nav class="flex-1 px-6 py-6 overflow-y-auto">
+            <div :for={grp <- @nav} class="mb-10">
+              <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
+                {grp.group}
+              </div>
+              <div class="flex flex-col">
+                <button
+                  :for={it <- grp.items}
+                  phx-click="select"
+                  phx-value-slug={it.slug}
+                  class={[
+                    "flex items-center py-1.5 text-2xl font-medium text-left",
+                    (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
+                      "text-gray-600 dark:text-gray-400"
+                  ]}
+                >
+                  {it.name}
+                  <span
+                    :if={not it.ready}
+                    class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                  >
+                    soon
+                  </span>
+                </button>
+              </div>
+            </div>
+          </nav>
+        </.focus_wrap>
       </div>
 
       <div class="flex flex-1 min-h-0">
@@ -8682,7 +8695,12 @@ deploy_endpoint_options =
       # deployed site dead-renders and every dial silently stops working.
       check_origin: [
         "https://playground.petal.build",
-        "https://petal-components-demo.fly.dev"
+        "https://petal-components-demo.fly.dev",
+        # Local deploy-mode smoke tests: dev mode's per-request re-eval is
+        # slower than browser nav timeouts, so interactions get verified
+        # against PLAYGROUND_DEPLOY=true locally - the websocket needs the
+        # loopback origin. Harmless in prod: public demo, no auth, no data.
+        "http://localhost:#{System.get_env("PORT", "4000")}"
       ],
       url: [host: System.get_env("PHX_HOST", "playground.petal.build"), scheme: "https"]
     ]
