@@ -63,13 +63,14 @@ defmodule PetalComponents.MixProject do
       {:phoenix_ecto, "~> 4.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
+      # No `sparse: "optimized"`. Mix 1.17's sparse git checkout fails against
+      # git 2.54 (what CI runners now ship), dying in `mix deps.get` before
+      # anything compiles. The full clone is larger but the layout is identical
+      # - dev.exs still reads deps/heroicons/optimized - and this is dev/test
+      # only, so consumers of the package never fetch it either way. Restore
+      # `sparse:` once the toolchain moves to a Mix that handles modern git.
       {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.2.0",
-       app: false,
-       compile: false,
-       sparse: "optimized",
-       only: [:dev, :test]}
+       github: "tailwindlabs/heroicons", tag: "v2.2.0", app: false, compile: false, only: [:dev, :test]}
     ]
   end
 
