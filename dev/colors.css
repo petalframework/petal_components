@@ -9,7 +9,13 @@
  * in their own colors.css.
  */
 
-@theme inline {
+/* `static` so every token here is emitted as a real custom property, not
+   only the ones some generated utility happens to reference. `inline` alone
+   substitutes each token's VALUE into the utilities it generates and emits
+   nothing, which left the Colours page - it paints ramp swatches with
+   style="background-color: var(--color-info-50)" - drawing blank info and
+   success ramps and a single lonely warning/danger swatch. */
+@theme static inline {
   --color-primary-50: var(--pg-accent-50);
   --color-primary-100: var(--pg-accent-100);
   --color-primary-200: var(--pg-accent-200);
@@ -93,67 +99,6 @@
   --color-gray-800: var(--pg-gray-800);
   --color-gray-900: var(--pg-gray-900);
   --color-gray-950: var(--pg-gray-950);
-}
-
-/* The semantic ramps above live in `@theme inline`, which means Tailwind
-   substitutes their VALUE into each utility it generates (`text-info-500`
-   compiles to the sky-500 value) and never emits `--color-info-*` itself.
-   Utilities don't care - but the Colours page paints its ramp swatches with
-   `style="background-color: var(--color-info-50)"`, and that only resolves
-   against a real custom property. Without this block the info and success
-   ramps render blank and warning/danger show a single lonely swatch (the
-   only steps something else happened to emit). Declared once here, in terms
-   of the same palette the @theme block maps to, so the two can't drift.
-   primary/secondary/gray already resolve: they route through the real
-   --pg-accent-*/--pg-gray-* dial variables. */
-:root {
-  --color-info-50: var(--color-sky-50);
-  --color-info-100: var(--color-sky-100);
-  --color-info-200: var(--color-sky-200);
-  --color-info-300: var(--color-sky-300);
-  --color-info-400: var(--color-sky-400);
-  --color-info-500: var(--color-sky-500);
-  --color-info-600: var(--color-sky-600);
-  --color-info-700: var(--color-sky-700);
-  --color-info-800: var(--color-sky-800);
-  --color-info-900: var(--color-sky-900);
-  --color-info-950: var(--color-sky-950);
-
-  --color-success-50: var(--color-green-50);
-  --color-success-100: var(--color-green-100);
-  --color-success-200: var(--color-green-200);
-  --color-success-300: var(--color-green-300);
-  --color-success-400: var(--color-green-400);
-  --color-success-500: var(--color-green-500);
-  --color-success-600: var(--color-green-600);
-  --color-success-700: var(--color-green-700);
-  --color-success-800: var(--color-green-800);
-  --color-success-900: var(--color-green-900);
-  --color-success-950: var(--color-green-950);
-
-  --color-warning-50: var(--color-yellow-50);
-  --color-warning-100: var(--color-yellow-100);
-  --color-warning-200: var(--color-yellow-200);
-  --color-warning-300: var(--color-yellow-300);
-  --color-warning-400: var(--color-yellow-400);
-  --color-warning-500: var(--color-yellow-500);
-  --color-warning-600: var(--color-yellow-600);
-  --color-warning-700: var(--color-yellow-700);
-  --color-warning-800: var(--color-yellow-800);
-  --color-warning-900: var(--color-yellow-900);
-  --color-warning-950: var(--color-yellow-950);
-
-  --color-danger-50: var(--color-red-50);
-  --color-danger-100: var(--color-red-100);
-  --color-danger-200: var(--color-red-200);
-  --color-danger-300: var(--color-red-300);
-  --color-danger-400: var(--color-red-400);
-  --color-danger-500: var(--color-red-500);
-  --color-danger-600: var(--color-red-600);
-  --color-danger-700: var(--color-red-700);
-  --color-danger-800: var(--color-red-800);
-  --color-danger-900: var(--color-red-900);
-  --color-danger-950: var(--color-red-950);
 }
 
 /* light-dark() resolves off color-scheme; dark mode is class-based here. */
