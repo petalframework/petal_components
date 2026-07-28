@@ -27,6 +27,23 @@ jobs:
           chmod +x codecov
           ./codecov
 
+  # The hooks in assets/js ship inside the Hex package but never went through
+  # Elixir's test suite - LazyHTML asserts on server-rendered markup, and the
+  # hooks build their DOM in the browser. This job covers the behaviour that
+  # can only fail at runtime. Deps are devDependencies of a private
+  # package.json; nothing here is published to npm.
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install JS test deps
+        run: npm install --no-audit --no-fund
+      - name: Run JS tests
+        run: npm test
+
   # :mdex is an OPTIONAL dependency (only needed for the Chat markdown
   # components). The library must compile without it. v4.0.0 shipped a
   # regression where a module attribute called MDEx.Document at compile time,

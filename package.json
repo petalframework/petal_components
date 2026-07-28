@@ -1,0 +1,13 @@
+{
+  "name": "petal_components-js",
+  "private": true,
+  "description": "Test harness for the hooks in assets/js. Not published to npm - the hooks ship inside the Hex package.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
+  }
+}
