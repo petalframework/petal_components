@@ -43,10 +43,14 @@ export function teardownGroups() {
 export const fanOutServerToast = (groups, payload) =>
   groups.forEach((g) => g.handlers["petal:toast"](payload));
 
-// jsdom has no PointerEvent constructor; a MouseEvent with pointerType
-// defined on it walks and quacks the same for addEventListener purposes.
+// jsdom has no PointerEvent constructor; a MouseEvent with pointerType and
+// pointerId defined on it walks and quacks the same for addEventListener
+// purposes. (MouseEvent's init dict silently drops unknown keys, so
+// pointerId must be attached by hand.)
 export function pointerEvent(type, pointerType, props = {}) {
-  const ev = new MouseEvent(type, { bubbles: true, ...props });
+  const { pointerId = 1, ...mouseProps } = props;
+  const ev = new MouseEvent(type, { bubbles: true, ...mouseProps });
   Object.defineProperty(ev, "pointerType", { value: pointerType });
+  Object.defineProperty(ev, "pointerId", { value: pointerId });
   return ev;
 }

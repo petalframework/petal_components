@@ -69,6 +69,51 @@ describe("PetalToast pause grammar", () => {
     expect(g.toastEls()).toHaveLength(0);
   });
 
+  it("ignores a second pointer while a gesture is active", () => {
+    const g = mountGroup("app-toasts");
+    g.handlers["petal:toast"]({ id: "a", kind: "info", title: "First" });
+    g.handlers["petal:toast"]({ id: "b", kind: "info", title: "Second" });
+    const [toastB, toastA] = g.toastEls(); // newest first in the DOM query
+
+    // finger A holds toast A at x=10
+    toastA.dispatchEvent(pointerEvent("pointerdown", "touch", { clientX: 10, pointerId: 1 }));
+    // finger B lands on toast B far away - must not steal the gesture
+    toastB.dispatchEvent(pointerEvent("pointerdown", "touch", { clientX: 500, pointerId: 2 }));
+    // finger B lifts: with shared state this computed dx against B's start
+    // and could fake-swipe a toast; with identity it is a no-op
+    toastB.dispatchEvent(pointerEvent("pointerup", "touch", { clientX: 500, pointerId: 2 }));
+
+    expect(g.stackEl.classList.contains("pc-toast-group__stack--paused")).toBe(true); // A still holds
+    expect(g.toastEls()).toHaveLength(2); // nothing fake-swiped
+
+    // finger A releases: gesture ends, timers resume
+    toastA.dispatchEvent(pointerEvent("pointerup", "touch", { clientX: 12, pointerId: 1 }));
+    expect(g.stackEl.classList.contains("pc-toast-group__stack--paused")).toBe(false);
+    vi.advanceTimersByTime(DURATION + REMOVE_FALLBACK + 100);
+    expect(g.toastEls()).toHaveLength(0);
+  });
+
+  it("a leave-grace firing mid-drag does not resume timers under the pointer", () => {
+    const g = mountGroup("app-toasts");
+    g.handlers["petal:toast"]({ kind: "info", title: "Dragged" });
+    const toastEl = g.stackEl.querySelector(".pc-toast");
+
+    // mouse hovers in, starts a drag, then strays outside the stack
+    g.stackEl.dispatchEvent(pointerEvent("pointerenter", "mouse"));
+    toastEl.dispatchEvent(pointerEvent("pointerdown", "mouse", { clientX: 10, pointerId: 1 }));
+    g.stackEl.dispatchEvent(pointerEvent("pointerleave", "mouse"));
+    vi.advanceTimersByTime(DURATION * 4); // grace elapses mid-drag; timers must stay parked
+
+    expect(g.stackEl.classList.contains("pc-toast-group__stack--paused")).toBe(true);
+    expect(g.toastEls()).toHaveLength(1); // not expired under the pointer
+
+    // release outside (small dx - not a dismiss), then the post-release leave
+    toastEl.dispatchEvent(pointerEvent("pointerup", "mouse", { clientX: 20, pointerId: 1 }));
+    g.stackEl.dispatchEvent(pointerEvent("pointerleave", "mouse"));
+    vi.advanceTimersByTime(150 + DURATION + REMOVE_FALLBACK + 100);
+    expect(g.toastEls()).toHaveLength(0); // resumed and expired normally
+  });
+
   it("press-and-hold pauses, release resumes", () => {
     const g = mountGroup("app-toasts");
     g.handlers["petal:toast"]({ kind: "info", title: "Held" });

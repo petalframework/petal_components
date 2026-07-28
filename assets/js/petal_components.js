@@ -2950,6 +2950,11 @@ export const PetalToast = {
       if (e.pointerType !== "mouse") return;
       clearTimeout(this.collapseTimer);
       this.collapseTimer = setTimeout(() => {
+        // Never resume mid-gesture: a drag that strays outside the stack
+        // must not re-arm a nearly-expired toast under the pointer. (With
+        // pointer capture the leave never fires mid-drag anyway; this
+        // covers the no-capture fallback.) The post-release leave resumes.
+        if (this.dragging) return;
         this.expanded = false;
         this.resumeAll();
         this.layout();
@@ -3215,33 +3220,45 @@ export const PetalToast = {
 
   // ------------------------------------------------------------------ swipe
   setupSwipe() {
+    // One gesture at a time, keyed by pointerId: a second finger neither
+    // steals the drag state nor ends the first finger's hold - without the
+    // id check, finger A lifting would compute its dx against finger B's
+    // start and could fake-swipe B's toast away.
     let active = null;
+    let activeId = null;
     let startX = 0;
+    this.dragging = false;
 
     this.onPointerDown = (e) => {
+      if (active) return;
       const toastEl = e.target.closest(".pc-toast");
       if (!toastEl || e.target.closest("button")) return;
       const t = this.toasts.find((t) => t.el === toastEl);
       if (!t || t.closing) return;
       active = t;
+      activeId = e.pointerId;
       startX = e.clientX;
       // Press-and-hold pauses the timers - the touch counterpart of
       // hover-to-pause (and on any pointer it stops a mid-drag expiry
-      // yanking the toast out from under the gesture).
+      // yanking the toast out from under the gesture). The hover machinery
+      // reads this so a leave-grace firing mid-drag can't resume timers
+      // (pointer capture already suppresses that in browsers; this keeps
+      // the no-capture fallback honest too).
+      this.dragging = true;
       this.pauseAll();
       toastEl.classList.add("pc-toast--swiping");
       toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
     };
 
     this.onPointerMove = (e) => {
-      if (!active) return;
+      if (!active || e.pointerId !== activeId) return;
       const dx = e.clientX - startX;
       active.el.style.setProperty("--pc-toast-swipe", dx + "px");
       active.el.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 260));
     };
 
     this.onPointerUp = (e) => {
-      if (!active) return;
+      if (!active || e.pointerId !== activeId) return;
       const dx = e.clientX - startX;
       active.el.classList.remove("pc-toast--swiping");
       if (Math.abs(dx) > 64) {
@@ -3251,6 +3268,8 @@ export const PetalToast = {
         active.el.style.opacity = "";
       }
       active = null;
+      activeId = null;
+      this.dragging = false;
       // Release resumes - unless a mouse hover still holds the stack open.
       if (!this.expanded) this.resumeAll();
     };
