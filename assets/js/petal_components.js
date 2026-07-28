@@ -2875,8 +2875,33 @@ export const PetalCarousel = {
 // progress, pause on hover, swipe to dismiss, six positions. Server API via
 // push_event("petal:toast", ...), window CustomEvent for plain JS, and a
 // put_flash bridge. The stack DOM is hook-owned (phx-update="ignore").
+// One toast_group owns the page - that is the documented contract, and this
+// enforces it. Both delivery paths are GLOBAL: LiveView fans push_event out
+// to every mounted hook, and the window CustomEvent reaches all of them. So a
+// second group anywhere on the page renders an identical toast directly
+// behind the first (a burst of 6 dismisses as 12), which is exactly what a
+// page combining a layout group with a self-contained demo group hits.
+// First-mounted wins; later groups stay inert for global events. Set
+// iteration is insertion-ordered, so destroying the primary promotes the
+// next one for free. put_flash is unaffected - each group renders only its
+// own data-flash, and only the group given flash={@flash} has any.
+const toastGroups = new Set();
+const isPrimaryToastGroup = (hook) => toastGroups.values().next().value === hook;
+
 export const PetalToast = {
   mounted() {
+    toastGroups.add(this);
+    if (!isPrimaryToastGroup(this)) {
+      const owner = toastGroups.values().next().value;
+      console.warn(
+        `[petal_components] More than one <.toast_group> is mounted: ` +
+          `#${owner.el.id} and #${this.el.id}. Toasts are global, so a second group ` +
+          `would render an identical toast behind every one - #${this.el.id} will ` +
+          `ignore server and window toast events. Keep a single group in your layout. ` +
+          `(Which group wins is not guaranteed to follow DOM order, so remove the ` +
+          `extra rather than relying on this.)`
+      );
+    }
     this.stack = document.getElementById(this.el.id + "-stack");
     this.top = (this.el.dataset.position || "bottom-right").startsWith("top");
     this.max = parseInt(this.el.dataset.max) || 3;
@@ -2885,15 +2910,22 @@ export const PetalToast = {
     this.seq = 0;
     this.expanded = false;
 
-    this.handleEvent("petal:toast", (d) => this.upsert(d || {}));
+    this.handleEvent("petal:toast", (d) => {
+      if (!isPrimaryToastGroup(this)) return;
+      this.upsert(d || {});
+    });
     this.handleEvent("petal:toast-dismiss", (d) => {
+      if (!isPrimaryToastGroup(this)) return;
       if (d && d.all) [...this.toasts].forEach((t) => this.dismiss(t));
       else if (d && d.id != null) {
         const t = this.toasts.find((t) => t.id === String(d.id));
         if (t) this.dismiss(t);
       }
     });
-    this.onWindowToast = (e) => this.upsert(e.detail || {});
+    this.onWindowToast = (e) => {
+      if (!isPrimaryToastGroup(this)) return;
+      this.upsert(e.detail || {});
+    };
     window.addEventListener("petal:toast", this.onWindowToast);
 
     // hover expands the stack and pauses every timer; a short grace on
@@ -2952,6 +2984,7 @@ export const PetalToast = {
   },
 
   destroyed() {
+    toastGroups.delete(this);
     window.removeEventListener("petal:toast", this.onWindowToast);
     clearTimeout(this.collapseTimer);
     this.toasts.forEach((t) => clearTimeout(t.timer));
