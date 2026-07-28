@@ -2929,8 +2929,16 @@ export const PetalToast = {
     window.addEventListener("petal:toast", this.onWindowToast);
 
     // hover expands the stack and pauses every timer; a short grace on
-    // leave stops flicker when the pointer crosses the gaps between toasts
-    this.onEnter = () => {
+    // leave stops flicker when the pointer crosses the gaps between toasts.
+    // MOUSE ONLY: touch taps synthesize a compatibility mouseenter but never
+    // the matching mouseleave (the emulated pointer only moves on the next
+    // tap), so listening to mouse events latched the stack into its paused
+    // state the first time a finger tapped inside it - after dismissing via
+    // the X, every later toast mounted unarmed with its progress frozen at
+    // 100%. pointerenter carries pointerType, mouseenter doesn't. Touch
+    // pauses via press-and-hold in the swipe handlers below instead.
+    this.onEnter = (e) => {
+      if (e.pointerType !== "mouse") return;
       clearTimeout(this.collapseTimer);
       if (!this.expanded) {
         this.expanded = true;
@@ -2938,7 +2946,8 @@ export const PetalToast = {
         this.layout();
       }
     };
-    this.onLeave = () => {
+    this.onLeave = (e) => {
+      if (e.pointerType !== "mouse") return;
       clearTimeout(this.collapseTimer);
       this.collapseTimer = setTimeout(() => {
         this.expanded = false;
@@ -2946,8 +2955,8 @@ export const PetalToast = {
         this.layout();
       }, 150);
     };
-    this.stack.addEventListener("mouseenter", this.onEnter);
-    this.stack.addEventListener("mouseleave", this.onLeave);
+    this.stack.addEventListener("pointerenter", this.onEnter);
+    this.stack.addEventListener("pointerleave", this.onLeave);
 
     // action + close buttons (event delegation - the DOM is hook-built)
     this.onClick = (e) => {
@@ -3216,6 +3225,10 @@ export const PetalToast = {
       if (!t || t.closing) return;
       active = t;
       startX = e.clientX;
+      // Press-and-hold pauses the timers - the touch counterpart of
+      // hover-to-pause (and on any pointer it stops a mid-drag expiry
+      // yanking the toast out from under the gesture).
+      this.pauseAll();
       toastEl.classList.add("pc-toast--swiping");
       toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
     };
@@ -3238,6 +3251,8 @@ export const PetalToast = {
         active.el.style.opacity = "";
       }
       active = null;
+      // Release resumes - unless a mouse hover still holds the stack open.
+      if (!this.expanded) this.resumeAll();
     };
 
     this.stack.addEventListener("pointerdown", this.onPointerDown);
