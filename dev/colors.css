@@ -9,7 +9,13 @@
  * in their own colors.css.
  */
 
-@theme inline {
+/* `static` so every token here is emitted as a real custom property, not
+   only the ones some generated utility happens to reference. `inline` alone
+   substitutes each token's VALUE into the utilities it generates and emits
+   nothing, which left the Colours page - it paints ramp swatches with
+   style="background-color: var(--color-info-50)" - drawing blank info and
+   success ramps and a single lonely warning/danger swatch. */
+@theme static inline {
   --color-primary-50: var(--pg-accent-50);
   --color-primary-100: var(--pg-accent-100);
   --color-primary-200: var(--pg-accent-200);
