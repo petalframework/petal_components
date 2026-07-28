@@ -7,44 +7,7 @@
 // down, because the failure mode is silent and mount order is NOT DOM order.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { PetalToast } from "../../assets/js/petal_components.js";
-
-// Ownership is module-level state, so a spec that leaves a group mounted
-// would own the page for every spec after it. Tear them down the way
-// LiveView does.
-const mounted = [];
-
-// Minimal stand-in for the LiveView hook lifecycle: enough of `this` for
-// mounted()/destroyed() to run, capturing the handleEvent callbacks so a
-// spec can fan an event out to every group the way LiveView does.
-function mountGroup(id) {
-  const el = document.createElement("div");
-  el.id = id;
-  el.className = "pc-toast-group";
-  const stack = document.createElement("div");
-  stack.id = `${id}-stack`;
-  stack.className = "pc-toast-group__stack";
-  el.appendChild(stack);
-  document.body.appendChild(el);
-
-  const hook = Object.create(PetalToast);
-  hook.el = el;
-  hook.handlers = {};
-  hook.pushed = [];
-  hook.handleEvent = (name, cb) => {
-    hook.handlers[name] = cb;
-  };
-  hook.pushEvent = (name, payload) => hook.pushed.push([name, payload]);
-  hook.mounted();
-
-  hook.toastEls = () => stack.querySelectorAll(".pc-toast");
-  mounted.push(hook);
-  return hook;
-}
-
-// LiveView delivers a push_event to every mounted hook, not just one.
-const fanOutServerToast = (groups, payload) =>
-  groups.forEach((g) => g.handlers["petal:toast"](payload));
+import { fanOutServerToast, mountGroup, teardownGroups } from "./helpers.js";
 
 describe("PetalToast group ownership", () => {
   beforeEach(() => {
@@ -52,7 +15,7 @@ describe("PetalToast group ownership", () => {
   });
 
   afterEach(() => {
-    mounted.splice(0).forEach((hook) => hook.destroyed());
+    teardownGroups();
   });
 
   it("renders one toast per event when a single group is mounted", () => {

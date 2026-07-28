@@ -3564,7 +3564,7 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Kinds - hover the stack to expand and pause, swipe or drag sideways to dismiss
+        Kinds - hover the stack to expand and pause (press and hold on touch), swipe or drag sideways to dismiss
       </div>
       <div class="px-6 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap gap-2">

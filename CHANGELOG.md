@@ -3,6 +3,8 @@
 
 #### Fixed
 
+- **`toast` - timers no longer wedge on touch devices after dismissing via the X.** Touch taps synthesize a compatibility `mouseenter` but never the matching `mouseleave` (the emulated pointer only moves on the next tap), so one tap inside the stack latched hover-to-pause permanently: every later toast mounted unarmed with its progress bar frozen at 100%, never auto-dismissing until a page refresh. Hover-to-pause is now wired through `pointerenter`/`pointerleave` and applies to real mice only; touch gets the natural counterpart instead - **press and hold a toast to pause its timers, release to resume** (which also stops a mid-drag expiry yanking a toast out from under a swipe, on any pointer). Desktop behaviour is unchanged.
+
 - **`toast` - a second `toast_group` on the page no longer duplicates every toast.** Toast delivery is global (LiveView fans `push_event` to every mounted hook; the `petal:toast` CustomEvent reaches all of them), so two mounted groups each rendered an identical toast at the same position - a burst of 6 dismissed as 12. The first-mounted group now owns global events; extra groups stay inert and `console.warn` naming both ids. The internal `Showcase.Toast` example also no longer renders its own group (hosts provide the single layout group, per the documented contract). Decided 2026-07-28 with Nic: this rides the next feature release rather than a 4.8.1 - no normal 4.8.0 usage hits it, since it requires mounting two groups against the documented one-group contract.
 
 #### Internal

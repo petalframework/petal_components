@@ -2929,8 +2929,16 @@ export const PetalToast = {
     window.addEventListener("petal:toast", this.onWindowToast);
 
     // hover expands the stack and pauses every timer; a short grace on
-    // leave stops flicker when the pointer crosses the gaps between toasts
-    this.onEnter = () => {
+    // leave stops flicker when the pointer crosses the gaps between toasts.
+    // MOUSE ONLY: touch taps synthesize a compatibility mouseenter but never
+    // the matching mouseleave (the emulated pointer only moves on the next
+    // tap), so listening to mouse events latched the stack into its paused
+    // state the first time a finger tapped inside it - after dismissing via
+    // the X, every later toast mounted unarmed with its progress frozen at
+    // 100%. pointerenter carries pointerType, mouseenter doesn't. Touch
+    // pauses via press-and-hold in the swipe handlers below instead.
+    this.onEnter = (e) => {
+      if (e.pointerType !== "mouse") return;
       clearTimeout(this.collapseTimer);
       if (!this.expanded) {
         this.expanded = true;
@@ -2938,16 +2946,24 @@ export const PetalToast = {
         this.layout();
       }
     };
-    this.onLeave = () => {
+    this.onLeave = (e) => {
+      if (e.pointerType !== "mouse") return;
       clearTimeout(this.collapseTimer);
       this.collapseTimer = setTimeout(() => {
+        // Never resume mid-gesture: a drag that strays outside the stack
+        // must not re-arm a nearly-expired toast under the pointer. (With
+        // pointer capture the leave never fires mid-drag anyway; this
+        // covers the no-capture fallback.) Release handles the collapse
+        // when it ends outside the stack; a leave arriving after that is
+        // a no-op via the expanded check.
+        if (this.dragging || !this.expanded) return;
         this.expanded = false;
         this.resumeAll();
         this.layout();
       }, 150);
     };
-    this.stack.addEventListener("mouseenter", this.onEnter);
-    this.stack.addEventListener("mouseleave", this.onLeave);
+    this.stack.addEventListener("pointerenter", this.onEnter);
+    this.stack.addEventListener("pointerleave", this.onLeave);
 
     // action + close buttons (event delegation - the DOM is hook-built)
     this.onClick = (e) => {
@@ -2986,6 +3002,10 @@ export const PetalToast = {
   destroyed() {
     toastGroups.delete(this);
     window.removeEventListener("petal:toast", this.onWindowToast);
+    // gesture-scoped listeners, in case a drag was live at teardown
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerUp);
     clearTimeout(this.collapseTimer);
     this.toasts.forEach((t) => clearTimeout(t.timer));
   },
@@ -3206,29 +3226,61 @@ export const PetalToast = {
 
   // ------------------------------------------------------------------ swipe
   setupSwipe() {
+    // One gesture at a time, keyed by pointerId: a second finger neither
+    // steals the drag state nor ends the first finger's hold - without the
+    // id check, finger A lifting would compute its dx against finger B's
+    // start and could fake-swipe B's toast away.
     let active = null;
+    let activeId = null;
     let startX = 0;
+    this.dragging = false;
 
     this.onPointerDown = (e) => {
+      if (active) return;
       const toastEl = e.target.closest(".pc-toast");
       if (!toastEl || e.target.closest("button")) return;
       const t = this.toasts.find((t) => t.el === toastEl);
       if (!t || t.closing) return;
       active = t;
+      activeId = e.pointerId;
       startX = e.clientX;
+      // Press-and-hold pauses the timers - the touch counterpart of
+      // hover-to-pause (and on any pointer it stops a mid-drag expiry
+      // yanking the toast out from under the gesture). The hover machinery
+      // reads this so a leave-grace firing mid-drag can't resume timers
+      // (pointer capture already suppresses that in browsers; this keeps
+      // the no-capture fallback honest too).
+      this.dragging = true;
+      this.pauseAll();
       toastEl.classList.add("pc-toast--swiping");
-      toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+      // Gesture-scoped WINDOW listeners: a release outside the stack still
+      // ends the gesture. Stack-scoped up/move relied on pointer capture
+      // retargeting - fine in browsers, but in the no-capture fallback a
+      // drag released outside the stack would never see its pointerup and
+      // every timer stayed paused indefinitely. Attached BEFORE the capture
+      // attempt: setPointerCapture throws on an already-inactive pointerId
+      // (and under synthetic events), and a throw here must not leave an
+      // armed gesture with no way to end.
+      window.addEventListener("pointermove", this.onPointerMove);
+      window.addEventListener("pointerup", this.onPointerUp);
+      window.addEventListener("pointercancel", this.onPointerUp);
+      try {
+        toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+      } catch (_e) {
+        // capture is an optimisation (retargets moves during fast drags);
+        // the window listeners above are the correctness path
+      }
     };
 
     this.onPointerMove = (e) => {
-      if (!active) return;
+      if (!active || e.pointerId !== activeId) return;
       const dx = e.clientX - startX;
       active.el.style.setProperty("--pc-toast-swipe", dx + "px");
       active.el.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 260));
     };
 
     this.onPointerUp = (e) => {
-      if (!active) return;
+      if (!active || e.pointerId !== activeId) return;
       const dx = e.clientX - startX;
       active.el.classList.remove("pc-toast--swiping");
       if (Math.abs(dx) > 64) {
@@ -3238,12 +3290,32 @@ export const PetalToast = {
         active.el.style.opacity = "";
       }
       active = null;
+      activeId = null;
+      this.dragging = false;
+      window.removeEventListener("pointermove", this.onPointerMove);
+      window.removeEventListener("pointerup", this.onPointerUp);
+      window.removeEventListener("pointercancel", this.onPointerUp);
+      // Release resumes - unless a mouse hover still holds the stack open.
+      if (!this.expanded) {
+        this.resumeAll();
+        return;
+      }
+      // Hover held it open, but the pointer may have ended OUTSIDE the
+      // stack - the matching pointerleave either fired mid-drag (consumed
+      // by the dragging guard, no-capture path) or fires on capture
+      // release. Don't depend on it: collapse here when outside. The
+      // idempotent grace callback makes a double collapse harmless.
+      const r = this.stack.getBoundingClientRect();
+      const inside =
+        e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) {
+        this.expanded = false;
+        this.resumeAll();
+        this.layout();
+      }
     };
 
     this.stack.addEventListener("pointerdown", this.onPointerDown);
-    this.stack.addEventListener("pointermove", this.onPointerMove);
-    this.stack.addEventListener("pointerup", this.onPointerUp);
-    this.stack.addEventListener("pointercancel", this.onPointerUp);
   },
 };
 
