@@ -114,6 +114,28 @@ describe("PetalToast pause grammar", () => {
     expect(g.toastEls()).toHaveLength(0); // resumed and expired normally
   });
 
+  it("releasing a drag outside the stack resumes timers (no-capture fallback)", () => {
+    const g = mountGroup("app-toasts");
+    g.handlers["petal:toast"]({ kind: "info", title: "Dragged away" });
+    const toastEl = g.stackEl.querySelector(".pc-toast");
+
+    // hover in (mouse), start the drag, stray outside - leave grace fires
+    // mid-drag and is correctly swallowed by the dragging guard
+    g.stackEl.dispatchEvent(pointerEvent("pointerenter", "mouse"));
+    toastEl.dispatchEvent(pointerEvent("pointerdown", "mouse", { clientX: 10, pointerId: 1 }));
+    g.stackEl.dispatchEvent(pointerEvent("pointerleave", "mouse"));
+    vi.advanceTimersByTime(300);
+
+    // release OUTSIDE the stack: without capture no stack listener would
+    // ever see this - it must reach the gesture via the window, and since
+    // no further pointerleave is coming, it must collapse + resume itself
+    window.dispatchEvent(pointerEvent("pointerup", "mouse", { clientX: 400, clientY: 900, pointerId: 1 }));
+
+    expect(g.stackEl.classList.contains("pc-toast-group__stack--paused")).toBe(false);
+    vi.advanceTimersByTime(DURATION + REMOVE_FALLBACK + 100);
+    expect(g.toastEls()).toHaveLength(0); // expired normally - not parked forever
+  });
+
   it("press-and-hold pauses, release resumes", () => {
     const g = mountGroup("app-toasts");
     g.handlers["petal:toast"]({ kind: "info", title: "Held" });

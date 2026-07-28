@@ -2953,8 +2953,10 @@ export const PetalToast = {
         // Never resume mid-gesture: a drag that strays outside the stack
         // must not re-arm a nearly-expired toast under the pointer. (With
         // pointer capture the leave never fires mid-drag anyway; this
-        // covers the no-capture fallback.) The post-release leave resumes.
-        if (this.dragging) return;
+        // covers the no-capture fallback.) Release handles the collapse
+        // when it ends outside the stack; a leave arriving after that is
+        // a no-op via the expanded check.
+        if (this.dragging || !this.expanded) return;
         this.expanded = false;
         this.resumeAll();
         this.layout();
@@ -3000,6 +3002,10 @@ export const PetalToast = {
   destroyed() {
     toastGroups.delete(this);
     window.removeEventListener("petal:toast", this.onWindowToast);
+    // gesture-scoped listeners, in case a drag was live at teardown
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerUp);
     clearTimeout(this.collapseTimer);
     this.toasts.forEach((t) => clearTimeout(t.timer));
   },
@@ -3247,7 +3253,23 @@ export const PetalToast = {
       this.dragging = true;
       this.pauseAll();
       toastEl.classList.add("pc-toast--swiping");
-      toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+      // Gesture-scoped WINDOW listeners: a release outside the stack still
+      // ends the gesture. Stack-scoped up/move relied on pointer capture
+      // retargeting - fine in browsers, but in the no-capture fallback a
+      // drag released outside the stack would never see its pointerup and
+      // every timer stayed paused indefinitely. Attached BEFORE the capture
+      // attempt: setPointerCapture throws on an already-inactive pointerId
+      // (and under synthetic events), and a throw here must not leave an
+      // armed gesture with no way to end.
+      window.addEventListener("pointermove", this.onPointerMove);
+      window.addEventListener("pointerup", this.onPointerUp);
+      window.addEventListener("pointercancel", this.onPointerUp);
+      try {
+        toastEl.setPointerCapture && toastEl.setPointerCapture(e.pointerId);
+      } catch (_e) {
+        // capture is an optimisation (retargets moves during fast drags);
+        // the window listeners above are the correctness path
+      }
     };
 
     this.onPointerMove = (e) => {
@@ -3270,14 +3292,30 @@ export const PetalToast = {
       active = null;
       activeId = null;
       this.dragging = false;
+      window.removeEventListener("pointermove", this.onPointerMove);
+      window.removeEventListener("pointerup", this.onPointerUp);
+      window.removeEventListener("pointercancel", this.onPointerUp);
       // Release resumes - unless a mouse hover still holds the stack open.
-      if (!this.expanded) this.resumeAll();
+      if (!this.expanded) {
+        this.resumeAll();
+        return;
+      }
+      // Hover held it open, but the pointer may have ended OUTSIDE the
+      // stack - the matching pointerleave either fired mid-drag (consumed
+      // by the dragging guard, no-capture path) or fires on capture
+      // release. Don't depend on it: collapse here when outside. The
+      // idempotent grace callback makes a double collapse harmless.
+      const r = this.stack.getBoundingClientRect();
+      const inside =
+        e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) {
+        this.expanded = false;
+        this.resumeAll();
+        this.layout();
+      }
     };
 
     this.stack.addEventListener("pointerdown", this.onPointerDown);
-    this.stack.addEventListener("pointermove", this.onPointerMove);
-    this.stack.addEventListener("pointerup", this.onPointerUp);
-    this.stack.addEventListener("pointercancel", this.onPointerUp);
   },
 };
 
