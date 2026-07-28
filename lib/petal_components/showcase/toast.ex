@@ -16,6 +16,7 @@ defmodule PetalComponents.Showcase.Toast do
     description:
       "One toast_group in the layout catches everything: Toast.send_toast/3 from the server, put_flash for free, or - as here - a plain petal:toast CustomEvent from the client. Fire a few and hover the stack." do
     ~H"""
+    <%!-- once, in your root layout: <.toast_group flash={@flash} /> --%>
     <div class="flex flex-wrap items-center justify-center gap-2">
       <.button
         color="gray"
