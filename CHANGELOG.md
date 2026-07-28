@@ -1,5 +1,5 @@
 # Changelog
-### Unreleased
+### 4.8.1 - 2026-07-28
 
 #### Fixed
 
