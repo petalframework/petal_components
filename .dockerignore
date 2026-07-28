@@ -21,3 +21,4 @@ logo.png
 fly.toml
 Dockerfile
 .dockerignore
+node_modules
