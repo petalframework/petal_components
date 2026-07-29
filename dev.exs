@@ -23,6 +23,17 @@ end
 defmodule Dev.Layouts do
   use Phoenix.Component
 
+  # Fathom (cookieless, no personal data, nothing to consent to) on the
+  # PUBLIC deployment only: PLAYGROUND_DEPLOY gates it so a local
+  # `mix run dev.exs` never phones home, and the site id comes from the
+  # environment so anyone forking this repo and deploying their own
+  # playground doesn't report into ours. data-spa="auto" because choosing
+  # a component is a push_patch, not a page load - without it we'd record
+  # one pageview per session no matter how much of the library you browse.
+  defp fathom_site do
+    if System.get_env("PLAYGROUND_DEPLOY") == "true", do: System.get_env("FATHOM_SITE_ID")
+  end
+
   def root(assigns) do
     ~H"""
     <!DOCTYPE html>
@@ -45,6 +56,15 @@ defmodule Dev.Layouts do
         </script>
         <meta name="pg-rev" content="alert-badge-1" />
         <link rel="stylesheet" href="/assets/app.css" />
+        <script
+          :if={fathom_site()}
+          src="https://cdn.usefathom.com/script.js"
+          data-site={fathom_site()}
+          data-spa="auto"
+          data-canonical="false"
+          defer
+        >
+        </script>
       </head>
       <body class="bg-white antialiased">
         <script>
