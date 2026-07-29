@@ -1,6 +1,10 @@
 # Changelog
 ### Unreleased
 
+#### Added
+
+- **Showcase registry: `button` joins.** The playground's button sections (variants, semantic colours, sizes, states, icon button) become registry examples - shown code is the rendered code, captured at compile time - so the playground, petal.build and the curated examples mcp.petal.build serves to AI assistants all document buttons from one source. The playground page keeps its interactive dials, and the states example now also shows `icon_placement="right"`.
+
 #### Fixed
 
 - **`color_scheme_switch` - icons no longer ride high in consumer apps.** The controls' icon-fill rule tied on specificity with the host app's own heroicon CSS, so whichever stylesheet loaded last won - petal.build's heroicon rules loaded after the package CSS and pushed the glyphs to 20x24 inside the 20px icon boxes. The fill rule now carries (0,2,0) specificity and forces `display: block`, so the wrapper is the sizing contract regardless of the consumer's heroicon setup or import order. Playground and custom icon slots verified unchanged.

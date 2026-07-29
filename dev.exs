@@ -2512,57 +2512,22 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{button_snippet(assigns)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.button>Solid</.button>
-        <.button variant="soft">Soft</.button>
-        <.button variant="light">Light</.button>
-        <.button variant="outline">Outline</.button>
-        <.button variant="ghost">Ghost</.button>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Semantic colours
-      </div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.button color="info" variant={@variant}>Info</.button>
-        <.button color="success" variant={@variant}>Success</.button>
-        <.button color="warning" variant={@variant}>Warning</.button>
-        <.button color="danger" variant={@variant}>Danger</.button>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.button size="xs">Extra small</.button>
-        <.button size="sm">Small</.button>
-        <.button size="md">Medium</.button>
-        <.button size="lg">Large</.button>
-        <.button size="xl">Extra large</.button>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">States</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.button>Default</.button>
-        <.button icon="hero-rocket-launch">With icon</.button>
-        <.button loading>Loading</.button>
-        <.button disabled>Disabled</.button>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Icon button</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.button size="icon" aria-label="Submit">
-          <.icon name="hero-arrow-up" class="w-5 h-5" />
-        </.button>
-        <.button variant="outline" size="icon" aria-label="Add">
-          <.icon name="hero-plus" class="w-5 h-5" />
-        </.button>
-        <.button variant="ghost" size="icon" aria-label="Settings">
-          <.icon name="hero-cog-6-tooth" class="w-5 h-5" />
-        </.button>
+      <div :for={ex <- PetalComponents.Showcase.Button.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Button} functions={[:button, :icon_button]} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Button</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end

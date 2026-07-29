@@ -13,6 +13,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.Avatar,
     PetalComponents.Showcase.BorderBeam,
+    PetalComponents.Showcase.Button,
     PetalComponents.Showcase.Carousel,
     PetalComponents.Showcase.Chart,
     PetalComponents.Showcase.Chat,
