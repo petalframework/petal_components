@@ -16,7 +16,14 @@ defmodule PetalComponents.Showcase.Rating do
     description:
       "icon=\"face\" swaps stars for five expressions, each its own colour - the CSAT scale. Faces are ordinal, so they always step whole; fractional display values round to the nearest expression with the label carrying the precision." do
     ~H"""
-    <.rating interactive name="csat" rating={0} icon="face" size="lg" label="How was your experience?" />
+    <.rating
+      interactive
+      name="csat"
+      rating={0}
+      icon="face"
+      size="lg"
+      label="How was your experience?"
+    />
     """
   end
 

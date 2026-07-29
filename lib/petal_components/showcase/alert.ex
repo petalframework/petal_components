@@ -2,6 +2,8 @@ defmodule PetalComponents.Showcase.Alert do
   @moduledoc false
   use PetalComponents.Showcase, component: PetalComponents.Alert, title: "Alert"
 
+  alias Phoenix.LiveView.JS
+
   example :semantic_colors, "Semantic colours",
     description:
       "A prominent message tied to state. Danger and warning announce as role=\"alert\" (assertive); info, success and gray as polite status - the same kind split the toast uses. with_icon adds the matching glyph." do
@@ -54,10 +56,15 @@ defmodule PetalComponents.Showcase.Alert do
 
   example :dismissible, "Dismissible",
     description:
-      "close_button_properties adds the cross - pass phx-click bindings in the list to tell your LiveView, or leave it empty for a purely client-side hide." do
+      "Pass on_dismiss any LiveView.JS command and the cross appears with hide behaviour built in - the alert fades out client-side and your command runs alongside (a CustomEvent here; JS.push to tell your LiveView instead). close_button_properties is the older path: a list of attributes for the button, phx-click included, wired yourself." do
     ~H"""
     <div class="w-full">
-      <.alert color="success" with_icon heading="Invite sent" close_button_properties={[]}>
+      <.alert
+        color="success"
+        with_icon
+        heading="Invite sent"
+        on_dismiss={JS.dispatch("myapp:alert-dismissed")}
+      >
         We emailed Ana a link to join your workspace.
       </.alert>
     </div>

@@ -6885,9 +6885,7 @@ defmodule Dev.PlaygroundLive do
       ><code>{select_snippet(@select)}</code></pre>
 
       <div
-        :for={
-          ex <- examples_for(PetalComponents.Showcase.Field, ~w(select_groups select_multiple)a)
-        }
+        :for={ex <- examples_for(PetalComponents.Showcase.Field, ~w(select_groups select_multiple)a)}
         class="mt-10"
       >
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>

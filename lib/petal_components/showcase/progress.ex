@@ -17,7 +17,7 @@ defmodule PetalComponents.Showcase.Progress do
 
   example :sizes, "Sizes",
     description:
-      "size runs xs to xl. The thin end suits page-top loading strips; from md up the bar is tall enough to carry an inside label." do
+      "size runs xs to xl. The thin end suits page-top loading strips; xl is the only size tall enough to carry a label inside the bar." do
     ~H"""
     <div class="w-full max-w-md space-y-4">
       <.progress :for={z <- ~w(xs sm md lg xl)} value={60} size={z} />
@@ -27,7 +27,7 @@ defmodule PetalComponents.Showcase.Progress do
 
   example :labels_status, "Labels and status",
     description:
-      "label renders inside the bar by default; label_position=\"top\" moves it to the label row. status adds the \"Downloading assets...\" line under the bar in a polite live region, so screen readers hear stage changes without being spammed by every percent." do
+      "label renders inside the bar at xl (the only size tall enough); label_position=\"top\" puts it in a label row above the bar at any size. status adds the \"Downloading assets...\" line under the bar in a polite live region, so screen readers hear stage changes without being spammed by every percent." do
     ~H"""
     <div class="w-full max-w-md space-y-6">
       <.progress value={60} size="xl" label="60%" />
