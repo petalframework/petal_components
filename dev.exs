@@ -1525,15 +1525,19 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp theme_path(t) do
+    # Component in the PATH (see the /c/:c route - Fathom needs it there),
+    # theme in the query (it is a look, not a page; also Fathom drops query
+    # strings, which for the dials is exactly right).
+    base = if t.active == "button", do: "/", else: "/c/#{t.active}"
+
     []
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
     |> then(&if t.primary != "neutral", do: [{"primary", t.primary} | &1], else: &1)
-    |> then(&if t.active != "button", do: [{"c", t.active} | &1], else: &1)
     |> case do
-      [] -> "/"
-      q -> "/?" <> URI.encode_query(q)
+      [] -> base
+      q -> base <> "?" <> URI.encode_query(q)
     end
   end
 
@@ -8582,6 +8586,12 @@ defmodule Dev.Router do
   scope "/" do
     pipe_through :browser
     live "/", Dev.PlaygroundLive
+    # Path-based component URLs. Not cosmetic: Fathom drops query strings
+    # for privacy, so with only /?c=slug the whole playground aggregates
+    # into one path and per-component interest is unmeasurable. /?c= keeps
+    # working (same handle_params reads merged path + query params) - every
+    # existing link, script and screenshot pipeline stays valid.
+    live "/c/:c", Dev.PlaygroundLive
   end
 end
 
