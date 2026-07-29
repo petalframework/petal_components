@@ -3,6 +3,7 @@
 
 #### Added
 
+- **Showcase registry: the form surface joins.** input, select, checkbox, radio and switch arrive as one `PetalComponents.Showcase.Field` module - they are all one `<.field type=...>` component - alongside new `InputOtp` and `InputGroup` modules: 23 curated, compile-checked examples covering field anatomy, error states, in-field actions, every native type, option groups, multiple select, checkbox groups, radio cards (payment rows, icon tiles, per-option disable) and the input-group compositions (addons, buttons, selects, block rows). The playground's form pages render their slices of the shared spread and keep their interactive dials. Two teaching corrections ride along: the multiple-select example names its field with `[]` so every choice survives the form post, and the checkbox-group example drops the `[]` the component already appends itself.
 - **Showcase registry: `button` joins.** The playground's button sections (variants, semantic colours, sizes, states, icon button) become registry examples - shown code is the rendered code, captured at compile time - so the playground, petal.build and the curated examples mcp.petal.build serves to AI assistants all document buttons from one source. The playground page keeps its interactive dials, and the states example now also shows `icon_placement="right"`.
 
 #### Fixed

@@ -1582,6 +1582,15 @@ defmodule Dev.PlaygroundLive do
     end
   end
 
+  # A page's slice of a showcase module, in the page's order. Field is one
+  # component (so one registry module), but the playground splits its examples
+  # across the input / select / checkbox / radio / switch pages. Raises on a
+  # typo'd id so a page can't silently drop an example.
+  defp examples_for(module, ids) do
+    by_id = Map.new(module.examples(), &{&1.id, &1})
+    Enum.map(ids, &Map.fetch!(by_id, &1))
+  end
+
   defp input_meta("text"), do: {"Full name", "Ada Lovelace"}
   defp input_meta("email"), do: {"Email address", "you@example.com"}
   defp input_meta("password"), do: {"Password", nil}
@@ -2622,130 +2631,32 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{field_snippet(@input)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Anatomy</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="email"
-            name="anatomy_email"
-            label="Email address"
-            value=""
-            placeholder="you@example.com"
-            help_text="We only use this for receipts."
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Error state</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="email"
-            name="error_email"
-            label="Email address"
-            value="not-an-email"
-            errors={["must include an @ sign"]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        In-field actions
-      </div>
-      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto space-y-6">
-          <.field
-            type="password"
-            name="pw_viewable"
-            label="Password (viewable)"
-            value="hunter2hunter2"
-            viewable
-            no_margin
-          />
-          <.field
-            type="text"
-            name="api_key"
-            label="API key (copyable)"
-            value="pk_live_51J8s0"
-            copyable
-            no_margin
-          />
-          <.field
-            type="search"
-            name="q"
-            label="Search (clearable)"
-            value="petal components"
-            clearable
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Every type</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-          <.field
-            type="tel"
-            name="et_tel"
-            label="Phone"
-            value=""
-            placeholder="0400 000 000"
-            no_margin
-          />
-          <.field
-            type="url"
-            name="et_url"
-            label="Website"
-            value=""
-            placeholder="https://petal.build"
-            no_margin
-          />
-          <.field type="date" name="et_date" label="Date" value="2026-07-22" no_margin />
-          <.field type="time" name="et_time" label="Time" value="09:30" no_margin />
-          <.field
-            type="datetime-local"
-            name="et_dtl"
-            label="Date and time"
-            value="2026-07-22T09:30"
-            no_margin
-          />
-          <.field type="month" name="et_month" label="Month" value="2026-07" no_margin />
-          <.field type="week" name="et_week" label="Week" value="2026-W30" no_margin />
-          <.field type="color" name="et_color" label="Brand color" value="#7c3aed" no_margin />
-          <.field type="file" name="et_file" label="Attachment" no_margin />
-        </div>
-        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          The date family gets a calendar/clock button that opens the native picker.
-          <code class="text-xs">type="hidden"</code>
-          renders nothing visible - form plumbing only. For <code class="text-xs">range</code>
-          and <code class="text-xs">range-dual</code>, see the Slider page.
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.Field,
+              ~w(anatomy error_state in_field_actions every_type)a
+            )
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
         </p>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Input group</div>
-      <div class="px-6 py-8 space-y-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto space-y-6">
-          <.input_group>
-            <:leading>https://</:leading>
-            <.input type="text" name="ig_domain" value="" placeholder="example.com" />
-          </.input_group>
-          <.input_group>
-            <:leading>$</:leading>
-            <.input type="number" name="ig_amount" value="" placeholder="0.00" />
-            <:trailing>USD</:trailing>
-          </.input_group>
-          <.input_group>
-            <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
-            <.input type="search" name="ig_q" value="" placeholder="Search components..." />
-            <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
-          </.input_group>
-        </div>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. Select, checkbox, radio and switch are the same field surface;
+        their pages render the rest of the registry.
+      </div>
     </div>
     """
   end
@@ -6567,27 +6478,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{otp_snippet(@otp)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Grouped</div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.input_otp id="otp-grouped-demo" name="grouped_code" length={6} group_size={3} />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        In a form field (error state)
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0!">
-            <.input_otp id="otp-error-demo" name="error_code" length={6} value="123" />
-            <p class="pc-form-field-error">that code has expired - we sent a new one</p>
-          </div>
-        </div>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.InputOtp, ~w(grouped error_state)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.InputOtp} function={:input_otp} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.InputOtp</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -6656,33 +6565,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{switch_snippet(@switch)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">States</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          <.field type="switch" name="st_off" label="Off" no_margin />
-          <.field type="switch" name="st_on" label="On" checked no_margin />
-          <.field type="switch" name="st_dis" label="Disabled" disabled no_margin />
-          <.field type="switch" name="st_dis_on" label="Disabled on" checked disabled no_margin />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          <.field
-            :for={z <- ~w(xs sm md lg xl)}
-            type="switch"
-            name={"sz_" <> z}
-            label={z}
-            size={z}
-            checked
-            no_margin
-          />
-        </div>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Field, ~w(switch switch_sizes)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -6697,112 +6598,22 @@ defmodule Dev.PlaygroundLive do
         text, icons, kbd hints, selects and buttons all compose.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="px-6 py-12">
-          <div class="max-w-sm mx-auto space-y-6">
-            <.input_group>
-              <:leading>https://</:leading>
-              <.input type="text" name="igp_domain" value="" placeholder="example.com" />
-            </.input_group>
-            <.input_group>
-              <:leading>$</:leading>
-              <.input type="number" name="igp_amount" value="" placeholder="0.00" />
-              <:trailing>USD</:trailing>
-            </.input_group>
-            <.input_group>
-              <:leading><.icon name="hero-magnifying-glass" class="w-4 h-4" /></:leading>
-              <.input type="search" name="igp_q" value="" placeholder="Search components..." />
-              <:trailing><kbd><span>⌘</span>K</kbd></:trailing>
-            </.input_group>
-            <.input_group>
-              <:leading>@</:leading>
-              <.input type="text" name="igp_handle" value="petalframework" disabled />
-            </.input_group>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Buttons</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto space-y-6">
-          <.input_group>
-            <.input type="email" name="igp_news" value="" placeholder="you@example.com" />
-            <:trailing><.button size="sm">Subscribe</.button></:trailing>
-          </.input_group>
-          <.input_group>
-            <.input type="text" name="igp_link" value="https://petal.build/join/x1y2z3" readonly />
-            <:trailing>
-              <.button size="sm" color="gray" variant="outline">
-                <.icon name="hero-clipboard" class="w-4 h-4" /> Copy
-              </.button>
-            </:trailing>
-          </.input_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Selects</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto space-y-6">
-          <.input_group>
-            <:leading>
-              <select name="igp_country" class="pc-select" aria-label="Country code">
-                <option>🇦🇺 +61</option>
-                <option>🇺🇸 +1</option>
-                <option>🇬🇧 +44</option>
-              </select>
-            </:leading>
-            <.input type="tel" name="igp_phone" value="" placeholder="400 000 000" />
-          </.input_group>
-          <.input_group>
-            <.input type="number" name="igp_price" value="" placeholder="0.00" />
-            <:trailing>
-              <select name="igp_cur" class="pc-select" aria-label="Currency">
-                <option>USD</option>
-                <option>EUR</option>
-                <option>AUD</option>
-              </select>
-            </:trailing>
-          </.input_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Block rows</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.input_group>
-            <:block_start class="gap-1">
-              <.button size="xs" color="gray" variant="ghost" aria-label="Bold">
-                <.icon name="hero-bold" class="w-4 h-4" />
-              </.button>
-              <.button size="xs" color="gray" variant="ghost" aria-label="Italic">
-                <.icon name="hero-italic" class="w-4 h-4" />
-              </.button>
-              <.button size="xs" color="gray" variant="ghost" aria-label="Link">
-                <.icon name="hero-link" class="w-4 h-4" />
-              </.button>
-            </:block_start>
-            <.input
-              type="textarea"
-              name="igp_bio"
-              value="Building a component library for Phoenix."
-              rows="3"
-            />
-            <:block_end class="justify-end text-xs text-gray-400">44/280</:block_end>
-          </.input_group>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Inline addons go in :leading and :trailing; full-width rows in :block_start
-        and :block_end. Focus anything inside and the whole group rings. Disable the
-        input and the group fades with it. Inside a field wrapper with errors, the
-        group border turns the error colour. The country flags are plain emoji in
-        the option label - zero JS, though Windows renders flag emoji as letter
-        pairs (AU, US), so keep the dial code in the label.
+      <div :for={ex <- PetalComponents.Showcase.InputGroup.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.InputGroup} function={:input_group} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.InputGroup</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -7202,97 +7013,26 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{radio_snippet(@radio)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Radio group</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="radio-group"
-            name="billing"
-            label="Billing period"
-            value="monthly"
-            options={[{"Monthly", "monthly"}, {"Yearly (save 20%)", "yearly"}]}
-            no_margin
-          />
-        </div>
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.Field,
+              ~w(radio_group radio_cards radio_card_tiles radio_card_disabled)a
+            )
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Payment method
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="radio-card"
-            name="pg_payment"
-            label="Payment method"
-            value="visa"
-            group_layout="col"
-            indicator
-            indicator_position="corner"
-            options={[
-              %{
-                value: "visa",
-                label: "Visa ending in 4242",
-                description: "Expires 12/26",
-                icon: "hero-credit-card"
-              },
-              %{
-                value: "mastercard",
-                label: "Mastercard ending in 8888",
-                description: "Expires 09/25",
-                icon: "hero-credit-card"
-              },
-              %{value: "new", label: "Add new payment method", icon: "hero-plus"}
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Icon tiles</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto">
-          <.field
-            type="radio-card"
-            name="pg_module"
-            label="Enable a module"
-            value="payments"
-            class="grid grid-cols-2 gap-3"
-            indicator
-            indicator_position="corner"
-            options={[
-              %{
-                value: "payments",
-                label: "Payments",
-                description: "Receive payments from your customers",
-                icon: "hero-banknotes"
-              },
-              %{
-                value: "invoices",
-                label: "Invoices",
-                description: "Create and send invoices to your customers",
-                icon: "hero-document-text"
-              },
-              %{
-                value: "billing",
-                label: "Billing",
-                description: "Manage your billing and subscriptions",
-                icon: "hero-credit-card"
-              },
-              %{
-                value: "reports",
-                label: "Reports",
-                description: "View your reports and analytics",
-                icon: "hero-chart-bar"
-              }
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        People picker
+        People picker - options take an image too (demo photos are dev-only, so this
+        stays a playground extra)
       </div>
       <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
@@ -7328,27 +7068,14 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Disabled option
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-lg mx-auto">
-          <.field
-            type="radio-card"
-            name="tier"
-            label="Tier"
-            value="cloud"
-            options={[
-              %{value: "cloud", label: "Cloud", description: "Managed for you"},
-              %{value: "self", label: "Self-hosted", description: "Coming soon", disabled: true}
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -7404,42 +7131,27 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{select_snippet(@select)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Option groups</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="region"
-            label="Region"
-            value="Sydney"
-            options={[
-              APAC: ["Sydney", "Tokyo", "Singapore"],
-              Europe: ["Amsterdam", "Berlin"],
-              Americas: ["Denver", "Sao Paulo"]
-            ]}
-            no_margin
-          />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Multiple</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="select"
-            name="channels"
-            label="Notification channels"
-            value={["Email", "Slack"]}
-            options={["Email", "Slack", "SMS", "Webhook"]}
-            multiple
-            help_text="Cmd-click to select more than one."
-            no_margin
-          />
-        </div>
+      <div
+        :for={
+          ex <- examples_for(PetalComponents.Showcase.Field, ~w(select_groups select_multiple)a)
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -7509,35 +7221,27 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{checkbox_snippet(@checkbox)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        States (click one - no ring; tab to it - ring)
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-          <.field type="checkbox" name="s_off" label="Unchecked" no_margin />
-          <.field type="checkbox" name="s_on" label="Checked" checked no_margin />
-          <.field type="checkbox" name="s_dis" label="Disabled" disabled no_margin />
-          <.field type="checkbox" name="s_dis_on" label="Disabled checked" checked disabled no_margin />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Single checkbox
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="checkbox"
-            name="terms"
-            label="I agree to the terms and privacy policy"
-            help_text="You can withdraw consent at any time."
-            no_margin
-          />
-        </div>
+      <div
+        :for={
+          ex <- examples_for(PetalComponents.Showcase.Field, ~w(checkbox_states checkbox_single)a)
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end

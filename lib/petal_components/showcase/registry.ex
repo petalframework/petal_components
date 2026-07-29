@@ -19,6 +19,9 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.ColorSchemeSwitch,
     PetalComponents.Showcase.Command,
+    PetalComponents.Showcase.Field,
+    PetalComponents.Showcase.InputGroup,
+    PetalComponents.Showcase.InputOtp,
     PetalComponents.Showcase.LocalTime,
     PetalComponents.Showcase.Sparkline,
     PetalComponents.Showcase.Toast
