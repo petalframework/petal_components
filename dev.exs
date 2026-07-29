@@ -4073,83 +4073,12 @@ defmodule Dev.PlaygroundLive do
         keyboard hints and destructive items. Triggers follow the rail radius.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Account menu</div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-gray-800 pb-72">
-        <div class="flex justify-center">
-          <.dropdown label="you@example.com">
-            <.dropdown_menu_label>My account</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-user" class="w-4 h-4" /> Profile
-              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>P</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> Settings
-              <kbd class="pc-kbd ml-auto"><span>⌘</span>,</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_label>Team</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-user-plus" class="w-4 h-4" /> Invite members
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button" disabled>
-              <.icon name="hero-plus" class="w-4 h-4" /> New team (Pro)
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
-              <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
-              <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>Q</kbd>
-            </.dropdown_menu_item>
-          </.dropdown>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Row actions (ellipsis trigger) and a custom trigger
-      </div>
-      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-gray-800 pb-56">
-        <div class="flex items-start justify-center gap-16">
-          <.dropdown>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
-              <kbd class="pc-kbd ml-auto"><span>⌘</span>E</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-document-duplicate" class="w-4 h-4" /> Duplicate
-              <kbd class="pc-kbd ml-auto"><span>⌘</span>D</kbd>
-            </.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">
-              <.icon name="hero-archive-box" class="w-4 h-4" /> Archive
-            </.dropdown_menu_item>
-            <.dropdown_menu_separator />
-            <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
-              <.icon name="hero-trash" class="w-4 h-4" /> Delete
-              <kbd class="pc-kbd ml-auto"><span>⌘</span>⌫</kbd>
-            </.dropdown_menu_item>
-          </.dropdown>
-          <.dropdown placement="right" trigger_class="pc-button pc-button--primary pc-button--md">
-            <:trigger_element>
-              Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
-            </:trigger_element>
-            <.dropdown_menu_label>Recent</.dropdown_menu_label>
-            <.dropdown_menu_item link_type="button">petal_components</.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">petal_pro</.dropdown_menu_item>
-            <.dropdown_menu_item link_type="button">marketing site</.dropdown_menu_item>
-          </.dropdown>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Triggers are chrome: the built-in labelled trigger and the ghost
-        ellipsis stay neutral gray whatever your palette (only their focus
-        ring rides primary). A custom trigger is your own button - brand it
-        when the action deserves it, like the solid one above, and it follows
-        your colour dials. Items are links or buttons (a / live_patch /
-        live_redirect / button) and take arbitrary content: icons, .pc-kbd
-        hints, custom classes for destructive actions. dropdown_menu_label
-        and dropdown_menu_separator organise groups.
+      <div :for={ex <- PetalComponents.Showcase.Dropdown.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -4157,6 +4086,12 @@ defmodule Dev.PlaygroundLive do
         component={PetalComponents.Dropdown}
         functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
       />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Dropdown</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -4170,38 +4105,22 @@ defmodule Dev.PlaygroundLive do
         click-away close it; the box radius scales gently with the rail.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center px-6 py-16">
-          <.button color="gray" variant="outline" phx-click={show_modal("pg-modal")}>
-            Open modal
-          </.button>
-        </div>
-      </div>
-
-      <.modal id="pg-modal" title="Invite your team" hide max_width="sm">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          Share this link with your teammates and they'll join the workspace
-          with member access.
+      <div :for={ex <- PetalComponents.Showcase.Modal.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
         </p>
-        <div class="mt-4">
-          <.input_group>
-            <.input type="text" name="invite_url" value="https://example.com/join/x1y2z3" readonly />
-            <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
-          </.input_group>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <.button color="gray" variant="outline" phx-click={hide_modal("pg-modal")}>Cancel</.button>
-          <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
-        </div>
-      </.modal>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        show_modal/1 and hide_modal/1 are plain LiveView.JS commands - wire them
-        to any phx-click. close_on_click_away and close_on_escape default on.
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Modal} function={:modal} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Modal</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -4634,76 +4553,25 @@ defmodule Dev.PlaygroundLive do
         </:footer>
       </.slide_over>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        A cart - scrolling body, pinned summary footer
-      </div>
-      <div class="px-6 py-16 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.button
-            color="gray"
-            variant="outline"
-            phx-click={PetalComponents.SlideOver.show_slide_over("right", "pg-cart")}
-          >
-            <.icon name="hero-shopping-bag" class="w-4 h-4 mr-1" /> Open cart
-            <.badge color="primary" size="sm" label="3" class="ml-2" />
-          </.button>
-        </div>
-      </div>
-
-      <.slide_over
-        id="pg-cart"
-        hide
-        origin="right"
-        max_width="sm"
-        title="Your cart"
-        description="3 items"
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.SlideOver, ~w(cart)a)}
+        class="mt-10"
       >
-        <div class="flex flex-col divide-y divide-gray-100 dark:divide-white/10">
-          <div
-            :for={
-              {name, meta, price} <- [
-                {"Petal Pro licence", "Single project", "$299"},
-                {"Petal Pro team", "Unlimited projects", "$599"},
-                {"Petal stickers", "Pack of 12", "$9"}
-              ]
-            }
-            class="flex items-center gap-3 py-4"
-          >
-            <div class="flex items-center justify-center flex-none w-12 h-12 rounded-lg bg-gray-100 dark:bg-white/10">
-              <.icon name="hero-cube" class="w-5 h-5 text-gray-400" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{name}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{meta}</p>
-            </div>
-            <p class="text-sm font-medium tabular-nums text-gray-900 dark:text-gray-100">{price}</p>
-          </div>
-        </div>
-        <:footer>
-          <div class="flex items-center justify-between w-full gap-4">
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
-              <p class="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                $907
-              </p>
-            </div>
-            <.button phx-click={PetalComponents.SlideOver.hide_slide_over("right", "pg-cart")}>
-              Checkout
-            </.button>
-          </div>
-        </:footer>
-      </.slide_over>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        The panel is the floating surface: white / gray-900 with a hairline border on its
-        attached edge. title and description wire aria-labelledby/describedby; the footer
-        slot pins action rows below the scrolling body. Escape and click-away close by
-        default, and open/close are LiveView.JS commands (show_slide_over / hide_slide_over),
-        so no server round-trip is needed to animate.
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.SlideOver} function={:slide_over} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.SlideOver</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -6277,37 +6145,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{tooltip_snippet(@tooltip)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Icon buttons (the classic use)
-      </div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center gap-3">
-          <.tooltip label="Bold">
-            <.button color="gray" variant="ghost" size="icon" aria-label="Bold"><.icon name="hero-bold" /></.button>
-          </.tooltip>
-          <.tooltip label="Italic">
-            <.button color="gray" variant="ghost" size="icon" aria-label="Italic"><.icon name="hero-italic" /></.button>
-          </.tooltip>
-          <.tooltip label="Link">
-            <.button color="gray" variant="ghost" size="icon" aria-label="Link"><.icon name="hero-link" /></.button>
-          </.tooltip>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Rich content</div>
-      <div class="px-6 py-12 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center">
-          <.tooltip placement="bottom">
-            <:content>
-              <span class="font-semibold">Deploys locked</span><br />ask in #releases to unlock
-            </:content>
-            <.badge color="warning" label="Locked" />
-          </.tooltip>
-        </div>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Tooltip, ~w(icon_buttons rich_content)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Tooltip} function={:tooltip} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Tooltip</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -6377,31 +6233,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{popover_snippet(@popover)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        top_layer escapes clipped containers
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto">
-          <div class="relative h-24 p-4 overflow-hidden border border-dashed rounded-lg border-gray-300 dark:border-gray-700">
-            <div class="mb-2 text-xs text-gray-400">overflow: hidden container</div>
-            <.popover
-              id="pg-popover-clipped"
-              placement="bottom"
-              top_layer
-              trigger_class="pc-button pc-button--gray-outline pc-button--sm"
-            >
-              <:trigger>Open from inside</:trigger>
-              <div class="max-w-64 text-sm">
-                This panel paints on the browser top layer - the clipped
-                container can't cut it off.
-              </div>
-            </.popover>
-          </div>
-        </div>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Popover, ~w(top_layer)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Popover} function={:popover} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Popover</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
