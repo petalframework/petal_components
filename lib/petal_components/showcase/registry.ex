@@ -19,12 +19,17 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.ColorSchemeSwitch,
     PetalComponents.Showcase.Command,
+    PetalComponents.Showcase.Dropdown,
     PetalComponents.Showcase.Field,
     PetalComponents.Showcase.InputGroup,
     PetalComponents.Showcase.InputOtp,
     PetalComponents.Showcase.LocalTime,
+    PetalComponents.Showcase.Modal,
+    PetalComponents.Showcase.Popover,
+    PetalComponents.Showcase.SlideOver,
     PetalComponents.Showcase.Sparkline,
-    PetalComponents.Showcase.Toast
+    PetalComponents.Showcase.Toast,
+    PetalComponents.Showcase.Tooltip
   ]
 
   @doc "Every showcase module, sorted by title."
