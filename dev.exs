@@ -4238,29 +4238,22 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{progress_snippet(@progress)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Semantic colours
-      </div>
-      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto space-y-4">
-          <.progress value={80} color="success" />
-          <.progress value={55} color="info" />
-          <.progress value={35} color="warning" />
-          <.progress value={15} color="danger" />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-md mx-auto space-y-4">
-          <.progress :for={z <- ~w(xs sm md lg)} value={60} size={z} />
-          <.progress value={60} size="xl" label="60%" />
-          <.progress value={56} size="sm" label="Upload progress" label_position="top" />
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.Progress.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Progress} function={:progress} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Progress</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -4399,73 +4392,27 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{rating_snippet(assigns)}</code></pre>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        The sentiment scale - each face is its own expression and colour
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-6">
-          <.rating
-            interactive
-            name="csat"
-            rating={0}
-            icon="face"
-            size="lg"
-            label="How was your experience?"
-          />
-          <p class="text-sm text-gray-500 dark:text-gray-400">How was your support experience?</p>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Display only - fractional values, any total
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-4">
-          <.rating rating={3.5} include_label />
-          <.rating rating={3.5} icon="heart" include_label />
-          <.rating rating={4.2} icon="face" include_label />
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Bring your own glyph - the :glyph slot + one colour token
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-2">
-          <.rating
-            interactive
-            name="heat"
-            rating={3}
-            label="Spice level"
-            style="--pc-rating-active-color: var(--color-orange-500)"
-          >
-            <:glyph>
-              <svg viewBox="0 0 24 24" fill="currentColor" class="pc-rating__icon">
-                <path
-                  fill-rule="evenodd"
-                  d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </:glyph>
-          </.rating>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Spice level</p>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Interactive mode is a fieldset of radios: the value posts under name like any form
-        field, arrows move between options, and focus-visible rings the focused icon.
-        precision="half" doubles the hit areas so 3.5 is clickable (and arrow keys step by
-        halves) - still radios, still zero JavaScript. Faces are a discrete five-point
-        scale, so they always step whole and fractional display values round to the nearest
-        expression with the label carrying the precision. Any icon set can be recoloured per
-        instance with --pc-rating-active-color, and the :glyph slot swaps in your own icon
-        entirely.
+      <div
+        :for={
+          ex <- examples_for(PetalComponents.Showcase.Rating, ~w(sentiment display custom_glyph)a)
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Rating} function={:rating} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Rating</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -4663,33 +4610,15 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Shapes
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-end justify-center gap-8">
-          <div class="flex flex-col items-center gap-2">
-            <.skeleton class="h-16 w-24" />
-            <span class="text-[11px] text-gray-400">block</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <.skeleton variant="circle" class="size-16" />
-            <span class="text-[11px] text-gray-400">circle</span>
-          </div>
-          <div class="flex w-40 flex-col items-center gap-2">
-            <.skeleton_text lines={3} />
-            <span class="text-[11px] text-gray-400">skeleton_text</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        skeleton_group is the accessibility wrapper: role="status" + aria-busy announces
-        loading once (set the label), while the bricks stay aria-hidden. Its animation
-        cascades to everything inside; a brick's own animation wins. Blocks follow the
-        radius token, shimmer respects prefers-reduced-motion, and skeleton_text's line
-        widths are deterministic so LiveView re-renders never make it dance. The old
-        kind={:card}-style prebuilt layouts still render for compatibility.
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Skeleton, ~w(shapes)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -4697,6 +4626,13 @@ defmodule Dev.PlaygroundLive do
         component={PetalComponents.Skeleton}
         functions={[:skeleton, :skeleton_group, :skeleton_text]}
       />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Skeleton</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (The old kind={:card}-style prebuilt layouts still render for
+        compatibility.)
+      </div>
     </div>
     """
   end
@@ -4884,55 +4820,22 @@ defmodule Dev.PlaygroundLive do
         The spinner. Buttons already know it (loading attr) - use it standalone for
         anything else that waits.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-6 px-6 py-12">
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            <.button loading>Saving changes</.button>
-            <.button color="gray" variant="outline" loading disabled>Generating</.button>
-          </div>
-          <div class="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400">
-            <.spinner size="sm" /> Syncing workspace...
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        A loading panel
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center justify-center max-w-md gap-3 py-12 mx-auto border border-gray-200 border-dashed rounded-xl dark:border-gray-700">
-          <.spinner size="md" />
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Generating preview</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">This usually takes a few seconds</p>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Sizes and colour
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-end justify-center gap-10">
-          <div :for={sz <- ~w(sm md lg)} class="flex flex-col items-center gap-2">
-            <.spinner size={sz} />
-            <span class="text-[11px] text-gray-400">{sz}</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <.spinner size_class="h-8 w-8 text-secondary-500" />
-            <span class="text-[11px] text-gray-400">custom</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Buttons take loading directly (spinner swaps in, label stays). Standalone, pair
-        the spinner with a status line or a panel state. show toggles visibility without
-        unmounting; size_class takes over sizing and colour (currentColor, so text-*
-        utilities recolour it). For full skeleton states, reach for the skeleton
-        component instead.
+      <div :for={ex <- PetalComponents.Showcase.Loading.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Loading} function={:spinner} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Loading</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (show toggles visibility without unmounting.)
+      </div>
     </div>
     """
   end
@@ -7889,60 +7792,22 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{alert_snippet(@alert)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Semantic colours
-      </div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.alert color="info" variant={@alert.variant} with_icon>
-          A new version of this page is available.
-        </.alert>
-        <.alert color="success" variant={@alert.variant} with_icon>Your changes were saved.</.alert>
-        <.alert color="warning" variant={@alert.variant} with_icon>Your trial ends in 3 days.</.alert>
-        <.alert color="danger" variant={@alert.variant} with_icon>
-          Payment failed. Check your card details.
-        </.alert>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
-      <div class="px-6 py-8 space-y-3 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.alert color="gray" variant="light" with_icon>
-          Light, the default. Stays light even in dark mode.
-        </.alert>
-        <.alert color="gray" variant="soft" with_icon>Soft adapts to dark mode.</.alert>
-        <.alert color="gray" variant="dark" with_icon>Dark, maximum emphasis.</.alert>
-        <.alert color="gray" variant="outline" with_icon>Outline, for calm surfaces.</.alert>
-        <.alert color="success" variant="callout" with_icon heading="Callout, the toast-cohesive form">
-          Neutral panel, colour as accent - a left bar and a solid icon.
-        </.alert>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Actions and custom icons
-      </div>
-      <div class="px-6 py-8 space-y-4 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.alert color="info" variant="callout" with_icon heading="Update available">
-          Version 4.8 is ready to install.
-          <:actions>
-            <.button size="sm" variant="soft">View notes</.button>
-            <.button size="sm" variant="ghost" color="gray">Later</.button>
-          </:actions>
-        </.alert>
-        <.alert color="warning" variant="soft" icon="hero-lock-closed" heading="Password expiring">
-          Your password expires in 3 days - a custom icon via icon="hero-lock-closed".
-        </.alert>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Dismissible (click the cross)
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.alert color="success" with_icon heading="Invite sent" close_button_properties={[]}>
-          We emailed Ana a link to join your workspace.
-        </.alert>
+      <div :for={ex <- PetalComponents.Showcase.Alert.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Alert} function={:alert} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Alert</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end

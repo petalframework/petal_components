@@ -10,6 +10,7 @@ defmodule PetalComponents.Showcase.Registry do
 
   @modules [
     PetalComponents.Showcase.Accordion,
+    PetalComponents.Showcase.Alert,
     PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.Avatar,
     PetalComponents.Showcase.BorderBeam,
@@ -23,9 +24,13 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Field,
     PetalComponents.Showcase.InputGroup,
     PetalComponents.Showcase.InputOtp,
+    PetalComponents.Showcase.Loading,
     PetalComponents.Showcase.LocalTime,
     PetalComponents.Showcase.Modal,
     PetalComponents.Showcase.Popover,
+    PetalComponents.Showcase.Progress,
+    PetalComponents.Showcase.Rating,
+    PetalComponents.Showcase.Skeleton,
     PetalComponents.Showcase.SlideOver,
     PetalComponents.Showcase.Sparkline,
     PetalComponents.Showcase.Toast,
