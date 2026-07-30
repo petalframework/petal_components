@@ -53,12 +53,23 @@ defmodule PetalComponents.Showcase.SlideOver do
     description:
       "The panel is the floating surface: the body scrolls while the :footer stays put, so totals and the checkout button never leave the screen. Escape and click-away close by default." do
     ~H"""
-    <.button color="gray" variant="outline" phx-click={show_slide_over("right", "showcase-sheet-cart")}>
+    <.button
+      color="gray"
+      variant="outline"
+      phx-click={show_slide_over("right", "showcase-sheet-cart")}
+    >
       <.icon name="hero-shopping-bag" class="w-4 h-4 mr-1" /> Open cart
       <.badge color="primary" size="sm" label="3" class="ml-2" />
     </.button>
 
-    <.slide_over id="showcase-sheet-cart" hide origin="right" max_width="sm" title="Your cart" description="3 items">
+    <.slide_over
+      id="showcase-sheet-cart"
+      hide
+      origin="right"
+      max_width="sm"
+      title="Your cart"
+      description="3 items"
+    >
       <div class="flex flex-col divide-y divide-gray-100 dark:divide-white/10">
         <div
           :for={
