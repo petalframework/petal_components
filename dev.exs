@@ -2958,21 +2958,25 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{shine_snippet(@shine)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        On an input (thicker border)
-      </div>
-      <div class="px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.shine_border shine_color="#3b82f6" border_width="2px" class="w-full max-w-sm mx-auto">
-          <input
-            type="text"
-            value="magic search..."
-            class="w-full px-4 py-2.5 text-sm bg-transparent border-0 focus:outline-hidden text-gray-900 dark:text-gray-100"
-          />
-        </.shine_border>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.ShineBorder, ~w(input)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.ShineBorder} function={:shine_border} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ShineBorder</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -3833,17 +3837,22 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{meteor_snippet(@meteors)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Deterministic (same seed, same sky)
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="relative w-full max-w-lg mx-auto overflow-hidden border border-gray-200 rounded-xl h-40 dark:border-gray-800 dark:bg-gray-900">
-          <.meteors count={8} seed={42} />
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.Meteors.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Meteors} function={:meteors} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Meteors</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5356,13 +5365,22 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        repeat controls how many copies keep the loop seamless; duration and gap tune the
-        feel; overlay_gradient fades the edges. Holds still under prefers-reduced-motion.
+      <div :for={ex <- PetalComponents.Showcase.Marquee.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Marquee} function={:marquee} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Marquee</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (overlay_gradient fades the edges.)
+      </div>
     </div>
     """
   end
@@ -5374,34 +5392,22 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A radial glow follows your cursor across the card. Move your mouse over them.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="grid gap-6 px-6 py-12 md:grid-cols-2">
-          <.spotlight_card id="spot-1" class="p-8">
-            <h3 class="text-lg font-semibold">Default glow</h3>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Subtle by default - the light source tracks the pointer.
-            </p>
-          </.spotlight_card>
-          <.spotlight_card
-            id="spot-2"
-            spotlight_color="rgba(124, 58, 237, 0.25)"
-            spotlight_size="500px"
-            class="p-8"
-          >
-            <h3 class="text-lg font-semibold">Tuned glow</h3>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              spotlight_color and spotlight_size make it a brand moment.
-            </p>
-          </.spotlight_card>
-        </div>
-      </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Powered by the tiny PetalSpotlight hook (pointer position only - the paint is pure
-        CSS). Reads best on dark panels.
+      <div :for={ex <- PetalComponents.Showcase.SpotlightCard.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.SpotlightCard} function={:spotlight_card} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.SpotlightCard</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5422,35 +5428,25 @@ defmodule Dev.PlaygroundLive do
           <.button color="gray" variant="outline" size="sm" phx-click="ticker_bump">
             <.icon name="hero-arrow-trending-up" class="w-4 h-4 mr-1" /> Add revenue
           </.button>
-          <div class="flex gap-10 text-center">
-            <div>
-              <div class="text-2xl font-semibold tabular-nums">
-                <.number_ticker id="t-stars" value={1024} suffix="+" />
-              </div>
-              <div class="mt-1 text-xs text-gray-400">GitHub stars</div>
-            </div>
-            <div>
-              <div class="text-2xl font-semibold tabular-nums">
-                <.number_ticker
-                  id="t-uptime"
-                  value={99.98}
-                  decimal_places={2}
-                  suffix="%"
-                  duration={2200}
-                />
-              </div>
-              <div class="mt-1 text-xs text-gray-400">Uptime</div>
-            </div>
-          </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        prefix/suffix/decimal_places/locale handle formatting; duration tunes the count.
-        The PetalNumberTicker hook animates on mount and on every value change.
+
+      <div :for={ex <- PetalComponents.Showcase.NumberTicker.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.NumberTicker} function={:number_ticker} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.NumberTicker</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5462,29 +5458,12 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Four ways to make words move: gradient sweep, shimmer, typing, and word rotation.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-10 px-6 py-14 text-center">
-          <.gradient_text class="text-4xl font-bold">Ship something tonight</.gradient_text>
-          <.shimmer_text class="text-2xl font-semibold">Generating your app...</.shimmer_text>
-          <div class="text-2xl font-semibold">
-            Build
-            <.word_rotate
-              id="pg-rotate"
-              words={["faster", "calmer", "together", "tonight"]}
-              class="text-primary-600 dark:text-primary-400"
-            />
-          </div>
-          <.typing_effect
-            id="pg-typing"
-            text="mix petal.gen.live Accounts User users"
-            class="font-mono text-sm"
-          />
-        </div>
-      </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        gradient_text and shimmer_text are pure CSS (colours + duration attrs);
-        word_rotate and typing_effect use tiny hooks. All respect
-        prefers-reduced-motion.
+      <div :for={ex <- PetalComponents.Showcase.TextAnimation.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -5492,6 +5471,12 @@ defmodule Dev.PlaygroundLive do
         component={PetalComponents.TextAnimation}
         functions={[:gradient_text, :shimmer_text, :typing_effect, :word_rotate]}
       />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.TextAnimation</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5504,25 +5489,22 @@ defmodule Dev.PlaygroundLive do
         Zero-dependency canvas confetti. Fire it from the client or push it from the
         server on the moments that matter.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-4 px-6 py-16">
-          <.confetti id="pg-confetti" />
-          <.button phx-click={Phoenix.LiveView.JS.dispatch("pc:confetti", to: "#pg-confetti")}>
-            <.icon name="hero-sparkles" class="w-4 h-4 mr-1.5" /> Celebrate
-          </.button>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            no server round-trip - it's a JS.dispatch
-          </p>
-        </div>
-      </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Tune particle_count, spread, angle, velocity, colors and origin. From LiveView:
-        push_event(socket, "pc-confetti", %{}) fires it server-side - ship it on signup
-        complete, plan upgraded, streak kept.
+      <div :for={ex <- PetalComponents.Showcase.Confetti.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Confetti} function={:confetti} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Confetti</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
