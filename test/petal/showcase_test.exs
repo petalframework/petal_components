@@ -129,8 +129,8 @@ defmodule PetalComponents.ShowcaseTest do
         for f <- mod.showcase_functions() do
           info = Map.get(defs, f)
 
-          assert info != nil and info.attrs != [],
-                 "#{inspect(mod)} documents #{inspect(component)}.#{f} but it has no attrs " <>
+          assert info != nil and (info.attrs != [] or info.slots != []),
+                 "#{inspect(mod)} documents #{inspect(component)}.#{f} but it has no attrs or slots " <>
                    "(real functions: #{inspect(Map.keys(defs))}) - set functions: on the showcase module"
         end
       end
