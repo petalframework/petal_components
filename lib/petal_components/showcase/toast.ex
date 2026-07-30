@@ -1,6 +1,9 @@
 defmodule PetalComponents.Showcase.Toast do
   @moduledoc false
-  use PetalComponents.Showcase, component: PetalComponents.Toast, title: "Toast"
+  use PetalComponents.Showcase,
+    component: PetalComponents.Toast,
+    title: "Toast",
+    functions: [:toast_group]
 
   alias Phoenix.LiveView.JS
 
