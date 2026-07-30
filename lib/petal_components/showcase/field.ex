@@ -328,6 +328,50 @@ defmodule PetalComponents.Showcase.Field do
     """
   end
 
+  example :sliders, "Sliders",
+    description:
+      "type=\"range\" is the native input on the shared field surface - no JavaScript when plain. fill paints the track primary up to the thumb (Firefox natively, a tiny hook for webkit); leave it off for balance and pan controls, where a fill would imply a wrong zero point. step snaps the scale." do
+    ~H"""
+    <div class="grid w-full gap-x-10 gap-y-6 sm:grid-cols-2">
+      <.field type="range" name="volume" label="Volume" value="60" min="0" max="100" fill no_margin />
+      <.field
+        type="range"
+        name="stepped"
+        label="Stepped (10s)"
+        value="40"
+        min="0"
+        max="100"
+        step="10"
+        fill
+        no_margin
+      />
+      <.field type="range" name="balance" label="Balance" value="50" min="0" max="100" no_margin />
+      <.field type="range" name="range_dis" label="Disabled" value="30" disabled no_margin />
+    </div>
+    """
+  end
+
+  example :slider_dual, "Dual range",
+    description:
+      "type=\"range-dual\" is two thumbs and a hook for min/max filtering - same track, thumb and focus ring as the single. min_field and max_field take form fields (in your app, @form[:min] and @form[:max]); value_prefix formats the readout and range_max_label caps the scale as open-ended." do
+    ~H"""
+    <div class="w-full max-w-sm">
+      <.field
+        type="range-dual"
+        min_field={to_form(%{"min" => "100"}, as: :price)[:min]}
+        max_field={to_form(%{"max" => "600"}, as: :price)[:max]}
+        range_min={0}
+        range_max={1000}
+        step={50}
+        value_prefix="$"
+        range_max_label="$1,000+"
+        label="Price"
+        no_margin
+      />
+    </div>
+    """
+  end
+
   example :switch, "Switch",
     description:
       "type=\"switch\" is the checkbox for instant effect - on or off, applied immediately, no save button implied. checked starts it on; disabled freezes either position." do
