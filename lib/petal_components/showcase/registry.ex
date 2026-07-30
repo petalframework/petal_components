@@ -13,8 +13,12 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Alert,
     PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.Avatar,
+    PetalComponents.Showcase.Badge,
     PetalComponents.Showcase.BorderBeam,
+    PetalComponents.Showcase.Breadcrumbs,
     PetalComponents.Showcase.Button,
+    PetalComponents.Showcase.ButtonGroup,
+    PetalComponents.Showcase.Card,
     PetalComponents.Showcase.Carousel,
     PetalComponents.Showcase.Chart,
     PetalComponents.Showcase.Chat,
@@ -27,14 +31,19 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Loading,
     PetalComponents.Showcase.LocalTime,
     PetalComponents.Showcase.Modal,
+    PetalComponents.Showcase.Pagination,
     PetalComponents.Showcase.Popover,
     PetalComponents.Showcase.Progress,
     PetalComponents.Showcase.Rating,
     PetalComponents.Showcase.Skeleton,
     PetalComponents.Showcase.SlideOver,
     PetalComponents.Showcase.Sparkline,
+    PetalComponents.Showcase.Stepper,
+    PetalComponents.Showcase.Table,
+    PetalComponents.Showcase.Tabs,
     PetalComponents.Showcase.Toast,
-    PetalComponents.Showcase.Tooltip
+    PetalComponents.Showcase.Tooltip,
+    PetalComponents.Showcase.UserDropdownMenu
   ]
 
   @doc "Every showcase module, sorted by title."

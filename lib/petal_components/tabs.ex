@@ -49,7 +49,8 @@ defmodule PetalComponents.Tabs do
 
   attr(:link_type, :string,
     default: "a",
-    values: ["a", "live_patch", "live_redirect"]
+    values: ["a", "live_patch", "live_redirect", "button"],
+    doc: "button renders a real <button> for phx-click / JS-command tabs - no href involved"
   )
 
   attr(:to, :string, default: nil, doc: "link path")

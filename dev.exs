@@ -4645,162 +4645,12 @@ defmodule Dev.PlaygroundLive do
         Fuses buttons, inputs and text segments into one control - split buttons,
         toolbars, mixed rails.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap items-center justify-center gap-6 px-6 py-12">
-          <.button_group aria_label="Merge options">
-            <.button color="gray" variant="outline" label="Merge pull request" />
-            <.dropdown
-              placement="left"
-              menu_items_wrapper_class="w-72"
-              trigger_class="pc-button pc-button--gray-outline pc-button--icon rounded-l-none border-l-0"
-            >
-              <:trigger_element>
-                <.icon name="hero-chevron-down" class="w-4 h-4" />
-              </:trigger_element>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-arrow-down-on-square" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-900 dark:text-gray-100">
-                    Create a merge commit
-                  </span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    All commits added to the base via a merge commit
-                  </span>
-                </div>
-              </.dropdown_menu_item>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-arrows-pointing-in" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-900 dark:text-gray-100">Squash and merge</span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Commits combined into one before merging
-                  </span>
-                </div>
-              </.dropdown_menu_item>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-arrow-path" class="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-900 dark:text-gray-100">Rebase and merge</span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Commits rebased onto the base branch
-                  </span>
-                </div>
-              </.dropdown_menu_item>
-            </.dropdown>
-          </.button_group>
-          <.button_group aria_label="Change view">
-            <.button color="gray" variant="outline" label="Day" />
-            <.button color="gray" variant="outline" label="Week" />
-            <.button color="gray" variant="outline" label="Month" />
-          </.button_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Toolbar - nested groups gap apart, buttons inside fuse
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.button_group aria_label="Editor toolbar">
-            <.button_group aria_label="History">
-              <.button color="gray" variant="outline" size="icon" aria-label="Undo">
-                <.icon name="hero-arrow-uturn-left" class="w-4 h-4" />
-              </.button>
-              <.button color="gray" variant="outline" size="icon" aria-label="Redo">
-                <.icon name="hero-arrow-uturn-right" class="w-4 h-4" />
-              </.button>
-            </.button_group>
-            <.button_group aria_label="Formatting">
-              <.button color="gray" variant="outline" size="icon" aria-label="Bold">
-                <.icon name="hero-bold" class="w-4 h-4" />
-              </.button>
-              <.button color="gray" variant="outline" size="icon" aria-label="Italic">
-                <.icon name="hero-italic" class="w-4 h-4" />
-              </.button>
-              <.button color="gray" variant="outline" size="icon" aria-label="Link">
-                <.icon name="hero-link" class="w-4 h-4" />
-              </.button>
-            </.button_group>
-            <.button_group aria_label="Share">
-              <.button color="gray" variant="outline" size="sm" label="Share" />
-            </.button_group>
-          </.button_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Sizes - the buttons carry it, the group just joins
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-4">
-          <div :for={sz <- ~w(sm md lg)} class="flex items-center gap-3">
-            <.button_group aria_label={"Pager " <> sz}>
-              <.button color="gray" variant="outline" size={sz} label="Previous" />
-              <.button color="gray" variant="outline" size={sz} label="Next" />
-            </.button_group>
-            <span class="text-[11px] text-gray-400">{sz}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Split button - solid buttons have no borders, the separator is the divider
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.button_group aria_label="Save options">
-            <.button label="Save changes" />
-            <.button_group_separator />
-            <.button size="icon" aria-label="More save options">
-              <.icon name="hero-chevron-down" class="w-4 h-4" />
-            </.button>
-          </.button_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Mixed rail - text prefix, input and button share one surface
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-col items-center gap-5">
-          <.button_group aria_label="Site address" class="w-full max-w-sm">
-            <.button_group_text>https://</.button_group_text>
-            <.input type="text" name="bg_domain" value="" placeholder="example.com" />
-            <.button color="gray" variant="outline" label="Visit" />
-          </.button_group>
-          <.button_group aria_label="Search the docs" class="w-full max-w-sm">
-            <.input type="search" name="bg_q" value="" placeholder="Search the docs..." />
-            <.button color="gray" variant="outline" size="icon" aria-label="Search">
-              <.icon name="hero-magnifying-glass" class="w-4 h-4" />
-            </.button>
-          </.button_group>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Vertical - fuses top to bottom
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.button_group aria_label="Zoom" orientation="vertical">
-            <.button color="gray" variant="outline" size="icon" aria-label="Zoom in">
-              <.icon name="hero-plus" class="w-4 h-4" />
-            </.button>
-            <.button color="gray" variant="outline" size="icon" aria-label="Zoom out">
-              <.icon name="hero-minus" class="w-4 h-4" />
-            </.button>
-          </.button_group>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Drop real components in and the group fuses them: outer corners keep the radius
-        token, inner borders collapse to a single line. Outline buttons and inputs carry
-        their own dividers; solid buttons have transparent borders, so put a
-        button_group_separator between them (between primary solids it tints from the
-        solid label colour; elsewhere it matches the border colour).
-        Nested groups stop fusing and gap into clusters. The :button slot API from
-        earlier releases still renders unchanged.
+      <div :for={ex <- PetalComponents.Showcase.ButtonGroup.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -4808,6 +4658,13 @@ defmodule Dev.PlaygroundLive do
         component={PetalComponents.ButtonGroup}
         functions={[:button_group, :button_group_separator, :button_group_text]}
       />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ButtonGroup</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (The :button slot API from earlier releases still renders
+        unchanged.)
+      </div>
     </div>
     """
   end
@@ -4875,14 +4732,25 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        links take label and/or icon (the first crumb here is a home icon), to, and
-        link_type (a / live_patch / live_redirect / button). The last crumb renders as
-        the current page - strong text + aria-current. The nav carries an aria_label.
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Breadcrumbs, ~w(basic)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Breadcrumbs} function={:breadcrumbs} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Breadcrumbs</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5068,14 +4936,22 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
       </div>
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Steps are plain maps: name, description, complete?, active?, on_click (any JS
-        command - this demo pushes an event). aria-current and completed labels are wired
-        for screen readers.
+      <div :for={ex <- PetalComponents.Showcase.Stepper.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Stepper} function={:stepper} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Stepper</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (The wizard above is playground-only - its steps push events.)
+      </div>
     </div>
     """
   end
@@ -5293,46 +5169,17 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The container for everything - media, content, footer, composed from parts.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center px-6 py-12">
-          <.card class="w-full max-w-sm">
-            <.card_header
-              title="Login to your account"
-              description="Enter your email below to login"
-            >
-              <:action>
-                <.button color="gray" variant="ghost" size="sm" link_type="a" to="#">
-                  Sign up
-                </.button>
-              </:action>
-            </.card_header>
-            <.card_content>
-              <div class="flex flex-col gap-4">
-                <.field type="email" name="email" value="" label="Email" placeholder="m@example.com" />
-                <div>
-                  <div class="flex items-center justify-between mb-1.5">
-                    <label class="text-sm font-medium text-gray-900 dark:text-gray-100">Password</label>
-                    <a
-                      href="#"
-                      class="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
-                  <.input type="password" name="password" value="" />
-                </div>
-              </div>
-            </.card_content>
-            <.card_footer class="flex-col">
-              <.button class="w-full">Login</.button>
-              <.button color="gray" variant="outline" class="w-full">Login with Google</.button>
-            </.card_footer>
-          </.card>
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.Card.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Media card - full-bleed image, category, heading
+        Media card - full-bleed image, category, heading (the cover photo is a
+        dev-only local file, so this stays a playground extra)
       </div>
       <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="max-w-sm mx-auto">
@@ -5349,41 +5196,17 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Variants - the panel and the well
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="grid max-w-2xl gap-6 mx-auto md:grid-cols-2">
-          <.card>
-            <.card_header title="Basic" description="The card" />
-            <.card_content>
-              The bordered panel - primary content lives here. This is the default and
-              the only card most screens need.
-            </.card_content>
-          </.card>
-          <.card variant="muted">
-            <.card_header title="Muted" description="The well" />
-            <.card_content>
-              A quiet tinted fill, no border - secondary content, form sections, stat
-              tiles. It recedes where basic asserts.
-            </.card_content>
-          </.card>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        card_header carries title + description + a top-right :action; card_content and
-        card_footer pad themselves so media can run full-bleed. Two variants, two jobs:
-        the panel asserts, the well recedes. (variant="outline" still renders - it is a
-        legacy alias of basic, going away in 5.0.) The cover photo is a 36KB local file,
-        dev-only.
-      </div>
-
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props
         component={PetalComponents.Card}
         functions={[:card, :card_header, :card_content, :card_footer, :card_media, :review_card]}
       />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Card</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5770,34 +5593,22 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        With icons - anything goes in the tab body
-      </div>
-      <div class="px-6 py-10 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex justify-center">
-          <.tabs variant="segmented">
-            <.tab variant="segmented" is_active link_type="button">
-              <.icon name="hero-chart-bar" class="w-4 h-4 mr-1.5" /> Dashboard
-            </.tab>
-            <.tab variant="segmented" link_type="button">
-              <.icon name="hero-users" class="w-4 h-4 mr-1.5" /> Team
-            </.tab>
-            <.tab variant="segmented" link_type="button">
-              <.icon name="hero-cog-6-tooth" class="w-4 h-4 mr-1.5" /> Settings
-            </.tab>
-          </.tabs>
-        </div>
-      </div>
-
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        segmented is the modern default for in-page switching (the active tab is a raised
-        white pill, nested-radius on the track); underline suits page-level navigation;
-        pill is the roomy classic. The legacy underline flag still works - variant wins
-        when both are set.
+      <div :for={ex <- PetalComponents.Showcase.Tabs.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Tabs} functions={[:tabs, :tab]} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Tabs</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5857,17 +5668,25 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        The current page carries the outline surface (border + wash - the same recipe as
-        outline buttons), everything else is quiet ghost chrome with hover washes.
-        sibling and boundary counts
-        control the windowing around the ellipses. Link mode takes a path template like
-        /users/:page; event mode fires goto-page with phx-value-page. One style by design -
-        variants multiply here without earning their keep.
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Pagination, ~w(link_mode)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Pagination} function={:pagination} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Pagination</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -5954,40 +5773,31 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        People cells - avatar + name + sub-label in one helper
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.table rows={[
-          %{name: "Alex Rivera", email: "alex@example.com", plan: "Team"},
-          %{name: "Ada Lovelace", email: "ada@analytical.engine", plan: "Pro"}
-        ]}>
-          <:col :let={u} label="User">
-            <.user_inner_td
-              label={u.name}
-              sub_label={u.email}
-              avatar_assigns={%{name: u.name, size: "sm"}}
-            />
-          </:col>
-          <:col :let={u} label="Plan">{u.plan}</:col>
-        </.table>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Table, ~w(people_cells)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        Sorting is honest: the header is a real button firing on_sort (default event
-        "sort") with the column's sort_key, aria-sort announces the state, and the arrow
-        shows direction - your app owns the actual reorder. sticky_header pins the header
-        row inside a scrolling container; ghost is the shadcn-minimal look - no frame, no
-        header fill, tighter cells, hairline separators only - for embedding in cards and
-        detail views. Rows carry a scan-friendly hover wash, and the :footer slot pins a
-        totals row (colspan works) under the body; LiveView streams work unchanged. Search and filtering are deliberately NOT
-        here - they are data-layer concerns (queries, params, debounce), which is exactly
-        where the pro data_table picks up. This component draws the line at presentation:
-        it renders state and fires events.
+        Search and filtering are deliberately NOT here - they are data-layer concerns
+        (queries, params, debounce), which is exactly where the pro data_table picks up.
+        This component draws the line at presentation: it renders state and fires events.
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
-      <.showcase_props component={PetalComponents.Table} function={:table} />
+      <.showcase_props component={PetalComponents.Table} functions={[:table, :user_inner_td]} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Table</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
@@ -6380,66 +6190,51 @@ defmodule Dev.PlaygroundLive do
         trigger, a dropdown, and a list of menu items from plain maps.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-start justify-center gap-16 px-6 pt-10 pb-40">
-          <div class="text-center">
-            <.user_dropdown_menu
-              current_user_name="Sarah Chen"
-              avatar_src="/dev-static/avatars/p32.jpg"
-              user_menu_items={[
-                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
-                %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
-                %{
-                  path: "/?c=user-menu",
-                  icon: "hero-arrow-right-start-on-rectangle",
-                  label: "Sign out"
-                }
-              ]}
-            />
-            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">photo</div>
-          </div>
-          <div class="text-center">
-            <.user_dropdown_menu
-              current_user_name="Sarah Chen"
-              user_menu_items={[
-                %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
-                %{
-                  path: "/?c=user-menu",
-                  icon: "hero-arrow-right-start-on-rectangle",
-                  label: "Sign out"
-                }
-              ]}
-            />
-            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">initials</div>
-          </div>
-          <div class="text-center">
-            <.user_dropdown_menu user_menu_items={[
-              %{path: "/?c=user-menu", icon: "hero-arrow-left-end-on-rectangle", label: "Sign in"}
-            ]} />
-            <div class="mt-3 text-[11px] font-medium tracking-wide text-gray-400">anonymous</div>
-          </div>
-        </div>
+      <div :for={ex <- PetalComponents.Showcase.UserDropdownMenu.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
-      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        user_menu_items is a list of maps with path, icon and label - plus an
-        optional method (:delete for sign out routes). An icon can be a heroicon
-        name, a function component, or a raw svg string. With no name or src the
-        trigger falls back to the placeholder avatar; a name alone renders
-        deterministic initials.
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        With a photo - avatar_src wins over initials (demo photo is dev-only, so this
+        stays a playground extra)
+      </div>
+      <div class="px-6 pt-10 border border-gray-200 rounded-xl dark:border-gray-800 pb-44">
+        <div class="flex justify-center">
+          <.user_dropdown_menu
+            current_user_name="Sarah Chen"
+            avatar_src="/dev-static/avatars/p32.jpg"
+            user_menu_items={[
+              %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+              %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
+              %{
+                path: "/?c=user-menu",
+                icon: "hero-arrow-right-start-on-rectangle",
+                label: "Sign out"
+              }
+            ]}
+          />
+        </div>
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.UserDropdownMenu} function={:user_dropdown_menu} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.UserDropdownMenu</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (An icon can be a heroicon name, a function component, or a raw
+        svg string.)
+      </div>
     </div>
     """
   end
 
   defp render_page(%{active: "slider"} = assigns) do
-    assigns =
-      assigns
-      |> assign(:sb, slider_bounds(assigns.slider.format))
-      |> assign(:price_form, to_form(%{"min" => "100", "max" => "600"}, as: :pg_price))
+    assigns = assign(assigns, :sb, slider_bounds(assigns.slider.format))
 
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -6544,74 +6339,26 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{slider_snippet(@slider)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Filled and plain
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-          <.field
-            type="range"
-            name="pg_volume"
-            label="Volume"
-            value="60"
-            min="0"
-            max="100"
-            fill
-            no_margin
-          />
-          <.field
-            type="range"
-            name="pg_stepped"
-            label="Stepped (10s)"
-            value="40"
-            min="0"
-            max="100"
-            step="10"
-            fill
-            no_margin
-          />
-          <.field
-            type="range"
-            name="pg_balance"
-            label="Balance"
-            value="50"
-            min="0"
-            max="100"
-            no_margin
-          />
-          <.field type="range" name="pg_range_dis" label="Disabled" value="30" disabled no_margin />
-        </div>
-        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          Plain is the native input, no JavaScript. <code class="text-xs">fill</code>
-          paints the track primary up to the thumb - Firefox does it natively, a
-          tiny hook keeps the webkit fill in sync. Leave it off for balance and
-          pan controls, where a fill would imply a wrong zero point.
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Field, ~w(sliders slider_dual)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
         </p>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Open-ended bounds
-      </div>
-      <div class="px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="max-w-sm mx-auto">
-          <.field
-            type="range-dual"
-            min_field={@price_form[:min]}
-            max_field={@price_form[:max]}
-            range_min={0}
-            range_max={1000}
-            step={50}
-            value_prefix="$"
-            range_max_label="$1,000+"
-            label="Price"
-            help_text={~s(range_max_label caps the scale as "open-ended".)}
-            no_margin
-          />
-        </div>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Field} function={:field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. Sliders are field types (range / range-dual), so they live in the
+        field registry with the rest of the form surface.
+      </div>
     </div>
     """
   end
@@ -7894,33 +7641,22 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{badge_snippet(@badge)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Variants</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.badge label="Light" />
-        <.badge variant="soft" label="Soft" />
-        <.badge variant="dark" label="Dark" />
-        <.badge variant="outline" label="Outline" />
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Semantic colours
-      </div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.badge
-          :for={c <- ~w(primary secondary info success warning danger gray)}
-          color={c}
-          variant={@badge.variant}
-          label={c}
-        />
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Sizes</div>
-      <div class="flex flex-wrap items-center justify-center gap-3 px-6 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.badge :for={z <- ~w(xs sm md lg xl)} size={z} label={z} />
+      <div :for={ex <- PetalComponents.Showcase.Badge.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Badge} function={:badge} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Badge</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
     </div>
     """
   end
