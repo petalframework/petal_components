@@ -228,4 +228,27 @@ defmodule PetalComponents.TabsTest do
     assert html =~ "pc-tabs--underline"
     assert html =~ "pc-tab__underline--is-active"
   end
+
+  test "button tabs pin type=button so they never submit an enclosing form" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.tabs>
+        <.tab link_type="button" label="Overview" />
+      </.tabs>
+      """)
+
+    assert html =~ ~s(type="button")
+
+    overridden =
+      rendered_to_string(~H"""
+      <.tabs>
+        <.tab link_type="button" type="submit" label="Apply" />
+      </.tabs>
+      """)
+
+    assert overridden =~ ~s(type="submit")
+    refute overridden =~ ~s(type="button")
+  end
 end

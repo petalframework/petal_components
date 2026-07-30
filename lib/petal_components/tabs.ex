@@ -50,7 +50,8 @@ defmodule PetalComponents.Tabs do
   attr(:link_type, :string,
     default: "a",
     values: ["a", "live_patch", "live_redirect", "button"],
-    doc: "button renders a real <button> for phx-click / JS-command tabs - no href involved"
+    doc:
+      "button renders a real <button type=\"button\"> for phx-click / JS-command tabs - no href, and no implicit submit inside forms"
   )
 
   attr(:to, :string, default: nil, doc: "link path")
@@ -81,6 +82,16 @@ defmodule PetalComponents.Tabs do
     assigns =
       if assigns.on_change.ops != [] do
         update(assigns, :rest, fn rest -> Map.put(rest, :"phx-click", assigns.on_change) end)
+      else
+        assigns
+      end
+
+    # A tab is navigation, never a submit control - a bare <button> inside a
+    # form defaults to type="submit", so pin type="button" (callers can still
+    # override via rest).
+    assigns =
+      if assigns.link_type == "button" do
+        update(assigns, :rest, &Map.put_new(&1, :type, "button"))
       else
         assigns
       end
