@@ -119,6 +119,23 @@ defmodule PetalComponents.ShowcaseTest do
   end
 
   describe "showcase_props/1" do
+    test "every module's showcase_functions resolve to real component functions" do
+      # The default derives the function from the module name (Toast -> :toast),
+      # which silently renders an EMPTY props table when the component's real
+      # function is named differently (toast_group) - caught live on petal.build.
+      for mod <- Registry.all(), component = mod.showcase_component(), component do
+        defs = component.__components__()
+
+        for f <- mod.showcase_functions() do
+          info = Map.get(defs, f)
+
+          assert info != nil and info.attrs != [],
+                 "#{inspect(mod)} documents #{inspect(component)}.#{f} but it has no attrs " <>
+                   "(real functions: #{inspect(Map.keys(defs))}) - set functions: on the showcase module"
+        end
+      end
+    end
+
     test "renders a props table per documented function for each component" do
       for mod <- Registry.all(), component = mod.showcase_component(), component do
         assigns = %{component: component, functions: mod.showcase_functions()}
