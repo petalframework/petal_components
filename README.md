@@ -219,6 +219,16 @@ There is also a [Phoenix umbrella app](https://github.com/petalframework/petal_d
 - [Figma UI kit](https://www.figma.com/community/file/1374192831096114078/official-petal-ui-kit) - official Figma kit for designing against petal_components.
 - [VSCode snippets](https://marketplace.visualstudio.com/items?itemName=petalframework.vscode-petal-components-snippets) - 65+ snippets for the components.
 
+## Acknowledgements
+
+Petal Components stands on other people's work:
+
+- [phoenix_playground](https://github.com/phoenix-playground/phoenix_playground) by [Wojtek Mach](https://github.com/wojtekmach) - boots the dev server and [playground.petal.build](https://playground.petal.build) from a single script.
+- [Phoenix](https://www.phoenixframework.org/) and [LiveView](https://github.com/phoenixframework/phoenix_live_view) - the platform everything here renders on.
+- [Tailwind CSS](https://tailwindcss.com/) - every component is styled with Tailwind v4.
+- [Apache ECharts](https://echarts.apache.org/) - the engine under `<.chart>`.
+- [Heroicons](https://heroicons.com/) - the icon set under `<.icon>`.
+
 ## License
 
 MIT.
