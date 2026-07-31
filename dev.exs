@@ -5379,14 +5379,6 @@ defmodule Dev.PlaygroundLive do
         <.showcase_example example={ex} />
       </div>
 
-      <div :for={ex <- PetalComponents.Showcase.Marquee.examples()} class="mt-10">
-        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
-        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          {ex.description}
-        </p>
-        <.showcase_example example={ex} />
-      </div>
-
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Marquee} function={:marquee} />
 
