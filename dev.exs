@@ -37,10 +37,16 @@ defmodule Dev.Layouts do
   def root(assigns) do
     ~H"""
     <!DOCTYPE html>
-    <html lang="en">
+    <%!-- html AND body carry the scheme backgrounds: iOS paints rubber-band
+    overscroll from them (roughly html above the page, body below), so a
+    bg-white body under a dark app flashes white at both boundaries.
+    theme-color keeps the browser chrome matching. --%>
+    <html lang="en" class="bg-white dark:bg-gray-950">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)" />
         <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
         <.live_title>Petal Components Playground</.live_title>
         <PetalComponents.ColorSchemeSwitch.color_scheme_script />
@@ -66,7 +72,7 @@ defmodule Dev.Layouts do
         >
         </script>
       </head>
-      <body class="bg-white antialiased">
+      <body class="bg-white dark:bg-gray-950 antialiased">
         <script>
           // Hidden webviews (Claude preview, headless CDP) never fire
           // requestAnimationFrame - Chrome pauses it while document.hidden.

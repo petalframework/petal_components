@@ -115,7 +115,13 @@ defmodule PetalComponents.Card do
 
   attr(:name, :string, required: true, doc: "The reviewer's name")
   attr(:username, :string, required: true, doc: "The reviewer's username")
-  attr(:img, :string, required: true, doc: "URL of the reviewer's avatar")
+
+  attr(:img, :string,
+    default: nil,
+    doc:
+      "URL of the reviewer's avatar; without one, a deterministic gradient monogram is hashed from the name - no photo assets required"
+  )
+
   attr(:body, :string, required: true, doc: "The review text content")
   attr(:class, :string, default: "", doc: "Additional classes")
   attr(:rest, :global)
@@ -124,7 +130,7 @@ defmodule PetalComponents.Card do
     ~H"""
     <figure class={["pc-review-card", @class]} {@rest}>
       <div class="pc-review-header">
-        <.avatar src={@img} alt={@name} size="md" />
+        <.avatar src={@img} name={@name} random_gradient alt={@name} size="md" />
         <div class="pc-review-meta">
           <figcaption>
             <.p no_margin class="text-sm pc-review-name">{@name}</.p>

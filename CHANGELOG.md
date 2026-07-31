@@ -1,4 +1,15 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
+- **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
+
+#### Fixed
+
+- **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
+
 ### 4.9.0 - 2026-07-30
 
 #### Added

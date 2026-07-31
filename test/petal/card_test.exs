@@ -250,12 +250,8 @@ defmodule PetalComponents.CardTest do
   end
 
   describe "validation" do
-    test "raises error when required attributes are missing" do
-      base_assigns = %{rest: %{}, __changed__: nil, class: "", __given__: %{__changed__: nil}}
-
-      message = "key :img not found in: " <> inspect(base_assigns, pretty: true)
-
-      assert_raise KeyError, message, fn ->
+    test "raises when required attributes are missing (img is optional now)" do
+      assert_raise KeyError, ~r/key :name not found/, fn ->
         assigns = %{}
 
         rendered_to_string(~H"""
@@ -263,15 +259,7 @@ defmodule PetalComponents.CardTest do
         """)
       end
 
-      assigns_with_name =
-        Map.merge(base_assigns, %{
-          name: "John",
-          __given__: %{name: "John", __changed__: nil}
-        })
-
-      message = "key :img not found in: " <> inspect(assigns_with_name, pretty: true)
-
-      assert_raise KeyError, message, fn ->
+      assert_raise KeyError, ~r/key :username not found/, fn ->
         assigns = %{name: "John"}
 
         rendered_to_string(~H"""
@@ -279,40 +267,27 @@ defmodule PetalComponents.CardTest do
         """)
       end
 
-      assigns_with_username =
-        Map.merge(base_assigns, %{
-          name: "John",
-          username: "@john",
-          __given__: %{name: "John", username: "@john", __changed__: nil}
-        })
-
-      message = "key :img not found in: " <> inspect(assigns_with_username, pretty: true)
-
-      assert_raise KeyError, message, fn ->
+      assert_raise KeyError, ~r/key :body not found/, fn ->
         assigns = %{name: "John", username: "@john"}
 
         rendered_to_string(~H"""
         <.review_card name={@name} username={@username} />
         """)
       end
+    end
 
-      assigns_with_img =
-        Map.merge(base_assigns, %{
-          name: "John",
-          username: "@john",
-          img: "test.jpg",
-          __given__: %{name: "John", username: "@john", img: "test.jpg", __changed__: nil}
-        })
+    test "review_card without img falls back to the name-hashed gradient monogram" do
+      assigns = %{}
 
-      message = "key :body not found in: " <> inspect(assigns_with_img, pretty: true)
-
-      assert_raise KeyError, message, fn ->
-        assigns = %{name: "John", username: "@john", img: "test.jpg"}
-
+      html =
         rendered_to_string(~H"""
-        <.review_card name={@name} username={@username} img={@img} />
+        <.review_card name="Amelia Ward" username="@ameliabuilds" body="Great components." />
         """)
-      end
+
+      refute html =~ "<img"
+      assert html =~ "pc-avatar"
+      # deterministic initials from the name
+      assert html =~ "AW"
     end
   end
 
