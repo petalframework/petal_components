@@ -2417,6 +2417,17 @@ defmodule Dev.PlaygroundLive do
 
         <main class="flex-1 overflow-y-auto">
           {render_page(assigns)}
+          <footer class="max-w-3xl px-4 pb-8 mx-auto sm:px-8 text-xs text-gray-400 dark:text-gray-500">
+            Built on
+            <a
+              href="https://github.com/phoenix-playground/phoenix_playground"
+              target="_blank"
+              class="underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              phoenix_playground
+            </a>
+            by Wojtek Mach. Petal Components is open source, MIT licensed.
+          </footer>
         </main>
       </div>
     </div>
