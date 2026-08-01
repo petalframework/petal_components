@@ -3,7 +3,7 @@ defmodule PetalComponents.Showcase.Command do
   use PetalComponents.Showcase,
     component: PetalComponents.Command,
     title: "Command",
-    functions: [:command, :command_dialog, :command_item]
+    functions: [:command, :command_dialog, :command_trigger, :command_item]
 
   example :inline_palette, "Inline palette",
     description:
@@ -42,6 +42,31 @@ defmodule PetalComponents.Showcase.Command do
           </.command_group>
         </.command_list>
       </.command>
+    </div>
+    """
+  end
+
+  example :command_trigger, "The trigger",
+    description:
+      "The search affordance every ⌘K app puts in its header, so you stop hand-rolling it: a labelled pill for wide headers and an icon-only sibling for tight rows. Both open the dialog named in dialog_id, and both work on dead views - the click runs through a hook, not a phx-click JS command. The kbd chip is the visible hint; the shortcut itself lives on the dialog." do
+    ~H"""
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <.command_trigger dialog_id="showcase-trigger-cmdk" label="Search docs…" />
+      <.command_trigger dialog_id="showcase-trigger-cmdk" variant="icon" label="Search" />
+      <.command_dialog id="showcase-trigger-cmdk" shortcut="">
+        <.command_input placeholder="Search…" />
+        <.command_list>
+          <.command_empty>Nothing matches.</.command_empty>
+          <.command_group heading="Pages">
+            <.command_item keywords={["home"]}>
+              <.icon name="hero-home" /> Overview
+            </.command_item>
+            <.command_item keywords={["ui"]}>
+              <.icon name="hero-squares-2x2" /> Components
+            </.command_item>
+          </.command_group>
+        </.command_list>
+      </.command_dialog>
     </div>
     """
   end

@@ -2000,6 +2000,34 @@
 
   /* Command palette */
 
+  /* The visible openers. The pill reads as a search input at rest; the icon
+     variant shares the compact-square grammar of pc-scheme-toggle. */
+  .pc-command-trigger {
+    @apply inline-flex items-center gap-2 text-sm text-gray-400 bg-white border border-gray-200 pl-3 pr-2 py-1.5 shadow-xs whitespace-nowrap cursor-pointer transition-colors duration-150 hover:border-gray-300 hover:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:text-gray-400;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-command-trigger__icon {
+    @apply w-4 h-4 shrink-0;
+  }
+
+  .pc-command-trigger__label {
+    @apply pr-4;
+  }
+
+  .pc-command-trigger__kbd {
+    @apply ml-auto;
+  }
+
+  .pc-command-trigger--icon {
+    @apply inline-flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-command-trigger--icon .pc-command-trigger__icon {
+    @apply w-5 h-5;
+  }
+
   .pc-command {
     @apply flex w-full flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
