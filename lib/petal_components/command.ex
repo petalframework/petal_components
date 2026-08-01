@@ -143,6 +143,68 @@ defmodule PetalComponents.Command do
     JS.dispatch(js, "pc:command-open", to: "##{id}")
   end
 
+  attr :dialog_id, :string, required: true, doc: "the command_dialog this trigger opens"
+
+  attr :variant, :string,
+    default: "pill",
+    values: ["pill", "icon"],
+    doc: "pill is the labelled search affordance for wide headers; icon is the compact trigger"
+
+  attr :label, :string, default: "Search…", doc: "pill text, and the icon variant's aria-label"
+
+  attr :kbd, :string,
+    default: "⌘K",
+    doc: "the shortcut hint rendered on the pill. Set nil to hide it"
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  @doc """
+  The visible button that opens a `command_dialog` - the search pill every
+  ⌘K app puts in its header, and its icon-only sibling for tight rows.
+
+      <.command_trigger dialog_id="cmdk" label="Search docs…" />
+      <.command_trigger dialog_id="cmdk" variant="icon" class="md:hidden" />
+
+  Wired through the `PetalCommandTrigger` hook rather than a `phx-click` JS
+  command on purpose: hooks mount on dead views (LiveView 1.1+), phx-click
+  JS commands only execute inside a LiveView - and marketing sites are
+  mostly dead views. The keyboard shortcut itself lives on the dialog; the
+  `kbd` chip here is the visible hint.
+  """
+  def command_trigger(%{variant: "pill"} = assigns) do
+    ~H"""
+    <button
+      type="button"
+      id={"#{@dialog_id}-trigger-pill"}
+      phx-hook="PetalCommandTrigger"
+      data-dialog={@dialog_id}
+      class={["pc-command-trigger", @class]}
+      {@rest}
+    >
+      <.icon name="hero-magnifying-glass" class="pc-command-trigger__icon" />
+      <span class="pc-command-trigger__label">{@label}</span>
+      <kbd :if={@kbd} class="pc-kbd pc-command-trigger__kbd">{@kbd}</kbd>
+    </button>
+    """
+  end
+
+  def command_trigger(%{variant: "icon"} = assigns) do
+    ~H"""
+    <button
+      type="button"
+      id={"#{@dialog_id}-trigger-icon"}
+      phx-hook="PetalCommandTrigger"
+      data-dialog={@dialog_id}
+      aria-label={@label}
+      class={["pc-command-trigger--icon", @class]}
+      {@rest}
+    >
+      <.icon name="hero-magnifying-glass" class="pc-command-trigger__icon" />
+    </button>
+    """
+  end
+
   attr :placeholder, :string, default: "Type a command or search..."
 
   attr :autofocus, :boolean,

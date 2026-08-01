@@ -64,10 +64,13 @@ defmodule PetalComponents.ShowcaseTest do
 
     test "example DOM ids are unique within a module (a page renders each once)" do
       for mod <- Registry.all() do
+        # The lookbehind keeps reference attrs like dialog_id= out of the scan -
+        # several triggers naming the same dialog is correct, two elements
+        # carrying the same actual id= is the bug this guards against.
         ids =
           mod.examples()
           |> Enum.flat_map(fn ex ->
-            Regex.scan(~r/id="([^"]+)"/, ex.code, capture: :all_but_first)
+            Regex.scan(~r/(?<![\w-])id="([^"]+)"/, ex.code, capture: :all_but_first)
           end)
           |> List.flatten()
 

@@ -1618,6 +1618,24 @@ export const PetalCommandDialog = {
   },
 };
 
+// Opens the command dialog named in data-dialog. A hook rather than a
+// phx-click JS command: hooks mount on dead views (LiveView 1.1+), phx-click
+// JS commands only execute inside a LiveView - so the trigger works on
+// controller-rendered pages too.
+export const PetalCommandTrigger = {
+  mounted() {
+    this.onClick = () => {
+      const dialog = document.getElementById(this.el.dataset.dialog);
+      if (dialog) dialog.dispatchEvent(new CustomEvent("pc:command-open"));
+    };
+    this.el.addEventListener("click", this.onClick);
+  },
+
+  destroyed() {
+    this.el.removeEventListener("click", this.onClick);
+  },
+};
+
 // Pauses the aurora drift while the section is off-screen.
 export const PetalAurora = {
   mounted() {
@@ -3343,6 +3361,7 @@ export default {
   PetalInputOTP,
   PetalPopover,
   PetalCommand,
+  PetalCommandTrigger,
   PetalAurora,
   PetalNavMenu,
   PetalCommandDialog,
