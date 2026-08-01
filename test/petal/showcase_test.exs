@@ -98,6 +98,30 @@ defmodule PetalComponents.ShowcaseTest do
       refute html =~ "PetalCopy"
     end
 
+    test "inert examples render a non-interactive preview; live ones don't" do
+      inert_ex = Enum.find(PetalComponents.Showcase.ToggleGroup.examples(), &(&1.id == :single))
+      assert inert_ex.inert
+
+      assigns = %{example: inert_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-showcase__preview[inert]")
+             |> Enum.count() == 1
+
+      live_ex = hd(PetalComponents.Showcase.Command.examples())
+      refute live_ex.inert
+
+      assigns = %{example: live_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-showcase__preview[inert]")
+             |> Enum.count() == 0
+    end
+
     test "frame ids are deterministic across renders (stable under LV patches)" do
       assigns = %{example: hd(PetalComponents.Showcase.Command.examples())}
 

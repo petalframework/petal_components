@@ -5,6 +5,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
     title: "Toggle group"
 
   example :single, "Single select",
+    inert: true,
     description:
       "One rail, one pressed option. Pass the current value and an on_change event; in your app you assign the value the event hands back and the pressed chip follows. This preview renders a fixed value - registry examples are static by design. Where button_group fires actions, toggle_group holds a selection." do
     ~H"""
@@ -17,6 +18,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
   end
 
   example :multiple, "Multiple select",
+    inert: true,
     description:
       "With multiple, value is a list and every member renders pressed. The server owns the toggle logic: add the option if it is missing, drop it if it is there. Icon-only items carry an aria-label so the option still reads out." do
     ~H"""
@@ -34,6 +36,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
   end
 
   example :icons_with_labels, "Icons with labels",
+    inert: true,
     description:
       "Items take any content: icon plus text reads fastest for view switchers. The pressed chip and the wash come from the rail, so mixed content stays aligned without extra classes." do
     ~H"""
@@ -46,6 +49,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
   end
 
   example :sizes, "Sizes",
+    inert: true,
     description:
       "Three sizes share the same radii math as the rest of the rail family, so a sm toggle group next to a scheme switch reads as kin. Disabled works per item or for the whole rail." do
     ~H"""
