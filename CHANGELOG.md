@@ -3,6 +3,7 @@
 
 #### Added
 
+- **`toggle_group` - a segmented selection rail.** Where `button_group` groups actions, `toggle_group` holds a selection: one pressed option by default, any number with `multiple`. Server-driven and stateless the LiveView way - pass `value`, handle `on_change` (the pressed option arrives in `phx-value-toggle`), no hook, no client state. Pressed comparison is string-based so non-string values survive the `phx-value-*` round-trip. Three sizes on the scheme-segmented radii math, per-item or whole-rail `disabled`, items take any content (text, icons, both). Ships with registry examples and a playground page.
 - **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
 - **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
 
