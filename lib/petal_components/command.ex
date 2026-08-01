@@ -167,10 +167,16 @@ defmodule PetalComponents.Command do
       <.command_trigger dialog_id="cmdk" variant="icon" class="md:hidden" />
 
   Wired through the `PetalCommandTrigger` hook rather than a `phx-click` JS
-  command on purpose: hooks mount on dead views (LiveView 1.1+), phx-click
+  command on purpose: hooks mount on dead views from LiveView 1.1, phx-click
   JS commands only execute inside a LiveView - and marketing sites are
-  mostly dead views. The keyboard shortcut itself lives on the dialog; the
-  `kbd` chip here is the visible hint.
+  mostly dead views. Support matrix, since the package accepts LiveView
+  `~> 1.0`: inside a LiveView the trigger works on every supported version
+  (hooks always mount there); on dead views it works from LiveView 1.1 up.
+  On a LiveView 1.0 dead view NO mechanism exists - 1.0 runs neither hooks
+  nor JS commands outside a LiveView - so dead-view triggering is honestly
+  a 1.1+ feature, not something a different wiring could add. The keyboard
+  shortcut itself lives on the dialog; the `kbd` chip here is the visible
+  hint.
   """
   def command_trigger(%{variant: "pill"} = assigns) do
     ~H"""
