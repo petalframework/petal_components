@@ -5004,6 +5004,40 @@
     @apply pr-1;
   }
 
+  /* Toggle group - the scheme-segmented family generalised: same wash rail,
+     same 2.4x/2x concentric radii, pressed state = the white chip. */
+  .pc-toggle-group {
+    @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
+  }
+
+  .pc-toggle-group__item {
+    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:text-gray-900 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+  }
+
+  .pc-toggle-group__item[aria-pressed="true"] {
+    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+  }
+
+  .pc-toggle-group--sm .pc-toggle-group__item {
+    @apply px-2 py-1 text-xs;
+  }
+
+  .pc-toggle-group--md .pc-toggle-group__item {
+    @apply px-2.5 py-1.5 text-sm;
+  }
+
+  .pc-toggle-group--lg .pc-toggle-group__item {
+    @apply px-3.5 py-2 text-sm;
+  }
+
+  /* Icon-only items keep a square hit target per size. */
+  .pc-toggle-group__item > [class^="hero-"],
+  .pc-toggle-group__item > [class*=" hero-"] {
+    @apply w-4 h-4;
+  }
+
   /* Confetti mount point */
   .pc-confetti {
     @apply hidden;

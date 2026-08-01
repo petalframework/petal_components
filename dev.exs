@@ -221,6 +221,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "button", name: "Button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
+        %{slug: "toggle-group", name: "Toggle group", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
@@ -4679,6 +4680,34 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift. (The :button slot API from earlier releases still renders
         unchanged.)
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "toggle-group"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Toggle group</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A segmented selection rail - one pressed option, or several with multiple.
+        Server-driven and stateless: pass value, handle on_change, no hook.
+      </p>
+      <div :for={ex <- PetalComponents.Showcase.ToggleGroup.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ToggleGroup} functions={[:toggle_group]} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ToggleGroup</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
       </div>
     </div>
     """
