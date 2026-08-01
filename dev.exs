@@ -693,6 +693,8 @@ defmodule Dev.PlaygroundLive do
        loading: false,
        disabled: false,
        show_code: false,
+       tg_density: "cozy",
+       tg_formats: ["bold"],
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -864,6 +866,20 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("toggle_dark", _params, socket),
     do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
+
+  def handle_event("pg_tg_density", %{"toggle" => density}, socket)
+      when density in ~w(compact cozy comfortable),
+      do: {:noreply, assign(socket, tg_density: density)}
+
+  def handle_event("pg_tg_format", %{"toggle" => format}, socket)
+      when format in ~w(bold italic underline) do
+    formats = socket.assigns.tg_formats
+
+    formats =
+      if format in formats, do: List.delete(formats, format), else: formats ++ [format]
+
+    {:noreply, assign(socket, tg_formats: formats)}
+  end
 
   def handle_event("ctl_variant", %{"v" => v}, socket)
       when v in ~w(solid soft light outline ghost),
@@ -4693,6 +4709,30 @@ defmodule Dev.PlaygroundLive do
         A segmented selection rail - one pressed option, or several with multiple.
         Server-driven and stateless: pass value, handle on_change, no hook.
       </p>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Try it</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Live against this page's LiveView state - click around. Single select on the left,
+        multiple on the right.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.toggle_group aria_label="Density" value={@tg_density} on_change="pg_tg_density">
+          <:item value="compact">Compact</:item>
+          <:item value="cozy">Cozy</:item>
+          <:item value="comfortable">Comfortable</:item>
+        </.toggle_group>
+        <.toggle_group
+          multiple
+          aria_label="Formatting"
+          value={@tg_formats}
+          on_change="pg_tg_format"
+        >
+          <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+          <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+          <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+        </.toggle_group>
+      </div>
+
       <div :for={ex <- PetalComponents.Showcase.ToggleGroup.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
         <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
@@ -4707,7 +4747,8 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.ToggleGroup</code>
         registry - the same source petal.build renders, so the playground and the marketing
-        docs can't drift.
+        docs can't drift. Registry previews render fixed values by design (static, no outer
+        state) - the Try it rail above is the live one.
       </div>
     </div>
     """

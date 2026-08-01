@@ -6,7 +6,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
 
   example :single, "Single select",
     description:
-      "One rail, one pressed option. Pass the current value and an on_change event, assign the value the event hands you back, and the chip follows. Where button_group fires actions, toggle_group holds a selection." do
+      "One rail, one pressed option. Pass the current value and an on_change event; in your app you assign the value the event hands back and the pressed chip follows. This preview renders a fixed value - registry examples are static by design. Where button_group fires actions, toggle_group holds a selection." do
     ~H"""
     <.toggle_group aria_label="Density" value="cozy" on_change="set_density">
       <:item value="compact">Compact</:item>
