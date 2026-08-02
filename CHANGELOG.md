@@ -3,11 +3,13 @@
 
 #### Added
 
+- **`tailwind-gray.css` - stock Tailwind gray back in one import.** The `gray` role deliberately ships zinc values under the gray name, which also decides what an app's own `text-gray-*` utilities render as - and since the stock values only ever lived under that name, no `var()` can reach them once zinc holds it. This file restores them verbatim: import it after `default.css` and every gray in the app is Tailwind's original again. Any other neutral (slate, stone, neutral) never needed it - those remain live variables you can remap a role to in one line per stop.
 - **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
 - **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
 
 #### Fixed
 
+- **A consumer `@theme` block placed before the petal_components import no longer loses silently.** The shipped colour ramps were a plain `@theme` - a hard declaration - so an app that defined its brand palette above the import (the natural place for it) got every ramp quietly replaced with our defaults, `primary` included, with nothing to say why. The ramps are now `@theme default`, the same soft-fallback convention Tailwind uses for its own palette: your `@theme` wins wherever it sits, and a fresh install with no overrides renders exactly as before. Verified against Tailwind 4.3.1's compiler in both orderings.
 - **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
 
 ### 4.9.0 - 2026-07-30
