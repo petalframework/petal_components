@@ -5066,6 +5066,22 @@
     @apply bg-gray-200 text-gray-900 shadow-none ring-0 dark:bg-gray-400/25 dark:text-white;
   }
 
+  /* Accent - the selection paints in the brand accent, the look the
+     playground's own hand-rolled dials have always used. Rail stays the solid
+     wash so it reads as the same family; only the chip changes register.
+     Reach for it when the choice is a committed setting rather than a view
+     preference. */
+  .pc-toggle-group--accent .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group--accent .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
+    @apply bg-primary-600 shadow-none ring-0 dark:bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
+  .pc-toggle-group--accent .pc-toggle-group__item[aria-pressed="true"]:hover,
+  .pc-toggle-group--accent .pc-toggle-group__item:has(.pc-toggle-group__input:checked):hover {
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
   .pc-toggle-group--sm .pc-toggle-group__item {
     @apply px-2 py-1 text-xs;
   }

@@ -66,6 +66,18 @@ defmodule PetalComponents.Showcase.ToggleGroup do
     """
   end
 
+  example :accent, "Accent variant",
+    inert: true,
+    description:
+      "The selection painted in the brand accent instead of a neutral chip. Same wash rail as solid, so it stays in the family - reach for it when the choice is a committed setting rather than a view preference. It follows your primary colour, so it retints with the theme." do
+    ~H"""
+    <.toggle_group variant="accent" aria_label="Billing period" value="annual" on_change="set_period">
+      <:item value="monthly">Monthly</:item>
+      <:item value="annual">Annual</:item>
+    </.toggle_group>
+    """
+  end
+
   example :icons_with_labels, "Icons with labels",
     inert: true,
     description:

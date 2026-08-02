@@ -879,7 +879,7 @@ defmodule Dev.PlaygroundLive do
       do: {:noreply, assign(socket, tg_device: device)}
 
   def handle_event("pg_tg_variant", %{"toggle" => variant}, socket)
-      when variant in ~w(solid outline),
+      when variant in ~w(solid outline accent),
       do: {:noreply, assign(socket, tg_variant: variant)}
 
   def handle_event("pg_tg_size", %{"toggle" => size}, socket)
@@ -4728,44 +4728,10 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-1 text-lg font-semibold">Try it</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         Single select on the left, multiple on the right, both live against this page's
-        LiveView state. The dials are toggle groups themselves, so this section configures
-        itself - and the radius dial up top drives every chip.
+        LiveView state. The dials below are toggle groups themselves, so this section
+        configures itself - and the radius dial up top drives every chip.
       </p>
       <div class="px-4 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap justify-center gap-6 pb-6 mb-2 border-b border-gray-200 dark:border-gray-800">
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
-              variant
-            </div>
-            <.toggle_group
-              variant="outline"
-              size="sm"
-              aria_label="Variant"
-              value={@tg_variant}
-              on_change="pg_tg_variant"
-            >
-              <:item value="solid">solid</:item>
-              <:item value="outline">outline</:item>
-            </.toggle_group>
-          </div>
-          <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
-              size
-            </div>
-            <.toggle_group
-              variant="outline"
-              size="sm"
-              aria_label="Size"
-              value={@tg_size}
-              on_change="pg_tg_size"
-            >
-              <:item value="sm">sm</:item>
-              <:item value="md">md</:item>
-              <:item value="lg">lg</:item>
-            </.toggle_group>
-          </div>
-        </div>
-
         <div class="flex flex-wrap items-center justify-center gap-6 py-6">
           <.toggle_group
             variant={@tg_variant}
@@ -4790,6 +4756,41 @@ defmodule Dev.PlaygroundLive do
             <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
             <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
           </.toggle_group>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-6 pt-5 mt-1 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              variant
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@tg_variant}
+              on_change="pg_tg_variant"
+            >
+              <:item value="solid">solid</:item>
+              <:item value="outline">outline</:item>
+              <:item value="accent">accent</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              size
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@tg_size}
+              on_change="pg_tg_size"
+            >
+              <:item value="sm">sm</:item>
+              <:item value="md">md</:item>
+              <:item value="lg">lg</:item>
+            </.toggle_group>
+          </div>
         </div>
       </div>
 
