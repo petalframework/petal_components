@@ -696,6 +696,8 @@ defmodule Dev.PlaygroundLive do
        tg_density: "cozy",
        tg_formats: ["bold"],
        tg_device: "desktop",
+       tg_variant: "solid",
+       tg_size: "md",
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -875,6 +877,14 @@ defmodule Dev.PlaygroundLive do
   def handle_event("pg_tg_device", %{"toggle" => device}, socket)
       when device in ~w(desktop tablet mobile),
       do: {:noreply, assign(socket, tg_device: device)}
+
+  def handle_event("pg_tg_variant", %{"toggle" => variant}, socket)
+      when variant in ~w(solid outline),
+      do: {:noreply, assign(socket, tg_variant: variant)}
+
+  def handle_event("pg_tg_size", %{"toggle" => size}, socket)
+      when size in ~w(sm md lg),
+      do: {:noreply, assign(socket, tg_size: size)}
 
   def handle_event("pg_tg_format", %{"toggle" => format}, socket)
       when format in ~w(bold italic underline) do
@@ -4717,25 +4727,70 @@ defmodule Dev.PlaygroundLive do
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">Try it</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-        Live against this page's LiveView state - click around. Single select on the left,
-        multiple on the right.
+        Single select on the left, multiple on the right, both live against this page's
+        LiveView state. The dials are toggle groups themselves, so this section configures
+        itself - and the radius dial up top drives every chip.
       </p>
-      <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.toggle_group aria_label="Density" value={@tg_density} on_change="pg_tg_density">
-          <:item value="compact">Compact</:item>
-          <:item value="cozy">Cozy</:item>
-          <:item value="comfortable">Comfortable</:item>
-        </.toggle_group>
-        <.toggle_group
-          multiple
-          aria_label="Formatting"
-          value={@tg_formats}
-          on_change="pg_tg_format"
-        >
-          <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
-          <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
-          <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
-        </.toggle_group>
+      <div class="px-4 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap justify-center gap-6 pb-6 mb-2 border-b border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              variant
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@tg_variant}
+              on_change="pg_tg_variant"
+            >
+              <:item value="solid">solid</:item>
+              <:item value="outline">outline</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              size
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@tg_size}
+              on_change="pg_tg_size"
+            >
+              <:item value="sm">sm</:item>
+              <:item value="md">md</:item>
+              <:item value="lg">lg</:item>
+            </.toggle_group>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-6 py-6">
+          <.toggle_group
+            variant={@tg_variant}
+            size={@tg_size}
+            aria_label="Density"
+            value={@tg_density}
+            on_change="pg_tg_density"
+          >
+            <:item value="compact">Compact</:item>
+            <:item value="cozy">Cozy</:item>
+            <:item value="comfortable">Comfortable</:item>
+          </.toggle_group>
+          <.toggle_group
+            multiple
+            variant={@tg_variant}
+            size={@tg_size}
+            aria_label="Formatting"
+            value={@tg_formats}
+            on_change="pg_tg_format"
+          >
+            <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+            <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+            <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+          </.toggle_group>
+        </div>
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">The device rail, working</h2>
