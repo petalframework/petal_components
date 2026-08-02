@@ -14,7 +14,7 @@ defmodule PetalComponents.Breadcrumbs do
   # Example:
   # <.breadcrumbs separator="chevron"
   #   class="mt-3"
-  #   link_class="!text-blue-500 text-sm font-semibold"
+  #   link_class="text-blue-500 text-sm font-semibold"
   #   links={[
   #     %{ label: "Link 1", to: "/" },
   #     %{ to: "/", icon: :home, icon_class="text-blue-500" },
