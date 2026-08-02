@@ -52,10 +52,12 @@ defmodule PetalComponents.ToggleGroup do
 
   ## Variants
 
-  `variant="solid"` (default) is the wash rail with a floating chip - the
+  `variant="solid"` (default) is the wash rail with a neutral chip - the
   segmented-control look the scheme switch uses. `variant="outline"` is the
-  fused bordered rail with transparent items and a filled chip when on -
-  the toolbar look, at home next to a `button_group`.
+  bordered toolbar rail with floating chips, at home next to a
+  `button_group`. `variant="accent"` keeps the wash rail but paints the
+  selection in the brand accent, for a committed setting rather than a view
+  preference.
 
   Values survive the `phx-value-*` string round-trip: pressed comparison is
   string-based, so `value={2}` still highlights after the server re-assigns
@@ -84,8 +86,9 @@ defmodule PetalComponents.ToggleGroup do
 
   attr :variant, :string,
     default: "solid",
-    values: ["solid", "outline"],
-    doc: "solid is the wash rail with a floating chip; outline is the fused bordered rail"
+    values: ["solid", "outline", "accent"],
+    doc:
+      "solid is the wash rail with a neutral chip; outline is the bordered toolbar rail; accent paints the selection in the brand colour"
 
   attr :size, :string, default: "md", values: ["sm", "md", "lg"]
   attr :disabled, :boolean, default: false, doc: "disables every item"
@@ -167,7 +170,7 @@ defmodule PetalComponents.ToggleGroup do
     [
       "pc-toggle-group",
       "pc-toggle-group--#{assigns.size}",
-      assigns.variant == "outline" && "pc-toggle-group--outline",
+      assigns.variant != "solid" && "pc-toggle-group--#{assigns.variant}",
       assigns.class
     ]
   end

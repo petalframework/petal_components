@@ -227,6 +227,32 @@ defmodule PetalComponents.ToggleGroupTest do
     assert html =~ "font-bold"
   end
 
+  test "each variant lands its own modifier, solid stays unmodified" do
+    assigns = %{}
+
+    for {variant, expected} <- [
+          {"solid", nil},
+          {"outline", "pc-toggle-group--outline"},
+          {"accent", "pc-toggle-group--accent"}
+        ] do
+      assigns = Map.put(assigns, :variant, variant)
+
+      html =
+        rendered_to_string(~H"""
+        <.toggle_group variant={@variant} aria_label="V" value="a" on_change="x">
+          <:item value="a">A</:item>
+        </.toggle_group>
+        """)
+
+      if expected do
+        assert html =~ expected
+      else
+        refute html =~ "pc-toggle-group--outline"
+        refute html =~ "pc-toggle-group--accent"
+      end
+    end
+  end
+
   test "generates a unique id when none is passed" do
     assigns = %{}
 
