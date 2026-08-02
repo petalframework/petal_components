@@ -5004,8 +5004,9 @@
     @apply pr-1;
   }
 
-  /* Toggle group - the scheme-segmented family generalised: same wash rail,
-     same 2.4x/2x concentric radii, pressed state = the white chip. */
+  /* Toggle group - the scheme-segmented family generalised. Single select is
+     label-wrapped native radios (radiogroup semantics + arrow keys for free);
+     multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes. */
   .pc-toggle-group {
     @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
     border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
@@ -5016,8 +5017,60 @@
     border-radius: calc(var(--pc-radius, 0.625rem) * 2);
   }
 
-  .pc-toggle-group__item[aria-pressed="true"] {
+  /* The hidden radio fills its label so the whole item is the hit target;
+     keyboard focus lives on it. */
+  .pc-toggle-group__input {
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none disabled:cursor-not-allowed;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+  }
+
+  .pc-toggle-group__content {
+    @apply flex items-center justify-center gap-1.5 pointer-events-none;
+  }
+
+  .pc-toggle-group__item:has(.pc-toggle-group__input:focus-visible) {
+    @apply ring-1 ring-primary-500/50;
+  }
+
+  .pc-toggle-group__item:has(.pc-toggle-group__input:disabled) {
+    @apply opacity-50 cursor-not-allowed hover:text-gray-600 dark:hover:text-gray-300;
+  }
+
+  .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
     @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+  }
+
+  /* Outline - the fused toolbar look (the shadcn preview-frame reference):
+     bordered rail, transparent items with hairline dividers, filled chip on. */
+  .pc-toggle-group--outline {
+    @apply gap-0 p-0 bg-transparent border border-gray-200 shadow-xs dark:bg-transparent dark:border-gray-700;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item {
+    @apply border-l border-gray-200 dark:border-gray-700;
+    border-radius: 0;
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item:first-child {
+    border-inline-start: 0;
+    border-start-start-radius: calc(var(--pc-radius, 0.625rem) - 1px);
+    border-end-start-radius: calc(var(--pc-radius, 0.625rem) - 1px);
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item:last-child {
+    border-start-end-radius: calc(var(--pc-radius, 0.625rem) - 1px);
+    border-end-end-radius: calc(var(--pc-radius, 0.625rem) - 1px);
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__input {
+    border-radius: 0;
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group--outline .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
+    @apply bg-gray-100 text-gray-900 shadow-none ring-0 dark:bg-gray-700 dark:text-white;
   }
 
   .pc-toggle-group--sm .pc-toggle-group__item {
@@ -5034,7 +5087,9 @@
 
   /* Icon-only items keep a square hit target per size. */
   .pc-toggle-group__item > [class^="hero-"],
-  .pc-toggle-group__item > [class*=" hero-"] {
+  .pc-toggle-group__item > [class*=" hero-"],
+  .pc-toggle-group__content > [class^="hero-"],
+  .pc-toggle-group__content > [class*=" hero-"] {
     @apply w-4 h-4;
   }
 

@@ -10,9 +10,15 @@ defmodule PetalComponents.ToggleGroup do
   one option (default) or any number of them (`multiple`).
 
   The component is stateless and server-driven, the LiveView way: you pass
-  the current `value`, it renders `aria-pressed` accordingly, and every press
-  sends `on_change` with the pressed option in `phx-value-toggle`. No hook,
-  no client state.
+  the current `value`, every press sends `on_change` with the pressed option
+  in `phx-value-toggle`, and you assign the value back. No hook, no client
+  state.
+
+  Single select renders **native radio inputs** (the same mechanics as the
+  colour-scheme switch's segmented variant): real radiogroup semantics, one
+  tab stop, and arrow keys move the selection - the full WAI-ARIA radio
+  pattern with zero JavaScript. Multiple select renders `aria-pressed`
+  toggle buttons, the toolbar pattern.
 
   ## Single select - a density rail
 
@@ -44,9 +50,20 @@ defmodule PetalComponents.ToggleGroup do
         {:noreply, assign(socket, formats: formats)}
       end
 
+  ## Variants
+
+  `variant="solid"` (default) is the wash rail with a floating chip - the
+  segmented-control look the scheme switch uses. `variant="outline"` is the
+  fused bordered rail with transparent items and a filled chip when on -
+  the toolbar look, at home next to a `button_group`.
+
   Values survive the `phx-value-*` string round-trip: pressed comparison is
   string-based, so `value={2}` still highlights after the server re-assigns
   the `"2"` it received.
+
+  The single-select radios detach themselves from any surrounding form
+  (their `form` attribute points at nothing), so dropping a toggle group
+  inside a `<.form>` never posts a stray `"<id>-toggle"` param.
   """
 
   attr :id, :string, default: nil
@@ -65,6 +82,11 @@ defmodule PetalComponents.ToggleGroup do
     default: false,
     doc: "treat value as a list; any number of options can be pressed"
 
+  attr :variant, :string,
+    default: "solid",
+    values: ["solid", "outline"],
+    doc: "solid is the wash rail with a floating chip; outline is the fused bordered rail"
+
   attr :size, :string, default: "md", values: ["sm", "md", "lg"]
   attr :disabled, :boolean, default: false, doc: "disables every item"
   attr :class, :any, default: nil, doc: "extra classes for the rail"
@@ -76,19 +98,21 @@ defmodule PetalComponents.ToggleGroup do
     attr :class, :any, doc: "extra classes for this item"
   end
 
-  def toggle_group(assigns) do
+  def toggle_group(%{multiple: true} = assigns) do
+    assigns = assign_id(assigns)
+
     ~H"""
     <div
-      id={@id || Helpers.uniq_id("toggle-group")}
+      id={@id}
       role="group"
       aria-label={@aria_label}
-      class={["pc-toggle-group", "pc-toggle-group--#{@size}", @class]}
+      class={rail_class(assigns)}
       {@rest}
     >
       <button
         :for={item <- @item}
         type="button"
-        aria-pressed={to_string(pressed?(item[:value], @value, @multiple))}
+        aria-pressed={to_string(pressed?(item[:value], @value, true))}
         disabled={@disabled || item[:disabled]}
         phx-click={@on_change}
         phx-value-toggle={item[:value]}
@@ -101,14 +125,60 @@ defmodule PetalComponents.ToggleGroup do
     """
   end
 
+  def toggle_group(assigns) do
+    assigns = assign_id(assigns)
+
+    ~H"""
+    <div
+      id={@id}
+      role="radiogroup"
+      aria-label={@aria_label}
+      class={rail_class(assigns)}
+      {@rest}
+    >
+      <label
+        :for={item <- @item}
+        class={["pc-toggle-group__item", item[:class]]}
+      >
+        <input
+          type="radio"
+          name={"#{@id}-toggle"}
+          value={item[:value]}
+          form={"#{@id}-no-form"}
+          checked={pressed?(item[:value], @value, false)}
+          disabled={@disabled || item[:disabled]}
+          class="pc-toggle-group__input"
+          phx-click={@on_change}
+          phx-value-toggle={item[:value]}
+          {item_rest(item)}
+        />
+        <span class="pc-toggle-group__content">{render_slot(item)}</span>
+      </label>
+    </div>
+    """
+  end
+
+  # Assigned once because the generated id feeds three attributes (the rail id,
+  # the radios' shared name, the form detach target) that must agree.
+  defp assign_id(assigns),
+    do: assign(assigns, :id, assigns.id || Helpers.uniq_id("toggle-group"))
+
+  defp rail_class(assigns) do
+    [
+      "pc-toggle-group",
+      "pc-toggle-group--#{assigns.size}",
+      assigns.variant == "outline" && "pc-toggle-group--outline",
+      assigns.class
+    ]
+  end
+
   # phx-value-* delivers strings, so a caller who assigns the event payload
   # back into `value` still gets a pressed match against non-string options.
-  defp pressed?(item_value, value, false), do: same?(item_value, value)
-
   defp pressed?(item_value, values, true) when is_list(values),
     do: Enum.any?(values, &same?(item_value, &1))
 
   defp pressed?(_item_value, _values, true), do: false
+  defp pressed?(item_value, value, false), do: same?(item_value, value)
 
   defp same?(_item_value, nil), do: false
   defp same?(item_value, value), do: to_string(item_value) == to_string(value)

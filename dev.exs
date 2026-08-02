@@ -4745,7 +4745,12 @@ defmodule Dev.PlaygroundLive do
       </p>
       <div class="px-4 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex justify-center mb-6">
-          <.toggle_group aria_label="Preview device" value={@tg_device} on_change="pg_tg_device">
+          <.toggle_group
+            variant="outline"
+            aria_label="Preview device"
+            value={@tg_device}
+            on_change="pg_tg_device"
+          >
             <:item value="desktop" aria-label="Desktop">
               <.icon name="hero-computer-desktop" />
             </:item>
