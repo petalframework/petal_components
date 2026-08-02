@@ -695,6 +695,7 @@ defmodule Dev.PlaygroundLive do
        show_code: false,
        tg_density: "cozy",
        tg_formats: ["bold"],
+       tg_device: "desktop",
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -870,6 +871,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("pg_tg_density", %{"toggle" => density}, socket)
       when density in ~w(compact cozy comfortable),
       do: {:noreply, assign(socket, tg_density: density)}
+
+  def handle_event("pg_tg_device", %{"toggle" => device}, socket)
+      when device in ~w(desktop tablet mobile),
+      do: {:noreply, assign(socket, tg_device: device)}
 
   def handle_event("pg_tg_format", %{"toggle" => format}, socket)
       when format in ~w(bold italic underline) do
@@ -4731,6 +4736,46 @@ defmodule Dev.PlaygroundLive do
           <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
           <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
         </.toggle_group>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">The device rail, working</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The canonical use, dogfooded: the rail drives the preview width below it, the way
+        every playground's device switcher does. Same component, real content.
+      </p>
+      <div class="px-4 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex justify-center mb-6">
+          <.toggle_group aria_label="Preview device" value={@tg_device} on_change="pg_tg_device">
+            <:item value="desktop" aria-label="Desktop">
+              <.icon name="hero-computer-desktop" />
+            </:item>
+            <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+            <:item value="mobile" aria-label="Phone">
+              <.icon name="hero-device-phone-mobile" />
+            </:item>
+          </.toggle_group>
+        </div>
+        <div
+          class={[
+            "mx-auto transition-all duration-300 border border-dashed border-gray-300 rounded-xl p-5 dark:border-gray-700",
+            @tg_device == "desktop" && "max-w-full",
+            @tg_device == "tablet" && "max-w-md",
+            @tg_device == "mobile" && "max-w-[250px]"
+          ]}
+          data-pg-device={@tg_device}
+        >
+          <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+            Publish your changes?
+          </h3>
+          <p class="mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400">
+            Two pages changed since the last deploy. The buttons below wrap on their own as
+            the frame narrows - no breakpoint classes, just less room.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <.button label="Publish now" />
+            <.button color="gray" variant="outline" label="Preview first" />
+          </div>
+        </div>
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.ToggleGroup.examples()} class="mt-10">

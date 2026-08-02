@@ -35,6 +35,19 @@ defmodule PetalComponents.Showcase.ToggleGroup do
     """
   end
 
+  example :device_rail, "The device rail",
+    inert: true,
+    description:
+      "The canonical icon-only use: a desktop / tablet / phone switcher above a preview frame, the strip every component playground puts in its toolbar. Icon-only items carry aria-labels so the options still read out. The playground's Try it section runs this one live against real content." do
+    ~H"""
+    <.toggle_group aria_label="Preview device" value="tablet" on_change="set_device">
+      <:item value="desktop" aria-label="Desktop"><.icon name="hero-computer-desktop" /></:item>
+      <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+      <:item value="mobile" aria-label="Phone"><.icon name="hero-device-phone-mobile" /></:item>
+    </.toggle_group>
+    """
+  end
+
   example :icons_with_labels, "Icons with labels",
     inert: true,
     description:
