@@ -51,7 +51,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
   example :outline, "Outline variant",
     inert: true,
     description:
-      "The fused toolbar look: bordered rail, hairline dividers, filled chip when on. At home in a preview-frame toolbar next to a button_group of actions - the wash rail suits settings and content, the outline rail suits chrome." do
+      "The toolbar look: a bordered rail with floating chips, on the same border and wash ramp as outline buttons - compose it next to a button_group and the two read as kin. The wash rail suits settings and content; the outline rail suits chrome." do
     ~H"""
     <.toggle_group
       variant="outline"

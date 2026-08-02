@@ -5041,36 +5041,29 @@
     @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
   }
 
-  /* Outline - the fused toolbar look (the shadcn preview-frame reference):
-     bordered rail, transparent items with hairline dividers, filled chip on. */
+  /* Outline - the toolbar look (the shadcn preview-frame reference): a padded
+     bordered rail with floating rounded chips, no separators. Tokens borrow
+     the gray-outline button's border/wash ramp so a rail composed next to
+     outline buttons reads as kin; the pressed chip sits one step above hover,
+     the button's own press feel. Chip rounding is the scheme-dropdown
+     concentric formula. */
   .pc-toggle-group--outline {
-    @apply gap-0 p-0 bg-transparent border border-gray-200 shadow-xs dark:bg-transparent dark:border-gray-700;
+    @apply bg-transparent border border-gray-300 shadow-xs dark:bg-gray-400/8 dark:border-gray-400/25;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-toggle-group--outline .pc-toggle-group__item {
-    @apply border-l border-gray-200 dark:border-gray-700;
-    border-radius: 0;
-  }
-
-  .pc-toggle-group--outline .pc-toggle-group__item:first-child {
-    border-inline-start: 0;
-    border-start-start-radius: calc(var(--pc-radius, 0.625rem) - 1px);
-    border-end-start-radius: calc(var(--pc-radius, 0.625rem) - 1px);
-  }
-
-  .pc-toggle-group--outline .pc-toggle-group__item:last-child {
-    border-start-end-radius: calc(var(--pc-radius, 0.625rem) - 1px);
-    border-end-end-radius: calc(var(--pc-radius, 0.625rem) - 1px);
+    @apply hover:bg-gray-100 dark:hover:bg-gray-400/17;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-toggle-group--outline .pc-toggle-group__input {
-    border-radius: 0;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-toggle-group--outline .pc-toggle-group__item[aria-pressed="true"],
   .pc-toggle-group--outline .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
-    @apply bg-gray-100 text-gray-900 shadow-none ring-0 dark:bg-gray-700 dark:text-white;
+    @apply bg-gray-200 text-gray-900 shadow-none ring-0 dark:bg-gray-400/25 dark:text-white;
   }
 
   .pc-toggle-group--sm .pc-toggle-group__item {
