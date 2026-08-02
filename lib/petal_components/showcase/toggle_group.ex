@@ -7,7 +7,7 @@ defmodule PetalComponents.Showcase.ToggleGroup do
   example :single, "Single select",
     inert: true,
     description:
-      "One rail, one pressed option. Pass the current value and an on_change event; in your app you assign the value the event hands back and the pressed chip follows. This preview renders a fixed value - registry examples are static by design. Where button_group fires actions, toggle_group holds a selection." do
+      "One rail, one pressed option, rendered as native radios: real radiogroup semantics, one tab stop, arrow keys move the selection, no JavaScript. Pass the current value and an on_change event; in your app you assign the value the event hands back and the chip follows. This preview renders a fixed value - registry examples are static by design." do
     ~H"""
     <.toggle_group aria_label="Density" value="cozy" on_change="set_density">
       <:item value="compact">Compact</:item>
@@ -41,6 +41,24 @@ defmodule PetalComponents.Showcase.ToggleGroup do
       "The canonical icon-only use: a desktop / tablet / phone switcher above a preview frame, the strip every component playground puts in its toolbar. Icon-only items carry aria-labels so the options still read out. The playground's Try it section runs this one live against real content." do
     ~H"""
     <.toggle_group aria_label="Preview device" value="tablet" on_change="set_device">
+      <:item value="desktop" aria-label="Desktop"><.icon name="hero-computer-desktop" /></:item>
+      <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+      <:item value="mobile" aria-label="Phone"><.icon name="hero-device-phone-mobile" /></:item>
+    </.toggle_group>
+    """
+  end
+
+  example :outline, "Outline variant",
+    inert: true,
+    description:
+      "The fused toolbar look: bordered rail, hairline dividers, filled chip when on. At home in a preview-frame toolbar next to a button_group of actions - the wash rail suits settings and content, the outline rail suits chrome." do
+    ~H"""
+    <.toggle_group
+      variant="outline"
+      aria_label="Preview device"
+      value="desktop"
+      on_change="set_device"
+    >
       <:item value="desktop" aria-label="Desktop"><.icon name="hero-computer-desktop" /></:item>
       <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
       <:item value="mobile" aria-label="Phone"><.icon name="hero-device-phone-mobile" /></:item>
