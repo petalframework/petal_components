@@ -254,7 +254,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
-        %{slug: "user-menu", name: "User menu", ready: true}
+        %{slug: "user-menu", name: "User menu", ready: true},
+        %{slug: "language-select", name: "Language select", ready: true}
       ]
     },
     %{
@@ -309,6 +310,14 @@ defmodule Dev.PlaygroundLive do
   ]
 
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+  @locale_codes ~w(en fr de es pt)
+  @playground_languages [
+    %{locale: "en", flag: "🇬🇧", label: "English"},
+    %{locale: "fr", flag: "🇫🇷", label: "Français"},
+    %{locale: "de", flag: "🇩🇪", label: "Deutsch"},
+    %{locale: "es", flag: "🇪🇸", label: "Español"},
+    %{locale: "pt", flag: "🇵🇹", label: "Português"}
+  ]
 
   # {name, rail swatch css}. Neutral adapts to the mode, hence the split dot.
   @primaries [
@@ -694,6 +703,8 @@ defmodule Dev.PlaygroundLive do
        disabled: false,
        show_code: false,
        tg_density: "cozy",
+       lang_placement: "left",
+       playground_languages: @playground_languages,
        tg_formats: ["bold"],
        tg_device: "desktop",
        tg_variant: "solid",
@@ -826,6 +837,7 @@ defmodule Dev.PlaygroundLive do
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:lang, allow(params["locale"], @locale_codes, "en"))
       |> assign(:dark, false)
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
@@ -869,6 +881,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("toggle_dark", _params, socket),
     do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
+
+  def handle_event("pg_lang_placement", %{"toggle" => p}, socket) when p in ~w(left right),
+    do: {:noreply, assign(socket, lang_placement: p)}
 
   def handle_event("pg_tg_density", %{"toggle" => density}, socket)
       when density in ~w(compact cozy comfortable),
@@ -4263,6 +4278,65 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Dropdown</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "language-select"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Language select</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The locale flag dropdown, graduated from Petal Pro. Items are plain
+        links carrying <code>?locale=</code> - the conventional Phoenix
+        contract - so it works on live and dead views alike.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-4 py-12">
+          <.language_select
+            current_locale={@lang}
+            current_path={"/?c=language-select&radius=#{@radius}"}
+            language_options={@playground_languages}
+            placement={@lang_placement}
+          />
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Placement"
+              value={@lang_placement}
+              on_change="pg_lang_placement"
+            >
+              <:item :for={p <- ~w(left right)} value={p} phx-value-v={p}>{p}</:item>
+            </.toggle_group>
+          </div>
+          <p class="max-w-xs text-[11px] leading-relaxed text-gray-400">
+            picking a language reloads with <code>?locale=</code> and this page
+            reads it back - the real contract, not a simulation
+          </p>
+        </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.LanguageSelect.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.LanguageSelect} function={:language_select} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.LanguageSelect</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>

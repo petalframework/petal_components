@@ -42,6 +42,7 @@ defmodule PetalComponents do
         Command,
         InputGroup,
         InputOtp,
+        LanguageSelect,
         Link,
         Loading,
         LocalTime,
