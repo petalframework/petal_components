@@ -5077,9 +5077,27 @@
     flex-shrink: 0;
   }
 
+  /* Exact squares per size - each is its own size's text-button height
+     (2*py + line-height), so icon-only chips align with labelled
+     siblings. aspect-ratio can't do this: it loses to content-derived
+     minimums inside flex rows and renders pills. */
   .pc-social-button--icon-only {
-    aspect-ratio: 1;
-    padding-inline: 0;
+    padding: 0;
+  }
+
+  .pc-button--sm.pc-social-button--icon-only {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .pc-button--md.pc-social-button--icon-only {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .pc-button--lg.pc-social-button--icon-only {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .pc-social-button--google {
