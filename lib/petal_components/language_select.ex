@@ -121,9 +121,10 @@ defmodule PetalComponents.LanguageSelect do
   defp trigger_mode("flag", _current), do: :globe
 
   # The query goes BEFORE any #fragment - appended blindly it would land
-  # inside the fragment and never reach the server (Greptile catch). A
-  # fragment-only path ("#") has nowhere to carry a query, so it stays
-  # inert - which is exactly what showcase demos want.
+  # inside the fragment and never reach the server. A fragment-only path
+  # ("#") yields a relative "?locale=..#" URL, which the browser resolves
+  # against the current page - so even the degenerate input still switches
+  # locale instead of silently doing nothing.
   defp locale_href(path, locale) do
     {base, fragment} =
       case String.split(path, "#", parts: 2) do
@@ -131,11 +132,7 @@ defmodule PetalComponents.LanguageSelect do
         [base] -> {base, ""}
       end
 
-    if base == "" and fragment != "" do
-      fragment
-    else
-      sep = if String.contains?(base, "?"), do: "&", else: "?"
-      base <> sep <> "locale=" <> URI.encode_www_form(locale) <> fragment
-    end
+    sep = if String.contains?(base, "?"), do: "&", else: "?"
+    base <> sep <> "locale=" <> URI.encode_www_form(locale) <> fragment
   end
 end
