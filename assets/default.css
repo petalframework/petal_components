@@ -5038,6 +5038,37 @@
     @apply pr-1;
   }
 
+  /* Language select - the locale flag dropdown, a pure composition of
+     pc-dropdown: panel, items and radius all come from the dropdown, so
+     this block only paints the trigger cluster and the item row. */
+  .pc-language-select__trigger {
+    @apply inline-flex items-center gap-1 align-middle;
+  }
+
+  .pc-language-select__flag {
+    @apply text-xl leading-none;
+  }
+
+  .pc-language-select__globe {
+    @apply w-5 h-5 text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-language-select__chevron {
+    @apply w-4 h-4 text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-language-select__item-flag {
+    @apply mr-2 text-lg leading-none;
+  }
+
+  .pc-language-select__item-label {
+    @apply flex-1 text-left;
+  }
+
+  .pc-language-select__check {
+    @apply w-4 h-4 ml-3 shrink-0 text-primary-600 dark:text-primary-400;
+  }
+
   /* Toggle group - the scheme-segmented family generalised. Single select is
      label-wrapped native radios (radiogroup semantics + arrow keys for free);
      multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes.
