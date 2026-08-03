@@ -4729,7 +4729,7 @@ defmodule Dev.PlaygroundLive do
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         Single select on the left, multiple on the right, both live against this page's
         LiveView state. The dials below are toggle groups themselves, so this section
-        configures itself - and the radius dial up top drives every chip.
+        configures itself. The radius dial up top drives the chips too: like the scheme switch, this family pills at the default token and sharpens below it, so the dial's action lives in the 0-10 range (buttons track the token linearly instead - two curves, one system).
       </p>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-12">

@@ -5011,7 +5011,13 @@
      GEOMETRY IS SHARED ACROSS VARIANTS: rail = token x 2.4, chips = token x 2
      (concentric with the p-1 padding at the shipped default). Variants may
      only change paint - never radii - so flipping variant or the radius dial
-     keeps every rail congruent. */
+     keeps every rail congruent.
+
+     Why x2.4 and not x1 like buttons: this is the SEGMENTED family curve,
+     inherited from pc-scheme-segmented - a full pill at the shipped default,
+     sharp at radius 0. Chips saturate at the pill ceiling around token 10 by
+     design; the button family (x1) tracks the token linearly instead. Two
+     deliberate curves, documented here because someone will ask. */
   .pc-toggle-group {
     @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
     border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
