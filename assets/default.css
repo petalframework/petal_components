@@ -5063,6 +5063,61 @@
     @apply pr-1;
   }
 
+  /* Social button + brand icon - the provider sign-in family. The button
+     rides pc-button geometry entirely; this block adds only glyph sizing
+     and the solid brand paints. Black brands (github/apple/x) get a
+     hairline border in dark mode so solid buttons never dissolve. */
+  .pc-brand-icon {
+    @apply inline-block;
+  }
+
+  .pc-social-button__icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+  }
+
+  .pc-social-button--icon-only {
+    aspect-ratio: 1;
+    padding-inline: 0;
+  }
+
+  .pc-social-button--google {
+    @apply text-white border-transparent bg-[#4285F4] hover:bg-[#4285F4]/90;
+  }
+
+  .pc-social-button--github {
+    @apply text-white border-transparent bg-[#24292F] hover:bg-[#24292F]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--apple {
+    @apply text-white border-transparent bg-[#050708] hover:bg-[#050708]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--x {
+    @apply text-white border-transparent bg-black hover:bg-black/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--facebook {
+    @apply text-white border-transparent bg-[#1778F2] hover:bg-[#1778F2]/90;
+  }
+
+  .pc-social-button--microsoft {
+    @apply text-white border-transparent bg-[#2F2F2F] hover:bg-[#2F2F2F]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--gitlab {
+    @apply text-white border-transparent bg-[#FC6D26] hover:bg-[#FC6D26]/90;
+  }
+
+  .pc-social-button--discord {
+    @apply text-white border-transparent bg-[#5865F2] hover:bg-[#5865F2]/90;
+  }
+
+  .pc-social-button--linkedin {
+    @apply text-white border-transparent bg-[#0B65C2] hover:bg-[#0B65C2]/90;
+  }
+
   /* Language select - the locale flag dropdown, a pure composition of
      pc-dropdown: panel, items and radius all come from the dropdown, so
      this block only paints the trigger cluster and the item row. */
