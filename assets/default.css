@@ -5006,7 +5006,12 @@
 
   /* Toggle group - the scheme-segmented family generalised. Single select is
      label-wrapped native radios (radiogroup semantics + arrow keys for free);
-     multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes. */
+     multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes.
+
+     GEOMETRY IS SHARED ACROSS VARIANTS: rail = token x 2.4, chips = token x 2
+     (concentric with the p-1 padding at the shipped default). Variants may
+     only change paint - never radii - so flipping variant or the radius dial
+     keeps every rail congruent. */
   .pc-toggle-group {
     @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
     border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
@@ -5045,20 +5050,14 @@
      bordered rail with floating rounded chips, no separators. Tokens borrow
      the gray-outline button's border/wash ramp so a rail composed next to
      outline buttons reads as kin; the pressed chip sits one step above hover,
-     the button's own press feel. Chip rounding is the scheme-dropdown
-     concentric formula. */
+     the button's own press feel. Paint only - the radii come from the shared
+     family geometry above. */
   .pc-toggle-group--outline {
     @apply bg-transparent border border-gray-300 shadow-xs dark:bg-gray-400/8 dark:border-gray-400/25;
-    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-toggle-group--outline .pc-toggle-group__item {
     @apply hover:bg-gray-100 dark:hover:bg-gray-400/17;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
-  .pc-toggle-group--outline .pc-toggle-group__input {
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-toggle-group--outline .pc-toggle-group__item[aria-pressed="true"],

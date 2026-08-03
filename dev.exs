@@ -4731,8 +4731,8 @@ defmodule Dev.PlaygroundLive do
         LiveView state. The dials below are toggle groups themselves, so this section
         configures itself - and the radius dial up top drives every chip.
       </p>
-      <div class="px-4 py-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex flex-wrap items-center justify-center gap-6 py-6">
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-12">
           <.toggle_group
             variant={@tg_variant}
             size={@tg_size}
@@ -4758,7 +4758,7 @@ defmodule Dev.PlaygroundLive do
           </.toggle_group>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-6 pt-5 mt-1 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap justify-center gap-6 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
               variant
