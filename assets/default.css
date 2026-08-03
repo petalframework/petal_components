@@ -4430,6 +4430,21 @@
     @apply h-3 w-3 rounded-[2px];
     background-color: currentColor;
   }
+
+  /* THE TALL-ELEMENT CLAMP. Anything that can grow past one line caps
+     the radius token at 1rem - the ceiling the floating panels already
+     use. `full` keeps meaning "pill" for one-line controls (inputs,
+     buttons, chips) and stops meaning "ellipse" for multi-line ones.
+     One-line siblings (input, single select, single-row input groups)
+     deliberately stay unclamped. */
+  textarea.pc-text-input,
+  .pc-select[multiple],
+  .pc-input-group:has(.pc-input-group__block),
+  .pc-alert-base-classes,
+  .pc-chat__composer-input,
+  .pc-tooltip__content {
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
 }
 
 @keyframes pc-chat-blink {

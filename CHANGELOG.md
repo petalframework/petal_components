@@ -15,6 +15,13 @@
 
 #### Fixed
 
+- Tall elements no longer inflate into ellipses at `radius="full"`: the
+  panel clamp (1rem ceiling) now also covers textareas, multi-selects,
+  block input groups (the composer pattern), alerts, the chat composer
+  and tooltips. One-line controls keep their pills. The earlier clamp
+  pass covered floating panels but never audited form controls - this
+  sweep checked every raw token consumer (40) and capped the six that
+  can grow past one line.
 - **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
 
 ### 4.9.0 - 2026-07-30
