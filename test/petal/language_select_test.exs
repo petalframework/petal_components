@@ -85,7 +85,7 @@ defmodule PetalComponents.LanguageSelectTest do
     assert html =~ ~s(href="/docs?page=2&amp;locale=fr#install")
   end
 
-  test "a fragment-only path stays inert - the showcase no-op" do
+  test "a fragment-only path still carries the locale as a relative query" do
     assigns = %{langs: @langs}
 
     html =
@@ -93,7 +93,7 @@ defmodule PetalComponents.LanguageSelectTest do
       <.language_select current_locale="en" current_path="#" language_options={@langs} />
       """)
 
-    assert html =~ ~s(href="#")
+    assert html =~ ~s(href="?locale=fr#")
     refute html =~ ~s(href="#?locale)
   end
 
