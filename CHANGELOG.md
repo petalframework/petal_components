@@ -9,6 +9,10 @@
 - **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
 - **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
 
+#### Changed
+
+- **LiveView floor moves to `~> 1.1`** (Matt-approved, 3 Aug). The 4.8+ components already relied on 1.1 behaviour - the colour scheme switch and command palette mount hooks on dead views, which 1.0 never did - so the requirement now states what the package actually needs. Anyone still on LiveView 1.0 stays on petal_components 4.9. This also makes `command_trigger`'s dead-view support unconditional across the supported range.
+
 #### Fixed
 
 - **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
