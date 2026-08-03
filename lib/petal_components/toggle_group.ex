@@ -99,6 +99,9 @@ defmodule PetalComponents.ToggleGroup do
     attr :value, :any, required: true, doc: "the option this item represents"
     attr :disabled, :boolean, doc: "disables this item only"
     attr :class, :any, doc: "extra classes for this item"
+
+    attr :"aria-label", :string,
+      doc: "accessible name for icon-only items - reaches the radio/button itself"
   end
 
   def toggle_group(%{multiple: true} = assigns) do
