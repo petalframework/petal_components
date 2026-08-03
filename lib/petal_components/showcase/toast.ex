@@ -57,4 +57,40 @@ defmodule PetalComponents.Showcase.Toast do
     </div>
     """
   end
+
+  example :severity_set, "The full severity set",
+    description:
+      "Seven kinds: info, success, warning, danger, loading and neutral - plus :error, which normalises to danger so put_flash(:error, ...) lands right. Warning and danger announce assertively (role=alert), the rest politely. The group itself takes position (six corners), max (stack cap) and duration (auto-dismiss default)." do
+    ~H"""
+    <div class="flex flex-wrap items-center justify-center gap-2">
+      <.button
+        color="gray"
+        variant="outline"
+        phx-click={
+          JS.dispatch("petal:toast",
+            detail: %{kind: "warning", title: "Certificate expiring", description: "7 days left."}
+          )
+        }
+      >
+        Warning
+      </.button>
+      <.button
+        color="gray"
+        variant="outline"
+        phx-click={
+          JS.dispatch("petal:toast", detail: %{kind: "loading", title: "Uploading archive..."})
+        }
+      >
+        Loading
+      </.button>
+      <.button
+        color="gray"
+        variant="outline"
+        phx-click={JS.dispatch("petal:toast", detail: %{kind: "neutral", title: "Draft restored"})}
+      >
+        Neutral
+      </.button>
+    </div>
+    """
+  end
 end

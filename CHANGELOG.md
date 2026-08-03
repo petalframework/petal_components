@@ -3,6 +3,13 @@
 
 #### Added
 
+- Nine new registry examples across six thin modules - toast's remaining
+  severities (warning, loading, neutral), carousel thumbnail navigation
+  and a slides_per_view row, the avatar size ladder + presence dots and
+  the avatar_group team stack, marquee's vertical feed, local_time's
+  threshold flip, and the colour-scheme switch labelled in German plus
+  custom icon slots. petal.build renders these registries directly, so
+  the docs pages inherit every example in the same release.
 - `language_select/1` graduates from Petal Pro: the locale dropdown, now
   a free composition of `dropdown/1`. Plain links carry `?locale=`
   (`&`-joined when the path already has a query - the Pro version broke
@@ -46,6 +53,9 @@
 
 #### Fixed
 
+- `toggle_group` items: `aria-label` is now a declared slot attr.
+  Icon-only items were passing it through with a compile warning - fatal
+  for consumers building with `--warnings-as-errors`.
 - Tall elements no longer inflate into ellipses at `radius="full"`: the
   panel clamp (1rem ceiling) now also covers textareas, multi-selects,
   block input groups (the composer pattern), alerts, the chat composer
