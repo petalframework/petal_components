@@ -220,6 +220,7 @@ defmodule Dev.PlaygroundLive do
       group: "Inputs",
       items: [
         %{slug: "button", name: "Button", ready: true},
+        %{slug: "social-button", name: "Social button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
         %{slug: "toggle-group", name: "Toggle group", ready: true},
         %{slug: "input", name: "Input", ready: true},
@@ -4282,6 +4283,39 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Dropdown</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "social-button"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Social button</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        "Continue with Google" and its siblings, graduated from Petal Pro -
+        the very first Pro component, now free. Rides pc-button geometry,
+        so the radius dial and the theme drive it like any other button.
+      </p>
+
+      <div :for={ex <- PetalComponents.Showcase.SocialButton.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SocialButton} function={:social_button} />
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">brand_icon</h2>
+      <.showcase_props component={PetalComponents.BrandIcon} function={:brand_icon} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.SocialButton</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
