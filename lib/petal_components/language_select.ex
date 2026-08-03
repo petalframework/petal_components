@@ -55,6 +55,11 @@ defmodule PetalComponents.LanguageSelect do
     doc: "what the trigger shows: the current flag, the locale code (EN), or the language name"
 
   attr :label, :string, default: "Change language", doc: "accessible name for the trigger"
+
+  attr :show_chevron, :boolean,
+    default: true,
+    doc: "hide for the cleanest text triggers - the flag or code stands alone"
+
   attr :placement, :string, default: "left", values: ["left", "right"]
   attr :class, :any, default: nil, doc: "extra classes for the dropdown container"
   attr :rest, :global
@@ -83,7 +88,11 @@ defmodule PetalComponents.LanguageSelect do
                 {(@current_option && @current_option.label) || @current_locale}
               </span>
           <% end %>
-          <.icon name="hero-chevron-down-mini" class="pc-language-select__chevron" />
+          <.icon
+            :if={@show_chevron}
+            name="hero-chevron-down-mini"
+            class="pc-language-select__chevron"
+          />
           <span class="sr-only">{@label}</span>
         </span>
       </:trigger_element>

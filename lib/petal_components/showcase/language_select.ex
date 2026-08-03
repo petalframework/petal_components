@@ -43,6 +43,7 @@ defmodule PetalComponents.Showcase.LanguageSelect do
         current_locale="pt"
         current_path="#"
         variant="label"
+        show_chevron={false}
         language_options={[
           %{locale: "en", flag: "🇬🇧", label: "English"},
           %{locale: "pt", flag: "🇵🇹", label: "Português"},
