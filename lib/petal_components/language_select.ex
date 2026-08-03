@@ -120,8 +120,22 @@ defmodule PetalComponents.LanguageSelect do
   defp trigger_mode("flag", %{flag: flag}) when is_binary(flag), do: :flag
   defp trigger_mode("flag", _current), do: :globe
 
+  # The query goes BEFORE any #fragment - appended blindly it would land
+  # inside the fragment and never reach the server (Greptile catch). A
+  # fragment-only path ("#") has nowhere to carry a query, so it stays
+  # inert - which is exactly what showcase demos want.
   defp locale_href(path, locale) do
-    sep = if String.contains?(path, "?"), do: "&", else: "?"
-    path <> sep <> "locale=" <> URI.encode_www_form(locale)
+    {base, fragment} =
+      case String.split(path, "#", parts: 2) do
+        [base, fragment] -> {base, "#" <> fragment}
+        [base] -> {base, ""}
+      end
+
+    if base == "" and fragment != "" do
+      fragment
+    else
+      sep = if String.contains?(base, "?"), do: "&", else: "?"
+      base <> sep <> "locale=" <> URI.encode_www_form(locale) <> fragment
+    end
   end
 end
