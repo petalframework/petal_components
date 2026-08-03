@@ -1973,6 +1973,11 @@
   .pc-dropdown__menu-items-wrapper-placement--right {
     @apply left-0 origin-top-left;
   }
+  /* The one trigger chevron for the dropdown family - user menu,
+     language select and friends share this so the colour can't drift. */
+  .pc-dropdown__chevron {
+    @apply w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500;
+  }
   .pc-dropdown__menu-item {
     @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-400/17;
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
