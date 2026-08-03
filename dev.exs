@@ -704,6 +704,7 @@ defmodule Dev.PlaygroundLive do
        show_code: false,
        tg_density: "cozy",
        lang_placement: "left",
+       lang_variant: "flag",
        playground_languages: @playground_languages,
        tg_formats: ["bold"],
        tg_device: "desktop",
@@ -884,6 +885,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("pg_lang_placement", %{"toggle" => p}, socket) when p in ~w(left right),
     do: {:noreply, assign(socket, lang_placement: p)}
+
+  def handle_event("pg_lang_variant", %{"toggle" => v}, socket) when v in ~w(flag code label),
+    do: {:noreply, assign(socket, lang_variant: v)}
 
   def handle_event("pg_tg_density", %{"toggle" => density}, socket)
       when density in ~w(compact cozy comfortable),
@@ -4175,9 +4179,22 @@ defmodule Dev.PlaygroundLive do
             current_path={"/?c=language-select&radius=#{@radius}"}
             language_options={@playground_languages}
             placement={@lang_placement}
+            variant={@lang_variant}
           />
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Trigger"
+              value={@lang_variant}
+              on_change="pg_lang_variant"
+            >
+              <:item :for={v <- ~w(flag code label)} value={v} phx-value-v={v}>{v}</:item>
+            </.toggle_group>
+          </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
             <.toggle_group
