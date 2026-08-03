@@ -10,6 +10,10 @@ defmodule PetalComponents.UserDropdownMenu do
   attr :current_user_name, :string, doc: "the current signed in user's name"
   attr :avatar_src, :string, default: nil, doc: "the current signed in user's avatar image src"
 
+  attr :show_chevron, :boolean,
+    default: true,
+    doc: "hide for the chevron-less avatar trigger - the leaner app-shell look"
+
   def user_dropdown_menu(assigns) do
     ~H"""
     <.dropdown :if={@user_menu_items != []}>
@@ -22,8 +26,9 @@ defmodule PetalComponents.UserDropdownMenu do
           <% end %>
 
           <.icon
+            :if={@show_chevron}
             name="hero-chevron-down-mini"
-            class="w-4 h-4 ml-1 -mr-1 text-gray-400 dark:text-gray-100"
+            class="pc-dropdown__chevron ml-1 -mr-1"
           />
         </div>
       </:trigger_element>
