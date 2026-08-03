@@ -63,6 +63,40 @@ defmodule PetalComponents.LanguageSelectTest do
     assert html =~ ~s(href="/docs?page=2&amp;locale=fr")
   end
 
+  test "the locale query lands before a fragment, never inside it" do
+    assigns = %{langs: @langs}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="en" current_path="/docs#install" language_options={@langs} />
+      """)
+
+    assert html =~ ~s(href="/docs?locale=fr#install")
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select
+        current_locale="en"
+        current_path="/docs?page=2#install"
+        language_options={@langs}
+      />
+      """)
+
+    assert html =~ ~s(href="/docs?page=2&amp;locale=fr#install")
+  end
+
+  test "a fragment-only path stays inert - the showcase no-op" do
+    assigns = %{langs: @langs}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="en" current_path="#" language_options={@langs} />
+      """)
+
+    assert html =~ ~s(href="#")
+    refute html =~ ~s(href="#?locale)
+  end
+
   test "locales are URL-encoded in the href" do
     assigns = %{langs: [%{locale: "en US", flag: "🇺🇸", label: "English (US)"}]}
 
