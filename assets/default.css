@@ -4448,6 +4448,7 @@
      deliberately stay unclamped. */
   textarea.pc-text-input,
   .pc-select[multiple],
+  select.pc-text-input[multiple],
   .pc-input-group:has(.pc-input-group__block),
   .pc-alert-base-classes,
   .pc-chat__composer-input,
