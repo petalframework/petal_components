@@ -4948,14 +4948,15 @@
 
   .pc-scheme-segmented {
     @apply relative inline-grid grid-cols-3 gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
-    /* 2.4x the radius token: a full pill at the shipped default (24px on a
-       36px control), concentric with the 2x chips, sharp at radius 0. */
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
+    /* Token x1.2 rail over x1 chips: the button-family curve, so the radius
+       dial produces even, perceptible steps and only `full` pills. (Was
+       pill-at-default x2.4 until 4.10 - see the toggle-group doctrine.) */
+    border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
   }
 
   .pc-scheme-segmented__option {
     @apply relative flex items-center justify-center p-1.5 cursor-pointer transition-colors duration-150;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-scheme-segmented__option:has(:checked) {
@@ -4968,7 +4969,7 @@
 
   .pc-scheme-segmented__input {
     @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-scheme-segmented__icon {
@@ -5008,31 +5009,27 @@
      label-wrapped native radios (radiogroup semantics + arrow keys for free);
      multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes.
 
-     GEOMETRY IS SHARED ACROSS VARIANTS: rail = token x 2.4, chips = token x 2
-     (concentric with the p-1 padding at the shipped default). Variants may
-     only change paint - never radii - so flipping variant or the radius dial
-     keeps every rail congruent.
-
-     Why x2.4 and not x1 like buttons: this is the SEGMENTED family curve,
-     inherited from pc-scheme-segmented - a full pill at the shipped default,
-     sharp at radius 0. Chips saturate at the pill ceiling around token 10 by
-     design; the button family (x1) tracks the token linearly instead. Two
-     deliberate curves, documented here because someone will ask. */
+     GEOMETRY IS SHARED ACROSS VARIANTS: rail = token x 1.2, chips = token x 1
+     - the button-family curve, adopted for the whole segmented family in 4.10
+     (scheme switch included, one commit). Every radius-dial stop produces a
+     distinct, perceptible step and only `full` pills, exactly like buttons.
+     Variants may only change paint - never radii - so flipping variant or
+     the radius dial keeps every rail congruent. */
   .pc-toggle-group {
     @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
+    border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
   }
 
   .pc-toggle-group__item {
     @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:text-gray-900 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* The hidden radio fills its label so the whole item is the hit target;
      keyboard focus lives on it. */
   .pc-toggle-group__input {
     @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none disabled:cursor-not-allowed;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-toggle-group__content {
