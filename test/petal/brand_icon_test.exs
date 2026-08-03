@@ -84,5 +84,6 @@ defmodule PetalComponents.BrandIconTest do
     assert html =~ ~s(role="img")
     assert html =~ ~s(aria-label="Discord")
     assert html =~ "w-6 h-6"
+    refute html =~ "aria-hidden"
   end
 end

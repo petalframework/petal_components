@@ -57,7 +57,10 @@ defmodule PetalComponents.BrandIcon do
   and an `aria-label` when the icon stands alone.
   """
   def brand_icon(assigns) do
-    assigns = assign(assigns, :spec, spec(assigns.name))
+    assigns =
+      assigns
+      |> assign(:spec, spec(assigns.name))
+      |> assign(:decorative, !(assigns.rest[:"aria-label"] || assigns.rest[:role]))
 
     ~H"""
     <svg
@@ -65,7 +68,7 @@ defmodule PetalComponents.BrandIcon do
       viewBox={@spec.view_box}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={@decorative && "true"}
       {@rest}
     >
       <path :for={{d, color} <- @spec.paths} d={d} fill={(@colored && color) || "currentColor"} />
