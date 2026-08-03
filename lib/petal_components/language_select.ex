@@ -1,15 +1,16 @@
 defmodule PetalComponents.LanguageSelect do
   @moduledoc """
-  A locale switcher - the flag dropdown a multilingual app puts in its
+  A locale switcher - the language dropdown a multilingual app puts in its
   header or footer.
 
   A pure composition of `PetalComponents.Dropdown`: the trigger shows the
-  current locale's flag, the menu lists every language as a plain link to
-  the current path with `?locale=...` appended (`&`-joined when the path
-  already carries a query). That is the conventional Phoenix contract -
-  a plug or `on_mount` hook reads the param, calls `Gettext.put_locale/2`
-  and persists the choice - and because the items are real links, the
-  switcher works on live and dead views alike.
+  current locale (flag, code or label - see `variant`), the menu lists
+  every language as a plain link to the current path with `?locale=...`
+  appended (`&`-joined when the path already carries a query). That is
+  the conventional Phoenix contract - a plug or `on_mount` hook reads the
+  param, calls `Gettext.put_locale/2` and persists the choice - and
+  because the items are real links, the switcher works on live and dead
+  views alike.
 
       <.language_select
         current_locale={Gettext.get_locale(MyAppWeb.Gettext)}
@@ -20,9 +21,15 @@ defmodule PetalComponents.LanguageSelect do
         ]}
       />
 
-  When `current_locale` matches no option, the trigger falls back to a
-  language glyph instead of raising - a half-configured app renders a
-  working menu, not a crash.
+  Flags read fast but a flag is a country, not a language - Portuguese
+  isn't only 🇵🇹. When that matters, drop the `:flag` keys and switch the
+  trigger to text: `variant="code"` renders the locale code (EN), and
+  `variant="label"` renders the language name. Options without a `:flag`
+  simply render without one.
+
+  When `current_locale` matches no option, the flag trigger falls back to
+  a language glyph (and the text triggers fall back to the raw locale) -
+  a half-configured app renders a working menu, not a crash.
   """
   use Phoenix.Component
 
@@ -35,11 +42,17 @@ defmodule PetalComponents.LanguageSelect do
 
   attr :language_options, :list,
     required: true,
-    doc: "one map per language: %{locale: \"en\", flag: \"🇬🇧\", label: \"English\"}"
+    doc:
+      "one map per language: %{locale: \"en\", flag: \"🇬🇧\", label: \"English\"} - :flag is optional"
 
   attr :current_path, :string,
     default: "",
     doc: "the path the locale links return to; the locale query param is appended"
+
+  attr :variant, :string,
+    default: "flag",
+    values: ["flag", "code", "label"],
+    doc: "what the trigger shows: the current flag, the locale code (EN), or the language name"
 
   attr :label, :string, default: "Change language", doc: "accessible name for the trigger"
   attr :placement, :string, default: "left", values: ["left", "right"]
@@ -58,10 +71,18 @@ defmodule PetalComponents.LanguageSelect do
     <.dropdown class={["pc-language-select", @class]} placement={@placement} {@rest}>
       <:trigger_element>
         <span class="pc-language-select__trigger">
-          <span :if={@current_option} class="pc-language-select__flag">
-            {@current_option.flag}
-          </span>
-          <.icon :if={is_nil(@current_option)} name="hero-language" class="pc-language-select__globe" />
+          <%= case trigger_mode(@variant, @current_option) do %>
+            <% :flag -> %>
+              <span class="pc-language-select__flag">{@current_option.flag}</span>
+            <% :globe -> %>
+              <.icon name="hero-language" class="pc-language-select__globe" />
+            <% :code -> %>
+              <span class="pc-language-select__code">{String.upcase(@current_locale)}</span>
+            <% :label -> %>
+              <span class="pc-language-select__label">
+                {(@current_option && @current_option.label) || @current_locale}
+              </span>
+          <% end %>
           <.icon name="hero-chevron-down-mini" class="pc-language-select__chevron" />
           <span class="sr-only">{@label}</span>
         </span>
@@ -73,7 +94,7 @@ defmodule PetalComponents.LanguageSelect do
         aria-current={language.locale == @current_locale && "true"}
         class="pc-language-select__item"
       >
-        <span class="pc-language-select__item-flag">{language.flag}</span>
+        <span :if={language[:flag]} class="pc-language-select__item-flag">{language.flag}</span>
         <span class="pc-language-select__item-label">{language.label}</span>
         <.icon
           :if={language.locale == @current_locale}
@@ -84,6 +105,11 @@ defmodule PetalComponents.LanguageSelect do
     </.dropdown>
     """
   end
+
+  defp trigger_mode("code", _current), do: :code
+  defp trigger_mode("label", _current), do: :label
+  defp trigger_mode("flag", %{flag: flag}) when is_binary(flag), do: :flag
+  defp trigger_mode("flag", _current), do: :globe
 
   defp locale_href(path, locale) do
     sep = if String.contains?(path, "?"), do: "&", else: "?"

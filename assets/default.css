@@ -5082,6 +5082,14 @@
     @apply w-4 h-4 text-gray-400 dark:text-gray-500;
   }
 
+  .pc-language-select__code {
+    @apply text-sm font-semibold tracking-wide text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-language-select__label {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
+  }
+
   .pc-language-select__item-flag {
     @apply mr-2 text-lg leading-none;
   }

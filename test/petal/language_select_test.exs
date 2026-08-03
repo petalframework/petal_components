@@ -93,6 +93,57 @@ defmodule PetalComponents.LanguageSelectTest do
     assert html =~ "🇫🇷"
   end
 
+  test "variant code renders the upcased locale, even unmatched" do
+    assigns = %{langs: @langs}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="xx" variant="code" language_options={@langs} />
+      """)
+
+    assert html =~ ~s(<span class="pc-language-select__code">XX</span>)
+    refute html =~ "hero-language"
+  end
+
+  test "variant label renders the language name, raw locale when unmatched" do
+    assigns = %{langs: @langs}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="fr" variant="label" language_options={@langs} />
+      """)
+
+    assert html =~ "pc-language-select__label"
+    assert html =~ "Français"
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="zz" variant="label" language_options={@langs} />
+      """)
+
+    assert html =~ ">\n    zz\n  </span>" or html =~ "zz"
+  end
+
+  test "options without :flag render flagless items and a globe trigger" do
+    assigns = %{langs: [%{locale: "en", label: "English"}, %{locale: "fr", label: "Français"}]}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select current_locale="en" language_options={@langs} />
+      """)
+
+    assert html =~ "hero-language"
+
+    flags =
+      html
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query(".pc-language-select__item-flag")
+      |> Enum.count()
+
+    assert flags == 0
+    assert html =~ "English"
+  end
+
   test "label and class pass through" do
     assigns = %{langs: @langs}
 
