@@ -144,6 +144,23 @@ defmodule PetalComponents.LanguageSelectTest do
     assert html =~ "English"
   end
 
+  test "show_chevron false drops the chevron" do
+    assigns = %{langs: @langs}
+
+    html =
+      rendered_to_string(~H"""
+      <.language_select
+        current_locale="en"
+        variant="code"
+        show_chevron={false}
+        language_options={@langs}
+      />
+      """)
+
+    refute html =~ "pc-language-select__chevron"
+    assert html =~ "pc-language-select__code"
+  end
+
   test "label and class pass through" do
     assigns = %{langs: @langs}
 
