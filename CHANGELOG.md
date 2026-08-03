@@ -11,6 +11,11 @@
 
 #### Changed
 
+- Dropdown menus size to their content: the panel's fixed `w-56` becomes
+  `w-max min-w-36 max-w-72`, so short menus (user menu, language select)
+  stop floating in dead space while long items still cap at a sane width.
+  Pin a fixed width back with `menu_items_wrapper_class` if a layout
+  relied on it.
 - **LiveView floor moves to `~> 1.1`** (Matt-approved, 3 Aug). The 4.8+ components already relied on 1.1 behaviour - the colour scheme switch and command palette mount hooks on dead views, which 1.0 never did - so the requirement now states what the package actually needs. Anyone still on LiveView 1.0 stays on petal_components 4.9. This also makes `command_trigger`'s dead-view support unconditional across the supported range.
 
 #### Fixed

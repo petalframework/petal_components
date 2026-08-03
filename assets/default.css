@@ -1960,7 +1960,11 @@
     @apply w-5 h-5 ml-2 -mr-1 dark:text-gray-100;
   }
   .pc-dropdown__menu-items-wrapper {
-    @apply absolute z-30 w-56 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
+    /* Content-driven width: menus hug their items (min-w floor keeps tiny
+       menus from looking cramped, max-w caps runaway labels). Consumers can
+       pin a fixed width back via menu_items_wrapper_class - utilities layer
+       after components, so their w-* wins. */
+    @apply absolute z-30 w-max min-w-36 max-w-72 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-dropdown__menu-items-wrapper-placement--left {
