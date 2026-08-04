@@ -3058,6 +3058,12 @@
   .pc-modal__header {
     @apply px-5 py-3 border-b border-gray-100 dark:border-gray-700;
   }
+  /* hide_header collapses the bar to a screen-reader-only box, never
+     display:none - the dialog's aria-labelledby points at the title inside
+     it, so the accessible name has to stay in the DOM. */
+  .pc-modal__header--hidden {
+    @apply sr-only;
+  }
   .pc-modal__header__container {
     @apply flex items-center justify-between;
   }

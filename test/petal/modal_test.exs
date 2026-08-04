@@ -206,6 +206,64 @@ defmodule PetalComponents.ModalTest do
     end
   end
 
+  describe "modal/1 - hide_header" do
+    setup do
+      %{assigns: default_assigns()}
+    end
+
+    test "does not add the hidden modifier by default", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal title="Modal">Content</.modal>
+        """)
+
+      assert_has_class(html, "pc-modal__header")
+      refute html =~ "pc-modal__header--hidden"
+    end
+
+    test "adds the sr-only modifier class when hide_header is set", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal hide_header title="Confirmation">Content</.modal>
+        """)
+
+      assert_has_class(html, "pc-modal__header--hidden")
+    end
+
+    test "keeps the title in the DOM for aria-labelledby", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal id="confirm-modal" hide_header title="Unsubscribed successfully">
+          Content
+        </.modal>
+        """)
+
+      assert html =~ "Unsubscribed successfully"
+      assert_attribute(html, "aria-labelledby", "pc-modal__header__text-confirm-modal")
+      assert html =~ ~s(id="pc-modal__header__text-confirm-modal")
+    end
+
+    test "does not render the close button even without hide_close_button", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal hide_header title="Confirmation">Content</.modal>
+        """)
+
+      assert count_icons(html) == 0
+      refute html =~ "pc-modal__header__button"
+    end
+
+    test "close_on_click_away and close_on_escape still work", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal hide_header title="Confirmation">Content</.modal>
+        """)
+
+      assert_attribute(html, "phx-click-away")
+      assert_attribute(html, "phx-window-keydown")
+    end
+  end
+
   describe "modal/1 - accessibility" do
     setup do
       %{assigns: default_assigns()}

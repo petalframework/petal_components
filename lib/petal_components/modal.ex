@@ -27,6 +27,11 @@ defmodule PetalComponents.Modal do
     default: false,
     doc: "whether or not the modal should have a close button in the header"
 
+  attr :hide_header, :boolean,
+    default: false,
+    doc:
+      "visually hides the header bar (screen-reader-only, not removed) for confirmation-style modals that carry their heading in the content. Pass a real title anyway - it stays in the DOM as the dialog's accessible name via aria-labelledby. Implies no close button, so give the content its own way to close"
+
   attr :on_open, JS,
     default: %JS{},
     doc: "additional JS commands to run when the modal opens"
@@ -73,12 +78,12 @@ defmodule PetalComponents.Modal do
           phx-key="escape"
         >
           <!-- Header -->
-          <div class="pc-modal__header">
+          <div class={["pc-modal__header", @hide_header && "pc-modal__header--hidden"]}>
             <div class="pc-modal__header__container">
               <div id={"pc-modal__header__text-#{@id}"} class="pc-modal__header__text">
                 {@title}
               </div>
-              <%= unless @hide_close_button do %>
+              <%= unless @hide_close_button or @hide_header do %>
                 <button
                   type="button"
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
