@@ -2991,8 +2991,13 @@
 
 
   /* Modal */
+  /* fixed, not relative: the root is a 0x0 host for fixed children (overlay
+     + wrapper), and an in-flow root becomes a flex/grid item when shown -
+     inside any gapped or centered container (the showcase preview, a
+     toolbar) revealing it added a gap and shifted its siblings ~8px. Out of
+     flow, opening a modal can never move surrounding layout. */
   .pc-modal {
-    @apply relative z-50;
+    @apply fixed z-50;
   }
   .pc-modal__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
@@ -3473,6 +3478,11 @@
 
   /* Slideover */
 
+  /* same contract as .pc-modal: out-of-flow 0x0 host so revealing the
+     slide over never shifts surrounding layout (flex-gap jump). */
+  .pc-slide-over {
+    @apply fixed z-50;
+  }
   .pc-slideover__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
