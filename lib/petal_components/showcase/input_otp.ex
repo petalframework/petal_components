@@ -22,7 +22,7 @@ defmodule PetalComponents.Showcase.InputOtp do
     description:
       "Drop it inside a field wrapper and the error tone carries through to the boxes - the shared form-field classes do the painting, no OTP-specific styling." do
     ~H"""
-    <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0!">
+    <div class="pc-form-field-wrapper pc-form-field-wrapper--error mb-0">
       <.input_otp name="error_code" length={6} value="123" />
       <p class="pc-form-field-error">that code has expired - we sent a new one</p>
     </div>
