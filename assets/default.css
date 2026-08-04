@@ -1,12 +1,19 @@
 /* Default colour ramps - the token layer petal_components styles against.
  *
  * These make a fresh install work out of the box (blue primary, pink
- * secondary, semantic hues, zinc gray). Override any ramp by defining the
- * same --color-{role}-{stop} variables in an @theme block AFTER this import
- * - later definitions win, so your colors.css stays the source of truth.
+ * secondary, semantic hues, zinc gray). `@theme default` marks every value
+ * as a soft fallback - the same convention Tailwind uses for its own
+ * palette - so a plain @theme block in your app wins no matter where it
+ * sits relative to this import. Your colors.css stays the source of truth.
  * Values are the Tailwind v4 palette.
+ *
+ * Note the `gray` role ships Tailwind's zinc values under the gray name,
+ * so it also sets what your app's own `text-gray-*` utilities render as.
+ * Remap it to any live ramp (`--color-gray-500: var(--color-slate-500);`
+ * per stop, in @theme inline) or restore stock Tailwind gray by importing
+ * "tailwind-gray.css" from this directory after this file.
  */
-@theme {
+@theme default {
   --color-primary-50: oklch(97% 0.014 254.604);
   --color-primary-100: oklch(93.2% 0.032 255.585);
   --color-primary-200: oklch(88.2% 0.059 254.128);
