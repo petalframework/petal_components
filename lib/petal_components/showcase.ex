@@ -128,7 +128,8 @@ defmodule PetalComponents.Showcase do
         title: unquote(title),
         description: unquote(Keyword.get(meta, :description)),
         code: unquote(code),
-        highlighted: unquote(Macro.escape(highlighted))
+        highlighted: unquote(Macro.escape(highlighted)),
+        inert: unquote(Keyword.get(meta, :inert, false))
       }
 
       @doc false

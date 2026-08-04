@@ -1,0 +1,119 @@
+defmodule PetalComponents.Showcase.ToggleGroup do
+  @moduledoc false
+  use PetalComponents.Showcase,
+    component: PetalComponents.ToggleGroup,
+    title: "Toggle group"
+
+  example :single, "Single select",
+    inert: true,
+    description:
+      "One rail, one pressed option, rendered as native radios: real radiogroup semantics, one tab stop, arrow keys move the selection, no JavaScript. Pass the current value and an on_change event; in your app you assign the value the event hands back and the chip follows. This preview renders a fixed value - registry examples are static by design." do
+    ~H"""
+    <.toggle_group aria_label="Density" value="cozy" on_change="set_density">
+      <:item value="compact">Compact</:item>
+      <:item value="cozy">Cozy</:item>
+      <:item value="comfortable">Comfortable</:item>
+    </.toggle_group>
+    """
+  end
+
+  example :multiple, "Multiple select",
+    inert: true,
+    description:
+      "With multiple, value is a list and every member renders pressed. The server owns the toggle logic: add the option if it is missing, drop it if it is there. Icon-only items carry an aria-label so the option still reads out." do
+    ~H"""
+    <.toggle_group
+      multiple
+      aria_label="Formatting"
+      value={["bold", "italic"]}
+      on_change="toggle_format"
+    >
+      <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+      <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+      <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+    </.toggle_group>
+    """
+  end
+
+  example :device_rail, "The device rail",
+    inert: true,
+    description:
+      "The canonical icon-only use: a desktop / tablet / phone switcher above a preview frame, the strip every component playground puts in its toolbar. Icon-only items carry aria-labels so the options still read out. The playground's Try it section runs this one live against real content." do
+    ~H"""
+    <.toggle_group aria_label="Preview device" value="tablet" on_change="set_device">
+      <:item value="desktop" aria-label="Desktop"><.icon name="hero-computer-desktop" /></:item>
+      <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+      <:item value="mobile" aria-label="Phone"><.icon name="hero-device-phone-mobile" /></:item>
+    </.toggle_group>
+    """
+  end
+
+  example :outline, "Outline variant",
+    inert: true,
+    description:
+      "The toolbar look: a bordered rail with floating chips, on the same border and wash ramp as outline buttons - compose it next to a button_group and the two read as kin. The wash rail suits settings and content; the outline rail suits chrome." do
+    ~H"""
+    <.toggle_group
+      variant="outline"
+      aria_label="Preview device"
+      value="desktop"
+      on_change="set_device"
+    >
+      <:item value="desktop" aria-label="Desktop"><.icon name="hero-computer-desktop" /></:item>
+      <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+      <:item value="mobile" aria-label="Phone"><.icon name="hero-device-phone-mobile" /></:item>
+    </.toggle_group>
+    """
+  end
+
+  example :accent, "Accent variant",
+    inert: true,
+    description:
+      "The selection painted in the brand accent instead of a neutral chip. Same wash rail as solid, so it stays in the family - reach for it when the choice is a committed setting rather than a view preference. It follows your primary colour, so it retints with the theme." do
+    ~H"""
+    <.toggle_group variant="accent" aria_label="Billing period" value="annual" on_change="set_period">
+      <:item value="monthly">Monthly</:item>
+      <:item value="annual">Annual</:item>
+    </.toggle_group>
+    """
+  end
+
+  example :icons_with_labels, "Icons with labels",
+    inert: true,
+    description:
+      "Items take any content: icon plus text reads fastest for view switchers. The pressed chip and the wash come from the rail, so mixed content stays aligned without extra classes." do
+    ~H"""
+    <.toggle_group aria_label="View" value="grid" on_change="set_view">
+      <:item value="list"><.icon name="hero-list-bullet" /> List</:item>
+      <:item value="grid"><.icon name="hero-squares-2x2" /> Grid</:item>
+      <:item value="board"><.icon name="hero-view-columns" /> Board</:item>
+    </.toggle_group>
+    """
+  end
+
+  example :sizes, "Sizes",
+    inert: true,
+    description:
+      "Three sizes share the same radii math as the rest of the rail family, so a sm toggle group next to a scheme switch reads as kin. Disabled works per item or for the whole rail." do
+    ~H"""
+    <div class="flex flex-col items-start gap-4">
+      <.toggle_group aria_label="Page size small" size="sm" value="10" on_change="set_page_size">
+        <:item value="6">6</:item>
+        <:item value="10">10</:item>
+        <:item value="14">14</:item>
+        <:item value="full" disabled>Full</:item>
+      </.toggle_group>
+      <.toggle_group aria_label="Page size medium" size="md" value="10" on_change="set_page_size">
+        <:item value="6">6</:item>
+        <:item value="10">10</:item>
+        <:item value="14">14</:item>
+      </.toggle_group>
+      <.toggle_group aria_label="Page size large" size="lg" value="10" on_change="set_page_size">
+        <:item value="6">6</:item>
+        <:item value="10">10</:item>
+        <:item value="14">14</:item>
+      </.toggle_group>
+    </div>
+    """
+  end
+end

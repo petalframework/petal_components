@@ -71,4 +71,24 @@ defmodule PetalComponents.Showcase.LocalTime do
     </div>
     """
   end
+
+  example :threshold, "Where relative gives up",
+    description:
+      "Relative copy is for recency - \"3 days ago\" helps, \"47 weeks ago\" is noise. threshold (seconds, default 7 days) is the cutoff: older than that and the same element renders the absolute form instead. Same timestamp below, two thresholds." do
+    ~H"""
+    <div class="flex flex-col gap-2 text-sm">
+      <.local_time
+        id="showcase-lt-threshold-1"
+        at={DateTime.add(DateTime.utc_now(), -259_200)}
+        format="relative"
+      />
+      <.local_time
+        id="showcase-lt-threshold-2"
+        at={DateTime.add(DateTime.utc_now(), -259_200)}
+        format="relative"
+        threshold={86_400}
+      />
+    </div>
+    """
+  end
 end

@@ -177,4 +177,50 @@ defmodule PetalComponents.CommandTest do
     js = PetalComponents.Command.open_command("cmdk")
     assert js.ops == [["dispatch", %{event: "pc:command-open", to: "#cmdk"}]]
   end
+
+  test "command_trigger pill renders label, kbd hint and the hook wiring" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.command_trigger dialog_id="cmdk" label="Search docs…" />
+      """)
+
+    assert html =~ ~s(id="cmdk-trigger-pill")
+    assert html =~ ~s(phx-hook="PetalCommandTrigger")
+    assert html =~ ~s(data-dialog="cmdk")
+    assert html =~ ~s(type="button")
+    assert html =~ "Search docs…"
+    assert html =~ "pc-command-trigger"
+    assert html =~ "pc-kbd"
+    assert html =~ "⌘K"
+  end
+
+  test "command_trigger pill hides the kbd chip when kbd is nil" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.command_trigger dialog_id="cmdk" kbd={nil} />
+      """)
+
+    refute html =~ "pc-kbd"
+    refute html =~ "⌘K"
+  end
+
+  test "command_trigger icon variant is compact and labelled for readers" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.command_trigger dialog_id="cmdk" variant="icon" label="Search site" class="md:hidden" />
+      """)
+
+    assert html =~ ~s(id="cmdk-trigger-icon")
+    assert html =~ ~s(aria-label="Search site")
+    assert html =~ "pc-command-trigger--icon"
+    assert html =~ "md:hidden"
+    assert html =~ ~s(phx-hook="PetalCommandTrigger")
+    refute html =~ "pc-kbd"
+  end
 end

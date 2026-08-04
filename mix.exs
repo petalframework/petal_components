@@ -2,7 +2,7 @@ defmodule PetalComponents.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/petalframework/petal_components"
-  @version "4.9.0"
+  @version "4.10.0"
 
   def project do
     [
@@ -49,7 +49,7 @@ defmodule PetalComponents.MixProject do
       {:websock_adapter, "~> 0.5.7"},
       {:wallaby, "~> 0.30.9", runtime: false, only: :test, optional: true},
       {:phoenix, "~> 1.7"},
-      {:phoenix_live_view, "~> 1.0"},
+      {:phoenix_live_view, "~> 1.1"},
       {:lazy_html, ">= 0.0.0", only: [:dev, :test]},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},

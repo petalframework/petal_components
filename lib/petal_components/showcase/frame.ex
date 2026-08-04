@@ -52,7 +52,10 @@ defmodule PetalComponents.Showcase.Frame do
 
     ~H"""
     <div id={@frame_id} class={["pc-showcase not-prose", @class]}>
-      <div class={["pc-showcase__preview", !@content_left && "pc-showcase__preview--center"]}>
+      <div
+        class={["pc-showcase__preview", !@content_left && "pc-showcase__preview--center"]}
+        inert={@example.inert}
+      >
         {@example.render.(assigns)}
       </div>
 

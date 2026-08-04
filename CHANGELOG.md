@@ -4,12 +4,75 @@
 #### Added
 
 - **`tailwind-gray.css` - stock Tailwind gray back in one import.** The `gray` role deliberately ships zinc values under the gray name, which also decides what an app's own `text-gray-*` utilities render as - and since the stock values only ever lived under that name, no `var()` can reach them once zinc holds it. This file restores them verbatim: import it after `default.css` and every gray in the app is Tailwind's original again. Any other neutral (slate, stone, neutral) never needed it - those remain live variables you can remap a role to in one line per stop.
-- **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
-- **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
 
 #### Fixed
 
 - **A consumer `@theme` block placed before the petal_components import no longer loses silently.** The shipped colour ramps were a plain `@theme` - a hard declaration - so an app that defined its brand palette above the import (the natural place for it) got every ramp quietly replaced with our defaults, `primary` included, with nothing to say why. The ramps are now `@theme default`, the same soft-fallback convention Tailwind uses for its own palette: your `@theme` wins wherever it sits, and a fresh install with no overrides renders exactly as before. Verified against Tailwind 4.3.1's compiler in both orderings.
+
+### 4.10.0 - 2026-08-04
+
+#### Added
+
+- Nine new registry examples across six thin modules - toast's remaining
+  severities (warning, loading, neutral), carousel thumbnail navigation
+  and a slides_per_view row, the avatar size ladder + presence dots and
+  the avatar_group team stack, marquee's vertical feed, local_time's
+  threshold flip, and the colour-scheme switch labelled in German plus
+  custom icon slots. petal.build renders these registries directly, so
+  the docs pages inherit every example in the same release.
+- `language_select/1` graduates from Petal Pro: the locale dropdown, now
+  a free composition of `dropdown/1`. Plain links carry `?locale=`
+  (`&`-joined when the path already has a query - the Pro version broke
+  there), the current language gets `aria-current` plus a check, and an
+  unknown `current_locale` falls back gracefully instead of raising.
+  Beyond the port: `variant="code"` / `variant="label"` put text on the
+  trigger instead of a flag, options may omit `:flag` entirely - a flag
+  is a country, not a language - and `show_chevron={false}` leaves the
+  trigger standing alone.
+- `social_button/1` graduates from Petal Pro - the very first Pro
+  component (May 2022), now free and rebuilt on `pc-button` geometry so
+  provider buttons follow the theme, sizes and radius like every other
+  button. Nine providers (google, github, apple, x, facebook, microsoft,
+  gitlab, discord, linkedin - the 2022 Twitter bird retires), outline
+  default with coloured glyphs, solid brand paint, auto "Continue with"
+  labels, and `icon_only` with the label as the accessible name.
+- `brand_icon/1` - the nine provider glyphs as standalone inline SVGs,
+  `currentColor` by default, `colored` for the official brand treatment
+  (gitlab and discord vendored from simple-icons, CC0). Heroicons ships
+  no logos; now the package does. The Card login example dogfoods the
+  pair.
+- **`command_trigger` - the visible opener for the ⌘K dialog.** The search pill every command-palette app puts in its header (magnifier, label, kbd hint) plus an icon-only variant for tight rows, so consumers stop hand-rolling it - marketing, the playground topbar and the docs example had three bespoke copies between them. Opens the `command_dialog` named in `dialog_id` through the new `PetalCommandTrigger` hook rather than a phx-click JS command, so it works on dead views too (hooks mount there since LiveView 1.1; JS commands do not run). The shortcut itself still lives on the dialog - the kbd chip is the visible hint, and `kbd={nil}` hides it.
+- **The segmented family joins the button radius curve.** `color_scheme_switch`'s segmented variant and `toggle_group` now round at token x1.2 (rail) over x1 (chips) instead of the old pill-at-default x2.4/x2. Every radius-token step now produces a distinct, perceptible corner change - the old curve spent its whole range between 0 and the default and then saturated - and only `full` pills, exactly like buttons. One curve across the system; at the shipped default the rails read rounded rather than pill. Nested menu items complete the same doctrine: the scheme dropdown's options and the command palette's items now derive their radius from the clamped panel (the dropdown-item rule) instead of the raw token, so `full` can no longer pill an item inside a 16px panel - and the scheme dropdown adopts the dropdown's hover/selected wash ramp while it's there.
+- **`toggle_group` - a segmented selection rail.** Where `button_group` groups actions, `toggle_group` holds a selection: one pressed option by default, any number with `multiple`. Server-driven and stateless the LiveView way - pass `value`, handle `on_change` (the pressed option arrives in `phx-value-toggle`), no hook, no client state. Single select renders native radios (the scheme-switch segmented mechanics): real radiogroup semantics, one tab stop, arrow keys move the selection. Multiple renders `aria-pressed` toggle buttons. Three variants - `solid` (wash rail, neutral chip), `outline` (bordered toolbar rail on the outline-button ramp) and `accent` (the selection painted in the brand colour) - three sizes on the scheme-segmented radii math, per-item or whole-rail `disabled`, items take any content. The radios detach from surrounding forms, so a rail inside a `<.form>` never posts a stray param. Ships with registry examples (including the device rail) and a playground page with live demos.
+- **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
+- **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
+
+#### Changed
+
+- Dropdown menus size to their content: the panel's fixed `w-56` becomes
+  `w-max min-w-36 max-w-72`, so short menus (user menu, language select)
+  stop floating in dead space while long items still cap at a sane width.
+  Pin a fixed width back with `menu_items_wrapper_class` if a layout
+  relied on it.
+- The user menu's trigger chevron had drifted bright (`dark:text-gray-100`)
+  while the rest of the dropdown family runs muted - both now share the
+  new `.pc-dropdown__chevron` class, so the colour can't drift again.
+  `user_dropdown_menu` also gains `show_chevron={false}` for the
+  chevron-less avatar trigger.
+- **LiveView floor moves to `~> 1.1`** (Matt-approved, 3 Aug). The 4.8+ components already relied on 1.1 behaviour - the colour scheme switch and command palette mount hooks on dead views, which 1.0 never did - so the requirement now states what the package actually needs. Anyone still on LiveView 1.0 stays on petal_components 4.9. This also makes `command_trigger`'s dead-view support unconditional across the supported range.
+
+#### Fixed
+
+- `toggle_group` items: `aria-label` is now a declared slot attr.
+  Icon-only items were passing it through with a compile warning - fatal
+  for consumers building with `--warnings-as-errors`.
+- Tall elements no longer inflate into ellipses at `radius="full"`: the
+  panel clamp (1rem ceiling) now also covers textareas, multi-selects,
+  block input groups (the composer pattern), alerts, the chat composer
+  and tooltips. One-line controls keep their pills. The earlier clamp
+  pass covered floating panels but never audited form controls - this
+  sweep checked every raw token consumer (40) and capped the six that
+  can grow past one line.
 - **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
 
 ### 4.9.0 - 2026-07-30
