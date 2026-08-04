@@ -70,6 +70,7 @@ defmodule PetalComponents.Showcase.Carousel do
     <.carousel
       id="showcase-carousel-multi"
       slides_per_view={3}
+      transition_type="slide"
       gap="1rem"
       loop
       size="small"
