@@ -6,13 +6,17 @@ defmodule PetalComponents.Showcase.Alert do
 
   example :semantic_colors, "Semantic colours",
     description:
-      "A prominent message tied to state. Danger and warning announce as role=\"alert\" (assertive); info, success and gray as polite status - the same kind split the toast uses. with_icon adds the matching glyph." do
+      "A prominent message tied to state, shown here in the outline variant - the coloured border and glyph on a calm surface. Danger and warning announce as role=\"alert\" (assertive); info, success and gray as polite status - the same kind split the toast uses. with_icon adds the matching glyph. Drop the variant attribute and you get light, the filled default." do
     ~H"""
     <div class="w-full space-y-3">
-      <.alert color="info" with_icon>A new version of this page is available.</.alert>
-      <.alert color="success" with_icon>Your changes were saved.</.alert>
-      <.alert color="warning" with_icon>Your trial ends in 3 days.</.alert>
-      <.alert color="danger" with_icon>Payment failed. Check your card details.</.alert>
+      <.alert color="info" variant="outline" with_icon>
+        A new version of this page is available.
+      </.alert>
+      <.alert color="success" variant="outline" with_icon>Your changes were saved.</.alert>
+      <.alert color="warning" variant="outline" with_icon>Your trial ends in 3 days.</.alert>
+      <.alert color="danger" variant="outline" with_icon>
+        Payment failed. Check your card details.
+      </.alert>
     </div>
     """
   end

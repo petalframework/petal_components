@@ -4,6 +4,8 @@ defmodule PetalComponents.Showcase.ToggleGroup do
     component: PetalComponents.ToggleGroup,
     title: "Toggle group"
 
+  alias Phoenix.LiveView.JS
+
   example :single, "Single select",
     inert: true,
     description:
@@ -32,6 +34,30 @@ defmodule PetalComponents.Showcase.ToggleGroup do
       <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
       <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
     </.toggle_group>
+    """
+  end
+
+  example :try_it, "Try it - this one is live",
+    description:
+      "Click around. The single rail needs nothing from you: it renders native radios, so the browser moves the chip itself - no JavaScript, no server. The multiple rail toggles each chip with a client-side LiveView.JS command on on_change. In a real app you would usually send an event and let the server own the value instead; these two are here to show the pressed states are real, not screenshots." do
+    ~H"""
+    <div class="flex flex-col items-start gap-4">
+      <.toggle_group aria_label="View" value="grid">
+        <:item value="list"><.icon name="hero-list-bullet" /> List</:item>
+        <:item value="grid"><.icon name="hero-squares-2x2" /> Grid</:item>
+        <:item value="board"><.icon name="hero-view-columns" /> Board</:item>
+      </.toggle_group>
+      <.toggle_group
+        multiple
+        aria_label="Formatting"
+        value={["bold"]}
+        on_change={JS.toggle_attribute({"aria-pressed", "true", "false"})}
+      >
+        <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+        <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+        <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+      </.toggle_group>
+    </div>
     """
   end
 

@@ -5,6 +5,11 @@
 
 - **`hide_header` on `<.modal>` - headerless confirmation dialogs without an accessibility trade-off.** Confirmation-style modals (think "unsubscribed successfully") carry their heading centered in the content, but the component always rendered its header bar, so an empty strip sat above the content unless you hand-rolled CSS to hide it. `hide_header` now does it properly: the header collapses to a screen-reader-only box (sr-only, never `display: none`) because the dialog's `aria-labelledby` points at the title inside it - pass a real `title` and the dialog keeps its accessible name while showing none of the bar. It also skips the corner close button (an invisible button you can still tab to is a keyboard trap, not a feature), so give the content its own way out - escape and click-away still work by default. New "Headerless confirmation" example in the showcase registry.
 - **`tailwind-gray.css` - stock Tailwind gray back in one import.** The `gray` role deliberately ships zinc values under the gray name, which also decides what an app's own `text-gray-*` utilities render as - and since the stock values only ever lived under that name, no `var()` can reach them once zinc holds it. This file restores them verbatim: import it after `default.css` and every gray in the app is Tailwind's original again. Any other neutral (slate, stone, neutral) never needed it - those remain live variables you can remap a role to in one line per stop.
+- **The toggle group gets a live example.** Every toggle_group registry example rendered inert, so the docs pages read as screenshots. The new "Try it - this one is live" example is the exception on purpose: the single rail is native radios, so the browser moves the pressed chip with no JavaScript and no server, and the multiple rail toggles each chip client-side through `JS.toggle_attribute` on `on_change`. The description says out loud what a real app would do instead (send the event, let the server own the value).
+
+#### Changed
+
+- **The alert page leads with the semantic ramps in outline.** Same first example, same anchor, but the four alerts now carry `variant="outline"` - the coloured border and glyph on a calm surface reads better at first glance than four filled light bars. The description points out that dropping the variant gives you light, the component default, which is unchanged.
 
 #### Fixed
 
