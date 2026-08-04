@@ -220,7 +220,9 @@ defmodule Dev.PlaygroundLive do
       group: "Inputs",
       items: [
         %{slug: "button", name: "Button", ready: true},
+        %{slug: "social-button", name: "Social button", ready: true},
         %{slug: "button-group", name: "Button group", ready: true},
+        %{slug: "toggle-group", name: "Toggle group", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
@@ -253,7 +255,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
-        %{slug: "user-menu", name: "User menu", ready: true}
+        %{slug: "user-menu", name: "User menu", ready: true},
+        %{slug: "language-select", name: "Language select", ready: true}
       ]
     },
     %{
@@ -308,6 +311,14 @@ defmodule Dev.PlaygroundLive do
   ]
 
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+  @locale_codes ~w(en fr de es pt)
+  @playground_languages [
+    %{locale: "en", flag: "🇬🇧", label: "English"},
+    %{locale: "fr", flag: "🇫🇷", label: "Français"},
+    %{locale: "de", flag: "🇩🇪", label: "Deutsch"},
+    %{locale: "es", flag: "🇪🇸", label: "Español"},
+    %{locale: "pt", flag: "🇵🇹", label: "Português"}
+  ]
 
   # {name, rail swatch css}. Neutral adapts to the mode, hence the split dot.
   @primaries [
@@ -692,6 +703,14 @@ defmodule Dev.PlaygroundLive do
        loading: false,
        disabled: false,
        show_code: false,
+       tg_density: "cozy",
+       lang_placement: "left",
+       lang_variant: "flag",
+       playground_languages: @playground_languages,
+       tg_formats: ["bold"],
+       tg_device: "desktop",
+       tg_variant: "solid",
+       tg_size: "md",
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -820,6 +839,7 @@ defmodule Dev.PlaygroundLive do
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:lang, allow(params["locale"], @locale_codes, "en"))
       |> assign(:dark, false)
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
@@ -863,6 +883,38 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("toggle_dark", _params, socket),
     do: {:noreply, push_event(socket, "pg:toggle-scheme", %{})}
+
+  def handle_event("pg_lang_placement", %{"toggle" => p}, socket) when p in ~w(left right),
+    do: {:noreply, assign(socket, lang_placement: p)}
+
+  def handle_event("pg_lang_variant", %{"toggle" => v}, socket) when v in ~w(flag code label),
+    do: {:noreply, assign(socket, lang_variant: v)}
+
+  def handle_event("pg_tg_density", %{"toggle" => density}, socket)
+      when density in ~w(compact cozy comfortable),
+      do: {:noreply, assign(socket, tg_density: density)}
+
+  def handle_event("pg_tg_device", %{"toggle" => device}, socket)
+      when device in ~w(desktop tablet mobile),
+      do: {:noreply, assign(socket, tg_device: device)}
+
+  def handle_event("pg_tg_variant", %{"toggle" => variant}, socket)
+      when variant in ~w(solid outline accent),
+      do: {:noreply, assign(socket, tg_variant: variant)}
+
+  def handle_event("pg_tg_size", %{"toggle" => size}, socket)
+      when size in ~w(sm md lg),
+      do: {:noreply, assign(socket, tg_size: size)}
+
+  def handle_event("pg_tg_format", %{"toggle" => format}, socket)
+      when format in ~w(bold italic underline) do
+    formats = socket.assigns.tg_formats
+
+    formats =
+      if format in formats, do: List.delete(formats, format), else: formats ++ [format]
+
+    {:noreply, assign(socket, tg_formats: formats)}
+  end
 
   def handle_event("ctl_variant", %{"v" => v}, socket)
       when v in ~w(solid soft light outline ghost),
@@ -929,8 +981,8 @@ defmodule Dev.PlaygroundLive do
     {:noreply, update(socket, :chart, &%{&1 | revenue: revenue, expenses: expenses})}
   end
 
-  def handle_event("ctl_chart", %{"k" => "two_series"}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | two_series: !socket.assigns.chart.two_series})}
+  def handle_event("ctl_chart", %{"k" => "two_series", "v" => v}, socket) when v in ~w(one two),
+    do: {:noreply, update(socket, :chart, &%{&1 | two_series: v == "two"})}
 
   def handle_event("ctl_chart", %{"k" => "gap", "v" => v}, socket) when v in ~w(cozy tight),
     do: {:noreply, update(socket, :chart, &%{&1 | gap: v})}
@@ -950,8 +1002,8 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(fade solid none),
       do: {:noreply, update(socket, :chart, &%{&1 | area: v})}
 
-  def handle_event("ctl_chart", %{"k" => "dots"}, socket),
-    do: {:noreply, update(socket, :chart, &%{&1 | dots: !socket.assigns.chart.dots})}
+  def handle_event("ctl_chart", %{"k" => "dots", "v" => v}, socket) when v in ~w(on off),
+    do: {:noreply, update(socket, :chart, &%{&1 | dots: v == "on"})}
 
   def handle_event("ctl_chart", %{"k" => "chrome", "v" => v}, socket) when v in ~w(full x off),
     do: {:noreply, update(socket, :chart, &%{&1 | chrome: v})}
@@ -2285,17 +2337,23 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">radius</span>
-          <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <button
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Corner radius"
+            value={@radius}
+            on_change="set_radius"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item
               :for={{label, _value} <- @radii}
-              phx-click="set_radius"
+              value={label}
               phx-value-radius={label}
               title={radius_title(label)}
-              class={seg(@radius == label)}
             >
               {label}
-            </button>
-          </div>
+            </:item>
+          </.toggle_group>
         </div>
         <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-gray-600 sm:block">
           theme is in the URL, share the look
@@ -2449,61 +2507,80 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Color"
+              value={@color}
+              on_change="ctl_color"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
-                phx-click="ctl_color"
+                value={c}
                 phx-value-v={c}
-                class={seg(@color == c)}
               >
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(solid soft light outline ghost)}
-                phx-click="ctl_variant"
-                phx-value-v={v}
-                class={seg(@variant == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@variant}
+              on_change="ctl_variant"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(solid soft light outline ghost)} value={v} phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={s <- ~w(xs sm md lg xl)}
-                phx-click="ctl_size"
-                phx-value-v={s}
-                class={seg(@size == s)}
-              >
-                {s}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@size}
+              on_change="ctl_size"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(xs sm md lg xl)} value={s} phx-value-v={s}>{s}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button phx-click="ctl_icon" phx-value-v="off" class={seg(@icon == nil)}>off</button>
-              <button phx-click="ctl_icon" phx-value-v="left" class={seg(@icon == "left")}>
-                left
-              </button>
-              <button phx-click="ctl_icon" phx-value-v="right" class={seg(@icon == "right")}>
-                right
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Icon"
+              value={@icon || "off"}
+              on_change="ctl_icon"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="off" phx-value-v="off">off</:item>
+              <:item value="left" phx-value-v="left">left</:item>
+              <:item value="right" phx-value-v="right">right</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="flip" phx-value-k="loading" class={tog(@loading)}>loading</button>
-              <button phx-click="flip" phx-value-k="disabled" class={tog(@disabled)}>disabled</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={for {k, on} <- [{"loading", @loading}, {"disabled", @disabled}], on, do: k}
+              on_change="flip"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="loading" phx-value-k="loading">loading</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
         <p
@@ -2601,25 +2678,47 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Type"
+              value={@input.type}
+              on_change="ctl_input"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={t <- ~w(text email password search date time select textarea file color)}
-                phx-click="ctl_input"
+                value={t}
                 phx-value-k="type"
                 phx-value-v={t}
-                class={seg(@input.type == t)}
               >
                 {t}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_input" phx-value-k="help" class={tog(@input.help)}>help</button>
-              <button phx-click="ctl_input" phx-value-k="error" class={tog(@input.error)}>error</button>
-              <button phx-click="ctl_input" phx-value-k="disabled" class={tog(@input.disabled)}>disabled</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [
+                      {"help", @input.help},
+                      {"error", @input.error},
+                      {"disabled", @input.disabled}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_input"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="help" phx-value-k="help">help</:item>
+              <:item value="error" phx-value-k="error">error</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -2703,68 +2802,81 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={d <- ~w(4s 8s 12s)}
-                phx-click="ctl_beam"
-                phx-value-k="duration"
-                phx-value-v={d}
-                class={seg(@beam.duration == d)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Duration"
+              value={@beam.duration}
+              on_change="ctl_beam"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={d <- ~w(4s 8s 12s)} value={d} phx-value-k="duration" phx-value-v={d}>
                 {d}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">beams</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={n <- ~w(1 2 3)}
-                phx-click="ctl_beam"
-                phx-value-k="beams"
-                phx-value-v={n}
-                class={seg(to_string(@beam.beams) == n)}
-              >
-                {n}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Beams"
+              value={@beam.beams}
+              on_change="ctl_beam"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={n <- ~w(1 2 3)} value={n} phx-value-k="beams" phx-value-v={n}>{n}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Length"
+              value={@beam.size}
+              on_change="ctl_beam"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={{lbl, v} <- [{"sm", "40px"}, {"md", "60px"}, {"lg", "160px"}]}
-                phx-click="ctl_beam"
+                value={v}
                 phx-value-k="size"
                 phx-value-v={v}
-                class={seg(@beam.size == v)}
               >
                 {lbl}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">motion</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={e <- ~w(linear spring)}
-                phx-click="ctl_beam"
-                phx-value-k="easing"
-                phx-value-v={e}
-                class={seg(@beam.easing == e)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Easing"
+              value={@beam.easing}
+              on_change="ctl_beam"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={e <- ~w(linear spring)} value={e} phx-value-k="easing" phx-value-v={e}>
                 {e}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_beam" phx-value-k="glow" class={tog(@beam.glow)}>glow</button>
-              <button phx-click="ctl_beam" phx-value-k="reverse" class={tog(@beam.reverse)}>
-                reverse
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"glow", @beam.glow}, {"reverse", @beam.reverse}], on, do: k}
+              on_change="ctl_beam"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="glow" phx-value-k="glow">glow</:item>
+              <:item value="reverse" phx-value-k="reverse">reverse</:item>
+            </.toggle_group>
           </div>
         </div>
         <p
@@ -2908,45 +3020,53 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={c <- ~w(mono blend)}
-                phx-click="ctl_shine"
-                phx-value-k="scheme"
-                phx-value-v={c}
-                class={seg(@shine.scheme == c)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Scheme"
+              value={@shine.scheme}
+              on_change="ctl_shine"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(mono blend)} value={c} phx-value-k="scheme" phx-value-v={c}>
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sweep</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Sweep"
+              value={@shine.duration}
+              on_change="ctl_shine"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={{lbl, v} <- [{"fast", "6s"}, {"med", "14s"}, {"slow", "24s"}]}
-                phx-click="ctl_shine"
+                value={v}
                 phx-value-k="duration"
                 phx-value-v={v}
-                class={seg(@shine.duration == v)}
               >
                 {lbl}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={w <- ~w(1px 2px 3px)}
-                phx-click="ctl_shine"
-                phx-value-k="width"
-                phx-value-v={w}
-                class={seg(@shine.width == w)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Width"
+              value={@shine.width}
+              on_change="ctl_shine"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={w <- ~w(1px 2px 3px)} value={w} phx-value-k="width" phx-value-v={w}>
                 {w}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -3008,105 +3128,119 @@ defmodule Dev.PlaygroundLive do
           <.button size="sm" variant="outline" phx-click="chart_randomize" label="Randomize data" />
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">type</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={t <- ~w(line bar)}
-                phx-click="ctl_chart"
-                phx-value-k="type"
-                phx-value-v={t}
-                class={seg(@chart.type == t)}
-              >
-                {t}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Type"
+              value={@chart.type}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={t <- ~w(line bar)} value={t} phx-value-k="type" phx-value-v={t}>{t}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">series</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(!@chart.two_series)}>
-                one
-              </button>
-              <button phx-click="ctl_chart" phx-value-k="two_series" class={seg(@chart.two_series)}>
-                two
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Series"
+              value={(@chart.two_series && "two") || "one"}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="one" phx-value-k="two_series" phx-value-v="one">one</:item>
+              <:item value="two" phx-value-k="two_series" phx-value-v="two">two</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">days</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={p <- ~w(7 14 30)}
-                phx-click="ctl_chart"
-                phx-value-k="points"
-                phx-value-v={p}
-                class={seg(to_string(@chart.points) == p)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Points"
+              value={@chart.points}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={p <- ~w(7 14 30)} value={p} phx-value-k="points" phx-value-v={p}>
                 {p}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@chart.type == "bar"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gap</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={g <- ~w(cozy tight)}
-                phx-click="ctl_chart"
-                phx-value-k="gap"
-                phx-value-v={g}
-                class={seg(@chart.gap == g)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Gap"
+              value={@chart.gap}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={g <- ~w(cozy tight)} value={g} phx-value-k="gap" phx-value-v={g}>
                 {g}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">area</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={a <- ~w(fade solid none)}
-                phx-click="ctl_chart"
-                phx-value-k="area"
-                phx-value-v={a}
-                class={seg(@chart.area == a)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Area"
+              value={@chart.area}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={a <- ~w(fade solid none)} value={a} phx-value-k="area" phx-value-v={a}>
                 {a}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={s <- ~w(smooth linear step)}
-                phx-click="ctl_chart"
-                phx-value-k="shape"
-                phx-value-v={s}
-                class={seg(@chart.shape == s)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Shape"
+              value={@chart.shape}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(smooth linear step)} value={s} phx-value-k="shape" phx-value-v={s}>
                 {s}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@chart.type == "line"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dots</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button phx-click="ctl_chart" phx-value-k="dots" class={seg(@chart.dots)}>on</button>
-              <button phx-click="ctl_chart" phx-value-k="dots" class={seg(!@chart.dots)}>off</button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Dots"
+              value={(@chart.dots && "on") || "off"}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="on" phx-value-k="dots" phx-value-v="on">on</:item>
+              <:item value="off" phx-value-k="dots" phx-value-v="off">off</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={c <- ~w(full x off)}
-                phx-click="ctl_chart"
-                phx-value-k="chrome"
-                phx-value-v={c}
-                class={seg(@chart.chrome == c)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Chrome"
+              value={@chart.chrome}
+              on_change="ctl_chart"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(full x off)} value={c} phx-value-k="chrome" phx-value-v={c}>
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -3296,87 +3430,112 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap gap-x-8 gap-y-5 px-6 py-5 border-t border-gray-100 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">transition</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={t <- ~w(fade slide)}
-                phx-click="ctl_carousel"
-                phx-value-k="transition"
-                phx-value-v={t}
-                class={seg(@car.transition == t)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Transition"
+              value={@car.transition}
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={t <- ~w(fade slide)} value={t} phx-value-k="transition" phx-value-v={t}>
                 {t}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">buttons</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Buttons"
+              value={@car.buttons}
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={b <- ~w(overlay below outside none)}
-                phx-click="ctl_carousel"
+                value={b}
                 phx-value-k="buttons"
                 phx-value-v={b}
-                class={seg(@car.buttons == b)}
               >
                 {b}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicators</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={i <- ~w(bars dots off)}
-                phx-click="ctl_carousel"
-                phx-value-k="indicators"
-                phx-value-v={i}
-                class={seg(@car.indicators == i)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Indicators"
+              value={@car.indicators}
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={i <- ~w(bars dots off)} value={i} phx-value-k="indicators" phx-value-v={i}>
                 {i}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={ip <- ~w(overlay below)}
-                phx-click="ctl_carousel"
-                phx-value-k="ind_pos"
-                phx-value-v={ip}
-                class={seg(@car.ind_pos == ip)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Ind pos"
+              value={@car.ind_pos}
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={ip <- ~w(overlay below)} value={ip} phx-value-k="ind_pos" phx-value-v={ip}>
                 {ip}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@car.orientation}
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={o <- ~w(horizontal vertical)}
-                phx-click="ctl_carousel"
+                value={o}
                 phx-value-k="orientation"
                 phx-value-v={o}
-                class={seg(@car.orientation == o)}
               >
                 {o}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_carousel" phx-value-k="loop" class={tog(@car.loop)}>
-                loop
-              </button>
-              <button phx-click="ctl_carousel" phx-value-k="autoplay" class={tog(@car.autoplay)}>
-                autoplay
-              </button>
-              <button phx-click="ctl_carousel" phx-value-k="thumbnails" class={tog(@car.thumbnails)}>
-                thumbnails
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [
+                      {"loop", @car.loop},
+                      {"autoplay", @car.autoplay},
+                      {"thumbnails", @car.thumbnails}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_carousel"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="loop" phx-value-k="loop">loop</:item>
+              <:item value="autoplay" phx-value-k="autoplay">autoplay</:item>
+              <:item value="thumbnails" phx-value-k="thumbnails">thumbnails</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -3556,17 +3715,23 @@ defmodule Dev.PlaygroundLive do
         Position - moves the live group
       </div>
       <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <button
+        <.toggle_group
+          variant="outline"
+          size="sm"
+          aria_label="Pos"
+          value={@toast.pos}
+          on_change="ctl_toast"
+          class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <:item
             :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
-            phx-click="ctl_toast"
+            value={pos}
             phx-value-k="pos"
             phx-value-v={pos}
-            class={seg(@toast.pos == pos)}
           >
             {pos}
-          </button>
-        </div>
+          </:item>
+        </.toggle_group>
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.Toast.examples()} class="mt-10">
@@ -3778,54 +3943,68 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">count</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={n <- ~w(10 20 40)}
-                phx-click="ctl_meteors"
-                phx-value-k="count"
-                phx-value-v={n}
-                class={seg(to_string(@meteors.count) == n)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Count"
+              value={@meteors.count}
+              on_change="ctl_meteors"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={n <- ~w(10 20 40)} value={n} phx-value-k="count" phx-value-v={n}>
                 {n}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">angle</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Angle"
+              value={@meteors.angle}
+              on_change="ctl_meteors"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={{lbl, v} <- [{"shallow", "200deg"}, {"default", "215deg"}, {"steep", "235deg"}]}
-                phx-click="ctl_meteors"
+                value={v}
                 phx-value-k="angle"
                 phx-value-v={v}
-                class={seg(@meteors.angle == v)}
               >
                 {lbl}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={c <- ~w(slate sky violet)}
-                phx-click="ctl_meteors"
-                phx-value-k="color"
-                phx-value-v={c}
-                class={seg(@meteors.color == c)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Color"
+              value={@meteors.color}
+              on_change="ctl_meteors"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(slate sky violet)} value={c} phx-value-k="color" phx-value-v={c}>
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_meteors" phx-value-k="reverse" class={tog(@meteors.reverse)}>
-                reverse
-              </button>
-              <button phx-click="ctl_meteors" phx-value-k="shuffle" class={tog(false)}>shuffle</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"reverse", @meteors.reverse}], on, do: k}
+              on_change="ctl_meteors"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="reverse" phx-value-k="reverse">reverse</:item>
+              <:item value="shuffle" phx-value-k="shuffle">shuffle</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4111,6 +4290,111 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "social-button"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Social button</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        "Continue with Google" and its siblings, graduated from Petal Pro -
+        the very first Pro component, now free. Rides pc-button geometry,
+        so the radius dial and the theme drive it like any other button.
+      </p>
+
+      <div :for={ex <- PetalComponents.Showcase.SocialButton.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.SocialButton} function={:social_button} />
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">brand_icon</h2>
+      <.showcase_props component={PetalComponents.BrandIcon} function={:brand_icon} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.SocialButton</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "language-select"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Language select</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The locale flag dropdown, graduated from Petal Pro. Items are plain
+        links carrying <code>?locale=</code> - the conventional Phoenix
+        contract - so it works on live and dead views alike.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-4 py-12">
+          <.language_select
+            current_locale={@lang}
+            current_path={"/?c=language-select&radius=#{@radius}"}
+            language_options={@playground_languages}
+            placement={@lang_placement}
+            variant={@lang_variant}
+          />
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Trigger"
+              value={@lang_variant}
+              on_change="pg_lang_variant"
+            >
+              <:item :for={v <- ~w(flag code label)} value={v} phx-value-v={v}>{v}</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Placement"
+              value={@lang_placement}
+              on_change="pg_lang_placement"
+            >
+              <:item :for={p <- ~w(left right)} value={p} phx-value-v={p}>{p}</:item>
+            </.toggle_group>
+          </div>
+          <p class="max-w-xs text-[11px] leading-relaxed text-gray-400">
+            picking a language reloads with <code>?locale=</code> and this page
+            reads it back - the real contract, not a simulation
+          </p>
+        </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.LanguageSelect.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.LanguageSelect} function={:language_select} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.LanguageSelect</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "modal"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -4172,70 +4456,85 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_progress" phx-value-k="live" class={tog(@progress.live)}>
-                live
-              </button>
-              <button phx-click="ctl_progress" phx-value-k="status" class={tog(@progress.status)}>
-                status
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"live", @progress.live}, {"status", @progress.status}], on, do: k
+              }
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="live" phx-value-k="live">live</:item>
+              <:item value="status" phx-value-k="status">status</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">value</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(15 40 60 85 100)}
-                phx-click="ctl_progress"
-                phx-value-k="value"
-                phx-value-v={v}
-                class={seg(to_string(@progress.value) == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Value"
+              value={@progress.value}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(15 40 60 85 100)} value={v} phx-value-k="value" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Color"
+              value={@progress.color}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
-                phx-click="ctl_progress"
+                value={c}
                 phx-value-k="color"
                 phx-value-v={c}
-                class={seg(@progress.color == c)}
               >
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_progress"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@progress.size == z)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@progress.size}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={l <- ~w(none inside top)}
-                phx-click="ctl_progress"
-                phx-value-k="label"
-                phx-value-v={l}
-                class={seg(@progress.label == l)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Label"
+              value={@progress.label}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={l <- ~w(none inside top)} value={l} phx-value-k="label" phx-value-v={l}>
                 {l}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4324,73 +4623,72 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={i <- ~w(star heart face)}
-                phx-click="ctl_rating"
-                phx-value-k="icon"
-                phx-value-v={i}
-                class={seg(@rating.icon == i)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Icon"
+              value={@rating.icon}
+              on_change="ctl_rating"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={i <- ~w(star heart face)} value={i} phx-value-k="icon" phx-value-v={i}>
                 {i}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={sz <- ~w(sm md lg)}
-                phx-click="ctl_rating"
-                phx-value-k="size"
-                phx-value-v={sz}
-                class={seg(@rating.size == sz)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@rating.size}
+              on_change="ctl_rating"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={sz <- ~w(sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                phx-click="ctl_rating"
-                phx-value-k="step"
-                phx-value-v="whole"
-                class={seg(@rating.step == "whole")}
-              >
-                1
-              </button>
-              <button
-                phx-click="ctl_rating"
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Step"
+              value={@rating.step}
+              on_change="ctl_rating"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="whole" phx-value-k="step" phx-value-v="whole">1</:item>
+              <:item
+                value="half"
+                disabled={@rating.icon == "face"}
                 phx-value-k="step"
                 phx-value-v="half"
-                disabled={@rating.icon == "face"}
-                class={[
-                  seg(@rating.step == "half"),
-                  @rating.icon == "face" && "opacity-40 cursor-not-allowed"
-                ]}
               >
                 ½
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
             <p :if={@rating.icon == "face"} class="mt-1.5 text-[11px] text-gray-400">
               faces are an ordinal scale - always whole
             </p>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">label</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={l <- ~w(none right bottom)}
-                phx-click="ctl_rating"
-                phx-value-k="label"
-                phx-value-v={l}
-                class={seg(@rating.label == l)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Label"
+              value={@rating.label}
+              on_change="ctl_rating"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={l <- ~w(none right bottom)} value={l} phx-value-k="label" phx-value-v={l}>
                 {l}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4455,33 +4753,40 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Origin"
+              value={@slideover.origin}
+              on_change="ctl_slideover"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={o <- ~w(left right top bottom)}
-                phx-click="ctl_slideover"
+                value={o}
                 phx-value-k="origin"
                 phx-value-v={o}
-                class={seg(@slideover.origin == o)}
               >
                 {o}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               max width (left/right)
             </div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={w <- ~w(sm md lg)}
-                phx-click="ctl_slideover"
-                phx-value-k="width"
-                phx-value-v={w}
-                class={seg(@slideover.width == w)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Width"
+              value={@slideover.width}
+              on_change="ctl_slideover"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={w <- ~w(sm md lg)} value={w} phx-value-k="width" phx-value-v={w}>
                 {w}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4569,17 +4874,23 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Animation"
+              value={@skeleton.animation}
+              on_change="ctl_skeleton"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={a <- ~w(pulse shimmer none)}
-                phx-click="ctl_skeleton"
+                value={a}
                 phx-value-k="animation"
                 phx-value-v={a}
-                class={seg(@skeleton.animation == a)}
               >
                 {a}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4684,6 +4995,150 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "toggle-group"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Toggle group</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A segmented selection rail - one pressed option, or several with multiple.
+        Server-driven and stateless: pass value, handle on_change, no hook.
+      </p>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Try it</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Single select on the left, multiple on the right, both live against this page's
+        LiveView state. The dials below are toggle groups themselves, so this section
+        configures itself - and the radius dial up top drives every chip, step for step, on the same curve as buttons. Only full pills.
+      </p>
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-12">
+          <.toggle_group
+            variant={@tg_variant}
+            size={@tg_size}
+            aria_label="Density"
+            value={@tg_density}
+            on_change="pg_tg_density"
+          >
+            <:item value="compact">Compact</:item>
+            <:item value="cozy">Cozy</:item>
+            <:item value="comfortable">Comfortable</:item>
+          </.toggle_group>
+          <.toggle_group
+            multiple
+            variant={@tg_variant}
+            size={@tg_size}
+            aria_label="Formatting"
+            value={@tg_formats}
+            on_change="pg_tg_format"
+          >
+            <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+            <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+            <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+          </.toggle_group>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-6 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              variant
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@tg_variant}
+              on_change="pg_tg_variant"
+            >
+              <:item value="solid">solid</:item>
+              <:item value="outline">outline</:item>
+              <:item value="accent">accent</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
+              size
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@tg_size}
+              on_change="pg_tg_size"
+            >
+              <:item value="sm">sm</:item>
+              <:item value="md">md</:item>
+              <:item value="lg">lg</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">The device rail, working</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The canonical use, dogfooded: the rail drives the preview width below it, the way
+        every playground's device switcher does. Same component, real content.
+      </p>
+      <div class="px-4 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex justify-center mb-6">
+          <.toggle_group
+            variant="outline"
+            aria_label="Preview device"
+            value={@tg_device}
+            on_change="pg_tg_device"
+          >
+            <:item value="desktop" aria-label="Desktop">
+              <.icon name="hero-computer-desktop" />
+            </:item>
+            <:item value="tablet" aria-label="Tablet"><.icon name="hero-device-tablet" /></:item>
+            <:item value="mobile" aria-label="Phone">
+              <.icon name="hero-device-phone-mobile" />
+            </:item>
+          </.toggle_group>
+        </div>
+        <div
+          class={[
+            "mx-auto transition-all duration-300 border border-dashed border-gray-300 rounded-xl p-5 dark:border-gray-700",
+            @tg_device == "desktop" && "max-w-full",
+            @tg_device == "tablet" && "max-w-md",
+            @tg_device == "mobile" && "max-w-[250px]"
+          ]}
+          data-pg-device={@tg_device}
+        >
+          <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+            Publish your changes?
+          </h3>
+          <p class="mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400">
+            Two pages changed since the last deploy. The buttons below wrap on their own as
+            the frame narrows - no breakpoint classes, just less room.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <.button label="Publish now" />
+            <.button color="gray" variant="outline" label="Preview first" />
+          </div>
+        </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.ToggleGroup.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ToggleGroup} functions={[:toggle_group]} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ToggleGroup</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. Registry previews render fixed values by design (static, no outer
+        state) - the Try it rail above is the live one.
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "loading"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -4733,17 +5188,23 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Separator"
+              value={@crumbs.separator}
+              on_change="ctl_crumbs"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={sp <- ~w(chevron slash)}
-                phx-click="ctl_crumbs"
+                value={sp}
                 phx-value-k="separator"
                 phx-value-v={sp}
-                class={seg(@crumbs.separator == sp)}
               >
                 {sp}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -4905,46 +5366,54 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@stepper.orientation}
+              on_change="ctl_stepper"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={o <- ~w(horizontal vertical)}
-                phx-click="ctl_stepper"
+                value={o}
                 phx-value-k="orientation"
                 phx-value-v={o}
-                class={seg(@stepper.orientation == o)}
               >
                 {o}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={sz <- ~w(sm md lg)}
-                phx-click="ctl_stepper"
-                phx-value-k="size"
-                phx-value-v={sz}
-                class={seg(@stepper.size == sz)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@stepper.size}
+              on_change="ctl_stepper"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={sz <- ~w(sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={lp <- ~w(beside bottom)}
-                phx-click="ctl_stepper"
-                phx-value-k="labels"
-                phx-value-v={lp}
-                class={seg(@stepper.labels == lp)}
-                disabled={@stepper.orientation == "vertical"}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Labels"
+              value={@stepper.labels}
+              on_change="ctl_stepper"
+              disabled={@stepper.orientation == "vertical"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={lp <- ~w(beside bottom)} value={lp} phx-value-k="labels" phx-value-v={lp}>
                 {lp}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
             <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
               horizontal only
             </div>
@@ -5260,43 +5729,47 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(default bordered)}
-                phx-click="ctl_accordion"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@accordion.variant == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@accordion.variant}
+              on_change="ctl_accordion"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(default bordered)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={sz <- ~w(md sm)}
-                phx-click="ctl_accordion"
-                phx-value-k="size"
-                phx-value-v={sz}
-                class={seg(@accordion.size == sz)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@accordion.size}
+              on_change="ctl_accordion"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={sz <- ~w(md sm)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {if sz == "sm", do: "compact", else: "default"}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button
-                phx-click="ctl_accordion"
-                phx-value-k="multiple"
-                class={tog(@accordion.multiple)}
-              >
-                allow multiple open
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"multiple", @accordion.multiple}], on, do: k}
+              on_change="ctl_accordion"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="multiple" phx-value-k="multiple">allow multiple open</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5359,15 +5832,27 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_marquee" phx-value-k="reverse" class={tog(@marquee_ctl.reverse)}>reverse</button>
-              <button
-                phx-click="ctl_marquee"
-                phx-value-k="vertical"
-                class={tog(@marquee_ctl.vertical)}
-              >vertical</button>
-              <button phx-click="ctl_marquee" phx-value-k="pause" class={tog(@marquee_ctl.pause)}>pause on hover</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [
+                      {"reverse", @marquee_ctl.reverse},
+                      {"vertical", @marquee_ctl.vertical},
+                      {"pause", @marquee_ctl.pause}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_marquee"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="reverse" phx-value-k="reverse">reverse</:item>
+              <:item value="vertical" phx-value-k="vertical">vertical</:item>
+              <:item value="pause" phx-value-k="pause">pause on hover</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5560,23 +6045,37 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@tabs.variant}
+              on_change="ctl_tabs"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={v <- ~w(segmented underline pill)}
-                phx-click="ctl_tabs"
+                value={v}
                 phx-value-k="variant"
                 phx-value-v={v}
-                class={seg(@tabs.variant == v)}
               >
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_tabs" phx-value-k="number" class={tog(@tabs.number)}>number badge</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"number", @tabs.number}], on, do: k}
+              on_change="ctl_tabs"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="number" phx-value-k="number">number badge</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5627,31 +6126,29 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={n <- ~w(0 1 2)}
-                phx-click="ctl_page"
-                phx-value-k="sibling"
-                phx-value-v={n}
-                class={seg(to_string(@page.sibling) == n)}
-              >
-                {n}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Sibling"
+              value={@page.sibling}
+              on_change="ctl_page"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={n <- ~w(0 1 2)} value={n} phx-value-k="sibling" phx-value-v={n}>{n}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">boundary count</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={n <- ~w(1 2)}
-                phx-click="ctl_page"
-                phx-value-k="boundary"
-                phx-value-v={n}
-                class={seg(to_string(@page.boundary) == n)}
-              >
-                {n}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Boundary"
+              value={@page.boundary}
+              on_change="ctl_page"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={n <- ~w(1 2)} value={n} phx-value-k="boundary" phx-value-v={n}>{n}</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5725,38 +6222,53 @@ defmodule Dev.PlaygroundLive do
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Density"
+              value={@table.density}
+              on_change="ctl_table"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={d <- ~w(comfortable compact)}
-                phx-click="ctl_table"
+                value={d}
                 phx-value-k="density"
                 phx-value-v={d}
-                class={seg(@table.density == d)}
               >
                 {d}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(basic ghost)}
-                phx-click="ctl_table"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@table.variant == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@table.variant}
+              on_change="ctl_table"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(basic ghost)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_table" phx-value-k="striped" class={tog(@table.striped)}>striped</button>
-              <button phx-click="ctl_table" phx-value-k="empty" class={tog(@table.empty)}>empty state</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"striped", @table.striped}, {"empty", @table.empty}], on, do: k}
+              on_change="ctl_table"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="striped" phx-value-k="striped">striped</:item>
+              <:item value="empty" phx-value-k="empty">empty state</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5812,23 +6324,37 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Placement"
+              value={@tooltip.placement}
+              on_change="ctl_tooltip"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={pl <- ~w(top bottom left right)}
-                phx-click="ctl_tooltip"
+                value={pl}
                 phx-value-k="placement"
                 phx-value-v={pl}
-                class={seg(@tooltip.placement == pl)}
               >
                 {pl}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_tooltip" phx-value-k="arrow" class={tog(@tooltip.arrow)}>arrow</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"arrow", @tooltip.arrow}], on, do: k}
+              on_change="ctl_tooltip"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="arrow" phx-value-k="arrow">arrow</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5898,25 +6424,37 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Placement"
+              value={@popover.placement}
+              on_change="ctl_popover"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={pl <- ~w(top bottom left right)}
-                phx-click="ctl_popover"
+                value={pl}
                 phx-value-k="placement"
                 phx-value-v={pl}
-                class={seg(@popover.placement == pl)}
               >
                 {pl}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_popover" phx-value-k="top_layer" class={tog(@popover.top_layer)}>
-                top_layer
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"top_layer", @popover.top_layer}], on, do: k}
+              on_change="ctl_popover"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="top_layer" phx-value-k="top_layer">top_layer</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -5980,38 +6518,53 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">length</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={l <- ~w(4 6)}
-                phx-click="ctl_otp"
-                phx-value-k="length"
-                phx-value-v={l}
-                class={seg(to_string(@otp.length) == l)}
-              >
-                {l}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Length"
+              value={@otp.length}
+              on_change="ctl_otp"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={l <- ~w(4 6)} value={l} phx-value-k="length" phx-value-v={l}>{l}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">pattern</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Pattern"
+              value={@otp.pattern}
+              on_change="ctl_otp"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={pt <- ~w(numeric alphanumeric)}
-                phx-click="ctl_otp"
+                value={pt}
                 phx-value-k="pattern"
                 phx-value-v={pt}
-                class={seg(@otp.pattern == pt)}
               >
                 {pt}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_otp" phx-value-k="grouped" class={tog(@otp.grouped)}>grouped</button>
-              <button phx-click="ctl_otp" phx-value-k="disabled" class={tog(@otp.disabled)}>disabled</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [{"grouped", @otp.grouped}, {"disabled", @otp.disabled}], on, do: k
+              }
+              on_change="ctl_otp"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="grouped" phx-value-k="grouped">grouped</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -6079,26 +6632,35 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_switch"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@switch.size == z)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@switch.size}
+              on_change="ctl_switch"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_switch" phx-value-k="error" class={tog(@switch.error)}>error</button>
-              <button phx-click="ctl_switch" phx-value-k="disabled" class={tog(@switch.disabled)}>
-                disabled
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"error", @switch.error}, {"disabled", @switch.disabled}], on, do: k
+              }
+              on_change="ctl_switch"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="error" phx-value-k="error">error</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -6269,47 +6831,55 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumbs</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={t <- ~w(single dual)}
-                phx-click="ctl_slider"
-                phx-value-k="thumbs"
-                phx-value-v={t}
-                class={seg(@slider.thumbs == t)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Thumbs"
+              value={@slider.thumbs}
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={t <- ~w(single dual)} value={t} phx-value-k="thumbs" phx-value-v={t}>
                 {t}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@slider.thumbs == "dual"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Format"
+              value={@slider.format}
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={f <- ~w(money percent plain)}
-                phx-click="ctl_slider"
+                value={f}
                 phx-value-k="format"
                 phx-value-v={f}
-                class={seg(@slider.format == f)}
               >
                 {f}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button
-                :if={@slider.thumbs == "single"}
-                phx-click="ctl_slider"
-                phx-value-k="fill"
-                class={tog(@slider.fill)}
-              >
-                fill
-              </button>
-              <button phx-click="ctl_slider" phx-value-k="disabled" class={tog(@slider.disabled)}>
-                disabled
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"fill", @slider.fill}, {"disabled", @slider.disabled}], on, do: k
+              }
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :if={@slider.thumbs == "single"} value="fill" phx-value-k="fill">fill</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -6399,91 +6969,99 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">style</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={st <- ~w(cards plain)}
-                phx-click="ctl_radio"
-                phx-value-k="style"
-                phx-value-v={st}
-                class={seg(@radio.style == st)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Style"
+              value={@radio.style}
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={st <- ~w(cards plain)} value={st} phx-value-k="style" phx-value-v={st}>
                 {st}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(outline classic)}
-                phx-click="ctl_radio"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@radio.variant == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@radio.variant}
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(outline classic)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div :if={@radio.style == "cards"}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={z <- ~w(sm md lg)}
-                phx-click="ctl_radio"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@radio.size == z)}
-              >
-                {z}
-              </button>
-            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@radio.size}
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>{z}</:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={l <- ~w(row col)}
-                phx-click="ctl_radio"
-                phx-value-k="layout"
-                phx-value-v={l}
-                class={seg(@radio.layout == l)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Layout"
+              value={@radio.layout}
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={l <- ~w(row col)} value={l} phx-value-k="layout" phx-value-v={l}>
                 {l}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button
-                :if={@radio.style == "cards"}
-                phx-click="ctl_radio"
-                phx-value-k="indicator"
-                class={tog(@radio.indicator)}
-              >
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"indicator", @radio.indicator}, {"disabled", @radio.disabled}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :if={@radio.style == "cards"} value="indicator" phx-value-k="indicator">
                 indicator
-              </button>
-              <button phx-click="ctl_radio" phx-value-k="disabled" class={tog(@radio.disabled)}>
-                disabled
-              </button>
-            </div>
+              </:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
           <div :if={@radio.style == "cards" && @radio.indicator}>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               indicator position
             </div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={p <- ~w(end corner start)}
-                phx-click="ctl_radio"
-                phx-value-k="ind_pos"
-                phx-value-v={p}
-                class={seg(@radio.ind_pos == p)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Ind pos"
+              value={@radio.ind_pos}
+              on_change="ctl_radio"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={p <- ~w(end corner start)} value={p} phx-value-k="ind_pos" phx-value-v={p}>
                 {p}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -6597,11 +7175,27 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_select" phx-value-k="help" class={tog(@select.help)}>help</button>
-              <button phx-click="ctl_select" phx-value-k="error" class={tog(@select.error)}>error</button>
-              <button phx-click="ctl_select" phx-value-k="disabled" class={tog(@select.disabled)}>disabled</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [
+                      {"help", @select.help},
+                      {"error", @select.error},
+                      {"disabled", @select.disabled}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_select"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="help" phx-value-k="help">help</:item>
+              <:item value="error" phx-value-k="error">error</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -6670,26 +7264,37 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">layout</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={l <- ~w(row col)}
-                phx-click="ctl_checkbox"
-                phx-value-k="layout"
-                phx-value-v={l}
-                class={seg(@checkbox.layout == l)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Layout"
+              value={@checkbox.layout}
+              on_change="ctl_checkbox"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={l <- ~w(row col)} value={l} phx-value-k="layout" phx-value-v={l}>
                 {l}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_checkbox" phx-value-k="error" class={tog(@checkbox.error)}>error</button>
-              <button phx-click="ctl_checkbox" phx-value-k="disabled" class={tog(@checkbox.disabled)}>
-                disabled
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"error", @checkbox.error}, {"disabled", @checkbox.disabled}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_checkbox"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="error" phx-value-k="error">error</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -7168,17 +7773,18 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
-          <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <button
-              :for={t <- ~w(hover click)}
-              phx-click="ctl_navmenu"
-              phx-value-k="trigger"
-              phx-value-v={t}
-              class={seg(@nav_trigger == t)}
-            >
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Trigger"
+            value={@nav_trigger}
+            on_change="ctl_navmenu"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item :for={t <- ~w(hover click)} value={t} phx-value-k="trigger" phx-value-v={t}>
               {t}
-            </button>
-          </div>
+            </:item>
+          </.toggle_group>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -7345,31 +7951,33 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(plain bubbles)}
-                phx-click="ctl_chat"
-                phx-value-k="variant"
-                phx-value-v={v}
-                class={seg(@chat.variant == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@chat.variant}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(plain bubbles)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">action bar</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={v <- ~w(always hover)}
-                phx-click="ctl_chat"
-                phx-value-k="actions"
-                phx-value-v={v}
-                class={seg(@chat.actions == v)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Actions"
+              value={@chat.actions}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(always hover)} value={v} phx-value-k="actions" phx-value-v={v}>
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -7467,44 +8075,69 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Color"
+              value={@alert.color}
+              on_change="ctl_alert"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={c <- ~w(gray info success warning danger)}
-                phx-click="ctl_alert"
+                value={c}
                 phx-value-k="color"
                 phx-value-v={c}
-                class={seg(@alert.color == c)}
               >
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@alert.variant}
+              on_change="ctl_alert"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={v <- ~w(light soft dark outline callout)}
-                phx-click="ctl_alert"
+                value={v}
                 phx-value-k="variant"
                 phx-value-v={v}
-                class={seg(@alert.variant == v)}
               >
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_alert" phx-value-k="icon" class={tog(@alert.icon)}>icon</button>
-              <button phx-click="ctl_alert" phx-value-k="heading" class={tog(@alert.heading)}>heading</button>
-              <button phx-click="ctl_alert" phx-value-k="dismissible" class={tog(@alert.dismissible)}>
-                dismissible
-              </button>
-              <button phx-click="ctl_alert" phx-value-k="actions" class={tog(@alert.actions)}>
-                actions
-              </button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [
+                      {"icon", @alert.icon},
+                      {"heading", @alert.heading},
+                      {"dismissible", @alert.dismissible},
+                      {"actions", @alert.actions}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_alert"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="icon" phx-value-k="icon">icon</:item>
+              <:item value="heading" phx-value-k="heading">heading</:item>
+              <:item value="dismissible" phx-value-k="dismissible">dismissible</:item>
+              <:item value="actions" phx-value-k="actions">actions</:item>
+            </.toggle_group>
             <div :if={@alert.dismissible} class="mt-1.5 text-[10px] text-gray-400">
               dismissing hides it - flip any dial to bring it back
             </div>
@@ -7567,51 +8200,72 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">colour</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Color"
+              value={@badge.color}
+              on_change="ctl_badge"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
-                phx-click="ctl_badge"
+                value={c}
                 phx-value-k="color"
                 phx-value-v={c}
-                class={seg(@badge.color == c)}
               >
                 {c}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@badge.variant}
+              on_change="ctl_badge"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
                 :for={v <- ~w(light soft dark outline callout)}
-                phx-click="ctl_badge"
+                value={v}
                 phx-value-k="variant"
                 phx-value-v={v}
-                class={seg(@badge.variant == v)}
               >
                 {v}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
-            <div class="inline-flex max-w-full overflow-x-auto overflow-y-hidden border rounded-lg border-gray-200 dark:border-gray-700 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                :for={z <- ~w(xs sm md lg xl)}
-                phx-click="ctl_badge"
-                phx-value-k="size"
-                phx-value-v={z}
-                class={seg(@badge.size == z)}
-              >
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@badge.size}
+              on_change="ctl_badge"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
-              </button>
-            </div>
+              </:item>
+            </.toggle_group>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
-            <div class="flex gap-1.5">
-              <button phx-click="ctl_badge" phx-value-k="icon" class={tog(@badge.icon)}>icon</button>
-            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"icon", @badge.icon}], on, do: k}
+              on_change="ctl_badge"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="icon" phx-value-k="icon">icon</:item>
+            </.toggle_group>
           </div>
         </div>
       </div>
@@ -7660,20 +8314,6 @@ defmodule Dev.PlaygroundLive do
     </div>
     """
   end
-
-  defp seg(true), do: "px-2.5 py-1 text-xs font-medium bg-primary-600 text-(--pc-button-solid-fg)"
-
-  defp seg(false),
-    do:
-      "px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-
-  defp tog(true),
-    do:
-      "px-2.5 py-1 text-xs font-medium rounded-lg border border-transparent bg-primary-600 text-(--pc-button-solid-fg)"
-
-  defp tog(false),
-    do:
-      "px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
 end
 
 defmodule Dev.Router do

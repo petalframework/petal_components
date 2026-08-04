@@ -108,4 +108,23 @@ defmodule PetalComponents.UserDropdownMenuTest do
     assert html =~ "svg"
     assert html =~ "img"
   end
+
+  test "the chevron wears the family class and show_chevron drops it" do
+    assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+    html =
+      rendered_to_string(~H"""
+      <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items} />
+      """)
+
+    assert html =~ "pc-dropdown__chevron"
+    refute html =~ "dark:text-gray-100"
+
+    html =
+      rendered_to_string(~H"""
+      <.user_dropdown_menu current_user_name="Sarah Chen" show_chevron={false} user_menu_items={@items} />
+      """)
+
+    refute html =~ "hero-chevron-down-mini"
+  end
 end

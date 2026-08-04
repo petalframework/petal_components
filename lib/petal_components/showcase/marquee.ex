@@ -70,4 +70,28 @@ defmodule PetalComponents.Showcase.Marquee do
     </div>
     """
   end
+
+  example :vertical_feed, "The vertical feed",
+    description:
+      "vertical scrolls a column instead of a row - activity feeds, changelogs, live signups - capped by max_height (sm through 2xl) with the same edge fade and hover pause. reverse works here too for a bottom-up ticker." do
+    ~H"""
+    <.marquee vertical pause_on_hover duration="25s" gap="0.75rem" max_height="md">
+      <div
+        :for={
+          {name, action} <- [
+            {"Amelia", "upgraded to Pro"},
+            {"Jonah", "deployed to Fly"},
+            {"Priya", "added an org"},
+            {"Tom", "shipped the billing page"},
+            {"Maya", "connected Stripe"},
+            {"Ana", "invited 3 teammates"}
+          ]
+        }
+        class="w-64 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300"
+      >
+        <span class="font-medium text-gray-900 dark:text-white">{name}</span> {action}
+      </div>
+    </.marquee>
+    """
+  end
 end

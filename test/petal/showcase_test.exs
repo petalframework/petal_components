@@ -64,10 +64,13 @@ defmodule PetalComponents.ShowcaseTest do
 
     test "example DOM ids are unique within a module (a page renders each once)" do
       for mod <- Registry.all() do
+        # The lookbehind keeps reference attrs like dialog_id= out of the scan -
+        # several triggers naming the same dialog is correct, two elements
+        # carrying the same actual id= is the bug this guards against.
         ids =
           mod.examples()
           |> Enum.flat_map(fn ex ->
-            Regex.scan(~r/id="([^"]+)"/, ex.code, capture: :all_but_first)
+            Regex.scan(~r/(?<![\w-])id="([^"]+)"/, ex.code, capture: :all_but_first)
           end)
           |> List.flatten()
 
@@ -96,6 +99,30 @@ defmodule PetalComponents.ShowcaseTest do
 
       assert html =~ "pc-showcase-code__lock"
       refute html =~ "PetalCopy"
+    end
+
+    test "inert examples render a non-interactive preview; live ones don't" do
+      inert_ex = Enum.find(PetalComponents.Showcase.ToggleGroup.examples(), &(&1.id == :single))
+      assert inert_ex.inert
+
+      assigns = %{example: inert_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-showcase__preview[inert]")
+             |> Enum.count() == 1
+
+      live_ex = hd(PetalComponents.Showcase.Command.examples())
+      refute live_ex.inert
+
+      assigns = %{example: live_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-showcase__preview[inert]")
+             |> Enum.count() == 0
     end
 
     test "frame ids are deterministic across renders (stable under LV patches)" do

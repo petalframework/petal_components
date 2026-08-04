@@ -1961,7 +1961,11 @@
     @apply w-5 h-5 ml-2 -mr-1 dark:text-gray-100;
   }
   .pc-dropdown__menu-items-wrapper {
-    @apply absolute z-30 w-56 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
+    /* Content-driven width: menus hug their items (min-w floor keeps tiny
+       menus from looking cramped, max-w caps runaway labels). Consumers can
+       pin a fixed width back via menu_items_wrapper_class - utilities layer
+       after components, so their w-* wins. */
+    @apply absolute z-30 w-max min-w-36 max-w-72 mt-2 p-1 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-dropdown__menu-items-wrapper-placement--left {
@@ -1969,6 +1973,11 @@
   }
   .pc-dropdown__menu-items-wrapper-placement--right {
     @apply left-0 origin-top-left;
+  }
+  /* The one trigger chevron for the dropdown family - user menu,
+     language select and friends share this so the colour can't drift. */
+  .pc-dropdown__chevron {
+    @apply w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500;
   }
   .pc-dropdown__menu-item {
     @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 transition-colors duration-150 ease-out hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-400/17;
@@ -2001,6 +2010,34 @@
 
   /* Command palette */
 
+  /* The visible openers. The pill reads as a search input at rest; the icon
+     variant shares the compact-square grammar of pc-scheme-toggle. */
+  .pc-command-trigger {
+    @apply inline-flex items-center gap-2 text-sm text-gray-400 bg-white border border-gray-200 pl-3 pr-2 py-1.5 shadow-xs whitespace-nowrap cursor-pointer transition-colors duration-150 hover:border-gray-300 hover:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:text-gray-400;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-command-trigger__icon {
+    @apply w-4 h-4 shrink-0;
+  }
+
+  .pc-command-trigger__label {
+    @apply pr-4;
+  }
+
+  .pc-command-trigger__kbd {
+    @apply ml-auto;
+  }
+
+  .pc-command-trigger--icon {
+    @apply inline-flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-command-trigger--icon .pc-command-trigger__icon {
+    @apply w-5 h-5;
+  }
+
   .pc-command {
     @apply flex w-full flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
@@ -2029,7 +2066,9 @@
   }
   .pc-command__item {
     @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none dark:text-gray-200;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0px);
+    /* Derived from the clamped panel like dropdown items - raw-token rounding
+       pills items inside a clamped panel at large tokens. */
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
   .pc-command__item[data-selected] {
     @apply bg-gray-100 text-gray-900 dark:bg-gray-400/17 dark:text-white;
@@ -4427,6 +4466,22 @@
     @apply h-3 w-3 rounded-[2px];
     background-color: currentColor;
   }
+
+  /* THE TALL-ELEMENT CLAMP. Anything that can grow past one line caps
+     the radius token at 1rem - the ceiling the floating panels already
+     use. `full` keeps meaning "pill" for one-line controls (inputs,
+     buttons, chips) and stops meaning "ellipse" for multi-line ones.
+     One-line siblings (input, single select, single-row input groups)
+     deliberately stay unclamped. */
+  textarea.pc-text-input,
+  .pc-select[multiple],
+  select.pc-text-input[multiple],
+  .pc-input-group:has(.pc-input-group__block),
+  .pc-alert-base-classes,
+  .pc-chat__composer-input,
+  .pc-tooltip__content {
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
 }
 
 @keyframes pc-chat-blink {
@@ -4975,14 +5030,15 @@
 
   .pc-scheme-segmented {
     @apply relative inline-grid grid-cols-3 gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
-    /* 2.4x the radius token: a full pill at the shipped default (24px on a
-       36px control), concentric with the 2x chips, sharp at radius 0. */
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2.4);
+    /* Token x1.2 rail over x1 chips: the button-family curve, so the radius
+       dial produces even, perceptible steps and only `full` pills. (Was
+       pill-at-default x2.4 until 4.10 - see the toggle-group doctrine.) */
+    border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
   }
 
   .pc-scheme-segmented__option {
     @apply relative flex items-center justify-center p-1.5 cursor-pointer transition-colors duration-150;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-scheme-segmented__option:has(:checked) {
@@ -4995,7 +5051,7 @@
 
   .pc-scheme-segmented__input {
     @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none;
-    border-radius: calc(var(--pc-radius, 0.625rem) * 2);
+    border-radius: var(--pc-radius, 0.625rem);
   }
 
   .pc-scheme-segmented__icon {
@@ -5013,13 +5069,16 @@
     @apply w-auto min-w-0 left-1/2 right-auto -translate-x-1/2;
   }
 
+  /* Items live inside the (clamped) dropdown panel, so their radius derives
+     from the clamped value - the pc-dropdown__menu-item rule verbatim - and
+     the hover wash is the dropdown ramp. Selected sits one step above hover. */
   .pc-scheme-dropdown__item {
-    @apply flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-150 hover:bg-gray-900/5 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    @apply flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-150 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   .pc-scheme-dropdown__item[aria-checked="true"] {
-    @apply bg-gray-900/5 text-gray-900 dark:bg-gray-400/15 dark:text-white;
+    @apply bg-gray-200 text-gray-900 dark:bg-gray-400/25 dark:text-white;
   }
 
   .pc-scheme-dropdown__item--labeled {
@@ -5032,6 +5091,217 @@
 
   .pc-scheme-dropdown__item-label {
     @apply pr-1;
+  }
+
+  /* Social button + brand icon - the provider sign-in family. The button
+     rides pc-button geometry entirely; this block adds only glyph sizing
+     and the solid brand paints. Black brands (github/apple/x) get a
+     hairline border in dark mode so solid buttons never dissolve. */
+  .pc-brand-icon {
+    @apply inline-block;
+  }
+
+  .pc-social-button__icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+  }
+
+  /* Exact squares per size - each is its own size's text-button height
+     (2*py + line-height), so icon-only chips align with labelled
+     siblings. aspect-ratio can't do this: it loses to content-derived
+     minimums inside flex rows and renders pills. */
+  .pc-social-button--icon-only {
+    padding: 0;
+  }
+
+  .pc-button--sm.pc-social-button--icon-only {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .pc-button--md.pc-social-button--icon-only {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .pc-button--lg.pc-social-button--icon-only {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .pc-social-button--google {
+    @apply text-white border-transparent bg-[#4285F4] hover:bg-[#4285F4]/90;
+  }
+
+  .pc-social-button--github {
+    @apply text-white border-transparent bg-[#24292F] hover:bg-[#24292F]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--apple {
+    @apply text-white border-transparent bg-[#050708] hover:bg-[#050708]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--x {
+    @apply text-white border-transparent bg-black hover:bg-black/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--facebook {
+    @apply text-white border-transparent bg-[#1778F2] hover:bg-[#1778F2]/90;
+  }
+
+  .pc-social-button--microsoft {
+    @apply text-white border-transparent bg-[#2F2F2F] hover:bg-[#2F2F2F]/90 dark:border-gray-400/25;
+  }
+
+  .pc-social-button--gitlab {
+    @apply text-white border-transparent bg-[#FC6D26] hover:bg-[#FC6D26]/90;
+  }
+
+  .pc-social-button--discord {
+    @apply text-white border-transparent bg-[#5865F2] hover:bg-[#5865F2]/90;
+  }
+
+  .pc-social-button--linkedin {
+    @apply text-white border-transparent bg-[#0B65C2] hover:bg-[#0B65C2]/90;
+  }
+
+  /* Language select - the locale flag dropdown, a pure composition of
+     pc-dropdown: panel, items and radius all come from the dropdown, so
+     this block only paints the trigger cluster and the item row. */
+  .pc-language-select__trigger {
+    @apply inline-flex items-center gap-1 align-middle;
+  }
+
+  .pc-language-select__flag {
+    @apply text-xl leading-none;
+  }
+
+  .pc-language-select__globe {
+    @apply w-5 h-5 text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-language-select__chevron {
+    @apply w-4 h-4 text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-language-select__code {
+    @apply text-sm font-semibold tracking-wide text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-language-select__label {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-language-select__item-flag {
+    @apply mr-2 text-lg leading-none;
+  }
+
+  .pc-language-select__item-label {
+    @apply flex-1 text-left;
+  }
+
+  .pc-language-select__check {
+    @apply w-4 h-4 ml-3 shrink-0 text-primary-600 dark:text-primary-400;
+  }
+
+  /* Toggle group - the scheme-segmented family generalised. Single select is
+     label-wrapped native radios (radiogroup semantics + arrow keys for free);
+     multiple is aria-pressed buttons. Pressed styling keys off BOTH shapes.
+
+     GEOMETRY IS SHARED ACROSS VARIANTS: rail = token x 1.2, chips = token x 1
+     - the button-family curve, adopted for the whole segmented family in 4.10
+     (scheme switch included, one commit). Every radius-dial stop produces a
+     distinct, perceptible step and only `full` pills, exactly like buttons.
+     Variants may only change paint - never radii - so flipping variant or
+     the radius dial keeps every rail congruent. */
+  .pc-toggle-group {
+    @apply inline-flex items-center gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
+  }
+
+  .pc-toggle-group__item {
+    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:text-gray-900 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* The hidden radio fills its label so the whole item is the hit target;
+     keyboard focus lives on it. */
+  .pc-toggle-group__input {
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none disabled:cursor-not-allowed;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-toggle-group__content {
+    @apply flex items-center justify-center gap-1.5 pointer-events-none;
+  }
+
+  .pc-toggle-group__item:has(.pc-toggle-group__input:focus-visible) {
+    @apply ring-1 ring-primary-500/50;
+  }
+
+  .pc-toggle-group__item:has(.pc-toggle-group__input:disabled) {
+    @apply opacity-50 cursor-not-allowed hover:text-gray-600 dark:hover:text-gray-300;
+  }
+
+  .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
+    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+  }
+
+  /* Outline - the toolbar look (the shadcn preview-frame reference): a padded
+     bordered rail with floating rounded chips, no separators. Tokens borrow
+     the gray-outline button's border/wash ramp so a rail composed next to
+     outline buttons reads as kin; the pressed chip sits one step above hover,
+     the button's own press feel. Paint only - the radii come from the shared
+     family geometry above. */
+  .pc-toggle-group--outline {
+    @apply bg-transparent border border-gray-300 shadow-xs dark:bg-gray-400/8 dark:border-gray-400/25;
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-400/17;
+  }
+
+  .pc-toggle-group--outline .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group--outline .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
+    @apply bg-gray-200 text-gray-900 shadow-none ring-0 dark:bg-gray-400/25 dark:text-white;
+  }
+
+  /* Accent - the selection paints in the brand accent, the look the
+     playground's own hand-rolled dials have always used. Rail stays the solid
+     wash so it reads as the same family; only the chip changes register.
+     Reach for it when the choice is a committed setting rather than a view
+     preference. */
+  .pc-toggle-group--accent .pc-toggle-group__item[aria-pressed="true"],
+  .pc-toggle-group--accent .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
+    @apply bg-primary-600 shadow-none ring-0 dark:bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
+  .pc-toggle-group--accent .pc-toggle-group__item[aria-pressed="true"]:hover,
+  .pc-toggle-group--accent .pc-toggle-group__item:has(.pc-toggle-group__input:checked):hover {
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
+  .pc-toggle-group--sm .pc-toggle-group__item {
+    @apply px-2 py-1 text-xs;
+  }
+
+  .pc-toggle-group--md .pc-toggle-group__item {
+    @apply px-2.5 py-1.5 text-sm;
+  }
+
+  .pc-toggle-group--lg .pc-toggle-group__item {
+    @apply px-3.5 py-2 text-sm;
+  }
+
+  /* Icon-only items keep a square hit target per size. */
+  .pc-toggle-group__item > [class^="hero-"],
+  .pc-toggle-group__item > [class*=" hero-"],
+  .pc-toggle-group__content > [class^="hero-"],
+  .pc-toggle-group__content > [class*=" hero-"] {
+    @apply w-4 h-4;
   }
 
   /* Confetti mount point */

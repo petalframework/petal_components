@@ -1,15 +1,75 @@
 # Changelog
 ### Unreleased
 
-#### Added
-
-- **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
-- **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
-
 #### Fixed
 
 - **Component icons can be resized again - icon sizing drops `!important` for a real contract.** Nine icon-sizing sites (pagination and menu chevrons, accordion plus/minus, the avatar placeholder silhouette, the chat family's reasoning chevron, marker, action-bar and composer-send icons) defended their geometry with `!important`, on the belief that a consumer's heroicons plugin sizes `.hero-*` in the utilities layer. It doesn't: the plugin every phx.new app vendors registers icons through `matchComponents` - the same components layer as our rules, at single-class specificity - so the fight was always a coin flip on import order, and `!important` was both overkill and a lockout (important component declarations beat even a consumer's `w-6!`, so those icons were genuinely un-resizable). All nine now use the doubled-selector contract the colour-scheme controls proved out in 4.9.0: `(0,2,0)` outranks the plugin in either import order, and a plain `w-* h-*` utility on the icon overrides cleanly via the utilities layer. The carousel's slide-mode positioning also drops three `!important`s its own selector specificity already made redundant, and the two keepers now say why inline: the showcase `<pre>` background fights an inline style from mdex's `:html_inline` formatter (only `!important` outranks an inline style), and the reduced-motion `1ms` override is the standard accessibility pattern.
 - **The rest of the bang utilities go too - the whole file is now `!important`-honest.** The legacy `has-error` form styling (label, span, text inputs, selects, textareas, the file-input rule) carried a pile of `!` suffixes it never needed: form.ex puts `has-error` on the same element as the pc class, so `input.has-error` at (0,1,1) outranks every single-class base rule, and its focus variants at (0,2,1) outrank the base focus-visible styling - specificity was always enough. Same story for the scheme dropdown's positioning overrides (`!w-auto !min-w-0 !left-1/2 !right-auto` refine base dropdown rules they already beat on source order) and the checkbox label's `mb-0!`. All de-banged with zero rendered change, each site commented with why no bang is needed - and consumer CSS can now override every one of them the normal way. The audit also unearthed one rule that was never alive: `input[type="file_input"].has-error` targeted a type attribute nothing renders (`Form.file_input` has always emitted `type="file"`), so it's removed outright - which also means error-state file inputs have never had danger styling; giving them some for real is a separate design decision.
+
+### 4.10.0 - 2026-08-04
+
+#### Added
+
+- Nine new registry examples across six thin modules - toast's remaining
+  severities (warning, loading, neutral), carousel thumbnail navigation
+  and a slides_per_view row, the avatar size ladder + presence dots and
+  the avatar_group team stack, marquee's vertical feed, local_time's
+  threshold flip, and the colour-scheme switch labelled in German plus
+  custom icon slots. petal.build renders these registries directly, so
+  the docs pages inherit every example in the same release.
+- `language_select/1` graduates from Petal Pro: the locale dropdown, now
+  a free composition of `dropdown/1`. Plain links carry `?locale=`
+  (`&`-joined when the path already has a query - the Pro version broke
+  there), the current language gets `aria-current` plus a check, and an
+  unknown `current_locale` falls back gracefully instead of raising.
+  Beyond the port: `variant="code"` / `variant="label"` put text on the
+  trigger instead of a flag, options may omit `:flag` entirely - a flag
+  is a country, not a language - and `show_chevron={false}` leaves the
+  trigger standing alone.
+- `social_button/1` graduates from Petal Pro - the very first Pro
+  component (May 2022), now free and rebuilt on `pc-button` geometry so
+  provider buttons follow the theme, sizes and radius like every other
+  button. Nine providers (google, github, apple, x, facebook, microsoft,
+  gitlab, discord, linkedin - the 2022 Twitter bird retires), outline
+  default with coloured glyphs, solid brand paint, auto "Continue with"
+  labels, and `icon_only` with the label as the accessible name.
+- `brand_icon/1` - the nine provider glyphs as standalone inline SVGs,
+  `currentColor` by default, `colored` for the official brand treatment
+  (gitlab and discord vendored from simple-icons, CC0). Heroicons ships
+  no logos; now the package does. The Card login example dogfoods the
+  pair.
+- **`command_trigger` - the visible opener for the ⌘K dialog.** The search pill every command-palette app puts in its header (magnifier, label, kbd hint) plus an icon-only variant for tight rows, so consumers stop hand-rolling it - marketing, the playground topbar and the docs example had three bespoke copies between them. Opens the `command_dialog` named in `dialog_id` through the new `PetalCommandTrigger` hook rather than a phx-click JS command, so it works on dead views too (hooks mount there since LiveView 1.1; JS commands do not run). The shortcut itself still lives on the dialog - the kbd chip is the visible hint, and `kbd={nil}` hides it.
+- **The segmented family joins the button radius curve.** `color_scheme_switch`'s segmented variant and `toggle_group` now round at token x1.2 (rail) over x1 (chips) instead of the old pill-at-default x2.4/x2. Every radius-token step now produces a distinct, perceptible corner change - the old curve spent its whole range between 0 and the default and then saturated - and only `full` pills, exactly like buttons. One curve across the system; at the shipped default the rails read rounded rather than pill. Nested menu items complete the same doctrine: the scheme dropdown's options and the command palette's items now derive their radius from the clamped panel (the dropdown-item rule) instead of the raw token, so `full` can no longer pill an item inside a 16px panel - and the scheme dropdown adopts the dropdown's hover/selected wash ramp while it's there.
+- **`toggle_group` - a segmented selection rail.** Where `button_group` groups actions, `toggle_group` holds a selection: one pressed option by default, any number with `multiple`. Server-driven and stateless the LiveView way - pass `value`, handle `on_change` (the pressed option arrives in `phx-value-toggle`), no hook, no client state. Single select renders native radios (the scheme-switch segmented mechanics): real radiogroup semantics, one tab stop, arrow keys move the selection. Multiple renders `aria-pressed` toggle buttons. Three variants - `solid` (wash rail, neutral chip), `outline` (bordered toolbar rail on the outline-button ramp) and `accent` (the selection painted in the brand colour) - three sizes on the scheme-segmented radii math, per-item or whole-rail `disabled`, items take any content. The radios detach from surrounding forms, so a rail inside a `<.form>` never posts a stray param. Ships with registry examples (including the device rail) and a playground page with live demos.
+- **`review_card` works without a photo.** `img` is optional now: leave it off and the card hashes a deterministic gradient monogram from the reviewer's name - testimonial walls with zero photo assets. With `img` set, nothing changes.
+- **Showcase registry: marquee grows the striking spread.** The logo strip (styled wordmarks - swap in your `<img>` logos and nothing else changes) and the testimonial wall (two counter-rotating rows of photo-less review cards). The playground marquee page renders both.
+
+#### Changed
+
+- Dropdown menus size to their content: the panel's fixed `w-56` becomes
+  `w-max min-w-36 max-w-72`, so short menus (user menu, language select)
+  stop floating in dead space while long items still cap at a sane width.
+  Pin a fixed width back with `menu_items_wrapper_class` if a layout
+  relied on it.
+- The user menu's trigger chevron had drifted bright (`dark:text-gray-100`)
+  while the rest of the dropdown family runs muted - both now share the
+  new `.pc-dropdown__chevron` class, so the colour can't drift again.
+  `user_dropdown_menu` also gains `show_chevron={false}` for the
+  chevron-less avatar trigger.
+- **LiveView floor moves to `~> 1.1`** (Matt-approved, 3 Aug). The 4.8+ components already relied on 1.1 behaviour - the colour scheme switch and command palette mount hooks on dead views, which 1.0 never did - so the requirement now states what the package actually needs. Anyone still on LiveView 1.0 stays on petal_components 4.9. This also makes `command_trigger`'s dead-view support unconditional across the supported range.
+
+#### Fixed
+
+- `toggle_group` items: `aria-label` is now a declared slot attr.
+  Icon-only items were passing it through with a compile warning - fatal
+  for consumers building with `--warnings-as-errors`.
+- Tall elements no longer inflate into ellipses at `radius="full"`: the
+  panel clamp (1rem ceiling) now also covers textareas, multi-selects,
+  block input groups (the composer pattern), alerts, the chat composer
+  and tooltips. One-line controls keep their pills. The earlier clamp
+  pass covered floating panels but never audited form controls - this
+  sweep checked every raw token consumer (40) and capped the six that
+  can grow past one line.
 - **Playground: dark mode paints the overscroll.** `html` and `body` carry the scheme backgrounds and `theme-color` metas, so iOS rubber-banding no longer flashes white above and below a dark page. (Deployed playground only - no package change.)
 
 ### 4.9.0 - 2026-07-30

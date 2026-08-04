@@ -26,6 +26,8 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Command,
     PetalComponents.Showcase.Confetti,
     PetalComponents.Showcase.Dropdown,
+    PetalComponents.Showcase.LanguageSelect,
+    PetalComponents.Showcase.SocialButton,
     PetalComponents.Showcase.Field,
     PetalComponents.Showcase.InputGroup,
     PetalComponents.Showcase.InputOtp,
@@ -49,6 +51,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Tabs,
     PetalComponents.Showcase.TextAnimation,
     PetalComponents.Showcase.Toast,
+    PetalComponents.Showcase.ToggleGroup,
     PetalComponents.Showcase.Tooltip,
     PetalComponents.Showcase.UserDropdownMenu
   ]

@@ -25,7 +25,7 @@ defmodule PetalComponents.Showcase.Card do
       </.card_content>
       <.card_footer class="flex-col">
         <.button class="w-full">Login</.button>
-        <.button color="gray" variant="outline" class="w-full">Login with Google</.button>
+        <.social_button provider="google" label="Login with Google" class="w-full" />
       </.card_footer>
     </.card>
     """

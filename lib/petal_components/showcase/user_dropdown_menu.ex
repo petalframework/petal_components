@@ -6,7 +6,7 @@ defmodule PetalComponents.Showcase.UserDropdownMenu do
 
   example :menu, "The app-shell user menu",
     description:
-      "The avatar-with-chevron every app shell ends up needing: an avatar trigger and menu items from plain maps - path, icon and label, plus an optional method (:delete for sign-out routes). A name alone renders deterministic initials, avatar_src adds the photo, and with neither the trigger falls back to the placeholder avatar - the anonymous state." do
+      "The avatar trigger and menu items from plain maps - path, icon and label, plus an optional method (:delete for sign-out routes). A name alone renders deterministic initials, avatar_src adds the photo, and with neither the trigger falls back to the placeholder avatar - the anonymous state. show_chevron={false} is the leaner chevron-less look the big app shells run." do
     ~H"""
     <div class="flex items-start justify-center gap-16">
       <.user_dropdown_menu
@@ -14,6 +14,14 @@ defmodule PetalComponents.Showcase.UserDropdownMenu do
         user_menu_items={[
           %{path: "#", icon: "hero-user", label: "Profile"},
           %{path: "#", icon: "hero-cog-6-tooth", label: "Settings"},
+          %{path: "#", icon: "hero-arrow-right-start-on-rectangle", label: "Sign out"}
+        ]}
+      />
+      <.user_dropdown_menu
+        current_user_name="Sarah Chen"
+        show_chevron={false}
+        user_menu_items={[
+          %{path: "#", icon: "hero-user", label: "Profile"},
           %{path: "#", icon: "hero-arrow-right-start-on-rectangle", label: "Sign out"}
         ]}
       />
