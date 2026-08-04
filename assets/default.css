@@ -3012,8 +3012,13 @@
 
 
   /* Modal */
+  /* fixed, not relative: the root is a 0x0 host for fixed children (overlay
+     + wrapper), and an in-flow root becomes a flex/grid item when shown -
+     inside any gapped or centered container (the showcase preview, a
+     toolbar) revealing it added a gap and shifted its siblings ~8px. Out of
+     flow, opening a modal can never move surrounding layout. */
   .pc-modal {
-    @apply relative z-50;
+    @apply fixed z-50;
   }
   .pc-modal__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
@@ -3494,6 +3499,11 @@
 
   /* Slideover */
 
+  /* same contract as .pc-modal: out-of-flow 0x0 host so revealing the
+     slide over never shifts surrounding layout (flex-gap jump). */
+  .pc-slide-over {
+    @apply fixed z-50;
+  }
   .pc-slideover__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
@@ -5430,8 +5440,14 @@
     @apply relative mt-5 mb-10 border border-gray-200 rounded-xl dark:border-gray-400/17;
   }
 
+  /* Deliberately NO z-index here. Any z-index on this positioned element
+     creates a stacking context, and embedded overlay examples (modal, slide
+     over - fixed z-50 divs) would be trapped inside it: on petal.build the
+     docs sidebar (fixed z-20) painted over an open slide over. Fixed layers
+     inside examples must escape to the page-level context. (The command
+     palette was never affected - a native <dialog> lives in the top layer.) */
   .pc-showcase__preview {
-    @apply relative z-10 gap-4 px-4 py-8 bg-white rounded-t-xl md:px-8 dark:bg-gray-900/40;
+    @apply relative gap-4 px-4 py-8 bg-white rounded-t-xl md:px-8 dark:bg-gray-900/40;
   }
 
   .pc-showcase__preview--center {
