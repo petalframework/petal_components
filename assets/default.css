@@ -1165,7 +1165,8 @@
     @apply block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200;
   }
   .pc-label--for-checkbox {
-    @apply mb-0! font-normal;
+    /* no bang on mb-0: same specificity as .pc-label's mb-2, later in file */
+    @apply mb-0 font-normal;
   }
   .pc-label--required:after {
     color: var(--color-danger-500);
@@ -2321,7 +2322,11 @@
     @apply ring-white ring-2 dark:ring-gray-950;
   }
   .pc-avatar__placeholder-icon {
-    @apply relative w-full! h-full! bg-gray-300 top-[12%] scale-[1.15] transform;
+    @apply relative bg-gray-300 top-[12%] scale-[1.15] transform;
+  }
+  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  .pc-avatar__placeholder-icon.pc-avatar__placeholder-icon {
+    @apply w-full h-full;
   }
 
   /* Avatars - sizes */
@@ -2492,16 +2497,29 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous__chevron {
-    /* !important is needed because heroicon class overrides width and height */
-    @apply w-5! h-5! text-gray-600 dark:text-gray-400;
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  /* Icon sizing contract (first site in this file - later sites reference
+     it). The heroicons plugin phx.new vendors registers hero-* through
+     matchComponents: the same components layer as these rules, at (0,1,0),
+     so at equal specificity whichever stylesheet imports later wins.
+     Doubling the class gives (0,2,0) - outranks the plugin in either import
+     order with no !important, and a plain w-* or h-* utility on the icon
+     still overrides via the utilities layer (the old !important blocked
+     even those). */
+  .pc-pagination__item__previous__chevron.pc-pagination__item__previous__chevron {
+    @apply w-5 h-5;
   }
   .pc-pagination__item__next {
     @apply ml-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-gray-400/17 enabled:dark:hover:text-gray-200 transition-colors duration-150;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__next__chevron {
-    /* !important is needed because heroicon class overrides width and height */
-    @apply w-5! h-5! text-gray-600 dark:text-gray-400;
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  /* Doubled selector: icon sizing contract (see pagination previous chevron). */
+  .pc-pagination__item__next__chevron.pc-pagination__item__next__chevron {
+    @apply w-5 h-5;
   }
   .pc-pagination__item__ellipsis {
     @apply inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-400 dark:text-gray-500;
@@ -2846,11 +2864,14 @@
     @apply flex w-full items-start justify-between py-4 text-left text-gray-900 dark:text-gray-100;
   }
 
-  .pc-accordion-item__minus {
-    @apply w-6! h-6! text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
-  }
+  .pc-accordion-item__minus,
   .pc-accordion-item__plus {
-    @apply w-6! h-6! text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+    @apply text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
+  }
+  /* Doubled selectors: icon sizing contract (see pagination chevrons). */
+  .pc-accordion-item__minus.pc-accordion-item__minus,
+  .pc-accordion-item__plus.pc-accordion-item__plus {
+    @apply w-6 h-6;
   }
 
   .pc-accordion-item__heading--ghost {
@@ -4010,8 +4031,11 @@
   }
 
   .pc-vertical-menu-item__toggle-chevron__icon {
-    /* !important is needed because heroicon class overrides width and height */
-    @apply w-3! h-3! ml-2 transition duration-200 transform;
+    @apply ml-2 transition duration-200 transform;
+  }
+  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  .pc-vertical-menu-item__toggle-chevron__icon.pc-vertical-menu-item__toggle-chevron__icon {
+    @apply w-3 h-3;
   }
 
   .pc-vertical-menu-item__toggle-chevron__wrapper {
@@ -4037,22 +4061,22 @@
     @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
   }
 
+  /* No bangs needed in the has-error family: form.ex puts has-error on the
+     same element as the pc class (`has-error pc-text-input`), so
+     element+class = (0,1,1) outranks every single-class base rule, and the
+     focus variants at (0,2,1) outrank the base focus-visible (0,2,0). */
   label.has-error {
-    @apply text-danger-900! dark:text-danger-200!;
+    @apply text-danger-900 dark:text-danger-200;
   }
 
   span.has-error {
-    @apply text-danger-900! dark:text-danger-200!;
+    @apply text-danger-900 dark:text-danger-200;
   }
 
   textarea.has-error,
   input.has-error:not(:checked),
   select.has-error {
-    @apply border-danger-500! focus:border-danger-500! text-danger-900! placeholder-danger-700! bg-danger-50! dark:text-danger-100! dark:placeholder-danger-300! dark:bg-danger-900! focus:ring-danger-500!;
-  }
-
-  input[type="file_input"].has-error {
-    @apply border-danger-500! rounded-md! focus:border-danger-500! text-danger-900! placeholder-danger-700! bg-danger-50! file:border-none! dark:border-none! dark:bg-gray-950! dark:text-danger-400;
+    @apply border-danger-500 focus:border-danger-500 text-danger-900 placeholder-danger-700 bg-danger-50 dark:text-danger-100 dark:placeholder-danger-300 dark:bg-danger-900 focus:ring-danger-500;
   }
 
   /* If in tailwind config, darkMode: 'class', use this: */
@@ -4285,9 +4309,11 @@
   }
   .pc-chat__reasoning-chevron {
     @apply shrink-0 transition-transform duration-150;
-    /* !important so a consumer's heroicons plugin (utilities layer) can't resize it */
-    width: 0.875rem !important;
-    height: 0.875rem !important;
+  }
+  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  .pc-chat__reasoning-chevron.pc-chat__reasoning-chevron {
+    width: 0.875rem;
+    height: 0.875rem;
   }
   .pc-chat__reasoning[open] .pc-chat__reasoning-chevron {
     @apply rotate-90;
@@ -4319,9 +4345,11 @@
   }
   .pc-chat__marker-icon {
     @apply shrink-0;
-    /* !important so a consumer's heroicons plugin (utilities layer) can't resize it */
-    width: 0.875rem !important;
-    height: 0.875rem !important;
+  }
+  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  .pc-chat__marker-icon.pc-chat__marker-icon {
+    width: 0.875rem;
+    height: 0.875rem;
   }
   .pc-chat__marker-spinner {
     @apply h-3 w-3 shrink-0 animate-spin rounded-full border border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
@@ -4340,12 +4368,12 @@
   .pc-chat__action--icon {
     @apply p-1.5;
   }
-  /* !important for the same reason as the composer send icon: a consumer's
-     heroicons plugin sizes .hero-* in the utilities layer and would otherwise
-     win, squashing these action-bar icons to 24x16. */
-  .pc-chat__action-icon {
-    width: 1rem !important;
-    height: 1rem !important;
+  /* Doubled selector: icon sizing contract (see pagination chevrons) -
+     without it a stock heroicons setup squashes these action-bar icons
+     to 24x16. */
+  .pc-chat__action-icon.pc-chat__action-icon {
+    width: 1rem;
+    height: 1rem;
   }
   /* hover-revealed bar: fades in on message-row hover/focus; touch devices
      have no hover, so there it always shows */
@@ -4431,13 +4459,12 @@
   .pc-chat__composer-send--icon {
     @apply flex h-9 w-9 shrink-0 items-center justify-center p-0;
   }
-  /* A consumer's heroicons plugin sizes every `.hero-*` in the utilities layer
-     (width: spacing.6; height: 1lh), which beats this component-layer size by
-     layer order - the send arrow blew up to 24x20. !important wins across
-     layers so the icon keeps its intended size under a stock heroicons setup. */
-  .pc-chat__composer-send-icon {
-    width: 1rem !important;
-    height: 1rem !important;
+  /* Doubled selector: icon sizing contract (see pagination chevrons) -
+     without it a stock heroicons setup (width: spacing.6; height: 1lh)
+     blows the send arrow up to 24x20. */
+  .pc-chat__composer-send-icon.pc-chat__composer-send-icon {
+    width: 1rem;
+    height: 1rem;
   }
   .pc-chat__composer-stop {
     @apply flex h-9 w-9 shrink-0 items-center justify-center;
@@ -5046,7 +5073,10 @@
   }
 
   .pc-scheme-dropdown__menu {
-    @apply !w-auto !min-w-0 !left-1/2 !right-auto -translate-x-1/2;
+    /* refines .pc-dropdown__menu-items-wrapper (w-56) and its placement
+       (left-0): same specificity, later in file - source order wins, no
+       bangs needed */
+    @apply w-auto min-w-0 left-1/2 right-auto -translate-x-1/2;
   }
 
   /* Items live inside the (clamped) dropdown panel, so their radius derives
@@ -5449,7 +5479,10 @@
     max-height: 10rem;
   }
 
-  /* let the highlighted <pre> blend into the panel instead of carrying its own dark */
+  /* let the highlighted <pre> blend into the panel instead of carrying its
+     own dark. !important is genuinely required here: mdex's :html_inline
+     formatter writes the theme background into the <pre>'s style attribute,
+     and only an important declaration outranks an inline style. */
   .pc-showcase-code__scroll pre {
     @apply m-0 w-full;
     background: transparent !important;
@@ -5689,10 +5722,12 @@
     display: none; /* Safari and Chromium */
   }
 
+  /* (0,3,0) - outranks the base .pc-carousel__slide absolute positioning
+     on specificity alone; no !important needed. */
   .pc-carousel[data-transition-type="slide"] .pc-carousel__slide {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
+    position: relative;
+    top: auto;
+    left: auto;
     flex: 0 0 100%;
     scroll-snap-align: center;
     min-width: 100%;
