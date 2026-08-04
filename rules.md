@@ -92,7 +92,7 @@ Should compile cleanly. To smoke test, drop `<.button>Hello</.button>` in any HE
 
 ### 7. Brand colours (optional)
 
-Components work out of the box: petal_components ships default colour ramps (blue `primary`, pink `secondary`, semantic hues, zinc `gray`). To use the project's brand colours instead, define the same variables AFTER the petal_components import in `app.css` - later definitions win:
+Components work out of the box: petal_components ships default colour ramps (blue `primary`, pink `secondary`, semantic hues, zinc `gray`). They are soft defaults (`@theme default`), so a plain `@theme` block in the project's `app.css` wins no matter where it sits relative to the import:
 
 ```css
 @theme inline {
@@ -104,6 +104,13 @@ Components work out of the box: petal_components ships default colour ramps (blu
 ```
 
 The roles: `primary` is the base action colour and tints every variant of every component (solid fills, outline borders, ghost text); `secondary` is a second brand accent with the same rule; `info`/`success`/`warning`/`danger` carry meaning and should stay recognisable; `gray` is the neutral chrome. Map a role to any Tailwind hue by referencing that hue's variables, or use literal values.
+
+One deliberate choice to know about: the `gray` role ships Tailwind's **zinc** values under the gray name, so one coherent neutral runs through every component. Because `--color-gray-*` is a shared namespace, this also sets what the app's own `text-gray-*` / `bg-gray-*` utilities render as. To use a different neutral, remap it like any other role (`--color-gray-50: var(--color-slate-50);` and so on per stop - slate, stone, neutral and zinc all remain available as variables). The one palette a `var()` cannot reach is Tailwind's original gray itself (its values only ever lived under the name petal_components now occupies), so restoring it is a one-line import after the default styles:
+
+```css
+@import "../deps/petal_components/assets/default.css";
+@import "../deps/petal_components/assets/tailwind-gray.css";
+```
 
 ### Installation rules of thumb for AI agents
 
