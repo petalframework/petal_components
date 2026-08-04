@@ -1124,8 +1124,11 @@
     @apply self-start shrink-0 pt-0.5 w-5 h-5;
   }
 
+  /* !important per the icon sizing contract (see pagination previous
+     chevron): the kind glyph must fill the 20px container even when consumer
+     hero-* geometry arrives from the utilities layer or unlayered. */
   .pc-alert__icon-container > * {
-    @apply w-full h-full;
+    @apply w-full! h-full!;
   }
 
   /* Forms */
@@ -5336,12 +5339,17 @@
     @apply px-3.5 py-2 text-sm;
   }
 
-  /* Icon-only items keep a square hit target per size. */
+  /* Icon-only items keep a square hit target per size. !important per the
+     icon sizing contract (see pagination previous chevron): consumer hero-*
+     geometry can arrive from the utilities layer or unlayered, both of which
+     beat this rule's (0,2,0) without the bangs - petal.build's unlayered
+     hero CSS stretched pressed icon chips to 24x20 and the rail read
+     non-uniform. */
   .pc-toggle-group__item > [class^="hero-"],
   .pc-toggle-group__item > [class*=" hero-"],
   .pc-toggle-group__content > [class^="hero-"],
   .pc-toggle-group__content > [class*=" hero-"] {
-    @apply w-4 h-4;
+    @apply w-4! h-4!;
   }
 
   /* Confetti mount point */
