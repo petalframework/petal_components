@@ -2331,9 +2331,9 @@
   .pc-avatar__placeholder-icon {
     @apply relative bg-gray-300 top-[12%] scale-[1.15] transform;
   }
-  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-avatar__placeholder-icon.pc-avatar__placeholder-icon {
-    @apply w-full h-full;
+    @apply w-full! h-full!;
   }
 
   /* Avatars - sizes */
@@ -2507,15 +2507,20 @@
     @apply text-gray-600 dark:text-gray-400;
   }
   /* Icon sizing contract (first site in this file - later sites reference
-     it). The heroicons plugin phx.new vendors registers hero-* through
-     matchComponents: the same components layer as these rules, at (0,1,0),
-     so at equal specificity whichever stylesheet imports later wins.
-     Doubling the class gives (0,2,0) - outranks the plugin in either import
-     order with no !important, and a plain w-* or h-* utility on the icon
-     still overrides via the utilities layer (the old !important blocked
-     even those). */
+     it). Consumer heroicon CSS sizes bare hero-* spans (width: spacing.6,
+     height: 1lh) and must not win inside our components, but where it
+     lives varies by setup, and 4.11.0 got this wrong: Tailwind v4
+     `@plugin` - every phx.new app, petal_pro included - emits hero-* into
+     the *utilities* layer, which beats any components-layer rule
+     regardless of specificity; and generated heroicon stylesheets often
+     sit unlayered, which beats layered rules too. Only `!important` on
+     our side outranks both in either import order. The doubled selector
+     stays for flattened builds where plain specificity decides. Known
+     cost: these internal icons are fixed-size - a consumer's plain (or
+     even bang) width/height utility cannot resize them; overriding takes
+     an !important rule at (0,2,0)+ in a layer at or below components. */
   .pc-pagination__item__previous__chevron.pc-pagination__item__previous__chevron {
-    @apply w-5 h-5;
+    @apply w-5! h-5!;
   }
   .pc-pagination__item__next {
     @apply ml-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-gray-400/17 enabled:dark:hover:text-gray-200 transition-colors duration-150;
@@ -2524,9 +2529,9 @@
   .pc-pagination__item__next__chevron {
     @apply text-gray-600 dark:text-gray-400;
   }
-  /* Doubled selector: icon sizing contract (see pagination previous chevron). */
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
   .pc-pagination__item__next__chevron.pc-pagination__item__next__chevron {
-    @apply w-5 h-5;
+    @apply w-5! h-5!;
   }
   .pc-pagination__item__ellipsis {
     @apply inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-400 dark:text-gray-500;
@@ -2875,10 +2880,10 @@
   .pc-accordion-item__plus {
     @apply text-gray-400 duration-300 fill-current dark:group-hover:text-gray-300 group-hover:text-gray-500;
   }
-  /* Doubled selectors: icon sizing contract (see pagination chevrons). */
+  /* Doubled selectors + !important: icon sizing contract (see pagination chevrons). */
   .pc-accordion-item__minus.pc-accordion-item__minus,
   .pc-accordion-item__plus.pc-accordion-item__plus {
-    @apply w-6 h-6;
+    @apply w-6! h-6!;
   }
 
   .pc-accordion-item__heading--ghost {
@@ -4046,9 +4051,9 @@
   .pc-vertical-menu-item__toggle-chevron__icon {
     @apply ml-2 transition duration-200 transform;
   }
-  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-vertical-menu-item__toggle-chevron__icon.pc-vertical-menu-item__toggle-chevron__icon {
-    @apply w-3 h-3;
+    @apply w-3! h-3!;
   }
 
   .pc-vertical-menu-item__toggle-chevron__wrapper {
@@ -4323,10 +4328,10 @@
   .pc-chat__reasoning-chevron {
     @apply shrink-0 transition-transform duration-150;
   }
-  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-chat__reasoning-chevron.pc-chat__reasoning-chevron {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 0.875rem !important;
+    height: 0.875rem !important;
   }
   .pc-chat__reasoning[open] .pc-chat__reasoning-chevron {
     @apply rotate-90;
@@ -4359,10 +4364,10 @@
   .pc-chat__marker-icon {
     @apply shrink-0;
   }
-  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-chat__marker-icon.pc-chat__marker-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 0.875rem !important;
+    height: 0.875rem !important;
   }
   .pc-chat__marker-spinner {
     @apply h-3 w-3 shrink-0 animate-spin rounded-full border border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300;
@@ -4385,8 +4390,8 @@
      without it a stock heroicons setup squashes these action-bar icons
      to 24x16. */
   .pc-chat__action-icon.pc-chat__action-icon {
-    width: 1rem;
-    height: 1rem;
+    width: 1rem !important;
+    height: 1rem !important;
   }
   /* hover-revealed bar: fades in on message-row hover/focus; touch devices
      have no hover, so there it always shows */
@@ -4476,8 +4481,8 @@
      without it a stock heroicons setup (width: spacing.6; height: 1lh)
      blows the send arrow up to 24x20. */
   .pc-chat__composer-send-icon.pc-chat__composer-send-icon {
-    width: 1rem;
-    height: 1rem;
+    width: 1rem !important;
+    height: 1rem !important;
   }
   .pc-chat__composer-stop {
     @apply flex h-9 w-9 shrink-0 items-center justify-center;
@@ -5021,18 +5026,18 @@
 
   /* Icon wrappers size whatever they hold - the default Heroicon or any
      svg dropped in via the light_icon/dark_icon/system_icon slots. The
-     selectors are doubled ON PURPOSE: consumer heroicon CSS also sizes
-     bare hero-* spans by single class, and at equal specificity whichever
-     stylesheet loads LAST wins - petal.build's heroicon rules loaded after
-     this file and pushed the glyphs to 20x24 inside these 20px boxes, so
-     every icon rode high. (0,2,0) beats any single-class consumer rule
-     regardless of import order; `block` also neutralises consumer
+     selectors are doubled ON PURPOSE and the geometry is !important:
+     consumer heroicon CSS also sizes bare hero-* spans, and it beats
+     (0,2,0) alone when it lands in the utilities layer (Tailwind v4
+     `@plugin`, every phx.new app) or unlayered (generated heroicon
+     stylesheets) - see the icon sizing contract at the pagination
+     previous chevron. `block` also neutralises consumer
      display/vertical-align choices inside the flex-centered wrappers. */
   .pc-scheme-toggle .pc-scheme-toggle__sun > *,
   .pc-scheme-toggle .pc-scheme-toggle__moon > *,
   .pc-scheme-segmented .pc-scheme-segmented__icon > *,
   .pc-scheme-dropdown__item .pc-scheme-dropdown__item-icon > * {
-    @apply block w-full h-full;
+    @apply block! w-full! h-full!;
   }
 
   .pc-scheme-toggle__sun {
@@ -5249,10 +5254,22 @@
   }
 
   /* The hidden radio fills its label so the whole item is the hit target;
-     keyboard focus lives on it. */
+     keyboard focus lives on it. It must paint NOTHING, not merely sit at
+     opacity 0: app CSS routinely forces opacity back up (a phx-click-loading
+     utility at opacity .5 is the phx.new default styling), and with
+     @tailwindcss/forms loaded the radio then flashes its border, currentColor
+     fill, centre dot and focus ring at full chip size on every round trip.
+     appearance/background/border/box-shadow are zeroed here (components layer
+     beats the forms plugin's base layer) so a visible-again input still shows
+     nothing. */
   .pc-toggle-group__input {
     @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer focus:outline-none disabled:cursor-not-allowed;
     border-radius: var(--pc-radius, 0.625rem);
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: 0;
+    box-shadow: none;
   }
 
   .pc-toggle-group__content {

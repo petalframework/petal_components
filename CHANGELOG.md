@@ -1,4 +1,11 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **The icon sizing contract gets its `!important` back - 4.11.0's de-bang broke icon geometry in every phx.new-style app.** 4.11.0 dropped `!important` from the nine icon-sizing sites on the belief that a consumer's heroicons plugin lands in the components layer, where the doubled selector's (0,2,0) wins on specificity. That premise is false in the two setups that matter: Tailwind v4 `@plugin` (what every phx.new app vendors, petal_pro included) emits hero-* rules into the *utilities* layer, which beats any components-layer rule regardless of specificity - so the plugin's `width: spacing.6; height: 1lh` won and avatars' placeholder silhouettes shrank off-centre while scheme-switch glyphs rode high in their boxes. And generated heroicon stylesheets often sit unlayered, which beats layered rules too. The doubled selectors stay (they carry flattened builds, where specificity does decide) and the geometry declarations are `!important` again, including the colour-scheme wrappers that had shipped bang-less since 4.9 and were quietly broken in layered builds the whole time. Verified by compiled-CSS geometry probes against a phx.new-style build: avatar placeholder back to filling its circle, scheme glyphs back to 20x20 centred. The honest cost is restored too and documented at the contract's canonical comment: these internal icons are fixed-size, and even a bang utility can't resize them.
+- **Toggle group radios stay invisible mid round-trip.** The hidden radio that fills each toggle_group item was hidden by `opacity: 0` alone - but app CSS routinely forces opacity back up: phx.new's default `phx-click-loading` styling is a *utility* at opacity .5, and utilities beat the components layer. So with `@tailwindcss/forms` loaded, every server round-trip flashed the full-chip-size radio at half opacity - blue fill, white centre dot, focus ring - for the length of the round trip plus a 1s fade. The input now paints nothing even when visible: `appearance: none`, no background, no border, no box-shadow, all in the components layer where they beat the forms plugin's base-layer styling. Reproduced and verified against the compiled playground stylesheet with the loading class applied: 4.11.0 shows the dot, patched shows a normal pressed chip.
+
 ### 4.11.0 - 2026-08-05
 
 #### Added
