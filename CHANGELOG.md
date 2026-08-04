@@ -1,4 +1,10 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **Showcase frames no longer trap overlay examples under the host page's chrome.** `.pc-showcase__preview` carried a `z-10`, and a z-index on a positioned element creates a stacking context - so the modal and slide-over examples embedded on docs pages had their `fixed z-50` overlays flattened to an effective z-10 against the page. On petal.build, the docs sidebar (`fixed z-20`) and navbar painted over an open slide over, and the dark overlay skipped them. The `z-10` had no layering job (the preview and code panels are non-overlapping siblings; nothing in the stylesheet uses a negative z that relied on the context) so it's simply removed, and the rule now carries a comment explaining why it must never get one back. Raising the overlay's z-index could never have fixed this - a z-index only competes inside its own context. Verified in headless Chrome against the compiled stylesheet: with the trap, a z-20 sidebar wins even against an overlay forced to z-9999; without it, the overlay covers everything, and page content behaves identically. **Scope: docs surfaces only** (petal.build and the playground render showcase frames; consumer apps never do, and `modal`/`slide_over` themselves are unchanged). The command palette was never affected - its native `<dialog>` lives in the browser's top layer, which no ancestor stacking context can trap. That immunity is the direction of travel for modal and slide over.
+
 ### 4.10.0 - 2026-08-04
 
 #### Added
