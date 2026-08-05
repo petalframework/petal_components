@@ -5339,6 +5339,25 @@
     @apply px-3.5 py-2 text-sm;
   }
 
+  /* Icon-only items square up: horizontal padding drops to match the
+     vertical, so the pressed/hover wash is a square chip like the scheme
+     toggle, not a wide pill. The marker is the aria-label the icon-only
+     contract already requires (visible-text items must not carry one) -
+     it sits on the item itself in multiple mode (a labelled button) and
+     on the hidden radio in single mode. */
+  .pc-toggle-group--sm .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--sm .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-1;
+  }
+  .pc-toggle-group--md .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--md .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-1.5;
+  }
+  .pc-toggle-group--lg .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--lg .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-2;
+  }
+
   /* Icon-only items keep a square hit target per size. !important per the
      icon sizing contract (see pagination previous chevron): consumer hero-*
      geometry can arrive from the utilities layer or unlayered, both of which

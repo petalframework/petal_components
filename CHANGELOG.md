@@ -1,4 +1,10 @@
 # Changelog
+### Unreleased
+
+#### Changed
+
+- **Icon-only toggle chips are squares, not pills.** The rail's per-size horizontal padding made icon-only items wider than tall (36x28 at md), while the scheme toggle - the component it sits next to in every toolbar - is a perfect square. Icon-only items now drop their horizontal padding to match the vertical (28x28 at md), keyed off the aria-label the icon-only contract already requires: it sits on the item itself in multiple mode and on the hidden radio in single mode, and items with visible text must not carry one (the slot attr doc now says so). The comment above the icon sizing rule always claimed "a square hit target" - now it's true of the chip, not just the icon.
+
 ### 4.11.2 - 2026-08-05
 
 #### Fixed

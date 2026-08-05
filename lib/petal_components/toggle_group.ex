@@ -101,7 +101,8 @@ defmodule PetalComponents.ToggleGroup do
     attr :class, :any, doc: "extra classes for this item"
 
     attr :"aria-label", :string,
-      doc: "accessible name for icon-only items - reaches the radio/button itself"
+      doc:
+        "accessible name for icon-only items - reaches the radio/button itself. Also marks the item as icon-only, which squares its chip (don't set it on items with visible text)"
   end
 
   def toggle_group(%{multiple: true} = assigns) do
