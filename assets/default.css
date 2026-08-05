@@ -5254,8 +5254,15 @@
     border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
   }
 
+  /* Hover paints a wash on EVERY variant, not just outline. A pointer over a
+     clickable chip should say so, and a text-colour shift alone was a weak
+     tell on the wash rails. The value is translucent so it composites over
+     whichever rail it sits on; outline overrides it below with its own tuned
+     step. Pressed chips are unaffected - their rules are later at equal
+     specificity (solid) or higher (outline, accent), so the pressed paint
+     survives hover. */
   .pc-toggle-group__item {
-    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:text-gray-900 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300;
+    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:bg-gray-900/5 hover:text-gray-900 dark:hover:bg-gray-400/10 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 dark:disabled:hover:bg-transparent dark:disabled:hover:text-gray-300;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -5286,8 +5293,10 @@
     @apply ring-1 ring-primary-500/50;
   }
 
+  /* The radio form's disabled state lives on the input, so `disabled:` on the
+     item can't see it - hence :has(). Kills the hover wash too. */
   .pc-toggle-group__item:has(.pc-toggle-group__input:disabled) {
-    @apply opacity-50 cursor-not-allowed hover:text-gray-600 dark:hover:text-gray-300;
+    @apply opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-600 dark:hover:bg-transparent dark:hover:text-gray-300;
   }
 
   /* The definition edge is an INSET ring. An outward ring is a box-shadow
