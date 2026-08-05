@@ -23,6 +23,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Chart,
     PetalComponents.Showcase.Chat,
     PetalComponents.Showcase.ColorSchemeSwitch,
+    PetalComponents.Showcase.ComboBox,
     PetalComponents.Showcase.Command,
     PetalComponents.Showcase.Confetti,
     PetalComponents.Showcase.Dropdown,

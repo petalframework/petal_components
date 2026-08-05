@@ -3337,6 +3337,252 @@ export const PetalToast = {
   },
 };
 
+
+// Combo box: the command palette's filter + keyboard core wired to a real
+// hidden <select>. The select IS the form control - choosing an option sets
+// its value and dispatches bubbling input/change events, so phx-change and
+// LiveView form recovery behave exactly like a native select. Options are
+// hidden, never reordered - the server owns DOM order. aria-selected tracks
+// the CHOSEN option (the check mark); the keyboard highlight is virtual:
+// data-highlighted + aria-activedescendant.
+export const PetalComboBox = {
+  mounted() {
+    this.select = this.el.querySelector(".pc-combo-box__select");
+    this.input = this.el.querySelector(".pc-combo-box__input");
+    this.control = this.el.querySelector(".pc-combo-box__control");
+    this.panel = this.el.querySelector("[data-pc-combo-panel]");
+    this.list = this.el.querySelector(".pc-combo-box__list");
+    if (!this.select || !this.input || !this.panel || !this.list) return;
+
+    this.query = "";
+
+    this.onInput = () => {
+      this.query = this.input.value.trim().toLowerCase();
+      if (this.panel.hidden) this.openPanel({ keepQuery: true });
+      this.filter();
+    };
+    this.onKeydown = (e) => this.keydown(e);
+    this.onPointerOver = (e) => {
+      const item = e.target.closest("[data-pc-combo-item]");
+      if (item && !item.hasAttribute("data-disabled") && !item.hidden) this.highlight(item, false);
+    };
+    this.onListClick = (e) => {
+      const item = e.target.closest("[data-pc-combo-item]");
+      if (item && !item.hasAttribute("data-disabled")) this.choose(item);
+    };
+    // keep focus on the input while clicking inside the panel, or the
+    // focusout close would swallow the click before it lands
+    this.onPanelPointerDown = (e) => e.preventDefault();
+    this.onControlClick = (e) => {
+      if (this.input.disabled) return;
+      if (this.panel.hidden) {
+        this.openPanel();
+        this.input.focus();
+      } else if (e.target !== this.input) {
+        // chevron / control chrome toggles; a click on the input itself is
+        // caret work - closing here would discard the active query
+        this.closePanel();
+        this.input.focus();
+      }
+    };
+    this.onFocusOut = (e) => {
+      if (!this.el.contains(e.relatedTarget)) this.closePanel();
+    };
+
+    this.input.addEventListener("input", this.onInput);
+    this.input.addEventListener("keydown", this.onKeydown);
+    this.list.addEventListener("pointerover", this.onPointerOver);
+    this.list.addEventListener("click", this.onListClick);
+    this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
+    this.control.addEventListener("click", this.onControlClick);
+    this.el.addEventListener("focusout", this.onFocusOut);
+
+    this.syncFromSelect();
+  },
+
+  updated() {
+    // LiveView patched the component - the select (server state) wins.
+    this.syncFromSelect();
+    if (!this.panel.hidden) this.filter();
+  },
+
+  destroyed() {
+    if (!this.input) return;
+    this.input.removeEventListener("input", this.onInput);
+    this.input.removeEventListener("keydown", this.onKeydown);
+    this.list.removeEventListener("pointerover", this.onPointerOver);
+    this.list.removeEventListener("click", this.onListClick);
+    this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
+    this.control.removeEventListener("click", this.onControlClick);
+    this.el.removeEventListener("focusout", this.onFocusOut);
+  },
+
+  items() {
+    return Array.from(this.el.querySelectorAll("[data-pc-combo-item]"));
+  },
+
+  visibleItems() {
+    return this.items().filter((i) => !i.hidden && !i.hasAttribute("data-disabled"));
+  },
+
+  // same ladder as the command palette: prefix > word-boundary > substring > fuzzy
+  score(text, query) {
+    if (!query) return 1;
+    if (text.startsWith(query)) return 4;
+    const at = text.indexOf(query);
+    if (at > 0 && /[\s\-_/]/.test(text[at - 1])) return 3;
+    if (at >= 0) return 2;
+    let qi = 0;
+    for (const ch of text) if (ch === query[qi] && ++qi === query.length) return 1;
+    return 0;
+  },
+
+  openPanel({ keepQuery = false } = {}) {
+    if (!this.panel.hidden) return;
+    this.panel.hidden = false;
+    this.input.setAttribute("aria-expanded", "true");
+    if (!keepQuery) this.query = "";
+    this.filter();
+  },
+
+  closePanel() {
+    if (this.panel.hidden) return;
+    this.panel.hidden = true;
+    this.input.setAttribute("aria-expanded", "false");
+    this.highlight(null, false);
+    this.query = "";
+    this.restoreDisplay();
+  },
+
+  chosenItem() {
+    const value = this.select.value;
+    if (!value) return null;
+    return this.items().find((i) => i.dataset.value === value) || null;
+  },
+
+  restoreDisplay() {
+    const chosen = this.chosenItem();
+    this.input.value = chosen ? chosen.dataset.label || "" : "";
+  },
+
+  syncFromSelect() {
+    const value = this.select.value;
+    for (const i of this.items()) {
+      i.setAttribute("aria-selected", value !== "" && i.dataset.value === value ? "true" : "false");
+    }
+    if (this.panel.hidden || document.activeElement !== this.input) this.restoreDisplay();
+  },
+
+  choose(item) {
+    if (this.select.value !== item.dataset.value) {
+      this.select.value = item.dataset.value;
+      this.select.dispatchEvent(new Event("input", { bubbles: true }));
+      this.select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    this.syncFromSelect();
+    this.closePanel();
+    this.input.focus();
+  },
+
+  filter() {
+    const query = this.query;
+    let count = 0;
+    let idBase = 0;
+
+    for (const item of this.items()) {
+      if (!item.id) item.id = `${this.el.id}-opt-${idBase}`;
+      idBase++;
+      const text = `${item.dataset.label || item.textContent || ""}`.trim().toLowerCase();
+      const show = this.score(text, query) > 0;
+      item.hidden = !show;
+      if (show) count++;
+    }
+
+    for (const group of this.el.querySelectorAll("[data-pc-combo-group]")) {
+      const any = Array.from(group.querySelectorAll("[data-pc-combo-item]")).some((i) => !i.hidden);
+      group.hidden = !any;
+    }
+
+    const empty = this.el.querySelector("[data-pc-combo-empty]");
+    if (empty) empty.hidden = count > 0;
+
+    // an empty query (just opened) homes the highlight on the chosen value;
+    // a typed query homes it on the best (first) visible match
+    const chosen = this.chosenItem();
+    if (!query && chosen && !chosen.hidden && !chosen.hasAttribute("data-disabled")) {
+      this.highlight(chosen, true);
+    } else {
+      this.highlight(this.visibleItems()[0] || null, false);
+    }
+  },
+
+  highlightedItem() {
+    const id = this.input.getAttribute("aria-activedescendant");
+    return id ? document.getElementById(id) : null;
+  },
+
+  highlight(item, scroll = true) {
+    for (const i of this.items()) i.toggleAttribute("data-highlighted", i === item);
+    if (item) {
+      this.input.setAttribute("aria-activedescendant", item.id);
+      if (scroll) item.scrollIntoView({ block: "nearest" });
+    } else {
+      this.input.removeAttribute("aria-activedescendant");
+    }
+  },
+
+  move(delta) {
+    const items = this.visibleItems();
+    if (!items.length) return;
+    const loop = this.el.dataset.loop === "true";
+    const at = items.indexOf(this.highlightedItem());
+    let next = at + delta;
+    if (at === -1) next = delta > 0 ? 0 : items.length - 1;
+    else if (loop) next = (next + items.length) % items.length;
+    else next = Math.max(0, Math.min(next, items.length - 1));
+    this.highlight(items[next]);
+  },
+
+  keydown(e) {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        this.panel.hidden ? this.openPanel() : this.move(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        this.panel.hidden ? this.openPanel() : this.move(-1);
+        break;
+      case "Home":
+        if (this.panel.hidden) return;
+        e.preventDefault();
+        this.highlight(this.visibleItems()[0] || null);
+        break;
+      case "End":
+        if (this.panel.hidden) return;
+        e.preventDefault();
+        this.highlight(this.visibleItems().slice(-1)[0] || null);
+        break;
+      case "Enter": {
+        if (this.panel.hidden) return; // closed: let the form submit
+        e.preventDefault();
+        const item = this.highlightedItem();
+        if (item && !item.hidden && !item.hasAttribute("data-disabled")) this.choose(item);
+        break;
+      }
+      case "Escape":
+        if (this.panel.hidden) return; // closed: let dialogs/modals handle it
+        e.preventDefault();
+        e.stopPropagation();
+        this.closePanel();
+        break;
+      case "Tab":
+        this.closePanel();
+        break;
+    }
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -3365,4 +3611,5 @@ export default {
   PetalAurora,
   PetalNavMenu,
   PetalCommandDialog,
+  PetalComboBox,
 };
