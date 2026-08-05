@@ -629,6 +629,41 @@ defmodule PetalComponents.PaginationTest do
       refute html =~ "href="
     end
 
+    test "out-of-range and nil pages normalize instead of building invalid links" do
+      assigns = %{}
+
+      # current past the total clamps to the last page
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={15} />
+        """)
+
+      assert html =~ ~s|href="/users/11"|
+      refute html =~ ~s|href="/users/14"|
+      refute html =~ ~s|href="/users/16"|
+
+      # no attrs at all renders one page with both boundaries disabled
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" />
+        """)
+
+      refute html =~ "href="
+      assert html =~ "disabled"
+    end
+
+    test "event-mode controls are type=button so they never submit a form" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" event total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|type="button"|
+      refute html =~ ~s|type="submit"|
+    end
+
     test "labels are overridable" do
       assigns = %{}
 

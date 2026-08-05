@@ -18,7 +18,10 @@ defmodule PetalComponents.Pagination do
     doc:
       "numbered renders the windowed page list; simple renders Previous/Next outline buttons only - fewer decisions on short lists, and the honest form when a total is unreliable"
 
-  attr :previous_label, :string, default: "Previous", doc: "simple variant: label for the previous button"
+  attr :previous_label, :string,
+    default: "Previous",
+    doc: "simple variant: label for the previous button"
+
   attr :next_label, :string, default: "Next", doc: "simple variant: label for the next button"
 
   attr :link_type, :string,
@@ -52,10 +55,18 @@ defmodule PetalComponents.Pagination do
   """
 
   def pagination(%{variant: "simple"} = assigns) do
+    # Normalize like the numbered branch does via get_pagination_items:
+    # nil/zero totals become one page, current clamps into range - so the
+    # neighbour links can never point outside 1..total_pages.
+    total_pages = max(assigns.total_pages || 1, 1)
+    current_page = (assigns.current_page || 1) |> max(1) |> min(total_pages)
+
     assigns =
       assigns
-      |> assign(:prev_enabled?, assigns.current_page > 1)
-      |> assign(:next_enabled?, assigns.current_page < assigns.total_pages)
+      |> assign(:total_pages, total_pages)
+      |> assign(:current_page, current_page)
+      |> assign(:prev_enabled?, current_page > 1)
+      |> assign(:next_enabled?, current_page < total_pages)
 
     ~H"""
     <div {@rest} class={["pc-pagination", @class]}>
@@ -66,6 +77,7 @@ defmodule PetalComponents.Pagination do
           phx-value-page={@current_page - 1}
           link_type={if @event, do: "button", else: @link_type}
           to={if not @event, do: get_path(@path, "previous", @current_page)}
+          type={if @event, do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@prev_enabled?}
         >
@@ -79,6 +91,7 @@ defmodule PetalComponents.Pagination do
           phx-value-page={@current_page + 1}
           link_type={if @event, do: "button", else: @link_type}
           to={if not @event, do: get_path(@path, "next", @current_page)}
+          type={if @event, do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@next_enabled?}
         >
