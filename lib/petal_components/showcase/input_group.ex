@@ -86,13 +86,13 @@ defmodule PetalComponents.Showcase.InputGroup do
     <div class="w-full max-w-sm">
       <.input_group>
         <:block_start class="gap-1">
-          <.button size="xs" color="gray" variant="ghost" aria-label="Bold">
+          <.button size="icon" color="gray" variant="ghost" aria-label="Bold">
             <.icon name="hero-bold" class="w-4 h-4" />
           </.button>
-          <.button size="xs" color="gray" variant="ghost" aria-label="Italic">
+          <.button size="icon" color="gray" variant="ghost" aria-label="Italic">
             <.icon name="hero-italic" class="w-4 h-4" />
           </.button>
-          <.button size="xs" color="gray" variant="ghost" aria-label="Link">
+          <.button size="icon" color="gray" variant="ghost" aria-label="Link">
             <.icon name="hero-link" class="w-4 h-4" />
           </.button>
         </:block_start>

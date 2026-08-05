@@ -1,6 +1,11 @@
 # Changelog
 ### Unreleased
 
+#### Fixed
+
+- **Adjacent pressed toggle chips no longer merge into one block.** The solid variant's pressed chip drew its definition edge as an outward `ring-1` - a box-shadow with 1px spread, which paints outside the border box without taking layout. In a multi-select rail two neighbouring pressed chips each bled 1px into the rail's 2px gap, so the gap read as zero and the chips looked welded together (outline and accent set `ring-0` and never showed it). The ring is now inset: same edge, gap restored, and every variant separates its pressed chips identically.
+- **The input_group composer toolbar uses square icon buttons.** Its three formatting buttons were `size="xs"` holding an icon, so they rendered as 38x30 pills while the same Bold button in the button_group and tooltip examples - `size="icon"` - is a 34x34 square. The example now uses the size built for the job. No component change: `size="icon"` and the full `icon_button` ladder (36 through 56, all square) were already there.
+
 #### Changed
 
 - **Custom scheme-switch icons centre instead of huddling top-left.** The scheme wrappers force slotted children to fill the box, which is right for masked hero spans but left text content - the emoji example - pinned to the top-left corner of a block box. The forced child is now a centring flex box: text and emoji slot content centres, masked icons render identically (the mask fills the box regardless of display type).

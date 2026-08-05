@@ -5290,9 +5290,15 @@
     @apply opacity-50 cursor-not-allowed hover:text-gray-600 dark:hover:text-gray-300;
   }
 
+  /* The definition edge is an INSET ring. An outward ring is a box-shadow
+     with 1px spread - it paints outside the border box without taking
+     layout, so two adjacent pressed chips each bled 1px into the rail's 2px
+     gap and the chips read as one merged block (multi-select rails only;
+     outline and accent set ring-0 and never showed it). Inset keeps the
+     edge and gives the gap back. */
   .pc-toggle-group__item[aria-pressed="true"],
   .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
-    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+    @apply bg-white text-gray-900 shadow-xs inset-ring-1 inset-ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:inset-ring-white/10;
   }
 
   /* Outline - the toolbar look (the shadcn preview-frame reference): a padded
