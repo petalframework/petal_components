@@ -1,4 +1,17 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **Adjacent pressed toggle chips no longer merge into one block.** The solid variant's pressed chip drew its definition edge as an outward `ring-1` - a box-shadow with 1px spread, which paints outside the border box without taking layout. In a multi-select rail two neighbouring pressed chips each bled 1px into the rail's 2px gap, so the gap read as zero and the chips looked welded together (outline and accent set `ring-0` and never showed it). The ring is now inset: same edge, gap restored, and every variant separates its pressed chips identically.
+- **The input_group composer toolbar uses square icon buttons.** Its three formatting buttons were `size="xs"` holding an icon, so they rendered as 38x30 pills while the same Bold button in the button_group and tooltip examples - `size="icon"` - is a 34x34 square. The example now uses the size built for the job. No component change: `size="icon"` and the full `icon_button` ladder (36 through 56, all square) were already there.
+
+#### Changed
+
+- **Every toggle group variant washes on hover, not just outline.** Solid and accent shifted text colour alone, which is a weak tell that a chip is clickable - and it meant one of three variants behaved differently from the other two for no reason anyone could name. The wash now lives on the base item so all three get it, translucent so it composites over whichever rail it sits on; outline keeps its own tuned step (its rail is transparent, the others sit on a wash). Pressed chips are untouched - their rules land later at equal specificity or higher, so pressed paint survives hover - and disabled items are explicitly excluded in both forms, including the radio form where `disabled` lives on the input and needs the `:has()` rule.
+- **Custom scheme-switch icons centre instead of huddling top-left.** The scheme wrappers force slotted children to fill the box, which is right for masked hero spans but left text content - the emoji example - pinned to the top-left corner of a block box. The forced child is now a centring flex box: text and emoji slot content centres, masked icons render identically (the mask fills the box regardless of display type).
+- **Icon-only toggle chips are squares, not pills.** The rail's per-size horizontal padding made icon-only items wider than tall (36x28 at md), while the scheme toggle - the component it sits next to in every toolbar - is a perfect square. Icon-only items now drop their horizontal padding to match the vertical (28x28 at md), keyed off the aria-label the icon-only contract already requires: it sits on the item itself in multiple mode and on the hidden radio in single mode, and items with visible text must not carry one (the slot attr doc now says so). The comment above the icon sizing rule always claimed "a square hit target" - now it's true of the chip, not just the icon.
+
 ### 4.11.2 - 2026-08-05
 
 #### Fixed

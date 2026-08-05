@@ -5040,7 +5040,10 @@
   .pc-scheme-toggle .pc-scheme-toggle__moon > *,
   .pc-scheme-segmented .pc-scheme-segmented__icon > *,
   .pc-scheme-dropdown__item .pc-scheme-dropdown__item-icon > * {
-    @apply block! w-full! h-full!;
+    /* flex, not block: slot content can be text (the emoji example) and a
+       block box leaves inline content huddled top-left; flex centres it.
+       Masked hero spans don't care - the mask fills the box either way. */
+    @apply flex! items-center justify-center w-full! h-full!;
   }
 
   .pc-scheme-toggle__sun {
@@ -5251,8 +5254,15 @@
     border-radius: calc(var(--pc-radius, 0.625rem) * 1.2);
   }
 
+  /* Hover paints a wash on EVERY variant, not just outline. A pointer over a
+     clickable chip should say so, and a text-colour shift alone was a weak
+     tell on the wash rails. The value is translucent so it composites over
+     whichever rail it sits on; outline overrides it below with its own tuned
+     step. Pressed chips are unaffected - their rules are later at equal
+     specificity (solid) or higher (outline, accent), so the pressed paint
+     survives hover. */
   .pc-toggle-group__item {
-    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:text-gray-900 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300;
+    @apply relative flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors duration-150 select-none hover:bg-gray-900/5 hover:text-gray-900 dark:hover:bg-gray-400/10 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 dark:disabled:hover:bg-transparent dark:disabled:hover:text-gray-300;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -5283,13 +5293,21 @@
     @apply ring-1 ring-primary-500/50;
   }
 
+  /* The radio form's disabled state lives on the input, so `disabled:` on the
+     item can't see it - hence :has(). Kills the hover wash too. */
   .pc-toggle-group__item:has(.pc-toggle-group__input:disabled) {
-    @apply opacity-50 cursor-not-allowed hover:text-gray-600 dark:hover:text-gray-300;
+    @apply opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-600 dark:hover:bg-transparent dark:hover:text-gray-300;
   }
 
+  /* The definition edge is an INSET ring. An outward ring is a box-shadow
+     with 1px spread - it paints outside the border box without taking
+     layout, so two adjacent pressed chips each bled 1px into the rail's 2px
+     gap and the chips read as one merged block (multi-select rails only;
+     outline and accent set ring-0 and never showed it). Inset keeps the
+     edge and gives the gap back. */
   .pc-toggle-group__item[aria-pressed="true"],
   .pc-toggle-group__item:has(.pc-toggle-group__input:checked) {
-    @apply bg-white text-gray-900 shadow-xs ring-1 ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:ring-white/10;
+    @apply bg-white text-gray-900 shadow-xs inset-ring-1 inset-ring-gray-900/10 dark:bg-gray-700 dark:text-white dark:inset-ring-white/10;
   }
 
   /* Outline - the toolbar look (the shadcn preview-frame reference): a padded
@@ -5337,6 +5355,25 @@
 
   .pc-toggle-group--lg .pc-toggle-group__item {
     @apply px-3.5 py-2 text-sm;
+  }
+
+  /* Icon-only items square up: horizontal padding drops to match the
+     vertical, so the pressed/hover wash is a square chip like the scheme
+     toggle, not a wide pill. The marker is the aria-label the icon-only
+     contract already requires (visible-text items must not carry one) -
+     it sits on the item itself in multiple mode (a labelled button) and
+     on the hidden radio in single mode. */
+  .pc-toggle-group--sm .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--sm .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-1;
+  }
+  .pc-toggle-group--md .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--md .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-1.5;
+  }
+  .pc-toggle-group--lg .pc-toggle-group__item[aria-label],
+  .pc-toggle-group--lg .pc-toggle-group__item:has(> .pc-toggle-group__input[aria-label]) {
+    @apply px-2;
   }
 
   /* Icon-only items keep a square hit target per size. !important per the
