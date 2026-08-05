@@ -2630,6 +2630,26 @@
     border-end-end-radius: var(--pc-radius, 0.625rem);
   }
 
+  /* Pagination - simple variant: Previous/Next outline buttons. Plain
+     hover: (not enabled:hover:) because in link mode these render as
+     anchors, which never match :enabled; disabled renders as a real
+     disabled button (Link.a converts), so disabled: variants apply and
+     pointer-events-none stops hover styling on it. */
+  .pc-pagination__simple {
+    @apply inline-flex items-center gap-2;
+  }
+  .pc-pagination__simple-button {
+    @apply inline-flex h-9 items-center justify-center gap-1.5 border border-gray-300 bg-transparent px-3.5 text-sm font-medium text-gray-700 shadow-xs transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40 dark:border-gray-400/25 dark:text-gray-300 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-pagination__simple-chevron {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-pagination__simple-chevron.pc-pagination__simple-chevron {
+    @apply w-4! h-4!;
+  }
+
   /* Tabs */
 
   .pc-tabs {

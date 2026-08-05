@@ -570,4 +570,130 @@ defmodule PetalComponents.PaginationTest do
     refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__previous"}s
     refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__next"}s
   end
+
+  describe "variant=simple" do
+    test "renders Previous and Next as links with the neighbour pages" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ "pc-pagination__simple"
+      assert html =~ "Previous"
+      assert html =~ "Next"
+      assert html =~ ~s|href="/users/4"|
+      assert html =~ ~s|href="/users/6"|
+      refute html =~ "pc-pagination__inner"
+    end
+
+    test "Previous is a disabled button on page 1" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={1} />
+        """)
+
+      # Link.a converts a disabled link into a disabled <button>
+      assert html =~ "disabled"
+      refute html =~ ~s|href="/users/0"|
+      assert html =~ ~s|href="/users/2"|
+    end
+
+    test "Next is a disabled button on the last page" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={12} />
+        """)
+
+      assert html =~ "disabled"
+      assert html =~ ~s|href="/users/11"|
+      refute html =~ ~s|href="/users/13"|
+    end
+
+    test "event mode fires goto-page with the neighbour page numbers" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" event total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|phx-click="goto-page"|
+      assert html =~ ~s|phx-value-page="4"|
+      assert html =~ ~s|phx-value-page="6"|
+      refute html =~ "href="
+    end
+
+    test "out-of-range and nil pages normalize instead of building invalid links" do
+      assigns = %{}
+
+      # current past the total clamps to the last page
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={15} />
+        """)
+
+      assert html =~ ~s|href="/users/11"|
+      refute html =~ ~s|href="/users/14"|
+      refute html =~ ~s|href="/users/16"|
+
+      # no attrs at all renders one page with both boundaries disabled
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" />
+        """)
+
+      refute html =~ "href="
+      assert html =~ "disabled"
+    end
+
+    test "event-mode controls are type=button so they never submit a form" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" event total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|type="button"|
+      refute html =~ ~s|type="submit"|
+    end
+
+    test "explicit link_type=button controls are also type=button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" link_type="button" total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|type="button"|
+      refute html =~ ~s|type="submit"|
+    end
+
+    test "labels are overridable" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination
+          variant="simple"
+          path="/users/:page"
+          total_pages={3}
+          current_page={2}
+          previous_label="Zurück"
+          next_label="Weiter"
+        />
+        """)
+
+      assert html =~ "Zurück"
+      assert html =~ "Weiter"
+      refute html =~ "Previous"
+    end
+  end
 end

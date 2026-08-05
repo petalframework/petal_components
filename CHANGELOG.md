@@ -24,6 +24,14 @@
   options; multiple/chips, free-text autocomplete and the remote-search
   contract land in the next milestones.
 
+- **`pagination` gains `variant="simple"`** - Previous/Next outline buttons
+  with disabled boundary states, instead of the numbered page window. The
+  right form when a list is short or a total is unreliable (cursor-style
+  paging), and the footer grammar the upcoming `data_table` uses when
+  `total` is unknown. `previous_label`/`next_label` attrs make the copy
+  localizable; link and event modes work unchanged. The numbered layout is
+  untouched and stays the default (`variant="numbered"`).
+
 ### 4.11.3 - 2026-08-05
 
 #### Fixed

@@ -12,6 +12,18 @@ defmodule PetalComponents.Pagination do
   attr :path, :string, default: "/:page", doc: "page path"
   attr :class, :any, default: nil, doc: "parent div CSS class"
 
+  attr :variant, :string,
+    default: "numbered",
+    values: ["numbered", "simple"],
+    doc:
+      "numbered renders the windowed page list; simple renders Previous/Next outline buttons only - fewer decisions on short lists, and the honest form when a total is unreliable"
+
+  attr :previous_label, :string,
+    default: "Previous",
+    doc: "simple variant: label for the previous button"
+
+  attr :next_label, :string, default: "Next", doc: "simple variant: label for the next button"
+
   attr :link_type, :string,
     default: "a",
     values: ["a", "live_patch", "live_redirect", "button"]
@@ -41,6 +53,55 @@ defmodule PetalComponents.Pagination do
   In the `path` param you can specify :page as the place your page number will appear.
   e.g "/posts/:page" => "/posts/1"
   """
+
+  def pagination(%{variant: "simple"} = assigns) do
+    # Normalize like the numbered branch does via get_pagination_items:
+    # nil/zero totals become one page, current clamps into range - so the
+    # neighbour links can never point outside 1..total_pages.
+    total_pages = max(assigns.total_pages || 1, 1)
+    current_page = (assigns.current_page || 1) |> max(1) |> min(total_pages)
+
+    assigns =
+      assigns
+      |> assign(:total_pages, total_pages)
+      |> assign(:current_page, current_page)
+      |> assign(:prev_enabled?, current_page > 1)
+      |> assign(:next_enabled?, current_page < total_pages)
+
+    ~H"""
+    <div {@rest} class={["pc-pagination", @class]}>
+      <nav class="pc-pagination__simple" aria-label="Pagination">
+        <Link.a
+          phx-click={if @event, do: "goto-page"}
+          phx-target={if @event, do: @target}
+          phx-value-page={@current_page - 1}
+          link_type={if @event, do: "button", else: @link_type}
+          to={if not @event, do: get_path(@path, "previous", @current_page)}
+          type={if @event or @link_type == "button", do: "button"}
+          class="pc-pagination__simple-button"
+          disabled={!@prev_enabled?}
+        >
+          <.icon name="hero-chevron-left-mini" class="pc-pagination__simple-chevron" />
+          {@previous_label}
+        </Link.a>
+
+        <Link.a
+          phx-click={if @event, do: "goto-page"}
+          phx-target={if @event, do: @target}
+          phx-value-page={@current_page + 1}
+          link_type={if @event, do: "button", else: @link_type}
+          to={if not @event, do: get_path(@path, "next", @current_page)}
+          type={if @event or @link_type == "button", do: "button"}
+          class="pc-pagination__simple-button"
+          disabled={!@next_enabled?}
+        >
+          {@next_label}
+          <.icon name="hero-chevron-right-mini" class="pc-pagination__simple-chevron" />
+        </Link.a>
+      </nav>
+    </div>
+    """
+  end
 
   def pagination(assigns) do
     ~H"""
