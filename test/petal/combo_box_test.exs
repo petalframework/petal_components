@@ -144,6 +144,21 @@ defmodule PetalComponents.ComboBoxTest do
     assert html =~ ~s|value="au" selected|
   end
 
+  test "required and form_id render on the native select, not the wrapper" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="tz" name="tz" required form_id="filters" options={["Sydney"]} />
+      """)
+
+    [select_tag | _] = String.split(html, "</select>")
+    assert select_tag =~ ~s| required|
+    assert select_tag =~ ~s|form="filters"|
+    [wrapper_tag | _] = String.split(html, ">")
+    refute wrapper_tag =~ "required"
+  end
+
   test "raises without any id source" do
     assigns = %{}
 

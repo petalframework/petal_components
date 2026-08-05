@@ -59,6 +59,14 @@ defmodule PetalComponents.ComboBox do
     default: false,
     doc: "arrow keys wrap from the last option to the first and back"
 
+  attr :required, :boolean,
+    default: false,
+    doc: "renders on the hidden select, so native required validation guards the real control"
+
+  attr :form_id, :string,
+    default: nil,
+    doc: "the form this control belongs to when rendered outside it (the select's form attribute)"
+
   attr :no_results_text, :string, default: "No results found"
   attr :listbox_label, :string, default: "Options", doc: "accessible name for the listbox"
   attr :class, :any, default: nil, doc: "extra classes for the wrapper"
@@ -92,6 +100,8 @@ defmodule PetalComponents.ComboBox do
         tabindex="-1"
         aria-hidden="true"
         disabled={@disabled}
+        required={@required}
+        form={@form_id}
       >
         <option value=""></option>
         <%= for group <- @groups do %>

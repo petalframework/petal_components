@@ -3373,10 +3373,17 @@ export const PetalComboBox = {
     // keep focus on the input while clicking inside the panel, or the
     // focusout close would swallow the click before it lands
     this.onPanelPointerDown = (e) => e.preventDefault();
-    this.onControlClick = () => {
+    this.onControlClick = (e) => {
       if (this.input.disabled) return;
-      this.panel.hidden ? this.openPanel() : this.closePanel();
-      this.input.focus();
+      if (this.panel.hidden) {
+        this.openPanel();
+        this.input.focus();
+      } else if (e.target !== this.input) {
+        // chevron / control chrome toggles; a click on the input itself is
+        // caret work - closing here would discard the active query
+        this.closePanel();
+        this.input.focus();
+      }
     };
     this.onFocusOut = (e) => {
       if (!this.el.contains(e.relatedTarget)) this.closePanel();
