@@ -5040,7 +5040,10 @@
   .pc-scheme-toggle .pc-scheme-toggle__moon > *,
   .pc-scheme-segmented .pc-scheme-segmented__icon > *,
   .pc-scheme-dropdown__item .pc-scheme-dropdown__item-icon > * {
-    @apply block! w-full! h-full!;
+    /* flex, not block: slot content can be text (the emoji example) and a
+       block box leaves inline content huddled top-left; flex centres it.
+       Masked hero spans don't care - the mask fills the box either way. */
+    @apply flex! items-center justify-center w-full! h-full!;
   }
 
   .pc-scheme-toggle__sun {
