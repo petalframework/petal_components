@@ -1,4 +1,10 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **Two icon-geometry sites the 4.11.1 sweep missed join the `!important` contract.** 4.11.1 restored the bangs at the sites the 4.11.0 audit had de-banged - but two rules were never in that audit because they never had bangs to begin with, and both lose the same cascade fight (consumer hero-* geometry from the utilities layer or unlayered): the toggle group's icon-only item sizing (on petal.build the pressed chip stretched to 24x20 and the rail read non-uniform, icon riding left) and the alert kind-glyph fill inside its 20px container. Both banged, both verified with the same compiled-CSS probe against unlayered consumer hero rules: 16x16 icons, uniform 36x28 chips.
+
 ### 4.11.1 - 2026-08-05
 
 #### Fixed
