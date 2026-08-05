@@ -6154,7 +6154,7 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div
-        :for={ex <- examples_for(PetalComponents.Showcase.Pagination, ~w(link_mode)a)}
+        :for={ex <- examples_for(PetalComponents.Showcase.Pagination, ~w(link_mode simple)a)}
         class="mt-10"
       >
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>

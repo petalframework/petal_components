@@ -10,6 +10,17 @@ defmodule PetalComponents.Showcase.Pagination do
     """
   end
 
+  example :simple, "Simple variant",
+    description:
+      "variant=\"simple\" trades the page window for Previous/Next outline buttons with disabled boundary states - fewer decisions on short lists, and the honest form when a total is unreliable (cursor-style paging). previous_label/next_label are attrs, so localization is a prop away; link and event modes work unchanged. The second rail sits on page 1, so Previous renders disabled." do
+    ~H"""
+    <div class="flex flex-col items-center gap-5">
+      <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={5} />
+      <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={1} />
+    </div>
+    """
+  end
+
   example :event_mode, "Event mode",
     description:
       "event mode skips links and fires goto-page with phx-value-page instead - for LiveViews that page in place without URL changes." do

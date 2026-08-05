@@ -12,6 +12,15 @@ defmodule PetalComponents.Pagination do
   attr :path, :string, default: "/:page", doc: "page path"
   attr :class, :any, default: nil, doc: "parent div CSS class"
 
+  attr :variant, :string,
+    default: "numbered",
+    values: ["numbered", "simple"],
+    doc:
+      "numbered renders the windowed page list; simple renders Previous/Next outline buttons only - fewer decisions on short lists, and the honest form when a total is unreliable"
+
+  attr :previous_label, :string, default: "Previous", doc: "simple variant: label for the previous button"
+  attr :next_label, :string, default: "Next", doc: "simple variant: label for the next button"
+
   attr :link_type, :string,
     default: "a",
     values: ["a", "live_patch", "live_redirect", "button"]
@@ -41,6 +50,45 @@ defmodule PetalComponents.Pagination do
   In the `path` param you can specify :page as the place your page number will appear.
   e.g "/posts/:page" => "/posts/1"
   """
+
+  def pagination(%{variant: "simple"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:prev_enabled?, assigns.current_page > 1)
+      |> assign(:next_enabled?, assigns.current_page < assigns.total_pages)
+
+    ~H"""
+    <div {@rest} class={["pc-pagination", @class]}>
+      <nav class="pc-pagination__simple" aria-label="Pagination">
+        <Link.a
+          phx-click={if @event, do: "goto-page"}
+          phx-target={if @event, do: @target}
+          phx-value-page={@current_page - 1}
+          link_type={if @event, do: "button", else: @link_type}
+          to={if not @event, do: get_path(@path, "previous", @current_page)}
+          class="pc-pagination__simple-button"
+          disabled={!@prev_enabled?}
+        >
+          <.icon name="hero-chevron-left-mini" class="pc-pagination__simple-chevron" />
+          {@previous_label}
+        </Link.a>
+
+        <Link.a
+          phx-click={if @event, do: "goto-page"}
+          phx-target={if @event, do: @target}
+          phx-value-page={@current_page + 1}
+          link_type={if @event, do: "button", else: @link_type}
+          to={if not @event, do: get_path(@path, "next", @current_page)}
+          class="pc-pagination__simple-button"
+          disabled={!@next_enabled?}
+        >
+          {@next_label}
+          <.icon name="hero-chevron-right-mini" class="pc-pagination__simple-chevron" />
+        </Link.a>
+      </nav>
+    </div>
+    """
+  end
 
   def pagination(assigns) do
     ~H"""

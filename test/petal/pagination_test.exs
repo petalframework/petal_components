@@ -570,4 +570,83 @@ defmodule PetalComponents.PaginationTest do
     refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__previous"}s
     refute html =~ ~r{<div>\s*<a[^>]*class="pc-pagination__item__next"}s
   end
+
+  describe "variant=simple" do
+    test "renders Previous and Next as links with the neighbour pages" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ "pc-pagination__simple"
+      assert html =~ "Previous"
+      assert html =~ "Next"
+      assert html =~ ~s|href="/users/4"|
+      assert html =~ ~s|href="/users/6"|
+      refute html =~ "pc-pagination__inner"
+    end
+
+    test "Previous is a disabled button on page 1" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={1} />
+        """)
+
+      # Link.a converts a disabled link into a disabled <button>
+      assert html =~ "disabled"
+      refute html =~ ~s|href="/users/0"|
+      assert html =~ ~s|href="/users/2"|
+    end
+
+    test "Next is a disabled button on the last page" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" path="/users/:page" total_pages={12} current_page={12} />
+        """)
+
+      assert html =~ "disabled"
+      assert html =~ ~s|href="/users/11"|
+      refute html =~ ~s|href="/users/13"|
+    end
+
+    test "event mode fires goto-page with the neighbour page numbers" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" event total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|phx-click="goto-page"|
+      assert html =~ ~s|phx-value-page="4"|
+      assert html =~ ~s|phx-value-page="6"|
+      refute html =~ "href="
+    end
+
+    test "labels are overridable" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination
+          variant="simple"
+          path="/users/:page"
+          total_pages={3}
+          current_page={2}
+          previous_label="Zurück"
+          next_label="Weiter"
+        />
+        """)
+
+      assert html =~ "Zurück"
+      assert html =~ "Weiter"
+      refute html =~ "Previous"
+    end
+  end
 end
