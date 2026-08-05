@@ -664,6 +664,18 @@ defmodule PetalComponents.PaginationTest do
       refute html =~ ~s|type="submit"|
     end
 
+    test "explicit link_type=button controls are also type=button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.pagination variant="simple" link_type="button" total_pages={12} current_page={5} />
+        """)
+
+      assert html =~ ~s|type="button"|
+      refute html =~ ~s|type="submit"|
+    end
+
     test "labels are overridable" do
       assigns = %{}
 

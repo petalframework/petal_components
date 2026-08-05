@@ -77,7 +77,7 @@ defmodule PetalComponents.Pagination do
           phx-value-page={@current_page - 1}
           link_type={if @event, do: "button", else: @link_type}
           to={if not @event, do: get_path(@path, "previous", @current_page)}
-          type={if @event, do: "button"}
+          type={if @event or @link_type == "button", do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@prev_enabled?}
         >
@@ -91,7 +91,7 @@ defmodule PetalComponents.Pagination do
           phx-value-page={@current_page + 1}
           link_type={if @event, do: "button", else: @link_type}
           to={if not @event, do: get_path(@path, "next", @current_page)}
-          type={if @event, do: "button"}
+          type={if @event or @link_type == "button", do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@next_enabled?}
         >
