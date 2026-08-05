@@ -1,0 +1,156 @@
+defmodule PetalComponents.ComboBoxTest do
+  use ComponentCase
+  import PetalComponents.ComboBox
+
+  test "renders the hidden select as the real form control" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="countries" name="country" options={["Australia", "Japan"]} />
+      """)
+
+    assert html =~ ~s|<select|
+    assert html =~ ~s|name="country"|
+    assert html =~ ~s|class="pc-combo-box__select"|
+    assert html =~ ~s|tabindex="-1"|
+    assert html =~ ~s|aria-hidden="true"|
+    # the empty option so "no selection" posts ""
+    assert html =~ ~s|<option value=""|
+    assert html =~ ~s|<option value="Australia"|
+  end
+
+  test "wires the WAI-ARIA combobox pattern" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="countries" name="country" options={["Australia"]} />
+      """)
+
+    assert html =~ ~s|phx-hook="PetalComboBox"|
+    assert html =~ ~s|role="combobox"|
+    assert html =~ ~s|aria-expanded="false"|
+    assert html =~ ~s|aria-autocomplete="list"|
+    assert html =~ ~s|aria-controls="countries-listbox"|
+    assert html =~ ~s|role="listbox"|
+    assert html =~ ~s|role="option"|
+    assert html =~ ~s|autocomplete="off"|
+  end
+
+  test "a chosen value selects the option, fills the display input and check-marks it" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="tz" name="tz" value="syd" options={[{"Sydney", "syd"}, {"Tokyo", "tyo"}]} />
+      """)
+
+    assert html =~ ~s|value="syd" selected|
+    assert html =~ ~s|value="Sydney"|
+    assert html =~ ~s|aria-selected="true"|
+  end
+
+  test "no value means empty display and nothing selected" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="tz" name="tz" options={[{"Sydney", "syd"}]} />
+      """)
+
+    refute html =~ ~s| selected>|
+    refute html =~ ~s|aria-selected="true"|
+  end
+
+  test "groups render optgroups in the select and headed groups in the listbox" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box
+        id="cities"
+        name="city"
+        options={[{"Oceania", [{"Sydney", "syd"}]}, {"Europe", [{"Lisbon", "lis"}]}]}
+      />
+      """)
+
+    assert html =~ ~s|<optgroup label="Oceania">|
+    assert html =~ ~s|data-pc-combo-group|
+    assert html =~ "Oceania"
+    assert html =~ ~s|data-value="lis"|
+  end
+
+  test "flat options between groups keep their position without a heading" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box
+        id="mixed"
+        name="pick"
+        options={["Loose", {"Grouped", [{"Inside", "in"}]}]}
+      />
+      """)
+
+    assert html =~ ~s|data-value="Loose"|
+    assert html =~ ~s|<optgroup label="Grouped">|
+  end
+
+  test "disabled options are inert in both the select and the listbox" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="tz" name="tz" options={[{"Sydney", "syd", disabled: true}]} />
+      """)
+
+    assert html =~ ~s|value="syd" disabled|
+    assert html =~ ~s|data-disabled="true"|
+    assert html =~ ~s|aria-disabled="true"|
+  end
+
+  test "disabling the component disables both the input and the select" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="tz" name="tz" disabled options={["Sydney"]} />
+      """)
+
+    # both the select and the input carry disabled
+    assert [_, _, _] = String.split(html, ~s| disabled|)
+  end
+
+  test "a form field supplies name, value and a stable derived id" do
+    assigns = %{
+      field: %Phoenix.HTML.FormField{
+        id: "user_country",
+        name: "user[country]",
+        value: "au",
+        errors: [],
+        field: :country,
+        form: %Phoenix.HTML.Form{}
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box field={@field} options={[{"Australia", "au"}]} />
+      """)
+
+    assert html =~ ~s|id="user_country_combo_box"|
+    assert html =~ ~s|name="user[country]"|
+    assert html =~ ~s|value="au" selected|
+  end
+
+  test "raises without any id source" do
+    assigns = %{}
+
+    assert_raise ArgumentError, ~r/stable id/, fn ->
+      rendered_to_string(~H"""
+      <.combo_box options={["Australia"]} />
+      """)
+    end
+  end
+end

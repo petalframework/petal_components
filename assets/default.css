@@ -2129,6 +2129,78 @@
     }
   }
 
+  /* Combo box - a searchable select. The control carries the field surface
+     (input_group doctrine: border + focus-within ring live on the wrapper,
+     the inner input is borderless); the panel follows the dropdown grammar
+     with the 1rem radius clamp; options follow the command item recipe.
+     aria-selected marks the CHOSEN option (check mark); data-highlighted is
+     the virtual keyboard highlight. */
+
+  .pc-combo-box {
+    @apply relative w-full;
+  }
+  /* the real form control: submits + recovers like any select, never seen */
+  .pc-combo-box__select {
+    @apply sr-only;
+  }
+  .pc-combo-box__control {
+    @apply flex items-center w-full bg-white border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-gray-400/8 dark:border-gray-400/25;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-combo-box__control:has(.pc-combo-box__input:disabled) {
+    @apply opacity-50;
+  }
+  .pc-combo-box__input {
+    @apply w-full min-w-0 bg-transparent border-0 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder-gray-500;
+    border-radius: inherit;
+  }
+  .pc-combo-box__chevron {
+    @apply mr-2.5 shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-combo-box__chevron.pc-combo-box__chevron {
+    @apply w-4! h-4!;
+  }
+
+  .pc-combo-box__panel {
+    @apply absolute left-0 top-full z-30 mt-1 w-full bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+  .pc-combo-box__list {
+    @apply max-h-64 overflow-y-auto p-1;
+  }
+  .pc-combo-box__group-heading {
+    @apply px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400;
+  }
+  .pc-combo-box__option {
+    @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none dark:text-gray-200;
+    /* Derived from the clamped panel like dropdown/command items - raw-token
+       rounding pills options inside a clamped panel at large tokens. */
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
+  }
+  .pc-combo-box__option[data-highlighted] {
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-400/17 dark:text-white;
+  }
+  .pc-combo-box__option[data-disabled] {
+    @apply pointer-events-none opacity-50;
+  }
+  .pc-combo-box__option-label {
+    @apply flex-1 truncate;
+  }
+  .pc-combo-box__check {
+    @apply invisible ml-auto shrink-0 text-gray-900 dark:text-white;
+  }
+  .pc-combo-box__option[aria-selected="true"] .pc-combo-box__check {
+    @apply visible;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-combo-box__check.pc-combo-box__check {
+    @apply w-4! h-4!;
+  }
+  .pc-combo-box__empty {
+    @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
+  }
+
   /* Tooltip */
 
   .pc-tooltip {

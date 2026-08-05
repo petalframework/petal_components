@@ -1,4 +1,29 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`combo_box` - the searchable select, milestone 1 of the combobox arc**
+  (tasks/data-table-combobox-plan.md §6, Matt-approved). Type to filter,
+  arrow keys to move, Enter to choose: the command palette's proven
+  keyboard + scoring machinery (`PetalComboBox` forks `PetalCommand`)
+  wired to a real hidden native `<select>`. The select IS the form
+  control - name/value from a `field` or manual attrs, bubbling
+  input/change on selection - so changesets, `phx-change` and LiveView
+  form recovery behave exactly like a plain select. No
+  `phx-update="ignore"` island, no Tom Select, zero JS dependencies.
+  Options accept the `select` shapes: strings, `{label, value}`,
+  `{label, value, disabled: true}` and `{group_label, options}` groups
+  (headed in the listbox, `optgroup` in the select, hidden when filtered
+  empty). ARIA done properly for a combobox: `aria-selected` marks the
+  CHOSEN option (with the check mark); the keyboard highlight is virtual
+  (`data-highlighted` + `aria-activedescendant`), focus never leaves the
+  input. The control carries the field surface (input_group doctrine:
+  ring on the wrapper, borderless inner input); the panel follows the
+  dropdown grammar with the 1rem radius clamp. Single select, static
+  options; multiple/chips, free-text autocomplete and the remote-search
+  contract land in the next milestones.
+
 ### 4.11.3 - 2026-08-05
 
 #### Fixed
