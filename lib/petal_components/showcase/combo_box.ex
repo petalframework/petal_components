@@ -44,15 +44,16 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
-  example :preselected, "A chosen value",
+  example :preselected, "A chosen value, clearable",
     description:
-      "value (or the form field's value) marks the chosen option: it renders in the trigger, carries aria-selected and the check mark, and the highlight homes on it when the panel opens. Options are label/value tuples here - the shapes select accepts all work." do
+      "value (or the form field's value) marks the chosen option: it renders in the trigger, carries aria-selected and the check mark, and the highlight homes on it when the panel opens. clearable adds an X button whenever a value is chosen - one press empties the selection. Options are label/value tuples here - the shapes select accepts all work." do
     ~H"""
     <div class="w-full max-w-xs mx-auto">
       <.combo_box
         id="sx-combo-chosen"
         name="tz"
         value="au_syd"
+        clearable
         options={[
           {"Sydney", "au_syd"},
           {"Tokyo", "jp_tyo"},
