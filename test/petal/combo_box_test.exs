@@ -218,6 +218,51 @@ defmodule PetalComponents.ComboBoxTest do
     end
   end
 
+  describe "trigger variant" do
+    test "renders a combobox button with the search input inside the panel" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="pick" name="pick" variant="trigger" options={["Sydney"]} />
+        """)
+
+      assert html =~ ~s|data-pc-combo-trigger|
+      assert html =~ ~s|aria-haspopup="listbox"|
+      assert html =~ "pc-combo-box__search"
+      # the search input lives in the panel, not a control row
+      refute html =~ "pc-combo-box__control"
+      # placeholder state on an empty trigger
+      assert html =~ ~s|data-placeholder="true"|
+    end
+
+    test "single trigger shows the chosen label; multiple shows the count" do
+      assigns = %{}
+
+      single =
+        rendered_to_string(~H"""
+        <.combo_box id="s" name="s" variant="trigger" value="syd" options={[{"Sydney", "syd"}]} />
+        """)
+
+      assert single =~ ">Sydney</span>"
+      refute single =~ ~s|data-placeholder="true"|
+
+      multi =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="m"
+          name="m"
+          variant="trigger"
+          multiple
+          value={["a", "b"]}
+          options={[{"Alpha", "a"}, {"Beta", "b"}]}
+        />
+        """)
+
+      assert multi =~ ">2 selected</span>"
+    end
+  end
+
   describe "clearable and hardening" do
     test "clearable renders the labelled clear button and data-has-value tracks the value" do
       assigns = %{}

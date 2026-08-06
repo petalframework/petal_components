@@ -31,7 +31,7 @@ function optionHtml(opt) {
     </div>`;
 }
 
-function mountCombo({ id = "combo", options = [], groups = [], multiple = false, maxItems = null, clearable = false } = {}) {
+function mountCombo({ id = "combo", options = [], groups = [], multiple = false, maxItems = null, clearable = false, trigger = false } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map((o) => `<option value="${o.value}" ${o.disabled ? "disabled" : ""}>${o.label}</option>`)
     .join("");
@@ -53,22 +53,34 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
   el.className = "pc-combo-box";
   el.setAttribute("phx-hook", "PetalComboBox");
   if (maxItems) el.setAttribute("data-max-items", String(maxItems));
+  const inputHtml = `<input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
+          aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
+          autocomplete="off" placeholder="Pick..." />`;
+
+  const bodyHtml = trigger
+    ? `<button type="button" id="${id}-trigger" class="pc-combo-box__trigger" role="combobox"
+        aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-listbox"
+        data-pc-combo-trigger data-placeholder="true">
+        <span class="pc-combo-box__trigger-label" data-pc-combo-trigger-label
+          data-placeholder-text="Pick..." data-count-label="selected">Pick...</span>
+      </button>`
+    : `<div class="pc-combo-box__control">
+      <div class="pc-combo-box__content">
+        ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
+        ${inputHtml}
+      </div>
+      ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
+      ${multiple ? "" : '<span class="hero-chevron-down-mini pc-combo-box__chevron"></span>'}
+    </div>`;
+
   el.innerHTML = `
     <select id="${id}-select" name="city${multiple ? "[]" : ""}" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert ${multiple ? "multiple" : ""}>
       ${multiple ? "" : '<option value=""></option>'}
       ${selectOptions}
     </select>
-    <div class="pc-combo-box__control">
-      <div class="pc-combo-box__content">
-        ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
-        <input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
-          aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
-          autocomplete="off" placeholder="Pick..." />
-      </div>
-      ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
-      ${multiple ? "" : '<span class="hero-chevron-down-mini pc-combo-box__chevron"></span>'}
-    </div>
+    ${bodyHtml}
     <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+      ${trigger ? '<div class="pc-combo-box__search"><span class="hero-magnifying-glass-mini pc-combo-box__search-icon"></span>' + inputHtml + "</div>" : ""}
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
         ${listHtml}
         <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
@@ -96,6 +108,8 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
     empty: () => el.querySelector("[data-pc-combo-empty]"),
     chips: () => [...el.querySelectorAll("[data-pc-combo-chip]")],
     live: () => el.querySelector("[data-pc-combo-live]"),
+    trigger: el.querySelector("[data-pc-combo-trigger]"),
+    triggerLabel: () => el.querySelector("[data-pc-combo-trigger-label]"),
   };
 }
 
@@ -402,6 +416,56 @@ describe("hardening riders", () => {
     expect(c.live().textContent).toBe("2 results");
     type(c.input, "zzz");
     expect(c.live().textContent).toBe("No results found");
+  });
+});
+
+describe("trigger variant", () => {
+  it("the button opens the panel, focuses the search input, mirrors aria-expanded", () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    c.trigger.click();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(document.activeElement).toBe(c.input);
+  });
+
+  it("choosing closes, returns focus to the trigger, and updates the label", () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    c.trigger.click();
+    type(c.input, "lis");
+    key(c.input, "Enter");
+    expect(c.panel.hidden).toBe(true);
+    expect(c.trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(c.trigger);
+    expect(c.triggerLabel().textContent).toBe("Lisbon");
+    expect(c.trigger.hasAttribute("data-placeholder")).toBe(false);
+  });
+
+  it("multiple keeps the panel open and the count label live", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.trigger.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.triggerLabel().textContent).toBe("2 selected");
+  });
+
+  it("ArrowDown on the trigger opens; Escape closes back to the trigger", () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    c.trigger.focus();
+    key(c.trigger, "ArrowDown");
+    expect(c.panel.hidden).toBe(false);
+    key(c.input, "Escape");
+    expect(c.panel.hidden).toBe(true);
+    expect(document.activeElement).toBe(c.trigger);
+  });
+
+  it("clearing every choice restores the placeholder state", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.trigger.click();
+    c.items()[0].click();
+    c.items()[0].click();
+    expect(c.triggerLabel().textContent).toBe("Pick...");
+    expect(c.trigger.hasAttribute("data-placeholder")).toBe(true);
   });
 });
 

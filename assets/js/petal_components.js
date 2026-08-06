@@ -3350,6 +3350,8 @@ export const PetalComboBox = {
     this.select = this.el.querySelector(".pc-combo-box__select");
     this.input = this.el.querySelector(".pc-combo-box__input");
     this.control = this.el.querySelector(".pc-combo-box__control");
+    this.trigger = this.el.querySelector("[data-pc-combo-trigger]");
+    this.triggerLabel = this.el.querySelector("[data-pc-combo-trigger-label]");
     this.panel = this.el.querySelector("[data-pc-combo-panel]");
     this.list = this.el.querySelector(".pc-combo-box__list");
     if (!this.select || !this.input || !this.panel || !this.list) return;
@@ -3382,8 +3384,11 @@ export const PetalComboBox = {
       if (item && !item.hasAttribute("data-disabled")) this.choose(item);
     };
     // keep focus on the input while clicking inside the panel, or the
-    // focusout close would swallow the click before it lands
-    this.onPanelPointerDown = (e) => e.preventDefault();
+    // focusout close would swallow the click before it lands; the search
+    // input (trigger variant) must stay clickable for caret work
+    this.onPanelPointerDown = (e) => {
+      if (e.target !== this.input) e.preventDefault();
+    };
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
       if (e.target.closest("[data-pc-combo-chip-remove]")) {
@@ -3412,6 +3417,25 @@ export const PetalComboBox = {
     this.onFocusOut = (e) => {
       if (!this.el.contains(e.relatedTarget)) this.closePanel();
     };
+    // trigger variant: the button opens the panel and focus moves to the
+    // search input inside it; ArrowDown/Up on the button open too
+    this.onTriggerClick = () => {
+      if (this.trigger.disabled) return;
+      if (this.panel.hidden) {
+        this.openPanel();
+        this.input.focus();
+      } else {
+        this.closePanel();
+      }
+    };
+    this.onTriggerKeydown = (e) => {
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      e.preventDefault();
+      if (this.panel.hidden) {
+        this.openPanel();
+        this.input.focus();
+      }
+    };
     // focusout covers Tab-away and desktop clicks (desktop blurs the input
     // when you click static content), but iOS Safari deliberately keeps
     // focus when tapping non-interactive content - no blur, no focusout, a
@@ -3429,7 +3453,11 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
-    this.control.addEventListener("click", this.onControlClick);
+    if (this.control) this.control.addEventListener("click", this.onControlClick);
+    if (this.trigger) {
+      this.trigger.addEventListener("click", this.onTriggerClick);
+      this.trigger.addEventListener("keydown", this.onTriggerKeydown);
+    }
     this.el.addEventListener("focusout", this.onFocusOut);
     this.form = this.select.form;
     if (this.form) this.form.addEventListener("reset", this.onFormReset);
@@ -3450,7 +3478,11 @@ export const PetalComboBox = {
     this.list.removeEventListener("pointerover", this.onPointerOver);
     this.list.removeEventListener("click", this.onListClick);
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
-    this.control.removeEventListener("click", this.onControlClick);
+    if (this.control) this.control.removeEventListener("click", this.onControlClick);
+    if (this.trigger) {
+      this.trigger.removeEventListener("click", this.onTriggerClick);
+      this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
+    }
     this.el.removeEventListener("focusout", this.onFocusOut);
     if (this.form) this.form.removeEventListener("reset", this.onFormReset);
     document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
@@ -3482,6 +3514,7 @@ export const PetalComboBox = {
     if (!this.panel.hidden) return;
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
+    if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
     document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
     window.addEventListener("scroll", this.onReposition, true);
     window.addEventListener("resize", this.onReposition);
@@ -3502,6 +3535,14 @@ export const PetalComboBox = {
     this.highlight(null, false);
     this.query = "";
     this.restoreDisplay();
+    if (this.trigger) {
+      this.trigger.setAttribute("aria-expanded", "false");
+      // the search input just vanished with the panel - focus returns to
+      // the trigger unless something outside already took it
+      if (this.el.contains(document.activeElement) || document.activeElement === document.body) {
+        this.trigger.focus();
+      }
+    }
   },
 
   // Open downward by default; flip above when the viewport has no room
@@ -3514,7 +3555,9 @@ export const PetalComboBox = {
     if (this.panel.hidden) return;
     this.panel.removeAttribute("data-flip");
     this.list.style.maxHeight = "";
-    const control = this.control.getBoundingClientRect();
+    const anchor = this.control || this.trigger;
+    if (!anchor) return;
+    const control = anchor.getBoundingClientRect();
     const panelH = this.panel.offsetHeight;
     if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
     const gap = 8;
@@ -3549,7 +3592,9 @@ export const PetalComboBox = {
   },
 
   restoreDisplay() {
-    if (this.multiple) {
+    if (this.multiple || this.trigger) {
+      // chips carry the state in multiple mode; the trigger label carries
+      // it in trigger mode - the input is pure query either way
       this.input.value = "";
       return;
     }
@@ -3612,6 +3657,21 @@ export const PetalComboBox = {
       this.syncChips();
       this.el.toggleAttribute("data-max-reached", this.maxReached());
     }
+    if (this.triggerLabel) {
+      const placeholder = this.triggerLabel.dataset.placeholderText;
+      if (values.length === 0) {
+        this.triggerLabel.textContent = placeholder || "";
+        this.trigger.setAttribute("data-placeholder", "true");
+      } else {
+        this.trigger.removeAttribute("data-placeholder");
+        if (this.multiple) {
+          this.triggerLabel.textContent = `${values.length} ${this.triggerLabel.dataset.countLabel || "selected"}`;
+        } else {
+          const chosen = this.chosenItem();
+          this.triggerLabel.textContent = chosen ? chosen.dataset.label || "" : "";
+        }
+      }
+    }
     if (this.panel.hidden || document.activeElement !== this.input) this.restoreDisplay();
   },
 
@@ -3631,7 +3691,7 @@ export const PetalComboBox = {
     }
     this.setSelected(value, true);
     this.closePanel();
-    this.input.focus();
+    if (!this.trigger) this.input.focus();
   },
 
   announce(count) {

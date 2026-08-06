@@ -7317,7 +7317,10 @@ defmodule Dev.PlaygroundLive do
       <div
         :for={
           ex <-
-            examples_for(PetalComponents.Showcase.ComboBox, ~w(multiple basic preselected groups)a)
+            examples_for(
+              PetalComponents.Showcase.ComboBox,
+              ~w(multiple trigger basic preselected groups)a
+            )
         }
         class="mt-10"
       >

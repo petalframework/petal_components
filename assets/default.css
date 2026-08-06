@@ -2167,6 +2167,32 @@
     @apply w-4! h-4!;
   }
 
+  /* trigger variant: a select-like button; the search input lives in the
+     panel (command-palette grammar) */
+  .pc-combo-box__trigger {
+    @apply flex w-full items-center justify-between gap-2 bg-white border border-gray-300 px-3 py-2 text-left text-sm text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  .pc-combo-box__trigger[data-placeholder] .pc-combo-box__trigger-label {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+  .pc-combo-box__trigger-label {
+    @apply truncate;
+  }
+  .pc-combo-box__search {
+    @apply flex items-center gap-2 border-b border-gray-200 px-3 dark:border-gray-400/17;
+  }
+  .pc-combo-box__search-icon {
+    @apply shrink-0 text-gray-400 dark:text-gray-500;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-combo-box__search-icon.pc-combo-box__search-icon {
+    @apply w-4! h-4!;
+  }
+  .pc-combo-box__search .pc-combo-box__input {
+    @apply w-full border-0 bg-transparent px-0 py-2 focus:outline-none focus:ring-0;
+  }
+
   .pc-combo-box__panel {
     @apply absolute left-0 top-full z-30 mt-1 w-full bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
