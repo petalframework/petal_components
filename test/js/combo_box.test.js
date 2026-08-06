@@ -313,6 +313,39 @@ describe("multiple with chips", () => {
     expect(c.chips()[0].textContent).toContain("Sydney");
   });
 
+  it("the highlight stays on the item just picked, and arrows resume from it", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    const last = c.items()[c.items().length - 1];
+    last.click();
+    expect(last.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.input.getAttribute("aria-activedescendant")).toBe(last.id);
+    // Down from the last item enters the empty stop, not the top
+    key(c.input, "ArrowDown");
+    expect(c.el.querySelector("[data-highlighted]")).toBeNull();
+  });
+
+  it("a filtered pick clears the query but keeps the picked item highlighted", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    type(c.input, "tok");
+    key(c.input, "Enter");
+    const tokyo = c.items().find((i) => i.dataset.value === "tyo");
+    expect(tokyo.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.items().filter((i) => !i.hidden).length).toBeGreaterThan(1);
+  });
+
+  it("the placeholder stays with chips present and rests at max_items", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.input.placeholder).toBe("Pick...");
+    c.items()[1].click();
+    expect(c.input.placeholder).toBe("");
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(c.input.placeholder).toBe("Pick...");
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();

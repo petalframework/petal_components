@@ -3461,6 +3461,10 @@ export const PetalComboBox = {
     this.el.addEventListener("focusout", this.onFocusOut);
     this.form = this.select.form;
     if (this.form) this.form.addEventListener("reset", this.onFormReset);
+    // the input's placeholder doubles as the "add more" invitation with
+    // chips present; remember it so it can blank at max_items and return
+    // when something is removed
+    this.placeholderText = this.input.getAttribute("placeholder") || "";
 
     this.syncFromSelect();
   },
@@ -3655,7 +3659,12 @@ export const PetalComboBox = {
     this.el.toggleAttribute("data-has-value", values.length > 0);
     if (this.multiple) {
       this.syncChips();
-      this.el.toggleAttribute("data-max-reached", this.maxReached());
+      const capped = this.maxReached();
+      this.el.toggleAttribute("data-max-reached", capped);
+      // inviting more picks while the cap dims every option reads wrong -
+      // the placeholder rests at the cap (trigger variant's panel search
+      // keeps its own placeholder; it says "search", not "add more")
+      if (!this.trigger) this.input.placeholder = capped ? "" : this.placeholderText;
     }
     if (this.triggerLabel) {
       const placeholder = this.triggerLabel.dataset.placeholderText;
@@ -3682,10 +3691,14 @@ export const PetalComboBox = {
       if (!selected && this.maxReached()) return;
       this.setSelected(value, !selected);
       // the panel stays open for more picks; the query resets so the next
-      // keystrokes start a fresh search
+      // keystrokes start a fresh search. The highlight stays on the item
+      // just toggled (Base UI/downshift grammar) - arrowing resumes from
+      // where the user is, not from the top; filter() with the cleared
+      // query would otherwise re-home it on the first option.
       this.query = "";
       this.input.value = "";
       this.filter();
+      this.highlight(item, false);
       this.input.focus();
       return;
     }
