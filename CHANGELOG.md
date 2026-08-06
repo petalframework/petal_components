@@ -3,6 +3,16 @@
 
 #### Added
 
+- **`combo_box` `variant="trigger"` - the picker anatomy.** A select-like
+  button shows the chosen value (or "N selected" with `multiple` -
+  `count_label` localizes the word) and the search input lives inside
+  the panel, command-palette style. Open from the button, arrow keys or
+  click; search; choose - single select closes and returns focus to the
+  button, multiple stays open and the count label tracks live. Same
+  hidden select underneath, same form behavior, same positioning
+  (flip + space cap). This is the anatomy pickers use - and the exact
+  shape the 4.12 data table's filter editors are built from.
+
 - **`combo_box` grows up: `multiple` with chips, `clearable`, and the
   hardening pass** (combobox M2 core). `multiple` turns the trigger into
   a chip row - removable tokens, panel stays open while picking,

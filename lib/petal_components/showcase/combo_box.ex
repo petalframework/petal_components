@@ -64,6 +64,42 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
+  example :trigger, "The picker - trigger variant",
+    description:
+      "variant=\"trigger\" is the select-like anatomy: a button shows the chosen value (or a count with multiple), and the search input lives inside the panel. This is the shape pickers and the data table's filter editors use - open it from anywhere, search, choose, and focus returns to the button. Same hidden select underneath, same form behavior." do
+    ~H"""
+    <div class="flex flex-col items-center w-full max-w-xs gap-4 mx-auto">
+      <.combo_box
+        id="sx-combo-trigger"
+        name="assignee"
+        variant="trigger"
+        placeholder="Assign to…"
+        options={[
+          {"Amelia Ward", "amelia"},
+          {"Jonah Reyes", "jonah"},
+          {"Priya Anand", "priya"},
+          {"Tom Hale", "tom"}
+        ]}
+      />
+      <.combo_box
+        id="sx-combo-trigger-multi"
+        name="labels"
+        variant="trigger"
+        multiple
+        value={["bug", "ui"]}
+        placeholder="Labels…"
+        count_label="labels"
+        options={[
+          {"Bug", "bug"},
+          {"UI", "ui"},
+          {"Docs", "docs"},
+          {"Performance", "perf"}
+        ]}
+      />
+    </div>
+    """
+  end
+
   example :groups, "Groups and disabled options",
     description:
       "{group_label, options} renders a heading and keeps its position between flat options; a group hides itself when the query filters out every option inside. {label, value, disabled: true} renders the option present but inert - visible in the list, skipped by the keyboard." do

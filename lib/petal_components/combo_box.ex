@@ -76,6 +76,20 @@ defmodule PetalComponents.ComboBox do
     doc:
       "strings, {label, value} tuples, {label, value, opts} (opts: disabled: true), or {group_label, options} groups"
 
+  attr :variant, :string,
+    default: "input",
+    values: ["input", "trigger"],
+    doc:
+      "input is the searchable field; trigger is a select-like button whose panel carries the search input - the picker anatomy, and the data table's filter editor"
+
+  attr :search_placeholder, :string,
+    default: "Search…",
+    doc: "trigger variant: placeholder for the search input inside the panel"
+
+  attr :count_label, :string,
+    default: "selected",
+    doc: "trigger variant with multiple: the word after the count in the closed label"
+
   attr :multiple, :boolean,
     default: false,
     doc: "chip-row selection: the hidden select becomes select multiple and the name gains []"
@@ -127,6 +141,7 @@ defmodule PetalComponents.ComboBox do
         if(assigns.multiple, do: nil, else: selected_label(groups, values))
       )
       |> assign(:selected_options, selected_options(groups, values))
+      |> assign(:trigger_label, trigger_label(assigns, groups, values))
 
     ~H"""
     <div
@@ -175,7 +190,29 @@ defmodule PetalComponents.ComboBox do
         <% end %>
       </select>
 
-      <div class="pc-combo-box__control">
+      <button
+        :if={@variant == "trigger"}
+        type="button"
+        id={"#{@id}-trigger"}
+        class="pc-combo-box__trigger"
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-controls={"#{@id}-listbox"}
+        data-pc-combo-trigger
+        data-placeholder={@current_values == [] && "true"}
+        disabled={@disabled}
+      >
+        <span
+          class="pc-combo-box__trigger-label"
+          data-pc-combo-trigger-label
+          data-placeholder-text={@placeholder}
+          data-count-label={@count_label}
+        >{@trigger_label}</span>
+        <.icon name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
+      </button>
+
+      <div :if={@variant == "input"} class="pc-combo-box__control">
         <div class="pc-combo-box__content">
           <div
             :if={@multiple}
@@ -230,6 +267,22 @@ defmodule PetalComponents.ComboBox do
       </div>
 
       <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+        <div :if={@variant == "trigger"} class="pc-combo-box__search">
+          <.icon name="hero-magnifying-glass-mini" class="pc-combo-box__search-icon" />
+          <input
+            type="text"
+            id={"#{@id}-input"}
+            class="pc-combo-box__input"
+            role="combobox"
+            aria-expanded="false"
+            aria-autocomplete="list"
+            aria-controls={"#{@id}-listbox"}
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder={@search_placeholder}
+          />
+        </div>
         <div
           role="listbox"
           id={"#{@id}-listbox"}
@@ -348,6 +401,16 @@ defmodule PetalComponents.ComboBox do
     # chip order follows the chosen order, not the option order
     Enum.flat_map(values, fn value -> Enum.filter(all, &(&1.value == value)) end)
   end
+
+  defp trigger_label(%{variant: "trigger"} = assigns, groups, values) do
+    case values do
+      [] -> assigns.placeholder
+      _ when assigns.multiple -> "#{length(values)} #{assigns.count_label}"
+      [value | _] -> selected_label(groups, [value]) || assigns.placeholder
+    end
+  end
+
+  defp trigger_label(_assigns, _groups, _values), do: nil
 
   defp input_name(%{multiple: true} = assigns) do
     case assigns.name || (assigns.field && assigns.field.name) do
