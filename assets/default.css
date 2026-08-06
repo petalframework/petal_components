@@ -2144,14 +2144,19 @@
     @apply sr-only;
   }
   .pc-combo-box__control {
-    @apply flex items-center w-full bg-white border border-gray-300 shadow-xs transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-gray-400/8 dark:border-gray-400/25;
+    @apply flex items-center w-full bg-white border border-gray-300 shadow-xs touch-manipulation transition-[color,box-shadow] duration-200 ease-out focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/50 dark:bg-gray-400/8 dark:border-gray-400/25;
     border-radius: var(--pc-radius, 0.625rem);
   }
   .pc-combo-box__control:has(.pc-combo-box__input:disabled) {
     @apply opacity-50;
   }
   .pc-combo-box__input {
-    @apply w-full min-w-0 bg-transparent border-0 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder-gray-500;
+    /* text-base below sm, like pc-text-input: iOS Safari auto-zooms the
+       viewport when focusing an input under 16px, and the zoom re-layout
+       mid-open makes the first tap on an option land on stale coordinates.
+       The field grammar already carried this convention; the combobox
+       deviating from it was the whole iOS first-tap bug. */
+    @apply w-full min-w-0 bg-transparent border-0 px-3 py-2 text-base sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder-gray-500;
     border-radius: inherit;
   }
   .pc-combo-box__chevron {
@@ -2173,7 +2178,10 @@
     @apply px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400;
   }
   .pc-combo-box__option {
-    @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none dark:text-gray-200;
+    /* touch-manipulation kills the double-tap-zoom gesture wait on options,
+       so a tap selects immediately instead of iOS holding it to see if a
+       second tap follows */
+    @apply relative flex w-full cursor-default items-center gap-2 px-2 py-1.5 text-left text-sm text-gray-700 outline-none select-none touch-manipulation dark:text-gray-200;
     /* Derived from the clamped panel like dropdown/command items - raw-token
        rounding pills options inside a clamped panel at large tokens. */
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);

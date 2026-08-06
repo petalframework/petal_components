@@ -7267,7 +7267,7 @@ defmodule Dev.PlaygroundLive do
 
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
-          <form phx-change="pg_combo_change" class="w-full max-w-sm">
+          <form id="pg-combo-form" phx-change="pg_combo_change" class="w-full max-w-sm">
             <.combo_box
               id="pg-combo"
               name="pg_city"
@@ -7306,11 +7306,10 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="State"
-              value={for {k, on} <- [{"disabled", @combo.disabled}, {"loop", @combo.loop}], on, do: k}
+              value={for {k, on} <- [{"disabled", @combo.disabled}], on, do: k}
               on_change="ctl_combo"
             >
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
-              <:item value="loop" phx-value-k="loop">loop</:item>
             </.toggle_group>
           </div>
         </div>
