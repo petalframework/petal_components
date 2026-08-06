@@ -4,6 +4,31 @@ defmodule PetalComponents.Showcase.ComboBox do
     component: PetalComponents.ComboBox,
     title: "Combo box"
 
+  example :multiple, "Chips - multiple selection",
+    description:
+      "multiple turns the trigger into a chip row: every choice renders as a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. The hidden select becomes a real select multiple - its name gains [] - so every choice survives the form post exactly like a native multiple select. max_items caps the count; at the cap, unchosen options rest until something is removed." do
+    ~H"""
+    <div class="w-full max-w-sm mx-auto">
+      <.combo_box
+        id="sx-combo-multi"
+        name="stack"
+        multiple
+        max_items={4}
+        value={["phx", "lv"]}
+        placeholder="Build your stack…"
+        options={[
+          {"Phoenix", "phx"},
+          {"LiveView", "lv"},
+          {"Ecto", "ecto"},
+          {"Oban", "oban"},
+          {"Tailwind", "tw"},
+          {"Postgres", "pg"}
+        ]}
+      />
+    </div>
+    """
+  end
+
   example :basic, "The searchable select",
     description:
       "Type to filter, arrow keys to move, Enter to choose - the command palette's keyboard machinery on a form control. The visible input is chrome; a hidden native select carries the name and value, so changesets, phx-change and LiveView form recovery behave exactly like a plain select. Zero JS dependencies." do

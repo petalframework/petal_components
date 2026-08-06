@@ -3354,6 +3354,10 @@ export const PetalComboBox = {
     this.list = this.el.querySelector(".pc-combo-box__list");
     if (!this.select || !this.input || !this.panel || !this.list) return;
 
+    this.multiple = this.select.multiple;
+    this.chips = this.el.querySelector("[data-pc-combo-chips]");
+    this.live = this.el.querySelector("[data-pc-combo-live]");
+    this.clearBtn = this.el.querySelector("[data-pc-combo-clear]");
     this.query = "";
 
     this.onInput = (e) => {
@@ -3382,6 +3386,19 @@ export const PetalComboBox = {
     this.onPanelPointerDown = (e) => e.preventDefault();
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
+      if (e.target.closest("[data-pc-combo-chip-remove]")) {
+        const value = e.target.closest("[data-pc-combo-chip-remove]").dataset.value;
+        this.setSelected(value, false);
+        this.input.focus();
+        return;
+      }
+      if (e.target.closest("[data-pc-combo-clear]")) {
+        this.select.value = "";
+        this.dispatchChange();
+        this.syncFromSelect();
+        this.input.focus();
+        return;
+      }
       if (this.panel.hidden) {
         this.openPanel();
         this.input.focus();
@@ -3403,6 +3420,8 @@ export const PetalComboBox = {
     this.onOutsidePointerDown = (e) => {
       if (!this.el.contains(e.target)) this.closePanel();
     };
+    // form.reset() resets the select; nothing else would re-sync the chrome
+    this.onFormReset = () => setTimeout(() => this.syncFromSelect(), 0);
 
     this.input.addEventListener("input", this.onInput);
     this.input.addEventListener("keydown", this.onKeydown);
@@ -3411,6 +3430,8 @@ export const PetalComboBox = {
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
     this.control.addEventListener("click", this.onControlClick);
     this.el.addEventListener("focusout", this.onFocusOut);
+    this.form = this.select.form;
+    if (this.form) this.form.addEventListener("reset", this.onFormReset);
 
     this.syncFromSelect();
   },
@@ -3430,6 +3451,7 @@ export const PetalComboBox = {
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
     this.control.removeEventListener("click", this.onControlClick);
     this.el.removeEventListener("focusout", this.onFocusOut);
+    if (this.form) this.form.removeEventListener("reset", this.onFormReset);
     document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
   },
 
@@ -3472,6 +3494,17 @@ export const PetalComboBox = {
     this.restoreDisplay();
   },
 
+  selectedValues() {
+    return Array.from(this.select.selectedOptions)
+      .map((o) => o.value)
+      .filter((v) => v !== "");
+  },
+
+  maxReached() {
+    const max = parseInt(this.el.dataset.maxItems || "", 10);
+    return this.multiple && !isNaN(max) && this.selectedValues().length >= max;
+  },
+
   chosenItem() {
     const value = this.select.value;
     if (!value) return null;
@@ -3479,27 +3512,96 @@ export const PetalComboBox = {
   },
 
   restoreDisplay() {
+    if (this.multiple) {
+      this.input.value = "";
+      return;
+    }
     const chosen = this.chosenItem();
     this.input.value = chosen ? chosen.dataset.label || "" : "";
   },
 
+  dispatchChange() {
+    this.select.dispatchEvent(new Event("input", { bubbles: true }));
+    this.select.dispatchEvent(new Event("change", { bubbles: true }));
+  },
+
+  setSelected(value, selected) {
+    const option = Array.from(this.select.options).find((o) => o.value === value);
+    if (!option || option.selected === selected) return;
+    if (this.multiple) {
+      option.selected = selected;
+    } else {
+      this.select.value = selected ? value : "";
+    }
+    this.dispatchChange();
+    this.syncFromSelect();
+    if (!this.panel.hidden) this.filter();
+  },
+
+  syncChips() {
+    if (!this.chips) return;
+    const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
+    this.chips.textContent = "";
+    for (const option of this.select.selectedOptions) {
+      if (option.value === "") continue;
+      const chip = document.createElement("span");
+      chip.className = "pc-combo-box__chip";
+      chip.setAttribute("data-pc-combo-chip", "");
+      const label = document.createElement("span");
+      label.className = "pc-combo-box__chip-label";
+      label.textContent = option.textContent.trim();
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pc-combo-box__chip-remove";
+      btn.setAttribute("data-pc-combo-chip-remove", "");
+      btn.dataset.value = option.value;
+      btn.setAttribute("aria-label", removeLabel + option.textContent.trim());
+      btn.tabIndex = -1;
+      const icon = document.createElement("span");
+      icon.className = "hero-x-mark-mini pc-combo-box__chip-remove-icon";
+      btn.appendChild(icon);
+      chip.append(label, btn);
+      this.chips.appendChild(chip);
+    }
+  },
+
   syncFromSelect() {
-    const value = this.select.value;
+    const values = this.selectedValues();
     for (const i of this.items()) {
-      i.setAttribute("aria-selected", value !== "" && i.dataset.value === value ? "true" : "false");
+      i.setAttribute("aria-selected", values.includes(i.dataset.value) ? "true" : "false");
+    }
+    this.el.toggleAttribute("data-has-value", values.length > 0);
+    if (this.multiple) {
+      this.syncChips();
+      this.el.toggleAttribute("data-max-reached", this.maxReached());
     }
     if (this.panel.hidden || document.activeElement !== this.input) this.restoreDisplay();
   },
 
   choose(item) {
-    if (this.select.value !== item.dataset.value) {
-      this.select.value = item.dataset.value;
-      this.select.dispatchEvent(new Event("input", { bubbles: true }));
-      this.select.dispatchEvent(new Event("change", { bubbles: true }));
+    const value = item.dataset.value;
+    if (this.multiple) {
+      const selected = this.selectedValues().includes(value);
+      if (!selected && this.maxReached()) return;
+      this.setSelected(value, !selected);
+      // the panel stays open for more picks; the query resets so the next
+      // keystrokes start a fresh search
+      this.query = "";
+      this.input.value = "";
+      this.filter();
+      this.input.focus();
+      return;
     }
-    this.syncFromSelect();
+    this.setSelected(value, true);
     this.closePanel();
     this.input.focus();
+  },
+
+  announce(count) {
+    if (!this.live) return;
+    const label = this.live.dataset.resultsLabel || "results";
+    const empty = this.live.dataset.noResultsText || "No results found";
+    this.live.textContent = count === 0 ? empty : `${count} ${label}`;
   },
 
   filter() {
@@ -3534,10 +3636,11 @@ export const PetalComboBox = {
 
     const empty = this.el.querySelector("[data-pc-combo-empty]");
     if (empty) empty.hidden = count > 0;
+    this.announce(count);
 
     // an empty query (just opened) homes the highlight on the chosen value;
     // a typed query homes it on the best (first) visible match
-    const chosen = this.chosenItem();
+    const chosen = this.multiple ? null : this.chosenItem();
     if (!query && chosen && !chosen.hidden && !chosen.hasAttribute("data-disabled")) {
       this.highlight(chosen, true);
     } else {
@@ -3597,6 +3700,12 @@ export const PetalComboBox = {
         e.preventDefault();
         this.highlight(this.visibleItems().slice(-1)[0] || null);
         break;
+      case "Backspace": {
+        if (!this.multiple || this.input.value !== "") return;
+        const values = this.selectedValues();
+        if (values.length) this.setSelected(values[values.length - 1], false);
+        break;
+      }
       case "Enter": {
         if (this.panel.hidden) return; // closed: let the form submit
         e.preventDefault();

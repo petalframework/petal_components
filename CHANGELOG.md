@@ -3,6 +3,22 @@
 
 #### Added
 
+- **`combo_box` grows up: `multiple` with chips, `clearable`, and the
+  hardening pass** (combobox M2 core). `multiple` turns the trigger into
+  a chip row - removable tokens, panel stays open while picking,
+  Backspace in an empty input removes the last chip - backed by a real
+  `<select multiple>` whose name gains `[]`, so every choice survives
+  the form post like a native multiple select. `max_items` caps the
+  count (at the cap, unchosen options rest until something is removed).
+  `clearable` adds a real clear *button* - hit target, focus ring,
+  aria-label - to single selects. Riders: the hidden select is `inert`
+  (dialog autofocus can never land on it), `form.reset()` re-syncs the
+  chrome, and a polite live region announces result counts as you
+  filter. The native WebKit search-cancel X is suppressed on pc search
+  inputs package-wide - the clear affordance is the house clearable
+  pattern, never browser chrome. The hook's behavioral contract is now
+  pinned by a committed vitest spec (the session harness, ported).
+
 - **`combo_box` - the searchable select, milestone 1 of the combobox arc**
   (tasks/data-table-combobox-plan.md §6, Matt-approved). Type to filter,
   arrow keys to move, Enter to choose: the command palette's proven

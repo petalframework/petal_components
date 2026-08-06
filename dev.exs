@@ -7315,7 +7315,10 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div
-        :for={ex <- examples_for(PetalComponents.Showcase.ComboBox, ~w(basic preselected groups)a)}
+        :for={
+          ex <-
+            examples_for(PetalComponents.Showcase.ComboBox, ~w(multiple basic preselected groups)a)
+        }
         class="mt-10"
       >
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>

@@ -2208,6 +2208,61 @@
   .pc-combo-box__empty {
     @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
   }
+  /* multiple: the control becomes a wrapping chip row; the input shares the
+     line and keeps a typing floor */
+  .pc-combo-box__control:has([data-pc-combo-chips]) {
+    @apply flex-wrap gap-y-1 py-1;
+  }
+  .pc-combo-box__control:has([data-pc-combo-chips]) .pc-combo-box__input {
+    @apply flex-1 min-w-24 py-1;
+  }
+  .pc-combo-box__chips {
+    @apply flex flex-wrap items-center gap-1 pl-1.5 max-w-full;
+  }
+  .pc-combo-box__chips:empty {
+    @apply hidden;
+  }
+  .pc-combo-box__chip {
+    @apply inline-flex max-w-full items-center gap-0.5 bg-gray-100 py-0.5 pl-1.5 pr-0.5 text-xs font-medium text-gray-700 dark:bg-gray-400/17 dark:text-gray-200;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
+  }
+  .pc-combo-box__chip-label {
+    @apply truncate;
+  }
+  /* interactive in-field icon = a real button: hit target, focus ring */
+  .pc-combo-box__chip-remove {
+    @apply inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-sm text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/25 dark:hover:text-white;
+  }
+  .pc-combo-box__chip-remove-icon.pc-combo-box__chip-remove-icon {
+    @apply w-3.5! h-3.5!;
+  }
+  .pc-combo-box__clear {
+    @apply mr-0.5 hidden h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+  }
+  .pc-combo-box[data-has-value] .pc-combo-box__clear {
+    @apply inline-flex;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
+  .pc-combo-box__clear-icon.pc-combo-box__clear-icon {
+    @apply w-4! h-4!;
+  }
+  /* at max_items, unchosen options rest until something is removed */
+  .pc-combo-box[data-max-reached] .pc-combo-box__option:not([aria-selected="true"]) {
+    @apply pointer-events-none opacity-50;
+  }
+  .pc-combo-box__live {
+    @apply sr-only;
+  }
+
+  /* Search inputs: the native WebKit cancel button is unstyleable browser
+     chrome - the clear affordance is the house clearable pattern instead
+     (field clearable / combo_box clearable). */
+  .pc-text-input[type="search"]::-webkit-search-cancel-button,
+  .pc-combo-box__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
 
   /* Tooltip */
 
