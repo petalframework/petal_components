@@ -1,6 +1,21 @@
 # Changelog
 ### Unreleased
 
+#### Added
+
+- **`DataTable.State` + the in-memory engine - the 4.12 data table
+  foundation.** `PetalComponents.DataTable.State` is the whole backend
+  contract in one struct (multi-sort `order_by`, typed `filters`, page,
+  page_size, total) with `from_params/2` / `to_params/2` for URL-as-state
+  round-trips (whitelisted fields, no atom creation from user input,
+  clamped sizes) plus the interaction helpers (`toggle_sort/2` cycling
+  asc→desc→off, `put_filter/4`, `clear_filters/1`, `total_pages/1`).
+  `Engine.List.run/2` sorts, filters and paginates a plain list against
+  that state - case-insensitive strings, nils always last, numeric and
+  date coercion from string params - so registry examples and the
+  playground get a working table with zero setup. The `<.data_table>`
+  component builds on this next.
+
 #### Fixed
 
 - **`combo_box` multiple: the highlight stays on the item just picked.**
