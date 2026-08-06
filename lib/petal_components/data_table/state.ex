@@ -138,7 +138,7 @@ defmodule PetalComponents.DataTable.State do
   def total_pages(%__MODULE__{total: nil}), do: nil
 
   def total_pages(%__MODULE__{total: total, page_size: size}),
-    do: max(ceil(total / size), 1)
+    do: max(ceil(total / max(size, 1)), 1)
 
   # -- parsing ---------------------------------------------------------------
 

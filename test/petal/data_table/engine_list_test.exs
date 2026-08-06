@@ -25,6 +25,17 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert state.total == 5
     end
 
+    test "hand-built states with page 0 or size 0 clamp instead of slicing from the end" do
+      {rows, state} = run(page: 0, page_size: 10)
+      assert Enum.map(rows, & &1.id) == [1, 2, 3, 4, 5]
+      assert state.page == 1
+
+      {rows, state} = run(page: 1, page_size: 0)
+      assert length(rows) == 1
+      assert state.page_size == 1
+      assert State.total_pages(%State{total: 74, page_size: 0}) == 74
+    end
+
     test "a page past the end is empty, not an error" do
       {rows, _} = run(page: 9, page_size: 10)
       assert rows == []
@@ -118,6 +129,23 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
                [1, 4]
 
       assert ids(run(filters: [%{field: :joined, op: :before, value: "not-a-date"}])) == []
+    end
+
+    test "composite ROW field values (maps, lists, tuples in cells) never match and never raise" do
+      rows = [
+        %{id: 1, tags: %{a: 1}},
+        %{id: 2, tags: [1, 2]},
+        %{id: 3, tags: {:t, 1}},
+        %{id: 4, tags: "real"}
+      ]
+
+      state = struct!(State, filters: [%{field: :tags, op: :contains, value: "real"}])
+      {out, _} = Engine.run(rows, state)
+      assert Enum.map(out, & &1.id) == [4]
+
+      state = struct!(State, filters: [%{field: :tags, op: :in, value: ["real"]}])
+      {out, _} = Engine.run(rows, state)
+      assert Enum.map(out, & &1.id) == [4]
     end
 
     test "nil field values never match" do

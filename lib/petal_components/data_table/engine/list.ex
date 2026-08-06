@@ -26,17 +26,29 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   alias PetalComponents.DataTable.State
 
+  # The only shapes text matching can safely coerce - anything else
+  # (a map, a list, a tuple living in a row cell) is a no-match, never
+  # a to_string crash. Guards both sides: row field values AND filter
+  # values, which arrive raw from params.
+  defguardp is_scalar(v) when is_binary(v) or is_number(v) or is_atom(v)
+
   @doc "Runs the full pipeline: filter -> sort -> count -> paginate."
   def run(rows, %State{} = state) when is_list(rows) do
+    # from_params clamps, but hand-built structs can carry page 0 or a
+    # non-positive size - a negative slice offset would silently take
+    # rows from the END of the list, so clamp here too
+    page = max(state.page, 1)
+    page_size = max(state.page_size, 1)
+
     filtered = Enum.reduce(state.filters, rows, &apply_filter(&2, &1))
     total = length(filtered)
 
     page_rows =
       filtered
       |> sort(state.order_by)
-      |> Enum.slice((state.page - 1) * state.page_size, state.page_size)
+      |> Enum.slice((page - 1) * page_size, page_size)
 
-    {page_rows, %{state | total: total}}
+    {page_rows, %{state | page: page, page_size: page_size, total: total}}
   end
 
   # -- sorting ---------------------------------------------------------------
@@ -107,10 +119,10 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp matches?(nil, _op, _value), do: false
 
-  defp matches?(field_value, :contains, value),
+  defp matches?(field_value, :contains, value) when is_scalar(field_value),
     do: with_text(value, &String.contains?(downcase(field_value), &1))
 
-  defp matches?(field_value, :starts_with, value),
+  defp matches?(field_value, :starts_with, value) when is_scalar(field_value),
     do: with_text(value, &String.starts_with?(downcase(field_value), &1))
 
   defp matches?(field_value, :eq, value) when is_binary(field_value),
@@ -157,14 +169,10 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp matches?(_field_value, _op, _value), do: false
 
-  defp values_equal?(a, b) when is_binary(a),
+  defp values_equal?(a, b) when is_scalar(a),
     do: with_text(b, &(downcase(a) == &1))
 
-  defp values_equal?(a, b) when is_atom(a),
-    do: with_text(b, &(String.downcase(Atom.to_string(a)) == &1))
-
-  defp values_equal?(a, b),
-    do: with_text(b, &(String.downcase(to_string(a)) == &1))
+  defp values_equal?(_a, _b), do: false
 
   # -- coercion --------------------------------------------------------------
 
