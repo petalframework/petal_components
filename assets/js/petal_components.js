@@ -3599,18 +3599,17 @@ export const PetalComboBox = {
     this.onControlPointerDown = (e) => {
       if (this.input.disabled) return;
       const chrome = e.target !== this.input;
-      this.pressVerdicts.set(e.pointerId, chrome);
+      this.pressVerdicts.set(e.pointerId, { chrome, at: performance.now() });
       if (chrome) e.preventDefault();
     };
     // Abandoned records must not linger to poison a later synthetic
-    // caret click: a cancel or an off-control release deletes at once;
-    // an on-control release leaves the record for the click that
-    // follows in the same event burst, then sweeps it.
+    // caret click: a cancel or an off-control release deletes at once.
+    // An on-control release leaves the record for its click - which iOS
+    // Safari may synthesize LATER than any queued task, so there is no
+    // timer sweep; leftovers age out at click time instead (see below).
     this.onPressSettle = (e) => {
       if (e.type === "pointercancel" || !this.control?.contains(e.target)) {
         this.pressVerdicts.delete(e.pointerId);
-      } else {
-        setTimeout(() => this.pressVerdicts.delete(e.pointerId), 0);
       }
     };
     this.onControlClick = (e) => {
@@ -3621,12 +3620,20 @@ export const PetalComboBox = {
       // verdicts (synthetic - tests, assistive tech) falls back to its
       // own target, and genuine multi-pointer ambiguity degrades to
       // caret-safe (never close on a guess)
+      // verdicts older than a second are leftovers from presses whose
+      // click never arrived - drop them before deciding (timer-free, so
+      // no race with Safari's late click synthesis)
+      const now = performance.now();
+      for (const [id, v] of this.pressVerdicts) {
+        if (now - v.at > 1000) this.pressVerdicts.delete(id);
+      }
+
       let chrome;
       if (this.pressVerdicts.has(e.pointerId)) {
-        chrome = this.pressVerdicts.get(e.pointerId);
+        chrome = this.pressVerdicts.get(e.pointerId).chrome;
         this.pressVerdicts.delete(e.pointerId);
       } else if (this.pressVerdicts.size === 1) {
-        chrome = this.pressVerdicts.values().next().value;
+        chrome = this.pressVerdicts.values().next().value.chrome;
         this.pressVerdicts.clear();
       } else if (this.pressVerdicts.size === 0) {
         chrome = e.target !== this.input;
@@ -3650,8 +3657,11 @@ export const PetalComboBox = {
       }
       if (this.panel.hidden) {
         // a deliberate chrome close wins its own gesture: trailing
-        // clicks from OTHER fingers of the same burst must not reopen
-        if (this.suppressOpen) return;
+        // clicks from OTHER fingers of the same burst must not reopen.
+        // Timestamp-gated (not a timer) so Safari's late-synthesized
+        // clicks are covered too; 350ms comfortably outlasts a burst
+        // and is shorter than any deliberate follow-up interaction.
+        if (now - this.suppressOpenAt < 350) return;
         this.openPanel();
         this.input.focus();
       } else if (chrome) {
@@ -3659,8 +3669,7 @@ export const PetalComboBox = {
         // is caret work - closing would discard the active query
         this.closePanel();
         this.input.focus();
-        this.suppressOpen = true;
-        setTimeout(() => (this.suppressOpen = false), 0);
+        this.suppressOpenAt = now;
       }
     };
     this.onFocusOut = (e) => {
@@ -3733,7 +3742,7 @@ export const PetalComboBox = {
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
     this.pressVerdicts = new Map();
-    this.suppressOpen = false;
+    this.suppressOpenAt = -Infinity;
     if (this.control) {
       this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);

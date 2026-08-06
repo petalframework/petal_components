@@ -8,7 +8,7 @@
 // the boundary cycle, selection through the hidden select, and the
 // keystroke containment that keeps typing out of enclosing phx-change
 // forms.
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import hooks from "../../assets/js/petal_components.js";
 
@@ -260,7 +260,8 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(true);
   });
 
-  it("a trailing click from the same gesture never reopens a deliberate chrome close", async () => {
+  it("a trailing click from the same gesture never reopens a deliberate chrome close", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(10_000);
     const c = mountCombo({ options: CITIES });
     c.control.click();
     expect(c.panel.hidden).toBe(false);
@@ -273,13 +274,52 @@ describe("open and close", () => {
     // finger 2's trailing click (same burst) must not reopen
     c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 2 }));
     expect(c.panel.hidden).toBe(true);
-    // after the burst settles, a fresh click opens as normal
-    await new Promise((r) => setTimeout(r, 0));
+    // once the burst window passes, a fresh click opens as normal
+    clock.mockReturnValue(10_400);
     c.control.dispatchEvent(
       pointerEvent("pointerdown", "touch", { pointerId: 3 }),
     );
     c.control.dispatchEvent(pointerEvent("click", "touch", { pointerId: 3 }));
     expect(c.panel.hidden).toBe(false);
+    clock.mockRestore();
+  });
+
+  it("Safari's late-synthesized click still finds its verdict - no timer race", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(20_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    // chevron press releases ON the control; the click arrives later
+    // than every queued task (iOS synthesis delay)
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    clock.mockReturnValue(20_400);
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+    clock.mockRestore();
+  });
+
+  it("a leftover verdict older than a second cannot poison a synthetic caret click", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(30_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // chevron press whose click never arrives (released on-control)
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    // much later, a synthetic caret click (assistive tech)
+    clock.mockReturnValue(31_500);
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+    clock.mockRestore();
   });
 
   it("a cancelled chrome press clears the same way", () => {
