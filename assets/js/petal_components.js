@@ -3595,6 +3595,14 @@ export const PetalComboBox = {
     // REOPEN it (the flash). Same pattern onPanelPointerDown proves.
     this.onControlPointerDown = (e) => {
       if (this.input.disabled) return;
+      this.controlPointers.add(e.pointerId);
+      // a second concurrent finger is a gesture (pinch, two-finger
+      // fidget), not a toggle - disarm so one pointer's click can never
+      // consume another pointer's chrome-vs-caret verdict
+      if (this.controlPointers.size > 1) {
+        this.pressOnChrome = null;
+        return;
+      }
       this.pressOnChrome = e.target !== this.input;
       if (this.pressOnChrome) e.preventDefault();
     };
@@ -3603,6 +3611,7 @@ export const PetalComboBox = {
     // consume the record, and a stale "chrome" verdict would make a
     // later synthetic caret click close the panel and discard the query.
     this.onPressSettle = (e) => {
+      this.controlPointers.delete(e.pointerId);
       if (e.type === "pointercancel" || !this.control?.contains(e.target)) {
         this.pressOnChrome = null;
       }
@@ -3707,6 +3716,7 @@ export const PetalComboBox = {
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
     this.pressOnChrome = null;
+    this.controlPointers = new Set();
     if (this.control) {
       this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);

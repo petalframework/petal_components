@@ -212,6 +212,35 @@ describe("open and close", () => {
     expect(c.input.value).toBe("syd");
   });
 
+  it("interleaved pointers disarm - one finger's click never consumes another's verdict", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // finger 1 rests on the input (caret), finger 2 presses the chevron
+    c.input.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 2 }),
+    );
+    // finger 1's click must NOT consume finger 2's chrome verdict
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+    // both released; a normal single chevron press still toggles
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 2 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 3 }),
+    );
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
   it("a cancelled chrome press clears the same way", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
