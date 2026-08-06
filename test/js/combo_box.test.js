@@ -176,6 +176,45 @@ describe("open and close", () => {
     expect(c.input.value).toBe("syd");
   });
 
+  it("a tap in the chevron's box closes even when iOS snaps the target onto the input", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.panel.hidden).toBe(false);
+    // iOS Safari's tap-target correction reassigns a chevron tap to the
+    // nearby text field - target says input, coordinates say chevron
+    c.hook.chevron.getBoundingClientRect = () => ({
+      left: 300,
+      right: 320,
+      top: 10,
+      bottom: 30,
+      width: 20,
+      height: 20,
+    });
+    c.input.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, clientX: 310, clientY: 20 }),
+    );
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a genuine input click away from the chevron box is still caret work", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    c.hook.chevron.getBoundingClientRect = () => ({
+      left: 300,
+      right: 320,
+      top: 10,
+      bottom: 30,
+      width: 20,
+      height: 20,
+    });
+    c.input.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, clientX: 80, clientY: 20 }),
+    );
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+  });
+
   it("a click on control chrome (the chevron) toggles closed", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();

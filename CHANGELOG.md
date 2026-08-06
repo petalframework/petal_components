@@ -29,6 +29,18 @@
 
 #### Fixed
 
+- **`combo_box`: a chevron tap on iOS now closes the open panel.** It
+  always did on desktop, but the chevron is `pointer-events-none` by
+  icon doctrine and iOS Safari's tap-target correction snaps taps near
+  a text field onto the field - so a deliberate chevron tap arrived as
+  "caret work on the input" and the panel stayed open. The toggle check
+  is now geometric: a click whose coordinates land in the chevron's box
+  (inflated for thumbs) closes the panel no matter what the browser
+  reassigned the target to. Genuine input clicks away from the chevron
+  are still caret work and never discard the query.
+
+#### Fixed
+
 - **`combo_box` multiple: the highlight stays on the item just picked.**
   Choosing used to reset the filter and re-home the highlight on the
   first option - a disorienting jump when picking from the middle of the

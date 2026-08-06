@@ -3545,6 +3545,7 @@ export const PetalComboBox = {
     this.select = this.el.querySelector(".pc-combo-box__select");
     this.input = this.el.querySelector(".pc-combo-box__input");
     this.control = this.el.querySelector(".pc-combo-box__control");
+    this.chevron = this.el.querySelector(".pc-combo-box__chevron");
     this.trigger = this.el.querySelector("[data-pc-combo-trigger]");
     this.triggerLabel = this.el.querySelector("[data-pc-combo-trigger-label]");
     this.panel = this.el.querySelector("[data-pc-combo-panel]");
@@ -3604,9 +3605,14 @@ export const PetalComboBox = {
       if (this.panel.hidden) {
         this.openPanel();
         this.input.focus();
-      } else if (e.target !== this.input) {
+      } else if (e.target !== this.input || this.inChevronBox(e)) {
         // chevron / control chrome toggles; a click on the input itself is
-        // caret work - closing here would discard the active query
+        // caret work - closing here would discard the active query. The
+        // chevron check is geometric, not target-based: the icon is
+        // pointer-events-none by doctrine, and iOS Safari's tap-target
+        // correction snaps taps near a text field ONTO the field - so a
+        // deliberate chevron tap can arrive with target === input. Where
+        // the finger landed outranks where Safari says it landed.
         this.closePanel();
         this.input.focus();
       }
@@ -3749,6 +3755,22 @@ export const PetalComboBox = {
     for (const ch of text)
       if (ch === query[qi] && ++qi === query.length) return 1;
     return 0;
+  },
+
+  // True when the click's coordinates fall inside the decorative chevron's
+  // box (inflated for thumbs). Guarded on a real layout - jsdom and
+  // display:none boxes are zero-width and must never match.
+  inChevronBox(e) {
+    if (!this.chevron || e.clientX == null) return false;
+    const r = this.chevron.getBoundingClientRect();
+    if (r.width === 0) return false;
+    const pad = 8;
+    return (
+      e.clientX >= r.left - pad &&
+      e.clientX <= r.right + pad &&
+      e.clientY >= r.top - pad &&
+      e.clientY <= r.bottom + pad
+    );
   },
 
   openPanel({ keepQuery = false } = {}) {
