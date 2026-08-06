@@ -744,7 +744,7 @@ defmodule Dev.PlaygroundLive do
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
-       combo: %{disabled: false, loop: false, chosen: nil},
+       combo: %{disabled: false, chosen: nil},
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1425,7 +1425,7 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
-  def handle_event("ctl_combo", %{"k" => k}, socket) when k in ~w(disabled loop),
+  def handle_event("ctl_combo", %{"k" => k}, socket) when k in ~w(disabled),
     do:
       {:noreply,
        update(socket, :combo, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
@@ -7274,7 +7274,6 @@ defmodule Dev.PlaygroundLive do
               placeholder="Search cities…"
               value={@combo.chosen}
               disabled={@combo.disabled}
-              loop={@combo.loop}
               options={[
                 {"Oceania",
                  [
