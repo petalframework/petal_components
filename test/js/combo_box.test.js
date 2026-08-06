@@ -260,6 +260,28 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(true);
   });
 
+  it("a trailing click from the same gesture never reopens a deliberate chrome close", async () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.panel.hidden).toBe(false);
+    // finger 1 presses and clicks the chevron - deliberate close
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+    // finger 2's trailing click (same burst) must not reopen
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 2 }));
+    expect(c.panel.hidden).toBe(true);
+    // after the burst settles, a fresh click opens as normal
+    await new Promise((r) => setTimeout(r, 0));
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 3 }),
+    );
+    c.control.dispatchEvent(pointerEvent("click", "touch", { pointerId: 3 }));
+    expect(c.panel.hidden).toBe(false);
+  });
+
   it("a cancelled chrome press clears the same way", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();

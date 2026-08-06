@@ -3649,6 +3649,9 @@ export const PetalComboBox = {
         return;
       }
       if (this.panel.hidden) {
+        // a deliberate chrome close wins its own gesture: trailing
+        // clicks from OTHER fingers of the same burst must not reopen
+        if (this.suppressOpen) return;
         this.openPanel();
         this.input.focus();
       } else if (chrome) {
@@ -3656,6 +3659,8 @@ export const PetalComboBox = {
         // is caret work - closing would discard the active query
         this.closePanel();
         this.input.focus();
+        this.suppressOpen = true;
+        setTimeout(() => (this.suppressOpen = false), 0);
       }
     };
     this.onFocusOut = (e) => {
@@ -3728,6 +3733,7 @@ export const PetalComboBox = {
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
     this.pressVerdicts = new Map();
+    this.suppressOpen = false;
     if (this.control) {
       this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);
