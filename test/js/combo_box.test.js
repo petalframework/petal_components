@@ -229,6 +229,76 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(false);
   });
 
+  it("a second finger disarms - multi-touch is a gesture, not a press", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 60,
+        clientY: 10,
+        pointerId: 2,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 60,
+        clientY: 10,
+        pointerId: 2,
+      }),
+    );
+    expect(c.panel.hidden).toBe(false);
+    // a clean single-finger tap afterwards still closes
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 3,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 3,
+      }),
+    );
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a pointerup from a different pointer never completes another pointer's press", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 9,
+      }),
+    );
+    expect(c.panel.hidden).toBe(false);
+  });
+
   it("a press that starts inside the combobox and releases outside does not dismiss", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();

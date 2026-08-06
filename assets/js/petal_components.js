@@ -3643,20 +3643,33 @@ export const PetalComboBox = {
     // the decision waits for pointerup - a scroll ends in pointercancel
     // (or a far-away pointerup on pages that cannot scroll), a tap ends
     // in a pointerup where it started.
+    // The press record is scoped to its pointerId: only the arming
+    // finger's release can complete the dismiss, and a second finger
+    // landing mid-press disarms it - multi-touch is a gesture (pinch,
+    // two-finger scroll), never a deliberate dismiss tap.
     this.onOutsidePointerDown = (e) => {
+      this.activePointers.add(e.pointerId);
+      if (this.activePointers.size > 1) {
+        this.outsidePress = null;
+        return;
+      }
       this.outsidePress = this.el.contains(e.target)
         ? null
-        : { x: e.clientX, y: e.clientY };
+        : { id: e.pointerId, x: e.clientX, y: e.clientY };
     };
     this.onOutsidePointerUp = (e) => {
+      this.activePointers.delete(e.pointerId);
       const press = this.outsidePress;
+      if (!press || e.pointerId !== press.id) return;
       this.outsidePress = null;
-      if (!press) return;
       if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) return;
       if (!this.el.contains(e.target)) this.closePanel();
     };
-    this.onOutsidePointerCancel = () => {
-      this.outsidePress = null;
+    this.onOutsidePointerCancel = (e) => {
+      this.activePointers.delete(e.pointerId);
+      if (this.outsidePress && e.pointerId === this.outsidePress.id) {
+        this.outsidePress = null;
+      }
     };
     // form.reset() resets the select; nothing else would re-sync the chrome
     this.onFormReset = () => setTimeout(() => this.syncFromSelect(), 0);
@@ -3744,6 +3757,7 @@ export const PetalComboBox = {
     this.input.setAttribute("aria-expanded", "true");
     if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
     this.outsidePress = null;
+    this.activePointers = new Set();
     document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
     document.addEventListener("pointerup", this.onOutsidePointerUp, true);
     document.addEventListener(
