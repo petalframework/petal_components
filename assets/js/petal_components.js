@@ -3598,6 +3598,15 @@ export const PetalComboBox = {
       this.pressOnChrome = e.target !== this.input;
       if (this.pressOnChrome) e.preventDefault();
     };
+    // An abandoned press must not linger: a chevron press released off
+    // the control (or cancelled) never produces a control click to
+    // consume the record, and a stale "chrome" verdict would make a
+    // later synthetic caret click close the panel and discard the query.
+    this.onPressSettle = (e) => {
+      if (e.type === "pointercancel" || !this.control?.contains(e.target)) {
+        this.pressOnChrome = null;
+      }
+    };
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
       // fall back to the click's own target when no pointerdown preceded
@@ -3701,6 +3710,10 @@ export const PetalComboBox = {
     if (this.control) {
       this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);
+      // click fires between pointerup and any queued task, so consuming
+      // in onControlClick wins the race; these only catch abandonment
+      document.addEventListener("pointerup", this.onPressSettle);
+      document.addEventListener("pointercancel", this.onPressSettle);
     }
     if (this.trigger) {
       this.trigger.addEventListener("click", this.onTriggerClick);
@@ -3731,6 +3744,8 @@ export const PetalComboBox = {
         this.onControlPointerDown,
       );
       this.control.removeEventListener("click", this.onControlClick);
+      document.removeEventListener("pointerup", this.onPressSettle);
+      document.removeEventListener("pointercancel", this.onPressSettle);
     }
     if (this.trigger) {
       this.trigger.removeEventListener("click", this.onTriggerClick);

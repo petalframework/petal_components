@@ -198,6 +198,29 @@ describe("open and close", () => {
     expect(c.input.value).toBe("syd");
   });
 
+  it("an abandoned chrome press never poisons a later caret click", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // press the chevron but release outside the control - no control
+    // click ever fires to consume the record
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    document.body.dispatchEvent(pointerEvent("pointerup", "touch"));
+    // a later synthetic caret click (assistive tech) must stay caret work
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+  });
+
+  it("a cancelled chrome press clears the same way", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    document.body.dispatchEvent(pointerEvent("pointercancel", "touch"));
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+  });
+
   it("chrome pointerdowns are preventDefaulted so the input never blurs mid-press (the desktop flash)", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
