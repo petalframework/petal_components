@@ -3549,16 +3549,21 @@ export const PetalComboBox = {
     }
   },
 
+  // Arrow keys wrap through an empty stop (shadcn/Base UI behavior): Down
+  // from the last item clears the highlight, Down again starts from the
+  // top. The empty state is the input itself taking a turn in the cycle -
+  // in free-text mode Enter there means "use what I typed, not an option" -
+  // and it reads as a felt boundary instead of a disorienting teleport.
   move(delta) {
     const items = this.visibleItems();
     if (!items.length) return;
-    const loop = this.el.dataset.loop === "true";
     const at = items.indexOf(this.highlightedItem());
-    let next = at + delta;
-    if (at === -1) next = delta > 0 ? 0 : items.length - 1;
-    else if (loop) next = (next + items.length) % items.length;
-    else next = Math.max(0, Math.min(next, items.length - 1));
-    this.highlight(items[next]);
+    if (at === -1) {
+      this.highlight(delta > 0 ? items[0] : items[items.length - 1]);
+      return;
+    }
+    const next = at + delta;
+    this.highlight(next < 0 || next >= items.length ? null : items[next]);
   },
 
   keydown(e) {

@@ -55,10 +55,6 @@ defmodule PetalComponents.ComboBox do
   attr :placeholder, :string, default: "Select an option…"
   attr :disabled, :boolean, default: false
 
-  attr :loop, :boolean,
-    default: false,
-    doc: "arrow keys wrap from the last option to the first and back"
-
   attr :required, :boolean,
     default: false,
     doc: "renders on the hidden select, so native required validation guards the real control"
@@ -90,7 +86,6 @@ defmodule PetalComponents.ComboBox do
       id={@id}
       class={["pc-combo-box", @class]}
       phx-hook="PetalComboBox"
-      data-loop={@loop && "true"}
       {@rest}
     >
       <select

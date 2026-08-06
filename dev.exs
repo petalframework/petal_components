@@ -7306,11 +7306,10 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="State"
-              value={for {k, on} <- [{"disabled", @combo.disabled}, {"loop", @combo.loop}], on, do: k}
+              value={for {k, on} <- [{"disabled", @combo.disabled}], on, do: k}
               on_change="ctl_combo"
             >
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
-              <:item value="loop" phx-value-k="loop">loop</:item>
             </.toggle_group>
           </div>
         </div>
