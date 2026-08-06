@@ -227,6 +227,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
+        %{slug: "combo-box", name: "Combo box", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
@@ -743,6 +744,7 @@ defmodule Dev.PlaygroundLive do
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
+       combo: %{disabled: false, loop: false, chosen: nil},
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1422,6 +1424,16 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :select, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_combo", %{"k" => k}, socket) when k in ~w(disabled loop),
+    do:
+      {:noreply,
+       update(socket, :combo, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # the hidden select posts like any select - this is the whole point of the
+  # component, so the page proves it live
+  def handle_event("pg_combo_change", %{"pg_city" => value}, socket),
+    do: {:noreply, update(socket, :combo, &%{&1 | chosen: value})}
 
   def handle_event("ctl_checkbox", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
     do: {:noreply, update(socket, :checkbox, &%{&1 | layout: v})}
@@ -7229,6 +7241,97 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Field</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "combo-box"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Combo box</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A searchable select: type to filter, arrow keys to move, Enter to choose.
+        The visible input is chrome - a hidden native select carries the value,
+        so it posts and recovers like any other form control.
+      </p>
+
+      <h2 class="mt-8 mb-2 text-lg font-semibold">Try it</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        This one is wired to a real form with phx-change. Choose a city and the
+        server receives it immediately - no hook messages, no client state, just
+        the select underneath doing what selects do.
+      </p>
+
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <form phx-change="pg_combo_change" class="w-full max-w-sm">
+            <.combo_box
+              id="pg-combo"
+              name="pg_city"
+              placeholder="Search cities…"
+              value={@combo.chosen}
+              disabled={@combo.disabled}
+              loop={@combo.loop}
+              options={[
+                {"Oceania",
+                 [
+                   {"Sydney", "syd"},
+                   {"Melbourne", "mel"},
+                   {"Auckland", "akl"},
+                   {"Perth", "per", disabled: true}
+                 ]},
+                {"Europe",
+                 [{"Lisbon", "lis"}, {"Stockholm", "sto"}, {"Berlin", "ber"}, {"Porto", "opo"}]},
+                {"Asia", [{"Tokyo", "tyo"}, {"Singapore", "sin"}, {"Seoul", "sel"}]}
+              ]}
+            />
+          </form>
+        </div>
+
+        <div class="px-4 py-3 text-sm border-t border-gray-200 sm:px-6 dark:border-gray-800">
+          <span class="text-gray-400">the server has:</span>
+          <code class="ml-1 font-mono text-gray-900 dark:text-gray-100">
+            {if @combo.chosen in [nil, ""], do: "nothing yet", else: @combo.chosen}
+          </code>
+        </div>
+
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={for {k, on} <- [{"disabled", @combo.disabled}, {"loop", @combo.loop}], on, do: k}
+              on_change="ctl_combo"
+            >
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+              <:item value="loop" phx-value-k="loop">loop</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.ComboBox, ~w(basic preselected groups)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ComboBox} function={:combo_box} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ComboBox</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
