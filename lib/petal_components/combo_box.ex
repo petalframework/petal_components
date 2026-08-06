@@ -176,41 +176,43 @@ defmodule PetalComponents.ComboBox do
       </select>
 
       <div class="pc-combo-box__control">
-        <div
-          :if={@multiple}
-          class="pc-combo-box__chips"
-          data-pc-combo-chips
-          data-remove-label={@remove_label}
-        >
-          <span :for={opt <- @selected_options} class="pc-combo-box__chip" data-pc-combo-chip>
-            <span class="pc-combo-box__chip-label">{opt.label}</span>
-            <button
-              type="button"
-              class="pc-combo-box__chip-remove"
-              data-pc-combo-chip-remove
-              data-value={opt.value}
-              aria-label={"#{@remove_label} #{opt.label}"}
-              tabindex="-1"
-            >
-              <.icon name="hero-x-mark-mini" class="pc-combo-box__chip-remove-icon" />
-            </button>
-          </span>
+        <div class="pc-combo-box__content">
+          <div
+            :if={@multiple}
+            class="pc-combo-box__chips"
+            data-pc-combo-chips
+            data-remove-label={@remove_label}
+          >
+            <span :for={opt <- @selected_options} class="pc-combo-box__chip" data-pc-combo-chip>
+              <span class="pc-combo-box__chip-label">{opt.label}</span>
+              <button
+                type="button"
+                class="pc-combo-box__chip-remove"
+                data-pc-combo-chip-remove
+                data-value={opt.value}
+                aria-label={"#{@remove_label} #{opt.label}"}
+                tabindex="-1"
+              >
+                <.icon name="hero-x-mark-mini" class="pc-combo-box__chip-remove-icon" />
+              </button>
+            </span>
+          </div>
+          <input
+            type="text"
+            id={"#{@id}-input"}
+            class="pc-combo-box__input"
+            role="combobox"
+            aria-expanded="false"
+            aria-autocomplete="list"
+            aria-controls={"#{@id}-listbox"}
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder={if @multiple && @current_values != [], do: nil, else: @placeholder}
+            value={@selected_label}
+            disabled={@disabled}
+          />
         </div>
-        <input
-          type="text"
-          id={"#{@id}-input"}
-          class="pc-combo-box__input"
-          role="combobox"
-          aria-expanded="false"
-          aria-autocomplete="list"
-          aria-controls={"#{@id}-listbox"}
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-          placeholder={if @multiple && @current_values != [], do: nil, else: @placeholder}
-          value={@selected_label}
-          disabled={@disabled}
-        />
         <button
           :if={@clearable && !@multiple}
           type="button"

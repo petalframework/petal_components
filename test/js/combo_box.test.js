@@ -59,10 +59,12 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
       ${selectOptions}
     </select>
     <div class="pc-combo-box__control">
-      ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
-      <input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
-        aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
-        autocomplete="off" placeholder="Pick..." />
+      <div class="pc-combo-box__content">
+        ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
+        <input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
+          aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
+          autocomplete="off" placeholder="Pick..." />
+      </div>
       ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
       <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
     </div>

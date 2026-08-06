@@ -2208,13 +2208,22 @@
   .pc-combo-box__empty {
     @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
   }
-  /* multiple: the control becomes a wrapping chip row; the input shares the
-     line and keeps a typing floor */
+  /* The content area owns the wrapping (chips + input); the control row
+     never wraps, so the trailing rail - clear button, chevron - stays
+     pinned as chrome no matter how many lines the chips take. This is the
+     icon-anatomy doctrine applied: containers own layout, icons only own
+     their box. */
+  .pc-combo-box__content {
+    @apply flex min-w-0 flex-1 flex-wrap items-center;
+  }
   .pc-combo-box__control:has([data-pc-combo-chips]) {
-    @apply flex-wrap gap-y-1 py-1;
+    @apply py-1;
+  }
+  .pc-combo-box__control:has([data-pc-combo-chips]) .pc-combo-box__content {
+    @apply gap-y-1;
   }
   .pc-combo-box__control:has([data-pc-combo-chips]) .pc-combo-box__input {
-    @apply flex-1 min-w-24 py-1;
+    @apply w-auto flex-1 min-w-24 py-1;
   }
   .pc-combo-box__chips {
     @apply flex flex-wrap items-center gap-1 pl-1.5 max-w-full;
