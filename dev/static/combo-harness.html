@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combo box keyboard harness</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <style>
+      body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; padding: 40px; }
+      form { max-width: 22rem; display: flex; flex-direction: column; gap: 14px; }
+      #status { margin-top: 20px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #6b7280; white-space: pre-line; }
+    </style>
+  </head>
+  <body>
+    <h1 class="text-xl font-bold mb-4">Keyboard harness</h1>
+
+    <form id="the-form">
+      <input id="before" type="text" placeholder="Field before" class="pc-text-input" />
+
+      <div id="combo" class="pc-combo-box" data-loop="false">
+        <select id="combo-select" name="city" class="pc-combo-box__select" tabindex="-1" aria-hidden="true">
+          <option value=""></option>
+          <option value="syd">Sydney</option>
+          <option value="tyo">Tokyo</option>
+          <option value="lis">Lisbon</option>
+          <option value="sto">Stockholm</option>
+        </select>
+        <div class="pc-combo-box__control">
+          <input type="text" id="combo-input" class="pc-combo-box__input" role="combobox"
+            aria-expanded="false" aria-autocomplete="list" aria-controls="combo-listbox"
+            autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Pick a city…" />
+          <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+        </div>
+        <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+          <div role="listbox" id="combo-listbox" class="pc-combo-box__list" aria-label="Cities">
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="syd" data-label="Sydney" aria-selected="false"><span class="pc-combo-box__option-label">Sydney</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="tyo" data-label="Tokyo" aria-selected="false"><span class="pc-combo-box__option-label">Tokyo</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="lis" data-label="Lisbon" aria-selected="false"><span class="pc-combo-box__option-label">Lisbon</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="sto" data-label="Stockholm" aria-selected="false"><span class="pc-combo-box__option-label">Stockholm</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+          </div>
+        </div>
+      </div>
+
+      <input id="after" type="text" placeholder="Field after" class="pc-text-input" />
+      <button id="submit-btn" type="submit" class="pc-button pc-button--md pc-button--primary">Submit</button>
+    </form>
+
+    <button id="open-dialog" class="pc-button pc-button--md pc-button--outline mt-6">Open dialog with combobox</button>
+
+    <dialog id="the-dialog" class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 dark:bg-gray-900 backdrop:bg-black/50">
+      <p class="mb-3 text-sm font-medium">Combobox inside a native dialog. Esc once = close panel. Esc again = close dialog.</p>
+      <div id="dcombo" class="pc-combo-box" data-loop="false" style="width: 18rem">
+        <select id="dcombo-select" name="dcity" class="pc-combo-box__select" tabindex="-1" aria-hidden="true">
+          <option value=""></option>
+          <option value="ber">Berlin</option>
+          <option value="opo">Porto</option>
+          <option value="sel">Seoul</option>
+        </select>
+        <div class="pc-combo-box__control">
+          <input type="text" id="dcombo-input" class="pc-combo-box__input" role="combobox"
+            aria-expanded="false" aria-autocomplete="list" aria-controls="dcombo-listbox"
+            autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Dialog city…" />
+          <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+        </div>
+        <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+          <div role="listbox" id="dcombo-listbox" class="pc-combo-box__list" aria-label="Dialog cities">
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="ber" data-label="Berlin" aria-selected="false"><span class="pc-combo-box__option-label">Berlin</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="opo" data-label="Porto" aria-selected="false"><span class="pc-combo-box__option-label">Porto</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="sel" data-label="Seoul" aria-selected="false"><span class="pc-combo-box__option-label">Seoul</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="status">status: booting…</div>
+
+    <script type="module">
+      import hooks from "/assets/js/petal_components.js";
+      const status = document.getElementById("status");
+      const log = [];
+      const say = (m) => { log.push(m); status.textContent = log.slice(-8).join("\n"); };
+
+      for (const root of document.querySelectorAll(".pc-combo-box")) {
+        const h = Object.create(hooks.PetalComboBox);
+        h.el = root;
+        h.mounted();
+      }
+
+      document.getElementById("the-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        say(`SUBMIT fired - city=${document.getElementById("combo-select").value || "(empty)"}`);
+      });
+      document.getElementById("combo-select").addEventListener("change", (e) => say(`form change: city=${e.target.value}`));
+      document.getElementById("dcombo-select").addEventListener("change", (e) => say(`dialog change: dcity=${e.target.value}`));
+      document.getElementById("open-dialog").addEventListener("click", () => {
+        document.getElementById("the-dialog").showModal();
+        document.getElementById("dcombo-input").focus();
+      });
+      document.getElementById("the-dialog").addEventListener("close", () => say("DIALOG closed"));
+      document.addEventListener("focusin", (e) => say(`focus -> ${e.target.id || e.target.tagName}`));
+      say("ready");
+    </script>
+  </body>
+</html>
