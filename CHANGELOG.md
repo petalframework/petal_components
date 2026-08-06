@@ -29,15 +29,18 @@
 
 #### Fixed
 
-- **`combo_box`: a chevron tap on iOS now closes the open panel.** It
-  always did on desktop, but the chevron is `pointer-events-none` by
-  icon doctrine and iOS Safari's tap-target correction snaps taps near
-  a text field onto the field - so a deliberate chevron tap arrived as
-  "caret work on the input" and the panel stayed open. The toggle check
-  is now geometric: a click whose coordinates land in the chevron's box
-  (inflated for thumbs) closes the panel no matter what the browser
-  reassigned the target to. Genuine input clicks away from the chevron
-  are still caret work and never discard the query.
+- **`combo_box`: chevron press reliably toggles the panel closed on
+  every platform.** Two interacting bugs: on desktop, pressing the
+  (non-focusable) chevron blurred the input, focusout closed the panel
+  mid-press, and the click then saw a closed panel and REOPENED it -
+  the toggle flashed instead of closing. On iOS no blur fires, but tap-
+  target correction rewrites the synthesized click's target and
+  coordinates onto the nearby text field, so the tap read as caret work
+  and nothing closed. Fix: chrome-vs-caret is decided at `pointerdown`
+  (which hit-tests the real touch point and is never rewritten), the
+  click consumes that record, and chrome presses are preventDefaulted
+  so the input never blurs mid-press. Input presses keep caret
+  behavior and never discard the active query.
 
 #### Fixed
 

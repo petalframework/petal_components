@@ -176,43 +176,40 @@ describe("open and close", () => {
     expect(c.input.value).toBe("syd");
   });
 
-  it("a tap in the chevron's box closes even when iOS snaps the target onto the input", () => {
+  it("a chevron tap closes even when iOS snaps the click onto the input", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
     expect(c.panel.hidden).toBe(false);
-    // iOS Safari's tap-target correction reassigns a chevron tap to the
-    // nearby text field - target says input, coordinates say chevron
-    c.hook.chevron.getBoundingClientRect = () => ({
-      left: 300,
-      right: 320,
-      top: 10,
-      bottom: 30,
-      width: 20,
-      height: 20,
-    });
-    c.input.dispatchEvent(
-      new MouseEvent("click", { bubbles: true, clientX: 310, clientY: 20 }),
-    );
+    // the pointerdown hit-tests the REAL touch point (control chrome);
+    // iOS tap-target correction then rewrites the synthesized click's
+    // target AND coordinates onto the nearby text field
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(c.panel.hidden).toBe(true);
   });
 
-  it("a genuine input click away from the chevron box is still caret work", () => {
+  it("an input press is caret work even if the click reports the control", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
     type(c.input, "syd");
-    c.hook.chevron.getBoundingClientRect = () => ({
-      left: 300,
-      right: 320,
-      top: 10,
-      bottom: 30,
-      width: 20,
-      height: 20,
-    });
-    c.input.dispatchEvent(
-      new MouseEvent("click", { bubbles: true, clientX: 80, clientY: 20 }),
-    );
+    c.input.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(c.panel.hidden).toBe(false);
     expect(c.input.value).toBe("syd");
+  });
+
+  it("chrome pointerdowns are preventDefaulted so the input never blurs mid-press (the desktop flash)", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    const onChrome = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.control.dispatchEvent(onChrome);
+    expect(onChrome.defaultPrevented).toBe(true);
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+    // ...but a press on the input itself keeps its default (caret, focus)
+    const onInput = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.input.dispatchEvent(onInput);
+    expect(onInput.defaultPrevented).toBe(false);
   });
 
   it("a click on control chrome (the chevron) toggles closed", () => {
