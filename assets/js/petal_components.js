@@ -3497,6 +3497,7 @@ export const PetalComboBox = {
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.panel.removeAttribute("data-flip");
+    this.list.style.maxHeight = "";
     this.input.setAttribute("aria-expanded", "false");
     this.highlight(null, false);
     this.query = "";
@@ -3505,18 +3506,27 @@ export const PetalComboBox = {
 
   // Open downward by default; flip above when the viewport has no room
   // below AND more room above (the bottom-of-form combobox that used to
-  // open 200px off-screen). Measured with the flip cleared so the panel's
-  // natural height decides, not its last position.
+  // open 200px off-screen). When NEITHER side fits the whole panel, the
+  // winning side's space caps the scroll area instead - the list scrolls
+  // within what fits, so no option ever sits outside the viewport.
+  // Measured with flip and cap cleared so natural height decides.
   positionPanel() {
     if (this.panel.hidden) return;
     this.panel.removeAttribute("data-flip");
+    this.list.style.maxHeight = "";
     const control = this.control.getBoundingClientRect();
     const panelH = this.panel.offsetHeight;
     if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
     const gap = 8;
-    const below = window.innerHeight - control.bottom;
-    const above = control.top;
-    if (below < panelH + gap && above > below) this.panel.setAttribute("data-flip", "");
+    const below = window.innerHeight - control.bottom - gap;
+    const above = control.top - gap;
+    const flip = panelH > below && above > below;
+    if (flip) this.panel.setAttribute("data-flip", "");
+    const room = flip ? above : below;
+    if (panelH > room) {
+      const chrome = panelH - this.list.offsetHeight;
+      this.list.style.maxHeight = `${Math.max(room - chrome, 40)}px`;
+    }
   },
 
   selectedValues() {

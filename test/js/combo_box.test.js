@@ -448,6 +448,35 @@ describe("panel flip", () => {
     expect(c.panel.hasAttribute("data-flip")).toBe(true);
   });
 
+  it("caps the scroll area when neither side fits, on the winning side", () => {
+    const c = mountCombo({ options: CITIES });
+    // viewport 300: above the control 172px, below 52px, panel wants 200px
+    withRects(c, { controlTop: 180, controlBottom: 220, panelHeight: 200, viewport: 300 });
+    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
+      configurable: true,
+      value: 190,
+    });
+    c.control.click();
+    expect(c.panel.hasAttribute("data-flip")).toBe(true);
+    // room above = 180-8=172, chrome = 200-190=10 -> cap 162
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("162px");
+  });
+
+  it("the cap clears when room returns", () => {
+    const c = mountCombo({ options: CITIES });
+    withRects(c, { controlTop: 180, controlBottom: 220, panelHeight: 200, viewport: 300 });
+    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
+      configurable: true,
+      value: 190,
+    });
+    c.control.click();
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).not.toBe("");
+    withRects(c, { controlTop: 100, controlBottom: 140, panelHeight: 200, viewport: 800 });
+    window.dispatchEvent(new Event("resize"));
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("");
+    expect(c.panel.hasAttribute("data-flip")).toBe(false);
+  });
+
   it("close clears the flip so the next open measures fresh", () => {
     const c = mountCombo({ options: CITIES });
     withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 200 });
