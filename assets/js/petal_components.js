@@ -3395,6 +3395,14 @@ export const PetalComboBox = {
     this.onFocusOut = (e) => {
       if (!this.el.contains(e.relatedTarget)) this.closePanel();
     };
+    // focusout covers Tab-away and desktop clicks (desktop blurs the input
+    // when you click static content), but iOS Safari deliberately keeps
+    // focus when tapping non-interactive content - no blur, no focusout, a
+    // panel that would not close. Outside-press detection is the standard
+    // answer; bound only while the panel is open.
+    this.onOutsidePointerDown = (e) => {
+      if (!this.el.contains(e.target)) this.closePanel();
+    };
 
     this.input.addEventListener("input", this.onInput);
     this.input.addEventListener("keydown", this.onKeydown);
@@ -3422,6 +3430,7 @@ export const PetalComboBox = {
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
     this.control.removeEventListener("click", this.onControlClick);
     this.el.removeEventListener("focusout", this.onFocusOut);
+    document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
   },
 
   items() {
@@ -3448,11 +3457,13 @@ export const PetalComboBox = {
     if (!this.panel.hidden) return;
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
+    document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
     if (!keepQuery) this.query = "";
     this.filter();
   },
 
   closePanel() {
+    document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.input.setAttribute("aria-expanded", "false");
