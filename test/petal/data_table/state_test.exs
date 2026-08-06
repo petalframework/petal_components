@@ -71,6 +71,16 @@ defmodule PetalComponents.DataTable.StateTest do
       assert state.page_size == 100
     end
 
+    test "misconfigured non-positive size options clamp to the contract" do
+      state = State.from_params(%{}, fields: @fields, page_size: 0)
+      assert state.page_size == 1
+
+      state =
+        State.from_params(%{"page_size" => "50"}, fields: @fields, max_page_size: -5)
+
+      assert state.page_size == 1
+    end
+
     test "garbage page values fall back to defaults" do
       state =
         State.from_params(%{"page" => "-2", "page_size" => "abc"},

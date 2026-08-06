@@ -72,8 +72,10 @@ defmodule PetalComponents.DataTable.State do
   def from_params(params, opts) when is_map(params) and is_list(opts) do
     fields = Keyword.fetch!(opts, :fields)
     field_strings = Map.new(fields, &{Atom.to_string(&1), &1})
-    default_size = Keyword.get(opts, :page_size, 10)
-    max_size = Keyword.get(opts, :max_page_size, 100)
+    # misconfigured options must not violate the struct contract either -
+    # a non-positive default or ceiling clamps to 1
+    default_size = opts |> Keyword.get(:page_size, 10) |> max(1)
+    max_size = opts |> Keyword.get(:max_page_size, 100) |> max(1)
 
     %__MODULE__{
       order_by: parse_order_by(params["order_by"], field_strings),
