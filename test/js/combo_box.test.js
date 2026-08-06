@@ -31,7 +31,7 @@ function optionHtml(opt) {
     </div>`;
 }
 
-function mountCombo({ id = "combo", options = [], groups = [] } = {}) {
+function mountCombo({ id = "combo", options = [], groups = [], multiple = false, maxItems = null, clearable = false } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map((o) => `<option value="${o.value}" ${o.disabled ? "disabled" : ""}>${o.label}</option>`)
     .join("");
@@ -52,15 +52,18 @@ function mountCombo({ id = "combo", options = [], groups = [] } = {}) {
   el.id = id;
   el.className = "pc-combo-box";
   el.setAttribute("phx-hook", "PetalComboBox");
+  if (maxItems) el.setAttribute("data-max-items", String(maxItems));
   el.innerHTML = `
-    <select id="${id}-select" name="city" class="pc-combo-box__select" tabindex="-1" aria-hidden="true">
-      <option value=""></option>
+    <select id="${id}-select" name="city${multiple ? "[]" : ""}" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert ${multiple ? "multiple" : ""}>
+      ${multiple ? "" : '<option value=""></option>'}
       ${selectOptions}
     </select>
     <div class="pc-combo-box__control">
+      ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
       <input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
         aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
         autocomplete="off" placeholder="Pick..." />
+      ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
       <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
     </div>
     <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
@@ -68,7 +71,8 @@ function mountCombo({ id = "combo", options = [], groups = [] } = {}) {
         ${listHtml}
         <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
       </div>
-    </div>`;
+    </div>
+    <div class="pc-combo-box__live" data-pc-combo-live data-results-label="results" data-no-results-text="No results found" aria-live="polite"></div>`;
   document.body.appendChild(el);
 
   const hook = Object.create(hooks.PetalComboBox);
@@ -88,6 +92,8 @@ function mountCombo({ id = "combo", options = [], groups = [] } = {}) {
     visible: () => [...el.querySelectorAll("[data-pc-combo-item]:not([hidden])")],
     highlighted: () => el.querySelector("[data-highlighted]"),
     empty: () => el.querySelector("[data-pc-combo-empty]"),
+    chips: () => [...el.querySelectorAll("[data-pc-combo-chip]")],
+    live: () => el.querySelector("[data-pc-combo-live]"),
   };
 }
 
@@ -275,6 +281,125 @@ describe("the boundary cycle", () => {
     expect(c.highlighted()).toBe(null);
     key(c.input, "ArrowUp");
     expect(c.highlighted()?.dataset.value).toBe("sto");
+  });
+});
+
+describe("multiple with chips", () => {
+  it("choosing toggles, keeps the panel open, clears the query, builds a chip", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    type(c.input, "syd");
+    key(c.input, "Enter");
+    expect(c.select.querySelector('option[value="syd"]').selected).toBe(true);
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("");
+    expect(c.chips()).toHaveLength(1);
+    expect(c.chips()[0].textContent).toContain("Sydney");
+  });
+
+  it("choosing a chosen option un-chooses it", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    c.items()[0].click();
+    expect(c.select.querySelector('option[value="syd"]').selected).toBe(false);
+    expect(c.chips()).toHaveLength(0);
+  });
+
+  it("the chip remove button unselects and dispatches through the select", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    expect(c.chips()).toHaveLength(2);
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(c.chips()).toHaveLength(1);
+    expect(c.select.querySelector('option[value="syd"]').selected).toBe(false);
+    expect(changes).toBe(3);
+  });
+
+  it("Backspace in an empty input removes the last chip", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    key(c.input, "Backspace");
+    expect(c.chips()).toHaveLength(1);
+    expect(c.chips()[0].textContent).toContain("Sydney");
+  });
+
+  it("Backspace with a query is just editing - chips survive", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    type(c.input, "to");
+    key(c.input, "Backspace");
+    expect(c.chips()).toHaveLength(1);
+  });
+
+  it("max_items blocks new choices and marks the root; removal unblocks", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    expect(c.el.hasAttribute("data-max-reached")).toBe(true);
+    c.items()[2].click();
+    expect(c.select.querySelector('option[value="lis"]').selected).toBe(false);
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(c.el.hasAttribute("data-max-reached")).toBe(false);
+    c.items()[2].click();
+    expect(c.select.querySelector('option[value="lis"]').selected).toBe(true);
+  });
+});
+
+describe("clearable", () => {
+  it("the clear button empties the select, dispatches, and clears the display", () => {
+    const c = mountCombo({ options: CITIES, clearable: true });
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    c.items()[1].click();
+    expect(c.input.value).toBe("Tokyo");
+    expect(c.el.hasAttribute("data-has-value")).toBe(true);
+    c.el.querySelector("[data-pc-combo-clear]").click();
+    expect(c.select.value).toBe("");
+    expect(c.input.value).toBe("");
+    expect(c.el.hasAttribute("data-has-value")).toBe(false);
+    expect(changes).toBe(2);
+  });
+});
+
+describe("hardening riders", () => {
+  it("form.reset() re-syncs chips and display from the select", () => {
+    const form = document.createElement("form");
+    document.body.appendChild(form);
+    const c = mountCombo({ options: CITIES });
+    form.appendChild(c.el);
+    // re-mount so the hook binds to the form it now lives in
+    c.hook.destroyed();
+    c.hook.mounted();
+    c.control.click();
+    c.items()[1].click();
+    expect(c.input.value).toBe("Tokyo");
+    form.reset();
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        expect(c.input.value).toBe("");
+        resolve();
+      }, 5)
+    );
+  });
+
+  it("the live region announces counts and the empty state", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.live().textContent).toBe("4 results");
+    type(c.input, "tok");
+    expect(c.live().textContent).toBe("2 results");
+    type(c.input, "zzz");
+    expect(c.live().textContent).toBe("No results found");
   });
 });
 

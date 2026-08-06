@@ -159,6 +159,93 @@ defmodule PetalComponents.ComboBoxTest do
     refute wrapper_tag =~ "required"
   end
 
+  describe "multiple" do
+    test "the select is multiple, the name gains [], no empty option" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tags" name="tags" multiple options={["a", "b"]} />
+        """)
+
+      assert html =~ ~s|multiple|
+      assert html =~ ~s|name="tags[]"|
+      refute html =~ ~s|<option value=""|
+      assert html =~ ~s|aria-multiselectable="true"|
+    end
+
+    test "chosen values render as chips with labelled remove buttons" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="tags"
+          name="tags"
+          multiple
+          value={["b", "a"]}
+          options={[{"Alpha", "a"}, {"Beta", "b"}]}
+        />
+        """)
+
+      assert html =~ "pc-combo-box__chip"
+      # chip order follows chosen order
+      assert html =~ ~r/Beta.*Alpha/s
+      assert html =~ ~s|aria-label="Remove Beta"|
+      assert html =~ ~s|data-pc-combo-chip-remove|
+    end
+
+    test "max_items lands as a data attribute for the hook" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tags" name="tags" multiple max_items={3} options={["a"]} />
+        """)
+
+      assert html =~ ~s|data-max-items="3"|
+    end
+  end
+
+  describe "clearable and hardening" do
+    test "clearable renders the labelled clear button and data-has-value tracks the value" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tz" name="tz" clearable value="syd" options={[{"Sydney", "syd"}]} />
+        """)
+
+      assert html =~ ~s|data-pc-combo-clear|
+      assert html =~ ~s|aria-label="Clear selection"|
+      assert html =~ ~s|data-has-value|
+    end
+
+    test "the hidden select is inert so dialog autofocus can never land on it" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tz" name="tz" options={["Sydney"]} />
+        """)
+
+      [select_tag | _] = String.split(html, "</select>")
+      assert select_tag =~ ~s| inert|
+    end
+
+    test "the polite live region renders with its labels" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tz" name="tz" options={["Sydney"]} />
+        """)
+
+      assert html =~ ~s|aria-live="polite"|
+      assert html =~ ~s|data-results-label="results"|
+    end
+  end
+
   test "raises without any id source" do
     assigns = %{}
 
