@@ -3671,6 +3671,11 @@ export const PetalComboBox = {
     } else {
       this.highlight(best || this.visibleItems()[0] || null, false);
     }
+
+    // filtering changes the panel's height (narrowing shrinks, broadening
+    // grows it back) - the flip decision must track it or a grown panel
+    // near the viewport bottom re-clips
+    this.positionPanel();
   },
 
   highlightedItem() {

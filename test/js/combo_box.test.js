@@ -436,6 +436,18 @@ describe("panel flip", () => {
     expect(c.panel.hasAttribute("data-flip")).toBe(false);
   });
 
+  it("re-measures when filtering changes the panel height", () => {
+    const c = mountCombo({ options: CITIES });
+    // short panel fits below at first...
+    withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 40 });
+    c.control.click();
+    expect(c.panel.hasAttribute("data-flip")).toBe(false);
+    // ...then broadening the query grows it past the available space
+    Object.defineProperty(c.panel, "offsetHeight", { configurable: true, value: 200 });
+    type(c.input, "");
+    expect(c.panel.hasAttribute("data-flip")).toBe(true);
+  });
+
   it("close clears the flip so the next open measures fresh", () => {
     const c = mountCombo({ options: CITIES });
     withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 200 });
