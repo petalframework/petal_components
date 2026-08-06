@@ -44,15 +44,16 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
-  example :preselected, "A chosen value",
+  example :preselected, "A chosen value, clearable",
     description:
-      "value (or the form field's value) marks the chosen option: it renders in the trigger, carries aria-selected and the check mark, and the highlight homes on it when the panel opens. Options are label/value tuples here - the shapes select accepts all work." do
+      "value (or the form field's value) marks the chosen option: it renders in the trigger, carries aria-selected and the check mark, and the highlight homes on it when the panel opens. clearable adds an X button whenever a value is chosen - one press empties the selection. Options are label/value tuples here - the shapes select accepts all work." do
     ~H"""
     <div class="w-full max-w-xs mx-auto">
       <.combo_box
         id="sx-combo-chosen"
         name="tz"
         value="au_syd"
+        clearable
         options={[
           {"Sydney", "au_syd"},
           {"Tokyo", "jp_tyo"},
@@ -96,6 +97,34 @@ defmodule PetalComponents.Showcase.ComboBox do
           {"Performance", "perf"}
         ]}
       />
+    </div>
+    """
+  end
+
+  example :rich_options, "Rich options - the :option slot",
+    description:
+      "The :option slot renders anything inside each panel option - avatars, flags, secondary text - with :let receiving the normalized option (label, value, disabled, and meta: whatever extra data the option tuple carried). Filtering, chips and the trigger label keep using the plain label, so rich content never affects search or the closed state." do
+    ~H"""
+    <div class="w-full max-w-sm mx-auto">
+      <.combo_box
+        id="sx-combo-rich"
+        name="assignee"
+        placeholder="Assign to…"
+        options={[
+          {"Amelia Ward", "amelia", role: "Engineering"},
+          {"Jonah Reyes", "jonah", role: "Design"},
+          {"Priya Anand", "priya", role: "Support"},
+          {"Tom Hale", "tom", role: "Engineering"}
+        ]}
+      >
+        <:option :let={opt}>
+          <.avatar size="xs" name={opt.label} random_color />
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="truncate">{opt.label}</span>
+            <span class="truncate text-xs text-gray-500 dark:text-gray-400">{opt.meta[:role]}</span>
+          </span>
+        </:option>
+      </.combo_box>
     </div>
     """
   end
