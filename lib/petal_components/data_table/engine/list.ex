@@ -108,13 +108,13 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp matches?(nil, _op, _value), do: false
 
   defp matches?(field_value, :contains, value),
-    do: String.contains?(downcase(field_value), downcase(value))
+    do: with_text(value, &String.contains?(downcase(field_value), &1))
 
   defp matches?(field_value, :starts_with, value),
-    do: String.starts_with?(downcase(field_value), downcase(value))
+    do: with_text(value, &String.starts_with?(downcase(field_value), &1))
 
   defp matches?(field_value, :eq, value) when is_binary(field_value),
-    do: downcase(field_value) == downcase(value)
+    do: with_text(value, &(downcase(field_value) == &1))
 
   defp matches?(field_value, :eq, value) when is_number(field_value),
     do: with_number(value, &(field_value == &1))
@@ -157,9 +157,14 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp matches?(_field_value, _op, _value), do: false
 
-  defp values_equal?(a, b) when is_binary(a), do: downcase(a) == downcase(b)
-  defp values_equal?(a, b) when is_atom(a), do: Atom.to_string(a) == to_string(b)
-  defp values_equal?(a, b), do: to_string(a) == to_string(b)
+  defp values_equal?(a, b) when is_binary(a),
+    do: with_text(b, &(downcase(a) == &1))
+
+  defp values_equal?(a, b) when is_atom(a),
+    do: with_text(b, &(String.downcase(Atom.to_string(a)) == &1))
+
+  defp values_equal?(a, b),
+    do: with_text(b, &(String.downcase(to_string(a)) == &1))
 
   # -- coercion --------------------------------------------------------------
 
@@ -167,6 +172,16 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp downcase(value) when is_binary(value), do: String.downcase(value)
   defp downcase(value), do: value |> to_string() |> String.downcase()
+
+  # Filter values come straight from params and can be ANY shape (a list,
+  # a map, whatever the query string carried) - a text op against a
+  # non-scalar is a no-match, never a to_string crash.
+  defp with_text(value, fun) when is_binary(value), do: fun.(String.downcase(value))
+
+  defp with_text(value, fun) when is_number(value) or is_atom(value),
+    do: fun.(value |> to_string() |> String.downcase())
+
+  defp with_text(_other, _fun), do: false
 
   defp number(value) when is_number(value), do: {:ok, value}
 
@@ -189,6 +204,38 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp to_date(%Date{} = date), do: {:ok, date}
   defp to_date(%DateTime{} = dt), do: {:ok, DateTime.to_date(dt)}
   defp to_date(%NaiveDateTime{} = ndt), do: {:ok, NaiveDateTime.to_date(ndt)}
-  defp to_date(value) when is_binary(value), do: Date.from_iso8601(value)
+
+  # Accept both date and datetime ISO 8601 strings - "2026-01-05",
+  # "2026-01-05T10:30:00Z" (datetime inputs) and the offset-less
+  # "2026-01-05T10:30" that <input type="datetime-local"> submits.
+  defp to_date(value) when is_binary(value) do
+    with {:error, _} <- Date.from_iso8601(value),
+         {:error, _} <- iso_datetime_to_date(value) do
+      :error
+    end
+  end
+
   defp to_date(_other), do: :error
+
+  defp iso_datetime_to_date(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, dt, _offset} ->
+        {:ok, DateTime.to_date(dt)}
+
+      {:error, _} ->
+        # datetime-local submits without seconds ("2026-01-05T10:30");
+        # NaiveDateTime requires them, so retry with ":00" appended -
+        # garbage just fails again.
+        case NaiveDateTime.from_iso8601(value) do
+          {:ok, ndt} ->
+            {:ok, NaiveDateTime.to_date(ndt)}
+
+          {:error, _} ->
+            case NaiveDateTime.from_iso8601(value <> ":00") do
+              {:ok, ndt} -> {:ok, NaiveDateTime.to_date(ndt)}
+              {:error, _} = error -> error
+            end
+        end
+    end
+  end
 end

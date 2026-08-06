@@ -101,6 +101,25 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert ids(run(filters: [%{field: :joined, op: :after, value: "2026-03-01"}])) == [2, 5]
     end
 
+    test "non-scalar filter values (raw param shapes) never match and never raise" do
+      for junk <- [%{"a" => 1}, [%{"b" => 2}], [["nested"]], {:tuple, 1}] do
+        assert ids(run(filters: [%{field: :name, op: :contains, value: junk}])) == []
+        assert ids(run(filters: [%{field: :name, op: :starts_with, value: junk}])) == []
+        assert ids(run(filters: [%{field: :name, op: :eq, value: junk}])) == []
+        assert ids(run(filters: [%{field: :name, op: :in, value: [junk]}])) == []
+      end
+    end
+
+    test "date ops accept ISO 8601 datetime strings, including datetime-local's offset-less shape" do
+      assert ids(run(filters: [%{field: :joined, op: :on, value: "2026-01-05T10:30:00Z"}])) ==
+               [1, 4]
+
+      assert ids(run(filters: [%{field: :joined, op: :on, value: "2026-01-05T10:30"}])) ==
+               [1, 4]
+
+      assert ids(run(filters: [%{field: :joined, op: :before, value: "not-a-date"}])) == []
+    end
+
     test "nil field values never match" do
       assert ids(run(filters: [%{field: :name, op: :contains, value: ""}])) ==
                [1, 2, 3, 5]
