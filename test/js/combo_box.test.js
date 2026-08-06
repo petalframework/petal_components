@@ -66,7 +66,7 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
           autocomplete="off" placeholder="Pick..." />
       </div>
       ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
-      <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+      ${multiple ? "" : '<span class="hero-chevron-down-mini pc-combo-box__chevron"></span>'}
     </div>
     <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">

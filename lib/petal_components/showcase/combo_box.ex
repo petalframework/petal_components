@@ -2,7 +2,7 @@ defmodule PetalComponents.Showcase.ComboBox do
   @moduledoc false
   use PetalComponents.Showcase,
     component: PetalComponents.ComboBox,
-    title: "Combo box"
+    title: "Combobox"
 
   example :multiple, "Chips - multiple selection",
     description:

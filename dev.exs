@@ -227,7 +227,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "input-group", name: "Input group", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
-        %{slug: "combo-box", name: "Combo box", ready: true},
+        %{slug: "combo-box", name: "Combobox", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
@@ -7251,7 +7251,7 @@ defmodule Dev.PlaygroundLive do
   defp render_page(%{active: "combo-box"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
-      <h1 class="text-3xl font-bold tracking-tight">Combo box</h1>
+      <h1 class="text-3xl font-bold tracking-tight">Combobox</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         A searchable select: type to filter, arrow keys to move, Enter to choose.
         The visible input is chrome - a hidden native select carries the value,
