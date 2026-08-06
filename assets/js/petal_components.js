@@ -3356,7 +3356,14 @@ export const PetalComboBox = {
 
     this.query = "";
 
-    this.onInput = () => {
+    this.onInput = (e) => {
+      // The display input is chrome, not data: keep its keystrokes inside the
+      // component. Without this every character reaches an enclosing form's
+      // phx-change - a round trip per keystroke, validation running against
+      // the not-yet-chosen value, and a patch that can wipe the query
+      // mid-type. The select's own input/change events (dispatched in
+      // choose) still bubble, which is how the server learns the value.
+      e.stopPropagation();
       this.query = this.input.value.trim().toLowerCase();
       if (this.panel.hidden) this.openPanel({ keepQuery: true });
       this.filter();
