@@ -100,6 +100,34 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
+  example :rich_options, "Rich options - the :option slot",
+    description:
+      "The :option slot renders anything inside each panel option - avatars, flags, secondary text - with :let receiving the normalized option (label, value, disabled, and meta: whatever extra data the option tuple carried). Filtering, chips and the trigger label keep using the plain label, so rich content never affects search or the closed state." do
+    ~H"""
+    <div class="w-full max-w-sm mx-auto">
+      <.combo_box
+        id="sx-combo-rich"
+        name="assignee"
+        placeholder="Assign to…"
+        options={[
+          {"Amelia Ward", "amelia", role: "Engineering"},
+          {"Jonah Reyes", "jonah", role: "Design"},
+          {"Priya Anand", "priya", role: "Support"},
+          {"Tom Hale", "tom", role: "Engineering"}
+        ]}
+      >
+        <:option :let={opt}>
+          <.avatar size="xs" name={opt.label} random_color />
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="truncate">{opt.label}</span>
+            <span class="truncate text-xs text-gray-500 dark:text-gray-400">{opt.meta[:role]}</span>
+          </span>
+        </:option>
+      </.combo_box>
+    </div>
+    """
+  end
+
   example :groups, "Groups and disabled options",
     description:
       "{group_label, options} renders a heading and keeps its position between flat options; a group hides itself when the query filters out every option inside. {label, value, disabled: true} renders the option present but inert - visible in the list, skipped by the keyboard." do

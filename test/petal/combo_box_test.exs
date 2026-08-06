@@ -302,6 +302,41 @@ defmodule PetalComponents.ComboBoxTest do
     end
   end
 
+  describe "the :option slot" do
+    test "renders custom content per option with meta passthrough; filter attrs intact" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="who" name="who" options={[{"Amelia Ward", "am", role: "Engineering"}]}>
+          <:option :let={opt}>
+            <strong>{opt.label}</strong>
+            <em>{opt.meta[:role]}</em>
+          </:option>
+        </.combo_box>
+        """)
+
+      assert html =~ "<strong>Amelia Ward</strong>"
+      assert html =~ "<em>Engineering</em>"
+      assert html =~ "pc-combo-box__option-content"
+      # the filter text still rides data-label, custom content or not
+      assert html =~ ~s|data-label="Amelia Ward"|
+      refute html =~ "pc-combo-box__option-label"
+    end
+
+    test "without the slot the plain label renders as before" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="who" name="who" options={["Amelia"]} />
+        """)
+
+      assert html =~ "pc-combo-box__option-label"
+      refute html =~ "pc-combo-box__option-content"
+    end
+  end
+
   test "raises without any id source" do
     assigns = %{}
 

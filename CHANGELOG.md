@@ -3,6 +3,13 @@
 
 #### Added
 
+- **`combo_box` `:option` slot - rich options.** Render anything inside
+  each panel option (avatars, flags, secondary text); `:let` receives
+  the normalized option - `label`, `value`, `disabled`, and `meta`
+  carrying whatever extra data the option tuple's keyword list held
+  (`{"Amelia", "am", role: "Engineering"}`). Filtering, chips and the
+  trigger label keep using the plain label, so rich content never
+  affects search or the closed state.
 - **`combo_box` `variant="trigger"` - the picker anatomy.** A select-like
   button shows the chosen value (or "N selected" with `multiple` -
   `count_label` localizes the word) and the search input lives inside

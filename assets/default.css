@@ -2229,6 +2229,9 @@
   .pc-combo-box__option-label {
     @apply flex-1 truncate;
   }
+  .pc-combo-box__option-content {
+    @apply flex min-w-0 flex-1 items-center gap-2;
+  }
   .pc-combo-box__check {
     @apply invisible shrink-0 pointer-events-none text-gray-900 dark:text-white;
   }

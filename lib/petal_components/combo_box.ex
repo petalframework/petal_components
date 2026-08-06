@@ -125,6 +125,15 @@ defmodule PetalComponents.ComboBox do
   attr :class, :any, default: nil, doc: "extra classes for the wrapper"
   attr :rest, :global
 
+  slot :option,
+    doc: """
+    custom option content, rendered inside each panel option in place of the
+    plain label - `:let` receives the normalized option map (`label`,
+    `value`, `disabled`, and `meta`: everything else from the option's
+    keyword opts). Filtering, chips and the trigger label keep using the
+    plain label, so rich content never affects search or the closed state.
+    """
+
   def combo_box(assigns) do
     groups = normalize_options(assigns.options)
     values = current_values(assigns)
@@ -294,10 +303,18 @@ defmodule PetalComponents.ComboBox do
             <%= if group.label do %>
               <div class="pc-combo-box__group" role="group" data-pc-combo-group>
                 <div class="pc-combo-box__group-heading" aria-hidden="true">{group.label}</div>
-                <.option_items options={group.options} current_values={@current_values} />
+                <.option_items
+                  options={group.options}
+                  current_values={@current_values}
+                  option_slot={@option}
+                />
               </div>
             <% else %>
-              <.option_items options={group.options} current_values={@current_values} />
+              <.option_items
+                options={group.options}
+                current_values={@current_values}
+                option_slot={@option}
+              />
             <% end %>
           <% end %>
           <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
@@ -329,7 +346,11 @@ defmodule PetalComponents.ComboBox do
       aria-disabled={opt.disabled && "true"}
       aria-selected={to_string(selected?(opt, @current_values))}
     >
-      <span class="pc-combo-box__option-label">{opt.label}</span>
+      <%= if @option_slot != [] do %>
+        <span class="pc-combo-box__option-content">{render_slot(@option_slot, opt)}</span>
+      <% else %>
+        <span class="pc-combo-box__option-label">{opt.label}</span>
+      <% end %>
       <.icon name="hero-check-mini" class="pc-combo-box__check" />
     </div>
     """
@@ -361,16 +382,17 @@ defmodule PetalComponents.ComboBox do
     %{
       label: to_string(label),
       value: to_string(value),
-      disabled: Keyword.get(opts, :disabled, false)
+      disabled: Keyword.get(opts, :disabled, false),
+      meta: opts |> Keyword.delete(:disabled) |> Map.new()
     }
   end
 
   defp normalize_option({label, value}) do
-    %{label: to_string(label), value: to_string(value), disabled: false}
+    %{label: to_string(label), value: to_string(value), disabled: false, meta: %{}}
   end
 
   defp normalize_option(value) when is_binary(value) or is_atom(value) or is_number(value) do
-    %{label: to_string(value), value: to_string(value), disabled: false}
+    %{label: to_string(value), value: to_string(value), disabled: false, meta: %{}}
   end
 
   # -- value / name / id resolution -----------------------------------------

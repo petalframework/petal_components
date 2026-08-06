@@ -7319,7 +7319,7 @@ defmodule Dev.PlaygroundLive do
           ex <-
             examples_for(
               PetalComponents.Showcase.ComboBox,
-              ~w(multiple trigger basic preselected groups)a
+              ~w(multiple trigger rich_options basic preselected groups)a
             )
         }
         class="mt-10"
