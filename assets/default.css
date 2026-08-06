@@ -2298,6 +2298,11 @@
   .pc-combo-box[data-max-reached] .pc-combo-box__option:not([aria-selected="true"]) {
     @apply pointer-events-none opacity-50;
   }
+  /* inviting more picks while the cap dims every option reads wrong -
+     the placeholder rests at the cap; the attribute stays server truth */
+  .pc-combo-box[data-max-reached] .pc-combo-box__input::placeholder {
+    @apply text-transparent;
+  }
   .pc-combo-box__live {
     @apply sr-only;
   }

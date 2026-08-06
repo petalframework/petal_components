@@ -365,31 +365,23 @@ describe("multiple with chips", () => {
     expect(c.items().filter((i) => !i.hidden).length).toBeGreaterThan(1);
   });
 
-  it("the placeholder stays with chips present and rests at max_items", () => {
+  it("the placeholder attribute is server truth - the hook never rewrites it", () => {
+    // the cap-rest is pure CSS on [data-max-reached]; the attribute must
+    // survive every selection transition so live server changes always win
     const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
     c.control.click();
     c.items()[0].click();
-    expect(c.input.placeholder).toBe("Pick...");
+    expect(c.input.getAttribute("placeholder")).toBe("Pick...");
     c.items()[1].click();
-    expect(c.input.placeholder).toBe("");
-    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
-    expect(c.input.placeholder).toBe("Pick...");
-  });
-
-  it("a server-changed placeholder survives updated(), even across the cap", () => {
-    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
-    // server patches a new placeholder (e.g. locale switch)
+    expect(c.el.hasAttribute("data-max-reached")).toBe(true);
+    expect(c.input.getAttribute("placeholder")).toBe("Pick...");
+    // server changes it while capped - updated() must not revert it
     c.input.setAttribute("placeholder", "Añadir…");
     c.hook.updated();
-    expect(c.input.placeholder).toBe("Añadir…");
-    // cap blanks it; a patch that doesn't touch the input keeps the cache
-    c.control.click();
-    c.items()[0].click();
-    c.items()[1].click();
-    expect(c.input.placeholder).toBe("");
-    c.hook.updated();
+    expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
     c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
-    expect(c.input.placeholder).toBe("Añadir…");
+    expect(c.el.hasAttribute("data-max-reached")).toBe(false);
+    expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
   });
 
   it("choosing a chosen option un-chooses it", () => {

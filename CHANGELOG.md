@@ -15,8 +15,9 @@
 - **`combo_box` multiple: the placeholder stays visible with chips
   present** ("Add members…" style - the reui/Mantine TagsInput
   convention) instead of vanishing after the first pick, and it rests
-  (blanks) while `max_items` is reached - inviting more picks while the
-  cap dims every option read wrong. Single-select behavior unchanged.
+  while `max_items` is reached (pure CSS on `data-max-reached` - the
+  attribute itself stays server truth, so live placeholder changes
+  always win). Single-select behavior unchanged.
 
 #### Added
 

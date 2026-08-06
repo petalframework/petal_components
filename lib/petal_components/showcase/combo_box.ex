@@ -31,14 +31,20 @@ defmodule PetalComponents.Showcase.ComboBox do
 
   example :basic, "The searchable select",
     description:
-      "Type to filter, arrow keys to move, Enter to choose - the command palette's keyboard machinery on a form control. The visible input is chrome; a hidden native select carries the name and value, so changesets, phx-change and LiveView form recovery behave exactly like a plain select. Zero JS dependencies." do
+      "Type to filter, arrow keys to move, Enter to choose - the command palette's keyboard machinery on a form control. The visible input is chrome; a hidden native select carries the name and value, so changesets, phx-change and LiveView form recovery behave exactly like a plain select. Zero JS dependencies. Emoji in a label is just text - flags need no slot, no assets, and filtering still matches the country name." do
     ~H"""
     <div class="w-full max-w-xs mx-auto">
       <.combo_box
         id="sx-combo-basic"
         name="country"
         placeholder="Select a country…"
-        options={["Australia", "Japan", "New Zealand", "Portugal", "Sweden"]}
+        options={[
+          {"🇦🇺 Australia", "au"},
+          {"🇯🇵 Japan", "jp"},
+          {"🇳🇿 New Zealand", "nz"},
+          {"🇵🇹 Portugal", "pt"},
+          {"🇸🇪 Sweden", "se"}
+        ]}
       />
     </div>
     """
@@ -118,7 +124,7 @@ defmodule PetalComponents.Showcase.ComboBox do
         ]}
       >
         <:option :let={opt}>
-          <.avatar size="xs" name={opt.label} random_color />
+          <.avatar size="xs" name={opt.label} random_gradient />
           <span class="flex min-w-0 flex-col leading-tight">
             <span class="truncate">{opt.label}</span>
             <span class="truncate text-xs text-gray-500 dark:text-gray-400">{opt.meta[:role]}</span>
