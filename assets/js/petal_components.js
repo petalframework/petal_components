@@ -3422,6 +3422,7 @@ export const PetalComboBox = {
     };
     // form.reset() resets the select; nothing else would re-sync the chrome
     this.onFormReset = () => setTimeout(() => this.syncFromSelect(), 0);
+    this.onReposition = () => this.positionPanel();
 
     this.input.addEventListener("input", this.onInput);
     this.input.addEventListener("keydown", this.onKeydown);
@@ -3453,6 +3454,8 @@ export const PetalComboBox = {
     this.el.removeEventListener("focusout", this.onFocusOut);
     if (this.form) this.form.removeEventListener("reset", this.onFormReset);
     document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
+    window.removeEventListener("scroll", this.onReposition, true);
+    window.removeEventListener("resize", this.onReposition);
   },
 
   items() {
@@ -3480,18 +3483,40 @@ export const PetalComboBox = {
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
     document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
+    window.addEventListener("scroll", this.onReposition, true);
+    window.addEventListener("resize", this.onReposition);
     if (!keepQuery) this.query = "";
     this.filter();
+    this.positionPanel();
   },
 
   closePanel() {
     document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
+    window.removeEventListener("scroll", this.onReposition, true);
+    window.removeEventListener("resize", this.onReposition);
     if (this.panel.hidden) return;
     this.panel.hidden = true;
+    this.panel.removeAttribute("data-flip");
     this.input.setAttribute("aria-expanded", "false");
     this.highlight(null, false);
     this.query = "";
     this.restoreDisplay();
+  },
+
+  // Open downward by default; flip above when the viewport has no room
+  // below AND more room above (the bottom-of-form combobox that used to
+  // open 200px off-screen). Measured with the flip cleared so the panel's
+  // natural height decides, not its last position.
+  positionPanel() {
+    if (this.panel.hidden) return;
+    this.panel.removeAttribute("data-flip");
+    const control = this.control.getBoundingClientRect();
+    const panelH = this.panel.offsetHeight;
+    if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
+    const gap = 8;
+    const below = window.innerHeight - control.bottom;
+    const above = control.top;
+    if (below < panelH + gap && above > below) this.panel.setAttribute("data-flip", "");
   },
 
   selectedValues() {

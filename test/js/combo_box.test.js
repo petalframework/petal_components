@@ -405,6 +405,46 @@ describe("hardening riders", () => {
   });
 });
 
+describe("panel flip", () => {
+  function withRects(c, { controlTop, controlBottom, panelHeight, viewport = 800 }) {
+    c.control.getBoundingClientRect = () => ({ top: controlTop, bottom: controlBottom, left: 0, right: 200, width: 200, height: controlBottom - controlTop });
+    Object.defineProperty(c.panel, "offsetHeight", { configurable: true, value: panelHeight });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: viewport, writable: true });
+  }
+
+  it("stays below when there is room", () => {
+    const c = mountCombo({ options: CITIES });
+    withRects(c, { controlTop: 100, controlBottom: 140, panelHeight: 200 });
+    c.control.click();
+    expect(c.panel.hasAttribute("data-flip")).toBe(false);
+  });
+
+  it("flips above when the viewport has no room below and more above", () => {
+    const c = mountCombo({ options: CITIES });
+    withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 200 });
+    c.control.click();
+    expect(c.panel.hasAttribute("data-flip")).toBe(true);
+  });
+
+  it("re-measures on scroll while open and clears the flip when room returns", () => {
+    const c = mountCombo({ options: CITIES });
+    withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 200 });
+    c.control.click();
+    expect(c.panel.hasAttribute("data-flip")).toBe(true);
+    withRects(c, { controlTop: 100, controlBottom: 140, panelHeight: 200 });
+    window.dispatchEvent(new Event("resize"));
+    expect(c.panel.hasAttribute("data-flip")).toBe(false);
+  });
+
+  it("close clears the flip so the next open measures fresh", () => {
+    const c = mountCombo({ options: CITIES });
+    withRects(c, { controlTop: 700, controlBottom: 740, panelHeight: 200 });
+    c.control.click();
+    key(c.input, "Escape");
+    expect(c.panel.hasAttribute("data-flip")).toBe(false);
+  });
+});
+
 describe("server ownership", () => {
   it("updated() re-syncs from the select - the server wins", () => {
     const c = mountCombo({ options: CITIES });

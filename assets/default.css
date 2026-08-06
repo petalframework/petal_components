@@ -2171,6 +2171,11 @@
     @apply absolute left-0 top-full z-30 mt-1 w-full bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
+  /* flipped: no room below the control and more room above - the hook
+     measures on open and on scroll/resize while open */
+  .pc-combo-box__panel[data-flip] {
+    @apply top-auto bottom-full mt-0 mb-1;
+  }
   .pc-combo-box__list {
     @apply max-h-64 overflow-y-auto p-1;
   }
