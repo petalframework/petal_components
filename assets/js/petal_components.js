@@ -3598,6 +3598,10 @@ export const PetalComboBox = {
     // one another's record - the click claims its pointer's verdict.
     this.onControlPointerDown = (e) => {
       if (this.input.disabled) return;
+      // any fresh press ends close-suppression: a legitimate rapid
+      // follow-up tap has its own pointerdown, a trailing same-gesture
+      // click does not - the exact discriminator, no time window needed
+      this.suppressOpenAt = -Infinity;
       const chrome = e.target !== this.input;
       this.pressVerdicts.set(e.pointerId, { chrome, at: performance.now() });
       if (chrome) e.preventDefault();
@@ -3657,11 +3661,11 @@ export const PetalComboBox = {
       }
       if (this.panel.hidden) {
         // a deliberate chrome close wins its own gesture: trailing
-        // clicks from OTHER fingers of the same burst must not reopen.
-        // Timestamp-gated (not a timer) so Safari's late-synthesized
-        // clicks are covered too; 350ms comfortably outlasts a burst
-        // and is shorter than any deliberate follow-up interaction.
-        if (now - this.suppressOpenAt < 350) return;
+        // clicks from OTHER fingers of the same burst arrive WITHOUT a
+        // fresh pointerdown (which clears the suppression) and must not
+        // reopen. The 1s age cap frees clicks with no pointer sequence
+        // at all (assistive tech) from a long-stale suppression.
+        if (now - this.suppressOpenAt < 1000) return;
         this.openPanel();
         this.input.focus();
       } else if (chrome) {

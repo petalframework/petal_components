@@ -274,8 +274,8 @@ describe("open and close", () => {
     // finger 2's trailing click (same burst) must not reopen
     c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 2 }));
     expect(c.panel.hidden).toBe(true);
-    // once the burst window passes, a fresh click opens as normal
-    clock.mockReturnValue(10_400);
+    // a RAPID follow-up tap (same instant, fresh pointerdown) reopens -
+    // suppression ends at the next pointerdown, not a time window
     c.control.dispatchEvent(
       pointerEvent("pointerdown", "touch", { pointerId: 3 }),
     );
