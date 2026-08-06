@@ -3524,8 +3524,10 @@ export const PetalComboBox = {
     if (flip) this.panel.setAttribute("data-flip", "");
     const room = flip ? above : below;
     if (panelH > room) {
+      // no floor: in a viewport too cramped for even one row, a sliver of
+      // scrollable list still beats options rendered outside the viewport
       const chrome = panelH - this.list.offsetHeight;
-      this.list.style.maxHeight = `${Math.max(room - chrome, 40)}px`;
+      this.list.style.maxHeight = `${Math.max(room - chrome, 0)}px`;
     }
   },
 

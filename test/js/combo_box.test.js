@@ -462,6 +462,18 @@ describe("panel flip", () => {
     expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("162px");
   });
 
+  it("never crosses the edge even when less than a row fits", () => {
+    const c = mountCombo({ options: CITIES });
+    // room above = 40-8=32, chrome 10 -> cap 22: a sliver, but contained
+    withRects(c, { controlTop: 40, controlBottom: 80, panelHeight: 200, viewport: 100 });
+    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
+      configurable: true,
+      value: 190,
+    });
+    c.control.click();
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("22px");
+  });
+
   it("the cap clears when room returns", () => {
     const c = mountCombo({ options: CITIES });
     withRects(c, { controlTop: 180, controlBottom: 220, panelHeight: 200, viewport: 300 });
