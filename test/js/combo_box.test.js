@@ -183,11 +183,132 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(true);
   });
 
-  it("outside pointerdown closes - the iOS Safari path where focusout never fires", () => {
+  it("an outside tap (press completed in place) closes - the iOS Safari path where focusout never fires", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
-    document.body.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { clientX: 10, clientY: 10 }),
+    );
+    expect(c.panel.hidden).toBe(false);
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { clientX: 10, clientY: 10 }),
+    );
     expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a touch-scroll that starts outside does not dismiss - pointercancel path", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { clientX: 10, clientY: 200 }),
+    );
+    document.body.dispatchEvent(pointerEvent("pointercancel", "touch"));
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { clientX: 10, clientY: 40 }),
+    );
+    expect(c.panel.hidden).toBe(false);
+    // a clean tap afterwards still closes
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { clientX: 10, clientY: 10 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { clientX: 10, clientY: 10 }),
+    );
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a drag that never cancels (unscrollable page) still reads as a scroll, not a press", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { clientX: 10, clientY: 200 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { clientX: 10, clientY: 80 }),
+    );
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("a second finger disarms - multi-touch is a gesture, not a press", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 60,
+        clientY: 10,
+        pointerId: 2,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 60,
+        clientY: 10,
+        pointerId: 2,
+      }),
+    );
+    expect(c.panel.hidden).toBe(false);
+    // a clean single-finger tap afterwards still closes
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 3,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 3,
+      }),
+    );
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a pointerup from a different pointer never completes another pointer's press", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 1,
+      }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", {
+        clientX: 10,
+        clientY: 10,
+        pointerId: 9,
+      }),
+    );
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("a press that starts inside the combobox and releases outside does not dismiss", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.input.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { clientX: 50, clientY: 10 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { clientX: 50, clientY: 10 }),
+    );
+    expect(c.panel.hidden).toBe(false);
   });
 
   it("inside pointerdown does not close before the option click lands", () => {

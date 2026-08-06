@@ -3637,9 +3637,39 @@ export const PetalComboBox = {
     // when you click static content), but iOS Safari deliberately keeps
     // focus when tapping non-interactive content - no blur, no focusout, a
     // panel that would not close. Outside-press detection is the standard
-    // answer; bound only while the panel is open.
+    // answer; bound only while the panel is open. The dismiss is a
+    // completed PRESS, not a touch-start: closing on pointerdown would
+    // kill the panel the instant a scroll gesture lands outside it, so
+    // the decision waits for pointerup - a scroll ends in pointercancel
+    // (or a far-away pointerup on pages that cannot scroll), a tap ends
+    // in a pointerup where it started.
+    // The press record is scoped to its pointerId: only the arming
+    // finger's release can complete the dismiss, and a second finger
+    // landing mid-press disarms it - multi-touch is a gesture (pinch,
+    // two-finger scroll), never a deliberate dismiss tap.
     this.onOutsidePointerDown = (e) => {
+      this.activePointers.add(e.pointerId);
+      if (this.activePointers.size > 1) {
+        this.outsidePress = null;
+        return;
+      }
+      this.outsidePress = this.el.contains(e.target)
+        ? null
+        : { id: e.pointerId, x: e.clientX, y: e.clientY };
+    };
+    this.onOutsidePointerUp = (e) => {
+      this.activePointers.delete(e.pointerId);
+      const press = this.outsidePress;
+      if (!press || e.pointerId !== press.id) return;
+      this.outsidePress = null;
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) return;
       if (!this.el.contains(e.target)) this.closePanel();
+    };
+    this.onOutsidePointerCancel = (e) => {
+      this.activePointers.delete(e.pointerId);
+      if (this.outsidePress && e.pointerId === this.outsidePress.id) {
+        this.outsidePress = null;
+      }
     };
     // form.reset() resets the select; nothing else would re-sync the chrome
     this.onFormReset = () => setTimeout(() => this.syncFromSelect(), 0);
@@ -3688,6 +3718,12 @@ export const PetalComboBox = {
       this.onOutsidePointerDown,
       true,
     );
+    document.removeEventListener("pointerup", this.onOutsidePointerUp, true);
+    document.removeEventListener(
+      "pointercancel",
+      this.onOutsidePointerCancel,
+      true,
+    );
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
   },
@@ -3720,7 +3756,15 @@ export const PetalComboBox = {
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
     if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
+    this.outsidePress = null;
+    this.activePointers = new Set();
     document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
+    document.addEventListener("pointerup", this.onOutsidePointerUp, true);
+    document.addEventListener(
+      "pointercancel",
+      this.onOutsidePointerCancel,
+      true,
+    );
     window.addEventListener("scroll", this.onReposition, true);
     window.addEventListener("resize", this.onReposition);
     if (!keepQuery) this.query = "";
@@ -3732,6 +3776,12 @@ export const PetalComboBox = {
     document.removeEventListener(
       "pointerdown",
       this.onOutsidePointerDown,
+      true,
+    );
+    document.removeEventListener("pointerup", this.onOutsidePointerUp, true);
+    document.removeEventListener(
+      "pointercancel",
+      this.onOutsidePointerCancel,
       true,
     );
     window.removeEventListener("scroll", this.onReposition, true);

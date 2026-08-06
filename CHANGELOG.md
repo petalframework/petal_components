@@ -3,6 +3,17 @@
 
 #### Fixed
 
+- **`combo_box`: a touch-scroll no longer dismisses the panel.** The
+  outside dismiss closed on `pointerdown`, so starting a scroll gesture
+  anywhere outside the panel killed it the instant the finger landed
+  (Nic's iOS find). The dismiss is now a completed press - `pointerdown`
+  arms it, `pointerup` in (roughly) the same spot closes; a scroll ends
+  in `pointercancel` or a far-away release and leaves the panel open,
+  matching shadcn/Base UI and the old Tom Select behavior. A clean tap
+  outside still closes, and the desktop focusout path is unchanged.
+
+#### Fixed
+
 - **`combo_box` multiple: the highlight stays on the item just picked.**
   Choosing used to reset the filter and re-home the highlight on the
   first option - a disorienting jump when picking from the middle of the
