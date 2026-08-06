@@ -459,6 +459,20 @@ describe("trigger variant", () => {
     expect(document.activeElement).toBe(c.trigger);
   });
 
+  it("updated() reconciles the trigger label from the server-patched select", () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    // the server patched a value in
+    c.select.value = "tyo";
+    c.hook.updated();
+    expect(c.triggerLabel().textContent).toBe("Tokyo");
+    expect(c.trigger.hasAttribute("data-placeholder")).toBe(false);
+    // and patched it back out
+    c.select.value = "";
+    c.hook.updated();
+    expect(c.triggerLabel().textContent).toBe("Pick...");
+    expect(c.trigger.hasAttribute("data-placeholder")).toBe(true);
+  });
+
   it("clearing every choice restores the placeholder state", () => {
     const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
     c.trigger.click();
