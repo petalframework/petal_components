@@ -1,0 +1,304 @@
+// PetalComboBox hook behavior.
+//
+// The markup built here mirrors what PetalComponents.ComboBox renders -
+// test/petal/combo_box_test.exs pins that structure on the Elixir side;
+// update both together if the anatomy changes. These specs pin the hook's
+// contracts: open/close paths (including the iOS ones that only exist
+// because Safari never blurs on static-content taps), filter ranking,
+// the boundary cycle, selection through the hidden select, and the
+// keystroke containment that keeps typing out of enclosing phx-change
+// forms.
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import hooks from "../../assets/js/petal_components.js";
+
+import { pointerEvent } from "./helpers.js";
+
+const mounted = [];
+
+function option(value, label, disabled = false) {
+  return { value, label, disabled };
+}
+
+function optionHtml(opt) {
+  return `
+    <div role="option" class="pc-combo-box__option" data-pc-combo-item
+      data-value="${opt.value}" data-label="${opt.label}"
+      ${opt.disabled ? 'data-disabled="true" aria-disabled="true"' : ""}
+      aria-selected="false">
+      <span class="pc-combo-box__option-label">${opt.label}</span>
+      <span class="hero-check-mini pc-combo-box__check"></span>
+    </div>`;
+}
+
+function mountCombo({ id = "combo", options = [], groups = [] } = {}) {
+  const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
+    .map((o) => `<option value="${o.value}" ${o.disabled ? "disabled" : ""}>${o.label}</option>`)
+    .join("");
+
+  const listHtml =
+    options.map(optionHtml).join("") +
+    groups
+      .map(
+        (g) => `
+        <div class="pc-combo-box__group" role="group" data-pc-combo-group>
+          <div class="pc-combo-box__group-heading" aria-hidden="true">${g.label}</div>
+          ${g.options.map(optionHtml).join("")}
+        </div>`
+      )
+      .join("");
+
+  const el = document.createElement("div");
+  el.id = id;
+  el.className = "pc-combo-box";
+  el.setAttribute("phx-hook", "PetalComboBox");
+  el.innerHTML = `
+    <select id="${id}-select" name="city" class="pc-combo-box__select" tabindex="-1" aria-hidden="true">
+      <option value=""></option>
+      ${selectOptions}
+    </select>
+    <div class="pc-combo-box__control">
+      <input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
+        aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
+        autocomplete="off" placeholder="Pick..." />
+      <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+    </div>
+    <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+      <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
+        ${listHtml}
+        <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+
+  const hook = Object.create(hooks.PetalComboBox);
+  hook.el = el;
+  hook.mounted();
+  mounted.push(hook);
+
+  return {
+    hook,
+    el,
+    input: el.querySelector(".pc-combo-box__input"),
+    select: el.querySelector(".pc-combo-box__select"),
+    control: el.querySelector(".pc-combo-box__control"),
+    panel: el.querySelector("[data-pc-combo-panel]"),
+    chevron: el.querySelector(".pc-combo-box__chevron"),
+    items: () => [...el.querySelectorAll("[data-pc-combo-item]")],
+    visible: () => [...el.querySelectorAll("[data-pc-combo-item]:not([hidden])")],
+    highlighted: () => el.querySelector("[data-highlighted]"),
+    empty: () => el.querySelector("[data-pc-combo-empty]"),
+  };
+}
+
+const CITIES = [option("syd", "Sydney"), option("tyo", "Tokyo"), option("lis", "Lisbon"), option("sto", "Stockholm")];
+
+function type(input, text) {
+  input.value = text;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function key(target, k) {
+  const ev = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true });
+  target.dispatchEvent(ev);
+  return ev;
+}
+
+beforeEach(() => {
+  document.body.innerHTML = "";
+  // jsdom has no scrollIntoView
+  Element.prototype.scrollIntoView = () => {};
+});
+
+afterEach(() => {
+  mounted.splice(0).forEach((hook) => hook.destroyed());
+});
+
+describe("open and close", () => {
+  it("opens on control click with aria-expanded, all options visible", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.getAttribute("aria-expanded")).toBe("true");
+    expect(c.visible()).toHaveLength(4);
+  });
+
+  it("a click on the open input is caret work - panel and query survive", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    c.input.click();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+  });
+
+  it("a click on control chrome (the chevron) toggles closed", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.chevron.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("outside pointerdown closes - the iOS Safari path where focusout never fires", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("inside pointerdown does not close before the option click lands", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.items()[0].dispatchEvent(pointerEvent("pointerdown", "touch"));
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("focusout to an element outside closes and restores the display", () => {
+    const c = mountCombo({ options: CITIES });
+    c.select.value = "tyo";
+    c.hook.syncFromSelect();
+    c.control.click();
+    type(c.input, "sy");
+    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: document.body }));
+    expect(c.panel.hidden).toBe(true);
+    expect(c.input.value).toBe("Tokyo");
+  });
+
+  it("Escape closes when open and is consumed; passes through when closed", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    const first = key(c.input, "Escape");
+    expect(first.defaultPrevented).toBe(true);
+    expect(c.panel.hidden).toBe(true);
+    const second = key(c.input, "Escape");
+    expect(second.defaultPrevented).toBe(false);
+  });
+});
+
+describe("filtering", () => {
+  it("the best-scoring match wins the highlight, not the first in DOM order", () => {
+    // The original playground bug: Stockholm's fuzzy s-t-o-k subsequence
+    // sat ABOVE Tokyo's prefix match in DOM order and stole the highlight,
+    // so Enter committed the wrong value. The fixture pins that ordering.
+    const c = mountCombo({
+      options: [option("sto", "Stockholm"), option("lis", "Lisbon"), option("tyo", "Tokyo")],
+    });
+    c.control.click();
+    type(c.input, "tok");
+    expect(c.visible().map((i) => i.dataset.value)).toEqual(["sto", "tyo"]);
+    expect(c.highlighted()?.dataset.value).toBe("tyo");
+  });
+
+  it("no match shows the empty state; clearing hides it and restores options", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "zzz");
+    expect(c.visible()).toHaveLength(0);
+    expect(c.empty().hidden).toBe(false);
+    type(c.input, "");
+    expect(c.visible()).toHaveLength(4);
+    expect(c.empty().hidden).toBe(true);
+  });
+
+  it("a group hides itself when the query filters out every option inside", () => {
+    const c = mountCombo({
+      groups: [
+        { label: "Oceania", options: [option("syd", "Sydney")] },
+        { label: "Europe", options: [option("lis", "Lisbon")] },
+      ],
+    });
+    c.control.click();
+    type(c.input, "lis");
+    const [oceania] = c.el.querySelectorAll("[data-pc-combo-group]");
+    expect(oceania.hidden).toBe(true);
+  });
+});
+
+describe("selection through the hidden select", () => {
+  it("click chooses: select value, bubbled input+change, display, close, check", () => {
+    const c = mountCombo({ options: CITIES });
+    let inputs = 0;
+    let changes = 0;
+    c.select.addEventListener("input", () => inputs++);
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    c.items()[1].click();
+    expect(c.select.value).toBe("tyo");
+    expect(inputs).toBe(1);
+    expect(changes).toBe(1);
+    expect(c.input.value).toBe("Tokyo");
+    expect(c.panel.hidden).toBe(true);
+    expect(c.items()[1].getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("Enter chooses the highlighted option and is consumed; closed Enter is not", () => {
+    const c = mountCombo({ options: CITIES });
+    const closedEnter = key(c.input, "Enter");
+    expect(closedEnter.defaultPrevented).toBe(false);
+    c.control.click();
+    type(c.input, "lis");
+    const openEnter = key(c.input, "Enter");
+    expect(openEnter.defaultPrevented).toBe(true);
+    expect(c.select.value).toBe("lis");
+  });
+
+  it("disabled options are skipped by highlight and inert to clicks", () => {
+    const c = mountCombo({ options: [option("syd", "Sydney"), option("sto", "Stockholm", true)] });
+    c.control.click();
+    type(c.input, "sto");
+    expect(c.highlighted()).toBe(null);
+    c.items()[1].click();
+    expect(c.select.value).toBe("");
+  });
+
+  it("opening with a chosen value homes the highlight on it", () => {
+    const c = mountCombo({ options: CITIES });
+    c.select.value = "lis";
+    c.hook.syncFromSelect();
+    c.control.click();
+    expect(c.highlighted()?.dataset.value).toBe("lis");
+  });
+});
+
+describe("the boundary cycle", () => {
+  it("wraps through an empty stop in both directions", () => {
+    const c = mountCombo({ options: CITIES });
+    key(c.input, "ArrowDown"); // opens, homes on first
+    key(c.input, "End");
+    expect(c.highlighted()?.dataset.value).toBe("sto");
+    key(c.input, "ArrowDown");
+    expect(c.highlighted()).toBe(null);
+    expect(c.input.hasAttribute("aria-activedescendant")).toBe(false);
+    key(c.input, "ArrowDown");
+    expect(c.highlighted()?.dataset.value).toBe("syd");
+    key(c.input, "ArrowUp");
+    expect(c.highlighted()).toBe(null);
+    key(c.input, "ArrowUp");
+    expect(c.highlighted()?.dataset.value).toBe("sto");
+  });
+});
+
+describe("server ownership", () => {
+  it("updated() re-syncs from the select - the server wins", () => {
+    const c = mountCombo({ options: CITIES });
+    c.select.value = "syd";
+    c.hook.updated();
+    expect(c.input.value).toBe("Sydney");
+    expect(c.items()[0].getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("typing keystrokes never reach an enclosing form; selection does", () => {
+    const c = mountCombo({ options: CITIES });
+    const form = document.createElement("form");
+    document.body.appendChild(form);
+    form.appendChild(c.el);
+    let formInputs = 0;
+    form.addEventListener("input", () => formInputs++);
+    c.control.click();
+    type(c.input, "to");
+    type(c.input, "tok");
+    expect(formInputs).toBe(0);
+    key(c.input, "Enter");
+    expect(formInputs).toBe(1);
+  });
+});
