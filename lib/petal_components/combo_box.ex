@@ -222,7 +222,11 @@ defmodule PetalComponents.ComboBox do
         >
           <.icon name="hero-x-mark-mini" class="pc-combo-box__clear-icon" />
         </button>
-        <.icon name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
+        <%!-- chips mode is a token field, not a dropdown: the chips and input
+        are the affordance, so the single-select chevron would mislead
+        (shadcn chips, Tom Select multi and the token-field family all drop
+        it) --%>
+        <.icon :if={!@multiple} name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
       </div>
 
       <div class="pc-combo-box__panel" data-pc-combo-panel hidden>

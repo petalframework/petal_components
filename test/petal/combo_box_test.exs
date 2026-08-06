@@ -195,6 +195,17 @@ defmodule PetalComponents.ComboBoxTest do
       assert html =~ ~s|data-pc-combo-chip-remove|
     end
 
+    test "chips mode is a token field - no chevron" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tags" name="tags" multiple options={["a"]} />
+        """)
+
+      refute html =~ "pc-combo-box__chevron"
+    end
+
     test "max_items lands as a data attribute for the hook" do
       assigns = %{}
 
