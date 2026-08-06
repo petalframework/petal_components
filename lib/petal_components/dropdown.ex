@@ -75,7 +75,7 @@ defmodule PetalComponents.Dropdown do
 
           <%= if @label do %>
             {@label}
-            <.icon name="hero-chevron-down-solid" class="w-5 h-5 pc-dropdown__chevron" />
+            <.icon name="hero-chevron-down-mini" class="pc-dropdown__chevron" />
           <% end %>
 
           <%= if @trigger_element do %>
