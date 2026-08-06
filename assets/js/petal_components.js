@@ -3593,35 +3593,47 @@ export const PetalComboBox = {
     // presses keeps focus in the input - on desktop the blur would fire
     // focusout, close the panel mid-press, and the click would then
     // REOPEN it (the flash). Same pattern onPanelPointerDown proves.
+    // Each pointer carries its OWN chrome-vs-caret verdict, so
+    // interleaved fingers in any press/release order can never consume
+    // one another's record - the click claims its pointer's verdict.
     this.onControlPointerDown = (e) => {
       if (this.input.disabled) return;
-      this.controlPointers.add(e.pointerId);
-      // a second concurrent finger is a gesture (pinch, two-finger
-      // fidget), not a toggle - disarm so one pointer's click can never
-      // consume another pointer's chrome-vs-caret verdict
-      if (this.controlPointers.size > 1) {
-        this.pressOnChrome = null;
-        return;
-      }
-      this.pressOnChrome = e.target !== this.input;
-      if (this.pressOnChrome) e.preventDefault();
+      const chrome = e.target !== this.input;
+      this.pressVerdicts.set(e.pointerId, chrome);
+      if (chrome) e.preventDefault();
     };
-    // An abandoned press must not linger: a chevron press released off
-    // the control (or cancelled) never produces a control click to
-    // consume the record, and a stale "chrome" verdict would make a
-    // later synthetic caret click close the panel and discard the query.
+    // Abandoned records must not linger to poison a later synthetic
+    // caret click: a cancel or an off-control release deletes at once;
+    // an on-control release leaves the record for the click that
+    // follows in the same event burst, then sweeps it.
     this.onPressSettle = (e) => {
-      this.controlPointers.delete(e.pointerId);
       if (e.type === "pointercancel" || !this.control?.contains(e.target)) {
-        this.pressOnChrome = null;
+        this.pressVerdicts.delete(e.pointerId);
+      } else {
+        setTimeout(() => this.pressVerdicts.delete(e.pointerId), 0);
       }
     };
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
-      // fall back to the click's own target when no pointerdown preceded
-      // it (synthetic clicks from tests and assistive tech)
-      const chrome = this.pressOnChrome ?? e.target !== this.input;
-      this.pressOnChrome = null;
+      // the click claims its own pointer's verdict (clicks are
+      // PointerEvents in modern browsers); a click without a usable
+      // pointerId takes the sole surviving verdict, a click with NO
+      // verdicts (synthetic - tests, assistive tech) falls back to its
+      // own target, and genuine multi-pointer ambiguity degrades to
+      // caret-safe (never close on a guess)
+      let chrome;
+      if (this.pressVerdicts.has(e.pointerId)) {
+        chrome = this.pressVerdicts.get(e.pointerId);
+        this.pressVerdicts.delete(e.pointerId);
+      } else if (this.pressVerdicts.size === 1) {
+        chrome = this.pressVerdicts.values().next().value;
+        this.pressVerdicts.clear();
+      } else if (this.pressVerdicts.size === 0) {
+        chrome = e.target !== this.input;
+      } else {
+        chrome = false;
+        this.pressVerdicts.clear();
+      }
       if (e.target.closest("[data-pc-combo-chip-remove]")) {
         const value = e.target.closest("[data-pc-combo-chip-remove]").dataset
           .value;
@@ -3715,8 +3727,7 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
-    this.pressOnChrome = null;
-    this.controlPointers = new Set();
+    this.pressVerdicts = new Map();
     if (this.control) {
       this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);

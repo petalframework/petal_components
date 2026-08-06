@@ -241,6 +241,25 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(true);
   });
 
+  it("reverse release order: the chevron press still closes after the other finger lifts", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    // finger 1 presses the chevron (chrome), finger 2 brushes the input,
+    // finger 2 lifts off-control FIRST, then finger 1 completes its press
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.input.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 2 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 2 }),
+    );
+    // the click arrives carrying finger 1's pointerId (modern browsers)
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
   it("a cancelled chrome press clears the same way", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
