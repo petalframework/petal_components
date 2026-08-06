@@ -1,6 +1,24 @@
 # Changelog
 ### Unreleased
 
+#### Fixed
+
+- **`combo_box` multiple: the highlight stays on the item just picked.**
+  Choosing used to reset the filter and re-home the highlight on the
+  first option - a disorienting jump when picking from the middle of the
+  list (Nic's on-device find). Now arrowing resumes from the item you
+  just toggled (Base UI/downshift grammar); the trigger variant's
+  multiple mode gets the same fix through the shared path.
+
+#### Changed
+
+- **`combo_box` multiple: the placeholder stays visible with chips
+  present** ("Add members…" style - the reui/Mantine TagsInput
+  convention) instead of vanishing after the first pick, and it rests
+  while `max_items` is reached (pure CSS on `data-max-reached` - the
+  attribute itself stays server truth, so live placeholder changes
+  always win). Single-select behavior unchanged.
+
 #### Added
 
 - **`combo_box` `:option` slot - rich options.** Render anything inside

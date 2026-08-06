@@ -254,7 +254,7 @@ defmodule PetalComponents.ComboBox do
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
-            placeholder={if @multiple && @current_values != [], do: nil, else: @placeholder}
+            placeholder={@placeholder}
             value={@selected_label}
             disabled={@disabled}
           />

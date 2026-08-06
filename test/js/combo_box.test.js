@@ -31,9 +31,20 @@ function optionHtml(opt) {
     </div>`;
 }
 
-function mountCombo({ id = "combo", options = [], groups = [], multiple = false, maxItems = null, clearable = false, trigger = false } = {}) {
+function mountCombo({
+  id = "combo",
+  options = [],
+  groups = [],
+  multiple = false,
+  maxItems = null,
+  clearable = false,
+  trigger = false,
+} = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
-    .map((o) => `<option value="${o.value}" ${o.disabled ? "disabled" : ""}>${o.label}</option>`)
+    .map(
+      (o) =>
+        `<option value="${o.value}" ${o.disabled ? "disabled" : ""}>${o.label}</option>`,
+    )
     .join("");
 
   const listHtml =
@@ -44,7 +55,7 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
         <div class="pc-combo-box__group" role="group" data-pc-combo-group>
           <div class="pc-combo-box__group-heading" aria-hidden="true">${g.label}</div>
           ${g.options.map(optionHtml).join("")}
-        </div>`
+        </div>`,
       )
       .join("");
 
@@ -103,7 +114,9 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
     panel: el.querySelector("[data-pc-combo-panel]"),
     chevron: el.querySelector(".pc-combo-box__chevron"),
     items: () => [...el.querySelectorAll("[data-pc-combo-item]")],
-    visible: () => [...el.querySelectorAll("[data-pc-combo-item]:not([hidden])")],
+    visible: () => [
+      ...el.querySelectorAll("[data-pc-combo-item]:not([hidden])"),
+    ],
     highlighted: () => el.querySelector("[data-highlighted]"),
     empty: () => el.querySelector("[data-pc-combo-empty]"),
     chips: () => [...el.querySelectorAll("[data-pc-combo-chip]")],
@@ -113,7 +126,12 @@ function mountCombo({ id = "combo", options = [], groups = [], multiple = false,
   };
 }
 
-const CITIES = [option("syd", "Sydney"), option("tyo", "Tokyo"), option("lis", "Lisbon"), option("sto", "Stockholm")];
+const CITIES = [
+  option("syd", "Sydney"),
+  option("tyo", "Tokyo"),
+  option("lis", "Lisbon"),
+  option("sto", "Stockholm"),
+];
 
 function type(input, text) {
   input.value = text;
@@ -121,7 +139,11 @@ function type(input, text) {
 }
 
 function key(target, k) {
-  const ev = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true });
+  const ev = new KeyboardEvent("keydown", {
+    key: k,
+    bubbles: true,
+    cancelable: true,
+  });
   target.dispatchEvent(ev);
   return ev;
 }
@@ -181,7 +203,9 @@ describe("open and close", () => {
     c.hook.syncFromSelect();
     c.control.click();
     type(c.input, "sy");
-    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: document.body }));
+    c.el.dispatchEvent(
+      new FocusEvent("focusout", { relatedTarget: document.body }),
+    );
     expect(c.panel.hidden).toBe(true);
     expect(c.input.value).toBe("Tokyo");
   });
@@ -203,7 +227,11 @@ describe("filtering", () => {
     // sat ABOVE Tokyo's prefix match in DOM order and stole the highlight,
     // so Enter committed the wrong value. The fixture pins that ordering.
     const c = mountCombo({
-      options: [option("sto", "Stockholm"), option("lis", "Lisbon"), option("tyo", "Tokyo")],
+      options: [
+        option("sto", "Stockholm"),
+        option("lis", "Lisbon"),
+        option("tyo", "Tokyo"),
+      ],
     });
     c.control.click();
     type(c.input, "tok");
@@ -265,7 +293,9 @@ describe("selection through the hidden select", () => {
   });
 
   it("disabled options are skipped by highlight and inert to clicks", () => {
-    const c = mountCombo({ options: [option("syd", "Sydney"), option("sto", "Stockholm", true)] });
+    const c = mountCombo({
+      options: [option("syd", "Sydney"), option("sto", "Stockholm", true)],
+    });
     c.control.click();
     type(c.input, "sto");
     expect(c.highlighted()).toBe(null);
@@ -311,6 +341,47 @@ describe("multiple with chips", () => {
     expect(c.input.value).toBe("");
     expect(c.chips()).toHaveLength(1);
     expect(c.chips()[0].textContent).toContain("Sydney");
+  });
+
+  it("the highlight stays on the item just picked, and arrows resume from it", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    const last = c.items()[c.items().length - 1];
+    last.click();
+    expect(last.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.input.getAttribute("aria-activedescendant")).toBe(last.id);
+    // Down from the last item enters the empty stop, not the top
+    key(c.input, "ArrowDown");
+    expect(c.el.querySelector("[data-highlighted]")).toBeNull();
+  });
+
+  it("a filtered pick clears the query but keeps the picked item highlighted", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    type(c.input, "tok");
+    key(c.input, "Enter");
+    const tokyo = c.items().find((i) => i.dataset.value === "tyo");
+    expect(tokyo.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.items().filter((i) => !i.hidden).length).toBeGreaterThan(1);
+  });
+
+  it("the placeholder attribute is server truth - the hook never rewrites it", () => {
+    // the cap-rest is pure CSS on [data-max-reached]; the attribute must
+    // survive every selection transition so live server changes always win
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.input.getAttribute("placeholder")).toBe("Pick...");
+    c.items()[1].click();
+    expect(c.el.hasAttribute("data-max-reached")).toBe(true);
+    expect(c.input.getAttribute("placeholder")).toBe("Pick...");
+    // server changes it while capped - updated() must not revert it
+    c.input.setAttribute("placeholder", "Añadir…");
+    c.hook.updated();
+    expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(c.el.hasAttribute("data-max-reached")).toBe(false);
+    expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
   });
 
   it("choosing a chosen option un-chooses it", () => {
@@ -404,7 +475,7 @@ describe("hardening riders", () => {
       setTimeout(() => {
         expect(c.input.value).toBe("");
         resolve();
-      }, 5)
+      }, 5),
     );
   });
 
@@ -484,10 +555,27 @@ describe("trigger variant", () => {
 });
 
 describe("panel flip", () => {
-  function withRects(c, { controlTop, controlBottom, panelHeight, viewport = 800 }) {
-    c.control.getBoundingClientRect = () => ({ top: controlTop, bottom: controlBottom, left: 0, right: 200, width: 200, height: controlBottom - controlTop });
-    Object.defineProperty(c.panel, "offsetHeight", { configurable: true, value: panelHeight });
-    Object.defineProperty(window, "innerHeight", { configurable: true, value: viewport, writable: true });
+  function withRects(
+    c,
+    { controlTop, controlBottom, panelHeight, viewport = 800 },
+  ) {
+    c.control.getBoundingClientRect = () => ({
+      top: controlTop,
+      bottom: controlBottom,
+      left: 0,
+      right: 200,
+      width: 200,
+      height: controlBottom - controlTop,
+    });
+    Object.defineProperty(c.panel, "offsetHeight", {
+      configurable: true,
+      value: panelHeight,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: viewport,
+      writable: true,
+    });
   }
 
   it("stays below when there is room", () => {
@@ -521,7 +609,10 @@ describe("panel flip", () => {
     c.control.click();
     expect(c.panel.hasAttribute("data-flip")).toBe(false);
     // ...then broadening the query grows it past the available space
-    Object.defineProperty(c.panel, "offsetHeight", { configurable: true, value: 200 });
+    Object.defineProperty(c.panel, "offsetHeight", {
+      configurable: true,
+      value: 200,
+    });
     type(c.input, "");
     expect(c.panel.hasAttribute("data-flip")).toBe(true);
   });
@@ -529,39 +620,77 @@ describe("panel flip", () => {
   it("caps the scroll area when neither side fits, on the winning side", () => {
     const c = mountCombo({ options: CITIES });
     // viewport 300: above the control 172px, below 52px, panel wants 200px
-    withRects(c, { controlTop: 180, controlBottom: 220, panelHeight: 200, viewport: 300 });
-    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
-      configurable: true,
-      value: 190,
+    withRects(c, {
+      controlTop: 180,
+      controlBottom: 220,
+      panelHeight: 200,
+      viewport: 300,
     });
+    Object.defineProperty(
+      c.el.querySelector(".pc-combo-box__list"),
+      "offsetHeight",
+      {
+        configurable: true,
+        value: 190,
+      },
+    );
     c.control.click();
     expect(c.panel.hasAttribute("data-flip")).toBe(true);
     // room above = 180-8=172, chrome = 200-190=10 -> cap 162
-    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("162px");
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe(
+      "162px",
+    );
   });
 
   it("never crosses the edge even when less than a row fits", () => {
     const c = mountCombo({ options: CITIES });
     // room above = 40-8=32, chrome 10 -> cap 22: a sliver, but contained
-    withRects(c, { controlTop: 40, controlBottom: 80, panelHeight: 200, viewport: 100 });
-    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
-      configurable: true,
-      value: 190,
+    withRects(c, {
+      controlTop: 40,
+      controlBottom: 80,
+      panelHeight: 200,
+      viewport: 100,
     });
+    Object.defineProperty(
+      c.el.querySelector(".pc-combo-box__list"),
+      "offsetHeight",
+      {
+        configurable: true,
+        value: 190,
+      },
+    );
     c.control.click();
-    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("22px");
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe(
+      "22px",
+    );
   });
 
   it("the cap clears when room returns", () => {
     const c = mountCombo({ options: CITIES });
-    withRects(c, { controlTop: 180, controlBottom: 220, panelHeight: 200, viewport: 300 });
-    Object.defineProperty(c.el.querySelector(".pc-combo-box__list"), "offsetHeight", {
-      configurable: true,
-      value: 190,
+    withRects(c, {
+      controlTop: 180,
+      controlBottom: 220,
+      panelHeight: 200,
+      viewport: 300,
     });
+    Object.defineProperty(
+      c.el.querySelector(".pc-combo-box__list"),
+      "offsetHeight",
+      {
+        configurable: true,
+        value: 190,
+      },
+    );
     c.control.click();
-    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).not.toBe("");
-    withRects(c, { controlTop: 100, controlBottom: 140, panelHeight: 200, viewport: 800 });
+    expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).not.toBe(
+      "",
+    );
+    withRects(c, {
+      controlTop: 100,
+      controlBottom: 140,
+      panelHeight: 200,
+      viewport: 800,
+    });
     window.dispatchEvent(new Event("resize"));
     expect(c.el.querySelector(".pc-combo-box__list").style.maxHeight).toBe("");
     expect(c.panel.hasAttribute("data-flip")).toBe(false);

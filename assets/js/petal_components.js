@@ -28,7 +28,10 @@ export const PetalChatStream = {
       // lands, so growth below the fold can't disengage a following reader.
       const atEdge =
         this.scroller &&
-        this.scroller.scrollHeight - this.scroller.scrollTop - this.scroller.clientHeight < 80;
+        this.scroller.scrollHeight -
+          this.scroller.scrollTop -
+          this.scroller.clientHeight <
+          80;
       this.el.dataset.started = "";
       // markdown mode: replace innerHTML with pre-rendered HTML.
       // text mode: append the raw token delta.
@@ -58,7 +61,9 @@ export const PetalChatComposer = {
     // this. Pinning before the patch lands also flips the scroller's
     // wasAtEdge, so the append sticks.
     this.el.addEventListener("submit", () => {
-      const scroller = this.el.closest(".pc-chat")?.querySelector("[data-pc-scroll]");
+      const scroller = this.el
+        .closest(".pc-chat")
+        ?.querySelector("[data-pc-scroll]");
       if (scroller) {
         scroller.scrollTop = scroller.scrollHeight;
         scroller.dispatchEvent(new Event("scroll"));
@@ -232,7 +237,7 @@ export const PetalChatScroll = {
   recordAnchor() {
     const top = this.el.scrollTop;
     const visible = [...this.el.children].filter(
-      (c) => c.offsetTop + c.offsetHeight > top
+      (c) => c.offsetTop + c.offsetHeight > top,
     );
     // prefer an id'd row - ids survive LiveView patches, anonymous wrappers
     // (like a "load earlier" button) often don't
@@ -241,7 +246,8 @@ export const PetalChatScroll = {
   },
   toggle() {
     if (!this.btn) return;
-    const slack = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
+    const slack =
+      this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight;
     this.btn.classList.toggle("pc-chat__scroll-btn--hidden", slack < 80);
   },
 };
@@ -261,7 +267,10 @@ export const PetalPasswordToggle = {
       if (eye) eye.classList.toggle("hidden", revealed);
       if (eyeOff) eyeOff.classList.toggle("hidden", !revealed);
       btn.setAttribute("aria-pressed", String(revealed));
-      btn.setAttribute("aria-label", revealed ? "Hide password" : "Show password");
+      btn.setAttribute(
+        "aria-label",
+        revealed ? "Hide password" : "Show password",
+      );
     });
   },
 };
@@ -303,7 +312,8 @@ export const PetalClearableInput = {
     this.btn = this.el.querySelector("[data-pc-clear-btn]");
     if (!this.input || !this.btn) return;
 
-    this.sync = () => this.btn.classList.toggle("hidden", this.input.value.length === 0);
+    this.sync = () =>
+      this.btn.classList.toggle("hidden", this.input.value.length === 0);
     this.input.addEventListener("input", this.sync);
     this.btn.addEventListener("click", () => {
       this.input.value = "";
@@ -332,7 +342,10 @@ export const PetalRangeFill = {
       const val = parseFloat(this.el.value);
       const v = Number.isNaN(val) ? lo : val;
       const pct = hi <= lo ? 0 : ((v - lo) / (hi - lo)) * 100;
-      this.el.style.setProperty("--pc-range-fill", Math.max(0, Math.min(100, pct)) + "%");
+      this.el.style.setProperty(
+        "--pc-range-fill",
+        Math.max(0, Math.min(100, pct)) + "%",
+      );
     };
     this.el.addEventListener("input", this.sync);
     this.sync();
@@ -427,8 +440,7 @@ export const PetalDualRangeSlider = {
     if (!this.display) return;
     // parseFloat strips trailing zeros (50.0 → "50"), keeping labels clean.
     const fmt = (v) => parseFloat(v.toFixed(10));
-    this.display.textContent =
-      `${this.prefix}${fmt(min)}${this.suffix} – ${this.prefix}${fmt(max)}${this.suffix}`;
+    this.display.textContent = `${this.prefix}${fmt(min)}${this.suffix} – ${this.prefix}${fmt(max)}${this.suffix}`;
   },
 };
 
@@ -446,7 +458,7 @@ export const PetalChart = {
     if (!window.echarts) {
       console.warn(
         "[petal] PetalChart: window.echarts not found. Add ECharts to your app " +
-          "(e.g. <script src=\"https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js\"></script>)."
+          '(e.g. <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>).',
       );
       return;
     }
@@ -543,7 +555,9 @@ export const PetalChart = {
     try {
       return this.prepareOption(JSON.parse(this.el.dataset.option || "{}"));
     } catch (_e) {
-      console.warn("[petal] PetalChart: invalid data-option JSON on #" + this.el.id);
+      console.warn(
+        "[petal] PetalChart: invalid data-option JSON on #" + this.el.id,
+      );
       return {};
     }
   },
@@ -556,17 +570,27 @@ export const PetalChart = {
   prepareOption(opt) {
     if (!("aria" in opt)) opt.aria = { enabled: true };
     this.substituteFormatters(opt);
-    const series = Array.isArray(opt.series) ? opt.series : opt.series ? [opt.series] : [];
-    const palette = series.some((s) => s.areaStyle && s.areaStyle.color === "petal:fade")
+    const series = Array.isArray(opt.series)
+      ? opt.series
+      : opt.series
+        ? [opt.series]
+        : [];
+    const palette = series.some(
+      (s) => s.areaStyle && s.areaStyle.color === "petal:fade",
+    )
       ? this.palette()
       : null;
     series.forEach((s, i) => {
       if (!(s.areaStyle && s.areaStyle.color === "petal:fade")) return;
       const base =
-        this.normalizeColor(s.color || (s.itemStyle && s.itemStyle.color) || "") ||
-        palette[i % palette.length];
+        this.normalizeColor(
+          s.color || (s.itemStyle && s.itemStyle.color) || "",
+        ) || palette[i % palette.length];
       const stop = (alphaPct) =>
-        base.replace(/rgba\(([^)]+),\s*[\d.]+\)/, `rgba($1, ${alphaPct / 100})`);
+        base.replace(
+          /rgba\(([^)]+),\s*[\d.]+\)/,
+          `rgba($1, ${alphaPct / 100})`,
+        );
       s.areaStyle = {
         ...s.areaStyle,
         color: {
@@ -597,17 +621,34 @@ export const PetalChart = {
   // Named "petal:*" formatter strings become Intl.NumberFormat functions
   // wherever ECharts accepts a formatter.
   formatterFor(spec) {
-    const m = /^petal:(number|percent|currency|currency-compact)(?::([A-Za-z]{3}))?$/.exec(spec);
+    const m =
+      /^petal:(number|percent|currency|currency-compact)(?::([A-Za-z]{3}))?$/.exec(
+        spec,
+      );
     if (!m) return null;
     const wrap = (nf, suffix) => (value) =>
       typeof value === "number" ? nf.format(value) + (suffix || "") : value;
     switch (m[1]) {
       case "number":
-        return wrap(new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }));
+        return wrap(
+          new Intl.NumberFormat(undefined, {
+            notation: "compact",
+            maximumFractionDigits: 1,
+          }),
+        );
       case "percent":
-        return wrap(new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }), "%");
+        return wrap(
+          new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }),
+          "%",
+        );
       case "currency":
-        return wrap(new Intl.NumberFormat(undefined, { style: "currency", currency: m[2] || "USD", maximumFractionDigits: 0 }));
+        return wrap(
+          new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: m[2] || "USD",
+            maximumFractionDigits: 0,
+          }),
+        );
       case "currency-compact":
         return wrap(
           new Intl.NumberFormat(undefined, {
@@ -615,7 +656,7 @@ export const PetalChart = {
             currency: m[2] || "USD",
             notation: "compact",
             maximumFractionDigits: 1,
-          })
+          }),
         );
     }
   },
@@ -628,7 +669,10 @@ export const PetalChart = {
     if (!node || typeof node !== "object") return;
     for (const key of Object.keys(node)) {
       const value = node[key];
-      if ((key === "formatter" || key === "valueFormatter") && typeof value === "string") {
+      if (
+        (key === "formatter" || key === "valueFormatter") &&
+        typeof value === "string"
+      ) {
         const fn = this.formatterFor(value);
         if (fn) node[key] = fn;
       } else {
@@ -696,7 +740,14 @@ export const PetalChart = {
     // Fallback: semantic ramps, in fixed order, except that any ramp whose
     // hue collides with an earlier pick (e.g. success green when primary is
     // emerald) is pushed to the back so adjacent series stay tellable-apart.
-    const candidates = ["primary", "info", "warning", "danger", "success", "secondary"]
+    const candidates = [
+      "primary",
+      "info",
+      "warning",
+      "danger",
+      "success",
+      "secondary",
+    ]
       .map((role) => this.resolveColor(`var(--color-${role}-500)`))
       .filter(Boolean);
     const picked = [];
@@ -733,11 +784,19 @@ export const PetalChart = {
   },
 
   currentSignature() {
-    return this.palette().join("|") + "|" + this.resolveColor("var(--color-gray-500)") + "|" + this.isDark();
+    return (
+      this.palette().join("|") +
+      "|" +
+      this.resolveColor("var(--color-gray-500)") +
+      "|" +
+      this.isDark()
+    );
   },
 
   alpha(expression, pct) {
-    return this.resolveColor(`color-mix(in oklab, ${expression} ${pct}%, transparent)`);
+    return this.resolveColor(
+      `color-mix(in oklab, ${expression} ${pct}%, transparent)`,
+    );
   },
 
   buildTheme() {
@@ -746,7 +805,9 @@ export const PetalChart = {
     const text = dark ? gray(400) : gray(500);
     const strongText = dark ? gray(100) : gray(900);
     const axisLine = dark ? this.alpha("var(--color-gray-400)", 25) : gray(300);
-    const splitLine = dark ? this.alpha("var(--color-gray-400)", 17) : gray(200);
+    const splitLine = dark
+      ? this.alpha("var(--color-gray-400)", 17)
+      : gray(200);
     // Label-only axes (no axis lines, no tick marks) and horizontal-only
     // gridlines - the clean dashboard look shadcn also defaults to. Any of
     // it comes back with one line in the option, which always wins.
@@ -762,14 +823,22 @@ export const PetalChart = {
       color: this.palette(),
       backgroundColor: "transparent",
       textStyle: { color: text },
-      title: { textStyle: { color: strongText }, subtextStyle: { color: text } },
+      title: {
+        textStyle: { color: strongText },
+        subtextStyle: { color: text },
+      },
       legend: {
         textStyle: { color: text },
-        inactiveColor: dark ? this.alpha("var(--color-gray-400)", 35) : gray(300),
+        inactiveColor: dark
+          ? this.alpha("var(--color-gray-400)", 35)
+          : gray(300),
       },
       bar: { itemStyle: { borderRadius: [4, 4, 0, 0] } },
       line: { showSymbol: false, symbolSize: 6 },
-      categoryAxis: { ...axisStyles, splitLine: { show: false, lineStyle: { color: splitLine } } },
+      categoryAxis: {
+        ...axisStyles,
+        splitLine: { show: false, lineStyle: { color: splitLine } },
+      },
       valueAxis: axisStyles,
       timeAxis: axisStyles,
       logAxis: axisStyles,
@@ -798,7 +867,7 @@ export const PetalColorScheme = {
   mounted() {
     if (!window.PetalColorScheme) {
       console.warn(
-        "[petal] PetalColorScheme: render <.color_scheme_script /> in your layout's <head>."
+        "[petal] PetalColorScheme: render <.color_scheme_script /> in your layout's <head>.",
       );
       return;
     }
@@ -808,13 +877,15 @@ export const PetalColorScheme = {
 
     if (this.variant === "toggle") {
       this.onClick = () => {
-        const next = window.PetalColorScheme.resolved() === "dark" ? "light" : "dark";
+        const next =
+          window.PetalColorScheme.resolved() === "dark" ? "light" : "dark";
         window.PetalColorScheme.set(next);
       };
       this.el.addEventListener("click", this.onClick);
     } else if (this.variant === "segmented") {
       this.onChange = (e) => {
-        if (e.target instanceof HTMLInputElement) window.PetalColorScheme.set(e.target.value);
+        if (e.target instanceof HTMLInputElement)
+          window.PetalColorScheme.set(e.target.value);
       };
       this.el.addEventListener("change", this.onChange);
     } else {
@@ -847,7 +918,10 @@ export const PetalColorScheme = {
       r.checked = r.value === pref;
     });
     this.el.querySelectorAll("[data-scheme]").forEach((n) => {
-      n.setAttribute("aria-checked", n.dataset.scheme === pref ? "true" : "false");
+      n.setAttribute(
+        "aria-checked",
+        n.dataset.scheme === pref ? "true" : "false",
+      );
     });
   },
 };
@@ -861,7 +935,8 @@ export const PetalNumberTicker = {
     this.lastTarget = this.target();
     // Show the start value until the element becomes visible.
     this.render(parseFloat(this.el.dataset.startValue || "0"));
-    const start = () => this.animate(parseFloat(this.el.dataset.startValue || "0"));
+    const start = () =>
+      this.animate(parseFloat(this.el.dataset.startValue || "0"));
     if ("IntersectionObserver" in window) {
       this.observer = new IntersectionObserver(
         (entries) => {
@@ -871,7 +946,7 @@ export const PetalNumberTicker = {
             start();
           }
         },
-        { threshold: 0.3 }
+        { threshold: 0.3 },
       );
       this.observer.observe(this.el);
     } else {
@@ -929,7 +1004,9 @@ export const PetalNumberTicker = {
       maximumFractionDigits: decimals,
     });
     this.el.textContent =
-      (this.el.dataset.prefix || "") + fmt.format(value) + (this.el.dataset.suffix || "");
+      (this.el.dataset.prefix || "") +
+      fmt.format(value) +
+      (this.el.dataset.suffix || "");
   },
 };
 
@@ -940,7 +1017,15 @@ export const PetalNumberTicker = {
 // Fire from the client:  JS.dispatch("pc:confetti", to: "#my-confetti")
 // Options: particle_count, spread, angle, velocity, colors, origin {x, y} (0..1).
 export const PetalConfetti = {
-  defaultColors: ["#26ccff", "#a25afd", "#ff5e7e", "#88ff5a", "#fcff42", "#ffa62d", "#ff36ff"],
+  defaultColors: [
+    "#26ccff",
+    "#a25afd",
+    "#ff5e7e",
+    "#88ff5a",
+    "#fcff42",
+    "#ffa62d",
+    "#ff36ff",
+  ],
 
   mounted() {
     this.particles = [];
@@ -966,7 +1051,9 @@ export const PetalConfetti = {
       dataColors = JSON.parse(this.el.dataset.colors || "null");
     } catch (_e) {}
 
-    const count = opts.particle_count || parseInt(this.el.dataset.particleCount || "100", 10);
+    const count =
+      opts.particle_count ||
+      parseInt(this.el.dataset.particleCount || "100", 10);
     const spread = opts.spread || parseInt(this.el.dataset.spread || "70", 10);
     const angle = opts.angle !== undefined ? opts.angle : 90;
     const velocity = opts.velocity || 45;
@@ -1070,8 +1157,14 @@ export const PetalSpotlight = {
   mounted() {
     this.onMove = (e) => {
       const rect = this.el.getBoundingClientRect();
-      this.el.style.setProperty("--pc-spotlight-x", `${e.clientX - rect.left}px`);
-      this.el.style.setProperty("--pc-spotlight-y", `${e.clientY - rect.top}px`);
+      this.el.style.setProperty(
+        "--pc-spotlight-x",
+        `${e.clientX - rect.left}px`,
+      );
+      this.el.style.setProperty(
+        "--pc-spotlight-y",
+        `${e.clientY - rect.top}px`,
+      );
     };
     this.el.addEventListener("mousemove", this.onMove);
   },
@@ -1153,7 +1246,10 @@ export const PetalTypingEffect = {
   erase(i) {
     this.textEl.textContent = this.chars.slice(0, i).join("");
     if (i > 0) {
-      this.timer = setTimeout(() => this.erase(i - 1), Math.max(this.speed / 2, 15));
+      this.timer = setTimeout(
+        () => this.erase(i - 1),
+        Math.max(this.speed / 2, 15),
+      );
     } else {
       this.timer = setTimeout(() => this.type(1), 400);
     }
@@ -1184,8 +1280,10 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
 
     if (!container) return;
 
-    const currentlyOpenAccordionItem = container.querySelector("[data-open='true']");
-    const isClosingClickedAccordionItem = clickedAccordionItem.dataset.open === "true";
+    const currentlyOpenAccordionItem =
+      container.querySelector("[data-open='true']");
+    const isClosingClickedAccordionItem =
+      clickedAccordionItem.dataset.open === "true";
     const isLastAccordionItem = i == l - 1;
     const isGhostVariant = container.classList.contains("pc-accordion--ghost");
 
@@ -1209,7 +1307,10 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
         const chevron = item.querySelector("span.hero-chevron-down-solid");
         if (chevron) chevron.classList.remove("rotate-180");
         const btn = item.querySelector(".accordion-button");
-        if (btn) btn.classList.remove("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+        if (btn)
+          btn.classList.remove(
+            "pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes",
+          );
         if (isLastAccordionItem && item === clickedAccordionItem) {
           const btn2 = item.querySelector(".accordion-button");
           if (btn2) btn2.classList.add("pc-accordion-item--last--closed");
@@ -1233,7 +1334,10 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
         const chevron = item.querySelector("span.hero-chevron-down-solid");
         if (chevron) chevron.classList.add("rotate-180");
         const btn = item.querySelector(".accordion-button");
-        if (btn) btn.classList.add("pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes");
+        if (btn)
+          btn.classList.add(
+            "pc-accordion-item__content-container--highlight-accordion-button-on-expanded-js-attributes",
+          );
         if (isLastAccordionItem) {
           const btn2 = item.querySelector(".accordion-button");
           if (btn2) btn2.classList.remove("pc-accordion-item--last--closed");
@@ -1243,7 +1347,11 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
     }
 
     // In single mode, close the currently open item (if different from clicked)
-    if (!isMultiple && currentlyOpenAccordionItem && currentlyOpenAccordionItem !== clickedAccordionItem) {
+    if (
+      !isMultiple &&
+      currentlyOpenAccordionItem &&
+      currentlyOpenAccordionItem !== clickedAccordionItem
+    ) {
       closeItem(currentlyOpenAccordionItem);
     }
 
@@ -1257,7 +1365,6 @@ if (typeof window !== "undefined" && !window.__petalComponentsAccordionInit) {
     }
   });
 }
-
 
 export const PetalInputOTP = {
   mounted() {
@@ -1274,7 +1381,7 @@ export const PetalInputOTP = {
           new CustomEvent("petal:otp-complete", {
             detail: { value: this.input.value },
             bubbles: true,
-          })
+          }),
         );
       }
     });
@@ -1301,7 +1408,9 @@ export const PetalInputOTP = {
   sanitize() {
     const pattern =
       this.el.dataset.pattern === "alphanumeric" ? /[^a-zA-Z0-9]/g : /[^0-9]/g;
-    const clean = this.input.value.replace(pattern, "").slice(0, this.slots.length);
+    const clean = this.input.value
+      .replace(pattern, "")
+      .slice(0, this.slots.length);
     if (clean !== this.input.value) this.input.value = clean;
   },
 
@@ -1315,7 +1424,12 @@ export const PetalInputOTP = {
       slot.classList.toggle("pc-otp__slot--filled", Boolean(value[i]));
       slot.classList.toggle(
         "pc-otp__slot--active",
-        focused && i === activeIndex && value.length < this.slots.length + (value[i] ? 0 : 1) && (i === value.length || (i === this.slots.length - 1 && value.length === this.slots.length))
+        focused &&
+          i === activeIndex &&
+          value.length < this.slots.length + (value[i] ? 0 : 1) &&
+          (i === value.length ||
+            (i === this.slots.length - 1 &&
+              value.length === this.slots.length)),
       );
     });
   },
@@ -1346,7 +1460,9 @@ export const PetalPopover = {
     window.removeEventListener("resize", this.reposition);
   },
   position() {
-    const trigger = document.querySelector(`[popovertarget="${CSS.escape(this.el.id)}"]`);
+    const trigger = document.querySelector(
+      `[popovertarget="${CSS.escape(this.el.id)}"]`,
+    );
     if (!trigger) return;
 
     const gap = 8;
@@ -1363,10 +1479,30 @@ export const PetalPopover = {
     };
 
     let s = side;
-    if (side === "bottom" && space.bottom < p.height + gap && space.top > space.bottom) s = "top";
-    if (side === "top" && space.top < p.height + gap && space.bottom > space.top) s = "bottom";
-    if (side === "right" && space.right < p.width + gap && space.left > space.right) s = "left";
-    if (side === "left" && space.left < p.width + gap && space.right > space.left) s = "right";
+    if (
+      side === "bottom" &&
+      space.bottom < p.height + gap &&
+      space.top > space.bottom
+    )
+      s = "top";
+    if (
+      side === "top" &&
+      space.top < p.height + gap &&
+      space.bottom > space.top
+    )
+      s = "bottom";
+    if (
+      side === "right" &&
+      space.right < p.width + gap &&
+      space.left > space.right
+    )
+      s = "left";
+    if (
+      side === "left" &&
+      space.left < p.width + gap &&
+      space.right > space.left
+    )
+      s = "right";
 
     let top, left;
     if (s === "top" || s === "bottom") {
@@ -1389,7 +1525,6 @@ export const PetalPopover = {
   },
 };
 
-
 // Command palette: client-side filtering + WAI-ARIA combobox keyboard model.
 // Items are hidden, never reordered - the server owns DOM order, so the
 // palette stays safe under LiveView patches. Scoring: value prefix beats
@@ -1407,7 +1542,8 @@ export const PetalCommand = {
     this.onKeydown = (e) => this.keydown(e);
     this.onPointerOver = (e) => {
       const item = e.target.closest("[data-pc-command-item]");
-      if (item && !item.hasAttribute("data-disabled") && !item.hidden) this.setActive(item, false);
+      if (item && !item.hasAttribute("data-disabled") && !item.hidden)
+        this.setActive(item, false);
     };
     this.input.addEventListener("input", this.onInput);
     this.input.addEventListener("keydown", this.onKeydown);
@@ -1433,7 +1569,9 @@ export const PetalCommand = {
   },
 
   visibleItems() {
-    return this.items().filter((i) => !i.hidden && !i.hasAttribute("data-disabled"));
+    return this.items().filter(
+      (i) => !i.hidden && !i.hasAttribute("data-disabled"),
+    );
   },
 
   searchText(item) {
@@ -1450,7 +1588,8 @@ export const PetalCommand = {
     if (at >= 0) return 2;
     // fuzzy subsequence: every query char appears in order
     let qi = 0;
-    for (const ch of text) if (ch === query[qi] && ++qi === query.length) return 1;
+    for (const ch of text)
+      if (ch === query[qi] && ++qi === query.length) return 1;
     return 0;
   },
 
@@ -1470,7 +1609,9 @@ export const PetalCommand = {
     }
 
     for (const group of this.el.querySelectorAll("[data-pc-command-group]")) {
-      const any = Array.from(group.querySelectorAll("[data-pc-command-item]")).some((i) => !i.hidden);
+      const any = Array.from(
+        group.querySelectorAll("[data-pc-command-item]"),
+      ).some((i) => !i.hidden);
       group.hidden = !any;
     }
 
@@ -1484,7 +1625,12 @@ export const PetalCommand = {
     // a new query re-homes the highlight to the best (first) match;
     // otherwise keep it, unless it was filtered away
     const active = this.activeItem();
-    if (queryChanged || !active || active.hidden || active.hasAttribute("data-disabled")) {
+    if (
+      queryChanged ||
+      !active ||
+      active.hidden ||
+      active.hasAttribute("data-disabled")
+    ) {
       this.setActive(this.visibleItems()[0] || null, false);
     }
   },
@@ -1541,7 +1687,8 @@ export const PetalCommand = {
       case "Enter": {
         e.preventDefault();
         const item = this.activeItem();
-        if (item && !item.hidden && !item.hasAttribute("data-disabled")) item.click();
+        if (item && !item.hidden && !item.hasAttribute("data-disabled"))
+          item.click();
         break;
       }
     }
@@ -1558,7 +1705,10 @@ export const PetalCommandDialog = {
     this.onShortcut = (e) => {
       const key = this.el.dataset.shortcut;
       if (!key) return;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === key.toLowerCase()) {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key.toLowerCase() === key.toLowerCase()
+      ) {
         e.preventDefault();
         this.el.open ? this.close() : this.open();
       }
@@ -1572,7 +1722,11 @@ export const PetalCommandDialog = {
     this.onClose = () => this.reset();
     this.onItemClick = (e) => {
       const item = e.target.closest("[data-pc-command-item]");
-      if (item && !item.hasAttribute("data-keep-open") && !item.hasAttribute("data-disabled")) {
+      if (
+        item &&
+        !item.hasAttribute("data-keep-open") &&
+        !item.hasAttribute("data-disabled")
+      ) {
         this.close();
       }
     };
@@ -1659,8 +1813,8 @@ export const PetalAurora = {
 export const PetalNavMenu = {
   mounted() {
     this.closeDelay = 140;
-    this.items = [...this.el.querySelectorAll(".pc-nav-menu__item")].filter((i) =>
-      i.querySelector("[data-pc-nav-panel]")
+    this.items = [...this.el.querySelectorAll(".pc-nav-menu__item")].filter(
+      (i) => i.querySelector("[data-pc-nav-panel]"),
     );
 
     this.items.forEach((item) => {
@@ -1678,7 +1832,10 @@ export const PetalNavMenu = {
       item.addEventListener("pointerleave", (e) => {
         if (e.pointerType === "touch") return;
         clearTimeout(this.closeTimer);
-        this.closeTimer = setTimeout(() => this.close(item, trigger), this.closeDelay);
+        this.closeTimer = setTimeout(
+          () => this.close(item, trigger),
+          this.closeDelay,
+        );
       });
       // Click toggles - open it, or close an already-open one (matches shadcn).
       // While the pointer stays on the trigger, enter doesn't refire, so a
@@ -1708,7 +1865,9 @@ export const PetalNavMenu = {
       if (!this.el.contains(e.target)) this.closeAll();
     };
     this.onResize = () => {
-      const open = this.items.find((i) => i.classList.contains("pc-nav-menu__item--open"));
+      const open = this.items.find((i) =>
+        i.classList.contains("pc-nav-menu__item--open"),
+      );
       if (open) this.position(open.querySelector("[data-pc-nav-panel]"));
     };
     document.addEventListener("keydown", this.onKeydown);
@@ -1727,7 +1886,9 @@ export const PetalNavMenu = {
     this.items.forEach((other) => {
       if (other !== item) {
         other.classList.remove("pc-nav-menu__item--open");
-        other.querySelector(".pc-nav-menu__trigger")?.setAttribute("aria-expanded", "false");
+        other
+          .querySelector(".pc-nav-menu__trigger")
+          ?.setAttribute("aria-expanded", "false");
       }
     });
     item.classList.add("pc-nav-menu__item--open");
@@ -1743,7 +1904,7 @@ export const PetalNavMenu = {
   closeAll() {
     clearTimeout(this.closeTimer);
     this.items.forEach((item) =>
-      this.close(item, item.querySelector(".pc-nav-menu__trigger"))
+      this.close(item, item.querySelector(".pc-nav-menu__trigger")),
     );
   },
 
@@ -1760,7 +1921,6 @@ export const PetalNavMenu = {
     }
   },
 };
-
 
 // Localised timestamps: formats the <time datetime> UTC instant with the
 // browser's Intl. Relative forms tick on a decaying cadence and re-render
@@ -1792,7 +1952,9 @@ export const PetalLocalTime = {
       try {
         options = JSON.parse(d.options);
       } catch (_e) {
-        console.warn("[petal] PetalLocalTime: invalid data-options JSON on #" + this.el.id);
+        console.warn(
+          "[petal] PetalLocalTime: invalid data-options JSON on #" + this.el.id,
+        );
       }
     }
     return {
@@ -1812,7 +1974,10 @@ export const PetalLocalTime = {
       time: { timeStyle: "short" },
     };
     const opts = cfg.options || presets[cfg.format] || presets.datetime;
-    return new Intl.DateTimeFormat(cfg.locale, { timeZone: cfg.timezone, ...opts }).format(date);
+    return new Intl.DateTimeFormat(cfg.locale, {
+      timeZone: cfg.timezone,
+      ...opts,
+    }).format(date);
   },
 
   relative(cfg, ageSeconds) {
@@ -1844,7 +2009,11 @@ export const PetalLocalTime = {
       const age = (Date.now() - date.getTime()) / 1000;
 
       if (Math.abs(age) > cfg.threshold) {
-        this.el.textContent = this.absolute(date, { ...cfg, format: "datetime", options: null });
+        this.el.textContent = this.absolute(date, {
+          ...cfg,
+          format: "datetime",
+          options: null,
+        });
         return;
       }
 
@@ -1879,10 +2048,10 @@ export const PetalCarousel = {
     this.slideWrapper = this.el.querySelector(".pc-carousel__slides");
     this.slides = Array.from(this.el.querySelectorAll(".pc-carousel__slide"));
     this.navdots = Array.from(
-      this.wrapper.querySelectorAll(".pc-carousel__indicator")
+      this.wrapper.querySelectorAll(".pc-carousel__indicator"),
     );
     this.thumbs = Array.from(
-      this.wrapper.querySelectorAll("[data-thumb-index]")
+      this.wrapper.querySelectorAll("[data-thumb-index]"),
     );
 
     this.activeIndex = parseInt(this.el.dataset.activeIndex) || 0;
@@ -2196,7 +2365,7 @@ export const PetalCarousel = {
           // For multi-slide view, use position-based detection instead of threshold
           // Calculate the current position index
           const currentPosition = Math.round(
-            scrollPos / (this.slideWidth + this.spaceBtwSlides)
+            scrollPos / (this.slideWidth + this.spaceBtwSlides),
           );
 
           // Check if we're at or before the first real slide position
@@ -2300,7 +2469,7 @@ export const PetalCarousel = {
           // Reapply if measurements differ
           if (needsUpdate) {
             const allSlides = this.slideWrapper.querySelectorAll(
-              ".pc-carousel__slide"
+              ".pc-carousel__slide",
             );
             allSlides.forEach((slide) => {
               this.applySlideDimensions(slide);
@@ -2317,7 +2486,7 @@ export const PetalCarousel = {
     if (gap.endsWith("rem")) {
       const remValue = parseFloat(gap);
       const rootFontSize = parseFloat(
-        getComputedStyle(document.documentElement).fontSize
+        getComputedStyle(document.documentElement).fontSize,
       );
       return remValue * rootFontSize;
     } else if (gap.endsWith("em")) {
@@ -2348,7 +2517,7 @@ export const PetalCarousel = {
           if (this.transitionType === "slide") {
             // Remove all cloned slides
             const allSlides = this.slideWrapper.querySelectorAll(
-              ".pc-carousel__slide"
+              ".pc-carousel__slide",
             );
             allSlides.forEach((slide) => {
               if (slide.getAttribute("aria-hidden") === "true") {
@@ -2367,7 +2536,7 @@ export const PetalCarousel = {
         // Reapply dimensions to all slides after resize
         if (this.transitionType === "slide") {
           const allSlides = this.slideWrapper.querySelectorAll(
-            ".pc-carousel__slide"
+            ".pc-carousel__slide",
           );
           allSlides.forEach((slide) => {
             this.applySlideDimensions(slide);
@@ -2518,7 +2687,7 @@ export const PetalCarousel = {
           e.stopPropagation();
         }
       },
-      true
+      true,
     );
   },
 
@@ -2817,11 +2986,11 @@ export const PetalCarousel = {
     this.thumbs.forEach((thumb, index) => {
       thumb.classList.toggle(
         "pc-carousel__thumb--active",
-        index === this.activeIndex
+        index === this.activeIndex,
       );
       thumb.setAttribute(
         "aria-current",
-        index === this.activeIndex ? "true" : "false"
+        index === this.activeIndex ? "true" : "false",
       );
     });
 
@@ -2842,7 +3011,7 @@ export const PetalCarousel = {
             count: this.n_slides,
           },
           bubbles: true,
-        })
+        }),
       );
     }
 
@@ -2864,10 +3033,10 @@ export const PetalCarousel = {
     if (this.loop) {
       // When loop is enabled, ensure buttons are always enabled
       const prevButton = this.wrapper.querySelector(
-        `#${this.id}-carousel-prev`
+        `#${this.id}-carousel-prev`,
       );
       const nextButton = this.wrapper.querySelector(
-        `#${this.id}-carousel-next`
+        `#${this.id}-carousel-next`,
       );
 
       if (prevButton) prevButton.disabled = false;
@@ -2904,7 +3073,8 @@ export const PetalCarousel = {
 // next one for free. put_flash is unaffected - each group renders only its
 // own data-flash, and only the group given flash={@flash} has any.
 const toastGroups = new Set();
-const isPrimaryToastGroup = (hook) => toastGroups.values().next().value === hook;
+const isPrimaryToastGroup = (hook) =>
+  toastGroups.values().next().value === hook;
 
 export const PetalToast = {
   mounted() {
@@ -2917,7 +3087,7 @@ export const PetalToast = {
           `would render an identical toast behind every one - #${this.el.id} will ` +
           `ignore server and window toast events. Keep a single group in your layout. ` +
           `(Which group wins is not guaranteed to follow DOM order, so remove the ` +
-          `extra rather than relying on this.)`
+          `extra rather than relying on this.)`,
       );
     }
     this.stack = document.getElementById(this.el.id + "-stack");
@@ -3048,7 +3218,13 @@ export const PetalToast = {
     return String(s == null ? "" : s).replace(
       /[&<>"']/g,
       (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
     );
   },
 
@@ -3059,10 +3235,17 @@ export const PetalToast = {
       warning: ["hero-exclamation-triangle-solid", "pc-toast__icon--warning"],
       danger: ["hero-exclamation-circle-solid", "pc-toast__icon--danger"],
     };
-    if (kind === "loading") return '<span class="pc-toast__spinner" aria-hidden="true"></span>';
+    if (kind === "loading")
+      return '<span class="pc-toast__spinner" aria-hidden="true"></span>';
     if (!map[kind]) return "";
     const [icon, color] = map[kind];
-    return '<span class="pc-toast__icon ' + icon + " " + color + '" aria-hidden="true"></span>';
+    return (
+      '<span class="pc-toast__icon ' +
+      icon +
+      " " +
+      color +
+      '" aria-hidden="true"></span>'
+    );
   },
 
   contentFor(t) {
@@ -3112,7 +3295,11 @@ export const PetalToast = {
     const id = d.id != null ? String(d.id) : "pc-toast-" + ++this.seq;
     const kind = d.kind || "neutral";
     const duration =
-      d.duration != null ? d.duration : kind === "loading" ? 0 : this.defaultDuration;
+      d.duration != null
+        ? d.duration
+        : kind === "loading"
+          ? 0
+          : this.defaultDuration;
 
     let t = this.toasts.find((t) => t.id === id);
 
@@ -3153,7 +3340,7 @@ export const PetalToast = {
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           t.el.dataset.state = "open";
-        })
+        }),
       );
     }
 
@@ -3176,7 +3363,7 @@ export const PetalToast = {
       new CustomEvent("petal:toast-dismissed", {
         detail: { id: t.id, kind: t.kind },
         bubbles: true,
-      })
+      }),
     );
     t.el.dataset.state = "closing";
     if (dx) t.el.style.setProperty("--pc-toast-swipe-end", dx + "px");
@@ -3210,11 +3397,17 @@ export const PetalToast = {
         if (!hidden) offset += el.offsetHeight + gap;
       } else {
         el.style.setProperty("--pc-toast-y", dir * i * 12 + "px");
-        el.style.setProperty("--pc-toast-scale", String(Math.max(0, 1 - i * 0.06)));
+        el.style.setProperty(
+          "--pc-toast-scale",
+          String(Math.max(0, 1 - i * 0.06)),
+        );
       }
     });
 
-    this.stack.classList.toggle("pc-toast-group__stack--expanded", this.expanded);
+    this.stack.classList.toggle(
+      "pc-toast-group__stack--expanded",
+      this.expanded,
+    );
   },
 
   // ----------------------------------------------------------------- timers
@@ -3325,7 +3518,10 @@ export const PetalToast = {
       // idempotent grace callback makes a double collapse harmless.
       const r = this.stack.getBoundingClientRect();
       const inside =
-        e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom;
       if (!inside) {
         this.expanded = false;
         this.resumeAll();
@@ -3336,7 +3532,6 @@ export const PetalToast = {
     this.stack.addEventListener("pointerdown", this.onPointerDown);
   },
 };
-
 
 // Combo box: the command palette's filter + keyboard core wired to a real
 // hidden <select>. The select IS the form control - choosing an option sets
@@ -3377,7 +3572,8 @@ export const PetalComboBox = {
     this.onKeydown = (e) => this.keydown(e);
     this.onPointerOver = (e) => {
       const item = e.target.closest("[data-pc-combo-item]");
-      if (item && !item.hasAttribute("data-disabled") && !item.hidden) this.highlight(item, false);
+      if (item && !item.hasAttribute("data-disabled") && !item.hidden)
+        this.highlight(item, false);
     };
     this.onListClick = (e) => {
       const item = e.target.closest("[data-pc-combo-item]");
@@ -3392,7 +3588,8 @@ export const PetalComboBox = {
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
       if (e.target.closest("[data-pc-combo-chip-remove]")) {
-        const value = e.target.closest("[data-pc-combo-chip-remove]").dataset.value;
+        const value = e.target.closest("[data-pc-combo-chip-remove]").dataset
+          .value;
         this.setSelected(value, false);
         this.input.focus();
         return;
@@ -3453,7 +3650,8 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
-    if (this.control) this.control.addEventListener("click", this.onControlClick);
+    if (this.control)
+      this.control.addEventListener("click", this.onControlClick);
     if (this.trigger) {
       this.trigger.addEventListener("click", this.onTriggerClick);
       this.trigger.addEventListener("keydown", this.onTriggerKeydown);
@@ -3461,7 +3659,6 @@ export const PetalComboBox = {
     this.el.addEventListener("focusout", this.onFocusOut);
     this.form = this.select.form;
     if (this.form) this.form.addEventListener("reset", this.onFormReset);
-
     this.syncFromSelect();
   },
 
@@ -3478,14 +3675,19 @@ export const PetalComboBox = {
     this.list.removeEventListener("pointerover", this.onPointerOver);
     this.list.removeEventListener("click", this.onListClick);
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
-    if (this.control) this.control.removeEventListener("click", this.onControlClick);
+    if (this.control)
+      this.control.removeEventListener("click", this.onControlClick);
     if (this.trigger) {
       this.trigger.removeEventListener("click", this.onTriggerClick);
       this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
     if (this.form) this.form.removeEventListener("reset", this.onFormReset);
-    document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
+    document.removeEventListener(
+      "pointerdown",
+      this.onOutsidePointerDown,
+      true,
+    );
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
   },
@@ -3495,7 +3697,9 @@ export const PetalComboBox = {
   },
 
   visibleItems() {
-    return this.items().filter((i) => !i.hidden && !i.hasAttribute("data-disabled"));
+    return this.items().filter(
+      (i) => !i.hidden && !i.hasAttribute("data-disabled"),
+    );
   },
 
   // same ladder as the command palette: prefix > word-boundary > substring > fuzzy
@@ -3506,7 +3710,8 @@ export const PetalComboBox = {
     if (at > 0 && /[\s\-_/]/.test(text[at - 1])) return 3;
     if (at >= 0) return 2;
     let qi = 0;
-    for (const ch of text) if (ch === query[qi] && ++qi === query.length) return 1;
+    for (const ch of text)
+      if (ch === query[qi] && ++qi === query.length) return 1;
     return 0;
   },
 
@@ -3524,7 +3729,11 @@ export const PetalComboBox = {
   },
 
   closePanel() {
-    document.removeEventListener("pointerdown", this.onOutsidePointerDown, true);
+    document.removeEventListener(
+      "pointerdown",
+      this.onOutsidePointerDown,
+      true,
+    );
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
     if (this.panel.hidden) return;
@@ -3539,7 +3748,10 @@ export const PetalComboBox = {
       this.trigger.setAttribute("aria-expanded", "false");
       // the search input just vanished with the panel - focus returns to
       // the trigger unless something outside already took it
-      if (this.el.contains(document.activeElement) || document.activeElement === document.body) {
+      if (
+        this.el.contains(document.activeElement) ||
+        document.activeElement === document.body
+      ) {
         this.trigger.focus();
       }
     }
@@ -3608,7 +3820,9 @@ export const PetalComboBox = {
   },
 
   setSelected(value, selected) {
-    const option = Array.from(this.select.options).find((o) => o.value === value);
+    const option = Array.from(this.select.options).find(
+      (o) => o.value === value,
+    );
     if (!option || option.selected === selected) return;
     if (this.multiple) {
       option.selected = selected;
@@ -3650,12 +3864,19 @@ export const PetalComboBox = {
   syncFromSelect() {
     const values = this.selectedValues();
     for (const i of this.items()) {
-      i.setAttribute("aria-selected", values.includes(i.dataset.value) ? "true" : "false");
+      i.setAttribute(
+        "aria-selected",
+        values.includes(i.dataset.value) ? "true" : "false",
+      );
     }
     this.el.toggleAttribute("data-has-value", values.length > 0);
     if (this.multiple) {
       this.syncChips();
-      this.el.toggleAttribute("data-max-reached", this.maxReached());
+      const capped = this.maxReached();
+      this.el.toggleAttribute("data-max-reached", capped);
+      // the placeholder rests at the cap via CSS on [data-max-reached] -
+      // the hook never touches the attribute, so a server-rendered
+      // placeholder (including live changes to it) is always the truth
     }
     if (this.triggerLabel) {
       const placeholder = this.triggerLabel.dataset.placeholderText;
@@ -3668,11 +3889,14 @@ export const PetalComboBox = {
           this.triggerLabel.textContent = `${values.length} ${this.triggerLabel.dataset.countLabel || "selected"}`;
         } else {
           const chosen = this.chosenItem();
-          this.triggerLabel.textContent = chosen ? chosen.dataset.label || "" : "";
+          this.triggerLabel.textContent = chosen
+            ? chosen.dataset.label || ""
+            : "";
         }
       }
     }
-    if (this.panel.hidden || document.activeElement !== this.input) this.restoreDisplay();
+    if (this.panel.hidden || document.activeElement !== this.input)
+      this.restoreDisplay();
   },
 
   choose(item) {
@@ -3682,10 +3906,14 @@ export const PetalComboBox = {
       if (!selected && this.maxReached()) return;
       this.setSelected(value, !selected);
       // the panel stays open for more picks; the query resets so the next
-      // keystrokes start a fresh search
+      // keystrokes start a fresh search. The highlight stays on the item
+      // just toggled (Base UI/downshift grammar) - arrowing resumes from
+      // where the user is, not from the top; filter() with the cleared
+      // query would otherwise re-home it on the first option.
       this.query = "";
       this.input.value = "";
       this.filter();
+      this.highlight(item, false);
       this.input.focus();
       return;
     }
@@ -3711,7 +3939,9 @@ export const PetalComboBox = {
     for (const item of this.items()) {
       if (!item.id) item.id = `${this.el.id}-opt-${idBase}`;
       idBase++;
-      const text = `${item.dataset.label || item.textContent || ""}`.trim().toLowerCase();
+      const text = `${item.dataset.label || item.textContent || ""}`
+        .trim()
+        .toLowerCase();
       const score = this.score(text, query);
       item.hidden = score === 0;
       if (score === 0) continue;
@@ -3727,7 +3957,9 @@ export const PetalComboBox = {
     }
 
     for (const group of this.el.querySelectorAll("[data-pc-combo-group]")) {
-      const any = Array.from(group.querySelectorAll("[data-pc-combo-item]")).some((i) => !i.hidden);
+      const any = Array.from(
+        group.querySelectorAll("[data-pc-combo-item]"),
+      ).some((i) => !i.hidden);
       group.hidden = !any;
     }
 
@@ -3738,7 +3970,12 @@ export const PetalComboBox = {
     // an empty query (just opened) homes the highlight on the chosen value;
     // a typed query homes it on the best (first) visible match
     const chosen = this.multiple ? null : this.chosenItem();
-    if (!query && chosen && !chosen.hidden && !chosen.hasAttribute("data-disabled")) {
+    if (
+      !query &&
+      chosen &&
+      !chosen.hidden &&
+      !chosen.hasAttribute("data-disabled")
+    ) {
       this.highlight(chosen, true);
     } else {
       this.highlight(best || this.visibleItems()[0] || null, false);
@@ -3756,7 +3993,8 @@ export const PetalComboBox = {
   },
 
   highlight(item, scroll = true) {
-    for (const i of this.items()) i.toggleAttribute("data-highlighted", i === item);
+    for (const i of this.items())
+      i.toggleAttribute("data-highlighted", i === item);
     if (item) {
       this.input.setAttribute("aria-activedescendant", item.id);
       if (scroll) item.scrollIntoView({ block: "nearest" });
@@ -3812,7 +4050,8 @@ export const PetalComboBox = {
         if (this.panel.hidden) return; // closed: let the form submit
         e.preventDefault();
         const item = this.highlightedItem();
-        if (item && !item.hidden && !item.hasAttribute("data-disabled")) this.choose(item);
+        if (item && !item.hidden && !item.hasAttribute("data-disabled"))
+          this.choose(item);
         break;
       }
       case "Escape":
