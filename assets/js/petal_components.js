@@ -3356,7 +3356,14 @@ export const PetalComboBox = {
 
     this.query = "";
 
-    this.onInput = () => {
+    this.onInput = (e) => {
+      // The display input is chrome, not data: keep its keystrokes inside the
+      // component. Without this every character reaches an enclosing form's
+      // phx-change - a round trip per keystroke, validation running against
+      // the not-yet-chosen value, and a patch that can wipe the query
+      // mid-type. The select's own input/change events (dispatched in
+      // choose) still bubble, which is how the server learns the value.
+      e.stopPropagation();
       this.query = this.input.value.trim().toLowerCase();
       if (this.panel.hidden) this.openPanel({ keepQuery: true });
       this.filter();
@@ -3488,14 +3495,25 @@ export const PetalComboBox = {
     const query = this.query;
     let count = 0;
     let idBase = 0;
+    let best = null;
+    let bestScore = 0;
 
     for (const item of this.items()) {
       if (!item.id) item.id = `${this.el.id}-opt-${idBase}`;
       idBase++;
       const text = `${item.dataset.label || item.textContent || ""}`.trim().toLowerCase();
-      const show = this.score(text, query) > 0;
-      item.hidden = !show;
-      if (show) count++;
+      const score = this.score(text, query);
+      item.hidden = score === 0;
+      if (score === 0) continue;
+      count++;
+      // Options are hidden, never reordered (the server owns DOM order), so
+      // the highlight carries the ranking instead: Enter must commit the best
+      // match, not whichever match happens to sit highest. Typing "tok" has to
+      // land on Tokyo, not on Stockholm's fuzzy subsequence.
+      if (score > bestScore && !item.hasAttribute("data-disabled")) {
+        best = item;
+        bestScore = score;
+      }
     }
 
     for (const group of this.el.querySelectorAll("[data-pc-combo-group]")) {
@@ -3512,7 +3530,7 @@ export const PetalComboBox = {
     if (!query && chosen && !chosen.hidden && !chosen.hasAttribute("data-disabled")) {
       this.highlight(chosen, true);
     } else {
-      this.highlight(this.visibleItems()[0] || null, false);
+      this.highlight(best || this.visibleItems()[0] || null, false);
     }
   },
 
