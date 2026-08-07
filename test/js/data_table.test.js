@@ -43,12 +43,27 @@ const mount = mountBase;
 function mountWithFilter({ navTemplate, filters, formHtml }) {
   const { hook, el, patched } = mountBase({ navTemplate });
   if (filters) el.dataset.filters = JSON.stringify(filters);
-  const wrap = document.createElement("div");
-  wrap.className = "pc-popover__panel";
-  wrap.id = "pop";
-  wrap.innerHTML = formHtml;
-  el.appendChild(wrap);
-  return { hook, el, patched, form: wrap.querySelector("form") };
+
+  // the in-page menu anatomy: trigger and panel as siblings under a
+  // relatively positioned wrapper, panel hidden until the hook shows it
+  const anchor = document.createElement("div");
+  anchor.className = "pc-popover";
+  anchor.innerHTML = `
+    <button type="button" data-pc-menu-trigger="pop" aria-expanded="false">Filter</button>
+    <div id="pop" class="pc-popover__panel" data-pc-menu hidden></div>
+  `;
+  el.appendChild(anchor);
+  const panel = anchor.querySelector("#pop");
+  panel.innerHTML = formHtml;
+
+  return {
+    hook,
+    el,
+    patched,
+    panel,
+    trigger: anchor.querySelector("button"),
+    form: panel.querySelector("form"),
+  };
 }
 
 function submit(form) {
@@ -136,7 +151,7 @@ describe("PetalDataTable", () => {
   });
 
   it("filter apply replaces this field's committed entry and closes the popover", () => {
-    const { el, patched, form } = mountWithFilter({
+    const { hook, patched, form } = mountWithFilter({
       navTemplate: "/orders?:filters",
       filters: [
         { field: "email", op: "contains", value: "d" },
@@ -153,6 +168,7 @@ describe("PetalDataTable", () => {
       `,
     });
 
+    hook.toggleMenu("pop");
     submit(form);
 
     expect(patched).toHaveLength(1);
@@ -161,7 +177,7 @@ describe("PetalDataTable", () => {
     expect(url).toContain("filters[1][field]=email");
     expect(url).toContain("filters[1][op]=starts_with");
     expect(url).toContain("filters[1][value]=amy");
-    expect(el.querySelector(".pc-popover__panel").style.display).toBe("none");
+    expect(hook.openMenu).toBe(null);
   });
 
   it("a select editor posts checked values as :in; none checked removes the filter", () => {
@@ -221,47 +237,139 @@ describe("PetalDataTable", () => {
     expect(url).toContain("filters[0][field]=email");
   });
 
-  it("closes a top-layer panel through the native popover API", () => {
-    const { el, patched, form } = mountWithFilter({
+  it("opens and closes a menu from its trigger, and on outside press and Escape", () => {
+    const { hook, panel, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",
       filters: [],
-      formHtml: `
-        <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="email">
-          <select name="filter_op"><option value="contains" selected>contains</option></select>
-          <input name="value" value="x" />
-        </form>
-      `,
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
     });
 
-    const panel = el.querySelector(".pc-popover__panel");
-    panel.setAttribute("popover", "auto");
-    const hidden = [];
-    panel.hidePopover = () => hidden.push(true);
+    trigger.click();
+    expect(hook.openMenu).toBe("pop");
+    expect(panel.hidden).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
 
-    submit(form);
-    expect(hidden).toEqual([true]);
-    expect(patched).toHaveLength(1);
+    trigger.click(); // same trigger toggles shut
+    expect(hook.openMenu).toBe(null);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+    trigger.click();
+    document.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    expect(hook.openMenu).toBe(null);
+
+    trigger.click();
+    const escape = new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+    });
+    panel.dispatchEvent(escape);
+    expect(hook.openMenu).toBe(null);
+    expect(document.activeElement).toBe(trigger);
   });
 
-  it("event mode: submit only closes the popover - no interception, no navigation", () => {
-    const { el, patched } = mountBase({});
-    delete el.dataset.navTemplate;
-    const wrap = document.createElement("div");
-    wrap.className = "pc-popover__panel";
-    wrap.innerHTML = `
-      <form class="pc-data-table__filter-form" phx-submit="table">
-        <input name="value" value="x" />
-      </form>
-    `;
-    el.appendChild(wrap);
+  it("keeps an open menu open across a patch that restores `hidden`", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
 
-    const form = wrap.querySelector("form");
+    trigger.click();
+    expect(panel.hidden).toBe(false);
+
+    // what a LiveView patch does: server markup wins, so `hidden` is back
+    panel.hidden = true;
+    panel.removeAttribute("data-pc-open");
+    hook.updated();
+
+    expect(panel.hidden).toBe(false);
+    expect(panel.hasAttribute("data-pc-open")).toBe(true);
+    expect(hook.openMenu).toBe("pop");
+  });
+
+  it("hides a panel that loses focus to a sibling inside the fade window", () => {
+    const { hook, el, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    // a second menu in the same table
+    const other = document.createElement("div");
+    other.className = "pc-popover";
+    other.innerHTML = `
+      <button type="button" data-pc-menu-trigger="pop2" aria-expanded="false">Other</button>
+      <div id="pop2" class="pc-popover__panel" data-pc-menu hidden></div>
+    `;
+    el.appendChild(other);
+
+    trigger.click();
+    expect(panel.hidden).toBe(false);
+
+    // switch menus well inside the 120ms fade
+    vi.advanceTimersByTime(40);
+    other.querySelector("button").click();
+    expect(hook.openMenu).toBe("pop2");
+
+    vi.advanceTimersByTime(200);
+
+    // the first panel must be out of the layout, not merely transparent -
+    // an invisible panel still swallows taps
+    expect(panel.hidden).toBe(true);
+    expect(document.getElementById("pop2").hidden).toBe(false);
+  });
+
+  it("never repositions on scroll - the page carries the panel", () => {
+    const { hook, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    let aligns = 0;
+    const real = hook.alignMenu.bind(hook);
+    hook.alignMenu = () => {
+      aligns += 1;
+      real();
+    };
+
+    // scroll the world in every way the old implementation listened for
+    window.dispatchEvent(new Event("scroll"));
+    document.dispatchEvent(new Event("scroll", { bubbles: true }));
+    if (window.visualViewport) {
+      window.visualViewport.dispatchEvent?.(new Event("scroll"));
+    }
+
+    // this is the architecture, pinned: nothing recomputes on scroll,
+    // so there is nothing to lag behind the page
+    expect(aligns).toBe(0);
+
+    // a resize is the one thing that does invalidate the geometry
+    window.dispatchEvent(new Event("resize"));
+    expect(aligns).toBe(1);
+  });
+
+  it("event mode: submit closes the menu without intercepting or navigating", () => {
+    const { hook, patched, trigger, form } = mountWithFilter({
+      navTemplate: undefined,
+      filters: [],
+      // no data-pc-dt-filter: event mode posts its own phx-submit
+      formHtml: `<form class="pc-data-table__filter-form" phx-submit="table">
+        <input name="value" value="x" />
+      </form>`,
+    });
+
+    trigger.click();
+    expect(hook.openMenu).toBe("pop");
+
     const e = new Event("submit", { bubbles: true, cancelable: true });
     form.dispatchEvent(e);
 
     expect(e.defaultPrevented).toBe(false);
     expect(patched).toEqual([]);
-    expect(wrap.style.display).toBe("none");
+    expect(hook.openMenu).toBe(null);
   });
 
   it("mirrors the indeterminate stamp onto the DOM property on mount and update", () => {

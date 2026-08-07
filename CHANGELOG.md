@@ -3,6 +3,20 @@
 
 #### Fixed
 
+- **`data_table` filter and column menus live in the page, not the
+  browser's top layer.** A top-layer panel is positioned against the
+  viewport while its trigger sits in the page, so JavaScript had to
+  re-sync them on every scroll event - and JS runs after the frame is
+  already painted (iOS often doesn't repaint fixed content at all
+  during a momentum flick, then snaps it). No amount of throttling
+  fixes that. The panels are now absolutely positioned next to their
+  triggers, so the browser moves both together at compositor speed:
+  there are no scroll listeners left, and nothing to drift. Geometry
+  (flip above, slide sideways into view, cap height) runs once on open
+  and on resize. The `PetalDataTable` hook owns open state, so a menu
+  survives the patches that a filter or column toggle triggers.
+  `<.popover top_layer>` is unchanged and remains the tool for panels
+  that must escape a clipping container.
 - **Top-layer popovers stay anchored to their trigger.** They were
   clamped into the viewport on *both* axes, so a panel with no room
   below was shunted up until it detached from its trigger - pinned to

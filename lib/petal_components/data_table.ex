@@ -50,7 +50,6 @@ defmodule PetalComponents.DataTable do
   import PetalComponents.Button
   import PetalComponents.Icon
   import PetalComponents.Pagination
-  import PetalComponents.Popover
   import PetalComponents.Skeleton
   import PetalComponents.Table
 
@@ -226,9 +225,10 @@ defmodule PetalComponents.DataTable do
 
     link_mode? = is_nil(assigns.on_change)
 
-    # link mode: URL wiring. Either mode: filter popovers are native
-    # top-layer popovers the hook closes after an Apply, and selection's
-    # tri-state header checkbox needs its indeterminate property set.
+    # link mode: URL wiring. Either mode: the hook drives the filter and
+    # column menus (in-page panels, so the page carries them rather than
+    # JS chasing the scroll) and sets the header checkbox's indeterminate
+    # property, which markup alone cannot express.
     hooked? =
       (link_mode? and (assigns.searchable or assigns.page_size_options != [])) or
         filter_cols != [] or assigns.selectable
@@ -328,34 +328,47 @@ defmodule PetalComponents.DataTable do
             apply_label={@apply_label}
           />
           {render_slot(@toolbar)}
-          <.popover
-            :if={@column_toggle}
-            id={"#{@id}-columns"}
-            top_layer
-            placement="bottom-end"
-            class="pc-data-table__columns"
-            trigger_class="pc-button pc-button--sm pc-button--gray-outline"
-          >
-            <:trigger>
+          <div :if={@column_toggle} class="pc-popover pc-data-table__columns">
+            <button
+              type="button"
+              id={"#{@id}-columns-trigger"}
+              data-pc-menu-trigger={"#{@id}-columns"}
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls={"#{@id}-columns"}
+              class="pc-popover__trigger pc-button pc-button--sm pc-button--gray-outline"
+            >
               <.icon name="hero-view-columns" class="pc-data-table__filter-icon" />
               <span>{@column_toggle_label}</span>
-            </:trigger>
-            <div class="pc-data-table__filter-options" role="group" aria-label={@column_toggle_label}>
-              <label :for={col <- @col} class="pc-data-table__filter-option">
-                <input
-                  type="checkbox"
-                  class="pc-checkbox"
-                  checked={to_string(col.field) not in @hidden}
-                  disabled={length(@visible_cols) == 1 and to_string(col.field) not in @hidden}
-                  phx-click={@ui_event}
-                  phx-target={@target}
-                  phx-value-op="toggle_column"
-                  phx-value-field={col.field}
-                />
-                <span>{col[:label] || humanize(col.field)}</span>
-              </label>
+            </button>
+            <div
+              id={"#{@id}-columns"}
+              role="dialog"
+              hidden
+              data-pc-menu
+              class="pc-popover__panel pc-popover__panel--bottom-end"
+            >
+              <div
+                class="pc-data-table__filter-options"
+                role="group"
+                aria-label={@column_toggle_label}
+              >
+                <label :for={col <- @col} class="pc-data-table__filter-option">
+                  <input
+                    type="checkbox"
+                    class="pc-checkbox"
+                    checked={to_string(col.field) not in @hidden}
+                    disabled={length(@visible_cols) == 1 and to_string(col.field) not in @hidden}
+                    phx-click={@ui_event}
+                    phx-target={@target}
+                    phx-value-op="toggle_column"
+                    phx-value-field={col.field}
+                  />
+                  <span>{col[:label] || humanize(col.field)}</span>
+                </label>
+              </div>
             </div>
-          </.popover>
+          </div>
           <%= if @state.filters != [] do %>
             <.button
               :if={@on_change}
@@ -731,41 +744,51 @@ defmodule PetalComponents.DataTable do
 
     ~H"""
     <div class="pc-data-table__filter">
-      <.popover
-        id={@pop_id}
-        top_layer
-        placement="bottom-start"
-        class="pc-data-table__filter-popover"
-        trigger_class={[
-          "pc-button pc-button--sm",
-          (@filter && "pc-button--primary-soft pc-data-table__filter-trigger--active") ||
-            "pc-button--gray-outline"
-        ]}
-      >
-        <:trigger>
+      <div class="pc-popover">
+        <button
+          type="button"
+          id={"#{@pop_id}-trigger"}
+          data-pc-menu-trigger={@pop_id}
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-controls={@pop_id}
+          class={[
+            "pc-popover__trigger pc-button pc-button--sm",
+            (@filter && "pc-button--primary-soft pc-data-table__filter-trigger--active") ||
+              "pc-button--gray-outline"
+          ]}
+        >
           <.icon :if={!@filter} name="hero-funnel" class="pc-data-table__filter-icon" />
           <span>{(@filter && predicate_text(@label, @filter, @op_labels, @options)) || @label}</span>
-        </:trigger>
-        <form
-          class={["pc-data-table__filter-form", "pc-data-table__filter-form--#{@type}"]}
-          phx-submit={@submit_js}
-          data-pc-dt-filter={is_nil(@on_change) || nil}
-          data-field={@field_str}
+        </button>
+        <div
+          id={@pop_id}
+          role="dialog"
+          hidden
+          data-pc-menu
+          class="pc-popover__panel pc-popover__panel--bottom-start"
         >
-          <input :if={@on_change} type="hidden" name="op" value="filter" />
-          <input :if={@on_change} type="hidden" name="field" value={@field_str} />
-          <.filter_editor
-            type={@type}
-            filter={@filter}
-            options={@options}
-            op_labels={@op_labels}
-            label={@label}
-          />
-          <.button size="sm" type="submit" class="pc-data-table__filter-apply">
-            {@apply_label}
-          </.button>
-        </form>
-      </.popover>
+          <form
+            class={["pc-data-table__filter-form", "pc-data-table__filter-form--#{@type}"]}
+            phx-submit={@submit_js}
+            data-pc-dt-filter={is_nil(@on_change) || nil}
+            data-field={@field_str}
+          >
+            <input :if={@on_change} type="hidden" name="op" value="filter" />
+            <input :if={@on_change} type="hidden" name="field" value={@field_str} />
+            <.filter_editor
+              type={@type}
+              filter={@filter}
+              options={@options}
+              op_labels={@op_labels}
+              label={@label}
+            />
+            <.button size="sm" type="submit" class="pc-data-table__filter-apply">
+              {@apply_label}
+            </.button>
+          </form>
+        </div>
+      </div>
       <%= if @filter do %>
         <.link
           :if={@path}
@@ -892,8 +915,7 @@ defmodule PetalComponents.DataTable do
     """
   end
 
-  # event mode pushes the form; the hook closes the native popover on
-  # submit (a top-layer panel needs hidePopover(), not a display toggle)
+  # event mode pushes the form; the hook closes the menu on submit
   defp filter_submit_js(nil, _target, _pop_id), do: nil
 
   defp filter_submit_js(event, target, _pop_id) do

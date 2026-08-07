@@ -112,7 +112,12 @@ defmodule PetalComponents.DataTableTest do
     # only to close top-layer popovers - no URL wiring
     assert html =~ ~s(name="op" value="filter")
     assert html =~ ~s(phx-hook="PetalDataTable")
-    assert html =~ ~s(popover="auto")
+    # in-page menu anatomy: trigger and panel are siblings under a
+    # relatively positioned wrapper, so the page carries them together
+    assert html =~ ~s(data-pc-menu-trigger="t-filter-email")
+    assert html =~ ~s(<div class="pc-popover">)
+    assert html =~ ~s(hidden data-pc-menu)
+    refute html =~ ~s(popover="auto")
     refute html =~ "data-nav-template"
     refute html =~ "data-filters="
   end
