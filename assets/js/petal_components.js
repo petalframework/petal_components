@@ -3828,10 +3828,19 @@ export const PetalComboBox = {
 
   updated() {
     // mode configuration and conditionally-rendered rows are server
-    // truth and can change on any patch - re-read them
+    // truth and can change on any patch - re-read them, and a CHANGED
+    // remote event/target invalidates the previous configuration's
+    // in-flight work so obsolete results can never land
+    const prevEvent = this.remoteEvent;
+    const prevTarget = this.remoteTarget;
     this.freeText = this.el.hasAttribute("data-free-text");
     this.remoteEvent = this.el.dataset.remoteEvent || null;
     this.remoteTarget = this.el.dataset.remoteTarget || null;
+    if (this.remoteEvent !== prevEvent || this.remoteTarget !== prevTarget) {
+      this.remoteSeq++;
+      clearTimeout(this.remoteTimer);
+      if (this.loadingRow) this.loadingRow.hidden = true;
+    }
     this.loadingRow = this.el.querySelector("[data-pc-combo-loading]");
     this.createRow = this.el.querySelector("[data-pc-combo-create]");
     if (this.createRow) {

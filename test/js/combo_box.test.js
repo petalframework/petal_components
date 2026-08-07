@@ -897,6 +897,21 @@ describe("remote search", () => {
     expect(c.select.value).toBe("Osaka");
   });
 
+  it("a patched remote event invalidates the previous configuration's in-flight reply", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300); // search fired under the OLD event
+    // server patch swaps the data source
+    c.el.setAttribute("data-remote-event", "other_search");
+    c.hook.updated();
+    // the old event's reply arrives late - must be dropped
+    c.hook.pushes[0].cb({ results: [{ text: "OBSOLETE", value: "x" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
   it("pushEventTo carries the target when configured", () => {
     vi.useFakeTimers();
     const c = mountCombo({ options: [], remote: true });
