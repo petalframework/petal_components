@@ -49,6 +49,31 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
     end
   end
 
+  describe "search" do
+    test "matches case-insensitively across string fields by default" do
+      assert ids(run(search: "AM")) == [3]
+      assert ids(run(search: "@a.com")) == [1]
+    end
+
+    test "search_fields scopes the sweep" do
+      {rows, _} =
+        Engine.run(@rows, struct!(State, search: "amy"), search_fields: [:email])
+
+      assert Enum.map(rows, & &1.id) == [3]
+
+      {rows, _} = Engine.run(@rows, struct!(State, search: "amy"), search_fields: [:name])
+      assert Enum.map(rows, & &1.id) == [3]
+
+      {rows, _} = Engine.run(@rows, struct!(State, search: "a.com"), search_fields: [:name])
+      assert rows == []
+    end
+
+    test "search composes with filters and fills the filtered total" do
+      {_, state} = run(search: "e", filters: [%{field: :amount, op: :lt, value: "100"}])
+      assert state.total == 2
+    end
+  end
+
   describe "sorting" do
     test "sorts strings case-insensitively" do
       assert ids(run(order_by: [name: :asc], page_size: 10)) == [3, 2, 1, 5, 4]

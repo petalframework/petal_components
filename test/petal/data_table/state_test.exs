@@ -123,6 +123,23 @@ defmodule PetalComponents.DataTable.StateTest do
     end
   end
 
+  describe "search" do
+    test "round-trips, trims, and blanks to nil" do
+      state = State.from_params(%{"search" => "  amy "}, fields: @fields)
+      assert state.search == "amy"
+      assert State.to_params(state) == %{"search" => "amy"}
+      assert State.from_params(%{"search" => "   "}, fields: @fields).search == nil
+      assert State.to_params(%State{}) == %{}
+    end
+
+    test "put_search/2 sets, clears on blank, and resets the page" do
+      state = State.put_search(%State{page: 5}, "amy")
+      assert state.search == "amy"
+      assert state.page == 1
+      assert State.put_search(state, "").search == nil
+    end
+  end
+
   describe "toggle_sort/2" do
     test "cycles asc -> desc -> removed and resets the page" do
       state = %State{page: 7}
