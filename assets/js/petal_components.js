@@ -3825,6 +3825,7 @@ export const PetalComboBox = {
       this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
+    clearTimeout(this.labelPatchTimer);
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
@@ -4091,15 +4092,31 @@ export const PetalComboBox = {
       }
       if (Array.isArray(rendered) && sameValueMultiset(rendered, values)) {
         labelIsFresh = true;
+        clearTimeout(this.labelPatchTimer);
+        this.labelPatchTimer = null;
       } else {
         delete this.triggerLabel.dataset.values;
         // a phx-change form means the patch that re-renders the rich
         // content is already on its way - keeping the briefly-stale rich
         // DOM reads better than flashing plain text for one round trip.
-        // Unwired comboboxes get the honest optimistic text instead.
+        // Unwired comboboxes get the honest optimistic text instead, and
+        // a grace timer self-heals wired ones whose handler never
+        // re-renders the value: past it, stale rich degrades to text.
         const form = this.select.form;
-        if (form && form.hasAttribute("phx-change") && values.length > 0) {
+        if (
+          form &&
+          form.hasAttribute("phx-change") &&
+          values.length > 0 &&
+          !this.labelPatchOverdue
+        ) {
           labelIsFresh = true;
+          clearTimeout(this.labelPatchTimer);
+          this.labelPatchTimer = setTimeout(() => {
+            this.labelPatchTimer = null;
+            this.labelPatchOverdue = true;
+            this.syncFromSelect();
+            this.labelPatchOverdue = false;
+          }, 2000);
         }
       }
     }

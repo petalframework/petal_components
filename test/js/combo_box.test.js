@@ -852,6 +852,33 @@ describe("multiple with chips", () => {
     expect(label.querySelector("em")).not.toBeNull();
   });
 
+  it("a wired form whose handler never re-renders self-heals to optimistic text after the grace window", () => {
+    vi.useFakeTimers();
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    // grace window: stale rich kept while the patch is presumed en route
+    expect(label.querySelector("em")).not.toBeNull();
+    // no patch ever arrives - the timer degrades to honest optimistic text
+    vi.advanceTimersByTime(2100);
+    expect(label.querySelector("em")).toBeNull();
+    expect(label.textContent).toBe("2 selected");
+    vi.useRealTimers();
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();
