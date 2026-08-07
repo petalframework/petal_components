@@ -213,6 +213,15 @@ defmodule PetalComponents.DataTable do
     hidden = Enum.map(assigns.hidden_columns, &to_string/1)
     visible_cols = Enum.reject(assigns.col, &(to_string(&1.field) in hidden))
 
+    # the UI can't reach all-hidden (the last checkbox disables), but a
+    # hand-built hidden_columns can - enforce the invariant here too by
+    # keeping the first declared column
+    {visible_cols, hidden} =
+      case {visible_cols, assigns.col} do
+        {[], [first | _]} -> {[first], hidden -- [to_string(first.field)]}
+        _ -> {visible_cols, hidden}
+      end
+
     filter_cols = Enum.filter(assigns.col, & &1[:filterable])
 
     link_mode? = is_nil(assigns.on_change)
@@ -343,7 +352,7 @@ defmodule PetalComponents.DataTable do
                   phx-value-op="toggle_column"
                   phx-value-field={col.field}
                 />
-                <span>{(is_binary(col[:label]) && col[:label]) || humanize(col.field)}</span>
+                <span>{col[:label] || humanize(col.field)}</span>
               </label>
             </div>
           </.popover>

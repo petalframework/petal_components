@@ -349,6 +349,35 @@ defmodule PetalComponents.DataTableTest do
     end
   end
 
+  test "column_toggle invariants: all-hidden clamps to the first column; fragment labels render" do
+    assigns = %{}
+    em = ~H"<em>Nome</em>"
+    assigns = base(%{hidden: [:name, :email], em: em})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        column_toggle
+        hidden_columns={@hidden}
+      >
+        <:col :let={row} field={:name} label={@em}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    # a hand-built all-hidden state keeps the first declared column
+    assert html =~ "Amy"
+    refute html =~ "amy@x.com"
+    # its checkbox reads visible (and disabled, being the last one standing)
+    assert Regex.match?(~r/<input[^>]*checked[^>]*disabled[^>]*phx-value-field="name"/, html)
+    # the dropdown renders the fragment label, same identity as the header
+    assert length(String.split(html, "<em>Nome</em>")) - 1 == 2
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{
