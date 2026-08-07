@@ -287,6 +287,38 @@ describe("PetalDataTable", () => {
     expect(hook.openMenu).toBe("pop");
   });
 
+  it("hides a panel that loses focus to a sibling inside the fade window", () => {
+    const { hook, el, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    // a second menu in the same table
+    const other = document.createElement("div");
+    other.className = "pc-popover";
+    other.innerHTML = `
+      <button type="button" data-pc-menu-trigger="pop2" aria-expanded="false">Other</button>
+      <div id="pop2" class="pc-popover__panel" data-pc-menu hidden></div>
+    `;
+    el.appendChild(other);
+
+    trigger.click();
+    expect(panel.hidden).toBe(false);
+
+    // switch menus well inside the 120ms fade
+    vi.advanceTimersByTime(40);
+    other.querySelector("button").click();
+    expect(hook.openMenu).toBe("pop2");
+
+    vi.advanceTimersByTime(200);
+
+    // the first panel must be out of the layout, not merely transparent -
+    // an invisible panel still swallows taps
+    expect(panel.hidden).toBe(true);
+    expect(document.getElementById("pop2").hidden).toBe(false);
+  });
+
   it("never repositions on scroll - the page carries the panel", () => {
     const { hook, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",

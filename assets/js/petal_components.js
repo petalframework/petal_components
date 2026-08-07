@@ -4868,6 +4868,8 @@ export const PetalDataTable = {
   revealMenu() {
     const panel = this.menuPanel();
     if (!panel) return;
+    // a pending hide from a previous close would yank it back
+    clearTimeout(panel.pcHideTimer);
     panel.hidden = false;
     this.menuTrigger()?.setAttribute("aria-expanded", "true");
     // a frame later so the fade has a start state to move from
@@ -4882,9 +4884,13 @@ export const PetalDataTable = {
     this.openMenu = null;
     if (!panel) return;
     panel.removeAttribute("data-pc-open");
-    clearTimeout(this.menuHideTimer);
-    this.menuHideTimer = setTimeout(() => {
-      if (!this.openMenu) panel.hidden = true;
+    // Per-panel timer, and the check names THIS panel rather than asking
+    // whether any menu is open: opening a sibling within the fade window
+    // would otherwise leave this one unhidden - invisible, but still
+    // laid out and still swallowing taps.
+    clearTimeout(panel.pcHideTimer);
+    panel.pcHideTimer = setTimeout(() => {
+      if (this.openMenu !== panel.id) panel.hidden = true;
     }, 120);
   },
 
@@ -4967,7 +4973,9 @@ export const PetalDataTable = {
 
   destroyed() {
     clearTimeout(this.searchTimer);
-    clearTimeout(this.menuHideTimer);
+    this.el
+      .querySelectorAll("[data-pc-menu]")
+      .forEach((panel) => clearTimeout(panel.pcHideTimer));
     this.el.removeEventListener("input", this.onInput);
     this.el.removeEventListener("change", this.onChange);
     this.el.removeEventListener("submit", this.onSubmit);
