@@ -857,6 +857,46 @@ describe("remote search", () => {
     vi.useRealTimers();
   });
 
+  it("a keystroke inside the next debounce window invalidates in-flight replies", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300); // search 1 fired
+    type(c.input, "amel"); // debounce pending, nothing fired yet
+    // search 1's reply lands NOW - must be dropped against the newer query
+    c.hook.pushes[0].cb({ results: [{ text: "STALE", value: "stale" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("closing the panel invalidates in-flight work and hides the loading row", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    expect(c.loading().hidden).toBe(false);
+    key(c.input, "Escape");
+    expect(c.loading().hidden).toBe(true);
+    c.hook.pushes[0].cb({ results: [{ text: "STALE", value: "stale" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("mode configuration patched by the server reaches the hook", () => {
+    const c = mountCombo({ options: CITIES });
+    expect(c.hook.freeText).toBe(false);
+    // server patch enables free_text
+    c.el.setAttribute("data-free-text", "true");
+    c.hook.updated();
+    expect(c.hook.freeText).toBe(true);
+    c.control.click();
+    type(c.input, "Osaka");
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Osaka");
+  });
+
   it("pushEventTo carries the target when configured", () => {
     vi.useFakeTimers();
     const c = mountCombo({ options: [], remote: true });

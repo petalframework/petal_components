@@ -3596,6 +3596,10 @@ export const PetalComboBox = {
       this.query = this.input.value.trim().toLowerCase();
       if (this.panel.hidden) this.openPanel({ keepQuery: true });
       if (this.remoteEvent) {
+        // every keystroke invalidates in-flight replies immediately - a
+        // reply landing inside the NEXT search's debounce window must
+        // never render against the newer query
+        this.remoteSeq++;
         clearTimeout(this.remoteTimer);
         this.remoteTimer = setTimeout(() => this.remoteSearch(), 300);
       }
@@ -3823,6 +3827,21 @@ export const PetalComboBox = {
   },
 
   updated() {
+    // mode configuration and conditionally-rendered rows are server
+    // truth and can change on any patch - re-read them
+    this.freeText = this.el.hasAttribute("data-free-text");
+    this.remoteEvent = this.el.dataset.remoteEvent || null;
+    this.remoteTarget = this.el.dataset.remoteTarget || null;
+    this.loadingRow = this.el.querySelector("[data-pc-combo-loading]");
+    this.createRow = this.el.querySelector("[data-pc-combo-create]");
+    if (this.createRow) {
+      this.createRow.id = `${this.el.id}-create`;
+      this.createQueryEl = this.createRow.querySelector(
+        "[data-pc-combo-create-query]",
+      );
+    } else {
+      this.createQueryEl = null;
+    }
     // LiveView patched the component - the select (server state) wins
     // for SELECTION, but open-state belongs to the client: the server
     // always renders the panel hidden, so a phx-change round-trip would
@@ -3952,6 +3971,11 @@ export const PetalComboBox = {
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
     this.isOpen = false;
+    if (this.remoteEvent) {
+      this.remoteSeq++;
+      clearTimeout(this.remoteTimer);
+      if (this.loadingRow) this.loadingRow.hidden = true;
+    }
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.panel.removeAttribute("data-flip");
@@ -4302,7 +4326,7 @@ export const PetalComboBox = {
     ) {
       return; // remote needs a LiveView socket
     }
-    const seq = ++this.remoteSeq;
+    const seq = this.remoteSeq;
     if (this.loadingRow) this.loadingRow.hidden = false;
     const term = this.input.value.trim();
     const handle = (reply) => {
