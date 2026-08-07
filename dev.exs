@@ -7360,22 +7360,35 @@ defmodule Dev.PlaygroundLive do
             clearable
             options={[{"🇯🇵 Tokyo", "tyo"}, {"🇵🇹 Lisbon", "lis"}, {"🇸🇪 Stockholm", "sto"}]}
           />
+        </div>
+        <p class="mx-auto mt-8 mb-3 w-full max-w-sm text-sm font-medium">
+          Sizes, side by side - same anatomy, three densities
+        </p>
+        <div class="mx-auto flex w-full max-w-sm flex-col gap-3">
           <.field
             type="combobox"
             name="fc_size_sm"
             value={nil}
-            label="Small"
+            label="size=sm"
             size="sm"
+            placeholder="28px control, text-xs"
+            options={["Alpha", "Beta"]}
+          />
+          <.field
+            type="combobox"
+            name="fc_size_md"
+            value={nil}
+            label="size=md (default)"
+            placeholder="36px control, text-sm"
             options={["Alpha", "Beta"]}
           />
           <.field
             type="combobox"
             name="fc_size_lg"
             value={nil}
-            label="Large"
+            label="size=lg"
             size="lg"
-            combo_variant="trigger"
-            placeholder="Trigger, lg"
+            placeholder="44px control, text-base"
             options={["Alpha", "Beta"]}
           />
         </div>
