@@ -4601,6 +4601,69 @@ export const PetalComboBox = {
   },
 };
 
+// Link-mode wiring for the data table's quick search and rows-per-page
+// select. Event mode posts through plain phx-change forms and never
+// mounts this hook; link mode has no events by design (handle_params is
+// the whole backend), so state changes must become patch URLs. The
+// component renders URL templates (:term / :page_size placeholders,
+// assembled around the already-encoded rest of the query) and a hidden
+// data-phx-link anchor; the hook fills a template in and clicks the
+// anchor so navigation stays LiveView's own.
+export const PetalDataTable = {
+  mounted() {
+    this.searchTimer = null;
+
+    this.onInput = (e) => {
+      const input = e.target.closest("[data-pc-dt-search]");
+      if (!input) return;
+      clearTimeout(this.searchTimer);
+      const wait = parseInt(this.el.dataset.debounce || "300", 10);
+      this.searchTimer = setTimeout(
+        () => this.patchTo(this.searchUrl(input.value)),
+        wait,
+      );
+    };
+
+    this.onChange = (e) => {
+      const select = e.target.closest("[data-pc-dt-page-size]");
+      if (select) this.patchTo(this.pageSizeUrl(select.value));
+    };
+
+    this.el.addEventListener("input", this.onInput);
+    this.el.addEventListener("change", this.onChange);
+  },
+
+  destroyed() {
+    clearTimeout(this.searchTimer);
+    this.el.removeEventListener("input", this.onInput);
+    this.el.removeEventListener("change", this.onChange);
+  },
+
+  searchUrl(term) {
+    const template = this.el.dataset.searchTemplate;
+    const trimmed = term.trim();
+    if (trimmed === "") {
+      // a blank term drops the search param entirely so URLs stay clean
+      return template.replace(/search=:term&?/, "").replace(/[?&]$/, "");
+    }
+    return template.replace(":term", encodeURIComponent(trimmed));
+  },
+
+  pageSizeUrl(size) {
+    return this.el.dataset.pageSizeTemplate.replace(
+      ":page_size",
+      encodeURIComponent(size),
+    );
+  },
+
+  patchTo(url) {
+    const nav = this.el.querySelector("[data-pc-dt-nav]");
+    if (!nav) return;
+    nav.setAttribute("href", url);
+    nav.click();
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -4630,4 +4693,5 @@ export default {
   PetalNavMenu,
   PetalCommandDialog,
   PetalComboBox,
+  PetalDataTable,
 };

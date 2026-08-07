@@ -141,6 +141,11 @@ defmodule PetalComponents.DataTable.State do
     %{state | search: parse_search(term), page: 1}
   end
 
+  @doc "Sets the page size (invalid values keep the current one), resetting to page 1."
+  def put_page_size(%__MODULE__{} = state, size) do
+    %{state | page_size: parse_pos_int(size, state.page_size), page: 1}
+  end
+
   @doc "Removes every filter, resetting to page 1."
   def clear_filters(%__MODULE__{} = state), do: %{state | filters: [], page: 1}
 

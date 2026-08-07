@@ -14,6 +14,97 @@ defmodule PetalComponents.DataTableTest do
     Map.merge(%{rows: @rows, state: %State{total: 74}, path: "/orders"}, assigns)
   end
 
+  test "searchable event mode: a phx-change form posts the search op with debounce" do
+    assigns = base(%{state: %State{total: 74, search: "amy"}})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" searchable>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(phx-change="table")
+    assert html =~ ~s(name="op" value="search")
+    assert html =~ ~s(phx-debounce="300")
+    assert html =~ ~s(value="amy")
+    refute html =~ "PetalDataTable"
+  end
+
+  test "searchable link mode: the hook mounts with a :term URL template and a nav anchor" do
+    assigns = base(%{state: %State{total: 74, order_by: [name: :desc]}})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} searchable>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(phx-hook="PetalDataTable")
+    assert html =~ "data-pc-dt-search"
+    assert html =~ "data-pc-dt-nav"
+    assert html =~ ~s(data-search-template="/orders?search=:term&amp;order_by=name%3Adesc")
+  end
+
+  test "page_size_options renders the footer select in both wiring modes" do
+    assigns = base(%{state: %State{total: 74, page_size: 20}})
+
+    event_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" page_size_options={[10, 20, 50]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert event_html =~ ~s(name="op" value="page_size")
+    assert event_html =~ ~s(<option value="20" selected>)
+
+    link_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} page_size_options={[10, 20, 50]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert link_html =~ "data-pc-dt-page-size"
+    assert link_html =~ ~s(data-page-size-template="/orders?page_size=:page_size")
+  end
+
+  test "reset filters button appears only while filters are active" do
+    filtered = %State{total: 74, filters: [%{field: :name, op: :contains, value: "a"}]}
+    assigns = base(%{filtered: filtered})
+
+    clean_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    refute clean_html =~ "Reset filters"
+
+    link_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@filtered} path={@path}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert link_html =~ "Reset filters"
+    assert link_html =~ ~s(href="/orders")
+
+    event_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@filtered} on_change="table">
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert event_html =~ "Reset filters"
+    assert event_html =~ ~s(phx-value-op="clear_filters")
+  end
+
   test "renders rows through col slots with explicit and humanized labels" do
     assigns = base()
 

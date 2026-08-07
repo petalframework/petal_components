@@ -747,7 +747,7 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
-       dt: PetalComponents.DataTable.State |> struct() |> run_dt(),
+       dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1452,6 +1452,12 @@ defmodule Dev.PlaygroundLive do
         %{"op" => "page", "page" => page} ->
           %{state | page: String.to_integer(to_string(page))}
 
+        %{"op" => "search", "term" => term} ->
+          State.put_search(state, term)
+
+        %{"op" => "page_size", "page_size" => size} ->
+          State.put_page_size(state, size)
+
         %{"op" => "clear_filters"} ->
           State.clear_filters(state)
 
@@ -1466,7 +1472,7 @@ defmodule Dev.PlaygroundLive do
     {rows, state} =
       PetalComponents.DataTable.Engine.List.run(
         PetalComponents.Showcase.DataTable.sample_rows(),
-        %{state | page_size: 5}
+        state
       )
 
     {state, rows}
@@ -7326,7 +7332,15 @@ defmodule Dev.PlaygroundLive do
 
       <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
         <% {state, rows} = @dt %>
-        <.data_table id="pg-dt" rows={rows} state={state} on_change="pg_table" striped>
+        <.data_table
+          id="pg-dt"
+          rows={rows}
+          state={state}
+          on_change="pg_table"
+          striped
+          searchable
+          page_size_options={[5, 10, 20]}
+        >
           <:col :let={row} field={:name} sortable>{row.name}</:col>
           <:col :let={row} field={:email}>{row.email}</:col>
           <:col :let={row} field={:status}>

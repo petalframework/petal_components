@@ -2619,6 +2619,31 @@
   .pc-data-table__skeleton.pc-data-table__skeleton {
     @apply h-4 w-24 max-w-full;
   }
+  .pc-data-table__search {
+    @apply relative;
+  }
+  .pc-data-table__search-icon {
+    @apply pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-data-table__search-icon.pc-data-table__search-icon {
+    @apply w-4! h-4!;
+  }
+  .pc-data-table__search-input.pc-data-table__search-input {
+    @apply h-9 w-56 max-w-full pl-8 text-sm;
+  }
+  .pc-data-table__reset {
+    @apply ml-auto;
+  }
+  .pc-data-table__page-size {
+    @apply flex items-center gap-2;
+  }
+  .pc-data-table__page-size-label {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-data-table__page-size-select.pc-data-table__page-size-select {
+    @apply h-9 w-auto py-0 pr-8 text-sm;
+  }
 
   /* Avatars - sizes */
 
