@@ -30,6 +30,17 @@ defmodule PetalComponents.DataTable do
   by the `PetalDataTable` hook (patch URLs built from templates the
   component renders); event mode needs no JS.
 
+  Selection (`selectable`) is UI state, not query state - it rides an
+  event in BOTH wiring modes (`on_ui`, defaulting to `on_change`) and
+  never touches URLs. Its ops sit outside `State`: `select` (id),
+  `select_all`, `clear_selection` - a MapSet plus three clauses is the
+  whole backend. Selection is keyed by `row_id`, which must uniquely
+  identify a record across the whole dataset, not just the current
+  page (primary keys qualify, display fields do not) - a selection
+  retained while paging is only as sound as this key. Same-page
+  duplicates raise; cross-page uniqueness is the caller's contract,
+  exactly as with LiveView stream ids.
+
   Rows can be any enumerable of maps/structs; pair with
   `PetalComponents.DataTable.Engine.List` for zero-setup in-memory
   data, or run the state against your own query layer.
@@ -110,7 +121,12 @@ defmodule PetalComponents.DataTable do
 
   attr :row_id, :any,
     default: :id,
-    doc: "row identity for selection: a field (atom) or a 1-arity function of the row"
+    doc: """
+    row identity for selection: a field (atom) or a 1-arity function of
+    the row. The key must uniquely identify a record across ALL pages,
+    not just the visible one - a selection retained while paging is only
+    as sound as this key. Same-page duplicates raise.
+    """
 
   attr :on_ui, :string,
     default: nil,
