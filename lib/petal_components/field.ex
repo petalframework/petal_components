@@ -43,6 +43,10 @@ defmodule PetalComponents.Field do
 
   attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
 
+  attr :combo_variant, :string,
+    values: ["input", "trigger"],
+    doc: "combobox only: the anatomy - searchable input (default) or select-like trigger button"
+
   attr :indicator_position, :string,
     default: "end",
     values: ~w(start end corner),
@@ -149,7 +153,8 @@ defmodule PetalComponents.Field do
   attr :rest, :global,
     include:
       ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
-    pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept),
+    pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept
+    free_text create create_label max_items count_label search_placeholder listbox_label no_results_text results_label clear_label remove_label loading_label remote_options_event_name remote_options_target form_id),
     doc: "All other props go on the input"
 
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
@@ -235,6 +240,61 @@ defmodule PetalComponents.Field do
         <option :if={@prompt} value="">{@prompt}</option>
         {Phoenix.HTML.Form.options_for_select(@options, @selected || @value)}
       </select>
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: "combobox"} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:options, fn -> [] end)
+      # the field size family spans xs-xl; the combobox speaks sm/md/lg
+      |> assign(
+        :combo_size,
+        case assigns.size do
+          "xs" -> "sm"
+          "xl" -> "lg"
+          s -> s
+        end
+      )
+      # :variant belongs to radio-card here - the combobox anatomy rides
+      # combo_variant ("input" | "trigger")
+      |> assign_new(:combo_variant, fn -> "input" end)
+      # the combobox appends [] itself for multiple; the hidden empty
+      # input must post the SAME name or a bare-name field submits a
+      # mixed shape (the FormField path appends [] upstream already)
+      |> then(fn a ->
+        assign(
+          a,
+          :hidden_name,
+          if(a.multiple && a.name && !String.ends_with?(a.name, "[]"),
+            do: a.name <> "[]",
+            else: a.name
+          )
+        )
+      end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        {@label}
+      </.field_label>
+      <input :if={@multiple} type="hidden" name={@hidden_name} value="" />
+      <PetalComponents.ComboBox.combo_box
+        id={@id}
+        name={@name}
+        value={@selected || @value}
+        options={@options}
+        multiple={@multiple}
+        required={@required}
+        size={@combo_size}
+        variant={@combo_variant}
+        clearable={@clearable}
+        class={@class}
+        {@rest}
+      />
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
       <.field_help_text help_text={@help_text} />
     </.field_wrapper>

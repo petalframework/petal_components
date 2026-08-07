@@ -1141,6 +1141,10 @@
     @apply mb-0;
   }
 
+  .pc-form-field-wrapper--error .pc-combo-box__control,
+  .pc-form-field-wrapper--error .pc-combo-box__trigger {
+    @apply border-danger-500 focus-within:border-danger-500 focus-within:ring-danger-500/50 dark:border-danger-400;
+  }
   .pc-form-field-wrapper--error input,
   .pc-form-field-wrapper--error select,
   .pc-form-field-wrapper--error textarea {
@@ -2161,6 +2165,20 @@
        deviating from it was the whole iOS first-tap bug. */
     @apply w-full min-w-0 bg-transparent border-0 px-3 py-2 text-base sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder-gray-500;
     border-radius: inherit;
+  }
+  /* sizes: the field-size family. sm keeps text-base below the sm
+     breakpoint - the iOS auto-zoom rule outranks density everywhere */
+  .pc-combo-box--sm .pc-combo-box__input {
+    @apply px-2.5 py-1.5 sm:text-xs;
+  }
+  .pc-combo-box--sm .pc-combo-box__trigger {
+    @apply px-2.5 py-1.5 text-xs;
+  }
+  .pc-combo-box--lg .pc-combo-box__input {
+    @apply py-2.5 sm:text-base;
+  }
+  .pc-combo-box--lg .pc-combo-box__trigger {
+    @apply py-2.5 text-base;
   }
   .pc-combo-box__chevron {
     @apply shrink-0 pointer-events-none text-gray-400 dark:text-gray-500;
