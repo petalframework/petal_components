@@ -197,6 +197,80 @@ If the MCP is unavailable, the source of truth is https://hexdocs.pm/petal_compo
 </.table>
 ```
 
+### Data table (sortable, paged, filtered - the full surface)
+
+For anything beyond a static table, reach for `<.data_table>` instead of hand-wiring `<.table>` + pagination + inputs. One `DataTable.State` struct drives the whole surface; `Engine.List` runs it over an in-memory list (or run the state against your own query layer).
+
+```heex
+<.data_table
+  id="orders"
+  rows={@rows}
+  state={@table}
+  on_change="table"
+  searchable
+  selectable
+  selected={@selected}
+  row_id={&row_key/1}
+  column_toggle
+  hidden_columns={@hidden}
+  page_size_options={[10, 25, 50]}
+>
+  <:col :let={o} field={:customer} sortable filterable="text">{o.customer}</:col>
+  <:col :let={o} field={:status} filterable="select" options={["paid", "pending", "refunded"]}>
+    <.badge size="sm" variant="soft" label={o.status} />
+  </:col>
+  <:col :let={o} field={:amount} sortable align="right" filterable="number">${o.amount}</:col>
+  <:bulk_action :let={ids}>
+    <.button size="sm" variant="soft" color="danger" phx-click="archive" phx-value-ids={Enum.join(ids, ",")}>
+      Archive {length(ids)}
+    </.button>
+  </:bulk_action>
+</.data_table>
+```
+
+The event-mode backend: UI-state ops (selection, column visibility) get their own clauses, and everything else is query state through `State.handle_op/3` (sort/page/search/page_size/filter/clear_filters). Do NOT skip the UI clauses when using `selectable`/`column_toggle` - `handle_op` ignores those ops by design:
+
+Events post STRING values, so keep the `selected` and `hidden` assigns as string lists (`["1", "7"]`, `["amount"]`) - mixing in integers or atoms makes the membership checks below silently miss:
+
+```elixir
+def handle_event("table", %{"op" => "select", "id" => id}, socket) do
+  {:noreply, update(socket, :selected, fn sel ->
+    if id in sel, do: List.delete(sel, id), else: sel ++ [id]
+  end)}
+end
+
+def handle_event("table", %{"op" => "select_all"}, socket) do
+  page_ids = Enum.map(socket.assigns.rows, &row_key/1)
+  sel = socket.assigns.selected
+
+  {:noreply,
+   assign(socket, :selected,
+     if(Enum.all?(page_ids, &(&1 in sel)), do: sel -- page_ids, else: Enum.uniq(sel ++ page_ids))
+   )}
+end
+
+def handle_event("table", %{"op" => "clear_selection"}, socket),
+  do: {:noreply, assign(socket, :selected, [])}
+
+def handle_event("table", %{"op" => "toggle_column", "field" => f}, socket) do
+  {:noreply, update(socket, :hidden, fn h ->
+    if f in h, do: List.delete(h, f), else: h ++ [f]
+  end)}
+end
+
+# ONE identity function, used as both the component's row_id and
+# select_all's page sweep - they must never disagree
+defp row_key(row), do: to_string(row.id)
+
+def handle_event("table", params, socket) do
+  state = State.handle_op(socket.assigns.table, params, fields: [:customer, :status, :amount])
+  {rows, state} = Engine.List.run(all_orders(), state)
+  {:noreply, assign(socket, rows: rows, table: state)}
+end
+```
+
+Selection and column visibility are UI state (the clauses above; move them to a separate `on_ui` event if you prefer) - keep them in assigns, never in URLs. For URL-driven tables pass `path` instead of `on_change`: every interaction becomes a patch URL and `State.from_params/2` in `handle_params` is the whole backend. `row_id` must uniquely identify records across all pages.
+
 ### Alert / inline feedback
 
 ```heex
