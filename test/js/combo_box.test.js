@@ -778,6 +778,20 @@ describe("multiple with chips", () => {
     expect(label.dataset.values).toBeUndefined();
   });
 
+  it("freshness is a set check - chosen-order stamps and chips survive against option-order reads", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    // server stamped CHOSEN order (tyo picked first); hook reads option order
+    label.dataset.values = "tyo\u001fsyd";
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).not.toBeNull();
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();

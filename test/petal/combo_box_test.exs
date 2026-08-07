@@ -397,6 +397,26 @@ defmodule PetalComponents.ComboBoxTest do
       refute html =~ "2 selected"
     end
 
+    test ":selected stamps data-values with the chosen values (chosen order - the hook compares as a set)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="ord"
+          name="ord"
+          variant="trigger"
+          multiple
+          value={["b", "a"]}
+          options={[{"Alpha", "a"}, {"Beta", "b"}]}
+        >
+          <:selected :let={chosen}>{length(chosen)}</:selected>
+        </.combo_box>
+        """)
+
+      assert html =~ ~s|data-values="b\x1fa"|
+    end
+
     test ":selected falls back to the placeholder when nothing is chosen" do
       assigns = %{}
 

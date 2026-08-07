@@ -3540,6 +3540,15 @@ export const PetalToast = {
 // hidden, never reordered - the server owns DOM order. aria-selected tracks
 // the CHOSEN option (the check mark); the keyboard highlight is virtual:
 // data-highlighted + aria-activedescendant.
+// Same selection, any order: server-rendered rich content follows chosen
+// order while the hook reads DOM option order - freshness checks compare
+// membership, never sequence.
+function sameValueSet(a, b) {
+  if (a.length !== b.length) return false;
+  const set = new Set(a);
+  return set.size === a.length ? b.every((v) => set.has(v)) : false;
+}
+
 export const PetalComboBox = {
   mounted() {
     this.select = this.el.querySelector(".pc-combo-box__select");
@@ -3996,7 +4005,9 @@ export const PetalComboBox = {
     const have = Array.from(
       this.chips.querySelectorAll("[data-pc-combo-chip]"),
     ).map((c) => c.dataset.value);
-    if (want.length === have.length && want.every((v, i) => v === have[i])) {
+    // set comparison: server chips follow chosen order, the select follows
+    // option order - both describe the same selection
+    if (sameValueSet(want, have)) {
       return;
     }
     const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
@@ -4047,10 +4058,13 @@ export const PetalComboBox = {
     // patch that just landed), leave the rich DOM alone - overwrite with
     // optimistic text only for client-side changes, and drop the marker
     // so later syncs stay optimistic until the next patch.
+    // Order differences are legitimate: the server renders chosen order
+    // (chips follow pick order by design) while the hook reads DOM option
+    // order - so freshness is a SET comparison, never a sequence one.
     let labelIsFresh = false;
     if (this.triggerLabel && this.triggerLabel.dataset.customLabel != null) {
       const rendered = this.triggerLabel.dataset.values;
-      if (rendered != null && rendered === values.join("\u001f")) {
+      if (rendered != null && sameValueSet(rendered.split("\u001f"), values)) {
         labelIsFresh = true;
       } else {
         delete this.triggerLabel.dataset.values;
