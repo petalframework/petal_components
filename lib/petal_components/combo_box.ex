@@ -102,6 +102,28 @@ defmodule PetalComponents.ComboBox do
     default: false,
     doc: "single select only: show a clear button in the control when a value is chosen"
 
+  attr :free_text, :boolean,
+    default: false,
+    doc: """
+    typed text is a committable value: Enter with no highlighted option
+    commits the query itself (the empty-stop keyboard grammar's payoff).
+    The committed value is inserted into the hidden select as a dynamic
+    option, so forms post it like any other choice - the server owns
+    whether it persists (re-render it in options to keep it).
+    """
+
+  attr :create, :boolean,
+    default: false,
+    doc: """
+    free_text plus an explicit "create" row in the panel: when the query
+    matches no option label exactly, a keyboard-reachable row offers to
+    create it. Implies free_text's commit behavior.
+    """
+
+  attr :create_label, :string,
+    default: "Create",
+    doc: "the create row's verb, localizable"
+
   attr :placeholder, :string, default: "Select an option…"
   attr :disabled, :boolean, default: false
 
@@ -195,6 +217,7 @@ defmodule PetalComponents.ComboBox do
       class={["pc-combo-box", @class]}
       phx-hook="PetalComboBox"
       data-max-items={@max_items}
+      data-free-text={(@free_text || @create) && "true"}
       data-has-value={@current_values != [] && "true"}
       {@rest}
     >
@@ -400,6 +423,17 @@ defmodule PetalComponents.ComboBox do
               />
             <% end %>
           <% end %>
+          <div
+            :if={@create}
+            class="pc-combo-box__create"
+            data-pc-combo-create
+            role="option"
+            aria-selected="false"
+            hidden
+          >
+            <.icon name="hero-plus-mini" class="pc-combo-box__create-icon" />
+            <span>{@create_label} "<span data-pc-combo-create-query></span>"</span>
+          </div>
           <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
         </div>
         <div :if={@footer != []} class="pc-combo-box__footer">

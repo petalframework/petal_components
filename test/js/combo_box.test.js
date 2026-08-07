@@ -39,6 +39,8 @@ function mountCombo({
   maxItems = null,
   clearable = false,
   trigger = false,
+  freeText = false,
+  create = false,
 } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map(
@@ -64,6 +66,7 @@ function mountCombo({
   el.className = "pc-combo-box";
   el.setAttribute("phx-hook", "PetalComboBox");
   if (maxItems) el.setAttribute("data-max-items", String(maxItems));
+  if (freeText || create) el.setAttribute("data-free-text", "true");
   const inputHtml = `<input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
           aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
           autocomplete="off" placeholder="Pick..." />`;
@@ -94,6 +97,7 @@ function mountCombo({
       ${trigger ? '<div class="pc-combo-box__search"><span class="hero-magnifying-glass-mini pc-combo-box__search-icon"></span>' + inputHtml + "</div>" : ""}
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
         ${listHtml}
+        ${create ? '<div class="pc-combo-box__create" data-pc-combo-create role="option" aria-selected="false" hidden><span>Create "<span data-pc-combo-create-query></span>"</span></div>' : ""}
         <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
       </div>
     </div>
@@ -679,6 +683,81 @@ describe("the boundary cycle", () => {
     expect(c.highlighted()).toBe(null);
     key(c.input, "ArrowUp");
     expect(c.highlighted()?.dataset.value).toBe("sto");
+  });
+});
+
+describe("free text and create", () => {
+  it("free_text: Enter at the empty stop commits the typed value into the select", () => {
+    const c = mountCombo({ options: CITIES, freeText: true });
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    type(c.input, "Osaka");
+    // no match -> no highlight -> the empty stop
+    expect(c.highlighted()).toBeNull();
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Osaka");
+    expect(
+      c.select.querySelector("option[data-pc-combo-custom]"),
+    ).not.toBeNull();
+    expect(changes).toBe(1);
+    expect(c.panel.hidden).toBe(true);
+    expect(c.input.value).toBe("Osaka");
+  });
+
+  it("free_text: a case-insensitive existing label is chosen, never duplicated", () => {
+    const c = mountCombo({ options: CITIES, freeText: true });
+    c.control.click();
+    type(c.input, "TOKYO");
+    // exact-ish text but the ranking highlights Tokyo - clear the
+    // highlight to reach the empty stop deliberately
+    key(c.input, "End");
+    key(c.input, "ArrowDown");
+    expect(c.highlighted()).toBeNull();
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("tyo");
+    expect(c.select.querySelector("option[data-pc-combo-custom]")).toBeNull();
+  });
+
+  it("create: the row appears for novel queries, hides on exact matches, and is the last keyboard stop", () => {
+    const c = mountCombo({ options: CITIES, create: true });
+    c.control.click();
+    const row = c.el.querySelector("[data-pc-combo-create]");
+    expect(row.hidden).toBe(true);
+    type(c.input, "Osa");
+    expect(row.hidden).toBe(false);
+    expect(row.textContent).toContain('Create "Osa"');
+    type(c.input, "Tokyo");
+    expect(row.hidden).toBe(true);
+    type(c.input, "Tok");
+    // End lands on the create row (the last stop), Enter commits
+    key(c.input, "End");
+    expect(row.hasAttribute("data-highlighted")).toBe(true);
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Tok");
+  });
+
+  it("create in multiple mode commits a chip and stays open", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, create: true });
+    c.control.click();
+    type(c.input, "Osaka");
+    c.el.querySelector("[data-pc-combo-create]").click();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["Osaka"]);
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("");
+    // and the empty row never fought the create row
+    type(c.input, "zzz");
+    expect(c.el.querySelector("[data-pc-combo-create]").hidden).toBe(false);
+    expect(c.empty().hidden).toBe(true);
+  });
+
+  it("strict mode is untouched: Enter at the empty stop does nothing", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "Osaka");
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("");
+    expect(c.panel.hidden).toBe(false);
   });
 });
 

@@ -2253,6 +2253,16 @@
   .pc-combo-box__selected-content {
     @apply flex min-w-0 items-center gap-2 truncate;
   }
+  /* the create row: an option-shaped, keyboard-reachable panel action */
+  .pc-combo-box__create {
+    @apply relative flex w-full cursor-default items-center gap-2 border-t border-gray-200 px-2 py-1.5 text-left text-sm text-primary-600 outline-none select-none touch-manipulation dark:border-gray-400/25 dark:text-primary-400;
+  }
+  .pc-combo-box__create[data-highlighted] {
+    @apply bg-gray-100 dark:bg-gray-400/15;
+  }
+  .pc-combo-box__create-icon.pc-combo-box__create-icon {
+    @apply w-4! h-4! shrink-0;
+  }
   .pc-combo-box__empty {
     @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
   }
