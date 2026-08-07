@@ -2644,6 +2644,47 @@
   .pc-data-table__page-size-select.pc-data-table__page-size-select {
     @apply h-9 w-auto py-0 pr-8 text-sm;
   }
+  .pc-data-table__filter {
+    @apply flex items-center gap-1;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-data-table__filter-icon.pc-data-table__filter-icon {
+    @apply w-3.5! h-3.5! mr-1.5;
+  }
+  .pc-data-table__filter-form {
+    @apply flex w-56 flex-col gap-2;
+  }
+  .pc-data-table__filter-form--select {
+    @apply w-48;
+  }
+  .pc-data-table__filter-op.pc-data-table__filter-op,
+  .pc-data-table__filter-value.pc-data-table__filter-value {
+    @apply h-9 text-sm;
+  }
+  .pc-data-table__filter-value2 {
+    @apply hidden;
+  }
+  /* the between op needs its second bound; :has keeps this JS-free in both wiring modes */
+  .pc-data-table__filter-form:has(select[name="filter_op"] option[value="between"]:checked)
+    .pc-data-table__filter-value2 {
+    @apply block;
+  }
+  .pc-data-table__filter-options {
+    @apply flex max-h-56 flex-col gap-1 overflow-y-auto;
+  }
+  .pc-data-table__filter-option {
+    @apply flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-400/10;
+  }
+  .pc-data-table__filter-apply {
+    @apply self-end;
+  }
+  .pc-data-table__filter-clear {
+    @apply inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-data-table__filter-clear-icon.pc-data-table__filter-clear-icon {
+    @apply w-4! h-4!;
+  }
 
   /* Avatars - sizes */
 

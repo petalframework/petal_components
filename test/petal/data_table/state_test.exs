@@ -140,6 +140,108 @@ defmodule PetalComponents.DataTable.StateTest do
     end
   end
 
+  describe "handle_op/3" do
+    @opts [fields: [:name, :amount, :status]]
+
+    test "dispatches the whole event grammar" do
+      state = %State{page: 3}
+
+      assert State.handle_op(state, %{"op" => "sort", "field" => "name"}, @opts).order_by ==
+               [name: :asc]
+
+      assert State.handle_op(state, %{"op" => "page", "page" => "2"}, @opts).page == 2
+      assert State.handle_op(state, %{"op" => "search", "term" => "x"}, @opts).search == "x"
+
+      assert State.handle_op(state, %{"op" => "page_size", "page_size" => "50"}, @opts).page_size ==
+               50
+
+      filtered = %{state | filters: [%{field: :name, op: :contains, value: "a"}]}
+      assert State.handle_op(filtered, %{"op" => "clear_filters"}, @opts).filters == []
+    end
+
+    test "unknown ops and non-whitelisted fields leave the state unchanged" do
+      state = %State{}
+      assert State.handle_op(state, %{"op" => "drop_tables"}, @opts) == state
+      assert State.handle_op(state, %{"op" => "sort", "field" => "secret"}, @opts) == state
+
+      assert State.handle_op(
+               state,
+               %{"op" => "filter", "field" => "secret", "value" => "x"},
+               @opts
+             ) == state
+    end
+
+    test "filter op normalizes by editor shape" do
+      state = %State{}
+
+      text =
+        State.handle_op(
+          state,
+          %{"op" => "filter", "field" => "name", "filter_op" => "contains", "value" => "am"},
+          @opts
+        )
+
+      assert text.filters == [%{field: :name, op: :contains, value: "am"}]
+
+      selected =
+        State.handle_op(
+          state,
+          %{"op" => "filter", "field" => "status", "filter_op" => "in", "values" => ["a", "b"]},
+          @opts
+        )
+
+      assert selected.filters == [%{field: :status, op: :in, value: ["a", "b"]}]
+
+      # the select editor posts values[] with no filter_op - still :in
+      bare =
+        State.handle_op(
+          state,
+          %{"op" => "filter", "field" => "status", "values" => ["a"]},
+          @opts
+        )
+
+      assert bare.filters == [%{field: :status, op: :in, value: ["a"]}]
+
+      between =
+        State.handle_op(
+          state,
+          %{
+            "op" => "filter",
+            "field" => "amount",
+            "filter_op" => "between",
+            "value" => "10",
+            "value2" => "90"
+          },
+          @opts
+        )
+
+      assert between.filters == [%{field: :amount, op: :between, value: ["10", "90"]}]
+
+      half_range =
+        State.handle_op(
+          between,
+          %{"op" => "filter", "field" => "amount", "filter_op" => "between", "value" => "10"},
+          @opts
+        )
+
+      assert half_range.filters == []
+
+      removed = State.handle_op(text, %{"op" => "filter", "field" => "name"}, @opts)
+      assert removed.filters == []
+
+      # a present-but-unknown operator is rejected outright - the state
+      # (including this field's active filter) stays exactly as it was
+      bogus =
+        State.handle_op(
+          text,
+          %{"op" => "filter", "field" => "name", "filter_op" => "regex", "value" => ".*"},
+          @opts
+        )
+
+      assert bogus == text
+    end
+  end
+
   describe "toggle_sort/2" do
     test "cycles asc -> desc -> removed and resets the page" do
       state = %State{page: 7}

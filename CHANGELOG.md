@@ -27,6 +27,21 @@
   `search`/`page_size` ops through plain forms; link mode wires both
   through the new `PetalDataTable` hook, which fills in URL templates
   and clicks a hidden patch link so navigation stays LiveView's own.
+- **`<.data_table>` column filters (4.12 data table, milestone 2,
+  part 2).** `:col` gains `filterable` ("text" | "number" | "select" |
+  "date") and `options`; each filterable column renders a toolbar
+  filter button that opens a popover editor typed per column -
+  operator select + value for text/number/date (`between` reveals its
+  second bound via `:has()`, no JS), a checkbox list posting `:in`
+  for select. Active buttons read their predicate ("Email contains d",
+  "Amount between 300\u2013320", "+N" overflow for long picks) with an
+  inline clear. `State.handle_op/3` speaks the entire event grammar
+  (sort/page/search/page_size/filter/clear_filters, whitelisted
+  fields, no atom creation) so an event-mode handler is one call;
+  link mode extends the `PetalDataTable` hook with a `:filters`
+  placeholder mirrored from a JSON stamp, and filter URLs now carry
+  list/range values as Phoenix-style indexed params. Operator names
+  localize via `filter_op_labels`.
 - **`table` `on_sort` accepts a 1-arity function** of the sort key -
   per-column events/JS, how the data table patches sort URLs.
 - **`pagination` event mode grows up**: `event` accepts a custom event
