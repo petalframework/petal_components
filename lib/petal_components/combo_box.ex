@@ -289,6 +289,8 @@ defmodule PetalComponents.ComboBox do
           diff misalign - its skip markers landed on moved nodes and
           blanked chip icons. The hook reconciles from the select (server
           truth) plus the :chip templates, which stay server-owned. --%>
+          <%!-- data-* attrs still update on ignored elements - data-order
+          carries the server's chosen order so reorders reach the hook --%>
           <div
             :if={@multiple}
             id={"#{@id}-chips"}
@@ -296,6 +298,7 @@ defmodule PetalComponents.ComboBox do
             class="pc-combo-box__chips"
             data-pc-combo-chips
             data-remove-label={@remove_label}
+            data-order={Jason.encode!(@current_values)}
           >
             <span
               :for={opt <- @selected_options}

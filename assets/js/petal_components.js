@@ -4039,6 +4039,44 @@ export const PetalComboBox = {
       need.set(v, left - 1);
       this.chips.appendChild(this.buildChip(v));
     }
+    this.applyChipOrder();
+  },
+
+  // The server's chosen order arrives via data-order (data attrs still
+  // update on phx-update=ignore containers). Enforce it after membership
+  // reconciliation; chips the server does not know yet (client picks
+  // awaiting their patch) keep their spot at the end.
+  applyChipOrder() {
+    let order = null;
+    try {
+      order = JSON.parse(this.chips.dataset.order || "null");
+    } catch {
+      order = null;
+    }
+    if (!Array.isArray(order)) return;
+    const byValue = new Map();
+    const current = [];
+    for (const chip of Array.from(
+      this.chips.querySelectorAll("[data-pc-combo-chip]"),
+    )) {
+      current.push(chip);
+      const v = chip.dataset.value;
+      if (!byValue.has(v)) byValue.set(v, []);
+      byValue.get(v).push(chip);
+    }
+    const seq = [];
+    for (const v of order) {
+      const arr = byValue.get(v);
+      if (arr && arr.length) seq.push(arr.shift());
+    }
+    for (const arr of byValue.values()) seq.push(...arr);
+    if (
+      seq.length === current.length &&
+      seq.every((c, i) => c === current[i])
+    ) {
+      return;
+    }
+    for (const chip of seq) this.chips.appendChild(chip);
   },
 
   buildChip(value) {

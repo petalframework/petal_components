@@ -919,6 +919,26 @@ describe("multiple with chips", () => {
     expect(plain.textContent).toContain("Sydney");
   });
 
+  it("a server reorder reaches hook-owned chips via data-order; unstamped client picks stay last", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.control.click();
+    c.items()[0].click(); // syd
+    c.items()[1].click(); // tyo
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["syd", "tyo"]);
+    // the patch updates data-order (attrs update even on ignored nodes)
+    c.chips_el.dataset.order = JSON.stringify(["tyo", "syd"]);
+    c.hook.updated();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["tyo", "syd"]);
+    // a fresh client pick the server has not stamped yet appends last
+    c.items()[2].click(); // lis
+    expect(c.chips().map((x) => x.dataset.value)).toEqual([
+      "tyo",
+      "syd",
+      "lis",
+    ]);
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();
