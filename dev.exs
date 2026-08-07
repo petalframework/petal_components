@@ -7409,7 +7409,7 @@ defmodule Dev.PlaygroundLive do
           ex <-
             examples_for(
               PetalComponents.Showcase.DataTable,
-              ~w(basic loading empty)a
+              ~w(basic toolbar selection columns loading empty)a
             )
         }
         class="mt-10"
