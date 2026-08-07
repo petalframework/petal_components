@@ -124,6 +124,45 @@ describe("PetalPopover", () => {
     delete window.visualViewport;
   });
 
+  it("unsubscribes from the visual viewport on close and on destroy", () => {
+    const calls = [];
+    const vv = {
+      offsetTop: 0,
+      offsetLeft: 0,
+      width: 375,
+      height: 812,
+      addEventListener: (type) => calls.push(`add:${type}`),
+      removeEventListener: (type) => calls.push(`remove:${type}`),
+    };
+    Object.defineProperty(window, "visualViewport", {
+      value: vv,
+      configurable: true,
+    });
+
+    const { hook, el, wrap } = mount();
+
+    fire(el, "beforetoggle", "open");
+    fire(el, "toggle", "open");
+    expect(calls).toEqual(["add:resize", "add:scroll"]);
+
+    // closing detaches them - a hook that mounts per filter popover
+    // must not accumulate viewport listeners
+    fire(el, "toggle", "closed");
+    expect(calls).toContain("remove:resize");
+    expect(calls).toContain("remove:scroll");
+
+    calls.length = 0;
+    hook.destroyed();
+    expect(calls).toEqual(["remove:resize", "remove:scroll"]);
+
+    mounted.splice(
+      mounted.findIndex((m) => m.hook === hook),
+      1,
+    );
+    wrap.remove();
+    delete window.visualViewport;
+  });
+
   it("does not reposition a closed panel", () => {
     const { hook, el } = mount();
     fire(el, "beforetoggle", "open");
