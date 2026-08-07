@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combobox tap debug</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <style>
+      body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
+      #stage { padding: 16px; }
+      #log-wrap {
+        position: fixed; left: 0; right: 0; bottom: 0; height: 45vh;
+        background: #0b0f19; color: #d1d5db; border-top: 2px solid #374151;
+        display: flex; flex-direction: column; z-index: 9999;
+      }
+      #log-bar { display: flex; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #374151; }
+      #log-bar button {
+        font: 600 12px ui-sans-serif, system-ui; padding: 6px 12px;
+        border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb;
+      }
+      #log {
+        flex: 1; overflow-y: auto; margin: 0; padding: 8px 10px;
+        font: 10px/1.5 ui-monospace, Menlo, monospace; white-space: pre;
+        -webkit-user-select: text; user-select: text;
+      }
+      .chev-box {
+        position: absolute; border: 1.5px dashed #ef4444; border-radius: 4px;
+        pointer-events: none; z-index: 999;
+      }
+      .marker { color: #34d399; font-weight: 700; }
+      h2 { font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
+      .hint { font-size: 11px; color: #6b7280; margin: 2px 0 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <h2>1. Input variant</h2>
+      <p class="hint">Red dashed box = the chevron's true box. Tap ON it, then just LEFT of it. Panel open/close is logged.</p>
+      <div id="combo" class="pc-combo-box" style="max-width: 20rem">
+        <select id="combo-select" name="city" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert>
+          <option value=""></option>
+          <option value="syd">Sydney</option>
+          <option value="tyo">Tokyo</option>
+          <option value="lis">Lisbon</option>
+        </select>
+        <div class="pc-combo-box__control">
+          <div class="pc-combo-box__content">
+            <input type="text" id="combo-input" class="pc-combo-box__input" role="combobox"
+              aria-expanded="false" aria-autocomplete="list" aria-controls="combo-listbox"
+              autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Tap chevron zones…" />
+          </div>
+          <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+        </div>
+        <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+          <div role="listbox" id="combo-listbox" class="pc-combo-box__list" aria-label="Cities">
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="syd" data-label="Sydney" aria-selected="false"><span class="pc-combo-box__option-label">Sydney</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="tyo" data-label="Tokyo" aria-selected="false"><span class="pc-combo-box__option-label">Tokyo</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="lis" data-label="Lisbon" aria-selected="false"><span class="pc-combo-box__option-label">Lisbon</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+          </div>
+        </div>
+        <div class="pc-combo-box__live" data-pc-combo-live aria-live="polite"></div>
+      </div>
+
+      <h2>2. Trigger variant</h2>
+      <p class="hint">Open it, then tap the button again — the close that fails on device.</p>
+      <div id="tcombo" class="pc-combo-box" style="max-width: 20rem">
+        <select id="tcombo-select" name="who" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert>
+          <option value=""></option>
+          <option value="amelia">Amelia</option>
+          <option value="jonah">Jonah</option>
+          <option value="priya">Priya</option>
+        </select>
+        <button type="button" id="tcombo-trigger" class="pc-combo-box__trigger" role="combobox"
+          aria-haspopup="listbox" aria-expanded="false" aria-controls="tcombo-listbox"
+          data-pc-combo-trigger data-placeholder="true">
+          <span class="pc-combo-box__trigger-label" data-pc-combo-trigger-label
+            data-placeholder-text="Assign to…" data-count-label="selected">Assign to…</span>
+          <span class="hero-chevron-down-mini pc-combo-box__chevron"></span>
+        </button>
+        <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+          <div class="pc-combo-box__search">
+            <span class="hero-magnifying-glass-mini pc-combo-box__search-icon"></span>
+            <input type="text" id="tcombo-input" class="pc-combo-box__input" role="combobox"
+              aria-expanded="false" aria-autocomplete="list" aria-controls="tcombo-listbox"
+              autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Search…" />
+          </div>
+          <div role="listbox" id="tcombo-listbox" class="pc-combo-box__list" aria-label="People">
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="amelia" data-label="Amelia" aria-selected="false"><span class="pc-combo-box__option-label">Amelia</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="jonah" data-label="Jonah" aria-selected="false"><span class="pc-combo-box__option-label">Jonah</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="priya" data-label="Priya" aria-selected="false"><span class="pc-combo-box__option-label">Priya</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+          </div>
+        </div>
+        <div class="pc-combo-box__live" data-pc-combo-live aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div id="log-wrap">
+      <div id="log-bar">
+        <button id="copy-btn" type="button">Copy log</button>
+        <button id="clear-btn" type="button">Clear</button>
+        <span style="font:11px ui-monospace,Menlo,monospace;color:#9ca3af;align-self:center" id="counter"></span>
+      </div>
+      <pre id="log"></pre>
+    </div>
+
+    <script type="module">
+      import hooks from "/assets/js/petal_components.js";
+
+      const logEl = document.getElementById("log");
+      const counter = document.getElementById("counter");
+      const lines = [];
+      let n = 0;
+
+      function desc(el) {
+        if (!el || el === document) return "document";
+        if (el === document.body) return "body";
+        const id = el.id ? `#${el.id}` : "";
+        const cls = el.classList && el.classList.length ? `.${el.classList[0]}` : "";
+        return `${el.tagName ? el.tagName.toLowerCase() : "?"}${id}${cls}`;
+      }
+
+      function render() {
+        logEl.innerHTML = lines
+          .slice()
+          .reverse()
+          .map((l) =>
+            l.startsWith("%%")
+              ? `<span class="marker">${l.slice(2)}</span>`
+              : l,
+          )
+          .join("\n");
+        counter.textContent = `${n} events`;
+      }
+
+      function say(line, marker = false) {
+        n++;
+        lines.push(marker ? `%%${line}` : line);
+        if (lines.length > 400) lines.shift();
+        render();
+      }
+
+      // Capture-phase: what the browser actually delivers, before any handler.
+      // defaultPrevented is sampled after the dispatch completes.
+      const types = [
+        "pointerdown", "pointerup", "pointercancel",
+        "touchstart", "touchend", "touchcancel",
+        "mousedown", "mouseup", "click",
+        "focusin", "focusout",
+      ];
+      for (const t of types) {
+        document.addEventListener(
+          t,
+          (e) => {
+            if (e.target.closest && e.target.closest("#log-wrap")) return;
+            const pt =
+              e.clientX != null && !Number.isNaN(e.clientX)
+                ? ` @${Math.round(e.clientX)},${Math.round(e.clientY)}`
+                : e.touches && e.touches[0]
+                  ? ` @${Math.round(e.touches[0].clientX)},${Math.round(e.touches[0].clientY)}`
+                  : "";
+            const pid = e.pointerId != null ? ` pid=${e.pointerId}` : "";
+            const line = `${t.padEnd(13)} ${desc(e.target)}${pt}${pid}`;
+            const i = lines.length;
+            say(line);
+            Promise.resolve().then(() => {
+              if (e.defaultPrevented && lines[i] === line) {
+                lines[i] = line + "  [PREVENTED]";
+                render();
+              }
+            });
+          },
+          true,
+        );
+      }
+
+      // Panel state transitions
+      for (const [name, panel] of [
+        ["INPUT-VARIANT", document.querySelector("#combo .pc-combo-box__panel")],
+        ["TRIGGER-VARIANT", document.querySelector("#tcombo .pc-combo-box__panel")],
+      ]) {
+        new MutationObserver(() => {
+          say(`==== ${name} PANEL ${panel.hidden ? "CLOSED" : "OPENED"} ====`, true);
+        }).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+      }
+
+      // Mount the real hooks
+      for (const root of document.querySelectorAll(".pc-combo-box")) {
+        const h = Object.create(hooks.PetalComboBox);
+        h.el = root;
+        h.mounted();
+      }
+
+      // Outline each chevron's true box
+      function outlineChevrons() {
+        document.querySelectorAll(".chev-box").forEach((b) => b.remove());
+        for (const chev of document.querySelectorAll(".pc-combo-box__chevron")) {
+          const r = chev.getBoundingClientRect();
+          if (!r.width) continue;
+          const box = document.createElement("div");
+          box.className = "chev-box";
+          box.style.left = `${r.left + window.scrollX - 2}px`;
+          box.style.top = `${r.top + window.scrollY - 2}px`;
+          box.style.width = `${r.width + 4}px`;
+          box.style.height = `${r.height + 4}px`;
+          document.body.appendChild(box);
+        }
+      }
+      outlineChevrons();
+      window.addEventListener("resize", outlineChevrons);
+      say("ready - tap away (UA: " + navigator.userAgent.slice(0, 80) + ")", true);
+
+      document.getElementById("clear-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        lines.length = 0; n = 0; logEl.textContent = ""; counter.textContent = "";
+      });
+      document.getElementById("copy-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          await navigator.clipboard.writeText(lines.join("\n"));
+          say("(log copied)", true);
+        } catch {
+          say("(copy failed - long-press the log to select)", true);
+        }
+      });
+    </script>
+  </body>
+</html>
