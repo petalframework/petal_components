@@ -3,6 +3,19 @@
 
 #### Fixed
 
+- **Top-layer popovers follow the visual viewport.** Opening a mobile
+  keyboard shrinks and offsets the visual viewport without firing
+  window `scroll` or `resize`, so a panel anchored on layout-viewport
+  numbers was left behind - off-screen while typing, then adrift on
+  the next scroll. `PetalPopover` now subscribes to `visualViewport`
+  events and measures space and clamps against that box, so an open
+  editor stays put and stays visible above the keyboard.
+- **Fields with an explicit height no longer sit their text low.** The
+  data table's search input and filter operator/value controls set
+  `h-9` while inheriting the base `py-2`; at 16px (coarse pointers)
+  the line box overflowed the content box and pushed the text down.
+  They now zero the vertical padding, like the per-page select
+  already did.
 - **Top-layer popovers no longer flash at the top-left corner.** The
   panel's `margin: 0` (which defeats the browser's centring) meant an
   unpositioned panel sat at 0,0, and `toggle` fires late enough for a

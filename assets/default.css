@@ -2645,7 +2645,7 @@
     @apply w-4! h-4!;
   }
   .pc-data-table__search-input.pc-data-table__search-input {
-    @apply h-9 w-56 max-w-full pl-8 text-sm;
+    @apply h-9 w-56 max-w-full py-0 pl-8 text-sm;
   }
   .pc-data-table__reset {
     @apply ml-auto;
@@ -2672,9 +2672,12 @@
   .pc-data-table__filter-form--select {
     @apply w-48;
   }
+  /* py-0: these carry an explicit height, so the base py-2 would push a
+     16px line box (coarse pointers) past the content box and sit the
+     text low - same normalization the page-size select already had */
   .pc-data-table__filter-op.pc-data-table__filter-op,
   .pc-data-table__filter-value.pc-data-table__filter-value {
-    @apply h-9 text-sm;
+    @apply h-9 py-0 text-sm;
   }
   .pc-data-table__filter-value2 {
     @apply hidden;

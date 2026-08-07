@@ -77,6 +77,92 @@ describe("PetalPopover", () => {
     expect(el.style.left).toBe(positioned.left);
   });
 
+  it("keeps the panel inside the visual viewport when a keyboard shrinks it", () => {
+    const vv = {
+      offsetTop: 120,
+      offsetLeft: 0,
+      width: 375,
+      height: 300,
+      addEventListener: () => listeners.push("add"),
+      removeEventListener: () => listeners.push("remove"),
+    };
+    const listeners = [];
+    Object.defineProperty(window, "visualViewport", {
+      value: vv,
+      configurable: true,
+    });
+
+    const { el, wrap } = mount();
+    // a trigger sitting below the keyboard-shrunk region
+    wrap.querySelector("button").getBoundingClientRect = () => ({
+      top: 700,
+      bottom: 730,
+      left: 20,
+      right: 120,
+      width: 100,
+      height: 30,
+    });
+    el.getBoundingClientRect = () => ({
+      top: 0,
+      bottom: 200,
+      left: 0,
+      right: 220,
+      width: 220,
+      height: 200,
+    });
+
+    fire(el, "beforetoggle", "open");
+    fire(el, "toggle", "open");
+
+    const top = parseFloat(el.style.top);
+    // clamped into [vv.offsetTop + 8, vv.offsetTop + vv.height - 200 - 8]
+    expect(top).toBeGreaterThanOrEqual(128);
+    expect(top).toBeLessThanOrEqual(212);
+    // and it subscribed to the visual viewport, not just window
+    expect(listeners).toContain("add");
+
+    delete window.visualViewport;
+  });
+
+  it("unsubscribes from the visual viewport on close and on destroy", () => {
+    const calls = [];
+    const vv = {
+      offsetTop: 0,
+      offsetLeft: 0,
+      width: 375,
+      height: 812,
+      addEventListener: (type) => calls.push(`add:${type}`),
+      removeEventListener: (type) => calls.push(`remove:${type}`),
+    };
+    Object.defineProperty(window, "visualViewport", {
+      value: vv,
+      configurable: true,
+    });
+
+    const { hook, el, wrap } = mount();
+
+    fire(el, "beforetoggle", "open");
+    fire(el, "toggle", "open");
+    expect(calls).toEqual(["add:resize", "add:scroll"]);
+
+    // closing detaches them - a hook that mounts per filter popover
+    // must not accumulate viewport listeners
+    fire(el, "toggle", "closed");
+    expect(calls).toContain("remove:resize");
+    expect(calls).toContain("remove:scroll");
+
+    calls.length = 0;
+    hook.destroyed();
+    expect(calls).toEqual(["remove:resize", "remove:scroll"]);
+
+    mounted.splice(
+      mounted.findIndex((m) => m.hook === hook),
+      1,
+    );
+    wrap.remove();
+    delete window.visualViewport;
+  });
+
   it("does not reposition a closed panel", () => {
     const { hook, el } = mount();
     fire(el, "beforetoggle", "open");
