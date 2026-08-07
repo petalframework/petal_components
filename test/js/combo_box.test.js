@@ -39,6 +39,9 @@ function mountCombo({
   maxItems = null,
   clearable = false,
   trigger = false,
+  freeText = false,
+  create = false,
+  remote = false,
 } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map(
@@ -64,6 +67,8 @@ function mountCombo({
   el.className = "pc-combo-box";
   el.setAttribute("phx-hook", "PetalComboBox");
   if (maxItems) el.setAttribute("data-max-items", String(maxItems));
+  if (freeText || create) el.setAttribute("data-free-text", "true");
+  if (remote) el.setAttribute("data-remote-event", "search");
   const inputHtml = `<input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
           aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
           autocomplete="off" placeholder="Pick..." />`;
@@ -92,8 +97,10 @@ function mountCombo({
     ${bodyHtml}
     <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
       ${trigger ? '<div class="pc-combo-box__search"><span class="hero-magnifying-glass-mini pc-combo-box__search-icon"></span>' + inputHtml + "</div>" : ""}
+      ${remote ? '<div class="pc-combo-box__loading" data-pc-combo-loading hidden><span>Searching…</span></div>' : ""}
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
         ${listHtml}
+        ${create ? '<div class="pc-combo-box__create" data-pc-combo-create role="option" aria-selected="false" hidden><span>Create "<span data-pc-combo-create-query></span>"</span></div>' : ""}
         <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
       </div>
     </div>
@@ -679,6 +686,246 @@ describe("the boundary cycle", () => {
     expect(c.highlighted()).toBe(null);
     key(c.input, "ArrowUp");
     expect(c.highlighted()?.dataset.value).toBe("sto");
+  });
+});
+
+describe("free text and create", () => {
+  it("free_text: Enter at the empty stop commits the typed value into the select", () => {
+    const c = mountCombo({ options: CITIES, freeText: true });
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    type(c.input, "Osaka");
+    // no match -> no highlight -> the empty stop
+    expect(c.highlighted()).toBeNull();
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Osaka");
+    expect(
+      c.select.querySelector("option[data-pc-combo-custom]"),
+    ).not.toBeNull();
+    expect(changes).toBe(1);
+    expect(c.panel.hidden).toBe(true);
+    expect(c.input.value).toBe("Osaka");
+  });
+
+  it("free_text: a case-insensitive existing label is chosen, never duplicated", () => {
+    const c = mountCombo({ options: CITIES, freeText: true });
+    c.control.click();
+    type(c.input, "TOKYO");
+    // exact-ish text but the ranking highlights Tokyo - clear the
+    // highlight to reach the empty stop deliberately
+    key(c.input, "End");
+    key(c.input, "ArrowDown");
+    expect(c.highlighted()).toBeNull();
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("tyo");
+    expect(c.select.querySelector("option[data-pc-combo-custom]")).toBeNull();
+  });
+
+  it("create: the row appears for novel queries, hides on exact matches, and is the last keyboard stop", () => {
+    const c = mountCombo({ options: CITIES, create: true });
+    c.control.click();
+    const row = c.el.querySelector("[data-pc-combo-create]");
+    expect(row.hidden).toBe(true);
+    type(c.input, "Osa");
+    expect(row.hidden).toBe(false);
+    expect(row.textContent).toContain('Create "Osa"');
+    type(c.input, "Tokyo");
+    expect(row.hidden).toBe(true);
+    type(c.input, "Tok");
+    // End lands on the create row (the last stop), Enter commits
+    key(c.input, "End");
+    expect(row.hasAttribute("data-highlighted")).toBe(true);
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Tok");
+  });
+
+  it("create in multiple mode commits a chip and stays open", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, create: true });
+    c.control.click();
+    type(c.input, "Osaka");
+    c.el.querySelector("[data-pc-combo-create]").click();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["Osaka"]);
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("");
+    // and the empty row never fought the create row
+    type(c.input, "zzz");
+    expect(c.el.querySelector("[data-pc-combo-create]").hidden).toBe(false);
+    expect(c.empty().hidden).toBe(true);
+  });
+
+  it("strict mode is untouched: Enter at the empty stop does nothing", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "Osaka");
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("");
+    expect(c.panel.hidden).toBe(false);
+  });
+});
+
+describe("remote search", () => {
+  function mountRemote(extra = {}) {
+    const c = mountCombo({ options: [], remote: true, ...extra });
+    c.hook.pushes = [];
+    c.hook.pushEvent = function (event, payload, cb) {
+      this.pushes.push({ event, payload, cb });
+    };
+    c.loading = () => c.el.querySelector("[data-pc-combo-loading]");
+    return c;
+  }
+
+  it("typing debounces, pushes the raw term, shows the loading row, renders the reply", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    expect(c.hook.pushes).toHaveLength(0); // debounced
+    vi.advanceTimersByTime(300);
+    expect(c.hook.pushes).toHaveLength(1);
+    expect(c.hook.pushes[0].event).toBe("search");
+    expect(c.hook.pushes[0].payload).toBe("am");
+    expect(c.loading().hidden).toBe(false);
+    c.hook.pushes[0].cb({
+      results: [
+        { text: "Amelia Ward", value: "amelia" },
+        { text: "Amara Okafor", value: "amara" },
+      ],
+    });
+    expect(c.loading().hidden).toBe(true);
+    const rows = c.items();
+    expect(rows.map((r) => r.dataset.value)).toEqual(["amelia", "amara"]);
+    expect(rows[0].hasAttribute("data-highlighted")).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it("choosing a remote row inserts the option into the select and dispatches change", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[0].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    c.items()[0].click();
+    expect(c.select.value).toBe("amelia");
+    const opt = c.select.querySelector("option[data-pc-combo-custom]");
+    expect(opt.textContent).toBe("Amelia Ward");
+    expect(changes).toBe(1);
+    expect(c.input.value).toBe("Amelia Ward");
+    vi.useRealTimers();
+  });
+
+  it("a stale reply never clobbers a newer search", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    type(c.input, "amel");
+    vi.advanceTimersByTime(300);
+    expect(c.hook.pushes).toHaveLength(2);
+    // newer reply lands first
+    c.hook.pushes[1].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    // the older reply arrives late - dropped
+    c.hook.pushes[0].cb({ results: [{ text: "WRONG", value: "wrong" }] });
+    expect(c.items().map((r) => r.dataset.label)).toEqual(["Amelia Ward"]);
+    vi.useRealTimers();
+  });
+
+  it("empty results show the empty row; remote multiple builds chips", () => {
+    vi.useFakeTimers();
+    const c = mountRemote({ multiple: true });
+    c.control.click();
+    type(c.input, "zz");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[0].cb({ results: [] });
+    expect(c.empty().hidden).toBe(false);
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[1].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    c.items()[0].click();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["amelia"]);
+    expect(c.panel.hidden).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("a keystroke inside the next debounce window invalidates in-flight replies", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300); // search 1 fired
+    type(c.input, "amel"); // debounce pending, nothing fired yet
+    // search 1's reply lands NOW - must be dropped against the newer query
+    c.hook.pushes[0].cb({ results: [{ text: "STALE", value: "stale" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("closing the panel invalidates in-flight work and hides the loading row", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    expect(c.loading().hidden).toBe(false);
+    key(c.input, "Escape");
+    expect(c.loading().hidden).toBe(true);
+    c.hook.pushes[0].cb({ results: [{ text: "STALE", value: "stale" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("mode configuration patched by the server reaches the hook", () => {
+    const c = mountCombo({ options: CITIES });
+    expect(c.hook.freeText).toBe(false);
+    // server patch enables free_text
+    c.el.setAttribute("data-free-text", "true");
+    c.hook.updated();
+    expect(c.hook.freeText).toBe(true);
+    c.control.click();
+    type(c.input, "Osaka");
+    key(c.input, "Enter");
+    expect(c.select.value).toBe("Osaka");
+  });
+
+  it("a patched remote event invalidates the previous configuration's in-flight reply", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300); // search fired under the OLD event
+    // server patch swaps the data source
+    c.el.setAttribute("data-remote-event", "other_search");
+    c.hook.updated();
+    // the old event's reply arrives late - must be dropped
+    c.hook.pushes[0].cb({ results: [{ text: "OBSOLETE", value: "x" }] });
+    expect(c.items()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("pushEventTo carries the target when configured", () => {
+    vi.useFakeTimers();
+    const c = mountCombo({ options: [], remote: true });
+    c.el.setAttribute("data-remote-target", "3");
+    c.hook.destroyed();
+    c.hook.mounted();
+    const calls = [];
+    c.hook.pushEventTo = (target, event, payload, cb) =>
+      calls.push({ target, event, payload });
+    c.control.click();
+    type(c.input, "x");
+    vi.advanceTimersByTime(300);
+    expect(calls).toEqual([{ target: "3", event: "search", payload: "x" }]);
+    vi.useRealTimers();
   });
 });
 

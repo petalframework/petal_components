@@ -1436,6 +1436,26 @@ defmodule Dev.PlaygroundLive do
   def handle_event("pg_combo_change", %{"pg_city" => value}, socket),
     do: {:noreply, update(socket, :combo, &%{&1 | chosen: value})}
 
+  def handle_event("pg_remote_search", term, socket) do
+    term = String.downcase(to_string(term))
+
+    results =
+      ~w(Amsterdam Athens Auckland Bangkok Barcelona Beijing Berlin Bogota Boston Brisbane
+         Brussels Budapest BuenosAires Cairo CapeTown Chicago Copenhagen Dallas Delhi Dubai
+         Dublin Edinburgh Geneva Hanoi Helsinki HongKong Houston Istanbul Jakarta Johannesburg
+         KualaLumpur Lagos Lima Lisbon London LosAngeles Madrid Melbourne MexicoCity Miami
+         Milan Montreal Moscow Mumbai Munich Nairobi NewYork Osaka Oslo Paris Prague Rome
+         SanFrancisco Santiago Seoul Shanghai Singapore Stockholm Sydney Tokyo Toronto
+         Vancouver Vienna Warsaw Wellington Zurich)
+      |> Enum.filter(&String.contains?(String.downcase(&1), term))
+      |> Enum.take(8)
+      |> Enum.map(&%{text: &1, value: &1})
+
+    {:reply, %{results: results}, socket}
+  end
+
+  def handle_event("pg_remote_change", _params, socket), do: {:noreply, socket}
+
   def handle_event("pg_rich_change", params, socket) do
     {:noreply,
      assign(socket, :rich, %{
@@ -7324,6 +7344,24 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Remote search - live</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The LiveView is the data source: typing pushes a debounced event with the raw term, the
+        handler replies with results, and the hook renders them - loading row, stale-reply
+        protection and all. This one searches ~60 world cities server-side.
+      </p>
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl px-6 py-10">
+        <form id="pg-remote-form" phx-change="pg_remote_change" class="mx-auto w-full max-w-sm">
+          <.combo_box
+            id="pg-combo-remote"
+            name="pg_city_remote"
+            placeholder="Search cities (server-side)…"
+            remote_options_event_name="pg_remote_search"
+            options={[]}
+          />
+        </form>
+      </div>
+
       <h2 class="mt-10 mb-1 text-lg font-semibold">Rich closed states - live</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         The same :selected and :chip slots, wired to a real form with phx-change. Every pick
@@ -7410,7 +7448,7 @@ defmodule Dev.PlaygroundLive do
           ex <-
             examples_for(
               PetalComponents.Showcase.ComboBox,
-              ~w(labels team panel_chrome multiple trigger rich_options basic preselected groups)a
+              ~w(creatable labels team panel_chrome multiple trigger rich_options basic preselected groups)a
             )
         }
         class="mt-10"

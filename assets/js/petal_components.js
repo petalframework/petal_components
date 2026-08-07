@@ -3569,6 +3569,18 @@ export const PetalComboBox = {
 
     this.multiple = this.select.multiple;
     this.chips = this.el.querySelector("[data-pc-combo-chips]");
+    this.freeText = this.el.hasAttribute("data-free-text");
+    this.remoteEvent = this.el.dataset.remoteEvent || null;
+    this.remoteTarget = this.el.dataset.remoteTarget || null;
+    this.loadingRow = this.el.querySelector("[data-pc-combo-loading]");
+    this.remoteSeq = 0;
+    this.createRow = this.el.querySelector("[data-pc-combo-create]");
+    if (this.createRow) {
+      this.createRow.id = `${this.el.id}-create`;
+      this.createQueryEl = this.createRow.querySelector(
+        "[data-pc-combo-create-query]",
+      );
+    }
     this.live = this.el.querySelector("[data-pc-combo-live]");
     this.clearBtn = this.el.querySelector("[data-pc-combo-clear]");
     this.query = "";
@@ -3583,15 +3595,31 @@ export const PetalComboBox = {
       e.stopPropagation();
       this.query = this.input.value.trim().toLowerCase();
       if (this.panel.hidden) this.openPanel({ keepQuery: true });
+      if (this.remoteEvent) {
+        // every keystroke invalidates in-flight replies immediately - a
+        // reply landing inside the NEXT search's debounce window must
+        // never render against the newer query
+        this.remoteSeq++;
+        clearTimeout(this.remoteTimer);
+        this.remoteTimer = setTimeout(() => this.remoteSearch(), 300);
+      }
       this.filter();
     };
     this.onKeydown = (e) => this.keydown(e);
     this.onPointerOver = (e) => {
+      if (this.createRow && e.target.closest("[data-pc-combo-create]")) {
+        if (!this.createRow.hidden) this.highlight(this.createRow, false);
+        return;
+      }
       const item = e.target.closest("[data-pc-combo-item]");
       if (item && !item.hasAttribute("data-disabled") && !item.hidden)
         this.highlight(item, false);
     };
     this.onListClick = (e) => {
+      if (this.createRow && e.target.closest("[data-pc-combo-create]")) {
+        if (!this.createRow.hidden) this.commitFreeText();
+        return;
+      }
       const item = e.target.closest("[data-pc-combo-item]");
       if (item && !item.hasAttribute("data-disabled")) this.choose(item);
     };
@@ -3799,6 +3827,30 @@ export const PetalComboBox = {
   },
 
   updated() {
+    // mode configuration and conditionally-rendered rows are server
+    // truth and can change on any patch - re-read them, and a CHANGED
+    // remote event/target invalidates the previous configuration's
+    // in-flight work so obsolete results can never land
+    const prevEvent = this.remoteEvent;
+    const prevTarget = this.remoteTarget;
+    this.freeText = this.el.hasAttribute("data-free-text");
+    this.remoteEvent = this.el.dataset.remoteEvent || null;
+    this.remoteTarget = this.el.dataset.remoteTarget || null;
+    if (this.remoteEvent !== prevEvent || this.remoteTarget !== prevTarget) {
+      this.remoteSeq++;
+      clearTimeout(this.remoteTimer);
+      if (this.loadingRow) this.loadingRow.hidden = true;
+    }
+    this.loadingRow = this.el.querySelector("[data-pc-combo-loading]");
+    this.createRow = this.el.querySelector("[data-pc-combo-create]");
+    if (this.createRow) {
+      this.createRow.id = `${this.el.id}-create`;
+      this.createQueryEl = this.createRow.querySelector(
+        "[data-pc-combo-create-query]",
+      );
+    } else {
+      this.createQueryEl = null;
+    }
     // LiveView patched the component - the select (server state) wins
     // for SELECTION, but open-state belongs to the client: the server
     // always renders the panel hidden, so a phx-change round-trip would
@@ -3848,6 +3900,7 @@ export const PetalComboBox = {
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
     clearTimeout(this.labelPatchTimer);
+    clearTimeout(this.remoteTimer);
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
@@ -3927,6 +3980,11 @@ export const PetalComboBox = {
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
     this.isOpen = false;
+    if (this.remoteEvent) {
+      this.remoteSeq++;
+      clearTimeout(this.remoteTimer);
+      if (this.loadingRow) this.loadingRow.hidden = true;
+    }
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.panel.removeAttribute("data-flip");
@@ -4002,7 +4060,20 @@ export const PetalComboBox = {
       return;
     }
     const chosen = this.chosenItem();
-    this.input.value = chosen ? chosen.dataset.label || "" : "";
+    if (chosen) {
+      this.input.value = chosen.dataset.label || "";
+      return;
+    }
+    // free-text values have no list item - the select option carries
+    // their display text. select.value is the single source of truth
+    // (selectedOptions can carry stale flags after form.reset()).
+    const v = this.select.value;
+    if (v === "") {
+      this.input.value = "";
+      return;
+    }
+    const opt = Array.from(this.select.options).find((o) => o.value === v);
+    this.input.value = opt ? opt.textContent.trim() : v;
   },
 
   dispatchChange() {
@@ -4213,8 +4284,24 @@ export const PetalComboBox = {
       this.restoreDisplay();
   },
 
+  // remote rows (and free-text commits) have no server-rendered option in
+  // the hidden select - create one so the form posts the value. Marked
+  // data-pc-combo-custom: the server owns persistence on the next patch.
+  ensureOption(value, label) {
+    let option = Array.from(this.select.options).find((o) => o.value === value);
+    if (!option) {
+      option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      option.setAttribute("data-pc-combo-custom", "");
+      this.select.appendChild(option);
+    }
+    return option;
+  },
+
   choose(item) {
     const value = item.dataset.value;
+    this.ensureOption(value, item.dataset.label || value);
     if (this.multiple) {
       const selected = this.selectedValues().includes(value);
       if (!selected && this.maxReached()) return;
@@ -4234,6 +4321,97 @@ export const PetalComboBox = {
     this.setSelected(value, true);
     this.closePanel();
     if (!this.trigger) this.input.focus();
+  },
+
+  // Remote search, contract-verbatim from the Tom Select era: push the
+  // raw search term, receive {:reply, %{results: [%{text, value}]}}, and
+  // render the results as the option list. The listbox is hook-owned in
+  // remote mode (phx-update=ignore), so there is exactly one writer. A
+  // sequence counter drops stale replies from out-of-order round trips.
+  remoteSearch() {
+    if (
+      typeof this.pushEventTo !== "function" &&
+      typeof this.pushEvent !== "function"
+    ) {
+      return; // remote needs a LiveView socket
+    }
+    const seq = this.remoteSeq;
+    if (this.loadingRow) this.loadingRow.hidden = false;
+    const term = this.input.value.trim();
+    const handle = (reply) => {
+      if (seq !== this.remoteSeq) return; // a newer search superseded this one
+      if (this.loadingRow) this.loadingRow.hidden = true;
+      this.renderRemoteResults((reply && reply.results) || []);
+    };
+    if (this.remoteTarget && typeof this.pushEventTo === "function") {
+      this.pushEventTo(this.remoteTarget, this.remoteEvent, term, handle);
+    } else {
+      this.pushEvent(this.remoteEvent, term, handle);
+    }
+  },
+
+  renderRemoteResults(results) {
+    for (const stale of this.el.querySelectorAll(
+      "[data-pc-combo-item], [data-pc-combo-group]",
+    )) {
+      stale.remove();
+    }
+    const anchor =
+      (this.createRow && this.createRow.parentElement === this.list
+        ? this.createRow
+        : null) || this.el.querySelector("[data-pc-combo-empty]");
+    for (const result of results) {
+      const row = document.createElement("div");
+      row.className = "pc-combo-box__option";
+      row.setAttribute("role", "option");
+      row.setAttribute("data-pc-combo-item", "");
+      row.setAttribute("aria-selected", "false");
+      row.dataset.value = String(result.value);
+      row.dataset.label = String(result.text);
+      const label = document.createElement("span");
+      label.className = "pc-combo-box__option-label";
+      label.textContent = String(result.text);
+      const check = document.createElement("span");
+      check.className = "hero-check-mini pc-combo-box__check";
+      row.append(label, check);
+      this.list.insertBefore(row, anchor);
+    }
+    this.syncFromSelect();
+    this.filter();
+  },
+
+  // free-text commit: the typed query becomes a real value in the hidden
+  // select (a dynamic option marked data-pc-combo-custom), so the form
+  // posts it like any other choice. The SERVER owns persistence: unless
+  // the app re-renders the value into options, the next patch drops it.
+  commitFreeText() {
+    const raw = this.input.value.trim();
+    if (!raw) return;
+    // an existing option with the same label wins - never dupe by case
+    const existing = this.items().find(
+      (i) => (i.dataset.label || "").trim().toLowerCase() === raw.toLowerCase(),
+    );
+    if (existing && !existing.hasAttribute("data-disabled")) {
+      this.choose(existing);
+      return;
+    }
+    if (this.multiple && this.maxReached()) return;
+    const option = this.ensureOption(raw, raw);
+    if (this.multiple) {
+      option.selected = true;
+      this.dispatchChange();
+      this.syncFromSelect();
+      this.query = "";
+      this.input.value = "";
+      this.filter();
+      this.input.focus();
+      return;
+    }
+    this.select.value = raw;
+    this.dispatchChange();
+    this.syncFromSelect();
+    this.closePanel();
+    (this.trigger || this.input).focus();
   },
 
   announce(count) {
@@ -4256,7 +4434,8 @@ export const PetalComboBox = {
       const text = `${item.dataset.label || item.textContent || ""}`
         .trim()
         .toLowerCase();
-      const score = this.score(text, query);
+      // remote mode: the server already filtered - every row is a match
+      const score = this.remoteEvent ? 1 : this.score(text, query);
       item.hidden = score === 0;
       if (score === 0) continue;
       count++;
@@ -4277,8 +4456,26 @@ export const PetalComboBox = {
       group.hidden = !any;
     }
 
+    // the create row shows for a non-empty query with no EXACT label
+    // match (a case-insensitive duplicate would be a confusing offer)
+    let createVisible = false;
+    if (this.createRow) {
+      const q = query.trim();
+      const exact =
+        q &&
+        this.items().some(
+          (i) =>
+            (i.dataset.label || "").trim().toLowerCase() === q.toLowerCase(),
+        );
+      createVisible = Boolean(q) && !exact;
+      this.createRow.hidden = !createVisible;
+      // display the raw typed text - the scoring query is lowercased
+      if (this.createQueryEl)
+        this.createQueryEl.textContent = this.input.value.trim();
+    }
+
     const empty = this.el.querySelector("[data-pc-combo-empty]");
-    if (empty) empty.hidden = count > 0;
+    if (empty) empty.hidden = count > 0 || createVisible;
     this.announce(count);
 
     // an empty query (just opened) homes the highlight on the chosen value;
@@ -4310,6 +4507,11 @@ export const PetalComboBox = {
     this.highlightedValue = item ? item.dataset.value : null;
     for (const i of this.items())
       i.toggleAttribute("data-highlighted", i === item);
+    if (this.createRow)
+      this.createRow.toggleAttribute(
+        "data-highlighted",
+        this.createRow === item,
+      );
     if (item) {
       this.input.setAttribute("aria-activedescendant", item.id);
       if (scroll) item.scrollIntoView({ block: "nearest" });
@@ -4323,8 +4525,16 @@ export const PetalComboBox = {
   // top. The empty state is the input itself taking a turn in the cycle -
   // in free-text mode Enter there means "use what I typed, not an option" -
   // and it reads as a felt boundary instead of a disorienting teleport.
-  move(delta) {
+  // the visible create row participates as the last keyboard stop - the
+  // footer-region consumer the panel-slot ruling promised
+  navItems() {
     const items = this.visibleItems();
+    if (this.createRow && !this.createRow.hidden) items.push(this.createRow);
+    return items;
+  },
+
+  move(delta) {
+    const items = this.navItems();
     if (!items.length) return;
     const at = items.indexOf(this.highlightedItem());
     if (at === -1) {
@@ -4353,7 +4563,7 @@ export const PetalComboBox = {
       case "End":
         if (this.panel.hidden) return;
         e.preventDefault();
-        this.highlight(this.visibleItems().slice(-1)[0] || null);
+        this.highlight(this.navItems().slice(-1)[0] || null);
         break;
       case "Backspace": {
         if (!this.multiple || this.input.value !== "") return;
@@ -4365,8 +4575,17 @@ export const PetalComboBox = {
         if (this.panel.hidden) return; // closed: let the form submit
         e.preventDefault();
         const item = this.highlightedItem();
-        if (item && !item.hidden && !item.hasAttribute("data-disabled"))
+        if (item === this.createRow && this.createRow) {
+          this.commitFreeText();
+          break;
+        }
+        if (item && !item.hidden && !item.hasAttribute("data-disabled")) {
           this.choose(item);
+          break;
+        }
+        // the empty stop: in free-text mode Enter here means "use what I
+        // typed, not an option" - the grammar this state was built for
+        if (this.freeText && this.input.value.trim()) this.commitFreeText();
         break;
       }
       case "Escape":

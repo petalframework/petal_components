@@ -3,6 +3,26 @@
 
 #### Added
 
+- **`combo_box` M3b - the modes: `free_text`, `create`, remote search.**
+  The last of the Tom Select parity surface, on the new architecture:
+  - `free_text`: Enter at the empty stop commits the typed text as a
+    dynamic option in the hidden select, so forms post it like any
+    choice. Existing labels are chosen instead of duplicated
+    (case-insensitive). The server owns persistence.
+  - `create`: free_text plus an explicit, keyboard-reachable
+    "Create …" row (the last arrow stop) that appears for novel
+    queries. `create_label` localizes the verb.
+  - `remote_options_event_name` + `remote_options_target`: the
+    contract preserved verbatim - typing pushes the raw term
+    (debounced 300ms), the handler replies
+    `{:reply, %{results: [%{text: …, value: …}]}, socket}`, and the
+    hook renders the results (the listbox is hook-owned in remote
+    mode - one writer per region). Designed loading row
+    (`loading_label`), stale replies dropped by sequence, chosen
+    results inserted into the select.
+
+#### Added
+
 - **`combo_box` M3a - the slot family completes: `:header`, `:footer`,
   `:selected`, `:chip`.** All four speak the `:option` slot's grammar
   (`:let` receives normalized options with `meta`), all render-only, no

@@ -102,6 +102,53 @@ defmodule PetalComponents.ComboBox do
     default: false,
     doc: "single select only: show a clear button in the control when a value is chosen"
 
+  attr :free_text, :boolean,
+    default: false,
+    doc: """
+    typed text is a committable value: Enter with no highlighted option
+    commits the query itself (the empty-stop keyboard grammar's payoff).
+    The committed value is inserted into the hidden select as a dynamic
+    option, so forms post it like any other choice - the server owns
+    whether it persists (re-render it in options to keep it).
+    """
+
+  attr :create, :boolean,
+    default: false,
+    doc: """
+    free_text plus an explicit "create" row in the panel: when the query
+    matches no option label exactly, a keyboard-reachable row offers to
+    create it. Implies free_text's commit behavior.
+    """
+
+  attr :create_label, :string,
+    default: "Create",
+    doc: "the create row's verb, localizable"
+
+  attr :remote_options_event_name, :string,
+    default: nil,
+    doc: """
+    use your LiveView as a remote data source: typing pushes this event
+    (debounced) with the search term as the payload, exactly like the
+    Tom Select-era contract. Handle it and reply with results:
+
+        def handle_event("search", term, socket) do
+          results = MyApp.search(term) |> Enum.map(&%{text: &1.name, value: &1.id})
+          {:reply, %{results: results}, socket}
+        end
+
+    The hook renders the results as the option list (the listbox becomes
+    hook-owned in remote mode); a chosen result is inserted into the
+    hidden select so the form posts it. Requires a LiveView socket.
+    """
+
+  attr :remote_options_target, :any,
+    default: nil,
+    doc: "the event's target - pass @myself when the handler lives on a LiveComponent"
+
+  attr :loading_label, :string,
+    default: "Searching…",
+    doc: "the remote loading row's text, localizable"
+
   attr :placeholder, :string, default: "Select an option…"
   attr :disabled, :boolean, default: false
 
@@ -195,6 +242,9 @@ defmodule PetalComponents.ComboBox do
       class={["pc-combo-box", @class]}
       phx-hook="PetalComboBox"
       data-max-items={@max_items}
+      data-free-text={(@free_text || @create) && "true"}
+      data-remote-event={@remote_options_event_name}
+      data-remote-target={@remote_options_target}
       data-has-value={@current_values != [] && "true"}
       {@rest}
     >
@@ -376,8 +426,20 @@ defmodule PetalComponents.ComboBox do
           {render_slot(@header)}
         </div>
         <div
+          :if={@remote_options_event_name}
+          class="pc-combo-box__loading"
+          data-pc-combo-loading
+          hidden
+        >
+          <.icon name="hero-arrow-path-mini" class="pc-combo-box__loading-icon" />
+          <span>{@loading_label}</span>
+        </div>
+        <%!-- remote mode: the hook renders result rows, so the listbox is
+        hook-owned (the chips container taught us: one writer per region) --%>
+        <div
           role="listbox"
           id={"#{@id}-listbox"}
+          phx-update={@remote_options_event_name && "ignore"}
           class="pc-combo-box__list"
           aria-label={@listbox_label}
           aria-multiselectable={@multiple && "true"}
@@ -400,6 +462,17 @@ defmodule PetalComponents.ComboBox do
               />
             <% end %>
           <% end %>
+          <div
+            :if={@create}
+            class="pc-combo-box__create"
+            data-pc-combo-create
+            role="option"
+            aria-selected="false"
+            hidden
+          >
+            <.icon name="hero-plus-mini" class="pc-combo-box__create-icon" />
+            <span>{@create_label} "<span data-pc-combo-create-query></span>"</span>
+          </div>
           <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
         </div>
         <div :if={@footer != []} class="pc-combo-box__footer">
