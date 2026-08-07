@@ -219,6 +219,49 @@ describe("PetalPopover", () => {
     expect(el.style.overflowY).toBe("auto");
   });
 
+  it("never caps taller than the room it has, even in a sliver of viewport", () => {
+    // a viewport strip barely taller than the trigger: neither side has
+    // room for a comfortable panel, and the cap must still contain it
+    stubViewport({ offsetTop: 0, height: 140 });
+    const { el, wrap } = mount();
+    stubRects(wrap, el, {
+      trigger: { top: 60, left: 20, width: 100, height: 30 },
+      panel: { width: 220, height: 400 },
+    });
+
+    open(el);
+
+    const top = parseFloat(el.style.top);
+    const maxHeight = parseFloat(el.style.maxHeight);
+    // it takes the roomier side - 60px above the trigger beats 50 below -
+    // and caps to exactly that room, less gap and pad
+    expect(maxHeight).toBe(44);
+    // the whole box stays inside the 140px strip, above the trigger
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top + maxHeight).toBeLessThanOrEqual(60);
+  });
+
+  it("hides when its trigger leaves sideways, not just vertically", () => {
+    stubViewport({ offsetLeft: 0, width: 375 });
+    const { hook, el, wrap } = mount();
+    stubRects(wrap, el, {
+      trigger: { top: 100, left: 40, width: 100, height: 30 },
+      panel: { width: 220, height: 150 },
+    });
+
+    open(el);
+    expect(el.style.visibility).toBe("");
+
+    // a horizontally scrolling container carries the trigger off-screen
+    // while it stays vertically in view
+    stubRects(wrap, el, {
+      trigger: { top: 100, left: -300, width: 100, height: 30 },
+      panel: { width: 220, height: 150 },
+    });
+    hook.position();
+    expect(el.style.visibility).toBe("hidden");
+  });
+
   it("hides itself when its trigger scrolls out of the visible region", () => {
     stubViewport({ offsetTop: 0, height: 400 });
     const { hook, el, wrap } = mount();

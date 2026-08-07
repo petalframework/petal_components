@@ -1560,7 +1560,6 @@ export const PetalPopover = {
 
     const gap = 8;
     const pad = 8;
-    const floor = 96;
 
     // margin:0 anchors the panel to our top/left - without it the UA's
     // `inset: 0; margin: auto` centres it, which is the sane look for
@@ -1584,8 +1583,13 @@ export const PetalPopover = {
     // Anchored means anchored: a trigger scrolled out of the visible
     // region takes its panel with it rather than stranding it against
     // an edge, on top of whatever chrome lives there.
-    this.el.style.visibility =
-      t.bottom < vp.top || t.top > vp.top + vp.height ? "hidden" : "";
+    const offscreen =
+      t.bottom < vp.top ||
+      t.top > vp.top + vp.height ||
+      t.right < vp.left ||
+      t.left > vp.left + vp.width;
+
+    this.el.style.visibility = offscreen ? "hidden" : "";
 
     let s = side;
     if (
@@ -1620,9 +1624,12 @@ export const PetalPopover = {
       // Clamping the MAIN axis instead is what tore the panel off its
       // trigger - pinning it to the top of the screen, over the header,
       // over the button that opened it.
+      // No minimum, the same call the combobox listbox already makes: a
+      // floor taller than the actual room pushes the panel back out of
+      // the viewport, which is the thing this cap exists to prevent.
       maxHeight = Math.max(
         (s === "top" ? space.top : space.bottom) - gap - pad,
-        floor,
+        0,
       );
       const height = Math.min(p.height, maxHeight);
 
@@ -1635,7 +1642,7 @@ export const PetalPopover = {
       // cross axis only - keeping it on screen sideways never detaches it
       left = clamp(left, vp.left + pad, vp.left + vp.width - p.width - pad);
     } else {
-      maxHeight = Math.max(vp.height - 2 * pad, floor);
+      maxHeight = Math.max(vp.height - 2 * pad, 0);
       const height = Math.min(p.height, maxHeight);
 
       left = s === "left" ? t.left - p.width - gap : t.right + gap;
