@@ -152,6 +152,20 @@ defmodule PetalComponents.DataTableTest do
     assert html =~ "filters%5B0%5D%5Bfield%5D=name" or html =~ "filters[0][field]=name"
   end
 
+  test "a base path already carrying a query joins with & not ?" do
+    assigns = base(%{path: "/orders?tab=all"})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path}>
+        <:col :let={row} field={:name} sortable>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ "/orders?tab=all&amp;" or html =~ "/orders?tab=all&"
+    refute html =~ "tab=all?"
+  end
+
   test "action slot renders a trailing column" do
     assigns = base()
 

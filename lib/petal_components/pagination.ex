@@ -219,6 +219,9 @@ defmodule PetalComponents.Pagination do
   defp event_name(_event), do: "goto-page"
 
   defp phx_values(values) when values == %{}, do: []
+
+  # event_values keys are developer-authored component API (a handful of
+  # op names), never user input - the atom creation here is bounded
   defp phx_values(values), do: Enum.map(values, fn {k, v} -> {:"phx-value-#{k}", v} end)
 
   defp get_path(path, page_number, current_page) when is_binary(path) do

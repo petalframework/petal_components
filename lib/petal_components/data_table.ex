@@ -217,7 +217,7 @@ defmodule PetalComponents.DataTable do
 
   defp url_for(path, %State{} = state) do
     query = state |> State.to_params() |> flatten_params() |> URI.encode_query()
-    if query == "", do: path, else: path <> "?" <> query
+    join_query(path, query)
   end
 
   # pagination's :page placeholder must survive URL encoding, so the
@@ -230,11 +230,15 @@ defmodule PetalComponents.DataTable do
       |> flatten_params()
       |> URI.encode_query()
 
-    if query == "" do
-      path <> "?page=:page"
-    else
-      path <> "?page=:page&" <> query
-    end
+    join_query(path, if(query == "", do: "page=:page", else: "page=:page&" <> query))
+  end
+
+  # a base path may already carry a query string - join accordingly
+  defp join_query(path, ""), do: path
+
+  defp join_query(path, query) do
+    joiner = if String.contains?(path, "?"), do: "&", else: "?"
+    path <> joiner <> query
   end
 
   # filters encode as a list of maps - flatten to Phoenix-style indexed
