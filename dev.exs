@@ -749,6 +749,7 @@ defmodule Dev.PlaygroundLive do
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
+       dt_hidden: [],
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1471,7 +1472,21 @@ defmodule Dev.PlaygroundLive do
           selected
       end
 
-    {:noreply, socket |> assign(:dt, run_dt(state)) |> assign(:dt_selected, selected)}
+    hidden =
+      case params do
+        %{"op" => "toggle_column", "field" => field} ->
+          hidden = socket.assigns.dt_hidden
+          if field in hidden, do: List.delete(hidden, field), else: hidden ++ [field]
+
+        _ ->
+          socket.assigns.dt_hidden
+      end
+
+    {:noreply,
+     socket
+     |> assign(:dt, run_dt(state))
+     |> assign(:dt_selected, selected)
+     |> assign(:dt_hidden, hidden)}
   end
 
   defp run_dt(state) do
@@ -7348,6 +7363,8 @@ defmodule Dev.PlaygroundLive do
           page_size_options={[5, 10, 20]}
           selectable
           selected={@dt_selected}
+          column_toggle
+          hidden_columns={@dt_hidden}
         >
           <:col :let={row} field={:name} sortable>{row.name}</:col>
           <:col :let={row} field={:email} filterable="text">{row.email}</:col>

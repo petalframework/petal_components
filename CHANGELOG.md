@@ -54,6 +54,14 @@
   `clear_selection` - and never touches URLs. `table`'s `:col` label
   now accepts any rendered fragment, which is how the header checkbox
   rides in.
+- **`<.data_table>` columns-visibility dropdown (4.12 data table,
+  milestone 3b).** `column_toggle` renders a toolbar Columns dropdown
+  (top-layer popover, stays open for multi-toggling); `hidden_columns`
+  is presentation state riding the `on_ui` event as
+  `%{"op" => "toggle_column", "field" => f}` - never in URLs. The
+  last visible column's checkbox disables (a table needs one), and
+  filter buttons stay independent of visibility (filtering is not
+  display).
 - **`data_table` filter popovers are viewport-aware**: the editors now
   ride the popover's top-layer mode, so `PetalPopover` flips and clamps
   them inside the viewport - a filter button at the screen edge no

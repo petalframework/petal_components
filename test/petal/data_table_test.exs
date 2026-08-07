@@ -314,6 +314,70 @@ defmodule PetalComponents.DataTableTest do
     assert html =~ "ids:1<"
   end
 
+  test "column_toggle renders the dropdown, hides columns, and guards the last one" do
+    assigns = base(%{hidden: [:email]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        column_toggle
+        hidden_columns={@hidden}
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    # the hidden column leaves the table but stays listed in the dropdown
+    refute html =~ "amy@x.com"
+    assert html =~ ~s(phx-value-op="toggle_column")
+    assert html =~ ~s(phx-value-field="email")
+    # the last visible column's checkbox is disabled - a table needs one
+    assert Regex.match?(~r/<input[^>]*checked[^>]*disabled[^>]*phx-value-field="name"/, html) or
+             Regex.match?(~r/<input[^>]*disabled[^>]*phx-value-field="name"/, html)
+
+    assert_raise ArgumentError, ~r/column_toggle/, fn ->
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path="/orders" column_toggle>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+    end
+  end
+
+  test "column_toggle invariants: all-hidden clamps to the first column; fragment labels render" do
+    assigns = %{}
+    em = ~H"<em>Nome</em>"
+    assigns = base(%{hidden: [:name, :email], em: em})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        column_toggle
+        hidden_columns={@hidden}
+      >
+        <:col :let={row} field={:name} label={@em}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    # a hand-built all-hidden state keeps the first declared column
+    assert html =~ "Amy"
+    refute html =~ "amy@x.com"
+    # its checkbox reads visible (and disabled, being the last one standing)
+    assert Regex.match?(~r/<input[^>]*checked[^>]*disabled[^>]*phx-value-field="name"/, html)
+    # the dropdown renders the fragment label, same identity as the header
+    assert length(String.split(html, "<em>Nome</em>")) - 1 == 2
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{
