@@ -202,23 +202,31 @@ defmodule PetalComponents.DataTable.State do
   end
 
   defp apply_filter_op(state, field, params) do
-    {op, value} =
-      if is_list(params["values"]) do
+    resolved =
+      cond do
         # the select editor's shape - its grammar is always :in, whether
         # or not the form said so
-        {:in, Enum.reject(params["values"], &(&1 in [nil, ""]))}
-      else
-        case Map.fetch(@op_strings, params["filter_op"] || "") do
-          {:ok, :between} -> {:between, normalize_between(params["value"], params["value2"])}
-          {:ok, op} -> {op, params["value"]}
-          # missing/unknown operator: from_params-grade rejection - the
-          # only safe application is removing this field's filter (the
-          # clear button's payload is exactly this shape)
-          :error -> {:eq, ""}
-        end
+        is_list(params["values"]) ->
+          {:in, Enum.reject(params["values"], &(&1 in [nil, ""]))}
+
+        # no operator at all is the clear button's payload: removal
+        is_nil(params["filter_op"]) ->
+          {:eq, ""}
+
+        true ->
+          case Map.fetch(@op_strings, params["filter_op"]) do
+            {:ok, :between} -> {:between, normalize_between(params["value"], params["value2"])}
+            {:ok, op} -> {op, params["value"]}
+            # a present-but-unknown operator gets from_params-grade
+            # rejection: the state stays exactly as it was
+            :error -> :reject
+          end
       end
 
-    put_filter(state, field, op, value)
+    case resolved do
+      :reject -> state
+      {op, value} -> put_filter(state, field, op, value)
+    end
   end
 
   # a half-empty range can't match anything, so it reads as removal
