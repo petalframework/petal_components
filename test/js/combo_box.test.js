@@ -854,6 +854,8 @@ describe("multiple with chips", () => {
 
   it("a wired form whose handler never re-renders self-heals to optimistic text after the grace window", () => {
     vi.useFakeTimers();
+    const now = vi.spyOn(performance, "now");
+    now.mockReturnValue(0);
     const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
     const form = document.createElement("form");
     form.setAttribute("phx-change", "changed");
@@ -873,9 +875,48 @@ describe("multiple with chips", () => {
     // grace window: stale rich kept while the patch is presumed en route
     expect(label.querySelector("em")).not.toBeNull();
     // no patch ever arrives - the timer degrades to honest optimistic text
+    now.mockReturnValue(2100);
     vi.advanceTimersByTime(2100);
     expect(label.querySelector("em")).toBeNull();
     expect(label.textContent).toBe("2 selected");
+    now.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("continuing picks never extend the grace window - it anchors to the first divergence", () => {
+    vi.useFakeTimers();
+    const now = vi.spyOn(performance, "now");
+    now.mockReturnValue(0);
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    // divergence begins
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
+    // keep interacting inside the window - must NOT re-arm it
+    now.mockReturnValue(1500);
+    vi.advanceTimersByTime(1500);
+    c.items()
+      .find((i) => i.dataset.value === "lis")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
+    // past 2s from the FIRST divergence: degrade despite recent activity
+    now.mockReturnValue(2100);
+    vi.advanceTimersByTime(600);
+    expect(label.querySelector("em")).toBeNull();
+    now.mockRestore();
     vi.useRealTimers();
   });
 
@@ -937,6 +978,19 @@ describe("multiple with chips", () => {
       "syd",
       "lis",
     ]);
+  });
+
+  it("the highlight survives LiveView patches - no re-homing on the first item", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    const third = c.items()[2];
+    third.click();
+    expect(third.hasAttribute("data-highlighted")).toBe(true);
+    // the patch: server renders options without client highlight state
+    for (const i of c.items()) i.removeAttribute("data-highlighted");
+    c.hook.updated();
+    expect(third.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.items()[0].hasAttribute("data-highlighted")).toBe(false);
   });
 
   it("choosing a chosen option un-chooses it", () => {

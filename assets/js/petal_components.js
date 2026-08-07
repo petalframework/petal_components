@@ -3810,8 +3810,20 @@ export const PetalComboBox = {
       if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
       this.positionPanel();
     }
+    // the highlight is client state too: the patch re-renders options
+    // without data-highlighted, and filter() would re-home on the first
+    // item (visible on iOS, masked by hover re-highlighting on desktop)
+    const keepHighlight = this.highlightedValue;
     this.syncFromSelect();
-    if (!this.panel.hidden) this.filter();
+    if (!this.panel.hidden) {
+      this.filter();
+      if (keepHighlight) {
+        const item = this.visibleItems().find(
+          (i) => i.dataset.value === keepHighlight,
+        );
+        if (item) this.highlight(item, false);
+      }
+    }
   },
 
   destroyed() {
@@ -4153,29 +4165,30 @@ export const PetalComboBox = {
         labelIsFresh = true;
         clearTimeout(this.labelPatchTimer);
         this.labelPatchTimer = null;
+        this.labelStaleSince = null;
       } else {
         delete this.triggerLabel.dataset.values;
         // a phx-change form means the patch that re-renders the rich
         // content is already on its way - keeping the briefly-stale rich
         // DOM reads better than flashing plain text for one round trip.
         // Unwired comboboxes get the honest optimistic text instead, and
-        // a grace timer self-heals wired ones whose handler never
-        // re-renders the value: past it, stale rich degrades to text.
+        // the grace window self-heals wired ones whose handler never
+        // re-renders the value. The window anchors to the FIRST
+        // divergence - continuing picks or unrelated patches never
+        // extend it, so a silent handler always degrades within 2s.
         const form = this.select.form;
-        if (
-          form &&
-          form.hasAttribute("phx-change") &&
-          values.length > 0 &&
-          !this.labelPatchOverdue
-        ) {
-          labelIsFresh = true;
-          clearTimeout(this.labelPatchTimer);
-          this.labelPatchTimer = setTimeout(() => {
-            this.labelPatchTimer = null;
-            this.labelPatchOverdue = true;
-            this.syncFromSelect();
-            this.labelPatchOverdue = false;
-          }, 2000);
+        if (form && form.hasAttribute("phx-change") && values.length > 0) {
+          if (this.labelStaleSince == null) {
+            this.labelStaleSince = performance.now();
+            clearTimeout(this.labelPatchTimer);
+            this.labelPatchTimer = setTimeout(() => {
+              this.labelPatchTimer = null;
+              this.syncFromSelect();
+            }, 2000);
+          }
+          if (performance.now() - this.labelStaleSince < 2000) {
+            labelIsFresh = true;
+          }
         }
       }
     }
@@ -4294,6 +4307,7 @@ export const PetalComboBox = {
   },
 
   highlight(item, scroll = true) {
+    this.highlightedValue = item ? item.dataset.value : null;
     for (const i of this.items())
       i.toggleAttribute("data-highlighted", i === item);
     if (item) {
