@@ -1439,6 +1439,10 @@ export const PetalInputOTP = {
 // The browser handles open/close and light-dismiss via the popover attribute;
 // this hook only computes fixed coordinates, flipping to the opposite side
 // and clamping to the viewport when space runs out.
+// min wins when the panel is taller/wider than the space it has: better
+// to overflow the far edge than to push the anchored edge off-screen
+const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+
 export const PetalPopover = {
   mounted() {
     this.open = false;
@@ -1460,12 +1464,10 @@ export const PetalPopover = {
       if (this.open) {
         this.position();
         this.el.style.opacity = "";
-        window.addEventListener("scroll", this.reposition, true);
-        window.addEventListener("resize", this.reposition);
+        this.listen("addEventListener");
       } else {
         this.el.style.opacity = "";
-        window.removeEventListener("scroll", this.reposition, true);
-        window.removeEventListener("resize", this.reposition);
+        this.listen("removeEventListener");
       }
     };
 
@@ -1485,8 +1487,41 @@ export const PetalPopover = {
   destroyed() {
     this.el.removeEventListener("beforetoggle", this.onBeforeToggle);
     this.el.removeEventListener("toggle", this.onToggle);
-    window.removeEventListener("scroll", this.reposition, true);
-    window.removeEventListener("resize", this.reposition);
+    this.listen("removeEventListener");
+  },
+
+  // The visual viewport is its own thing on mobile: opening the
+  // keyboard shrinks and offsets it WITHOUT firing window scroll or
+  // resize, so a panel anchored on layout-viewport numbers is left
+  // behind (off-screen, then adrift once the page does scroll).
+  listen(method) {
+    window[method]("scroll", this.reposition, true);
+    window[method]("resize", this.reposition);
+    if (window.visualViewport) {
+      window.visualViewport[method]("resize", this.reposition);
+      window.visualViewport[method]("scroll", this.reposition);
+    }
+  },
+
+  // The box the panel must stay inside, in client coordinates: the
+  // visible region when a keyboard or pinch-zoom has shrunk it,
+  // otherwise the window.
+  viewport() {
+    const vv = window.visualViewport;
+
+    return vv
+      ? {
+          top: vv.offsetTop,
+          left: vv.offsetLeft,
+          width: vv.width,
+          height: vv.height,
+        }
+      : {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
   },
   position() {
     const trigger = document.querySelector(
@@ -1499,12 +1534,13 @@ export const PetalPopover = {
     const t = trigger.getBoundingClientRect();
     const p = this.el.getBoundingClientRect();
     const [side, align] = (this.el.dataset.placement || "bottom").split("-");
+    const vp = this.viewport();
 
     const space = {
-      top: t.top,
-      bottom: window.innerHeight - t.bottom,
-      left: t.left,
-      right: window.innerWidth - t.right,
+      top: t.top - vp.top,
+      bottom: vp.top + vp.height - t.bottom,
+      left: t.left - vp.left,
+      right: vp.left + vp.width - t.right,
     };
 
     let s = side;
@@ -1546,8 +1582,8 @@ export const PetalPopover = {
       else top = t.top + t.height / 2 - p.height / 2;
     }
 
-    left = Math.max(pad, Math.min(left, window.innerWidth - p.width - pad));
-    top = Math.max(pad, Math.min(top, window.innerHeight - p.height - pad));
+    left = clamp(left, vp.left + pad, vp.left + vp.width - p.width - pad);
+    top = clamp(top, vp.top + pad, vp.top + vp.height - p.height - pad);
 
     this.el.style.top = `${top}px`;
     this.el.style.left = `${left}px`;

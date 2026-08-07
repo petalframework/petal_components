@@ -750,6 +750,7 @@ defmodule Dev.PlaygroundLive do
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
        dt_hidden: [],
+       dt_refunded: [],
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1450,7 +1451,8 @@ defmodule Dev.PlaygroundLive do
     state = State.handle_op(state, params, fields: [:name, :email, :status, :amount])
 
     # selection is UI state, outside State - a MapSet and three clauses
-    selected = socket.assigns.dt_selected
+    was_selected = socket.assigns.dt_selected
+    selected = was_selected
 
     selected =
       case params do
@@ -1468,8 +1470,18 @@ defmodule Dev.PlaygroundLive do
         %{"op" => "clear_selection"} ->
           []
 
+        # a bulk action consumes the selection: act, then clear
+        %{"op" => "refund"} ->
+          []
+
         _ ->
           selected
+      end
+
+    refunded =
+      case params do
+        %{"op" => "refund"} -> Enum.uniq(socket.assigns.dt_refunded ++ was_selected)
+        _ -> socket.assigns.dt_refunded
       end
 
     hidden =
@@ -1484,17 +1496,19 @@ defmodule Dev.PlaygroundLive do
 
     {:noreply,
      socket
-     |> assign(:dt, run_dt(state))
+     |> assign(:dt, run_dt(state, refunded))
      |> assign(:dt_selected, selected)
-     |> assign(:dt_hidden, hidden)}
+     |> assign(:dt_hidden, hidden)
+     |> assign(:dt_refunded, refunded)}
   end
 
-  defp run_dt(state) do
-    {rows, state} =
-      PetalComponents.DataTable.Engine.List.run(
-        PetalComponents.Showcase.DataTable.sample_rows(),
-        state
-      )
+  defp run_dt(state, refunded \\ []) do
+    rows =
+      Enum.map(PetalComponents.Showcase.DataTable.sample_rows(), fn row ->
+        if to_string(row.id) in refunded, do: %{row | status: "refunded"}, else: row
+      end)
+
+    {rows, state} = PetalComponents.DataTable.Engine.List.run(rows, state)
 
     {state, rows}
   end
@@ -7396,7 +7410,7 @@ defmodule Dev.PlaygroundLive do
               variant="soft"
               color="danger"
               phx-click="pg_table"
-              phx-value-op="clear_selection"
+              phx-value-op="refund"
             >
               Refund {length(ids)}
             </.button>
