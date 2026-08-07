@@ -1386,6 +1386,18 @@ defmodule PetalComponents.FieldTest do
       refute html =~ "user[tags][][]"
     end
 
+    test "a bare-name multiple posts one shape: hidden input and select share the [] name" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field type="combobox" name="tags" value={[]} label="Tags" multiple options={[{"A", "a"}]} />
+        """)
+
+      assert html =~ ~s|type="hidden" name="tags[]" value=""|
+      assert html =~ ~s|<select id="combo_box_tags-select" name="tags[]"|
+    end
+
     test "size maps the field family onto the combobox family; combo_variant reaches the anatomy" do
       assigns = %{}
 

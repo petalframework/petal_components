@@ -262,13 +262,26 @@ defmodule PetalComponents.Field do
       # :variant belongs to radio-card here - the combobox anatomy rides
       # combo_variant ("input" | "trigger")
       |> assign_new(:combo_variant, fn -> "input" end)
+      # the combobox appends [] itself for multiple; the hidden empty
+      # input must post the SAME name or a bare-name field submits a
+      # mixed shape (the FormField path appends [] upstream already)
+      |> then(fn a ->
+        assign(
+          a,
+          :hidden_name,
+          if(a.multiple && a.name && !String.ends_with?(a.name, "[]"),
+            do: a.name <> "[]",
+            else: a.name
+          )
+        )
+      end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <.field_label required={@required} for={@id} class={@label_class}>
         {@label}
       </.field_label>
-      <input :if={@multiple} type="hidden" name={@name} value="" />
+      <input :if={@multiple} type="hidden" name={@hidden_name} value="" />
       <PetalComponents.ComboBox.combo_box
         id={@id}
         name={@name}
