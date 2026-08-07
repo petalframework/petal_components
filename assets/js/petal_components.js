@@ -1446,7 +1446,18 @@ const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 export const PetalPopover = {
   mounted() {
     this.open = false;
-    this.reposition = () => this.position();
+    this.frame = null;
+
+    // Scroll fires far faster than the screen refreshes, and each pass
+    // reads layout then writes it. Coalescing to one pass per frame is
+    // what stops the panel juddering behind the scroll.
+    this.reposition = () => {
+      if (this.frame) return;
+      this.frame = requestAnimationFrame(() => {
+        this.frame = null;
+        this.position();
+      });
+    };
 
     // An unpositioned top-layer panel sits at 0,0 (the CSS zeroes the
     // margin that would otherwise centre it), and `toggle` fires as a
@@ -1473,6 +1484,23 @@ export const PetalPopover = {
 
     this.el.addEventListener("beforetoggle", this.onBeforeToggle);
     this.el.addEventListener("toggle", this.onToggle);
+
+    // A native popovertarget works from first paint, so a fast tap can
+    // open a panel before this hook exists - it opens centred (the UA
+    // default) and lands here already open. Anchor it now.
+    if (this.isOpen()) {
+      this.open = true;
+      this.position();
+      this.listen("addEventListener");
+    }
+  },
+
+  isOpen() {
+    try {
+      return this.el.matches(":popover-open");
+    } catch {
+      return false;
+    }
   },
 
   // A patch merges server attributes onto the panel, which drops the
@@ -1485,6 +1513,7 @@ export const PetalPopover = {
   },
 
   destroyed() {
+    if (this.frame) cancelAnimationFrame(this.frame);
     this.el.removeEventListener("beforetoggle", this.onBeforeToggle);
     this.el.removeEventListener("toggle", this.onToggle);
     this.listen("removeEventListener");
@@ -1531,10 +1560,18 @@ export const PetalPopover = {
 
     const gap = 8;
     const pad = 8;
+
+    // margin:0 anchors the panel to our top/left - without it the UA's
+    // `inset: 0; margin: auto` centres it, which is the sane look for
+    // the split second before this hook mounts
+    this.el.style.margin = "0";
+    // measure unconstrained: a previous pass may have capped the height
+    this.el.style.maxHeight = "";
+
     const t = trigger.getBoundingClientRect();
     const p = this.el.getBoundingClientRect();
-    const [side, align] = (this.el.dataset.placement || "bottom").split("-");
     const vp = this.viewport();
+    const [side, align] = (this.el.dataset.placement || "bottom").split("-");
 
     const space = {
       top: t.top - vp.top,
@@ -1542,6 +1579,17 @@ export const PetalPopover = {
       left: t.left - vp.left,
       right: vp.left + vp.width - t.right,
     };
+
+    // Anchored means anchored: a trigger scrolled out of the visible
+    // region takes its panel with it rather than stranding it against
+    // an edge, on top of whatever chrome lives there.
+    const offscreen =
+      t.bottom < vp.top ||
+      t.top > vp.top + vp.height ||
+      t.right < vp.left ||
+      t.left > vp.left + vp.width;
+
+    this.el.style.visibility = offscreen ? "hidden" : "";
 
     let s = side;
     if (
@@ -1569,24 +1617,48 @@ export const PetalPopover = {
     )
       s = "right";
 
-    let top, left;
+    let top, left, maxHeight;
+
     if (s === "top" || s === "bottom") {
-      top = s === "top" ? t.top - p.height - gap : t.bottom + gap;
+      // Cap the panel to the room on its chosen side and let it scroll.
+      // Clamping the MAIN axis instead is what tore the panel off its
+      // trigger - pinning it to the top of the screen, over the header,
+      // over the button that opened it.
+      // No minimum, the same call the combobox listbox already makes: a
+      // floor taller than the actual room pushes the panel back out of
+      // the viewport, which is the thing this cap exists to prevent.
+      maxHeight = Math.max(
+        (s === "top" ? space.top : space.bottom) - gap - pad,
+        0,
+      );
+      const height = Math.min(p.height, maxHeight);
+
+      top = s === "top" ? t.top - height - gap : t.bottom + gap;
+
       if (align === "start") left = t.left;
       else if (align === "end") left = t.right - p.width;
       else left = t.left + t.width / 2 - p.width / 2;
+
+      // cross axis only - keeping it on screen sideways never detaches it
+      left = clamp(left, vp.left + pad, vp.left + vp.width - p.width - pad);
     } else {
+      maxHeight = Math.max(vp.height - 2 * pad, 0);
+      const height = Math.min(p.height, maxHeight);
+
       left = s === "left" ? t.left - p.width - gap : t.right + gap;
+
       if (align === "start") top = t.top;
-      else if (align === "end") top = t.bottom - p.height;
-      else top = t.top + t.height / 2 - p.height / 2;
+      else if (align === "end") top = t.bottom - height;
+      else top = t.top + t.height / 2 - height / 2;
+
+      top = clamp(top, vp.top + pad, vp.top + vp.height - height - pad);
     }
 
-    left = clamp(left, vp.left + pad, vp.left + vp.width - p.width - pad);
-    top = clamp(top, vp.top + pad, vp.top + vp.height - p.height - pad);
-
-    this.el.style.top = `${top}px`;
-    this.el.style.left = `${left}px`;
+    this.el.style.maxHeight = `${Math.round(maxHeight)}px`;
+    this.el.style.overflowY = "auto";
+    // whole pixels: sub-pixel writes shimmer against a scrolling page
+    this.el.style.top = `${Math.round(top)}px`;
+    this.el.style.left = `${Math.round(left)}px`;
   },
 };
 

@@ -2462,8 +2462,14 @@
   }
   /* Top-layer mode: the PetalPopover hook positions with fixed inline styles;
      [popover] UA defaults handle visibility. Fade in via @starting-style where supported. */
+  /* m-auto, not m-0: with the UA's `inset: 0` an auto margin centres an
+     unpositioned panel, which is what a tap lands on in the moment
+     before the hook mounts - a centred sheet reads as intentional, the
+     0,0 corner reads as broken. (Tailwind's preflight zeroes margins,
+     so the UA's own `margin: auto` never survives to do this for us.)
+     The hook sets margin:0 inline the instant it anchors. */
   .pc-popover__panel--top-layer {
-    @apply fixed m-0 transition-opacity duration-100;
+    @apply fixed m-auto transition-opacity duration-100;
   }
   .pc-popover__panel--top-layer:popover-open {
     opacity: 1;
