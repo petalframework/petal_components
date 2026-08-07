@@ -143,7 +143,7 @@ describe("PetalDataTable", () => {
         { field: "amount", op: "gt", value: "5" },
       ],
       formHtml: `
-        <form data-pc-dt-filter data-field="email">
+        <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="email">
           <select name="filter_op">
             <option value="contains">contains</option>
             <option value="starts_with" selected>starts with</option>
@@ -169,7 +169,7 @@ describe("PetalDataTable", () => {
       navTemplate: "/orders?:filters&order_by=name",
       filters: [{ field: "status", op: "in", value: ["pending"] }],
       formHtml: `
-        <form data-pc-dt-filter data-field="status">
+        <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="status">
           <input type="checkbox" name="values[]" value="paid" checked />
           <input type="checkbox" name="values[]" value="refunded" checked />
           <input type="checkbox" name="values[]" value="pending" />
@@ -193,7 +193,7 @@ describe("PetalDataTable", () => {
       navTemplate: "/orders?:filters",
       filters: [{ field: "amount", op: "between", value: ["1", "9"] }],
       formHtml: `
-        <form data-pc-dt-filter data-field="amount">
+        <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="amount">
           <select name="filter_op"><option value="between" selected>between</option></select>
           <input name="value" value="10" />
           <input name="value2" value="" />
@@ -219,6 +219,49 @@ describe("PetalDataTable", () => {
     const url = decodeURIComponent(patched[0]);
     expect(url).toContain("search=amy");
     expect(url).toContain("filters[0][field]=email");
+  });
+
+  it("closes a top-layer panel through the native popover API", () => {
+    const { el, patched, form } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `
+        <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="email">
+          <select name="filter_op"><option value="contains" selected>contains</option></select>
+          <input name="value" value="x" />
+        </form>
+      `,
+    });
+
+    const panel = el.querySelector(".pc-popover__panel");
+    panel.setAttribute("popover", "auto");
+    const hidden = [];
+    panel.hidePopover = () => hidden.push(true);
+
+    submit(form);
+    expect(hidden).toEqual([true]);
+    expect(patched).toHaveLength(1);
+  });
+
+  it("event mode: submit only closes the popover - no interception, no navigation", () => {
+    const { el, patched } = mountBase({});
+    delete el.dataset.navTemplate;
+    const wrap = document.createElement("div");
+    wrap.className = "pc-popover__panel";
+    wrap.innerHTML = `
+      <form class="pc-data-table__filter-form" phx-submit="table">
+        <input name="value" value="x" />
+      </form>
+    `;
+    el.appendChild(wrap);
+
+    const form = wrap.querySelector("form");
+    const e = new Event("submit", { bubbles: true, cancelable: true });
+    form.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(false);
+    expect(patched).toEqual([]);
+    expect(wrap.style.display).toBe("none");
   });
 
   it("destroyed cancels a pending search patch", () => {

@@ -42,6 +42,12 @@
   placeholder mirrored from a JSON stamp, and filter URLs now carry
   list/range values as Phoenix-style indexed params. Operator names
   localize via `filter_op_labels`.
+- **`data_table` filter popovers are viewport-aware**: the editors now
+  ride the popover's top-layer mode, so `PetalPopover` flips and clamps
+  them inside the viewport - a filter button at the screen edge no
+  longer opens its editor off-screen (mobile). The `PetalDataTable`
+  hook closes them through the native popover API after an Apply, in
+  both wiring modes.
 - **`data_table` never widens its container**: the root carries
   `min-w-0 max-w-full` so flex/grid parents can't size it to the
   table's min-content; footer children shrink and wrap. Wide tables

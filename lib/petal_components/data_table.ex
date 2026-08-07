@@ -143,9 +143,13 @@ defmodule PetalComponents.DataTable do
 
     filter_cols = Enum.filter(assigns.col, & &1[:filterable])
 
+    link_mode? = is_nil(assigns.on_change)
+
+    # link mode: URL wiring. Either mode: filter popovers are native
+    # top-layer popovers the hook closes after an Apply.
     hooked? =
-      is_nil(assigns.on_change) and
-        (assigns.searchable or assigns.page_size_options != [] or filter_cols != [])
+      (link_mode? and (assigns.searchable or assigns.page_size_options != [])) or
+        filter_cols != []
 
     assigns =
       assigns
@@ -158,11 +162,11 @@ defmodule PetalComponents.DataTable do
       |> assign(:hooked?, hooked?)
       |> assign(
         :nav_template,
-        hooked? && nav_template(assigns.path, assigns.state, assigns, filter_cols)
+        link_mode? && hooked? && nav_template(assigns.path, assigns.state, assigns, filter_cols)
       )
       |> assign(
         :filters_json,
-        hooked? && filter_cols != [] && Jason.encode!(assigns.state.filters)
+        link_mode? && filter_cols != [] && Jason.encode!(assigns.state.filters)
       )
 
     ~H"""
@@ -509,6 +513,7 @@ defmodule PetalComponents.DataTable do
     <div class="pc-data-table__filter">
       <.popover
         id={@pop_id}
+        top_layer
         placement="bottom-start"
         class="pc-data-table__filter-popover"
         trigger_class={[
@@ -667,16 +672,12 @@ defmodule PetalComponents.DataTable do
     """
   end
 
-  # event mode: push the form, then close the popover panel the same way
-  # its own Escape path does
+  # event mode pushes the form; the hook closes the native popover on
+  # submit (a top-layer panel needs hidePopover(), not a display toggle)
   defp filter_submit_js(nil, _target, _pop_id), do: nil
 
-  defp filter_submit_js(event, target, pop_id) do
-    push = if target, do: JS.push(event, target: target), else: JS.push(event)
-
-    push
-    |> JS.hide(to: "##{pop_id}")
-    |> JS.set_attribute({"aria-expanded", "false"}, to: "##{pop_id}-trigger")
+  defp filter_submit_js(event, target, _pop_id) do
+    if target, do: JS.push(event, target: target), else: JS.push(event)
   end
 
   defp normalize_options(options) do
