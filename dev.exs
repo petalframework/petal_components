@@ -228,7 +228,6 @@ defmodule Dev.PlaygroundLive do
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "combo-box", name: "Combobox", ready: true},
-        %{slug: "data-table", name: "Data table", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
@@ -265,6 +264,7 @@ defmodule Dev.PlaygroundLive do
       group: "Data",
       items: [
         %{slug: "table", name: "Table", ready: true},
+        %{slug: "data-table", name: "Data table", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
@@ -2537,7 +2537,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </nav>
 
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1 min-w-0 overflow-y-auto">
           {render_page(assigns)}
         </main>
       </div>
@@ -6250,7 +6250,7 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="px-6 py-8">
+        <div class="px-6 py-8 overflow-x-auto">
           <.table
             rows={if @table.empty, do: [], else: table_rows(@table)}
             variant={@table.variant}
@@ -7302,7 +7302,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "data-table"} = assigns) do
     ~H"""
-    <div class="max-w-3xl">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Data table</h1>
       <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
         Sortable, paged and filter-aware, driven by one State struct. This live demo runs

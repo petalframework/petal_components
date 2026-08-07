@@ -42,6 +42,10 @@
   placeholder mirrored from a JSON stamp, and filter URLs now carry
   list/range values as Phoenix-style indexed params. Operator names
   localize via `filter_op_labels`.
+- **`data_table` never widens its container**: the root carries
+  `min-w-0 max-w-full` so flex/grid parents can't size it to the
+  table's min-content; footer children shrink and wrap. Wide tables
+  scroll inside `pc-data-table__scroll`, never the page.
 - **`table` `on_sort` accepts a 1-arity function** of the sort key -
   per-column events/JS, how the data table patches sort URLs.
 - **`pagination` event mode grows up**: `event` accepts a custom event

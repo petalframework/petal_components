@@ -2586,6 +2586,12 @@
   }
 
   /* Data table: composition chrome around pc-table */
+  /* as a flex/grid item (showcase previews, app layouts) the root must
+     never size to the table's min-content - the scroll region below is
+     the release valve */
+  .pc-data-table {
+    @apply min-w-0 max-w-full;
+  }
   .pc-data-table__toolbar {
     @apply mb-3 flex flex-wrap items-center gap-2;
   }
@@ -2594,6 +2600,9 @@
   }
   .pc-data-table__footer {
     @apply mt-3 flex flex-wrap items-center justify-between gap-3;
+  }
+  .pc-data-table__footer > * {
+    @apply max-w-full min-w-0;
   }
   .pc-data-table__range {
     @apply text-sm text-gray-500 dark:text-gray-400;
