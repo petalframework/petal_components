@@ -117,6 +117,7 @@ defmodule PetalComponents.Showcase.ComboBox do
       <.combo_box
         id="sx-combo-rich"
         name="assignee"
+        clearable
         placeholder="Assign to…"
         options={[
           {"Amelia Ward", "amelia", role: "Engineering"},
@@ -144,6 +145,7 @@ defmodule PetalComponents.Showcase.ComboBox do
     <div class="w-full max-w-xs mx-auto">
       <.combo_box
         id="sx-combo-groups"
+        clearable
         name="city"
         placeholder="Pick a city…"
         options={[
