@@ -141,6 +141,179 @@ defmodule PetalComponents.DataTableTest do
     refute html =~ ~s(href="/orders?filters)
   end
 
+  test "selectable renders the checkbox column with tri-state header and morphing toolbar" do
+    assigns =
+      base(%{
+        rows: [
+          %{id: 1, name: "Amy"},
+          %{id: 2, name: "Bea"}
+        ],
+        selected: ["1"]
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={@selected}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:bulk_action :let={ids}>
+          <button type="button">Archive {length(ids)}</button>
+        </:bulk_action>
+      </.data_table>
+      """)
+
+    # header checkbox: some-but-not-all selected -> indeterminate stamp
+    assert html =~ ~s(phx-value-op="select_all")
+    assert html =~ ~s(data-pc-dt-indeterminate="true")
+    # row checkboxes: selected row checked, keyed by row id
+    assert html =~ ~s(phx-value-op="select")
+    assert html =~ ~s(phx-value-id="1")
+    assert html =~ ~s(phx-value-id="2")
+    # toolbar morphs: count + bulk action + clear, search hidden
+    assert html =~ "1 selected"
+    assert html =~ "Archive 1"
+    assert html =~ ~s(phx-value-op="clear_selection")
+    # hook mounts for the indeterminate sync
+    assert html =~ ~s(phx-hook="PetalDataTable")
+  end
+
+  test "selectable: all page rows selected checks the header; none leaves the normal toolbar" do
+    assigns =
+      base(%{
+        rows: [%{id: 1, name: "Amy"}, %{id: 2, name: "Bea"}],
+        all: [1, 2]
+      })
+
+    all_html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        selectable
+        selected={@all}
+        searchable
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert all_html =~ ~s(data-pc-dt-indeterminate="false")
+    refute all_html =~ "pc-data-table__search"
+
+    none_html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        selectable
+        selected={[]}
+        searchable
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert none_html =~ "pc-data-table__search"
+    refute none_html =~ "clear_selection"
+  end
+
+  test "selectable supports a row_id function and requires a ui event in link mode" do
+    assigns =
+      base(%{
+        rows: [%{email: "amy@x.com", name: "Amy"}],
+        key: fn row -> row.email end
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        path={@path}
+        on_ui="table_ui"
+        selectable
+        selected={["amy@x.com"]}
+        row_id={@key}
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(phx-value-id="amy@x.com")
+    assert html =~ ~s(phx-click="table_ui")
+
+    assert_raise ArgumentError, ~r/on_ui/, fn ->
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} selectable>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+    end
+  end
+
+  test "selection identity edges: nil keys disable, duplicates raise, loading disables select-all" do
+    assigns = base(%{rows: [%{id: 1, name: "Amy"}, %{id: nil, name: "Bea"}]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={[]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    # the keyless row renders an inert checkbox and stays out of select-all math
+    assert Regex.match?(~r/<input[^>]*disabled[^>]*phx-value-id=""/, html)
+
+    assigns = base(%{dupes: [%{id: 1, name: "Amy"}, %{id: 1, name: "Bea"}]})
+
+    assert_raise ArgumentError, ~r/duplicate row ids/, fn ->
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@dupes} state={@state} on_change="table" selectable selected={[]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+    end
+
+    assigns = base(%{rows: [%{id: 1, name: "Amy"}]})
+
+    loading_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={[]} loading>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert loading_html =~ ~s(phx-value-op="select_all")
+    assert Regex.match?(~r/phx-value-op="select_all"[^>]*>/, loading_html)
+    assert loading_html =~ ~s(disabled data-pc-dt-indeterminate)
+  end
+
+  test "toolbar count and bulk ids come from the normalized selection" do
+    assigns =
+      base(%{
+        rows: [%{id: 1, name: "Amy"}, %{id: 2, name: "Bea"}],
+        messy: ["1", "1", nil, "", 1]
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={@messy}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:bulk_action :let={ids}>
+          <span>ids:{Enum.join(ids, ",")}</span>
+        </:bulk_action>
+      </.data_table>
+      """)
+
+    # dupes/nils/blanks collapse: one real id -> count 1, slot gets ["1"]
+    assert html =~ "1 selected"
+    assert html =~ "ids:1<"
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{

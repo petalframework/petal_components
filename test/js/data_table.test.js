@@ -264,6 +264,23 @@ describe("PetalDataTable", () => {
     expect(wrap.style.display).toBe("none");
   });
 
+  it("mirrors the indeterminate stamp onto the DOM property on mount and update", () => {
+    const { hook, el } = mountBase({});
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.dataset.pcDtIndeterminate = "true";
+    box.setAttribute("data-pc-dt-indeterminate", "true");
+    el.appendChild(box);
+
+    hook.syncIndeterminate();
+    expect(box.indeterminate).toBe(true);
+
+    // a patch flips the stamp; updated() must mirror it back off
+    box.dataset.pcDtIndeterminate = "false";
+    hook.updated();
+    expect(box.indeterminate).toBe(false);
+  });
+
   it("destroyed cancels a pending search patch", () => {
     const { hook, el, patched } = mount({
       navTemplate: "/orders?search=:term",
