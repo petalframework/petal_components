@@ -145,6 +145,16 @@ defmodule PetalComponents.DataTable do
     default: "Select all rows",
     doc: "the header checkbox's aria-label"
 
+  attr :column_toggle, :boolean,
+    default: false,
+    doc: "render a columns-visibility dropdown in the toolbar (rides the `on_ui` event)"
+
+  attr :hidden_columns, :list,
+    default: [],
+    doc: "fields currently hidden (atoms or strings) - presentation state, never in URLs"
+
+  attr :column_toggle_label, :string, default: "Columns"
+
   attr :filter_op_labels, :map,
     default: %{},
     doc: "overrides for the operator display names, e.g. %{contains: \"enthält\"}"
@@ -187,6 +197,11 @@ defmodule PetalComponents.DataTable do
             "selectable needs an event for selection ops - pass on_ui (link mode) or on_change"
     end
 
+    if assigns.column_toggle and is_nil(ui_event) do
+      raise ArgumentError,
+            "column_toggle needs an event for its ops - pass on_ui (link mode) or on_change"
+    end
+
     {sort_by, sort_dir} =
       case assigns.state.order_by do
         [{field, dir} | _] -> {to_string(field), to_string(dir)}
@@ -194,6 +209,9 @@ defmodule PetalComponents.DataTable do
       end
 
     fields = Map.new(assigns.col, fn col -> {to_string(col.field), col.field} end)
+
+    hidden = Enum.map(assigns.hidden_columns, &to_string/1)
+    visible_cols = Enum.reject(assigns.col, &(to_string(&1.field) in hidden))
 
     filter_cols = Enum.filter(assigns.col, & &1[:filterable])
 
@@ -213,6 +231,8 @@ defmodule PetalComponents.DataTable do
       |> assign(:on_sort, sort_handler(assigns, fields))
       |> assign(:skeleton_rows, List.duplicate(%{}, min(assigns.state.page_size, 10)))
       |> assign(:filter_cols, filter_cols)
+      |> assign(:visible_cols, visible_cols)
+      |> assign(:hidden, hidden)
       |> assign(:op_labels, Map.merge(default_op_labels(), assigns.filter_op_labels))
       |> assign(:ui_event, ui_event)
       |> selection_assigns()
@@ -239,7 +259,7 @@ defmodule PetalComponents.DataTable do
       <div
         :if={
           @toolbar != [] or @searchable or @filter_cols != [] or @state.filters != [] or
-            @selected_ids != []
+            @selected_ids != [] or @column_toggle
         }
         class="pc-data-table__toolbar"
       >
@@ -299,6 +319,34 @@ defmodule PetalComponents.DataTable do
             apply_label={@apply_label}
           />
           {render_slot(@toolbar)}
+          <.popover
+            :if={@column_toggle}
+            id={"#{@id}-columns"}
+            top_layer
+            placement="bottom-end"
+            class="pc-data-table__columns"
+            trigger_class="pc-button pc-button--sm pc-button--gray-outline"
+          >
+            <:trigger>
+              <.icon name="hero-view-columns" class="pc-data-table__filter-icon" />
+              <span>{@column_toggle_label}</span>
+            </:trigger>
+            <div class="pc-data-table__filter-options" role="group" aria-label={@column_toggle_label}>
+              <label :for={col <- @col} class="pc-data-table__filter-option">
+                <input
+                  type="checkbox"
+                  class="pc-checkbox"
+                  checked={to_string(col.field) not in @hidden}
+                  disabled={length(@visible_cols) == 1 and to_string(col.field) not in @hidden}
+                  phx-click={@ui_event}
+                  phx-target={@target}
+                  phx-value-op="toggle_column"
+                  phx-value-field={col.field}
+                />
+                <span>{(is_binary(col[:label]) && col[:label]) || humanize(col.field)}</span>
+              </label>
+            </div>
+          </.popover>
           <%= if @state.filters != [] do %>
             <.button
               :if={@on_change}
@@ -362,7 +410,7 @@ defmodule PetalComponents.DataTable do
           </:col>
           <:col
             :let={row}
-            :for={col <- @col}
+            :for={col <- @visible_cols}
             label={col[:label] || humanize(col.field)}
             sortable={col[:sortable] || false}
             sort_key={to_string(col.field)}
