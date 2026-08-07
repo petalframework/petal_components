@@ -62,6 +62,34 @@
         <div class="pc-combo-box__live" data-pc-combo-live aria-live="polite"></div>
       </div>
 
+      <h2>1b. Input variant - chevron with pointer-events:auto</h2>
+      <p class="hint">Identical to 1, but the chevron accepts events itself. If tapping ITS red box works while 1's is dead, we have the cause.</p>
+      <div id="combo2" class="pc-combo-box" style="max-width: 20rem">
+        <select id="combo2-select" name="city2" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert>
+          <option value=""></option>
+          <option value="ber">Berlin</option>
+          <option value="opo">Porto</option>
+          <option value="sel">Seoul</option>
+        </select>
+        <div class="pc-combo-box__control">
+          <div class="pc-combo-box__content">
+            <input type="text" id="combo2-input" class="pc-combo-box__input" role="combobox"
+              aria-expanded="false" aria-autocomplete="list" aria-controls="combo2-listbox"
+              autocomplete="off" autocorrect="off" spellcheck="false" placeholder="p-e:auto chevron…" />
+          </div>
+          <span class="hero-chevron-down-mini pc-combo-box__chevron" style="pointer-events: auto"></span>
+        </div>
+        <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
+          <div role="listbox" id="combo2-listbox" class="pc-combo-box__list" aria-label="Cities 2">
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="ber" data-label="Berlin" aria-selected="false"><span class="pc-combo-box__option-label">Berlin</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="opo" data-label="Porto" aria-selected="false"><span class="pc-combo-box__option-label">Porto</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div role="option" class="pc-combo-box__option" data-pc-combo-item data-value="sel" data-label="Seoul" aria-selected="false"><span class="pc-combo-box__option-label">Seoul</span><span class="hero-check-mini pc-combo-box__check"></span></div>
+            <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+          </div>
+        </div>
+        <div class="pc-combo-box__live" data-pc-combo-live aria-live="polite"></div>
+      </div>
+
       <h2>2. Trigger variant</h2>
       <p class="hint">Open it, then tap the button again — the close that fails on device.</p>
       <div id="tcombo" class="pc-combo-box" style="max-width: 20rem">
@@ -178,6 +206,7 @@
       // Panel state transitions
       for (const [name, panel] of [
         ["INPUT-VARIANT", document.querySelector("#combo .pc-combo-box__panel")],
+        ["PE-AUTO-VARIANT", document.querySelector("#combo2 .pc-combo-box__panel")],
         ["TRIGGER-VARIANT", document.querySelector("#tcombo .pc-combo-box__panel")],
       ]) {
         new MutationObserver(() => {

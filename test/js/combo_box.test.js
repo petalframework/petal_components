@@ -487,17 +487,47 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(false);
   });
 
-  it("focusout to an element outside closes and restores the display", () => {
+  it("focusout to an element outside closes and restores the display", async () => {
     const c = mountCombo({ options: CITIES });
     c.select.value = "tyo";
     c.hook.syncFromSelect();
     c.control.click();
     type(c.input, "sy");
+    // focus genuinely leaves the component, then the event reports it
+    c.input.blur();
     c.el.dispatchEvent(
       new FocusEvent("focusout", { relatedTarget: document.body }),
     );
+    // the close verifies where focus actually landed one tick later
+    await new Promise((r) => setTimeout(r, 0));
     expect(c.panel.hidden).toBe(true);
     expect(c.input.value).toBe("Tokyo");
+  });
+
+  it("a null-relatedTarget focusout does NOT close when focus stayed inside (the iOS trigger flash)", async () => {
+    // iOS reports relatedTarget null even when focus moves WITHIN the
+    // component - trusting it closed the panel mid-tap and the trigger
+    // click then reopened it, an endless flash (device-log verified)
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.input.focus();
+    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: null }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("the trigger variant closes on a second trigger tap even when focusout reports null", async () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    c.trigger.click();
+    expect(c.panel.hidden).toBe(false);
+    // iOS tap on the trigger: input blurs with relatedTarget null while
+    // focus actually lands on the button - the panel must survive the
+    // focusout and let the click toggle it closed
+    c.trigger.focus();
+    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: null }));
+    c.trigger.click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.panel.hidden).toBe(true);
   });
 
   it("Escape closes when open and is consumed; passes through when closed", () => {

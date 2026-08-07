@@ -3677,7 +3677,16 @@ export const PetalComboBox = {
       }
     };
     this.onFocusOut = (e) => {
-      if (!this.el.contains(e.relatedTarget)) this.closePanel();
+      // iOS Safari reports relatedTarget as null even when focus moves
+      // WITHIN the component (tapping the trigger button while the panel
+      // search has focus) - trusting it closed the panel mid-tap and the
+      // button's click then reopened it, an endless flash. Verify where
+      // focus actually landed once it settles; closing a tick later is
+      // imperceptible on the genuine Tab-away/click-away paths.
+      if (this.el.contains(e.relatedTarget)) return;
+      setTimeout(() => {
+        if (!this.el.contains(document.activeElement)) this.closePanel();
+      }, 0);
     };
     // trigger variant: the button opens the panel and focus moves to the
     // search input inside it; ArrowDown/Up on the button open too
