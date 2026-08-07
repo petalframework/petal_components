@@ -41,6 +41,7 @@ defmodule PetalComponents do
         Icon,
         Input,
         ComboBox,
+        DataTable,
         Command,
         InputGroup,
         InputOtp,

@@ -28,10 +28,14 @@ defmodule PetalComponents.Pagination do
     default: "a",
     values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr :event, :boolean,
+  attr :event, :any,
     default: false,
-    doc:
-      "whether to use `phx-click` events instead of linking. Enabling this will disable `link_type` and `path`."
+    doc: """
+    use `phx-click` events instead of linking (disables `link_type` and
+    `path`). `true` fires the classic "goto-page" event; a STRING fires
+    that event name instead - how the data table routes page changes
+    through its single on_change grammar.
+    """
 
   attr :target, :any,
     default: nil,
@@ -46,6 +50,10 @@ defmodule PetalComponents.Pagination do
   attr :show_boundary_chevrons, :boolean,
     default: false,
     doc: "whether to show prev & next buttons at boundary pages"
+
+  attr :event_values, :map,
+    default: %{},
+    doc: ~s|extra phx-value-* pairs sent with event-mode clicks, e.g. %{"op" => "page"}|
 
   attr :rest, :global
 
@@ -67,17 +75,19 @@ defmodule PetalComponents.Pagination do
       |> assign(:current_page, current_page)
       |> assign(:prev_enabled?, current_page > 1)
       |> assign(:next_enabled?, current_page < total_pages)
+      |> assign(:event?, assigns.event not in [false, nil])
 
     ~H"""
     <div {@rest} class={["pc-pagination", @class]}>
       <nav class="pc-pagination__simple" aria-label="Pagination">
         <Link.a
-          phx-click={if @event, do: "goto-page"}
-          phx-target={if @event, do: @target}
+          phx-click={event_name(@event)}
+          {phx_values(@event_values)}
+          phx-target={if @event?, do: @target}
           phx-value-page={@current_page - 1}
-          link_type={if @event, do: "button", else: @link_type}
-          to={if not @event, do: get_path(@path, "previous", @current_page)}
-          type={if @event or @link_type == "button", do: "button"}
+          link_type={if @event?, do: "button", else: @link_type}
+          to={if not @event?, do: get_path(@path, "previous", @current_page)}
+          type={if @event? or @link_type == "button", do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@prev_enabled?}
         >
@@ -86,12 +96,13 @@ defmodule PetalComponents.Pagination do
         </Link.a>
 
         <Link.a
-          phx-click={if @event, do: "goto-page"}
-          phx-target={if @event, do: @target}
+          phx-click={event_name(@event)}
+          {phx_values(@event_values)}
+          phx-target={if @event?, do: @target}
           phx-value-page={@current_page + 1}
-          link_type={if @event, do: "button", else: @link_type}
-          to={if not @event, do: get_path(@path, "next", @current_page)}
-          type={if @event or @link_type == "button", do: "button"}
+          link_type={if @event?, do: "button", else: @link_type}
+          to={if not @event?, do: get_path(@path, "next", @current_page)}
+          type={if @event? or @link_type == "button", do: "button"}
           class="pc-pagination__simple-button"
           disabled={!@next_enabled?}
         >
@@ -104,6 +115,8 @@ defmodule PetalComponents.Pagination do
   end
 
   def pagination(assigns) do
+    assigns = assign(assigns, :event?, assigns.event not in [false, nil])
+
     ~H"""
     <div {@rest} class={["pc-pagination", @class]}>
       <ul class="pc-pagination__inner">
@@ -111,11 +124,12 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
             <li>
               <Link.a
-                phx-click={if @event, do: "goto-page"}
-                phx-target={if @event, do: @target}
+                phx-click={event_name(@event)}
+                {phx_values(@event_values)}
+                phx-target={if @event?, do: @target}
                 phx-value-page={item.number}
-                link_type={if @event, do: "button", else: @link_type}
-                to={if not @event, do: get_path(@path, item.number, @current_page)}
+                link_type={if @event?, do: "button", else: @link_type}
+                to={if not @event?, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__previous"
                 disabled={!item.enabled?}
               >
@@ -130,11 +144,12 @@ defmodule PetalComponents.Pagination do
                 <span class={get_box_class(item)}>{item.number}</span>
               <% else %>
                 <Link.a
-                  phx-click={if @event, do: "goto-page"}
-                  phx-target={if @event, do: @target}
+                  phx-click={event_name(@event)}
+                  {phx_values(@event_values)}
+                  phx-target={if @event?, do: @target}
                   phx-value-page={item.number}
-                  link_type={if @event, do: "button", else: @link_type}
-                  to={if not @event, do: get_path(@path, item.number, @current_page)}
+                  link_type={if @event?, do: "button", else: @link_type}
+                  to={if not @event?, do: get_path(@path, item.number, @current_page)}
                   class={get_box_class(item)}
                 >
                   {item.number}
@@ -154,11 +169,12 @@ defmodule PetalComponents.Pagination do
           <%= if item.type == "next" and (item.enabled? or @show_boundary_chevrons) do %>
             <li>
               <Link.a
-                phx-click={if @event, do: "goto-page"}
-                phx-target={if @event, do: @target}
+                phx-click={event_name(@event)}
+                {phx_values(@event_values)}
+                phx-target={if @event?, do: @target}
                 phx-value-page={item.number}
-                link_type={if @event, do: "button", else: @link_type}
-                to={if not @event, do: get_path(@path, item.number, @current_page)}
+                link_type={if @event?, do: "button", else: @link_type}
+                to={if not @event?, do: get_path(@path, item.number, @current_page)}
                 class="pc-pagination__item__next"
                 disabled={!item.enabled?}
               >
@@ -197,6 +213,13 @@ defmodule PetalComponents.Pagination do
 
     [base_classes, active_classes, rounded_classes]
   end
+
+  defp event_name(event) when is_binary(event), do: event
+  defp event_name(event) when event in [false, nil], do: nil
+  defp event_name(_event), do: "goto-page"
+
+  defp phx_values(values) when values == %{}, do: []
+  defp phx_values(values), do: Enum.map(values, fn {k, v} -> {:"phx-value-#{k}", v} end)
 
   defp get_path(path, page_number, current_page) when is_binary(path) do
     # replace on `%3Apage` or `:page` in case we receive an URI encoded path

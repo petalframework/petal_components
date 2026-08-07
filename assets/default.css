@@ -2585,6 +2585,41 @@
     @apply w-full! h-full!;
   }
 
+  /* Data table: composition chrome around pc-table */
+  .pc-data-table__toolbar {
+    @apply mb-3 flex flex-wrap items-center gap-2;
+  }
+  .pc-data-table__scroll {
+    @apply overflow-x-auto;
+  }
+  .pc-data-table__footer {
+    @apply mt-3 flex flex-wrap items-center justify-between gap-3;
+  }
+  .pc-data-table__range {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-data-table__cell--right {
+    @apply text-right;
+  }
+  .pc-data-table__cell--center {
+    @apply text-center;
+  }
+  .pc-data-table__actions {
+    @apply flex items-center justify-end gap-1;
+  }
+  .pc-data-table__actions-th {
+    @apply w-px;
+  }
+  .pc-data-table__empty {
+    @apply flex items-center justify-center gap-2 py-8 text-sm text-gray-500 dark:text-gray-400;
+  }
+  .pc-data-table__clear-filters {
+    @apply font-medium text-primary-600 hover:underline dark:text-primary-400;
+  }
+  .pc-data-table__skeleton.pc-data-table__skeleton {
+    @apply h-4 w-24 max-w-full;
+  }
+
   /* Avatars - sizes */
 
   /* dense contexts: chips, table cells - the reui/shadcn size-4/5 band */
