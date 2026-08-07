@@ -1441,20 +1441,49 @@ export const PetalInputOTP = {
 // and clamping to the viewport when space runs out.
 export const PetalPopover = {
   mounted() {
+    this.open = false;
     this.reposition = () => this.position();
+
+    // An unpositioned top-layer panel sits at 0,0 (the CSS zeroes the
+    // margin that would otherwise centre it), and `toggle` fires as a
+    // queued task - late enough for the browser to paint that corner
+    // first. `beforetoggle` runs synchronously BEFORE the panel is
+    // shown, so hiding it here means the first painted frame is
+    // already the positioned one.
+    this.onBeforeToggle = (e) => {
+      if (e.newState === "open") this.el.style.opacity = "0";
+    };
+
     this.onToggle = (e) => {
-      if (e.newState === "open") {
+      this.open = e.newState === "open";
+
+      if (this.open) {
         this.position();
+        this.el.style.opacity = "";
         window.addEventListener("scroll", this.reposition, true);
         window.addEventListener("resize", this.reposition);
       } else {
+        this.el.style.opacity = "";
         window.removeEventListener("scroll", this.reposition, true);
         window.removeEventListener("resize", this.reposition);
       }
     };
+
+    this.el.addEventListener("beforetoggle", this.onBeforeToggle);
     this.el.addEventListener("toggle", this.onToggle);
   },
+
+  // A patch merges server attributes onto the panel, which drops the
+  // inline top/left this hook owns (the server never renders them) -
+  // an open panel would snap to 0,0. Re-assert before the next paint.
+  // Open state lives on the hook instance, not the DOM, for the same
+  // reason: an attribute stamp would be stripped by that same merge.
+  updated() {
+    if (this.open) this.position();
+  },
+
   destroyed() {
+    this.el.removeEventListener("beforetoggle", this.onBeforeToggle);
     this.el.removeEventListener("toggle", this.onToggle);
     window.removeEventListener("scroll", this.reposition, true);
     window.removeEventListener("resize", this.reposition);

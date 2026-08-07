@@ -2471,6 +2471,12 @@
       opacity: 0;
     }
   }
+  /* the top layer is ours alone - never let a UA paint a dimming
+     backdrop behind an anchored panel (iOS Safari tints the toolbar
+     strip otherwise) */
+  .pc-popover__panel--top-layer::backdrop {
+    background: transparent;
+  }
 
   /* Loading */
 
@@ -2696,6 +2702,17 @@
   }
   .pc-data-table__select-col {
     @apply w-px pr-0;
+  }
+  /* iOS Safari zooms the viewport when a focused field's text is under
+     16px, which on a popover editor scrolls the field out of view. The
+     controls keep their h-9 box; only the type scales up on touch. */
+  @media (hover: none) and (pointer: coarse) {
+    .pc-data-table__search-input.pc-data-table__search-input,
+    .pc-data-table__filter-op.pc-data-table__filter-op,
+    .pc-data-table__filter-value.pc-data-table__filter-value,
+    .pc-data-table__page-size-select.pc-data-table__page-size-select {
+      @apply text-base;
+    }
   }
   .pc-data-table__selection-count {
     @apply text-sm font-medium text-gray-700 dark:text-gray-200;
