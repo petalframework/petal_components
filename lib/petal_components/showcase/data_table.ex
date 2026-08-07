@@ -41,7 +41,7 @@ defmodule PetalComponents.Showcase.DataTable do
       "searchable sweeps string fields case-insensitively before filters (totals stay honest); filterable columns get buttons that open typed popover editors - operator + value for text/number/date (between reveals its second bound, no JS), a checkbox list for select - and read their predicate while active, with an inline clear. page_size_options adds the per-page select; Reset filters appears while any filter is active. Event mode posts one op-grammar event for all of it (State.handle_op/3 is the whole handler); link mode patches curl-able URLs." do
     ~H"""
     <% state = %State{
-      search: "e",
+      search: "i",
       filters: [%{field: :status, op: :in, value: ["pending", "refunded"]}],
       page_size: 5
     } %>
