@@ -124,6 +124,31 @@ defmodule PetalComponents.ComboBox do
     default: "Create",
     doc: "the create row's verb, localizable"
 
+  attr :remote_options_event_name, :string,
+    default: nil,
+    doc: """
+    use your LiveView as a remote data source: typing pushes this event
+    (debounced) with the search term as the payload, exactly like the
+    Tom Select-era contract. Handle it and reply with results:
+
+        def handle_event("search", term, socket) do
+          results = MyApp.search(term) |> Enum.map(&%{text: &1.name, value: &1.id})
+          {:reply, %{results: results}, socket}
+        end
+
+    The hook renders the results as the option list (the listbox becomes
+    hook-owned in remote mode); a chosen result is inserted into the
+    hidden select so the form posts it. Requires a LiveView socket.
+    """
+
+  attr :remote_options_target, :any,
+    default: nil,
+    doc: "the event's target - pass @myself when the handler lives on a LiveComponent"
+
+  attr :loading_label, :string,
+    default: "Searching…",
+    doc: "the remote loading row's text, localizable"
+
   attr :placeholder, :string, default: "Select an option…"
   attr :disabled, :boolean, default: false
 
@@ -218,6 +243,8 @@ defmodule PetalComponents.ComboBox do
       phx-hook="PetalComboBox"
       data-max-items={@max_items}
       data-free-text={(@free_text || @create) && "true"}
+      data-remote-event={@remote_options_event_name}
+      data-remote-target={@remote_options_target}
       data-has-value={@current_values != [] && "true"}
       {@rest}
     >
@@ -399,8 +426,20 @@ defmodule PetalComponents.ComboBox do
           {render_slot(@header)}
         </div>
         <div
+          :if={@remote_options_event_name}
+          class="pc-combo-box__loading"
+          data-pc-combo-loading
+          hidden
+        >
+          <.icon name="hero-arrow-path-mini" class="pc-combo-box__loading-icon" />
+          <span>{@loading_label}</span>
+        </div>
+        <%!-- remote mode: the hook renders result rows, so the listbox is
+        hook-owned (the chips container taught us: one writer per region) --%>
+        <div
           role="listbox"
           id={"#{@id}-listbox"}
+          phx-update={@remote_options_event_name && "ignore"}
           class="pc-combo-box__list"
           aria-label={@listbox_label}
           aria-multiselectable={@multiple && "true"}

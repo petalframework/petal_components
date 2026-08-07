@@ -41,6 +41,7 @@ function mountCombo({
   trigger = false,
   freeText = false,
   create = false,
+  remote = false,
 } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map(
@@ -67,6 +68,7 @@ function mountCombo({
   el.setAttribute("phx-hook", "PetalComboBox");
   if (maxItems) el.setAttribute("data-max-items", String(maxItems));
   if (freeText || create) el.setAttribute("data-free-text", "true");
+  if (remote) el.setAttribute("data-remote-event", "search");
   const inputHtml = `<input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
           aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
           autocomplete="off" placeholder="Pick..." />`;
@@ -95,6 +97,7 @@ function mountCombo({
     ${bodyHtml}
     <div class="pc-combo-box__panel" data-pc-combo-panel hidden>
       ${trigger ? '<div class="pc-combo-box__search"><span class="hero-magnifying-glass-mini pc-combo-box__search-icon"></span>' + inputHtml + "</div>" : ""}
+      ${remote ? '<div class="pc-combo-box__loading" data-pc-combo-loading hidden><span>Searching…</span></div>' : ""}
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
         ${listHtml}
         ${create ? '<div class="pc-combo-box__create" data-pc-combo-create role="option" aria-selected="false" hidden><span>Create "<span data-pc-combo-create-query></span>"</span></div>' : ""}
@@ -758,6 +761,116 @@ describe("free text and create", () => {
     key(c.input, "Enter");
     expect(c.select.value).toBe("");
     expect(c.panel.hidden).toBe(false);
+  });
+});
+
+describe("remote search", () => {
+  function mountRemote(extra = {}) {
+    const c = mountCombo({ options: [], remote: true, ...extra });
+    c.hook.pushes = [];
+    c.hook.pushEvent = function (event, payload, cb) {
+      this.pushes.push({ event, payload, cb });
+    };
+    c.loading = () => c.el.querySelector("[data-pc-combo-loading]");
+    return c;
+  }
+
+  it("typing debounces, pushes the raw term, shows the loading row, renders the reply", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    expect(c.hook.pushes).toHaveLength(0); // debounced
+    vi.advanceTimersByTime(300);
+    expect(c.hook.pushes).toHaveLength(1);
+    expect(c.hook.pushes[0].event).toBe("search");
+    expect(c.hook.pushes[0].payload).toBe("am");
+    expect(c.loading().hidden).toBe(false);
+    c.hook.pushes[0].cb({
+      results: [
+        { text: "Amelia Ward", value: "amelia" },
+        { text: "Amara Okafor", value: "amara" },
+      ],
+    });
+    expect(c.loading().hidden).toBe(true);
+    const rows = c.items();
+    expect(rows.map((r) => r.dataset.value)).toEqual(["amelia", "amara"]);
+    expect(rows[0].hasAttribute("data-highlighted")).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it("choosing a remote row inserts the option into the select and dispatches change", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[0].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    c.items()[0].click();
+    expect(c.select.value).toBe("amelia");
+    const opt = c.select.querySelector("option[data-pc-combo-custom]");
+    expect(opt.textContent).toBe("Amelia Ward");
+    expect(changes).toBe(1);
+    expect(c.input.value).toBe("Amelia Ward");
+    vi.useRealTimers();
+  });
+
+  it("a stale reply never clobbers a newer search", () => {
+    vi.useFakeTimers();
+    const c = mountRemote();
+    c.control.click();
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    type(c.input, "amel");
+    vi.advanceTimersByTime(300);
+    expect(c.hook.pushes).toHaveLength(2);
+    // newer reply lands first
+    c.hook.pushes[1].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    // the older reply arrives late - dropped
+    c.hook.pushes[0].cb({ results: [{ text: "WRONG", value: "wrong" }] });
+    expect(c.items().map((r) => r.dataset.label)).toEqual(["Amelia Ward"]);
+    vi.useRealTimers();
+  });
+
+  it("empty results show the empty row; remote multiple builds chips", () => {
+    vi.useFakeTimers();
+    const c = mountRemote({ multiple: true });
+    c.control.click();
+    type(c.input, "zz");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[0].cb({ results: [] });
+    expect(c.empty().hidden).toBe(false);
+    type(c.input, "am");
+    vi.advanceTimersByTime(300);
+    c.hook.pushes[1].cb({
+      results: [{ text: "Amelia Ward", value: "amelia" }],
+    });
+    c.items()[0].click();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["amelia"]);
+    expect(c.panel.hidden).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("pushEventTo carries the target when configured", () => {
+    vi.useFakeTimers();
+    const c = mountCombo({ options: [], remote: true });
+    c.el.setAttribute("data-remote-target", "3");
+    c.hook.destroyed();
+    c.hook.mounted();
+    const calls = [];
+    c.hook.pushEventTo = (target, event, payload, cb) =>
+      calls.push({ target, event, payload });
+    c.control.click();
+    type(c.input, "x");
+    vi.advanceTimersByTime(300);
+    expect(calls).toEqual([{ target: "3", event: "search", payload: "x" }]);
+    vi.useRealTimers();
   });
 });
 

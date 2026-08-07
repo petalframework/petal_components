@@ -109,6 +109,23 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
+  example :creatable, "Create new options - free text",
+    description:
+      "create offers a keyboard-reachable \"Create\" row whenever the query matches no option - Enter at the empty stop commits typed text too (free_text alone gives you that without the row). The committed value becomes a real option in the hidden select, so the form posts it; the server owns whether it persists. An existing label is chosen instead of duplicated, case-insensitively." do
+    ~H"""
+    <div class="w-full max-w-sm mx-auto">
+      <.combo_box
+        id="sx-combo-create"
+        name="tags"
+        multiple
+        create
+        placeholder="Add tags…"
+        options={["elixir", "phoenix", "liveview"]}
+      />
+    </div>
+    """
+  end
+
   example :labels, "Label picker - the :selected slot",
     description:
       "The :selected slot renders rich CLOSED-state content in the trigger - here colored dots with a +N overflow, pure composition, no overflow attr. :let receives the list of chosen normalized options (label, value, meta). Client-side picks show the plain count until the LiveView patch re-renders the slot (server wins); a preset value shows the rich state immediately." do

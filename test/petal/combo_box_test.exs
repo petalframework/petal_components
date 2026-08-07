@@ -543,6 +543,62 @@ defmodule PetalComponents.ComboBoxTest do
     refute multi =~ "pc-combo-box__trigger-clear"
   end
 
+  describe "M3b modes" do
+    test "free_text and create mark the root; create renders the row" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="ft" name="ft" free_text options={["A"]} />
+        """)
+
+      assert html =~ ~s|data-free-text="true"|
+      refute html =~ "pc-combo-box__create"
+
+      created =
+        rendered_to_string(~H"""
+        <.combo_box id="cr" name="cr" create create_label="Add" options={["A"]} />
+        """)
+
+      assert created =~ ~s|data-free-text="true"|
+      assert created =~ "pc-combo-box__create"
+      assert created =~ "Add \""
+      assert created =~ "data-pc-combo-create-query"
+    end
+
+    test "remote mode: event/target attrs, loading row, hook-owned listbox" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="rm"
+          name="rm"
+          remote_options_event_name="search"
+          remote_options_target="3"
+          loading_label="Looking…"
+          options={[]}
+        />
+        """)
+
+      assert html =~ ~s|data-remote-event="search"|
+      assert html =~ ~s|data-remote-target="3"|
+      assert html =~ "pc-combo-box__loading"
+      assert html =~ "Looking…"
+      # one writer per region: the hook renders result rows
+      assert html =~ ~r/role="listbox"[^>]*phx-update="ignore"/s or
+               html =~ ~r/phx-update="ignore"[^>]*role="listbox"/s
+
+      plain =
+        rendered_to_string(~H"""
+        <.combo_box id="pl" name="pl" options={["A"]} />
+        """)
+
+      refute plain =~ "pc-combo-box__loading"
+      refute plain =~ ~r/role="listbox"[^>]*phx-update/s
+    end
+  end
+
   test "raises without any id source" do
     assigns = %{}
 
