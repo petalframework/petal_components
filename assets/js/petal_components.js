@@ -4774,10 +4774,10 @@ export const PetalDataTable = {
       const form = e.target.closest(".pc-data-table__filter-form");
       if (!form) return;
 
-      // event mode: the form pushes its own phx-submit - only the
-      // popover close is ours
+      // event mode: the form pushes its own phx-submit - only the menu
+      // close is ours
       if (!form.hasAttribute("data-pc-dt-filter")) {
-        this.closePopover(form);
+        this.closeMenu();
         return;
       }
 
@@ -4789,9 +4789,49 @@ export const PetalDataTable = {
       const next = this.readFilter(form, field);
       if (next) filters.push(next);
 
-      this.closePopover(form);
+      this.closeMenu();
       this.patchTo(this.navUrl(filters));
     };
+
+    // -- menus --------------------------------------------------------
+    // The filter and column panels sit NEXT TO their triggers in the
+    // page, not in the browser's top layer. That is the whole trick:
+    // the page moves them together at compositor speed, so scrolling
+    // (including an iOS momentum flick, and the scroll iOS does to
+    // reveal a focused field) can't desync them. There is deliberately
+    // no scroll listener here - nothing to chase, nothing to judder.
+    this.openMenu = null;
+
+    this.onMenuClick = (e) => {
+      const trigger = e.target.closest("[data-pc-menu-trigger]");
+      if (!trigger || !this.el.contains(trigger)) return;
+      e.preventDefault();
+      this.toggleMenu(trigger.getAttribute("data-pc-menu-trigger"));
+    };
+
+    this.onOutside = (e) => {
+      if (!this.openMenu) return;
+      const panel = this.menuPanel();
+      const trigger = this.menuTrigger();
+      if (panel?.contains(e.target) || trigger?.contains(e.target)) return;
+      this.closeMenu();
+    };
+
+    this.onMenuKeydown = (e) => {
+      if (e.key !== "Escape" || !this.openMenu) return;
+      const trigger = this.menuTrigger();
+      this.closeMenu();
+      trigger?.focus();
+    };
+
+    this.onWindowResize = () => {
+      if (this.openMenu) this.alignMenu();
+    };
+
+    this.el.addEventListener("click", this.onMenuClick);
+    this.el.addEventListener("keydown", this.onMenuKeydown);
+    document.addEventListener("pointerdown", this.onOutside, true);
+    window.addEventListener("resize", this.onWindowResize);
 
     this.el.addEventListener("input", this.onInput);
     this.el.addEventListener("change", this.onChange);
@@ -4799,8 +4839,122 @@ export const PetalDataTable = {
     this.syncIndeterminate();
   },
 
+  // id lookups without CSS.escape: ids here come from a developer's
+  // table id and field names, and escaping is one more thing to get
+  // wrong (it is also absent in jsdom, so specs would diverge)
+  menuPanel() {
+    return this.openMenu ? document.getElementById(this.openMenu) : null;
+  },
+
+  menuTrigger() {
+    if (!this.openMenu) return null;
+
+    return (
+      Array.from(this.el.querySelectorAll("[data-pc-menu-trigger]")).find(
+        (button) =>
+          button.getAttribute("data-pc-menu-trigger") === this.openMenu,
+      ) || null
+    );
+  },
+
+  toggleMenu(id) {
+    if (this.openMenu === id) return this.closeMenu();
+    if (this.openMenu) this.closeMenu();
+    this.openMenu = id;
+    this.revealMenu();
+    this.alignMenu();
+  },
+
+  revealMenu() {
+    const panel = this.menuPanel();
+    if (!panel) return;
+    panel.hidden = false;
+    this.menuTrigger()?.setAttribute("aria-expanded", "true");
+    // a frame later so the fade has a start state to move from
+    requestAnimationFrame(() => {
+      if (this.openMenu) this.menuPanel()?.setAttribute("data-pc-open", "");
+    });
+  },
+
+  closeMenu() {
+    const panel = this.menuPanel();
+    this.menuTrigger()?.setAttribute("aria-expanded", "false");
+    this.openMenu = null;
+    if (!panel) return;
+    panel.removeAttribute("data-pc-open");
+    clearTimeout(this.menuHideTimer);
+    this.menuHideTimer = setTimeout(() => {
+      if (!this.openMenu) panel.hidden = true;
+    }, 120);
+  },
+
+  // One-shot geometry, run on open and on resize only. A page-anchored
+  // panel keeps its offset relative to the trigger for free, so this
+  // never needs to run again while the user scrolls.
+  alignMenu() {
+    const panel = this.menuPanel();
+    const trigger = this.menuTrigger();
+    if (!panel || !trigger) return;
+
+    panel.style.transform = "";
+    panel.style.maxHeight = "";
+    panel.removeAttribute("data-pc-flip");
+
+    const vv = window.visualViewport;
+    const view = vv
+      ? {
+          top: vv.offsetTop,
+          left: vv.offsetLeft,
+          width: vv.width,
+          height: vv.height,
+        }
+      : {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+    const pad = 8;
+
+    const t = trigger.getBoundingClientRect();
+    const below = view.top + view.height - t.bottom;
+    const above = t.top - view.top;
+    let r = panel.getBoundingClientRect();
+
+    if (r.height + pad > below && above > below) {
+      panel.setAttribute("data-pc-flip", "top");
+      r = panel.getBoundingClientRect();
+    }
+
+    // slide sideways into view - true for as long as the panel is open,
+    // because horizontal position relative to the page doesn't change
+    const overRight = r.right - (view.left + view.width - pad);
+    const overLeft = view.left + pad - r.left;
+    const shift = overRight > 0 ? -overRight : overLeft > 0 ? overLeft : 0;
+    if (shift) panel.style.transform = `translateX(${Math.round(shift)}px)`;
+
+    const flipped = panel.getAttribute("data-pc-flip") === "top";
+    const room = (flipped ? above : below) - pad * 2;
+    panel.style.maxHeight = `${Math.max(Math.round(room), 0)}px`;
+    panel.style.overflowY = "auto";
+  },
+
   updated() {
     this.syncIndeterminate();
+
+    // a patch re-renders panels from the server: `hidden` comes back and
+    // the inline offsets this hook owns are dropped
+    if (this.openMenu) {
+      const panel = this.menuPanel();
+      if (panel) {
+        panel.hidden = false;
+        panel.setAttribute("data-pc-open", "");
+        this.menuTrigger()?.setAttribute("aria-expanded", "true");
+        this.alignMenu();
+      } else {
+        this.openMenu = null;
+      }
+    }
   },
 
   // indeterminate is a DOM property, not an attribute - mirror the
@@ -4813,9 +4967,14 @@ export const PetalDataTable = {
 
   destroyed() {
     clearTimeout(this.searchTimer);
+    clearTimeout(this.menuHideTimer);
     this.el.removeEventListener("input", this.onInput);
     this.el.removeEventListener("change", this.onChange);
     this.el.removeEventListener("submit", this.onSubmit);
+    this.el.removeEventListener("click", this.onMenuClick);
+    this.el.removeEventListener("keydown", this.onMenuKeydown);
+    document.removeEventListener("pointerdown", this.onOutside, true);
+    window.removeEventListener("resize", this.onWindowResize);
   },
 
   committedFilters() {
@@ -4849,23 +5008,6 @@ export const PetalDataTable = {
     }
 
     return value === "" ? null : { field, op, value };
-  },
-
-  closePopover(form) {
-    const panel = form.closest(".pc-popover__panel");
-    if (!panel) return;
-    if (
-      panel.hasAttribute("popover") &&
-      typeof panel.hidePopover === "function"
-    ) {
-      // top-layer panels close through the native API, which also
-      // restores focus and light-dismiss state
-      panel.hidePopover();
-      return;
-    }
-    panel.style.display = "none";
-    const trigger = document.getElementById(`${panel.id}-trigger`);
-    if (trigger) trigger.setAttribute("aria-expanded", "false");
   },
 
   // Both placeholders resolve from the live DOM in one pass, so

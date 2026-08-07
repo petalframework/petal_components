@@ -2468,6 +2468,19 @@
      0,0 corner reads as broken. (Tailwind's preflight zeroes margins,
      so the UA's own `margin: auto` never survives to do this for us.)
      The hook sets margin:0 inline the instant it anchors. */
+  /* An in-page menu panel: hidden until its hook shows it, faded in, and
+     flippable above its trigger. No top layer, so the page carries it -
+     scroll, momentum flicks and keyboard scrolls move panel and trigger
+     as one, with no JavaScript in the loop. */
+  .pc-popover__panel[data-pc-menu] {
+    @apply opacity-0 transition-opacity duration-100;
+  }
+  .pc-popover__panel[data-pc-menu][data-pc-open] {
+    @apply opacity-100;
+  }
+  .pc-popover__panel[data-pc-flip="top"] {
+    @apply bottom-full top-auto mt-0 mb-2;
+  }
   .pc-popover__panel--top-layer {
     @apply fixed m-auto transition-opacity duration-100;
   }
