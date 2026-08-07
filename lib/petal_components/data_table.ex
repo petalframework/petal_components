@@ -19,8 +19,14 @@ defmodule PetalComponents.DataTable do
 
     * **event mode** (pass `on_change`): one event, one grammar. Sorts
       arrive as `%{"op" => "sort", "field" => f}`, page changes as
-      `%{"op" => "page", "page" => n}`, filter clears as
-      `%{"op" => "clear_filters"}`.
+      `%{"op" => "page", "page" => n}`, quick-search as
+      `%{"op" => "search", "term" => t}`, page-size changes as
+      `%{"op" => "page_size", "page_size" => n}`, filter clears as
+      `%{"op" => "clear_filters"}`. `State` has a helper for each op.
+
+  In link mode the quick-search input and rows-per-page select are wired
+  by the `PetalDataTable` hook (patch URLs built from templates the
+  component renders); event mode needs no JS.
 
   Rows can be any enumerable of maps/structs; pair with
   `PetalComponents.DataTable.Engine.List` for zero-setup in-memory
@@ -28,6 +34,8 @@ defmodule PetalComponents.DataTable do
   """
   use Phoenix.Component
 
+  import PetalComponents.Button
+  import PetalComponents.Icon
   import PetalComponents.Pagination
   import PetalComponents.Skeleton
   import PetalComponents.Table
@@ -69,6 +77,23 @@ defmodule PetalComponents.DataTable do
     doc: "the empty message while filters are active"
 
   attr :clear_filters_label, :string, default: "Clear filters"
+
+  attr :searchable, :boolean,
+    default: false,
+    doc: "render the quick-search input in the toolbar (drives `state.search`)"
+
+  attr :search_placeholder, :string, default: "Search…"
+
+  attr :search_debounce, :integer,
+    default: 300,
+    doc: "quick-search debounce in ms, both wiring modes"
+
+  attr :page_size_options, :list,
+    default: [],
+    doc: "when non-empty, render a rows-per-page select in the footer"
+
+  attr :per_page_label, :string, default: "Per page", doc: "the rows-per-page label, localizable"
+  attr :reset_filters_label, :string, default: "Reset filters"
   attr :class, :any, default: nil
 
   slot :col, required: true do
@@ -96,17 +121,84 @@ defmodule PetalComponents.DataTable do
 
     fields = Map.new(assigns.col, fn col -> {to_string(col.field), col.field} end)
 
+    hooked? =
+      is_nil(assigns.on_change) and (assigns.searchable or assigns.page_size_options != [])
+
     assigns =
       assigns
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
       |> assign(:on_sort, sort_handler(assigns, fields))
       |> assign(:skeleton_rows, List.duplicate(%{}, min(assigns.state.page_size, 10)))
+      |> assign(:hooked?, hooked?)
+      |> assign(:nav_template, hooked? && nav_template(assigns))
 
     ~H"""
-    <div id={@id} class={["pc-data-table", @class]}>
-      <div :if={@toolbar != []} class="pc-data-table__toolbar">
+    <div
+      id={@id}
+      class={["pc-data-table", @class]}
+      phx-hook={@hooked? && "PetalDataTable"}
+      data-debounce={@hooked? && @search_debounce}
+      data-nav-template={@nav_template || nil}
+    >
+      <a :if={@hooked?} data-pc-dt-nav data-phx-link="patch" data-phx-link-state="push" hidden></a>
+      <div
+        :if={@toolbar != [] or @searchable or @state.filters != []}
+        class="pc-data-table__toolbar"
+      >
+        <div :if={@searchable} class="pc-data-table__search">
+          <.icon name="hero-magnifying-glass" class="pc-data-table__search-icon" />
+          <%= if @on_change do %>
+            <form phx-change={@on_change} phx-submit={@on_change} phx-target={@target}>
+              <input type="hidden" name="op" value="search" />
+              <input
+                type="text"
+                name="term"
+                value={@state.search}
+                placeholder={@search_placeholder}
+                phx-debounce={@search_debounce}
+                autocomplete="off"
+                class="pc-text-input pc-data-table__search-input"
+              />
+            </form>
+          <% else %>
+            <input
+              type="text"
+              value={@state.search}
+              placeholder={@search_placeholder}
+              autocomplete="off"
+              data-pc-dt-search
+              class="pc-text-input pc-data-table__search-input"
+            />
+          <% end %>
+        </div>
         {render_slot(@toolbar)}
+        <%= if @state.filters != [] do %>
+          <.button
+            :if={@on_change}
+            type="button"
+            size="sm"
+            variant="ghost"
+            color="gray"
+            class="pc-data-table__reset"
+            phx-click={@on_change}
+            phx-target={@target}
+            phx-value-op="clear_filters"
+          >
+            {@reset_filters_label}
+          </.button>
+          <.button
+            :if={@path}
+            link_type="live_patch"
+            to={url_for(@path, State.clear_filters(@state))}
+            size="sm"
+            variant="ghost"
+            color="gray"
+            class="pc-data-table__reset"
+          >
+            {@reset_filters_label}
+          </.button>
+        <% end %>
       </div>
 
       <div class="pc-data-table__scroll">
@@ -176,6 +268,35 @@ defmodule PetalComponents.DataTable do
 
       <div class="pc-data-table__footer">
         <span class="pc-data-table__range">{range_text(@state, @of_label, @page_label)}</span>
+        <div :if={@page_size_options != []} class="pc-data-table__page-size">
+          <label for={"#{@id}-page-size"} class="pc-data-table__page-size-label">
+            {@per_page_label}
+          </label>
+          <%= if @on_change do %>
+            <form phx-change={@on_change} phx-target={@target}>
+              <input type="hidden" name="op" value="page_size" />
+              <select
+                id={"#{@id}-page-size"}
+                name="page_size"
+                class="pc-select pc-data-table__page-size-select"
+              >
+                <option :for={n <- @page_size_options} value={n} selected={n == @state.page_size}>
+                  {n}
+                </option>
+              </select>
+            </form>
+          <% else %>
+            <select
+              id={"#{@id}-page-size"}
+              data-pc-dt-page-size
+              class="pc-select pc-data-table__page-size-select"
+            >
+              <option :for={n <- @page_size_options} value={n} selected={n == @state.page_size}>
+                {n}
+              </option>
+            </select>
+          <% end %>
+        </div>
         <.pagination
           :if={show_pagination?(@state)}
           variant={if @state.total, do: "numbered", else: "simple"}
@@ -231,6 +352,35 @@ defmodule PetalComponents.DataTable do
       |> URI.encode_query()
 
     join_query(path, if(query == "", do: "page=:page", else: "page=:page&" <> query))
+  end
+
+  # One template, both placeholders: the hook fills :term / :page_size
+  # from the live DOM at patch time, so an uncommitted search term and a
+  # fresh page-size pick can never revert each other. Placeholders are
+  # assembled around the already-encoded rest of the query (the
+  # pagination :page trick); a control the table doesn't render keeps
+  # its committed value in the rest instead of a placeholder.
+  defp nav_template(%{path: path, state: state} = assigns) do
+    state = %{state | page: 1}
+    state = if assigns.searchable, do: State.put_search(state, ""), else: state
+
+    params = State.to_params(state)
+
+    params =
+      if assigns.page_size_options != [], do: Map.delete(params, "page_size"), else: params
+
+    placeholders =
+      Enum.filter(
+        [
+          assigns.searchable && "search=:term",
+          assigns.page_size_options != [] && "page_size=:page_size"
+        ],
+        & &1
+      )
+
+    rest = params |> flatten_params() |> URI.encode_query()
+    query = Enum.join(placeholders ++ if(rest == "", do: [], else: [rest]), "&")
+    join_query(path, query)
   end
 
   # a base path may already carry a query string - join accordingly

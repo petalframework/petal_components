@@ -15,6 +15,18 @@
   way out, `:action`/`:toolbar`/`:empty` slots, and density/striped/
   sticky pass-through. Toolbar search + filter editors arrive next
   milestone (the combobox trigger listbox was built for them).
+- **`<.data_table>` quick search + rows-per-page (4.12 data table,
+  milestone 2, part 1).** `searchable` renders a debounced toolbar
+  search input driving the new `State.search` term (trimmed, blank
+  drops the param, always resets to page 1); `Engine.List` sweeps it
+  case-insensitively across string fields (scope with the new
+  `:search_fields` option) before filters so totals stay honest.
+  `page_size_options` renders a rows-per-page footer select
+  (`State.put_page_size/2`). A "Reset filters" ghost button appears
+  in the toolbar while filters are active. Event mode posts new
+  `search`/`page_size` ops through plain forms; link mode wires both
+  through the new `PetalDataTable` hook, which fills in URL templates
+  and clicks a hidden patch link so navigation stays LiveView's own.
 - **`table` `on_sort` accepts a 1-arity function** of the sort key -
   per-column events/JS, how the data table patches sort URLs.
 - **`pagination` event mode grows up**: `event` accepts a custom event

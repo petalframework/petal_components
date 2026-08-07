@@ -35,13 +35,14 @@ defmodule PetalComponents.DataTable.State do
   """
 
   @enforce_keys []
-  defstruct order_by: [], filters: [], page: 1, page_size: 10, total: nil
+  defstruct order_by: [], filters: [], search: nil, page: 1, page_size: 10, total: nil
 
   @type order :: {atom(), :asc | :desc}
   @type filter :: %{field: atom(), op: atom(), value: term()}
   @type t :: %__MODULE__{
           order_by: [order()],
           filters: [filter()],
+          search: String.t() | nil,
           page: pos_integer(),
           page_size: pos_integer(),
           total: non_neg_integer() | nil
@@ -80,6 +81,7 @@ defmodule PetalComponents.DataTable.State do
     %__MODULE__{
       order_by: parse_order_by(params["order_by"], field_strings),
       filters: parse_filters(params["filters"], field_strings),
+      search: parse_search(params["search"]),
       page: parse_pos_int(params["page"], 1),
       page_size: params["page_size"] |> parse_pos_int(default_size) |> min(max_size)
     }
@@ -100,6 +102,7 @@ defmodule PetalComponents.DataTable.State do
     %{}
     |> put_order_by(state.order_by)
     |> put_filters(state.filters)
+    |> encode_search(state.search)
     |> put_unless("page", state.page, 1)
     |> put_unless("page_size", state.page_size, default_size)
   end
@@ -131,6 +134,16 @@ defmodule PetalComponents.DataTable.State do
     filter = %{field: field, op: op, value: value}
     rest = Enum.reject(state.filters, &(&1.field == field))
     %{state | filters: rest ++ [filter], page: 1}
+  end
+
+  @doc "Sets (or clears, for blank terms) the quick-search term, resetting to page 1."
+  def put_search(%__MODULE__{} = state, term) do
+    %{state | search: parse_search(term), page: 1}
+  end
+
+  @doc "Sets the page size (invalid values keep the current one), resetting to page 1."
+  def put_page_size(%__MODULE__{} = state, size) do
+    %{state | page_size: parse_pos_int(size, state.page_size), page: 1}
   end
 
   @doc "Removes every filter, resetting to page 1."
@@ -192,6 +205,18 @@ defmodule PetalComponents.DataTable.State do
   end
 
   defp parse_filters(_other, _fields), do: []
+
+  defp parse_search(term) when is_binary(term) do
+    case String.trim(term) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp parse_search(_other), do: nil
+
+  defp encode_search(params, nil), do: params
+  defp encode_search(params, term), do: Map.put(params, "search", term)
 
   defp parse_pos_int(value, default) when is_binary(value) do
     case Integer.parse(value) do

@@ -32,15 +32,29 @@ defmodule PetalComponents.DataTable.Engine.List do
   # values, which arrive raw from params.
   defguardp is_scalar(v) when is_binary(v) or is_number(v) or is_atom(v)
 
-  @doc "Runs the full pipeline: filter -> sort -> count -> paginate."
-  def run(rows, %State{} = state) when is_list(rows) do
+  @doc """
+  Runs the full pipeline: search -> filter -> sort -> count -> paginate.
+
+  Options:
+
+    * `:search_fields` - the fields the quick-search term matches
+      against (case-insensitive contains). Defaults to every field of
+      the first row whose value is a string.
+  """
+  def run(rows, state, opts \\ [])
+
+  def run(rows, %State{} = state, opts) when is_list(rows) do
     # from_params clamps, but hand-built structs can carry page 0 or a
     # non-positive size - a negative slice offset would silently take
     # rows from the END of the list, so clamp here too
     page = max(state.page, 1)
     page_size = max(state.page_size, 1)
 
-    filtered = Enum.reduce(state.filters, rows, &apply_filter(&2, &1))
+    filtered =
+      rows
+      |> apply_search(state.search, Keyword.get(opts, :search_fields))
+      |> then(&Enum.reduce(state.filters, &1, fn f, acc -> apply_filter(acc, f) end))
+
     total = length(filtered)
 
     page_rows =
@@ -49,6 +63,28 @@ defmodule PetalComponents.DataTable.Engine.List do
       |> Enum.slice((page - 1) * page_size, page_size)
 
     {page_rows, %{state | page: page, page_size: page_size, total: total}}
+  end
+
+  # -- search ----------------------------------------------------------------
+
+  defp apply_search(rows, nil, _fields), do: rows
+  defp apply_search([], _term, _fields), do: []
+
+  defp apply_search([first | _] = rows, term, fields) do
+    fields =
+      fields ||
+        for {k, v} <- first, is_binary(v), do: k
+
+    needle = String.downcase(term)
+
+    Enum.filter(rows, fn row ->
+      Enum.any?(fields, fn field ->
+        case fetch(row, field) do
+          v when is_binary(v) -> String.contains?(String.downcase(v), needle)
+          _ -> false
+        end
+      end)
+    end)
   end
 
   # -- sorting ---------------------------------------------------------------

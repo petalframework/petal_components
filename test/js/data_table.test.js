@@ -1,0 +1,132 @@
+// PetalDataTable hook: link-mode wiring for quick search and rows-per-page.
+// The markup here mirrors what PetalComponents.DataTable renders in link
+// mode - test/petal/data_table_test.exs pins that structure on the Elixir
+// side; update both together if the anatomy changes.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import hooks from "../../assets/js/petal_components.js";
+
+const mounted = [];
+
+function mount({ navTemplate, debounce } = {}) {
+  const el = document.createElement("div");
+  el.id = "dt";
+  el.className = "pc-data-table";
+  if (navTemplate) el.dataset.navTemplate = navTemplate;
+  if (debounce) el.dataset.debounce = debounce;
+  el.innerHTML = `
+    <a data-pc-dt-nav data-phx-link="patch" data-phx-link-state="push" hidden></a>
+    <input type="text" data-pc-dt-search />
+    <select data-pc-dt-page-size>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+    </select>
+  `;
+  document.body.appendChild(el);
+
+  const hook = Object.create(hooks.PetalDataTable);
+  hook.el = el;
+  hook.mounted();
+  mounted.push(hook);
+
+  const patched = [];
+  el.querySelector("[data-pc-dt-nav]").addEventListener("click", (e) => {
+    e.preventDefault();
+    patched.push(e.target.getAttribute("href"));
+  });
+
+  return { hook, el, patched };
+}
+
+function type(el, value) {
+  const input = el.querySelector("[data-pc-dt-search]");
+  input.value = value;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+describe("PetalDataTable", () => {
+  beforeEach(() => vi.useFakeTimers());
+
+  afterEach(() => {
+    mounted.splice(0).forEach((hook) => {
+      hook.destroyed();
+      hook.el.remove();
+    });
+    vi.useRealTimers();
+  });
+
+  it("debounces typing, then patches with the encoded term and current page size", () => {
+    const { el, patched } = mount({
+      navTemplate: "/orders?search=:term&page_size=:page_size&order_by=name",
+      debounce: "300",
+    });
+
+    type(el, "a");
+    type(el, "am y");
+    expect(patched).toEqual([]);
+
+    vi.advanceTimersByTime(299);
+    expect(patched).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(patched).toEqual([
+      "/orders?search=am%20y&page_size=10&order_by=name",
+    ]);
+  });
+
+  it("a blank term drops the search param and any dangling joiner", () => {
+    const { el, patched } = mount({ navTemplate: "/orders?search=:term" });
+    type(el, "   ");
+    vi.advanceTimersByTime(300);
+    expect(patched).toEqual(["/orders"]);
+
+    const withRest = mount({
+      navTemplate: "/orders?search=:term&order_by=name",
+    });
+    type(withRest.el, "");
+    vi.advanceTimersByTime(300);
+    expect(withRest.patched).toEqual(["/orders?order_by=name"]);
+  });
+
+  it("page-size changes patch immediately and carry the live search term", () => {
+    const { el, patched } = mount({
+      navTemplate: "/orders?search=:term&page_size=:page_size",
+    });
+    const input = el.querySelector("[data-pc-dt-search]");
+    input.value = "amy";
+    const select = el.querySelector("[data-pc-dt-page-size]");
+    select.value = "20";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(patched).toEqual(["/orders?search=amy&page_size=20"]);
+  });
+
+  it("a page-size pick cancels a pending search patch instead of racing it", () => {
+    const { el, patched } = mount({
+      navTemplate: "/orders?search=:term&page_size=:page_size",
+      debounce: "300",
+    });
+
+    type(el, "amy");
+    vi.advanceTimersByTime(100);
+
+    const select = el.querySelector("[data-pc-dt-page-size]");
+    select.value = "20";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(patched).toEqual(["/orders?search=amy&page_size=20"]);
+
+    // the debounced search patch must NOT fire a second, stale navigation
+    vi.advanceTimersByTime(1000);
+    expect(patched).toEqual(["/orders?search=amy&page_size=20"]);
+  });
+
+  it("destroyed cancels a pending search patch", () => {
+    const { hook, el, patched } = mount({
+      navTemplate: "/orders?search=:term",
+    });
+    type(el, "amy");
+    hook.destroyed();
+    mounted.splice(mounted.indexOf(hook), 1);
+    vi.advanceTimersByTime(300);
+    expect(patched).toEqual([]);
+    el.remove();
+  });
+});

@@ -4601,6 +4601,76 @@ export const PetalComboBox = {
   },
 };
 
+// Link-mode wiring for the data table's quick search and rows-per-page
+// select. Event mode posts through plain phx-change forms and never
+// mounts this hook; link mode has no events by design (handle_params is
+// the whole backend), so state changes must become patch URLs. The
+// component renders URL templates (:term / :page_size placeholders,
+// assembled around the already-encoded rest of the query) and a hidden
+// data-phx-link anchor; the hook fills a template in and clicks the
+// anchor so navigation stays LiveView's own.
+export const PetalDataTable = {
+  mounted() {
+    this.searchTimer = null;
+
+    this.onInput = (e) => {
+      if (!e.target.closest("[data-pc-dt-search]")) return;
+      clearTimeout(this.searchTimer);
+      const wait = parseInt(this.el.dataset.debounce || "300", 10);
+      this.searchTimer = setTimeout(() => this.patchTo(this.navUrl()), wait);
+    };
+
+    this.onChange = (e) => {
+      if (!e.target.closest("[data-pc-dt-page-size]")) return;
+      // the nav URL reads the live search input too, so the pending
+      // debounced patch is redundant - and letting it fire later would
+      // navigate with a template predating this pick
+      clearTimeout(this.searchTimer);
+      this.patchTo(this.navUrl());
+    };
+
+    this.el.addEventListener("input", this.onInput);
+    this.el.addEventListener("change", this.onChange);
+  },
+
+  destroyed() {
+    clearTimeout(this.searchTimer);
+    this.el.removeEventListener("input", this.onInput);
+    this.el.removeEventListener("change", this.onChange);
+  },
+
+  // Both placeholders resolve from the live DOM in one pass, so
+  // whichever control triggers the patch carries the other's current
+  // (possibly uncommitted) value instead of a stale committed one.
+  navUrl() {
+    let url = this.el.dataset.navTemplate;
+
+    if (url.includes(":term")) {
+      const input = this.el.querySelector("[data-pc-dt-search]");
+      const trimmed = (input ? input.value : "").trim();
+      url =
+        trimmed === ""
+          ? // a blank term drops the search param entirely so URLs stay clean
+            url.replace(/search=:term&?/, "")
+          : url.replace(":term", encodeURIComponent(trimmed));
+    }
+
+    if (url.includes(":page_size")) {
+      const select = this.el.querySelector("[data-pc-dt-page-size]");
+      url = url.replace(":page_size", encodeURIComponent(select.value));
+    }
+
+    return url.replace(/[?&]$/, "");
+  },
+
+  patchTo(url) {
+    const nav = this.el.querySelector("[data-pc-dt-nav]");
+    if (!nav) return;
+    nav.setAttribute("href", url);
+    nav.click();
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -4630,4 +4700,5 @@ export default {
   PetalNavMenu,
   PetalCommandDialog,
   PetalComboBox,
+  PetalDataTable,
 };
