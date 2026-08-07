@@ -4659,6 +4659,19 @@ export const PetalDataTable = {
     this.el.addEventListener("input", this.onInput);
     this.el.addEventListener("change", this.onChange);
     this.el.addEventListener("submit", this.onSubmit);
+    this.syncIndeterminate();
+  },
+
+  updated() {
+    this.syncIndeterminate();
+  },
+
+  // indeterminate is a DOM property, not an attribute - mirror the
+  // server-stamped data attr onto it after every mount/patch
+  syncIndeterminate() {
+    this.el.querySelectorAll("[data-pc-dt-indeterminate]").forEach((box) => {
+      box.indeterminate = box.dataset.pcDtIndeterminate === "true";
+    });
   },
 
   destroyed() {

@@ -42,6 +42,18 @@
   placeholder mirrored from a JSON stamp, and filter URLs now carry
   list/range values as Phoenix-style indexed params. Operator names
   localize via `filter_op_labels`.
+- **`<.data_table>` row selection (4.12 data table, milestone 3a).**
+  `selectable` renders a leading checkbox column keyed by `row_id`
+  (field atom or function); the header checkbox is tri-state (the
+  `PetalDataTable` hook mirrors an indeterminate stamp onto the DOM
+  property). While rows are selected the toolbar morphs into
+  "N selected" + the new `:bulk_action` slot (`:let` receives the
+  ids) + a clear button. Selection is UI state, not query state: it
+  rides an event in BOTH wiring modes (`on_ui`, defaulting to
+  `on_change`) with three ops - `select` (id), `select_all`,
+  `clear_selection` - and never touches URLs. `table`'s `:col` label
+  now accepts any rendered fragment, which is how the header checkbox
+  rides in.
 - **`data_table` filter popovers are viewport-aware**: the editors now
   ride the popover's top-layer mode, so `PetalPopover` flips and clamps
   them inside the viewport - a filter button at the screen edge no

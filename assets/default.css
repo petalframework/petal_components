@@ -2694,6 +2694,12 @@
   .pc-data-table__filter-clear-icon.pc-data-table__filter-clear-icon {
     @apply w-4! h-4!;
   }
+  .pc-data-table__select-col {
+    @apply w-px pr-0;
+  }
+  .pc-data-table__selection-count {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
+  }
 
   /* Avatars - sizes */
 

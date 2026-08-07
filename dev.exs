@@ -748,6 +748,7 @@ defmodule Dev.PlaygroundLive do
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
+       dt_selected: [],
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1446,7 +1447,31 @@ defmodule Dev.PlaygroundLive do
     {state, _rows} = socket.assigns.dt
 
     state = State.handle_op(state, params, fields: [:name, :email, :status, :amount])
-    {:noreply, assign(socket, :dt, run_dt(state))}
+
+    # selection is UI state, outside State - a MapSet and three clauses
+    selected = socket.assigns.dt_selected
+
+    selected =
+      case params do
+        %{"op" => "select", "id" => id} ->
+          if id in selected, do: List.delete(selected, id), else: selected ++ [id]
+
+        %{"op" => "select_all"} ->
+          {_state, rows} = socket.assigns.dt
+          page_ids = Enum.map(rows, &to_string(&1.id))
+
+          if Enum.all?(page_ids, &(&1 in selected)),
+            do: selected -- page_ids,
+            else: Enum.uniq(selected ++ page_ids)
+
+        %{"op" => "clear_selection"} ->
+          []
+
+        _ ->
+          selected
+      end
+
+    {:noreply, socket |> assign(:dt, run_dt(state)) |> assign(:dt_selected, selected)}
   end
 
   defp run_dt(state) do
@@ -7321,6 +7346,8 @@ defmodule Dev.PlaygroundLive do
           striped
           searchable
           page_size_options={[5, 10, 20]}
+          selectable
+          selected={@dt_selected}
         >
           <:col :let={row} field={:name} sortable>{row.name}</:col>
           <:col :let={row} field={:email} filterable="text">{row.email}</:col>
@@ -7346,6 +7373,17 @@ defmodule Dev.PlaygroundLive do
           <:col :let={row} field={:amount} sortable align="right" filterable="number">
             ${row.amount}
           </:col>
+          <:bulk_action :let={ids}>
+            <.button
+              size="sm"
+              variant="soft"
+              color="danger"
+              phx-click="pg_table"
+              phx-value-op="clear_selection"
+            >
+              Refund {length(ids)}
+            </.button>
+          </:bulk_action>
         </.data_table>
       </div>
 
