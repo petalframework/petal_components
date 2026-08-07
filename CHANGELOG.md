@@ -3,6 +3,22 @@
 
 #### Fixed
 
+- **Top-layer popovers stay anchored to their trigger.** They were
+  clamped into the viewport on *both* axes, so a panel with no room
+  below was shunted up until it detached from its trigger - pinned to
+  the top of the screen, over the header, over the button that opened
+  it. Clamping now applies to the cross axis only (keeping a panel on
+  screen sideways never detaches it); the main axis is handled by
+  flipping sides, and a panel with more content than room is capped
+  with `max-height` and scrolls. A panel whose trigger scrolls out of
+  view hides with it rather than stranding itself against an edge.
+- **Repositioning is throttled to one pass per animation frame**, so
+  a panel tracks a scrolling page smoothly instead of juddering
+  behind a burst of scroll events, and writes whole-pixel offsets.
+- **An unpositioned top-layer panel centres instead of landing in the
+  corner.** A native `popovertarget` works from first paint, so a fast
+  tap can open a panel before the hook mounts; it now reads as a
+  centred sheet, and the hook anchors it as soon as it mounts.
 - **Top-layer popovers follow the visual viewport.** Opening a mobile
   keyboard shrinks and offsets the visual viewport without firing
   window `scroll` or `resize`, so a panel anchored on layout-viewport
