@@ -336,6 +336,7 @@ defmodule PetalComponents.DataTable do
               type="checkbox"
               class="pc-checkbox"
               checked={row_key(row, @row_id) in @selected_set}
+              disabled={row_key(row, @row_id) == ""}
               phx-click={@ui_event}
               phx-target={@target}
               phx-value-op="select"
@@ -559,7 +560,15 @@ defmodule PetalComponents.DataTable do
     page_keys =
       if assigns.loading,
         do: [],
-        else: Enum.map(assigns.rows, &row_key(&1, assigns.row_id))
+        else: assigns.rows |> Enum.map(&row_key(&1, assigns.row_id)) |> Enum.reject(&(&1 == ""))
+
+    # two rows sharing a key means one checkbox would select both - that
+    # is a misconfigured row_id, not a state to render through
+    if length(Enum.uniq(page_keys)) != length(page_keys) do
+      raise ArgumentError,
+            "data_table selection found duplicate row ids on this page - " <>
+              "pass a row_id (field or function) that uniquely identifies each row"
+    end
 
     picked = Enum.count(page_keys, &MapSet.member?(selected_set, &1))
 
@@ -579,6 +588,7 @@ defmodule PetalComponents.DataTable do
       type="checkbox"
       class="pc-checkbox"
       checked={@all_selected?}
+      disabled={@loading}
       data-pc-dt-indeterminate={to_string(@some_selected? and not @all_selected?)}
       phx-click={@ui_event}
       phx-target={@target}

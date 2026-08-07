@@ -255,6 +255,43 @@ defmodule PetalComponents.DataTableTest do
     end
   end
 
+  test "selection identity edges: nil keys disable, duplicates raise, loading disables select-all" do
+    assigns = base(%{rows: [%{id: 1, name: "Amy"}, %{id: nil, name: "Bea"}]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={[]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    # the keyless row renders an inert checkbox and stays out of select-all math
+    assert Regex.match?(~r/<input[^>]*disabled[^>]*phx-value-id=""/, html)
+
+    assigns = base(%{dupes: [%{id: 1, name: "Amy"}, %{id: 1, name: "Bea"}]})
+
+    assert_raise ArgumentError, ~r/duplicate row ids/, fn ->
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@dupes} state={@state} on_change="table" selectable selected={[]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+    end
+
+    assigns = base(%{rows: [%{id: 1, name: "Amy"}]})
+
+    loading_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={[]} loading>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert loading_html =~ ~s(phx-value-op="select_all")
+    assert Regex.match?(~r/phx-value-op="select_all"[^>]*>/, loading_html)
+    assert loading_html =~ ~s(disabled data-pc-dt-indeterminate)
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{
