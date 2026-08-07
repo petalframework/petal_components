@@ -397,6 +397,15 @@ defmodule PetalComponents.ComboBox do
         </div>
       </div>
 
+      <%!-- one inert template per option when :chip is present: the hook
+      clones these to build rich chips client-side instantly - no
+      round-trip pop-in, and unwired comboboxes get rich chips too --%>
+      <template
+        :for={opt <- (@chip != [] && @multiple && Enum.flat_map(@groups, & &1.options)) || []}
+        data-pc-combo-chip-template
+        data-value={opt.value}
+      >{render_slot(@chip, opt)}</template>
+
       <div
         class="pc-combo-box__live"
         data-pc-combo-live

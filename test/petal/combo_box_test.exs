@@ -459,6 +459,29 @@ defmodule PetalComponents.ComboBoxTest do
       assert html =~ "Pick…"
     end
 
+    test ":chip renders one inert template per option for instant client-side rich chips" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="tpl" name="tpl" multiple options={[{"Alpha", "a"}, {"Beta", "b"}]}>
+          <:chip :let={opt}><em>{opt.label}</em></:chip>
+        </.combo_box>
+        """)
+
+      assert length(String.split(html, "data-pc-combo-chip-template")) - 1 == 2
+      assert html =~ "<em>Alpha</em>"
+      assert html =~ "<em>Beta</em>"
+
+      # no templates without the slot, and none for single select
+      plain =
+        rendered_to_string(~H"""
+        <.combo_box id="np" name="np" multiple options={[{"Alpha", "a"}]} />
+        """)
+
+      refute plain =~ "data-pc-combo-chip-template"
+    end
+
     test ":chip renders rich chip content with the remove button intact; chips carry data-value" do
       assigns = %{}
 

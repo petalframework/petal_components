@@ -7393,7 +7393,7 @@ defmodule Dev.PlaygroundLive do
               <span class="truncate">{opt.label}</span>
             </:chip>
             <:option :let={opt}>
-              <.avatar size="2xs" name={opt.label} random_gradient />
+              <.avatar size="xs" name={opt.label} random_gradient />
               <span class="flex min-w-0 flex-col leading-tight">
                 <span class="truncate">{opt.label}</span>
                 <span class="truncate text-xs text-gray-500 dark:text-gray-400">

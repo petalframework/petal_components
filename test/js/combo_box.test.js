@@ -879,6 +879,46 @@ describe("multiple with chips", () => {
     vi.useRealTimers();
   });
 
+  it("the panel stays open across LiveView patches mid-multi-pick", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.panel.hidden).toBe(false);
+    // the phx-change patch: server always renders the panel hidden and
+    // aria-expanded false - open-state belongs to the client
+    c.panel.hidden = true;
+    c.input.setAttribute("aria-expanded", "false");
+    c.hook.updated();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.getAttribute("aria-expanded")).toBe("true");
+    // a panel the user closed stays closed through patches
+    key(c.input, "Escape");
+    c.hook.updated();
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("client-built chips clone the server-rendered :chip template - rich immediately", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const tpl = document.createElement("template");
+    tpl.setAttribute("data-pc-combo-chip-template", "");
+    tpl.dataset.value = "tyo";
+    tpl.innerHTML = '<em class="rich-bit">T</em><span>Tokyo</span>';
+    c.el.appendChild(tpl);
+    c.control.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    const chip = c.chips().find((x) => x.dataset.value === "tyo");
+    expect(chip.querySelector("em.rich-bit")).not.toBeNull();
+    // options without a template still build plain text chips
+    c.items()
+      .find((i) => i.dataset.value === "syd")
+      .click();
+    const plain = c.chips().find((x) => x.dataset.value === "syd");
+    expect(plain.querySelector("em")).toBeNull();
+    expect(plain.textContent).toContain("Sydney");
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();

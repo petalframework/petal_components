@@ -3799,7 +3799,17 @@ export const PetalComboBox = {
   },
 
   updated() {
-    // LiveView patched the component - the select (server state) wins.
+    // LiveView patched the component - the select (server state) wins
+    // for SELECTION, but open-state belongs to the client: the server
+    // always renders the panel hidden, so a phx-change round-trip would
+    // otherwise slam the panel shut mid-multi-pick (Nic's find - reui
+    // and every peer keep it open). Re-assert and re-measure.
+    if (this.isOpen && this.panel.hidden) {
+      this.panel.hidden = false;
+      this.input.setAttribute("aria-expanded", "true");
+      if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
+      this.positionPanel();
+    }
     this.syncFromSelect();
     if (!this.panel.hidden) this.filter();
   },
@@ -3870,6 +3880,7 @@ export const PetalComboBox = {
 
   openPanel({ keepQuery = false } = {}) {
     if (!this.panel.hidden) return;
+    this.isOpen = true;
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
     if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
@@ -3903,6 +3914,7 @@ export const PetalComboBox = {
     );
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
+    this.isOpen = false;
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.panel.removeAttribute("data-flip");
@@ -4041,7 +4053,16 @@ export const PetalComboBox = {
     chip.dataset.value = value;
     const label = document.createElement("span");
     label.className = "pc-combo-box__chip-label";
-    label.textContent = text;
+    // server-rendered :chip templates let client-built chips be RICH
+    // immediately - no round-trip pop-in, rich even without wiring
+    const tpl = Array.from(
+      this.el.querySelectorAll("template[data-pc-combo-chip-template]"),
+    ).find((t) => t.dataset.value === value);
+    if (tpl) {
+      label.appendChild(tpl.content.cloneNode(true));
+    } else {
+      label.textContent = text;
+    }
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "pc-combo-box__chip-remove";
