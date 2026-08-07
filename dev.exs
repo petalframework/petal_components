@@ -7270,6 +7270,7 @@ defmodule Dev.PlaygroundLive do
           <form id="pg-combo-form" phx-change="pg_combo_change" class="w-full max-w-sm">
             <.combo_box
               id="pg-combo"
+              clearable
               name="pg_city"
               placeholder="Search cities…"
               value={@combo.chosen}

@@ -18,6 +18,17 @@
 
 #### Fixed
 
+- **`combo_box`: iOS taps on control chrome and the trigger button
+  reliably toggle the panel.** iOS Safari fires `focusout` with
+  `relatedTarget: null` even when focus moves WITHIN the component, so
+  a chevron or trigger tap closed the panel mid-press and the tap's own
+  click instantly reopened it - an invisible flash that read as a dead
+  chevron zone (input variant) and a picker that never closes (trigger
+  variant). Device-log verified. The focusout close now defers one tick
+  and verifies where focus actually landed instead of trusting
+  `relatedTarget`; genuine Tab-away and click-away close exactly as
+  before.
+
 - **`combo_box`: a touch-scroll no longer dismisses the panel.** The
   outside dismiss closed on `pointerdown`, so starting a scroll gesture
   anywhere outside the panel killed it the instant the finger landed
