@@ -3540,6 +3540,22 @@ export const PetalToast = {
 // hidden, never reordered - the server owns DOM order. aria-selected tracks
 // the CHOSEN option (the check mark); the keyboard highlight is virtual:
 // data-highlighted + aria-activedescendant.
+// Same selection, any order: server-rendered rich content follows chosen
+// order while the hook reads DOM option order - freshness compares
+// MULTISETS (duplicate values are counted, never flattened), never
+// sequences.
+function sameValueMultiset(a, b) {
+  if (a.length !== b.length) return false;
+  const counts = new Map();
+  for (const v of a) counts.set(v, (counts.get(v) || 0) + 1);
+  for (const v of b) {
+    const n = counts.get(v);
+    if (!n) return false;
+    counts.set(v, n - 1);
+  }
+  return true;
+}
+
 export const PetalComboBox = {
   mounted() {
     this.select = this.el.querySelector(".pc-combo-box__select");
@@ -3783,9 +3799,31 @@ export const PetalComboBox = {
   },
 
   updated() {
-    // LiveView patched the component - the select (server state) wins.
+    // LiveView patched the component - the select (server state) wins
+    // for SELECTION, but open-state belongs to the client: the server
+    // always renders the panel hidden, so a phx-change round-trip would
+    // otherwise slam the panel shut mid-multi-pick (Nic's find - reui
+    // and every peer keep it open). Re-assert and re-measure.
+    if (this.isOpen && this.panel.hidden) {
+      this.panel.hidden = false;
+      this.input.setAttribute("aria-expanded", "true");
+      if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
+      this.positionPanel();
+    }
+    // the highlight is client state too: the patch re-renders options
+    // without data-highlighted, and filter() would re-home on the first
+    // item (visible on iOS, masked by hover re-highlighting on desktop)
+    const keepHighlight = this.highlightedValue;
     this.syncFromSelect();
-    if (!this.panel.hidden) this.filter();
+    if (!this.panel.hidden) {
+      this.filter();
+      if (keepHighlight) {
+        const item = this.visibleItems().find(
+          (i) => i.dataset.value === keepHighlight,
+        );
+        if (item) this.highlight(item, false);
+      }
+    }
   },
 
   destroyed() {
@@ -3809,6 +3847,7 @@ export const PetalComboBox = {
       this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
+    clearTimeout(this.labelPatchTimer);
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
@@ -3853,6 +3892,7 @@ export const PetalComboBox = {
 
   openPanel({ keepQuery = false } = {}) {
     if (!this.panel.hidden) return;
+    this.isOpen = true;
     this.panel.hidden = false;
     this.input.setAttribute("aria-expanded", "true");
     if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
@@ -3886,6 +3926,7 @@ export const PetalComboBox = {
     );
     window.removeEventListener("scroll", this.onReposition, true);
     window.removeEventListener("resize", this.onReposition);
+    this.isOpen = false;
     if (this.panel.hidden) return;
     this.panel.hidden = true;
     this.panel.removeAttribute("data-flip");
@@ -3986,29 +4027,104 @@ export const PetalComboBox = {
 
   syncChips() {
     if (!this.chips) return;
-    const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
-    this.chips.textContent = "";
-    for (const option of this.select.selectedOptions) {
-      if (option.value === "") continue;
-      const chip = document.createElement("span");
-      chip.className = "pc-combo-box__chip";
-      chip.setAttribute("data-pc-combo-chip", "");
-      const label = document.createElement("span");
-      label.className = "pc-combo-box__chip-label";
-      label.textContent = option.textContent.trim();
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "pc-combo-box__chip-remove";
-      btn.setAttribute("data-pc-combo-chip-remove", "");
-      btn.dataset.value = option.value;
-      btn.setAttribute("aria-label", removeLabel + option.textContent.trim());
-      btn.tabIndex = -1;
-      const icon = document.createElement("span");
-      icon.className = "hero-x-mark-mini pc-combo-box__chip-remove-icon";
-      btn.appendChild(icon);
-      chip.append(label, btn);
-      this.chips.appendChild(chip);
+    // Incremental sync: chips whose value still belongs to the selection
+    // are NEVER touched - server-rendered rich :chip content survives
+    // both patches and client-side picks with zero flash. Surplus chips
+    // are removed, missing ones appended as plain optimistic chips (the
+    // LiveView patch swaps rich content in: server wins). Multiset
+    // counting keeps duplicate-value options honest.
+    const want = Array.from(this.select.selectedOptions)
+      .map((o) => o.value)
+      .filter((v) => v !== "");
+    const need = new Map();
+    for (const v of want) need.set(v, (need.get(v) || 0) + 1);
+    for (const chip of Array.from(
+      this.chips.querySelectorAll("[data-pc-combo-chip]"),
+    )) {
+      const n = need.get(chip.dataset.value) || 0;
+      if (n > 0) need.set(chip.dataset.value, n - 1);
+      else chip.remove();
     }
+    for (const v of want) {
+      const left = need.get(v) || 0;
+      if (left === 0) continue;
+      need.set(v, left - 1);
+      this.chips.appendChild(this.buildChip(v));
+    }
+    this.applyChipOrder();
+  },
+
+  // The server's chosen order arrives via data-order (data attrs still
+  // update on phx-update=ignore containers). Enforce it after membership
+  // reconciliation; chips the server does not know yet (client picks
+  // awaiting their patch) keep their spot at the end.
+  applyChipOrder() {
+    let order = null;
+    try {
+      order = JSON.parse(this.chips.dataset.order || "null");
+    } catch {
+      order = null;
+    }
+    if (!Array.isArray(order)) return;
+    const byValue = new Map();
+    const current = [];
+    for (const chip of Array.from(
+      this.chips.querySelectorAll("[data-pc-combo-chip]"),
+    )) {
+      current.push(chip);
+      const v = chip.dataset.value;
+      if (!byValue.has(v)) byValue.set(v, []);
+      byValue.get(v).push(chip);
+    }
+    const seq = [];
+    for (const v of order) {
+      const arr = byValue.get(v);
+      if (arr && arr.length) seq.push(arr.shift());
+    }
+    for (const arr of byValue.values()) seq.push(...arr);
+    if (
+      seq.length === current.length &&
+      seq.every((c, i) => c === current[i])
+    ) {
+      return;
+    }
+    for (const chip of seq) this.chips.appendChild(chip);
+  },
+
+  buildChip(value) {
+    const option = Array.from(this.select.options).find(
+      (o) => o.value === value,
+    );
+    const text = option ? option.textContent.trim() : value;
+    const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
+    const chip = document.createElement("span");
+    chip.className = "pc-combo-box__chip";
+    chip.setAttribute("data-pc-combo-chip", "");
+    chip.dataset.value = value;
+    const label = document.createElement("span");
+    label.className = "pc-combo-box__chip-label";
+    // server-rendered :chip templates let client-built chips be RICH
+    // immediately - no round-trip pop-in, rich even without wiring
+    const tpl = Array.from(
+      this.el.querySelectorAll("template[data-pc-combo-chip-template]"),
+    ).find((t) => t.dataset.value === value);
+    if (tpl) {
+      label.appendChild(tpl.content.cloneNode(true));
+    } else {
+      label.textContent = text;
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pc-combo-box__chip-remove";
+    btn.setAttribute("data-pc-combo-chip-remove", "");
+    btn.dataset.value = value;
+    btn.setAttribute("aria-label", removeLabel + text);
+    btn.tabIndex = -1;
+    const icon = document.createElement("span");
+    icon.className = "hero-x-mark-mini pc-combo-box__chip-remove-icon";
+    btn.appendChild(icon);
+    chip.append(label, btn);
+    return chip;
   },
 
   syncFromSelect() {
@@ -4028,7 +4144,55 @@ export const PetalComboBox = {
       // the hook never touches the attribute, so a server-rendered
       // placeholder (including live changes to it) is always the truth
     }
-    if (this.triggerLabel) {
+    // :selected slot content is server-rendered; the label carries the
+    // values it was rendered for. When they match the selection (the
+    // patch that just landed), leave the rich DOM alone - overwrite with
+    // optimistic text only for client-side changes, and drop the marker
+    // so later syncs stay optimistic until the next patch.
+    // Order differences are legitimate: the server renders chosen order
+    // (chips follow pick order by design) while the hook reads DOM option
+    // order - so freshness is a SET comparison, never a sequence one.
+    let labelIsFresh = false;
+    if (this.triggerLabel && this.triggerLabel.dataset.customLabel != null) {
+      // JSON-encoded stamp: no delimiter to collide with value contents
+      let rendered = null;
+      try {
+        rendered = JSON.parse(this.triggerLabel.dataset.values);
+      } catch {
+        rendered = null;
+      }
+      if (Array.isArray(rendered) && sameValueMultiset(rendered, values)) {
+        labelIsFresh = true;
+        clearTimeout(this.labelPatchTimer);
+        this.labelPatchTimer = null;
+        this.labelStaleSince = null;
+      } else {
+        delete this.triggerLabel.dataset.values;
+        // a phx-change form means the patch that re-renders the rich
+        // content is already on its way - keeping the briefly-stale rich
+        // DOM reads better than flashing plain text for one round trip.
+        // Unwired comboboxes get the honest optimistic text instead, and
+        // the grace window self-heals wired ones whose handler never
+        // re-renders the value. The window anchors to the FIRST
+        // divergence - continuing picks or unrelated patches never
+        // extend it, so a silent handler always degrades within 2s.
+        const form = this.select.form;
+        if (form && form.hasAttribute("phx-change") && values.length > 0) {
+          if (this.labelStaleSince == null) {
+            this.labelStaleSince = performance.now();
+            clearTimeout(this.labelPatchTimer);
+            this.labelPatchTimer = setTimeout(() => {
+              this.labelPatchTimer = null;
+              this.syncFromSelect();
+            }, 2000);
+          }
+          if (performance.now() - this.labelStaleSince < 2000) {
+            labelIsFresh = true;
+          }
+        }
+      }
+    }
+    if (this.triggerLabel && !labelIsFresh) {
       const placeholder = this.triggerLabel.dataset.placeholderText;
       if (values.length === 0) {
         this.triggerLabel.textContent = placeholder || "";
@@ -4143,6 +4307,7 @@ export const PetalComboBox = {
   },
 
   highlight(item, scroll = true) {
+    this.highlightedValue = item ? item.dataset.value : null;
     for (const i of this.items())
       i.toggleAttribute("data-highlighted", i === item);
     if (item) {

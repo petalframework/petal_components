@@ -3,6 +3,21 @@
 
 #### Added
 
+- **`combo_box` M3a - the slot family completes: `:header`, `:footer`,
+  `:selected`, `:chip`.** All four speak the `:option` slot's grammar
+  (`:let` receives normalized options with `meta`), all render-only, no
+  new hook state machines. `:header`/`:footer` are panel chrome OUTSIDE
+  the listbox - captions, counts, manage links - keyboard navigation
+  and filtering never touch them. `:selected` renders rich closed-state
+  content in the trigger (colored label dots with a "+N" overflow is
+  pure composition, not an attr); `:chip` renders rich chips with the
+  remove button intact. Both closed-state slots reconcile by
+  server-wins-on-patch: client picks show plain optimistic text, the
+  LiveView patch swaps the rich content back in, and fresh
+  server-rendered DOM is left untouched whenever it already matches
+  the selection (value-stamped diffing on the label and per-chip
+  `data-value`).
+
 - **`DataTable.State` + the in-memory engine - the 4.12 data table
   foundation.** `PetalComponents.DataTable.State` is the whole backend
   contract in one struct (multi-sort `order_by`, typed `filters`, page,

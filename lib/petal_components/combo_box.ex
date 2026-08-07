@@ -134,9 +134,46 @@ defmodule PetalComponents.ComboBox do
     plain label, so rich content never affects search or the closed state.
     """
 
+  slot :header,
+    doc: """
+    panel chrome rendered above the option list (below the trigger
+    variant's search) - column captions, hints. Lives OUTSIDE the
+    listbox, so keyboard navigation and filtering never touch it.
+    """
+
+  slot :footer,
+    doc: """
+    panel chrome rendered below the option list - counts, "manage"
+    links. Lives OUTSIDE the listbox; pointer-interactive content works,
+    keyboard focus stays with the options.
+    """
+
+  slot :selected,
+    doc: """
+    trigger variant only: custom closed-state content rendered inside
+    the trigger in place of the plain label/count - avatars, colored
+    dots, "+N" summaries. `:let` receives the LIST of chosen normalized
+    option maps (`label`, `value`, `meta`). Client-side picks show the
+    plain optimistic text until the LiveView patch re-renders the slot -
+    the server-wins reconciliation the trigger label already uses. The
+    empty state always shows the placeholder.
+    """
+
+  slot :chip,
+    doc: """
+    multiple mode: custom chip content rendered in place of the plain
+    label - avatars, dots. `:let` receives the chosen normalized option
+    map. The remove button stays appended. Client-side picks build
+    plain-text chips optimistically until the LiveView patch re-renders
+    the rich ones (server wins); server-rendered chips are left intact
+    whenever they already match the selection.
+    """
+
   def combo_box(assigns) do
     groups = normalize_options(assigns.options)
-    values = current_values(assigns)
+    # a native select can only select each option once - duplicated caller
+    # values are meaningless and would desync the freshness stamps
+    values = assigns |> current_values() |> Enum.uniq()
     id = resolve_id(assigns)
 
     assigns =
@@ -220,7 +257,13 @@ defmodule PetalComponents.ComboBox do
           data-pc-combo-trigger-label
           data-placeholder-text={@placeholder}
           data-count-label={@count_label}
-        >{@trigger_label}</span>
+          data-custom-label={@selected != [] && "true"}
+          data-values={@selected != [] && Jason.encode!(Enum.map(@selected_options, & &1.value))}
+        ><%= if @selected != [] && @current_values != [] do %>
+          <span class="pc-combo-box__selected-content">{render_slot(@selected, @selected_options)}</span>
+        <% else %>
+          {@trigger_label}
+        <% end %></span>
         <.icon name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
       </button>
 
@@ -241,14 +284,33 @@ defmodule PetalComponents.ComboBox do
 
       <div :if={@variant == "input"} class="pc-combo-box__control">
         <div class="pc-combo-box__content">
+          <%!-- phx-update="ignore": after the initial render the HOOK is the
+          sole writer in here. Two writers on one region made LiveView's
+          diff misalign - its skip markers landed on moved nodes and
+          blanked chip icons. The hook reconciles from the select (server
+          truth) plus the :chip templates, which stay server-owned. --%>
+          <%!-- data-* attrs still update on ignored elements - data-order
+          carries the server's chosen order so reorders reach the hook --%>
           <div
             :if={@multiple}
+            id={"#{@id}-chips"}
+            phx-update="ignore"
             class="pc-combo-box__chips"
             data-pc-combo-chips
             data-remove-label={@remove_label}
+            data-order={Jason.encode!(@current_values)}
           >
-            <span :for={opt <- @selected_options} class="pc-combo-box__chip" data-pc-combo-chip>
-              <span class="pc-combo-box__chip-label">{opt.label}</span>
+            <span
+              :for={opt <- @selected_options}
+              class="pc-combo-box__chip"
+              data-pc-combo-chip
+              data-value={opt.value}
+            >
+              <span class="pc-combo-box__chip-label"><%= if @chip != [] do %>
+                {render_slot(@chip, opt)}
+              <% else %>
+                {opt.label}
+              <% end %></span>
               <button
                 type="button"
                 class="pc-combo-box__chip-remove"
@@ -310,6 +372,9 @@ defmodule PetalComponents.ComboBox do
             placeholder={@search_placeholder}
           />
         </div>
+        <div :if={@header != []} class="pc-combo-box__header">
+          {render_slot(@header)}
+        </div>
         <div
           role="listbox"
           id={"#{@id}-listbox"}
@@ -337,7 +402,19 @@ defmodule PetalComponents.ComboBox do
           <% end %>
           <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
         </div>
+        <div :if={@footer != []} class="pc-combo-box__footer">
+          {render_slot(@footer)}
+        </div>
       </div>
+
+      <%!-- one inert template per option when :chip is present: the hook
+      clones these to build rich chips client-side instantly - no
+      round-trip pop-in, and unwired comboboxes get rich chips too --%>
+      <template
+        :for={opt <- (@chip != [] && @multiple && Enum.flat_map(@groups, & &1.options)) || []}
+        data-pc-combo-chip-template
+        data-value={opt.value}
+      >{render_slot(@chip, opt)}</template>
 
       <div
         class="pc-combo-box__live"
