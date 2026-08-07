@@ -228,6 +228,17 @@ defmodule PetalComponents.DataTable.StateTest do
 
       removed = State.handle_op(text, %{"op" => "filter", "field" => "name"}, @opts)
       assert removed.filters == []
+
+      # an unknown operator must not become an equality filter - the
+      # safe application is removal, same shape as the clear button
+      bogus =
+        State.handle_op(
+          text,
+          %{"op" => "filter", "field" => "name", "filter_op" => "regex", "value" => ".*"},
+          @opts
+        )
+
+      assert bogus.filters == []
     end
   end
 

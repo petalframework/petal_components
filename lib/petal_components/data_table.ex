@@ -689,7 +689,10 @@ defmodule PetalComponents.DataTable do
   defp current_values(nil), do: []
   defp current_values(%{value: value}), do: List.wrap(value)
 
+  # the engine accepts both range shapes, so both must render
   defp current_pair(%{op: :between, value: [min, max]}), do: {min, max}
+  defp current_pair(%{op: :between, value: %{"min" => min, "max" => max}}), do: {min, max}
+  defp current_pair(%{op: :between}), do: {nil, nil}
   defp current_pair(%{value: value}) when not is_list(value), do: {value, nil}
   defp current_pair(_other), do: {nil, nil}
 
@@ -708,6 +711,16 @@ defmodule PetalComponents.DataTable do
   end
 
   defp display_value(%{op: :between, value: [min, max]}, _options), do: "#{min}\u2013#{max}"
+
+  defp display_value(%{op: :between, value: %{"min" => min, "max" => max}}, _options),
+    do: "#{min}\u2013#{max}"
+
+  # hand-built states can carry shapes no editor produces - never crash
+  # the toolbar over one
+  defp display_value(%{value: value}, _options) when is_list(value),
+    do: Enum.map_join(value, ", ", &to_string/1)
+
+  defp display_value(%{value: %{} = value}, _options), do: inspect(value)
   defp display_value(%{value: value}, _options), do: to_string(value)
 
   defp range_text(%State{total: nil} = state, _of_label, page_label),

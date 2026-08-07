@@ -137,6 +137,27 @@ defmodule PetalComponents.DataTableTest do
     refute html =~ ~s(href="/orders?filters)
   end
 
+  test "a map-shaped between range renders instead of crashing" do
+    assigns =
+      base(%{
+        state: %State{
+          total: 74,
+          filters: [%{field: :amount, op: :between, value: %{"min" => "10", "max" => "90"}}]
+        }
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table">
+        <:col :let={row} field={:amount} filterable="number">{row.amount}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ "Amount between 10–90"
+    assert html =~ ~s(name="value" value="10")
+    assert html =~ ~s(name="value2" value="90")
+  end
+
   test "reset filters button appears only while filters are active" do
     filtered = %State{total: 74, filters: [%{field: :name, op: :contains, value: "a"}]}
     assigns = base(%{filtered: filtered})

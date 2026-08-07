@@ -208,9 +208,13 @@ defmodule PetalComponents.DataTable.State do
         # or not the form said so
         {:in, Enum.reject(params["values"], &(&1 in [nil, ""]))}
       else
-        case Map.get(@op_strings, params["filter_op"], :eq) do
-          :between -> {:between, normalize_between(params["value"], params["value2"])}
-          op -> {op, params["value"]}
+        case Map.fetch(@op_strings, params["filter_op"] || "") do
+          {:ok, :between} -> {:between, normalize_between(params["value"], params["value2"])}
+          {:ok, op} -> {op, params["value"]}
+          # missing/unknown operator: from_params-grade rejection - the
+          # only safe application is removing this field's filter (the
+          # clear button's payload is exactly this shape)
+          :error -> {:eq, ""}
         end
       end
 
