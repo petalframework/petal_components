@@ -292,6 +292,28 @@ defmodule PetalComponents.DataTableTest do
     assert loading_html =~ ~s(disabled data-pc-dt-indeterminate)
   end
 
+  test "toolbar count and bulk ids come from the normalized selection" do
+    assigns =
+      base(%{
+        rows: [%{id: 1, name: "Amy"}, %{id: 2, name: "Bea"}],
+        messy: ["1", "1", nil, "", 1]
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={@messy}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:bulk_action :let={ids}>
+          <span>ids:{Enum.join(ids, ",")}</span>
+        </:bulk_action>
+      </.data_table>
+      """)
+
+    # dupes/nils/blanks collapse: one real id -> count 1, slot gets ["1"]
+    assert html =~ "1 selected"
+    assert html =~ "ids:1<"
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{

@@ -223,15 +223,15 @@ defmodule PetalComponents.DataTable do
       <div
         :if={
           @toolbar != [] or @searchable or @filter_cols != [] or @state.filters != [] or
-            (@selectable and @selected != [])
+            @selected_ids != []
         }
         class="pc-data-table__toolbar"
       >
-        <%= if @selectable and @selected != [] do %>
+        <%= if @selected_ids != [] do %>
           <span class="pc-data-table__selection-count">
-            {length(@selected)} {@selected_label}
+            {length(@selected_ids)} {@selected_label}
           </span>
-          {render_slot(@bulk_action, @selected)}
+          {render_slot(@bulk_action, @selected_ids)}
           <.button
             type="button"
             size="sm"
@@ -551,11 +551,21 @@ defmodule PetalComponents.DataTable do
   # -- selection -------------------------------------------------------------
 
   defp selection_assigns(%{selectable: false} = assigns) do
-    assign(assigns, selected_set: MapSet.new(), all_selected?: false, some_selected?: false)
+    assign(assigns,
+      selected_ids: [],
+      selected_set: MapSet.new(),
+      all_selected?: false,
+      some_selected?: false
+    )
   end
 
   defp selection_assigns(assigns) do
-    selected_set = MapSet.new(assigns.selected, &to_string/1)
+    # normalize ONCE and use everywhere - checkboxes, the toolbar count
+    # and the :bulk_action ids must never disagree about what is selected
+    selected_ids =
+      assigns.selected |> Enum.map(&to_string/1) |> Enum.reject(&(&1 == "")) |> Enum.uniq()
+
+    selected_set = MapSet.new(selected_ids)
 
     page_keys =
       if assigns.loading,
@@ -573,6 +583,7 @@ defmodule PetalComponents.DataTable do
     picked = Enum.count(page_keys, &MapSet.member?(selected_set, &1))
 
     assign(assigns,
+      selected_ids: selected_ids,
       selected_set: selected_set,
       all_selected?: page_keys != [] and picked == length(page_keys),
       some_selected?: picked > 0
