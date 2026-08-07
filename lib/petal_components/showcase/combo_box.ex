@@ -38,6 +38,7 @@ defmodule PetalComponents.Showcase.ComboBox do
         id="sx-combo-basic"
         name="country"
         placeholder="Select a country…"
+        clearable
         options={[
           {"🇦🇺 Australia", "au"},
           {"🇯🇵 Japan", "jp"},
