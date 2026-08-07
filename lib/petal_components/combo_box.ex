@@ -149,6 +149,11 @@ defmodule PetalComponents.ComboBox do
     default: "Searching…",
     doc: "the remote loading row's text, localizable"
 
+  attr :size, :string,
+    default: "md",
+    values: ["sm", "md", "lg"],
+    doc: "control density - follows the field-size family"
+
   attr :placeholder, :string, default: "Select an option…"
   attr :disabled, :boolean, default: false
 
@@ -239,7 +244,7 @@ defmodule PetalComponents.ComboBox do
     ~H"""
     <div
       id={@id}
-      class={["pc-combo-box", @class]}
+      class={["pc-combo-box", @size != "md" && "pc-combo-box--#{@size}", @class]}
       phx-hook="PetalComboBox"
       data-max-items={@max_items}
       data-free-text={(@free_text || @create) && "true"}

@@ -1338,4 +1338,72 @@ defmodule PetalComponents.FieldTest do
     assert html =~ ~s|data-value-prefix="$"|
     assert html =~ ~s|data-value-suffix="%"|
   end
+
+  describe "combobox field" do
+    test "renders label, combobox, errors and help under the wrapper" do
+      assigns = %{
+        form:
+          Phoenix.Component.to_form(%{"city" => "syd"},
+            as: :user,
+            errors: [city: {"is invalid", []}],
+            action: :validate
+          )
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.field
+          type="combobox"
+          field={@form[:city]}
+          label="City"
+          help_text="Pick one"
+          options={[{"Sydney", "syd"}]}
+          clearable
+        />
+        """)
+
+      assert html =~ "pc-combo-box"
+      assert html =~ "City"
+      assert html =~ "Pick one"
+      assert html =~ "is invalid"
+      assert html =~ "pc-form-field-wrapper--error"
+      assert html =~ ~s|name="user[city]"|
+      # the chosen value flowed from the form field
+      assert html =~ ~s|data-has-value="true"|
+      # clearable rode @rest through the include list
+      assert html =~ "pc-combo-box__clear"
+    end
+
+    test "multiple appends [] once and adds the empty hidden input" do
+      assigns = %{form: Phoenix.Component.to_form(%{}, as: :user)}
+
+      html =
+        rendered_to_string(~H"""
+        <.field type="combobox" field={@form[:tags]} multiple options={[{"A", "a"}]} />
+        """)
+
+      assert html =~ ~s|type="hidden" name="user[tags][]" value=""|
+      refute html =~ "user[tags][][]"
+    end
+
+    test "size maps the field family onto the combobox family; combo_variant reaches the anatomy" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field
+          type="combobox"
+          name="who"
+          value={nil}
+          label="Who"
+          size="xs"
+          combo_variant="trigger"
+          options={[{"A", "a"}]}
+        />
+        """)
+
+      assert html =~ "pc-combo-box--sm"
+      assert html =~ "pc-combo-box__trigger"
+    end
+  end
 end

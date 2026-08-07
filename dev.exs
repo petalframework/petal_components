@@ -7344,6 +7344,43 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Field citizenship + sizes</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        &lt;.field type="combobox"&gt; brings label, changeset errors and help_text; size spans
+        the field family (xs/xl clamp to sm/lg). Rich slots stay on the bare component.
+      </p>
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl px-6 py-10">
+        <div class="mx-auto flex w-full max-w-sm flex-col gap-1">
+          <.field
+            type="combobox"
+            name="fc_city"
+            value={nil}
+            label="Destination"
+            help_text="Where the team offsite lands"
+            clearable
+            options={[{"🇯🇵 Tokyo", "tyo"}, {"🇵🇹 Lisbon", "lis"}, {"🇸🇪 Stockholm", "sto"}]}
+          />
+          <.field
+            type="combobox"
+            name="fc_size_sm"
+            value={nil}
+            label="Small"
+            size="sm"
+            options={["Alpha", "Beta"]}
+          />
+          <.field
+            type="combobox"
+            name="fc_size_lg"
+            value={nil}
+            label="Large"
+            size="lg"
+            combo_variant="trigger"
+            placeholder="Trigger, lg"
+            options={["Alpha", "Beta"]}
+          />
+        </div>
+      </div>
+
       <h2 class="mt-10 mb-1 text-lg font-semibold">Remote search - live</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         The LiveView is the data source: typing pushes a debounced event with the raw term, the

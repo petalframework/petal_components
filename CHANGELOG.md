@@ -3,6 +3,19 @@
 
 #### Added
 
+- **`combo_box` M4 - field citizenship and sizes.**
+  `<.field type="combobox">` brings the full field grammar - label,
+  changeset errors (with the wrapper error ring on the control and
+  trigger), `help_text`, required - and forwards every combobox attr;
+  `combo_variant` selects the anatomy (`:variant` belongs to
+  radio-card), the field size family maps onto the new combobox
+  `size` attr (`sm`/`md`/`lg`; `xs`/`xl` clamp), and `clearable`
+  passes through. Multiple gets the empty hidden input so forms post
+  cleanly. Rich slots (`:option`, `:selected`, `:chip`,
+  `:header`/`:footer`) stay on the bare component by design.
+
+#### Added
+
 - **`combo_box` M3b - the modes: `free_text`, `create`, remote search.**
   The last of the Tom Select parity surface, on the new architecture:
   - `free_text`: Enter at the empty stop commits the typed text as a
