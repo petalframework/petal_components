@@ -7332,6 +7332,7 @@ defmodule Dev.PlaygroundLive do
           <:col :let={row} field={:status}>
             <.badge
               size="sm"
+              variant="soft"
               color={
                 case row.status do
                   "paid" -> "success"
