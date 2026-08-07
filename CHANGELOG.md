@@ -1,4 +1,26 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`<.data_table>` - the component core (4.12 data table, milestone 1).**
+  Composed around `<.table>`, driven entirely by `DataTable.State`:
+  `:col` slots (field, label, sortable, align), sortable headers with
+  aria-sort in BOTH wiring modes - link mode patches per-column URLs
+  built via `State.to_params` (shareable state, working back button),
+  event mode pushes one op-grammar event (`sort`/`page`/
+  `clear_filters`) - a range-summary footer with pagination that
+  auto-picks numbered (total known) or simple (cursor mode), loading
+  skeleton rows, a filters-aware empty state with the clear-filters
+  way out, `:action`/`:toolbar`/`:empty` slots, and density/striped/
+  sticky pass-through. Toolbar search + filter editors arrive next
+  milestone (the combobox trigger listbox was built for them).
+- **`table` `on_sort` accepts a 1-arity function** of the sort key -
+  per-column events/JS, how the data table patches sort URLs.
+- **`pagination` event mode grows up**: `event` accepts a custom event
+  name (string) and `event_values` adds phx-value-* pairs - page
+  clicks can speak any consumer's event grammar.
+
 ### 4.12.0 - 2026-08-08
 
 #### Added

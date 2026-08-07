@@ -46,8 +46,12 @@ defmodule PetalComponents.Table do
 
   attr :on_sort, :any,
     default: "sort",
-    doc:
-      "event name (or JS command) fired when a sortable header is clicked; receives phx-value-sort of the column's sort_key"
+    doc: """
+    event name (or JS command) fired when a sortable header is clicked;
+    receives phx-value-sort of the column's sort_key. May also be a
+    1-arity function of the sort_key returning the event/JS per column -
+    how the data table patches per-column sort URLs in link mode.
+    """
 
   slot :col do
     attr :label, :string
@@ -98,7 +102,7 @@ defmodule PetalComponents.Table do
                 <button
                   type="button"
                   class="pc-table__sort"
-                  phx-click={@on_sort}
+                  phx-click={resolve_on_sort(@on_sort, sort_key(col))}
                   phx-value-sort={sort_key(col)}
                 >
                   {col[:label]}
@@ -153,6 +157,9 @@ defmodule PetalComponents.Table do
     </table>
     """
   end
+
+  defp resolve_on_sort(on_sort, key) when is_function(on_sort, 1), do: on_sort.(key)
+  defp resolve_on_sort(on_sort, _key), do: on_sort
 
   defp sort_key(col), do: col[:sort_key] || String.downcase(col[:label] || "")
 

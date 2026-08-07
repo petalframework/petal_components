@@ -228,6 +228,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "combo-box", name: "Combobox", ready: true},
+        %{slug: "data-table", name: "Data table", ready: true},
         %{slug: "radio", name: "Radio", ready: true},
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
@@ -746,6 +747,7 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
+       dt: PetalComponents.DataTable.State |> struct() |> run_dt(),
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1435,6 +1437,40 @@ defmodule Dev.PlaygroundLive do
   # component, so the page proves it live
   def handle_event("pg_combo_change", %{"pg_city" => value}, socket),
     do: {:noreply, update(socket, :combo, &%{&1 | chosen: value})}
+
+  # the data table's event-mode op grammar, applied with State helpers and
+  # re-run through the free engine - the whole backend in one handler
+  def handle_event("pg_table", params, socket) do
+    alias PetalComponents.DataTable.State
+    {state, _rows} = socket.assigns.dt
+
+    state =
+      case params do
+        %{"op" => "sort", "field" => field} ->
+          State.toggle_sort(state, String.to_existing_atom(field))
+
+        %{"op" => "page", "page" => page} ->
+          %{state | page: String.to_integer(to_string(page))}
+
+        %{"op" => "clear_filters"} ->
+          State.clear_filters(state)
+
+        _ ->
+          state
+      end
+
+    {:noreply, assign(socket, :dt, run_dt(state))}
+  end
+
+  defp run_dt(state) do
+    {rows, state} =
+      PetalComponents.DataTable.Engine.List.run(
+        PetalComponents.Showcase.DataTable.sample_rows(),
+        %{state | page_size: 5}
+      )
+
+    {state, rows}
+  end
 
   def handle_event("pg_remote_search", term, socket) do
     term = String.downcase(to_string(term))
@@ -7273,6 +7309,61 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "data-table"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl">
+      <h1 class="text-3xl font-bold tracking-tight">Data table</h1>
+      <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
+        Sortable, paged and filter-aware, driven by one State struct. This live demo runs
+        EVENT mode: every interaction pushes a single op-grammar event, the handler applies it
+        with State helpers and re-runs the free in-memory engine. Link mode does the same
+        through patch URLs - state you can curl.
+      </p>
+
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
+        <% {state, rows} = @dt %>
+        <.data_table id="pg-dt" rows={rows} state={state} on_change="pg_table" striped>
+          <:col :let={row} field={:name} sortable>{row.name}</:col>
+          <:col :let={row} field={:email}>{row.email}</:col>
+          <:col :let={row} field={:status}>
+            <.badge
+              size="sm"
+              color={
+                case row.status do
+                  "paid" -> "success"
+                  "pending" -> "warning"
+                  _ -> "danger"
+                end
+              }
+              label={row.status}
+            />
+          </:col>
+          <:col :let={row} field={:amount} sortable align="right">${row.amount}</:col>
+        </.data_table>
+      </div>
+
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.DataTable,
+              ~w(basic loading empty)a
+            )
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
     </div>
     """
   end
