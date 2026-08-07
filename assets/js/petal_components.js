@@ -3585,8 +3585,66 @@ export const PetalComboBox = {
     this.onPanelPointerDown = (e) => {
       if (e.target !== this.input) e.preventDefault();
     };
+    // Chrome-vs-caret is decided at POINTERDOWN, not click: pointer events
+    // hit-test the real touch point, while iOS tap-target correction
+    // rewrites the synthesized click's target AND coordinates (snapping
+    // both onto the nearby text field), so the click is unreliable
+    // evidence of where the finger landed. preventDefault on chrome
+    // presses keeps focus in the input - on desktop the blur would fire
+    // focusout, close the panel mid-press, and the click would then
+    // REOPEN it (the flash). Same pattern onPanelPointerDown proves.
+    // Each pointer carries its OWN chrome-vs-caret verdict, so
+    // interleaved fingers in any press/release order can never consume
+    // one another's record - the click claims its pointer's verdict.
+    this.onControlPointerDown = (e) => {
+      if (this.input.disabled) return;
+      // any fresh press ends close-suppression: a legitimate rapid
+      // follow-up tap has its own pointerdown, a trailing same-gesture
+      // click does not - the exact discriminator, no time window needed
+      this.suppressOpenAt = -Infinity;
+      const chrome = e.target !== this.input;
+      this.pressVerdicts.set(e.pointerId, { chrome, at: performance.now() });
+      if (chrome) e.preventDefault();
+    };
+    // Abandoned records must not linger to poison a later synthetic
+    // caret click: a cancel or an off-control release deletes at once.
+    // An on-control release leaves the record for its click - which iOS
+    // Safari may synthesize LATER than any queued task, so there is no
+    // timer sweep; leftovers age out at click time instead (see below).
+    this.onPressSettle = (e) => {
+      if (e.type === "pointercancel" || !this.control?.contains(e.target)) {
+        this.pressVerdicts.delete(e.pointerId);
+      }
+    };
     this.onControlClick = (e) => {
       if (this.input.disabled) return;
+      // the click claims its own pointer's verdict (clicks are
+      // PointerEvents in modern browsers); a click without a usable
+      // pointerId takes the sole surviving verdict, a click with NO
+      // verdicts (synthetic - tests, assistive tech) falls back to its
+      // own target, and genuine multi-pointer ambiguity degrades to
+      // caret-safe (never close on a guess)
+      // verdicts older than a second are leftovers from presses whose
+      // click never arrived - drop them before deciding (timer-free, so
+      // no race with Safari's late click synthesis)
+      const now = performance.now();
+      for (const [id, v] of this.pressVerdicts) {
+        if (now - v.at > 1000) this.pressVerdicts.delete(id);
+      }
+
+      let chrome;
+      if (this.pressVerdicts.has(e.pointerId)) {
+        chrome = this.pressVerdicts.get(e.pointerId).chrome;
+        this.pressVerdicts.delete(e.pointerId);
+      } else if (this.pressVerdicts.size === 1) {
+        chrome = this.pressVerdicts.values().next().value.chrome;
+        this.pressVerdicts.clear();
+      } else if (this.pressVerdicts.size === 0) {
+        chrome = e.target !== this.input;
+      } else {
+        chrome = false;
+        this.pressVerdicts.clear();
+      }
       if (e.target.closest("[data-pc-combo-chip-remove]")) {
         const value = e.target.closest("[data-pc-combo-chip-remove]").dataset
           .value;
@@ -3594,25 +3652,45 @@ export const PetalComboBox = {
         this.input.focus();
         return;
       }
-      if (e.target.closest("[data-pc-combo-clear]")) {
-        this.select.value = "";
-        this.dispatchChange();
-        this.syncFromSelect();
-        this.input.focus();
-        return;
-      }
       if (this.panel.hidden) {
+        // a deliberate chrome close wins its own gesture: trailing
+        // clicks from OTHER fingers of the same burst arrive WITHOUT a
+        // fresh pointerdown (which clears the suppression) and must not
+        // reopen. The 1s age cap frees clicks with no pointer sequence
+        // at all (assistive tech) from a long-stale suppression.
+        if (now - this.suppressOpenAt < 1000) return;
         this.openPanel();
         this.input.focus();
-      } else if (e.target !== this.input) {
-        // chevron / control chrome toggles; a click on the input itself is
-        // caret work - closing here would discard the active query
+      } else if (chrome) {
+        // chevron / control chrome toggles; a press on the input itself
+        // is caret work - closing would discard the active query
         this.closePanel();
         this.input.focus();
+        this.suppressOpenAt = now;
       }
     };
+    // the clear button is bound directly so both anatomies share one
+    // path: inside the input variant's control, and as the trigger
+    // variant's sibling over the right rail. stopPropagation keeps the
+    // clear from reading as a control/trigger toggle.
+    this.onClearClick = (e) => {
+      e.stopPropagation();
+      this.select.value = "";
+      this.dispatchChange();
+      this.syncFromSelect();
+      (this.trigger || this.input).focus();
+    };
     this.onFocusOut = (e) => {
-      if (!this.el.contains(e.relatedTarget)) this.closePanel();
+      // iOS Safari reports relatedTarget as null even when focus moves
+      // WITHIN the component (tapping the trigger button while the panel
+      // search has focus) - trusting it closed the panel mid-tap and the
+      // button's click then reopened it, an endless flash. Verify where
+      // focus actually landed once it settles; closing a tick later is
+      // imperceptible on the genuine Tab-away/click-away paths.
+      if (this.el.contains(e.relatedTarget)) return;
+      setTimeout(() => {
+        if (!this.el.contains(document.activeElement)) this.closePanel();
+      }, 0);
     };
     // trigger variant: the button opens the panel and focus moves to the
     // search input inside it; ArrowDown/Up on the button open too
@@ -3680,8 +3758,20 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
-    if (this.control)
+    this.clearButton = this.el.querySelector("[data-pc-combo-clear]");
+    if (this.clearButton) {
+      this.clearButton.addEventListener("click", this.onClearClick);
+    }
+    this.pressVerdicts = new Map();
+    this.suppressOpenAt = -Infinity;
+    if (this.control) {
+      this.control.addEventListener("pointerdown", this.onControlPointerDown);
       this.control.addEventListener("click", this.onControlClick);
+      // click fires between pointerup and any queued task, so consuming
+      // in onControlClick wins the race; these only catch abandonment
+      document.addEventListener("pointerup", this.onPressSettle);
+      document.addEventListener("pointercancel", this.onPressSettle);
+    }
     if (this.trigger) {
       this.trigger.addEventListener("click", this.onTriggerClick);
       this.trigger.addEventListener("keydown", this.onTriggerKeydown);
@@ -3705,13 +3795,23 @@ export const PetalComboBox = {
     this.list.removeEventListener("pointerover", this.onPointerOver);
     this.list.removeEventListener("click", this.onListClick);
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
-    if (this.control)
+    if (this.control) {
+      this.control.removeEventListener(
+        "pointerdown",
+        this.onControlPointerDown,
+      );
       this.control.removeEventListener("click", this.onControlClick);
+      document.removeEventListener("pointerup", this.onPressSettle);
+      document.removeEventListener("pointercancel", this.onPressSettle);
+    }
     if (this.trigger) {
       this.trigger.removeEventListener("click", this.onTriggerClick);
       this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
+    if (this.clearButton) {
+      this.clearButton.removeEventListener("click", this.onClearClick);
+    }
     if (this.form) this.form.removeEventListener("reset", this.onFormReset);
     document.removeEventListener(
       "pointerdown",

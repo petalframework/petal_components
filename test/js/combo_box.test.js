@@ -8,7 +8,7 @@
 // the boundary cycle, selection through the hidden select, and the
 // keystroke containment that keeps typing out of enclosing phx-change
 // forms.
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import hooks from "../../assets/js/petal_components.js";
 
@@ -74,7 +74,7 @@ function mountCombo({
         data-pc-combo-trigger data-placeholder="true">
         <span class="pc-combo-box__trigger-label" data-pc-combo-trigger-label
           data-placeholder-text="Pick..." data-count-label="selected">Pick...</span>
-      </button>`
+      </button>${clearable ? '<button type="button" class="pc-combo-box__trigger-clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}`
     : `<div class="pc-combo-box__control">
       <div class="pc-combo-box__content">
         ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
@@ -174,6 +174,175 @@ describe("open and close", () => {
     c.input.click();
     expect(c.panel.hidden).toBe(false);
     expect(c.input.value).toBe("syd");
+  });
+
+  it("a chevron tap closes even when iOS snaps the click onto the input", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.panel.hidden).toBe(false);
+    // the pointerdown hit-tests the REAL touch point (control chrome);
+    // iOS tap-target correction then rewrites the synthesized click's
+    // target AND coordinates onto the nearby text field
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("an input press is caret work even if the click reports the control", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    c.input.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+  });
+
+  it("an abandoned chrome press never poisons a later caret click", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // press the chevron but release outside the control - no control
+    // click ever fires to consume the record
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    document.body.dispatchEvent(pointerEvent("pointerup", "touch"));
+    // a later synthetic caret click (assistive tech) must stay caret work
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+  });
+
+  it("interleaved pointers disarm - one finger's click never consumes another's verdict", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // finger 1 rests on the input (caret), finger 2 presses the chevron
+    c.input.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 2 }),
+    );
+    // finger 1's click must NOT consume finger 2's chrome verdict
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+    // both released; a normal single chevron press still toggles
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 2 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 3 }),
+    );
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("reverse release order: the chevron press still closes after the other finger lifts", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    // finger 1 presses the chevron (chrome), finger 2 brushes the input,
+    // finger 2 lifts off-control FIRST, then finger 1 completes its press
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.input.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 2 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 2 }),
+    );
+    // the click arrives carrying finger 1's pointerId (modern browsers)
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("a trailing click from the same gesture never reopens a deliberate chrome close", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(10_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    expect(c.panel.hidden).toBe(false);
+    // finger 1 presses and clicks the chevron - deliberate close
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+    // finger 2's trailing click (same burst) must not reopen
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 2 }));
+    expect(c.panel.hidden).toBe(true);
+    // a RAPID follow-up tap (same instant, fresh pointerdown) reopens -
+    // suppression ends at the next pointerdown, not a time window
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 3 }),
+    );
+    c.control.dispatchEvent(pointerEvent("click", "touch", { pointerId: 3 }));
+    expect(c.panel.hidden).toBe(false);
+    clock.mockRestore();
+  });
+
+  it("Safari's late-synthesized click still finds its verdict - no timer race", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(20_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    // chevron press releases ON the control; the click arrives later
+    // than every queued task (iOS synthesis delay)
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    clock.mockReturnValue(20_400);
+    c.input.dispatchEvent(pointerEvent("click", "touch", { pointerId: 1 }));
+    expect(c.panel.hidden).toBe(true);
+    clock.mockRestore();
+  });
+
+  it("a leftover verdict older than a second cannot poison a synthetic caret click", () => {
+    const clock = vi.spyOn(performance, "now").mockReturnValue(30_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    type(c.input, "syd");
+    // chevron press whose click never arrives (released on-control)
+    c.control.dispatchEvent(
+      pointerEvent("pointerdown", "touch", { pointerId: 1 }),
+    );
+    c.control.dispatchEvent(
+      pointerEvent("pointerup", "touch", { pointerId: 1 }),
+    );
+    // much later, a synthetic caret click (assistive tech)
+    clock.mockReturnValue(31_500);
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.value).toBe("syd");
+    clock.mockRestore();
+  });
+
+  it("a cancelled chrome press clears the same way", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.control.dispatchEvent(pointerEvent("pointerdown", "touch"));
+    document.body.dispatchEvent(pointerEvent("pointercancel", "touch"));
+    c.input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("chrome pointerdowns are preventDefaulted so the input never blurs mid-press (the desktop flash)", () => {
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    const onChrome = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.control.dispatchEvent(onChrome);
+    expect(onChrome.defaultPrevented).toBe(true);
+    c.control.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(c.panel.hidden).toBe(true);
+    // ...but a press on the input itself keeps its default (caret, focus)
+    const onInput = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.input.dispatchEvent(onInput);
+    expect(onInput.defaultPrevented).toBe(false);
   });
 
   it("a click on control chrome (the chevron) toggles closed", () => {
@@ -299,6 +468,38 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(false);
   });
 
+  it("the trigger variant's clear empties the value, restores the placeholder label, and never toggles the panel", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, clearable: true });
+    c.trigger.click();
+    c.items()[1].click();
+    expect(c.select.value).toBe("tyo");
+    expect(c.triggerLabel().textContent).toBe("Tokyo");
+    expect(c.panel.hidden).toBe(true);
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.el.querySelector("[data-pc-combo-clear]").click();
+    expect(c.select.value).toBe("");
+    expect(c.triggerLabel().textContent).toBe("Pick...");
+    expect(c.trigger.getAttribute("data-placeholder")).toBe("true");
+    expect(c.el.hasAttribute("data-has-value")).toBe(false);
+    expect(c.panel.hidden).toBe(true);
+    expect(changes).toBe(1);
+  });
+
+  it("the input variant's clear dispatches exactly one change through the direct binding", () => {
+    const c = mountCombo({ options: CITIES, clearable: true });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.select.value).toBe("syd");
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.el.querySelector("[data-pc-combo-clear]").click();
+    expect(c.select.value).toBe("");
+    expect(c.input.value).toBe("");
+    expect(changes).toBe(1);
+    expect(c.panel.hidden).toBe(true);
+  });
+
   it("a press that starts inside the combobox and releases outside does not dismiss", () => {
     const c = mountCombo({ options: CITIES });
     c.control.click();
@@ -318,17 +519,47 @@ describe("open and close", () => {
     expect(c.panel.hidden).toBe(false);
   });
 
-  it("focusout to an element outside closes and restores the display", () => {
+  it("focusout to an element outside closes and restores the display", async () => {
     const c = mountCombo({ options: CITIES });
     c.select.value = "tyo";
     c.hook.syncFromSelect();
     c.control.click();
     type(c.input, "sy");
+    // focus genuinely leaves the component, then the event reports it
+    c.input.blur();
     c.el.dispatchEvent(
       new FocusEvent("focusout", { relatedTarget: document.body }),
     );
+    // the close verifies where focus actually landed one tick later
+    await new Promise((r) => setTimeout(r, 0));
     expect(c.panel.hidden).toBe(true);
     expect(c.input.value).toBe("Tokyo");
+  });
+
+  it("a null-relatedTarget focusout does NOT close when focus stayed inside (the iOS trigger flash)", async () => {
+    // iOS reports relatedTarget null even when focus moves WITHIN the
+    // component - trusting it closed the panel mid-tap and the trigger
+    // click then reopened it, an endless flash (device-log verified)
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    c.input.focus();
+    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: null }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.panel.hidden).toBe(false);
+  });
+
+  it("the trigger variant closes on a second trigger tap even when focusout reports null", async () => {
+    const c = mountCombo({ options: CITIES, trigger: true });
+    c.trigger.click();
+    expect(c.panel.hidden).toBe(false);
+    // iOS tap on the trigger: input blurs with relatedTarget null while
+    // focus actually lands on the button - the panel must survive the
+    // focusout and let the click toggle it closed
+    c.trigger.focus();
+    c.el.dispatchEvent(new FocusEvent("focusout", { relatedTarget: null }));
+    c.trigger.click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.panel.hidden).toBe(true);
   });
 
   it("Escape closes when open and is consumed; passes through when closed", () => {

@@ -337,6 +337,31 @@ defmodule PetalComponents.ComboBoxTest do
     end
   end
 
+  test "trigger variant with clearable renders the sibling clear over the rail" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="t" name="who" variant="trigger" clearable value="a" options={[{"A", "a"}]} />
+      """)
+
+    assert html =~ "pc-combo-box__trigger-clear"
+    assert html =~ "pc-combo-box__trigger--clearable"
+    # the clear is a SIBLING, never nested inside the trigger button
+    [before_panel, _] = String.split(html, "pc-combo-box__panel", parts: 2)
+
+    assert before_panel =~
+             ~r/<\/button>\s*(<!--.*?-->\s*)?<button[^>]*pc-combo-box__trigger-clear/s
+
+    # multiple never renders a trigger clear (the panel toggles are the road back)
+    multi =
+      rendered_to_string(~H"""
+      <.combo_box id="tm" name="who" variant="trigger" clearable multiple options={[{"A", "a"}]} />
+      """)
+
+    refute multi =~ "pc-combo-box__trigger-clear"
+  end
+
   test "raises without any id source" do
     assigns = %{}
 

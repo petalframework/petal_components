@@ -2290,6 +2290,19 @@
   .pc-combo-box[data-has-value] .pc-combo-box__clear {
     @apply inline-flex;
   }
+  /* trigger variant: the clear is a SIBLING floated over the rail just
+     left of the chevron (no button-in-button). The chevron NEVER moves -
+     the label yields truncation room only while a value is chosen, the
+     exact grammar of the input variant's inline X. */
+  .pc-combo-box__trigger-clear {
+    @apply absolute top-1/2 right-9 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+  }
+  .pc-combo-box[data-has-value] .pc-combo-box__trigger-clear {
+    @apply inline-flex;
+  }
+  .pc-combo-box[data-has-value] .pc-combo-box__trigger--clearable .pc-combo-box__trigger-label {
+    @apply pr-6;
+  }
   /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
   .pc-combo-box__clear-icon.pc-combo-box__clear-icon {
     @apply w-4! h-4!;

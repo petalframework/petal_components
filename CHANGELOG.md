@@ -16,7 +16,31 @@
   playground get a working table with zero setup. The `<.data_table>`
   component builds on this next.
 
+#### Added
+
+- **`combo_box` trigger variant supports `clearable`.** A chosen
+  single-select trigger had no road back to the empty state (Nic's
+  find - the input variant had the X, the trigger silently ignored the
+  attr). A button can't nest inside the trigger button, so the clear is
+  a sibling positioned over the trigger's right rail before the chevron
+  (Base UI anatomy), gated by the same `data-has-value` state, with a
+  24px hit target. Clearing empties the select, restores the
+  placeholder label, keeps the panel closed and returns focus to the
+  trigger. Multiple mode stays clear-less by design on both variants -
+  chips and panel toggles are its road back.
+
 #### Fixed
+
+- **`combo_box`: iOS taps on control chrome and the trigger button
+  reliably toggle the panel.** iOS Safari fires `focusout` with
+  `relatedTarget: null` even when focus moves WITHIN the component, so
+  a chevron or trigger tap closed the panel mid-press and the tap's own
+  click instantly reopened it - an invisible flash that read as a dead
+  chevron zone (input variant) and a picker that never closes (trigger
+  variant). Device-log verified. The focusout close now defers one tick
+  and verifies where focus actually landed instead of trusting
+  `relatedTarget`; genuine Tab-away and click-away close exactly as
+  before.
 
 - **`combo_box`: a touch-scroll no longer dismisses the panel.** The
   outside dismiss closed on `pointerdown`, so starting a scroll gesture
@@ -26,6 +50,21 @@
   in `pointercancel` or a far-away release and leaves the panel open,
   matching shadcn/Base UI and the old Tom Select behavior. A clean tap
   outside still closes, and the desktop focusout path is unchanged.
+
+#### Fixed
+
+- **`combo_box`: chevron press reliably toggles the panel closed on
+  every platform.** Two interacting bugs: on desktop, pressing the
+  (non-focusable) chevron blurred the input, focusout closed the panel
+  mid-press, and the click then saw a closed panel and REOPENED it -
+  the toggle flashed instead of closing. On iOS no blur fires, but tap-
+  target correction rewrites the synthesized click's target and
+  coordinates onto the nearby text field, so the tap read as caret work
+  and nothing closed. Fix: chrome-vs-caret is decided at `pointerdown`
+  (which hit-tests the real touch point and is never rewritten), the
+  click consumes that record, and chrome presses are preventDefaulted
+  so the input never blurs mid-press. Input presses keep caret
+  behavior and never discard the active query.
 
 #### Fixed
 
