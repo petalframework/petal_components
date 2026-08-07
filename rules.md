@@ -210,6 +210,7 @@ For anything beyond a static table, reach for `<.data_table>` instead of hand-wi
   searchable
   selectable
   selected={@selected}
+  row_id={&row_key/1}
   column_toggle
   hidden_columns={@hidden}
   page_size_options={[10, 25, 50]}
@@ -239,9 +240,7 @@ def handle_event("table", %{"op" => "select", "id" => id}, socket) do
 end
 
 def handle_event("table", %{"op" => "select_all"}, socket) do
-  # derive page ids with the SAME identity you pass as row_id
-  # (default :id) - a different key here desyncs the header checkbox
-  page_ids = Enum.map(socket.assigns.rows, &to_string(&1.id))
+  page_ids = Enum.map(socket.assigns.rows, &row_key/1)
   sel = socket.assigns.selected
 
   {:noreply,
@@ -258,6 +257,10 @@ def handle_event("table", %{"op" => "toggle_column", "field" => f}, socket) do
     if f in h, do: List.delete(h, f), else: h ++ [f]
   end)}
 end
+
+# ONE identity function, used as both the component's row_id and
+# select_all's page sweep - they must never disagree
+defp row_key(row), do: to_string(row.id)
 
 def handle_event("table", params, socket) do
   state = State.handle_op(socket.assigns.table, params, fields: [:customer, :status, :amount])

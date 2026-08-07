@@ -120,7 +120,7 @@ defmodule PetalComponents.Showcase.DataTable do
       state={state}
       on_change="table"
       column_toggle
-      hidden_columns={[:email]}
+      hidden_columns={["email"]}
     >
       <:col :let={row} field={:name} sortable>{row.name}</:col>
       <:col :let={row} field={:email}>{row.email}</:col>
