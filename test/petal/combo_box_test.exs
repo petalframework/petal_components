@@ -482,6 +482,18 @@ defmodule PetalComponents.ComboBoxTest do
       refute plain =~ "data-pc-combo-chip-template"
     end
 
+    test "the chips container is hook-owned: phx-update ignore with a stable id" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="own" name="own" multiple options={[{"Alpha", "a"}]} />
+        """)
+
+      assert html =~ ~s|id="own-chips"|
+      assert html =~ ~s|phx-update="ignore"|
+    end
+
     test ":chip renders rich chip content with the remove button intact; chips carry data-value" do
       assigns = %{}
 

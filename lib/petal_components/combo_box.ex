@@ -284,8 +284,15 @@ defmodule PetalComponents.ComboBox do
 
       <div :if={@variant == "input"} class="pc-combo-box__control">
         <div class="pc-combo-box__content">
+          <%!-- phx-update="ignore": after the initial render the HOOK is the
+          sole writer in here. Two writers on one region made LiveView's
+          diff misalign - its skip markers landed on moved nodes and
+          blanked chip icons. The hook reconciles from the select (server
+          truth) plus the :chip templates, which stay server-owned. --%>
           <div
             :if={@multiple}
+            id={"#{@id}-chips"}
+            phx-update="ignore"
             class="pc-combo-box__chips"
             data-pc-combo-chips
             data-remove-label={@remove_label}
