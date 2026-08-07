@@ -736,6 +736,263 @@ describe("multiple with chips", () => {
     expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
   });
 
+  it("server-rendered rich chips survive updated() when the selection matches", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    // simulate the LiveView patch: server marked options selected and
+    // rendered rich :chip content with matching data-values
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.chips_el.innerHTML =
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd">' +
+      '<span class="pc-combo-box__chip-label"><em>RICH</em> Sydney</span>' +
+      '<button type="button" class="pc-combo-box__chip-remove" data-pc-combo-chip-remove data-value="syd" tabindex="-1"></button></span>';
+    c.hook.updated();
+    expect(c.chips_el.querySelector("em")).not.toBeNull();
+    // incremental sync: a client-side pick APPENDS a plain chip and never
+    // touches the existing rich one - zero flash, server upgrades later
+    c.control.click();
+    c.items()[1].click();
+    expect(c.chips()).toHaveLength(2);
+    expect(c.chips()[0].querySelector("em")).not.toBeNull();
+    expect(c.chips()[1].querySelector("em")).toBeNull();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["syd", "tyo"]);
+    // unpicking removes exactly the right chip, leaving the rich one alone
+    c.items()[1].click();
+    expect(c.chips()).toHaveLength(1);
+    expect(c.chips()[0].querySelector("em")).not.toBeNull();
+  });
+
+  it("server-rendered :selected content survives sync when it matches; client picks go optimistic", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    // simulate the patch: server chose syd+tyo and rendered rich label content
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd", "tyo"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).not.toBeNull();
+    // a client-side pick diverges from the rendered values -> optimistic text
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "lis")
+      .click();
+    expect(label.querySelector("em")).toBeNull();
+    expect(label.textContent).toBe("3 selected");
+    expect(label.dataset.values).toBeUndefined();
+  });
+
+  it("freshness is a set check - chosen-order stamps and chips survive against option-order reads", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    // server stamped CHOSEN order (tyo picked first); hook reads option order
+    label.dataset.values = JSON.stringify(["tyo", "syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).not.toBeNull();
+  });
+
+  it("values containing old-delimiter bytes can never falsely match a different selection", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    // a single weird value whose contents embed both real values - JSON
+    // keeps it one value, so it must NOT match the two-value selection
+    label.dataset.values = JSON.stringify(["syd\u001ftyo"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>WRONG</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).toBeNull();
+  });
+
+  it("duplicate values stay fresh - multiset counting, never set flattening", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    // two selected options sharing a value (degenerate but legal HTML)
+    const dup = document.createElement("option");
+    dup.value = "syd";
+    dup.textContent = "Sydney 2";
+    c.select.appendChild(dup);
+    c.select
+      .querySelectorAll('option[value="syd"]')
+      .forEach((o) => (o.selected = true));
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.chips_el.innerHTML =
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd"><span class="pc-combo-box__chip-label"><em>R1</em></span></span>' +
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd"><span class="pc-combo-box__chip-label"><em>R2</em></span></span>';
+    c.hook.updated();
+    expect(c.chips_el.querySelectorAll("em")).toHaveLength(2);
+  });
+
+  it("inside a phx-change form, a stale rich label is kept until the patch (no text flash)", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    // pick another: wired form -> patch is coming -> rich content stays
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
+  });
+
+  it("a wired form whose handler never re-renders self-heals to optimistic text after the grace window", () => {
+    vi.useFakeTimers();
+    const now = vi.spyOn(performance, "now");
+    now.mockReturnValue(0);
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    // grace window: stale rich kept while the patch is presumed en route
+    expect(label.querySelector("em")).not.toBeNull();
+    // no patch ever arrives - the timer degrades to honest optimistic text
+    now.mockReturnValue(2100);
+    vi.advanceTimersByTime(2100);
+    expect(label.querySelector("em")).toBeNull();
+    expect(label.textContent).toBe("2 selected");
+    now.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("continuing picks never extend the grace window - it anchors to the first divergence", () => {
+    vi.useFakeTimers();
+    const now = vi.spyOn(performance, "now");
+    now.mockReturnValue(0);
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    // divergence begins
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
+    // keep interacting inside the window - must NOT re-arm it
+    now.mockReturnValue(1500);
+    vi.advanceTimersByTime(1500);
+    c.items()
+      .find((i) => i.dataset.value === "lis")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
+    // past 2s from the FIRST divergence: degrade despite recent activity
+    now.mockReturnValue(2100);
+    vi.advanceTimersByTime(600);
+    expect(label.querySelector("em")).toBeNull();
+    now.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("the panel stays open across LiveView patches mid-multi-pick", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.panel.hidden).toBe(false);
+    // the phx-change patch: server always renders the panel hidden and
+    // aria-expanded false - open-state belongs to the client
+    c.panel.hidden = true;
+    c.input.setAttribute("aria-expanded", "false");
+    c.hook.updated();
+    expect(c.panel.hidden).toBe(false);
+    expect(c.input.getAttribute("aria-expanded")).toBe("true");
+    // a panel the user closed stays closed through patches
+    key(c.input, "Escape");
+    c.hook.updated();
+    expect(c.panel.hidden).toBe(true);
+  });
+
+  it("client-built chips clone the server-rendered :chip template - rich immediately", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const tpl = document.createElement("template");
+    tpl.setAttribute("data-pc-combo-chip-template", "");
+    tpl.dataset.value = "tyo";
+    tpl.innerHTML = '<em class="rich-bit">T</em><span>Tokyo</span>';
+    c.el.appendChild(tpl);
+    c.control.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    const chip = c.chips().find((x) => x.dataset.value === "tyo");
+    expect(chip.querySelector("em.rich-bit")).not.toBeNull();
+    // options without a template still build plain text chips
+    c.items()
+      .find((i) => i.dataset.value === "syd")
+      .click();
+    const plain = c.chips().find((x) => x.dataset.value === "syd");
+    expect(plain.querySelector("em")).toBeNull();
+    expect(plain.textContent).toContain("Sydney");
+  });
+
+  it("a server reorder reaches hook-owned chips via data-order; unstamped client picks stay last", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.control.click();
+    c.items()[0].click(); // syd
+    c.items()[1].click(); // tyo
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["syd", "tyo"]);
+    // the patch updates data-order (attrs update even on ignored nodes)
+    c.chips_el.dataset.order = JSON.stringify(["tyo", "syd"]);
+    c.hook.updated();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["tyo", "syd"]);
+    // a fresh client pick the server has not stamped yet appends last
+    c.items()[2].click(); // lis
+    expect(c.chips().map((x) => x.dataset.value)).toEqual([
+      "tyo",
+      "syd",
+      "lis",
+    ]);
+  });
+
+  it("the highlight survives LiveView patches - no re-homing on the first item", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    const third = c.items()[2];
+    third.click();
+    expect(third.hasAttribute("data-highlighted")).toBe(true);
+    // the patch: server renders options without client highlight state
+    for (const i of c.items()) i.removeAttribute("data-highlighted");
+    c.hook.updated();
+    expect(third.hasAttribute("data-highlighted")).toBe(true);
+    expect(c.items()[0].hasAttribute("data-highlighted")).toBe(false);
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();

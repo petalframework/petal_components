@@ -2242,6 +2242,17 @@
   .pc-combo-box__check.pc-combo-box__check {
     @apply w-4! h-4!;
   }
+  /* panel chrome: header above the list, footer below - OUTSIDE the
+     listbox, so keyboard navigation and filtering never touch them */
+  .pc-combo-box__header {
+    @apply border-b border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-400/25 dark:text-gray-400;
+  }
+  .pc-combo-box__footer {
+    @apply border-t border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-400/25 dark:text-gray-400;
+  }
+  .pc-combo-box__selected-content {
+    @apply flex min-w-0 items-center gap-2 truncate;
+  }
   .pc-combo-box__empty {
     @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
   }
@@ -2275,7 +2286,7 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
   }
   .pc-combo-box__chip-label {
-    @apply truncate;
+    @apply flex min-w-0 items-center gap-1.5 truncate;
   }
   /* interactive in-field icon = a real button: hit target, focus ring */
   .pc-combo-box__chip-remove {
@@ -2542,6 +2553,10 @@
 
   /* Avatars - sizes */
 
+  /* dense contexts: chips, table cells - the reui/shadcn size-4/5 band */
+  .pc-avatar--2xs {
+    @apply h-5 w-5 text-[10px];
+  }
   .pc-avatar--xs {
     @apply text-xs w-7 h-7;
   }

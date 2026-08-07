@@ -745,6 +745,7 @@ defmodule Dev.PlaygroundLive do
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
+       rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
        radio: %{
          style: "cards",
          variant: "outline",
@@ -1434,6 +1435,14 @@ defmodule Dev.PlaygroundLive do
   # component, so the page proves it live
   def handle_event("pg_combo_change", %{"pg_city" => value}, socket),
     do: {:noreply, update(socket, :combo, &%{&1 | chosen: value})}
+
+  def handle_event("pg_rich_change", params, socket) do
+    {:noreply,
+     assign(socket, :rich, %{
+       labels: Map.get(params, "pg_labels", []),
+       team: Map.get(params, "pg_team", [])
+     })}
+  end
 
   def handle_event("ctl_checkbox", %{"k" => "layout", "v" => v}, socket) when v in ~w(row col),
     do: {:noreply, update(socket, :checkbox, &%{&1 | layout: v})}
@@ -7315,12 +7324,93 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Rich closed states - live</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The same :selected and :chip slots, wired to a real form with phx-change. Every pick
+        round-trips, so the server re-renders the rich content immediately - dots, +N, avatar
+        chips all track your choices live.
+      </p>
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl px-6 py-10">
+        <form
+          id="pg-rich-form"
+          phx-change="pg_rich_change"
+          class="mx-auto flex w-full max-w-sm flex-col gap-4"
+        >
+          <.combo_box
+            id="pg-combo-labels"
+            name="pg_labels"
+            variant="trigger"
+            multiple
+            placeholder="Labels…"
+            count_label="labels"
+            value={@rich.labels}
+            options={[
+              {"Feature", "feat", color: "#0ea5e9"},
+              {"Bug", "bug", color: "#f43f5e"},
+              {"Improvement", "imp", color: "#10b981"},
+              {"Design", "des", color: "#a855f7"},
+              {"Docs", "docs", color: "#f59e0b"}
+            ]}
+          >
+            <:selected :let={chosen}>
+              <span
+                :for={opt <- Enum.take(chosen, 3)}
+                class="h-3 w-3 shrink-0 rounded-full"
+                style={"background-color: #{opt.meta[:color]}"}
+              ></span>
+              <span :if={length(chosen) == 1} class="truncate">{hd(chosen).label}</span>
+              <span
+                :if={length(chosen) > 3}
+                class="text-xs tabular-nums text-gray-500 dark:text-gray-400"
+              >
+                +{length(chosen) - 3}
+              </span>
+            </:selected>
+            <:option :let={opt}>
+              <span
+                class="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={"background-color: #{opt.meta[:color]}"}
+              ></span>
+              <span class="truncate">{opt.label}</span>
+            </:option>
+          </.combo_box>
+
+          <.combo_box
+            id="pg-combo-team"
+            name="pg_team"
+            multiple
+            placeholder="Add members…"
+            value={@rich.team}
+            options={[
+              {"Amelia Ward", "amelia", role: "Engineering"},
+              {"Jonah Reyes", "jonah", role: "Design"},
+              {"Priya Anand", "priya", role: "Support"},
+              {"Tom Hale", "tom", role: "Engineering"}
+            ]}
+          >
+            <:chip :let={opt}>
+              <.avatar size="2xs" name={opt.label} random_gradient />
+              <span class="truncate">{opt.label}</span>
+            </:chip>
+            <:option :let={opt}>
+              <.avatar size="xs" name={opt.label} random_gradient />
+              <span class="flex min-w-0 flex-col leading-tight">
+                <span class="truncate">{opt.label}</span>
+                <span class="truncate text-xs text-gray-500 dark:text-gray-400">
+                  {opt.meta[:role]}
+                </span>
+              </span>
+            </:option>
+          </.combo_box>
+        </form>
+      </div>
+
       <div
         :for={
           ex <-
             examples_for(
               PetalComponents.Showcase.ComboBox,
-              ~w(multiple trigger rich_options basic preselected groups)a
+              ~w(labels team panel_chrome multiple trigger rich_options basic preselected groups)a
             )
         }
         class="mt-10"

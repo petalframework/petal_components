@@ -5,7 +5,7 @@ defmodule PetalComponents.Avatar do
 
   attr(:src, :string, default: nil, doc: "hosted avatar URL")
   attr(:alt, :string, default: nil, doc: "alt text for avatar image")
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
+  attr(:size, :string, default: "md", values: ["2xs", "xs", "sm", "md", "lg", "xl"])
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:name, :string, default: nil, doc: "name for placeholder initials")
 
@@ -145,7 +145,7 @@ defmodule PetalComponents.Avatar do
     """
   end
 
-  attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
+  attr(:size, :string, default: "md", values: ["2xs", "xs", "sm", "md", "lg", "xl"])
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:avatars, :list, default: [], doc: "list of your hosted avatar URLs")
 
