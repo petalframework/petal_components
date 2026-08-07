@@ -80,6 +80,7 @@ defmodule PetalComponents.Showcase.ComboBox do
       <.combo_box
         id="sx-combo-trigger"
         name="assignee"
+        clearable
         variant="trigger"
         placeholder="Assign to…"
         options={[

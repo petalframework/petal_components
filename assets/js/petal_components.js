@@ -3652,13 +3652,6 @@ export const PetalComboBox = {
         this.input.focus();
         return;
       }
-      if (e.target.closest("[data-pc-combo-clear]")) {
-        this.select.value = "";
-        this.dispatchChange();
-        this.syncFromSelect();
-        this.input.focus();
-        return;
-      }
       if (this.panel.hidden) {
         // a deliberate chrome close wins its own gesture: trailing
         // clicks from OTHER fingers of the same burst arrive WITHOUT a
@@ -3675,6 +3668,17 @@ export const PetalComboBox = {
         this.input.focus();
         this.suppressOpenAt = now;
       }
+    };
+    // the clear button is bound directly so both anatomies share one
+    // path: inside the input variant's control, and as the trigger
+    // variant's sibling over the right rail. stopPropagation keeps the
+    // clear from reading as a control/trigger toggle.
+    this.onClearClick = (e) => {
+      e.stopPropagation();
+      this.select.value = "";
+      this.dispatchChange();
+      this.syncFromSelect();
+      (this.trigger || this.input).focus();
     };
     this.onFocusOut = (e) => {
       // iOS Safari reports relatedTarget as null even when focus moves
@@ -3754,6 +3758,10 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
+    this.clearButton = this.el.querySelector("[data-pc-combo-clear]");
+    if (this.clearButton) {
+      this.clearButton.addEventListener("click", this.onClearClick);
+    }
     this.pressVerdicts = new Map();
     this.suppressOpenAt = -Infinity;
     if (this.control) {
@@ -3801,6 +3809,9 @@ export const PetalComboBox = {
       this.trigger.removeEventListener("keydown", this.onTriggerKeydown);
     }
     this.el.removeEventListener("focusout", this.onFocusOut);
+    if (this.clearButton) {
+      this.clearButton.removeEventListener("click", this.onClearClick);
+    }
     if (this.form) this.form.removeEventListener("reset", this.onFormReset);
     document.removeEventListener(
       "pointerdown",

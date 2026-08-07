@@ -16,6 +16,19 @@
   playground get a working table with zero setup. The `<.data_table>`
   component builds on this next.
 
+#### Added
+
+- **`combo_box` trigger variant supports `clearable`.** A chosen
+  single-select trigger had no road back to the empty state (Nic's
+  find - the input variant had the X, the trigger silently ignored the
+  attr). A button can't nest inside the trigger button, so the clear is
+  a sibling positioned over the trigger's right rail before the chevron
+  (Base UI anatomy), gated by the same `data-has-value` state, with a
+  24px hit target. Clearing empties the select, restores the
+  placeholder label, keeps the panel closed and returns focus to the
+  trigger. Multiple mode stays clear-less by design on both variants -
+  chips and panel toggles are its road back.
+
 #### Fixed
 
 - **`combo_box`: iOS taps on control chrome and the trigger button

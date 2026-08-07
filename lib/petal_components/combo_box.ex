@@ -203,7 +203,10 @@ defmodule PetalComponents.ComboBox do
         :if={@variant == "trigger"}
         type="button"
         id={"#{@id}-trigger"}
-        class="pc-combo-box__trigger"
+        class={[
+          "pc-combo-box__trigger",
+          @clearable && !@multiple && "pc-combo-box__trigger--clearable"
+        ]}
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded="false"
@@ -219,6 +222,21 @@ defmodule PetalComponents.ComboBox do
           data-count-label={@count_label}
         >{@trigger_label}</span>
         <.icon name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
+      </button>
+
+      <%!-- a button cannot nest inside the trigger button, so the clear is a
+      sibling positioned over the trigger's right rail (Base UI anatomy);
+      the same data-has-value gate the input variant uses shows it only
+      when something is chosen --%>
+      <button
+        :if={@variant == "trigger" && @clearable && !@multiple}
+        type="button"
+        class="pc-combo-box__trigger-clear"
+        data-pc-combo-clear
+        aria-label={@clear_label}
+        disabled={@disabled}
+      >
+        <.icon name="hero-x-mark-mini" class="pc-combo-box__clear-icon" />
       </button>
 
       <div :if={@variant == "input"} class="pc-combo-box__control">

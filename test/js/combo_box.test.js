@@ -74,7 +74,7 @@ function mountCombo({
         data-pc-combo-trigger data-placeholder="true">
         <span class="pc-combo-box__trigger-label" data-pc-combo-trigger-label
           data-placeholder-text="Pick..." data-count-label="selected">Pick...</span>
-      </button>`
+      </button>${clearable ? '<button type="button" class="pc-combo-box__trigger-clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}`
     : `<div class="pc-combo-box__control">
       <div class="pc-combo-box__content">
         ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
@@ -466,6 +466,38 @@ describe("open and close", () => {
       }),
     );
     expect(c.panel.hidden).toBe(false);
+  });
+
+  it("the trigger variant's clear empties the value, restores the placeholder label, and never toggles the panel", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, clearable: true });
+    c.trigger.click();
+    c.items()[1].click();
+    expect(c.select.value).toBe("tyo");
+    expect(c.triggerLabel().textContent).toBe("Tokyo");
+    expect(c.panel.hidden).toBe(true);
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.el.querySelector("[data-pc-combo-clear]").click();
+    expect(c.select.value).toBe("");
+    expect(c.triggerLabel().textContent).toBe("Pick...");
+    expect(c.trigger.getAttribute("data-placeholder")).toBe("true");
+    expect(c.el.hasAttribute("data-has-value")).toBe(false);
+    expect(c.panel.hidden).toBe(true);
+    expect(changes).toBe(1);
+  });
+
+  it("the input variant's clear dispatches exactly one change through the direct binding", () => {
+    const c = mountCombo({ options: CITIES, clearable: true });
+    c.control.click();
+    c.items()[0].click();
+    expect(c.select.value).toBe("syd");
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.el.querySelector("[data-pc-combo-clear]").click();
+    expect(c.select.value).toBe("");
+    expect(c.input.value).toBe("");
+    expect(changes).toBe(1);
+    expect(c.panel.hidden).toBe(true);
   });
 
   it("a press that starts inside the combobox and releases outside does not dismiss", () => {
