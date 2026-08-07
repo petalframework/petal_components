@@ -4614,19 +4614,19 @@ export const PetalDataTable = {
     this.searchTimer = null;
 
     this.onInput = (e) => {
-      const input = e.target.closest("[data-pc-dt-search]");
-      if (!input) return;
+      if (!e.target.closest("[data-pc-dt-search]")) return;
       clearTimeout(this.searchTimer);
       const wait = parseInt(this.el.dataset.debounce || "300", 10);
-      this.searchTimer = setTimeout(
-        () => this.patchTo(this.searchUrl(input.value)),
-        wait,
-      );
+      this.searchTimer = setTimeout(() => this.patchTo(this.navUrl()), wait);
     };
 
     this.onChange = (e) => {
-      const select = e.target.closest("[data-pc-dt-page-size]");
-      if (select) this.patchTo(this.pageSizeUrl(select.value));
+      if (!e.target.closest("[data-pc-dt-page-size]")) return;
+      // the nav URL reads the live search input too, so the pending
+      // debounced patch is redundant - and letting it fire later would
+      // navigate with a template predating this pick
+      clearTimeout(this.searchTimer);
+      this.patchTo(this.navUrl());
     };
 
     this.el.addEventListener("input", this.onInput);
@@ -4639,21 +4639,28 @@ export const PetalDataTable = {
     this.el.removeEventListener("change", this.onChange);
   },
 
-  searchUrl(term) {
-    const template = this.el.dataset.searchTemplate;
-    const trimmed = term.trim();
-    if (trimmed === "") {
-      // a blank term drops the search param entirely so URLs stay clean
-      return template.replace(/search=:term&?/, "").replace(/[?&]$/, "");
-    }
-    return template.replace(":term", encodeURIComponent(trimmed));
-  },
+  // Both placeholders resolve from the live DOM in one pass, so
+  // whichever control triggers the patch carries the other's current
+  // (possibly uncommitted) value instead of a stale committed one.
+  navUrl() {
+    let url = this.el.dataset.navTemplate;
 
-  pageSizeUrl(size) {
-    return this.el.dataset.pageSizeTemplate.replace(
-      ":page_size",
-      encodeURIComponent(size),
-    );
+    if (url.includes(":term")) {
+      const input = this.el.querySelector("[data-pc-dt-search]");
+      const trimmed = (input ? input.value : "").trim();
+      url =
+        trimmed === ""
+          ? // a blank term drops the search param entirely so URLs stay clean
+            url.replace(/search=:term&?/, "")
+          : url.replace(":term", encodeURIComponent(trimmed));
+    }
+
+    if (url.includes(":page_size")) {
+      const select = this.el.querySelector("[data-pc-dt-page-size]");
+      url = url.replace(":page_size", encodeURIComponent(select.value));
+    }
+
+    return url.replace(/[?&]$/, "");
   },
 
   patchTo(url) {

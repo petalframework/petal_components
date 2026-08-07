@@ -44,7 +44,7 @@ defmodule PetalComponents.DataTableTest do
     assert html =~ ~s(phx-hook="PetalDataTable")
     assert html =~ "data-pc-dt-search"
     assert html =~ "data-pc-dt-nav"
-    assert html =~ ~s(data-search-template="/orders?search=:term&amp;order_by=name%3Adesc")
+    assert html =~ ~s(data-nav-template="/orders?search=:term&amp;order_by=name%3Adesc")
   end
 
   test "page_size_options renders the footer select in both wiring modes" do
@@ -68,7 +68,7 @@ defmodule PetalComponents.DataTableTest do
       """)
 
     assert link_html =~ "data-pc-dt-page-size"
-    assert link_html =~ ~s(data-page-size-template="/orders?page_size=:page_size")
+    assert link_html =~ ~s(data-nav-template="/orders?page_size=:page_size")
   end
 
   test "reset filters button appears only while filters are active" do

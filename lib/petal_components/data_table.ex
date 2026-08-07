@@ -131,8 +131,7 @@ defmodule PetalComponents.DataTable do
       |> assign(:on_sort, sort_handler(assigns, fields))
       |> assign(:skeleton_rows, List.duplicate(%{}, min(assigns.state.page_size, 10)))
       |> assign(:hooked?, hooked?)
-      |> assign(:search_template, hooked? && search_template(assigns.path, assigns.state))
-      |> assign(:page_size_template, hooked? && page_size_template(assigns.path, assigns.state))
+      |> assign(:nav_template, hooked? && nav_template(assigns))
 
     ~H"""
     <div
@@ -140,8 +139,7 @@ defmodule PetalComponents.DataTable do
       class={["pc-data-table", @class]}
       phx-hook={@hooked? && "PetalDataTable"}
       data-debounce={@hooked? && @search_debounce}
-      data-search-template={@search_template || nil}
-      data-page-size-template={@page_size_template || nil}
+      data-nav-template={@nav_template || nil}
     >
       <a :if={@hooked?} data-pc-dt-nav data-phx-link="patch" data-phx-link-state="push" hidden></a>
       <div
@@ -356,32 +354,33 @@ defmodule PetalComponents.DataTable do
     join_query(path, if(query == "", do: "page=:page", else: "page=:page&" <> query))
   end
 
-  # the hook substitutes :term / :page_size client-side, so both
-  # placeholders are assembled around the already-encoded rest of the
-  # query, same trick as the pagination :page template
-  defp search_template(path, %State{} = state) do
-    query =
-      state
-      |> State.put_search("")
-      |> State.to_params()
-      |> flatten_params()
-      |> URI.encode_query()
+  # One template, both placeholders: the hook fills :term / :page_size
+  # from the live DOM at patch time, so an uncommitted search term and a
+  # fresh page-size pick can never revert each other. Placeholders are
+  # assembled around the already-encoded rest of the query (the
+  # pagination :page trick); a control the table doesn't render keeps
+  # its committed value in the rest instead of a placeholder.
+  defp nav_template(%{path: path, state: state} = assigns) do
+    state = %{state | page: 1}
+    state = if assigns.searchable, do: State.put_search(state, ""), else: state
 
-    join_query(path, if(query == "", do: "search=:term", else: "search=:term&" <> query))
-  end
+    params = State.to_params(state)
 
-  defp page_size_template(path, %State{} = state) do
-    query =
-      %{state | page: 1}
-      |> State.to_params()
-      |> Map.drop(["page", "page_size"])
-      |> flatten_params()
-      |> URI.encode_query()
+    params =
+      if assigns.page_size_options != [], do: Map.delete(params, "page_size"), else: params
 
-    join_query(
-      path,
-      if(query == "", do: "page_size=:page_size", else: "page_size=:page_size&" <> query)
-    )
+    placeholders =
+      Enum.filter(
+        [
+          assigns.searchable && "search=:term",
+          assigns.page_size_options != [] && "page_size=:page_size"
+        ],
+        & &1
+      )
+
+    rest = params |> flatten_params() |> URI.encode_query()
+    query = Enum.join(placeholders ++ if(rest == "", do: [], else: [rest]), "&")
+    join_query(path, query)
   end
 
   # a base path may already carry a query string - join accordingly
