@@ -2286,7 +2286,7 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0px);
   }
   .pc-combo-box__chip-label {
-    @apply truncate;
+    @apply flex min-w-0 items-center gap-1.5 truncate;
   }
   /* interactive in-field icon = a real button: hit target, focus ring */
   .pc-combo-box__chip-remove {
@@ -2553,6 +2553,10 @@
 
   /* Avatars - sizes */
 
+  /* dense contexts: chips, table cells - the reui/shadcn size-4/5 band */
+  .pc-avatar--2xs {
+    @apply h-5 w-5 text-[10px];
+  }
   .pc-avatar--xs {
     @apply text-xs w-7 h-7;
   }

@@ -748,12 +748,18 @@ describe("multiple with chips", () => {
       '<button type="button" class="pc-combo-box__chip-remove" data-pc-combo-chip-remove data-value="syd" tabindex="-1"></button></span>';
     c.hook.updated();
     expect(c.chips_el.querySelector("em")).not.toBeNull();
-    // a client-side change rebuilds plain optimistic chips (server wins later)
+    // incremental sync: a client-side pick APPENDS a plain chip and never
+    // touches the existing rich one - zero flash, server upgrades later
     c.control.click();
     c.items()[1].click();
     expect(c.chips()).toHaveLength(2);
-    expect(c.el.querySelector("[data-pc-combo-chip] em")).toBeNull();
+    expect(c.chips()[0].querySelector("em")).not.toBeNull();
+    expect(c.chips()[1].querySelector("em")).toBeNull();
     expect(c.chips().map((x) => x.dataset.value)).toEqual(["syd", "tyo"]);
+    // unpicking removes exactly the right chip, leaving the rich one alone
+    c.items()[1].click();
+    expect(c.chips()).toHaveLength(1);
+    expect(c.chips()[0].querySelector("em")).not.toBeNull();
   });
 
   it("server-rendered :selected content survives sync when it matches; client picks go optimistic", () => {
@@ -823,6 +829,27 @@ describe("multiple with chips", () => {
       '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd"><span class="pc-combo-box__chip-label"><em>R2</em></span></span>';
     c.hook.updated();
     expect(c.chips_el.querySelectorAll("em")).toHaveLength(2);
+  });
+
+  it("inside a phx-change form, a stale rich label is kept until the patch (no text flash)", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = document.createElement("form");
+    form.setAttribute("phx-change", "changed");
+    c.el.parentNode.insertBefore(form, c.el);
+    form.appendChild(c.el);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = JSON.stringify(["syd"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    // pick another: wired form -> patch is coming -> rich content stays
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "tyo")
+      .click();
+    expect(label.querySelector("em")).not.toBeNull();
   });
 
   it("choosing a chosen option un-chooses it", () => {

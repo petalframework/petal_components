@@ -417,6 +417,34 @@ defmodule PetalComponents.ComboBoxTest do
       assert html =~ ~s|data-values="[&quot;b&quot;,&quot;a&quot;]"|
     end
 
+    test "duplicated caller values dedupe - one chip, stamp matches what the select yields" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="dup"
+          name="dup"
+          variant="trigger"
+          multiple
+          value={["a", "a"]}
+          options={[{"Alpha", "a"}]}
+        >
+          <:selected :let={chosen}>{length(chosen)}</:selected>
+        </.combo_box>
+        """)
+
+      assert html =~ ~s|data-values="[&quot;a&quot;]"|
+
+      chips =
+        rendered_to_string(~H"""
+        <.combo_box id="dupc" name="dupc" multiple value={["a", "a"]} options={[{"Alpha", "a"}]} />
+        """)
+
+      assert length(String.split(chips, "data-pc-combo-chip\"")) - 1 <= 2
+      assert length(String.split(chips, ~s|class="pc-combo-box__chip"|)) - 1 == 1
+    end
+
     test ":selected falls back to the placeholder when nothing is chosen" do
       assigns = %{}
 

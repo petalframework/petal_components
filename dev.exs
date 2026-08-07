@@ -7358,6 +7358,7 @@ defmodule Dev.PlaygroundLive do
                 class="h-3 w-3 shrink-0 rounded-full"
                 style={"background-color: #{opt.meta[:color]}"}
               ></span>
+              <span :if={length(chosen) == 1} class="truncate">{hd(chosen).label}</span>
               <span
                 :if={length(chosen) > 3}
                 class="text-xs tabular-nums text-gray-500 dark:text-gray-400"
@@ -7388,11 +7389,11 @@ defmodule Dev.PlaygroundLive do
             ]}
           >
             <:chip :let={opt}>
-              <.avatar size="xs" name={opt.label} random_gradient />
+              <.avatar size="2xs" name={opt.label} random_gradient />
               <span class="truncate">{opt.label}</span>
             </:chip>
             <:option :let={opt}>
-              <.avatar size="xs" name={opt.label} random_gradient />
+              <.avatar size="2xs" name={opt.label} random_gradient />
               <span class="flex min-w-0 flex-col leading-tight">
                 <span class="truncate">{opt.label}</span>
                 <span class="truncate text-xs text-gray-500 dark:text-gray-400">

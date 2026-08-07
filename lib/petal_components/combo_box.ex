@@ -171,7 +171,9 @@ defmodule PetalComponents.ComboBox do
 
   def combo_box(assigns) do
     groups = normalize_options(assigns.options)
-    values = current_values(assigns)
+    # a native select can only select each option once - duplicated caller
+    # values are meaningless and would desync the freshness stamps
+    values = assigns |> current_values() |> Enum.uniq()
     id = resolve_id(assigns)
 
     assigns =
@@ -256,7 +258,7 @@ defmodule PetalComponents.ComboBox do
           data-placeholder-text={@placeholder}
           data-count-label={@count_label}
           data-custom-label={@selected != [] && "true"}
-          data-values={@selected != [] && Jason.encode!(@current_values)}
+          data-values={@selected != [] && Jason.encode!(Enum.map(@selected_options, & &1.value))}
         ><%= if @selected != [] && @current_values != [] do %>
           <span class="pc-combo-box__selected-content">{render_slot(@selected, @selected_options)}</span>
         <% else %>

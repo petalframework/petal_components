@@ -4002,45 +4002,57 @@ export const PetalComboBox = {
 
   syncChips() {
     if (!this.chips) return;
-    // server-rendered chips may carry rich :chip slot content - leave the
-    // DOM alone whenever it already matches the selection, and rebuild
-    // plain-text chips only for client-side changes (the LiveView patch
-    // then swaps the rich ones back in: server wins on patch)
+    // Incremental sync: chips whose value still belongs to the selection
+    // are NEVER touched - server-rendered rich :chip content survives
+    // both patches and client-side picks with zero flash. Surplus chips
+    // are removed, missing ones appended as plain optimistic chips (the
+    // LiveView patch swaps rich content in: server wins). Multiset
+    // counting keeps duplicate-value options honest.
     const want = Array.from(this.select.selectedOptions)
       .map((o) => o.value)
       .filter((v) => v !== "");
-    const have = Array.from(
+    const need = new Map();
+    for (const v of want) need.set(v, (need.get(v) || 0) + 1);
+    for (const chip of Array.from(
       this.chips.querySelectorAll("[data-pc-combo-chip]"),
-    ).map((c) => c.dataset.value);
-    // set comparison: server chips follow chosen order, the select follows
-    // option order - both describe the same selection
-    if (sameValueMultiset(want, have)) {
-      return;
+    )) {
+      const n = need.get(chip.dataset.value) || 0;
+      if (n > 0) need.set(chip.dataset.value, n - 1);
+      else chip.remove();
     }
+    for (const v of want) {
+      const left = need.get(v) || 0;
+      if (left === 0) continue;
+      need.set(v, left - 1);
+      this.chips.appendChild(this.buildChip(v));
+    }
+  },
+
+  buildChip(value) {
+    const option = Array.from(this.select.options).find(
+      (o) => o.value === value,
+    );
+    const text = option ? option.textContent.trim() : value;
     const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
-    this.chips.textContent = "";
-    for (const option of this.select.selectedOptions) {
-      if (option.value === "") continue;
-      const chip = document.createElement("span");
-      chip.className = "pc-combo-box__chip";
-      chip.setAttribute("data-pc-combo-chip", "");
-      chip.dataset.value = option.value;
-      const label = document.createElement("span");
-      label.className = "pc-combo-box__chip-label";
-      label.textContent = option.textContent.trim();
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "pc-combo-box__chip-remove";
-      btn.setAttribute("data-pc-combo-chip-remove", "");
-      btn.dataset.value = option.value;
-      btn.setAttribute("aria-label", removeLabel + option.textContent.trim());
-      btn.tabIndex = -1;
-      const icon = document.createElement("span");
-      icon.className = "hero-x-mark-mini pc-combo-box__chip-remove-icon";
-      btn.appendChild(icon);
-      chip.append(label, btn);
-      this.chips.appendChild(chip);
-    }
+    const chip = document.createElement("span");
+    chip.className = "pc-combo-box__chip";
+    chip.setAttribute("data-pc-combo-chip", "");
+    chip.dataset.value = value;
+    const label = document.createElement("span");
+    label.className = "pc-combo-box__chip-label";
+    label.textContent = text;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pc-combo-box__chip-remove";
+    btn.setAttribute("data-pc-combo-chip-remove", "");
+    btn.dataset.value = value;
+    btn.setAttribute("aria-label", removeLabel + text);
+    btn.tabIndex = -1;
+    const icon = document.createElement("span");
+    icon.className = "hero-x-mark-mini pc-combo-box__chip-remove-icon";
+    btn.appendChild(icon);
+    chip.append(label, btn);
+    return chip;
   },
 
   syncFromSelect() {
@@ -4081,6 +4093,14 @@ export const PetalComboBox = {
         labelIsFresh = true;
       } else {
         delete this.triggerLabel.dataset.values;
+        // a phx-change form means the patch that re-renders the rich
+        // content is already on its way - keeping the briefly-stale rich
+        // DOM reads better than flashing plain text for one round trip.
+        // Unwired comboboxes get the honest optimistic text instead.
+        const form = this.select.form;
+        if (form && form.hasAttribute("phx-change") && values.length > 0) {
+          labelIsFresh = true;
+        }
       }
     }
     if (this.triggerLabel && !labelIsFresh) {
