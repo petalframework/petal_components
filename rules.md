@@ -229,6 +229,8 @@ For anything beyond a static table, reach for `<.data_table>` instead of hand-wi
 
 The event-mode backend: UI-state ops (selection, column visibility) get their own clauses, and everything else is query state through `State.handle_op/3` (sort/page/search/page_size/filter/clear_filters). Do NOT skip the UI clauses when using `selectable`/`column_toggle` - `handle_op` ignores those ops by design:
 
+Events post STRING values, so keep the `selected` and `hidden` assigns as string lists (`["1", "7"]`, `["amount"]`) - mixing in integers or atoms makes the membership checks below silently miss:
+
 ```elixir
 def handle_event("table", %{"op" => "select", "id" => id}, socket) do
   {:noreply, update(socket, :selected, fn sel ->
@@ -237,6 +239,8 @@ def handle_event("table", %{"op" => "select", "id" => id}, socket) do
 end
 
 def handle_event("table", %{"op" => "select_all"}, socket) do
+  # derive page ids with the SAME identity you pass as row_id
+  # (default :id) - a different key here desyncs the header checkbox
   page_ids = Enum.map(socket.assigns.rows, &to_string(&1.id))
   sel = socket.assigns.selected
 
