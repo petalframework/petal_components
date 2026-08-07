@@ -62,6 +62,13 @@
   last visible column's checkbox disables (a table needs one), and
   filter buttons stay independent of visibility (filtering is not
   display).
+- **Data table showcase + rules (4.12 data table, milestone 4).**
+  Three new registry examples - the full toolbar (search + typed
+  filters + per-page), row selection with the morphing toolbar, and
+  columns visibility - powering the playground page and the upcoming
+  petal.build docs. `rules.md` gains the data table pattern (the
+  two-call event-mode backend, UI-state-vs-URL-state doctrine) for AI
+  assistants.
 - **`data_table` filter popovers are viewport-aware**: the editors now
   ride the popover's top-layer mode, so `PetalPopover` flips and clamps
   them inside the viewport - a filter button at the screen edge no

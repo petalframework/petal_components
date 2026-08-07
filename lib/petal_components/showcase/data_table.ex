@@ -35,6 +35,100 @@ defmodule PetalComponents.Showcase.DataTable do
     """
   end
 
+  example :toolbar, "The full toolbar: search, typed filters, per-page",
+    inert: true,
+    description:
+      "searchable sweeps string fields case-insensitively before filters (totals stay honest); filterable columns get buttons that open typed popover editors - operator + value for text/number/date (between reveals its second bound, no JS), a checkbox list for select - and read their predicate while active, with an inline clear. page_size_options adds the per-page select; Reset filters appears while any filter is active. Event mode posts one op-grammar event for all of it (State.handle_op/3 is the whole handler); link mode patches curl-able URLs." do
+    ~H"""
+    <% state = %State{
+      search: "e",
+      filters: [%{field: :status, op: :in, value: ["pending", "refunded"]}],
+      page_size: 5
+    } %>
+    <% {rows, state} = Engine.List.run(PetalComponents.Showcase.DataTable.sample_rows(), state) %>
+    <.data_table
+      id="sx-dt-toolbar"
+      rows={rows}
+      state={state}
+      on_change="table"
+      searchable
+      page_size_options={[5, 10, 20]}
+    >
+      <:col :let={row} field={:name} sortable>{row.name}</:col>
+      <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+      <:col
+        :let={row}
+        field={:status}
+        filterable="select"
+        options={[{"Paid", "paid"}, {"Pending", "pending"}, {"Refunded", "refunded"}]}
+      >
+        <.badge
+          size="sm"
+          variant="soft"
+          color={
+            case row.status do
+              "paid" -> "success"
+              "pending" -> "warning"
+              _ -> "danger"
+            end
+          }
+          label={row.status}
+        />
+      </:col>
+      <:col :let={row} field={:amount} sortable align="right" filterable="number">
+        ${row.amount}
+      </:col>
+    </.data_table>
+    """
+  end
+
+  example :selection, "Row selection with a morphing toolbar",
+    inert: true,
+    description:
+      "selectable adds a checkbox column keyed by row_id (a field or a function - it must uniquely identify records across ALL pages). The header checkbox is tri-state; while rows are selected the toolbar morphs into the count, your :bulk_action slot (:let receives the ids) and a clear button. Selection is UI state: it rides the on_ui event (defaulting to on_change) with select / select_all / clear_selection ops and never touches URLs - a MapSet plus three clauses is the whole backend." do
+    ~H"""
+    <% state = %State{page_size: 4} %>
+    <% {rows, state} = Engine.List.run(PetalComponents.Showcase.DataTable.sample_rows(), state) %>
+    <.data_table
+      id="sx-dt-selection"
+      rows={rows}
+      state={state}
+      on_change="table"
+      selectable
+      selected={["1", "3"]}
+    >
+      <:col :let={row} field={:name} sortable>{row.name}</:col>
+      <:col :let={row} field={:email}>{row.email}</:col>
+      <:col :let={row} field={:amount} align="right">${row.amount}</:col>
+      <:bulk_action :let={ids}>
+        <.button size="sm" variant="soft" color="danger">Archive {length(ids)}</.button>
+      </:bulk_action>
+    </.data_table>
+    """
+  end
+
+  example :columns, "Columns visibility",
+    inert: true,
+    description:
+      "column_toggle renders a Columns dropdown - every declared column with a checkbox, toggling immediately (the panel stays open for multi-toggling). hidden_columns is presentation state on the on_ui event, never in URLs; the last visible column can't be hidden, and filter buttons stay independent of visibility because filtering is not display." do
+    ~H"""
+    <% state = %State{page_size: 4} %>
+    <% {rows, state} = Engine.List.run(PetalComponents.Showcase.DataTable.sample_rows(), state) %>
+    <.data_table
+      id="sx-dt-columns"
+      rows={rows}
+      state={state}
+      on_change="table"
+      column_toggle
+      hidden_columns={[:email]}
+    >
+      <:col :let={row} field={:name} sortable>{row.name}</:col>
+      <:col :let={row} field={:email}>{row.email}</:col>
+      <:col :let={row} field={:amount} align="right">${row.amount}</:col>
+    </.data_table>
+    """
+  end
+
   example :loading, "Loading skeletons",
     description:
       "loading swaps the page for skeleton rows - one per page_size row, respecting column count and alignment. Flip it off when the query resolves." do
