@@ -3541,12 +3541,19 @@ export const PetalToast = {
 // the CHOSEN option (the check mark); the keyboard highlight is virtual:
 // data-highlighted + aria-activedescendant.
 // Same selection, any order: server-rendered rich content follows chosen
-// order while the hook reads DOM option order - freshness checks compare
-// membership, never sequence.
-function sameValueSet(a, b) {
+// order while the hook reads DOM option order - freshness compares
+// MULTISETS (duplicate values are counted, never flattened), never
+// sequences.
+function sameValueMultiset(a, b) {
   if (a.length !== b.length) return false;
-  const set = new Set(a);
-  return set.size === a.length ? b.every((v) => set.has(v)) : false;
+  const counts = new Map();
+  for (const v of a) counts.set(v, (counts.get(v) || 0) + 1);
+  for (const v of b) {
+    const n = counts.get(v);
+    if (!n) return false;
+    counts.set(v, n - 1);
+  }
+  return true;
 }
 
 export const PetalComboBox = {
@@ -4007,7 +4014,7 @@ export const PetalComboBox = {
     ).map((c) => c.dataset.value);
     // set comparison: server chips follow chosen order, the select follows
     // option order - both describe the same selection
-    if (sameValueSet(want, have)) {
+    if (sameValueMultiset(want, have)) {
       return;
     }
     const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
@@ -4063,8 +4070,14 @@ export const PetalComboBox = {
     // order - so freshness is a SET comparison, never a sequence one.
     let labelIsFresh = false;
     if (this.triggerLabel && this.triggerLabel.dataset.customLabel != null) {
-      const rendered = this.triggerLabel.dataset.values;
-      if (rendered != null && sameValueSet(rendered.split("\u001f"), values)) {
+      // JSON-encoded stamp: no delimiter to collide with value contents
+      let rendered = null;
+      try {
+        rendered = JSON.parse(this.triggerLabel.dataset.values);
+      } catch {
+        rendered = null;
+      }
+      if (Array.isArray(rendered) && sameValueMultiset(rendered, values)) {
         labelIsFresh = true;
       } else {
         delete this.triggerLabel.dataset.values;

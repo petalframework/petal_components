@@ -763,7 +763,7 @@ describe("multiple with chips", () => {
     c.select.querySelector('option[value="tyo"]').selected = true;
     const label = c.triggerLabel();
     label.dataset.customLabel = "true";
-    label.dataset.values = "syd\u001ftyo";
+    label.dataset.values = JSON.stringify(["syd", "tyo"]);
     label.innerHTML =
       '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
     c.hook.updated();
@@ -785,11 +785,44 @@ describe("multiple with chips", () => {
     const label = c.triggerLabel();
     label.dataset.customLabel = "true";
     // server stamped CHOSEN order (tyo picked first); hook reads option order
-    label.dataset.values = "tyo\u001fsyd";
+    label.dataset.values = JSON.stringify(["tyo", "syd"]);
     label.innerHTML =
       '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
     c.hook.updated();
     expect(label.querySelector("em")).not.toBeNull();
+  });
+
+  it("values containing old-delimiter bytes can never falsely match a different selection", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    // a single weird value whose contents embed both real values - JSON
+    // keeps it one value, so it must NOT match the two-value selection
+    label.dataset.values = JSON.stringify(["syd\u001ftyo"]);
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>WRONG</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).toBeNull();
+  });
+
+  it("duplicate values stay fresh - multiset counting, never set flattening", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    // two selected options sharing a value (degenerate but legal HTML)
+    const dup = document.createElement("option");
+    dup.value = "syd";
+    dup.textContent = "Sydney 2";
+    c.select.appendChild(dup);
+    c.select
+      .querySelectorAll('option[value="syd"]')
+      .forEach((o) => (o.selected = true));
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.chips_el.innerHTML =
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd"><span class="pc-combo-box__chip-label"><em>R1</em></span></span>' +
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd"><span class="pc-combo-box__chip-label"><em>R2</em></span></span>';
+    c.hook.updated();
+    expect(c.chips_el.querySelectorAll("em")).toHaveLength(2);
   });
 
   it("choosing a chosen option un-chooses it", () => {

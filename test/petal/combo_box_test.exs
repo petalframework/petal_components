@@ -397,7 +397,7 @@ defmodule PetalComponents.ComboBoxTest do
       refute html =~ "2 selected"
     end
 
-    test ":selected stamps data-values with the chosen values (chosen order - the hook compares as a set)" do
+    test ":selected stamps data-values as JSON (no delimiter to collide; hook compares as a multiset)" do
       assigns = %{}
 
       html =
@@ -414,7 +414,7 @@ defmodule PetalComponents.ComboBoxTest do
         </.combo_box>
         """)
 
-      assert html =~ ~s|data-values="b\x1fa"|
+      assert html =~ ~s|data-values="[&quot;b&quot;,&quot;a&quot;]"|
     end
 
     test ":selected falls back to the placeholder when nothing is chosen" do

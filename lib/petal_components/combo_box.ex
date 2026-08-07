@@ -256,7 +256,7 @@ defmodule PetalComponents.ComboBox do
           data-placeholder-text={@placeholder}
           data-count-label={@count_label}
           data-custom-label={@selected != [] && "true"}
-          data-values={@selected != [] && Enum.join(@current_values, "\x1f")}
+          data-values={@selected != [] && Jason.encode!(@current_values)}
         ><%= if @selected != [] && @current_values != [] do %>
           <span class="pc-combo-box__selected-content">{render_slot(@selected, @selected_options)}</span>
         <% else %>
