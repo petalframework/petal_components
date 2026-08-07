@@ -146,6 +146,81 @@ defmodule PetalComponents.DataTable.State do
     %{state | page_size: parse_pos_int(size, state.page_size), page: 1}
   end
 
+  @doc """
+  Applies one event-mode op payload - the entire `data_table` event
+  grammar in one call, so an event-mode handler is a one-liner:
+
+      def handle_event("table", params, socket) do
+        state = State.handle_op(socket.assigns.table, params, fields: [:name, :email])
+        {rows, state} = Engine.List.run(all_rows(), state)
+        {:noreply, assign(socket, rows: rows, table: state)}
+      end
+
+  Ops: `sort` (field), `page` (page), `search` (term), `page_size`
+  (page_size), `filter` (field, filter_op, value/value2/values), and
+  `clear_filters`. Unknown ops and non-whitelisted fields leave the
+  state unchanged; like `from_params/2`, no atoms are ever created
+  from input.
+
+  A `filter` op's value normalizes by editor shape: a `values` list
+  posts as-is (the select editor's `:in`), `between` pairs
+  `value`/`value2` into `[min, max]`, anything blank removes the
+  field's filter.
+  """
+  def handle_op(%__MODULE__{} = state, params, opts) when is_map(params) and is_list(opts) do
+    fields = Keyword.fetch!(opts, :fields)
+    field_strings = Map.new(fields, &{Atom.to_string(&1), &1})
+
+    case params do
+      %{"op" => "sort", "field" => field} ->
+        case Map.fetch(field_strings, to_string(field)) do
+          {:ok, field} -> toggle_sort(state, field)
+          :error -> state
+        end
+
+      %{"op" => "page", "page" => page} ->
+        %{state | page: parse_pos_int(to_string(page), state.page)}
+
+      %{"op" => "search", "term" => term} ->
+        put_search(state, term)
+
+      %{"op" => "page_size", "page_size" => size} ->
+        put_page_size(state, size)
+
+      %{"op" => "filter", "field" => field} ->
+        case Map.fetch(field_strings, to_string(field)) do
+          {:ok, field} -> apply_filter_op(state, field, params)
+          :error -> state
+        end
+
+      %{"op" => "clear_filters"} ->
+        clear_filters(state)
+
+      _other ->
+        state
+    end
+  end
+
+  defp apply_filter_op(state, field, params) do
+    {op, value} =
+      if is_list(params["values"]) do
+        # the select editor's shape - its grammar is always :in, whether
+        # or not the form said so
+        {:in, Enum.reject(params["values"], &(&1 in [nil, ""]))}
+      else
+        case Map.get(@op_strings, params["filter_op"], :eq) do
+          :between -> {:between, normalize_between(params["value"], params["value2"])}
+          op -> {op, params["value"]}
+        end
+      end
+
+    put_filter(state, field, op, value)
+  end
+
+  # a half-empty range can't match anything, so it reads as removal
+  defp normalize_between(min, max) when min in [nil, ""] or max in [nil, ""], do: ""
+  defp normalize_between(min, max), do: [min, max]
+
   @doc "Removes every filter, resetting to page 1."
   def clear_filters(%__MODULE__{} = state), do: %{state | filters: [], page: 1}
 

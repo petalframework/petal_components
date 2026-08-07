@@ -1438,33 +1438,14 @@ defmodule Dev.PlaygroundLive do
   def handle_event("pg_combo_change", %{"pg_city" => value}, socket),
     do: {:noreply, update(socket, :combo, &%{&1 | chosen: value})}
 
-  # the data table's event-mode op grammar, applied with State helpers and
-  # re-run through the free engine - the whole backend in one handler
+  # the data table's event-mode op grammar: State.handle_op speaks all of
+  # it (sort/page/search/page_size/filter/clear_filters), so the whole
+  # backend is one call plus a re-run through the free engine
   def handle_event("pg_table", params, socket) do
     alias PetalComponents.DataTable.State
     {state, _rows} = socket.assigns.dt
 
-    state =
-      case params do
-        %{"op" => "sort", "field" => field} ->
-          State.toggle_sort(state, String.to_existing_atom(field))
-
-        %{"op" => "page", "page" => page} ->
-          %{state | page: String.to_integer(to_string(page))}
-
-        %{"op" => "search", "term" => term} ->
-          State.put_search(state, term)
-
-        %{"op" => "page_size", "page_size" => size} ->
-          State.put_page_size(state, size)
-
-        %{"op" => "clear_filters"} ->
-          State.clear_filters(state)
-
-        _ ->
-          state
-      end
-
+    state = State.handle_op(state, params, fields: [:name, :email, :status, :amount])
     {:noreply, assign(socket, :dt, run_dt(state))}
   end
 
@@ -7342,8 +7323,13 @@ defmodule Dev.PlaygroundLive do
           page_size_options={[5, 10, 20]}
         >
           <:col :let={row} field={:name} sortable>{row.name}</:col>
-          <:col :let={row} field={:email}>{row.email}</:col>
-          <:col :let={row} field={:status}>
+          <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+          <:col
+            :let={row}
+            field={:status}
+            filterable="select"
+            options={[{"Paid", "paid"}, {"Pending", "pending"}, {"Refunded", "refunded"}]}
+          >
             <.badge
               size="sm"
               variant="soft"
@@ -7357,7 +7343,9 @@ defmodule Dev.PlaygroundLive do
               label={row.status}
             />
           </:col>
-          <:col :let={row} field={:amount} sortable align="right">${row.amount}</:col>
+          <:col :let={row} field={:amount} sortable align="right" filterable="number">
+            ${row.amount}
+          </:col>
         </.data_table>
       </div>
 

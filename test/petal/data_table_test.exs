@@ -71,6 +71,72 @@ defmodule PetalComponents.DataTableTest do
     assert link_html =~ ~s(data-nav-template="/orders?page_size=:page_size")
   end
 
+  test "filterable columns render popover editors typed per column" do
+    assigns =
+      base(%{
+        rows: [
+          %{name: "Amy", email: "amy@x.com", amount: 300, status: "pending"},
+          %{name: "Bea", email: "bea@x.com", amount: 40, status: "paid"}
+        ],
+        state: %State{
+          total: 74,
+          filters: [%{field: :status, op: :in, value: ["pending", "paid"]}]
+        }
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table">
+        <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+        <:col :let={row} field={:amount} filterable="number">{row.amount}</:col>
+        <:col :let={row} field={:status} filterable="select" options={["pending", "paid", "refunded"]}>
+          {row.status}
+        </:col>
+      </.data_table>
+      """)
+
+    # text editor: op select with the text grammar
+    assert html =~ ~s(name="filter_op")
+    assert html =~ ~s(value="starts_with")
+    # number editor: between + second bound input
+    assert html =~ ~s(value="between")
+    assert html =~ ~s(name="value2")
+    # select editor: checkboxes, current picks checked
+    assert html =~ ~s(name="values[]")
+    assert html =~ ~s(value="pending" checked)
+    refute html =~ ~s(value="refunded" checked)
+    # active trigger reads the predicate; its clear button posts removal
+    assert html =~ "Status is any of Pending, Paid"
+    assert html =~ ~s(aria-label="Clear Status filter")
+    # event mode carries the op grammar in hidden inputs, no hook
+    assert html =~ ~s(name="op" value="filter")
+    refute html =~ "PetalDataTable"
+  end
+
+  test "filterable link mode: hook + :filters placeholder + JSON stamp + clear URL" do
+    assigns =
+      base(%{
+        state: %State{total: 74, filters: [%{field: :email, op: :contains, value: "d"}]}
+      })
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path}>
+        <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(phx-hook="PetalDataTable")
+    assert html =~ "data-pc-dt-filter"
+    assert html =~ ~s(data-field="email")
+    assert html =~ ~s(data-nav-template="/orders?:filters")
+    assert html =~ ~s(data-filters=)
+    assert html =~ "contains"
+    # the clear affordance patches to a filterless URL
+    assert html =~ ~s(aria-label="Clear Email filter")
+    refute html =~ ~s(href="/orders?filters)
+  end
+
   test "reset filters button appears only while filters are active" do
     filtered = %State{total: 74, filters: [%{field: :name, op: :contains, value: "a"}]}
     assigns = base(%{filtered: filtered})

@@ -8,7 +8,7 @@ import hooks from "../../assets/js/petal_components.js";
 
 const mounted = [];
 
-function mount({ navTemplate, debounce } = {}) {
+function mountBase({ navTemplate, debounce } = {}) {
   const el = document.createElement("div");
   el.id = "dt";
   el.className = "pc-data-table";
@@ -36,6 +36,23 @@ function mount({ navTemplate, debounce } = {}) {
   });
 
   return { hook, el, patched };
+}
+
+const mount = mountBase;
+
+function mountWithFilter({ navTemplate, filters, formHtml }) {
+  const { hook, el, patched } = mountBase({ navTemplate });
+  if (filters) el.dataset.filters = JSON.stringify(filters);
+  const wrap = document.createElement("div");
+  wrap.className = "pc-popover__panel";
+  wrap.id = "pop";
+  wrap.innerHTML = formHtml;
+  el.appendChild(wrap);
+  return { hook, el, patched, form: wrap.querySelector("form") };
+}
+
+function submit(form) {
+  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
 function type(el, value) {
@@ -116,6 +133,92 @@ describe("PetalDataTable", () => {
     // the debounced search patch must NOT fire a second, stale navigation
     vi.advanceTimersByTime(1000);
     expect(patched).toEqual(["/orders?search=amy&page_size=20"]);
+  });
+
+  it("filter apply replaces this field's committed entry and closes the popover", () => {
+    const { el, patched, form } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [
+        { field: "email", op: "contains", value: "d" },
+        { field: "amount", op: "gt", value: "5" },
+      ],
+      formHtml: `
+        <form data-pc-dt-filter data-field="email">
+          <select name="filter_op">
+            <option value="contains">contains</option>
+            <option value="starts_with" selected>starts with</option>
+          </select>
+          <input name="value" value="amy" />
+        </form>
+      `,
+    });
+
+    submit(form);
+
+    expect(patched).toHaveLength(1);
+    const url = decodeURIComponent(patched[0]);
+    expect(url).toContain("filters[0][field]=amount");
+    expect(url).toContain("filters[1][field]=email");
+    expect(url).toContain("filters[1][op]=starts_with");
+    expect(url).toContain("filters[1][value]=amy");
+    expect(el.querySelector(".pc-popover__panel").style.display).toBe("none");
+  });
+
+  it("a select editor posts checked values as :in; none checked removes the filter", () => {
+    const { patched, form } = mountWithFilter({
+      navTemplate: "/orders?:filters&order_by=name",
+      filters: [{ field: "status", op: "in", value: ["pending"] }],
+      formHtml: `
+        <form data-pc-dt-filter data-field="status">
+          <input type="checkbox" name="values[]" value="paid" checked />
+          <input type="checkbox" name="values[]" value="refunded" checked />
+          <input type="checkbox" name="values[]" value="pending" />
+        </form>
+      `,
+    });
+
+    submit(form);
+    const url = decodeURIComponent(patched[0]);
+    expect(url).toContain("filters[0][value][]=paid");
+    expect(url).toContain("filters[0][value][]=refunded");
+    expect(url).not.toContain("pending");
+
+    form.querySelectorAll("input:checked").forEach((i) => (i.checked = false));
+    submit(form);
+    expect(patched[1]).toBe("/orders?order_by=name");
+  });
+
+  it("a half-empty between range reads as removal", () => {
+    const { patched, form } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [{ field: "amount", op: "between", value: ["1", "9"] }],
+      formHtml: `
+        <form data-pc-dt-filter data-field="amount">
+          <select name="filter_op"><option value="between" selected>between</option></select>
+          <input name="value" value="10" />
+          <input name="value2" value="" />
+        </form>
+      `,
+    });
+
+    submit(form);
+    expect(patched).toEqual(["/orders"]);
+  });
+
+  it("search patches carry the committed filters through :filters", () => {
+    const { el, patched } = mountBase({
+      navTemplate: "/orders?search=:term&:filters",
+      debounce: "300",
+    });
+    el.dataset.filters = JSON.stringify([
+      { field: "email", op: "contains", value: "d" },
+    ]);
+
+    type(el, "amy");
+    vi.advanceTimersByTime(300);
+    const url = decodeURIComponent(patched[0]);
+    expect(url).toContain("search=amy");
+    expect(url).toContain("filters[0][field]=email");
   });
 
   it("destroyed cancels a pending search patch", () => {

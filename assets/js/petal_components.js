@@ -4629,20 +4629,82 @@ export const PetalDataTable = {
       this.patchTo(this.navUrl());
     };
 
+    // link mode has no events, so a filter editor's Apply becomes a
+    // patch built from the form's inputs: replace this field's entry in
+    // the committed filter list (an empty editor removes it), close the
+    // popover, navigate
+    this.onSubmit = (e) => {
+      const form = e.target.closest("[data-pc-dt-filter]");
+      if (!form) return;
+      e.preventDefault();
+      clearTimeout(this.searchTimer);
+
+      const field = form.dataset.field;
+      const filters = this.committedFilters().filter((f) => f.field !== field);
+      const next = this.readFilter(form, field);
+      if (next) filters.push(next);
+
+      this.closePopover(form);
+      this.patchTo(this.navUrl(filters));
+    };
+
     this.el.addEventListener("input", this.onInput);
     this.el.addEventListener("change", this.onChange);
+    this.el.addEventListener("submit", this.onSubmit);
   },
 
   destroyed() {
     clearTimeout(this.searchTimer);
     this.el.removeEventListener("input", this.onInput);
     this.el.removeEventListener("change", this.onChange);
+    this.el.removeEventListener("submit", this.onSubmit);
+  },
+
+  committedFilters() {
+    try {
+      return JSON.parse(this.el.dataset.filters || "[]");
+    } catch {
+      return [];
+    }
+  },
+
+  readFilter(form, field) {
+    if (form.querySelector('input[name="values[]"]')) {
+      const values = Array.from(
+        form.querySelectorAll('input[name="values[]"]:checked'),
+        (i) => i.value,
+      );
+      return values.length ? { field, op: "in", value: values } : null;
+    }
+
+    const op = form.querySelector('select[name="filter_op"]')?.value || "eq";
+    const value = (form.querySelector('[name="value"]')?.value || "").trim();
+
+    if (op === "between") {
+      const value2 = (
+        form.querySelector('[name="value2"]')?.value || ""
+      ).trim();
+      // a half-empty range can't match anything, so it reads as removal
+      return value === "" || value2 === ""
+        ? null
+        : { field, op, value: [value, value2] };
+    }
+
+    return value === "" ? null : { field, op, value };
+  },
+
+  closePopover(form) {
+    const panel = form.closest(".pc-popover__panel");
+    if (!panel) return;
+    panel.style.display = "none";
+    const trigger = document.getElementById(`${panel.id}-trigger`);
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
   },
 
   // Both placeholders resolve from the live DOM in one pass, so
   // whichever control triggers the patch carries the other's current
   // (possibly uncommitted) value instead of a stale committed one.
-  navUrl() {
+  navUrl(filtersOverride) {
     let url = this.el.dataset.navTemplate;
 
     if (url.includes(":term")) {
@@ -4660,7 +4722,43 @@ export const PetalDataTable = {
       url = url.replace(":page_size", encodeURIComponent(select.value));
     }
 
+    if (url.includes(":filters")) {
+      const encoded = this.encodeFilters(
+        filtersOverride || this.committedFilters(),
+      );
+      url =
+        encoded === ""
+          ? url.replace(/:filters&?/, "")
+          : url.replace(":filters", encoded);
+    }
+
     return url.replace(/[?&]$/, "");
+  },
+
+  // mirrors the server's Phoenix-style indexed flattening, list values
+  // as repeated "[value][]" keys - from_params reads either side back
+  encodeFilters(filters) {
+    const enc = encodeURIComponent;
+    const pairs = [];
+
+    filters.forEach((f, i) => {
+      const base = `filters[${i}]`;
+      pairs.push(`${enc(`${base}[field]`)}=${enc(f.field)}`);
+      pairs.push(`${enc(`${base}[op]`)}=${enc(f.op)}`);
+      if (Array.isArray(f.value)) {
+        f.value.forEach((v) =>
+          pairs.push(`${enc(`${base}[value][]`)}=${enc(v)}`),
+        );
+      } else if (f.value && typeof f.value === "object") {
+        Object.entries(f.value).forEach(([k, v]) =>
+          pairs.push(`${enc(`${base}[value][${k}]`)}=${enc(v)}`),
+        );
+      } else {
+        pairs.push(`${enc(`${base}[value]`)}=${enc(f.value)}`);
+      }
+    });
+
+    return pairs.join("&");
   },
 
   patchTo(url) {

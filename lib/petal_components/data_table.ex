@@ -21,8 +21,10 @@ defmodule PetalComponents.DataTable do
       arrive as `%{"op" => "sort", "field" => f}`, page changes as
       `%{"op" => "page", "page" => n}`, quick-search as
       `%{"op" => "search", "term" => t}`, page-size changes as
-      `%{"op" => "page_size", "page_size" => n}`, filter clears as
-      `%{"op" => "clear_filters"}`. `State` has a helper for each op.
+      `%{"op" => "page_size", "page_size" => n}`, filter edits as
+      `%{"op" => "filter", "field" => f, ...editor inputs}`, filter
+      clears as `%{"op" => "clear_filters"}`. `State.handle_op/3`
+      speaks the whole grammar, so the handler is a one-liner.
 
   In link mode the quick-search input and rows-per-page select are wired
   by the `PetalDataTable` hook (patch URLs built from templates the
@@ -37,6 +39,7 @@ defmodule PetalComponents.DataTable do
   import PetalComponents.Button
   import PetalComponents.Icon
   import PetalComponents.Pagination
+  import PetalComponents.Popover
   import PetalComponents.Skeleton
   import PetalComponents.Table
 
@@ -94,12 +97,29 @@ defmodule PetalComponents.DataTable do
 
   attr :per_page_label, :string, default: "Per page", doc: "the rows-per-page label, localizable"
   attr :reset_filters_label, :string, default: "Reset filters"
+
+  attr :apply_label, :string,
+    default: "Apply",
+    doc: "the filter editors' submit label, localizable"
+
+  attr :filter_op_labels, :map,
+    default: %{},
+    doc: "overrides for the operator display names, e.g. %{contains: \"enthält\"}"
+
   attr :class, :any, default: nil
 
   slot :col, required: true do
     attr :field, :atom, required: true
     attr :label, :string
     attr :sortable, :boolean
+
+    attr :filterable, :string,
+      values: ["text", "number", "select", "date"],
+      doc: "render a typed filter button + popover editor for this column"
+
+    attr :options, :list,
+      doc: "select filters: the pickable values, as strings or {label, value} tuples"
+
     attr :align, :string, values: ["left", "center", "right"]
     attr :class, :any
   end
@@ -121,8 +141,11 @@ defmodule PetalComponents.DataTable do
 
     fields = Map.new(assigns.col, fn col -> {to_string(col.field), col.field} end)
 
+    filter_cols = Enum.filter(assigns.col, & &1[:filterable])
+
     hooked? =
-      is_nil(assigns.on_change) and (assigns.searchable or assigns.page_size_options != [])
+      is_nil(assigns.on_change) and
+        (assigns.searchable or assigns.page_size_options != [] or filter_cols != [])
 
     assigns =
       assigns
@@ -130,8 +153,17 @@ defmodule PetalComponents.DataTable do
       |> assign(:sort_dir, sort_dir)
       |> assign(:on_sort, sort_handler(assigns, fields))
       |> assign(:skeleton_rows, List.duplicate(%{}, min(assigns.state.page_size, 10)))
+      |> assign(:filter_cols, filter_cols)
+      |> assign(:op_labels, Map.merge(default_op_labels(), assigns.filter_op_labels))
       |> assign(:hooked?, hooked?)
-      |> assign(:nav_template, hooked? && nav_template(assigns))
+      |> assign(
+        :nav_template,
+        hooked? && nav_template(assigns.path, assigns.state, assigns, filter_cols)
+      )
+      |> assign(
+        :filters_json,
+        hooked? && filter_cols != [] && Jason.encode!(assigns.state.filters)
+      )
 
     ~H"""
     <div
@@ -140,10 +172,11 @@ defmodule PetalComponents.DataTable do
       phx-hook={@hooked? && "PetalDataTable"}
       data-debounce={@hooked? && @search_debounce}
       data-nav-template={@nav_template || nil}
+      data-filters={@filters_json || nil}
     >
       <a :if={@hooked?} data-pc-dt-nav data-phx-link="patch" data-phx-link-state="push" hidden></a>
       <div
-        :if={@toolbar != [] or @searchable or @state.filters != []}
+        :if={@toolbar != [] or @searchable or @filter_cols != [] or @state.filters != []}
         class="pc-data-table__toolbar"
       >
         <div :if={@searchable} class="pc-data-table__search">
@@ -172,6 +205,17 @@ defmodule PetalComponents.DataTable do
             />
           <% end %>
         </div>
+        <.filter_button
+          :for={col <- @filter_cols}
+          col={col}
+          table_id={@id}
+          state={@state}
+          path={@path}
+          on_change={@on_change}
+          target={@target}
+          op_labels={@op_labels}
+          apply_label={@apply_label}
+        />
         {render_slot(@toolbar)}
         <%= if @state.filters != [] do %>
           <.button
@@ -360,9 +404,10 @@ defmodule PetalComponents.DataTable do
   # assembled around the already-encoded rest of the query (the
   # pagination :page trick); a control the table doesn't render keeps
   # its committed value in the rest instead of a placeholder.
-  defp nav_template(%{path: path, state: state} = assigns) do
+  defp nav_template(path, state, assigns, filter_cols) do
     state = %{state | page: 1}
     state = if assigns.searchable, do: State.put_search(state, ""), else: state
+    state = if filter_cols != [], do: %{state | filters: []}, else: state
 
     params = State.to_params(state)
 
@@ -373,7 +418,8 @@ defmodule PetalComponents.DataTable do
       Enum.filter(
         [
           assigns.searchable && "search=:term",
-          assigns.page_size_options != [] && "page_size=:page_size"
+          assigns.page_size_options != [] && "page_size=:page_size",
+          filter_cols != [] && ":filters"
         ],
         & &1
       )
@@ -392,22 +438,277 @@ defmodule PetalComponents.DataTable do
   end
 
   # filters encode as a list of maps - flatten to Phoenix-style indexed
-  # params so encode_query can carry them and from_params reads them back
+  # params so encode_query can carry them and from_params reads them
+  # back. Returns pairs, not a map: a list value (the :in op) needs the
+  # same key repeated ("...[value][]"), which a map cannot hold.
   defp flatten_params(params) do
-    case Map.pop(params, "filters") do
-      {nil, rest} ->
-        rest
+    {filters, rest} = Map.pop(params, "filters")
 
-      {filters, rest} ->
-        filters
-        |> Enum.with_index()
-        |> Enum.reduce(rest, fn {filter, i}, acc ->
-          Enum.reduce(filter, acc, fn {k, v}, acc2 ->
-            Map.put(acc2, "filters[#{i}][#{k}]", v)
-          end)
-        end)
+    Enum.sort(rest) ++
+      (filters
+       |> List.wrap()
+       |> Enum.with_index()
+       |> Enum.flat_map(fn {filter, i} ->
+         Enum.flat_map(filter, fn {k, v} -> filter_pairs("filters[#{i}][#{k}]", v) end)
+       end))
+  end
+
+  defp filter_pairs(key, values) when is_list(values),
+    do: Enum.map(values, &{"#{key}[]", &1})
+
+  defp filter_pairs(key, %{} = map),
+    do: Enum.map(map, fn {k, v} -> {"#{key}[#{k}]", v} end)
+
+  defp filter_pairs(key, value), do: [{key, value}]
+
+  # -- filters ---------------------------------------------------------------
+
+  @text_ops ~w(contains eq starts_with)a
+  @number_ops ~w(eq neq gt lt between)a
+  @date_ops ~w(before on after)a
+
+  defp default_op_labels do
+    %{
+      contains: "contains",
+      eq: "is",
+      starts_with: "starts with",
+      neq: "is not",
+      gt: ">",
+      lt: "<",
+      between: "between",
+      in: "is any of",
+      before: "before",
+      on: "on",
+      after: "after"
+    }
+  end
+
+  defp filter_button(assigns) do
+    col = assigns.col
+    field_str = to_string(col.field)
+    label = col[:label] || humanize(col.field)
+    filter = Enum.find(assigns.state.filters, &(&1.field == col.field))
+    options = normalize_options(col[:options] || [])
+    pop_id = "#{assigns.table_id}-filter-#{field_str}"
+
+    assigns =
+      assigns
+      |> assign(:field_str, field_str)
+      |> assign(:label, label)
+      |> assign(:filter, filter)
+      |> assign(:options, options)
+      |> assign(:pop_id, pop_id)
+      |> assign(:type, col[:filterable])
+      |> assign(:submit_js, filter_submit_js(assigns.on_change, assigns.target, pop_id))
+      |> assign(
+        :clear_url,
+        assigns.path && url_for(assigns.path, State.put_filter(assigns.state, col.field, :eq, ""))
+      )
+
+    ~H"""
+    <div class="pc-data-table__filter">
+      <.popover
+        id={@pop_id}
+        placement="bottom-start"
+        class="pc-data-table__filter-popover"
+        trigger_class={[
+          "pc-button pc-button--sm",
+          (@filter && "pc-button--primary-soft pc-data-table__filter-trigger--active") ||
+            "pc-button--gray-outline"
+        ]}
+      >
+        <:trigger>
+          <.icon :if={!@filter} name="hero-funnel" class="pc-data-table__filter-icon" />
+          <span>{(@filter && predicate_text(@label, @filter, @op_labels, @options)) || @label}</span>
+        </:trigger>
+        <form
+          class={["pc-data-table__filter-form", "pc-data-table__filter-form--#{@type}"]}
+          phx-submit={@submit_js}
+          data-pc-dt-filter={is_nil(@on_change) || nil}
+          data-field={@field_str}
+        >
+          <input :if={@on_change} type="hidden" name="op" value="filter" />
+          <input :if={@on_change} type="hidden" name="field" value={@field_str} />
+          <.filter_editor
+            type={@type}
+            filter={@filter}
+            options={@options}
+            op_labels={@op_labels}
+            label={@label}
+          />
+          <.button size="sm" type="submit" class="pc-data-table__filter-apply">
+            {@apply_label}
+          </.button>
+        </form>
+      </.popover>
+      <%= if @filter do %>
+        <.link
+          :if={@path}
+          patch={@clear_url}
+          class="pc-data-table__filter-clear"
+          aria-label={"Clear #{@label} filter"}
+        >
+          <.icon name="hero-x-mark" class="pc-data-table__filter-clear-icon" />
+        </.link>
+        <button
+          :if={@on_change}
+          type="button"
+          class="pc-data-table__filter-clear"
+          phx-click={@on_change}
+          phx-target={@target}
+          phx-value-op="filter"
+          phx-value-field={@field_str}
+          aria-label={"Clear #{@label} filter"}
+        >
+          <.icon name="hero-x-mark" class="pc-data-table__filter-clear-icon" />
+        </button>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp filter_editor(%{type: "select"} = assigns) do
+    current = assigns.filter |> current_values() |> Enum.map(&to_string/1)
+    assigns = assign(assigns, :current, current)
+
+    ~H"""
+    <div class="pc-data-table__filter-options" role="group" aria-label={"#{@label} options"}>
+      <label :for={{label, value} <- @options} class="pc-data-table__filter-option">
+        <input
+          type="checkbox"
+          name="values[]"
+          value={value}
+          checked={to_string(value) in @current}
+          class="pc-checkbox"
+        />
+        <span>{label}</span>
+      </label>
+    </div>
+    """
+  end
+
+  defp filter_editor(%{type: "number"} = assigns) do
+    {value, value2} = current_pair(assigns.filter)
+
+    assigns =
+      assigns
+      |> assign(:ops, @number_ops)
+      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :eq)
+      |> assign(:value, value)
+      |> assign(:value2, value2)
+
+    ~H"""
+    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
+    <input
+      type="number"
+      step="any"
+      name="value"
+      value={@value}
+      class="pc-text-input pc-data-table__filter-value"
+    />
+    <input
+      type="number"
+      step="any"
+      name="value2"
+      value={@value2}
+      class="pc-text-input pc-data-table__filter-value pc-data-table__filter-value2"
+      aria-label={"#{@label} upper bound"}
+    />
+    """
+  end
+
+  defp filter_editor(%{type: "date"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:ops, @date_ops)
+      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :on)
+      |> assign(:value, (assigns.filter && to_string(assigns.filter.value)) || nil)
+
+    ~H"""
+    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
+    <input
+      type="date"
+      name="value"
+      value={@value}
+      class="pc-text-input pc-data-table__filter-value"
+    />
+    """
+  end
+
+  defp filter_editor(assigns) do
+    assigns =
+      assigns
+      |> assign(:ops, @text_ops)
+      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :contains)
+      |> assign(:value, (assigns.filter && to_string(assigns.filter.value)) || nil)
+
+    ~H"""
+    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
+    <input
+      type="text"
+      name="value"
+      value={@value}
+      class="pc-text-input pc-data-table__filter-value"
+    />
+    """
+  end
+
+  defp filter_op_select(assigns) do
+    ~H"""
+    <select
+      name="filter_op"
+      class="pc-select pc-data-table__filter-op"
+      aria-label={"#{@label} operator"}
+    >
+      <option :for={op <- @ops} value={op} selected={op == @current_op}>
+        {Map.fetch!(@op_labels, op)}
+      </option>
+    </select>
+    """
+  end
+
+  # event mode: push the form, then close the popover panel the same way
+  # its own Escape path does
+  defp filter_submit_js(nil, _target, _pop_id), do: nil
+
+  defp filter_submit_js(event, target, pop_id) do
+    push = if target, do: JS.push(event, target: target), else: JS.push(event)
+
+    push
+    |> JS.hide(to: "##{pop_id}")
+    |> JS.set_attribute({"aria-expanded", "false"}, to: "##{pop_id}-trigger")
+  end
+
+  defp normalize_options(options) do
+    Enum.map(options, fn
+      {label, value} -> {label, value}
+      value -> {humanize(value), value}
+    end)
+  end
+
+  defp current_values(nil), do: []
+  defp current_values(%{value: value}), do: List.wrap(value)
+
+  defp current_pair(%{op: :between, value: [min, max]}), do: {min, max}
+  defp current_pair(%{value: value}) when not is_list(value), do: {value, nil}
+  defp current_pair(_other), do: {nil, nil}
+
+  defp predicate_text(label, filter, op_labels, options) do
+    "#{label} #{Map.fetch!(op_labels, filter.op)} #{display_value(filter, options)}"
+  end
+
+  defp display_value(%{op: :in, value: values}, options) do
+    labels = Map.new(options, fn {label, value} -> {to_string(value), label} end)
+    shown = values |> List.wrap() |> Enum.map(&Map.get(labels, to_string(&1), to_string(&1)))
+
+    case Enum.split(shown, 2) do
+      {first_two, []} -> Enum.join(first_two, ", ")
+      {first_two, rest} -> Enum.join(first_two, ", ") <> " +#{length(rest)}"
     end
   end
+
+  defp display_value(%{op: :between, value: [min, max]}, _options), do: "#{min}\u2013#{max}"
+  defp display_value(%{value: value}, _options), do: to_string(value)
 
   defp range_text(%State{total: nil} = state, _of_label, page_label),
     do: "#{page_label} #{state.page}"
