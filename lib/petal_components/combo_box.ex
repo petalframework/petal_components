@@ -134,6 +134,41 @@ defmodule PetalComponents.ComboBox do
     plain label, so rich content never affects search or the closed state.
     """
 
+  slot :header,
+    doc: """
+    panel chrome rendered above the option list (below the trigger
+    variant's search) - column captions, hints. Lives OUTSIDE the
+    listbox, so keyboard navigation and filtering never touch it.
+    """
+
+  slot :footer,
+    doc: """
+    panel chrome rendered below the option list - counts, "manage"
+    links. Lives OUTSIDE the listbox; pointer-interactive content works,
+    keyboard focus stays with the options.
+    """
+
+  slot :selected,
+    doc: """
+    trigger variant only: custom closed-state content rendered inside
+    the trigger in place of the plain label/count - avatars, colored
+    dots, "+N" summaries. `:let` receives the LIST of chosen normalized
+    option maps (`label`, `value`, `meta`). Client-side picks show the
+    plain optimistic text until the LiveView patch re-renders the slot -
+    the server-wins reconciliation the trigger label already uses. The
+    empty state always shows the placeholder.
+    """
+
+  slot :chip,
+    doc: """
+    multiple mode: custom chip content rendered in place of the plain
+    label - avatars, dots. `:let` receives the chosen normalized option
+    map. The remove button stays appended. Client-side picks build
+    plain-text chips optimistically until the LiveView patch re-renders
+    the rich ones (server wins); server-rendered chips are left intact
+    whenever they already match the selection.
+    """
+
   def combo_box(assigns) do
     groups = normalize_options(assigns.options)
     values = current_values(assigns)
@@ -220,7 +255,13 @@ defmodule PetalComponents.ComboBox do
           data-pc-combo-trigger-label
           data-placeholder-text={@placeholder}
           data-count-label={@count_label}
-        >{@trigger_label}</span>
+          data-custom-label={@selected != [] && "true"}
+          data-values={@selected != [] && Enum.join(@current_values, "\x1f")}
+        ><%= if @selected != [] && @current_values != [] do %>
+          <span class="pc-combo-box__selected-content">{render_slot(@selected, @selected_options)}</span>
+        <% else %>
+          {@trigger_label}
+        <% end %></span>
         <.icon name="hero-chevron-down-mini" class="pc-combo-box__chevron" />
       </button>
 
@@ -247,8 +288,17 @@ defmodule PetalComponents.ComboBox do
             data-pc-combo-chips
             data-remove-label={@remove_label}
           >
-            <span :for={opt <- @selected_options} class="pc-combo-box__chip" data-pc-combo-chip>
-              <span class="pc-combo-box__chip-label">{opt.label}</span>
+            <span
+              :for={opt <- @selected_options}
+              class="pc-combo-box__chip"
+              data-pc-combo-chip
+              data-value={opt.value}
+            >
+              <span class="pc-combo-box__chip-label"><%= if @chip != [] do %>
+                {render_slot(@chip, opt)}
+              <% else %>
+                {opt.label}
+              <% end %></span>
               <button
                 type="button"
                 class="pc-combo-box__chip-remove"
@@ -310,6 +360,9 @@ defmodule PetalComponents.ComboBox do
             placeholder={@search_placeholder}
           />
         </div>
+        <div :if={@header != []} class="pc-combo-box__header">
+          {render_slot(@header)}
+        </div>
         <div
           role="listbox"
           id={"#{@id}-listbox"}
@@ -336,6 +389,9 @@ defmodule PetalComponents.ComboBox do
             <% end %>
           <% end %>
           <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
+        </div>
+        <div :if={@footer != []} class="pc-combo-box__footer">
+          {render_slot(@footer)}
         </div>
       </div>
 

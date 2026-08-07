@@ -736,6 +736,48 @@ describe("multiple with chips", () => {
     expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
   });
 
+  it("server-rendered rich chips survive updated() when the selection matches", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    // simulate the LiveView patch: server marked options selected and
+    // rendered rich :chip content with matching data-values
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.chips_el = c.el.querySelector("[data-pc-combo-chips]");
+    c.chips_el.innerHTML =
+      '<span class="pc-combo-box__chip" data-pc-combo-chip data-value="syd">' +
+      '<span class="pc-combo-box__chip-label"><em>RICH</em> Sydney</span>' +
+      '<button type="button" class="pc-combo-box__chip-remove" data-pc-combo-chip-remove data-value="syd" tabindex="-1"></button></span>';
+    c.hook.updated();
+    expect(c.chips_el.querySelector("em")).not.toBeNull();
+    // a client-side change rebuilds plain optimistic chips (server wins later)
+    c.control.click();
+    c.items()[1].click();
+    expect(c.chips()).toHaveLength(2);
+    expect(c.el.querySelector("[data-pc-combo-chip] em")).toBeNull();
+    expect(c.chips().map((x) => x.dataset.value)).toEqual(["syd", "tyo"]);
+  });
+
+  it("server-rendered :selected content survives sync when it matches; client picks go optimistic", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    // simulate the patch: server chose syd+tyo and rendered rich label content
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    const label = c.triggerLabel();
+    label.dataset.customLabel = "true";
+    label.dataset.values = "syd\u001ftyo";
+    label.innerHTML =
+      '<span class="pc-combo-box__selected-content"><em>RICH</em></span>';
+    c.hook.updated();
+    expect(label.querySelector("em")).not.toBeNull();
+    // a client-side pick diverges from the rendered values -> optimistic text
+    c.trigger.click();
+    c.items()
+      .find((i) => i.dataset.value === "lis")
+      .click();
+    expect(label.querySelector("em")).toBeNull();
+    expect(label.textContent).toBe("3 selected");
+    expect(label.dataset.values).toBeUndefined();
+  });
+
   it("choosing a chosen option un-chooses it", () => {
     const c = mountCombo({ options: CITIES, multiple: true });
     c.control.click();

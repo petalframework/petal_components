@@ -2242,6 +2242,17 @@
   .pc-combo-box__check.pc-combo-box__check {
     @apply w-4! h-4!;
   }
+  /* panel chrome: header above the list, footer below - OUTSIDE the
+     listbox, so keyboard navigation and filtering never touch them */
+  .pc-combo-box__header {
+    @apply border-b border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-400/25 dark:text-gray-400;
+  }
+  .pc-combo-box__footer {
+    @apply border-t border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-400/25 dark:text-gray-400;
+  }
+  .pc-combo-box__selected-content {
+    @apply flex min-w-0 items-center gap-2 truncate;
+  }
   .pc-combo-box__empty {
     @apply px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400;
   }

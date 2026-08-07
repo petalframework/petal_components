@@ -3986,6 +3986,19 @@ export const PetalComboBox = {
 
   syncChips() {
     if (!this.chips) return;
+    // server-rendered chips may carry rich :chip slot content - leave the
+    // DOM alone whenever it already matches the selection, and rebuild
+    // plain-text chips only for client-side changes (the LiveView patch
+    // then swaps the rich ones back in: server wins on patch)
+    const want = Array.from(this.select.selectedOptions)
+      .map((o) => o.value)
+      .filter((v) => v !== "");
+    const have = Array.from(
+      this.chips.querySelectorAll("[data-pc-combo-chip]"),
+    ).map((c) => c.dataset.value);
+    if (want.length === have.length && want.every((v, i) => v === have[i])) {
+      return;
+    }
     const removeLabel = (this.chips.dataset.removeLabel || "Remove") + " ";
     this.chips.textContent = "";
     for (const option of this.select.selectedOptions) {
@@ -3993,6 +4006,7 @@ export const PetalComboBox = {
       const chip = document.createElement("span");
       chip.className = "pc-combo-box__chip";
       chip.setAttribute("data-pc-combo-chip", "");
+      chip.dataset.value = option.value;
       const label = document.createElement("span");
       label.className = "pc-combo-box__chip-label";
       label.textContent = option.textContent.trim();
@@ -4028,7 +4042,21 @@ export const PetalComboBox = {
       // the hook never touches the attribute, so a server-rendered
       // placeholder (including live changes to it) is always the truth
     }
-    if (this.triggerLabel) {
+    // :selected slot content is server-rendered; the label carries the
+    // values it was rendered for. When they match the selection (the
+    // patch that just landed), leave the rich DOM alone - overwrite with
+    // optimistic text only for client-side changes, and drop the marker
+    // so later syncs stay optimistic until the next patch.
+    let labelIsFresh = false;
+    if (this.triggerLabel && this.triggerLabel.dataset.customLabel != null) {
+      const rendered = this.triggerLabel.dataset.values;
+      if (rendered != null && rendered === values.join("\u001f")) {
+        labelIsFresh = true;
+      } else {
+        delete this.triggerLabel.dataset.values;
+      }
+    }
+    if (this.triggerLabel && !labelIsFresh) {
       const placeholder = this.triggerLabel.dataset.placeholderText;
       if (values.length === 0) {
         this.triggerLabel.textContent = placeholder || "";

@@ -244,7 +244,7 @@ defmodule PetalComponents.ComboBoxTest do
         <.combo_box id="s" name="s" variant="trigger" value="syd" options={[{"Sydney", "syd"}]} />
         """)
 
-      assert single =~ ">Sydney</span>"
+      assert single =~ ~r/data-count-label="selected">\s*Sydney\s*</
       refute single =~ ~s|data-placeholder="true"|
 
       multi =
@@ -259,7 +259,7 @@ defmodule PetalComponents.ComboBoxTest do
         />
         """)
 
-      assert multi =~ ">2 selected</span>"
+      assert multi =~ ~r/data-count-label="selected">\s*2 selected\s*</
     end
   end
 
@@ -334,6 +334,104 @@ defmodule PetalComponents.ComboBoxTest do
 
       assert html =~ "pc-combo-box__option-label"
       refute html =~ "pc-combo-box__option-content"
+    end
+  end
+
+  describe "M3a slots" do
+    test ":header and :footer render as panel chrome OUTSIDE the listbox" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="hf" name="hf" options={["A"]}>
+          <:header>Frameworks</:header>
+          <:footer>12 teammates</:footer>
+        </.combo_box>
+        """)
+
+      assert html =~ "pc-combo-box__header"
+      assert html =~ "pc-combo-box__footer"
+      # chrome, not options: both live outside the listbox element
+      [_, after_list_open] = String.split(html, ~s|role="listbox"|, parts: 2)
+      [inside_list, after_list] = String.split(after_list_open, "pc-combo-box__footer", parts: 2)
+      refute inside_list =~ "pc-combo-box__header"
+      assert after_list =~ "12 teammates"
+    end
+
+    test "no header/footer chrome renders without the slots" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="nf" name="nf" options={["A"]} />
+        """)
+
+      refute html =~ "pc-combo-box__header"
+      refute html =~ "pc-combo-box__footer"
+    end
+
+    test ":selected renders rich closed-state content in the trigger, list of chosen options" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="sel"
+          name="sel"
+          variant="trigger"
+          multiple
+          value={["a", "b"]}
+          options={[{"Alpha", "a", color: "sky"}, {"Beta", "b", color: "rose"}]}
+        >
+          <:selected :let={chosen}>
+            <span :for={opt <- chosen} class={"dot-#{opt.meta[:color]}"}></span>
+            <span>{length(chosen)} labels</span>
+          </:selected>
+        </.combo_box>
+        """)
+
+      assert html =~ "pc-combo-box__selected-content"
+      assert html =~ "dot-sky"
+      assert html =~ "dot-rose"
+      assert html =~ "2 labels"
+      refute html =~ "2 selected"
+    end
+
+    test ":selected falls back to the placeholder when nothing is chosen" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="sel2" name="sel2" variant="trigger" placeholder="Pick…" options={["A"]}>
+          <:selected :let={_chosen}>never</:selected>
+        </.combo_box>
+        """)
+
+      refute html =~ "pc-combo-box__selected-content"
+      assert html =~ "Pick…"
+    end
+
+    test ":chip renders rich chip content with the remove button intact; chips carry data-value" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="ch"
+          name="ch"
+          multiple
+          value={["a"]}
+          options={[{"Alpha", "a", color: "sky"}]}
+        >
+          <:chip :let={opt}>
+            <em>{opt.meta[:color]}</em> {opt.label}
+          </:chip>
+        </.combo_box>
+        """)
+
+      assert html =~ "<em>sky</em>"
+      assert html =~ ~s|data-value="a"|
+      assert html =~ "pc-combo-box__chip-remove"
     end
   end
 

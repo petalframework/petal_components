@@ -109,6 +109,112 @@ defmodule PetalComponents.Showcase.ComboBox do
     """
   end
 
+  example :labels, "Label picker - the :selected slot",
+    description:
+      "The :selected slot renders rich CLOSED-state content in the trigger - here colored dots with a +N overflow, pure composition, no overflow attr. :let receives the list of chosen normalized options (label, value, meta). Client-side picks show the plain count until the LiveView patch re-renders the slot (server wins); a preset value shows the rich state immediately." do
+    ~H"""
+    <div class="w-full max-w-xs mx-auto">
+      <.combo_box
+        id="sx-combo-labels"
+        name="labels"
+        variant="trigger"
+        multiple
+        placeholder="Labels…"
+        count_label="labels"
+        value={["feat", "bug", "imp", "des"]}
+        options={[
+          {"Feature", "feat", color: "#0ea5e9"},
+          {"Bug", "bug", color: "#f43f5e"},
+          {"Improvement", "imp", color: "#10b981"},
+          {"Design", "des", color: "#a855f7"},
+          {"Docs", "docs", color: "#f59e0b"}
+        ]}
+      >
+        <:selected :let={chosen}>
+          <span
+            :for={opt <- Enum.take(chosen, 3)}
+            class="h-3 w-3 shrink-0 rounded-full"
+            style={"background-color: #{opt.meta[:color]}"}
+          ></span>
+          <span :if={length(chosen) > 3} class="text-xs tabular-nums text-gray-500 dark:text-gray-400">
+            +{length(chosen) - 3}
+          </span>
+        </:selected>
+        <:option :let={opt}>
+          <span
+            class="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={"background-color: #{opt.meta[:color]}"}
+          ></span>
+          <span class="truncate">{opt.label}</span>
+        </:option>
+      </.combo_box>
+    </div>
+    """
+  end
+
+  example :team, "Avatar chips - the :chip slot",
+    description:
+      "The :chip slot renders rich chip content - the remove button stays appended. Client-side picks build plain optimistic chips until the LiveView patch swaps the rich ones back in (server wins on patch); server-rendered chips are left intact whenever they already match the selection." do
+    ~H"""
+    <div class="w-full max-w-sm mx-auto">
+      <.combo_box
+        id="sx-combo-team"
+        name="team"
+        multiple
+        placeholder="Add members…"
+        value={["amelia", "jonah"]}
+        options={[
+          {"Amelia Ward", "amelia", role: "Engineering"},
+          {"Jonah Reyes", "jonah", role: "Design"},
+          {"Priya Anand", "priya", role: "Support"},
+          {"Tom Hale", "tom", role: "Engineering"}
+        ]}
+      >
+        <:chip :let={opt}>
+          <.avatar size="xs" name={opt.label} random_gradient />
+          <span class="truncate">{opt.label}</span>
+        </:chip>
+        <:option :let={opt}>
+          <.avatar size="xs" name={opt.label} random_gradient />
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="truncate">{opt.label}</span>
+            <span class="truncate text-xs text-gray-500 dark:text-gray-400">{opt.meta[:role]}</span>
+          </span>
+        </:option>
+      </.combo_box>
+    </div>
+    """
+  end
+
+  example :panel_chrome, "Panel chrome - :header and :footer",
+    description:
+      "Panel chrome lives OUTSIDE the listbox: a caption above the options, a summary or manage link below. Keyboard navigation and filtering never touch either - options stay the only stops." do
+    ~H"""
+    <div class="w-full max-w-xs mx-auto">
+      <.combo_box
+        id="sx-combo-chrome"
+        name="dest"
+        placeholder="Where to?"
+        options={[
+          {"🇯🇵 Tokyo", "tyo"},
+          {"🇵🇹 Lisbon", "lis"},
+          {"🇸🇪 Stockholm", "sto"},
+          {"🇦🇺 Sydney", "syd"},
+          {"🇰🇷 Seoul", "sel"}
+        ]}
+      >
+        <:header>Popular destinations</:header>
+        <:footer>
+          <span class="flex items-center justify-between">
+            <span>5 cities</span>
+            <span class="font-medium text-primary-600 dark:text-primary-400">Manage list</span>
+          </span>
+        </:footer>
+      </.combo_box>
+    </div>
+    """
+  end
+
   example :rich_options, "Rich options - the :option slot",
     description:
       "The :option slot renders anything inside each panel option - avatars, flags, secondary text - with :let receiving the normalized option (label, value, disabled, and meta: whatever extra data the option tuple carried). Filtering, chips and the trigger label keep using the plain label, so rich content never affects search or the closed state." do
