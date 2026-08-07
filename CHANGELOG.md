@@ -1,4 +1,28 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **Top-layer popovers no longer flash at the top-left corner.** The
+  panel's `margin: 0` (which defeats the browser's centring) meant an
+  unpositioned panel sat at 0,0, and `toggle` fires late enough for a
+  frame to paint there. `PetalPopover` now gates opacity in
+  `beforetoggle` - which runs synchronously *before* the panel is
+  shown - so the first painted frame is already the positioned one.
+- **Top-layer popovers survive LiveView patches.** A patch merges
+  server attributes onto the panel, dropping the inline `top`/`left`
+  the hook owns and snapping an open panel to 0,0 (hit by the data
+  table's Columns dropdown, where every toggle patches). The hook now
+  re-asserts position in `updated()`, tracking open state on the hook
+  instance rather than a DOM attribute the same merge would strip.
+- **`data_table` filter controls no longer trigger iOS zoom.** Safari
+  zooms the viewport when a focused field's text is under 16px, which
+  scrolled popover editors out of view. The search input, filter
+  operator selects, filter values and the per-page select scale to
+  16px on coarse pointers, keeping their `h-9` box.
+- **`::backdrop` is transparent for top-layer panels**, so no UA can
+  paint a dimming layer behind an anchored popover.
+
 ### 4.13.0 - 2026-08-08
 
 #### Added
