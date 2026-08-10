@@ -535,10 +535,11 @@ defmodule PetalComponents.DataTableTest do
            ) or
              Regex.match?(~r/phx-value-field="name"[^>]*disabled/s, html)
 
-    # moving email up states the full destination order - no delta math
-    assert html =~ ~s(phx-value-order="email,name,amount")
-    # moving email down likewise
-    assert html =~ ~s(phx-value-order="name,amount,email")
+    # the payload is a DELTA (field + dir), never a computed destination -
+    # a destination snapshot loses one of two rapid gestures
+    assert html =~ ~s(phx-value-dir="up")
+    assert html =~ ~s(phx-value-dir="down")
+    refute html =~ "phx-value-order"
     # rows carry stable ids so morphdom does not shuffle focus
     assert html =~ ~s(id="t-colrow-email")
   end
@@ -610,6 +611,12 @@ defmodule PetalComponents.DataTableTest do
              ["name", "email", "amount"]
 
     assert PetalComponents.DataTable.move_column(["email", "email"], fields, :name, "up") ==
+             ["name", "email", "amount"]
+
+    # stale fields in a saved order are dropped, not carried as ghosts -
+    # a ghost entry would make a visible move button do nothing until
+    # the field "crossed" it
+    assert PetalComponents.DataTable.move_column(["ghost", "email"], fields, :email, "down") ==
              ["name", "email", "amount"]
   end
 
