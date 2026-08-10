@@ -15,6 +15,21 @@
 
 #### Added
 
+- **The case-sensitivity of text equality is now a written contract,
+  decided with evidence rather than inherited.** `:eq` (with `:neq`,
+  `:in`, `:not_in`) folds case - a person picking "is" in a filter
+  means "this value", not "these bytes". This matches every major grid
+  (TanStack, AG Grid and MUI all default text-equals to
+  case-insensitive), and the case-sensitive camp's own behaviour:
+  Airtable's help tells users to switch to "contains", and Django's
+  admin overrides its own case-sensitive ORM with `iexact`. Accents
+  are NOT folded, and the pin says so. If byte-exact equality is ever
+  needed it will arrive as a new operator (`:eq_sensitive`), never as
+  a change to this one. `State`'s moduledoc gains a "Writing an
+  adapter" section with the measured index guidance - including that
+  on `citext` columns plain `=` must be used, since wrapping it in
+  `lower()` defeats the index (~28x, measured).
+
 - **The range summary is now a live region.** Filtering 74 rows down to
   3 previously announced nothing. It speaks a written-out sentence
   ("26 to 50 of 74 results") separate from the visible text, because

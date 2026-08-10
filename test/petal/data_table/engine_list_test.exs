@@ -167,6 +167,43 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
     end
   end
 
+  describe "case folding - the published contract" do
+    # These pin the decision, made pre-publish with the evidence in
+    # PR #, that text equality folds case: a person picking "is" in a
+    # filter means "this value", not "these bytes". A byte-exact
+    # equality, if ever needed, arrives as a NEW operator - these
+    # assertions are here to make silently changing this one impossible.
+    @cased [
+      %{id: 1, name: "Alice", status: :Active},
+      %{id: 2, name: "alice", status: :active},
+      %{id: 3, name: "Bob", status: :archived}
+    ]
+
+    defp cased(filter) do
+      {rows, _} = Engine.run(@cased, struct!(State, filters: [filter]))
+      Enum.map(rows, & &1.id)
+    end
+
+    test "eq/neq/in/not_in all fold case, together" do
+      # one equality primitive - a half-folded family would let
+      # "is not alice" leave a visible Alice on screen
+      assert cased(%{field: :name, op: :eq, value: "ALICE"}) == [1, 2]
+      assert cased(%{field: :name, op: :neq, value: "ALICE"}) == [3]
+      assert cased(%{field: :name, op: :in, value: ["ALICE"]}) == [1, 2]
+      assert cased(%{field: :name, op: :not_in, value: ["ALICE"]}) == [3]
+      assert cased(%{field: :status, op: :eq, value: "ACTIVE"}) == [1, 2]
+    end
+
+    test "case folds; accents do not" do
+      rows = [%{id: 1, name: "café"}, %{id: 2, name: "CAFÉ"}, %{id: 3, name: "cafe"}]
+
+      {hit, _} =
+        Engine.run(rows, struct!(State, filters: [%{field: :name, op: :eq, value: "café"}]))
+
+      assert Enum.map(hit, & &1.id) == [1, 2]
+    end
+  end
+
   describe "sorting" do
     test "sorts strings case-insensitively" do
       assert ids(run(order_by: [name: :asc], page_size: 10)) == [3, 2, 1, 5, 4]
