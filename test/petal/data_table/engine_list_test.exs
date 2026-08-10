@@ -281,8 +281,15 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert pick.(%{field: :stamp, op: :between, value: ["2026-01-05T00:00", "2026-01-05T12:00"]}) ==
                [1, 3]
 
-      # a real Date cell still compares as a date
-      assert pick.(%{field: :stamp, op: :gte, value: "2026-01-05"}) == [3]
+      # gte behaves per-cell-type in a mixed column: the text cells match
+      # lexicographically ("2026-01-05T..." >= "2026-01-05" as strings),
+      # and the Date cell matches as a date - all three, each for its
+      # own reason, which is exactly the per-type contract
+      assert pick.(%{field: :stamp, op: :gte, value: "2026-01-05"}) == [1, 2, 3]
+      # eq isolates the Date cell: the text cells are not the exact
+      # string "2026-01-05", while the Date cell equals it at date
+      # granularity
+      assert pick.(%{field: :stamp, op: :eq, value: "2026-01-05"}) == [3]
     end
 
     test "date ops are defined only for date-typed cells (G5)" do
