@@ -383,6 +383,45 @@ defmodule PetalComponents.DataTableTest do
     assert length(String.split(html, "<em>Nome</em>")) - 1 == 2
   end
 
+  test "column_toggle alone mounts the hook - its trigger is useless without it" do
+    assigns = base(%{})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} on_ui="ui" column_toggle>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    # the Columns button renders regardless; without the hook nothing
+    # listens for the click and the menu never opens
+    assert html =~ "data-pc-menu-trigger"
+    assert html =~ ~s(phx-hook="PetalDataTable")
+  end
+
+  test "max_height caps the scroll region so a sticky header has something to stick to" do
+    assigns = base(%{})
+
+    plain =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} sticky_header>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    refute plain =~ "pc-data-table__scroll--capped"
+
+    capped =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path} sticky_header max_height="24rem">
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert capped =~ "pc-data-table__scroll--capped"
+    assert capped =~ ~s(style="max-height: 24rem")
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{

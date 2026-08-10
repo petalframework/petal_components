@@ -3,6 +3,25 @@
 
 #### Fixed
 
+- **`sticky_header` never worked.** `.pc-table--basic` and `--ghost`
+  used `overflow: hidden`, which makes the table a scroll container and
+  traps `position: sticky` - so the header scrolled away in every
+  configuration. They now use `overflow: clip`, which clips identically
+  (rounded corners intact) without creating a scrollport.
+- **`column_toggle` on its own rendered a dead button.** The Columns
+  trigger is driven by the `PetalDataTable` hook, but `column_toggle`
+  was missing from the condition that mounts it, so a table using only
+  column visibility rendered a button that did nothing.
+
+#### Added
+
+- **`data_table` gains `max_height`**, which caps the body and makes it
+  scroll under a pinned header. This is what `sticky_header` needs
+  inside a data table: the capped region becomes the scrollport the
+  header sticks to, because a wrapper that scrolls only sideways cannot
+  pin anything - a CSS constraint rather than something a property can
+  undo.
+
 - **Comparators now work on every column type.** `:neq` was guarded on
   numbers, so "is not" against any text column matched nothing - and
   matched nothing *silently*, since an unhandled combination falls
