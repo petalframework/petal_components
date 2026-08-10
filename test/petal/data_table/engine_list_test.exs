@@ -123,6 +123,25 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert names(%{field: :joined, op: :neq, value: "2026-01-15"}) == ["Bea", "Cal"]
     end
 
+    test "atom and boolean columns compare like any other scalar" do
+      rows = [
+        %{name: "Amy", status: :active, admin?: true},
+        %{name: "Bea", status: :archived, admin?: false}
+      ]
+
+      pick = fn filter ->
+        {out, _} = Engine.run(rows, struct!(State, filters: [filter]))
+        Enum.map(out, & &1.name)
+      end
+
+      # :eq fell through to date coercion for atoms, so an atom column
+      # matched nothing - and :neq then inverted that into everything
+      assert pick.(%{field: :status, op: :eq, value: "active"}) == ["Amy"]
+      assert pick.(%{field: :status, op: :neq, value: "active"}) == ["Bea"]
+      assert pick.(%{field: :admin?, op: :eq, value: "true"}) == ["Amy"]
+      assert pick.(%{field: :admin?, op: :neq, value: "true"}) == ["Bea"]
+    end
+
     test "a negation does not include rows whose field the positive op cannot read" do
       rows = [
         %{name: "Amy", meta: %{nested: 1}},

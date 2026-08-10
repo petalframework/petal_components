@@ -176,6 +176,13 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp matches?(field_value, :eq, value) when is_number(field_value),
     do: with_number(value, &(field_value == &1))
 
+  # Atoms and booleans compare as their text form - the same treatment
+  # :in (values_equal?/2) and :contains already give them. Without this
+  # clause :eq fell through to date coercion and a status: :active or
+  # admin?: true column silently matched nothing.
+  defp matches?(field_value, :eq, value) when is_atom(field_value),
+    do: with_text(value, &(downcase(field_value) == &1))
+
   # Comparators are op-first, not type-first. Guarding :neq on numbers
   # meant "is not" against any text column matched nothing at all, and
   # guarding the comparators on numbers meant a plain :lt against a date
