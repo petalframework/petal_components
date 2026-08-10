@@ -2623,6 +2623,14 @@
   .pc-data-table__scroll {
     @apply overflow-x-auto;
   }
+  /* A capped scroll region is what makes sticky_header work inside a
+     data table: the wrapper becomes the scrollport the header sticks to.
+     Without a cap the wrapper scrolls only sideways, and a horizontally
+     scrolling ancestor traps page-level stickiness - a CSS constraint,
+     not something a property can undo. */
+  .pc-data-table__scroll--capped {
+    @apply overflow-auto;
+  }
   .pc-data-table__footer {
     @apply mt-3 flex flex-wrap items-center justify-between gap-3;
   }
@@ -3147,12 +3155,16 @@
 
   /* Table */
 
+  /* overflow-clip, not overflow-hidden: `hidden` makes the table a scroll
+     container, which traps position:sticky and silently killed
+     sticky_header. `clip` clips identically (the rounded corners still
+     work) without creating a scrollport. */
   .pc-table--basic {
-    @apply min-w-full overflow-hidden shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-400/17;
+    @apply min-w-full overflow-clip shadow-sm table-auto ring-1 ring-gray-200 dark:ring-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
   .pc-table--ghost {
-    @apply min-w-full overflow-hidden table-auto;
+    @apply min-w-full overflow-clip table-auto;
   }
   .pc-table__th {
     @apply px-6 py-3 text-sm font-semibold text-left text-gray-900 bg-gray-50 dark:bg-gray-400/8 dark:text-white;

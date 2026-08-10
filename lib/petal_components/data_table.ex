@@ -78,7 +78,19 @@ defmodule PetalComponents.DataTable do
   attr :loading, :boolean, default: false, doc: "render skeleton rows instead of data"
   attr :density, :string, default: "comfortable", values: ["comfortable", "compact"]
   attr :striped, :boolean, default: false
-  attr :sticky_header, :boolean, default: false
+
+  attr :sticky_header, :boolean,
+    default: false,
+    doc: """
+    pin the header row. Inside a data table this needs `max_height` too:
+    the scroll region is what the header sticks to, and a wrapper that
+    scrolls only sideways cannot pin anything.
+    """
+
+  attr :max_height, :string,
+    default: nil,
+    doc: "caps the table body's height (any CSS length), making it scroll under a pinned header"
+
   attr :variant, :string, default: "basic", values: ["ghost", "basic"]
   attr :of_label, :string, default: "of", doc: "the range summary's connective, localizable"
   attr :page_label, :string, default: "Page", doc: "cursor mode's page word, localizable"
@@ -231,7 +243,7 @@ defmodule PetalComponents.DataTable do
     # property, which markup alone cannot express.
     hooked? =
       (link_mode? and (assigns.searchable or assigns.page_size_options != [])) or
-        filter_cols != [] or assigns.selectable
+        filter_cols != [] or assigns.selectable or assigns.column_toggle
 
     assigns =
       assigns
@@ -398,7 +410,10 @@ defmodule PetalComponents.DataTable do
         <% end %>
       </div>
 
-      <div class="pc-data-table__scroll">
+      <div
+        class={["pc-data-table__scroll", @max_height && "pc-data-table__scroll--capped"]}
+        style={@max_height && "max-height: #{@max_height}"}
+      >
         <.table
           id={"#{@id}-table"}
           rows={if @loading, do: @skeleton_rows, else: @rows}
