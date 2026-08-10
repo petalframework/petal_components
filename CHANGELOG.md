@@ -16,10 +16,12 @@
 #### Added
 
 - **Column reordering (`reorderable`).** Move up/down controls in the
-  Columns menu, riding the `on_ui` event as a `move_column` op whose
-  payload carries the COMPLETE resulting order - the handler is one
-  line, no permutation math, and double-clicks are harmless because
-  the payload states the destination rather than a delta. `column_order`
+  Columns menu, riding the `on_ui` event as a `move_column` op carrying
+  a `field` + `dir` delta, applied server-side via the new
+  `DataTable.move_column/4` helper - one line in the handler, and
+  race-free by construction: a computed destination would be a snapshot
+  of the DOM the user saw, so two rapid moves would both start from it
+  and the second would silently undo the first. `column_order`
   is presentation state like `hidden_columns` (never in URLs; stale
   saved orders with unknown fields are ignored, not crashed on), and
   the table, the menu and the filter buttons all follow it together.

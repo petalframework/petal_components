@@ -435,7 +435,6 @@ defmodule PetalComponents.DataTable do
                       phx-value-op="move_column"
                       phx-value-field={col.field}
                       phx-value-dir="up"
-                      phx-value-order={moved_order(@ordered_cols, index, -1)}
                       aria-label={"#{@move_up_label}: #{plain_label(col)}"}
                     >
                       <.icon name="hero-chevron-up" class="pc-data-table__column-move-icon" />
@@ -449,7 +448,6 @@ defmodule PetalComponents.DataTable do
                       phx-value-op="move_column"
                       phx-value-field={col.field}
                       phx-value-dir="down"
-                      phx-value-order={moved_order(@ordered_cols, index, 1)}
                       aria-label={"#{@move_down_label}: #{plain_label(col)}"}
                     >
                       <.icon name="hero-chevron-down" class="pc-data-table__column-move-icon" />
@@ -797,14 +795,13 @@ defmodule PetalComponents.DataTable do
   end
 
   @doc """
-  Applies one `move_column` gesture to the CURRENT order - the race-free
-  alternative to trusting the event's `order` payload.
-
-  The payload's complete `order` is computed from the DOM the user saw;
-  two rapid moves before the first patch lands would both start from
-  that same snapshot, and the second would silently undo the first.
-  Applying the `field`/`dir` delta to the server's own current order
-  serializes gestures instead:
+  Applies one `move_column` gesture (`field` + `dir`) to the CURRENT
+  order. This is the whole contract: the event carries a delta, never a
+  computed destination, because a destination is a snapshot of the DOM
+  the user saw - two rapid moves would both start from it and the
+  second would silently undo the first. Applying the delta to the
+  server's own current order serializes gestures no matter how fast
+  they arrive:
 
       def handle_event("table", %{"op" => "move_column", "field" => f, "dir" => dir}, socket) do
         fields = [:name, :email, :status, :amount]
@@ -812,17 +809,21 @@ defmodule PetalComponents.DataTable do
       end
 
   `current_order` may be `[]` (meaning the declared order, supplied as
-  `all_fields`). Unknown fields and edge positions are no-ops.
+  `all_fields`). Unknown fields and edge positions are no-ops, and
+  stale fields in a saved order are dropped - a ghost entry would make
+  a visible move button do nothing until the field "crossed" it.
   """
   def move_column(current_order, all_fields, field, dir) when dir in ["up", "down", :up, :down] do
+    known = Enum.map(all_fields, &to_string/1)
+
     base =
       case current_order do
-        [] -> Enum.map(all_fields, &to_string/1)
-        order -> order |> Enum.map(&to_string/1) |> Enum.uniq()
+        [] -> known
+        order -> order |> Enum.map(&to_string/1) |> Enum.uniq() |> Enum.filter(&(&1 in known))
       end
 
     # fields not yet in a partial saved order follow it, declared order kept
-    base = base ++ (all_fields |> Enum.map(&to_string/1) |> Enum.reject(&(&1 in base)))
+    base = base ++ Enum.reject(known, &(&1 in base))
     field = to_string(field)
     delta = if dir in ["up", :up], do: -1, else: 1
 
@@ -846,18 +847,6 @@ defmodule PetalComponents.DataTable do
     listed = order |> Enum.map(&Map.get(by_field, &1)) |> Enum.reject(&is_nil/1)
     rest = Enum.reject(cols, &(to_string(&1.field) in order))
     listed ++ rest
-  end
-
-  # Each button carries the COMPLETE resulting order, so the handler is
-  # one line - no permutation math server-side, and the op is idempotent
-  # under double-clicks (the payload states the destination, not a delta).
-  defp moved_order(cols, index, delta) do
-    fields = Enum.map(cols, &to_string(&1.field))
-
-    fields
-    |> List.delete_at(index)
-    |> List.insert_at(index + delta, Enum.at(fields, index))
-    |> Enum.join(",")
   end
 
   defp plain_label(col) do

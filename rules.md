@@ -259,9 +259,7 @@ def handle_event("table", %{"op" => "toggle_column", "field" => f}, socket) do
 end
 
 # move_column (reorderable): apply the field/dir delta to YOUR current
-# order via the provided helper - race-free under rapid clicks. (The
-# payload also carries the complete resulting `order` as the user saw
-# it, if you prefer String.split(order, ",").)
+# order via the provided helper - race-free under rapid clicks
 def handle_event("table", %{"op" => "move_column", "field" => f, "dir" => dir}, socket) do
   fields = [:customer, :status, :amount]
   {:noreply, update(socket, :column_order, &PetalComponents.DataTable.move_column(&1, fields, f, dir))}
