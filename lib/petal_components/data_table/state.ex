@@ -37,7 +37,21 @@ defmodule PetalComponents.DataTable.State do
     * `:between` is INCLUSIVE of both bounds.
     * `:is_empty` matches nil, `""` and `[]` - a blank-ish `" "` is not
       empty. Trim before filtering if you want it to be.
-    * text comparisons are case-insensitive.
+    * text comparisons fold CASE, and only case. `:eq`, `:neq`, `:in`,
+      `:not_in`, `:contains`, `:not_contains`, `:starts_with`, the
+      comparators against text columns, and the quick `search` all
+      compare downcased on both sides. Accents are NOT folded: "cafe"
+      does not match "café", while "CAFÉ" does. Folding is whatever
+      `String.downcase/1` does; a SQL `lower()` is collation-dependent,
+      so non-ASCII input can diverge between engines (Turkish dotless i
+      is the classic case). ASCII agrees everywhere.
+    * `:eq` is deliberately NOT SQL `=`. A person picking "is" in a
+      filter means "this value", not "these bytes" - and the same
+      dropdown offers `:contains` and `:starts_with`, which every
+      engine folds, so a byte-exact `:eq` would make case behaviour
+      silently flip as the user moves down the operator list. If a
+      byte-exact equality is ever needed it will arrive as a NEW
+      operator (`:eq_sensitive`), never as a change to this one.
     * comparators work on whatever the column holds - numbers, dates and
       text all compare with the same op.
     * `:before`/`:on`/`:after` are date-shaped aliases of `:lt`/`:eq`/
@@ -46,6 +60,27 @@ defmodule PetalComponents.DataTable.State do
 
   Engines may support a subset. `ops/0` returns the recognised set and
   `valueless_op?/1` identifies the ops that carry no value.
+
+  ## Writing an adapter
+
+  Text equality in this contract folds case, so `lower(col) = lower($1)`
+  is the SQL you want and plain `=` is wrong - for `:eq`, `:neq`, `:in`
+  and `:not_in` alike, since they share one equality primitive. A
+  half-folded implementation is worse than either extreme: "is not
+  alice" leaving a visible "Alice" on screen is the loudest possible
+  wrong answer.
+
+  Plan for the index rather than discovering it: `lower(col)` will not
+  use a plain btree index - add `CREATE INDEX ... ON t (lower(col))`,
+  with the emitted expression matching the index expression exactly.
+  Measured at one million rows (PostgreSQL 14), the functional index
+  makes folded equality as fast as exact (`~0.02ms` either way);
+  without it you get a sequential scan.
+
+  One exception: on a `citext` column, plain `=` is ALREADY
+  case-insensitive and index-backed - wrapping it in `lower()` defeats
+  the index (measured ~28x slower). An adapter that knows a column is
+  citext should emit plain `=` there.
 
   ## Security
 
