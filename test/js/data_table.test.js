@@ -66,6 +66,20 @@ function mountWithFilter({ navTemplate, filters, formHtml }) {
   };
 }
 
+// pointer gestures: jsdom has no PointerEvent, but a MouseEvent named
+// "pointerdown"/"pointerup" carries the clientX/Y the hook reads
+function pointer(type, target, x = 0, y = 0, pointerId = 1) {
+  const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y });
+  // jsdom's MouseEvent has no pointerId, and the hook keys presses by it
+  Object.defineProperty(event, "pointerId", { value: pointerId });
+  target.dispatchEvent(event);
+}
+
+function tapOutside(x = 5, y = 5) {
+  pointer("pointerdown", document.body, x, y);
+  pointer("pointerup", document.body, x, y);
+}
+
 function submit(form) {
   form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
@@ -254,7 +268,7 @@ describe("PetalDataTable", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
     trigger.click();
-    document.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    tapOutside();
     expect(hook.openMenu).toBe(null);
 
     trigger.click();
@@ -284,6 +298,89 @@ describe("PetalDataTable", () => {
 
     expect(panel.hidden).toBe(false);
     expect(panel.hasAttribute("data-pc-open")).toBe(true);
+    expect(hook.openMenu).toBe("pop");
+  });
+
+  it("survives a drag on the page - only a tap outside dismisses", () => {
+    const { hook, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    // dragging the page to scroll it: press outside, move, release far away
+    trigger.click();
+    pointer("pointerdown", document.body, 100, 400);
+    pointer("pointerup", document.body, 100, 180);
+    expect(hook.openMenu).toBe("pop");
+
+    // a gesture the browser hands to the scroller never releases at all
+    pointer("pointerdown", document.body, 100, 400);
+    pointer("pointercancel", document.body, 100, 400);
+    pointer("pointerup", document.body, 100, 120);
+    expect(hook.openMenu).toBe("pop");
+
+    // and a real tap still dismisses
+    tapOutside(100, 400);
+    expect(hook.openMenu).toBe(null);
+  });
+
+  it("ignores multi-finger gestures outside the panel", () => {
+    const { hook, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    // a pinch: two fingers land, both lift roughly where they started
+    pointer("pointerdown", document.body, 100, 400, 1);
+    pointer("pointerdown", document.body, 200, 400, 2);
+    pointer("pointerup", document.body, 100, 401, 1);
+    pointer("pointerup", document.body, 200, 401, 2);
+    expect(hook.openMenu).toBe("pop");
+
+    // one finger cancelling must not disarm a later single-finger tap
+    pointer("pointerdown", document.body, 100, 400, 3);
+    pointer("pointercancel", document.body, 100, 400, 3);
+    tapOutside(100, 400);
+    expect(hook.openMenu).toBe(null);
+  });
+
+  it("does not dismiss while a finger is still resting inside the panel", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    // one finger held inside the panel, a second taps the page
+    pointer("pointerdown", panel, 150, 500, 1);
+    pointer("pointerdown", document.body, 40, 40, 2);
+    pointer("pointerup", document.body, 40, 40, 2);
+    expect(hook.openMenu).toBe("pop");
+
+    pointer("pointerup", panel, 150, 500, 1);
+    expect(hook.openMenu).toBe("pop");
+
+    // with every finger lifted, a plain tap dismisses again
+    tapOutside(40, 40);
+    expect(hook.openMenu).toBe(null);
+  });
+
+  it("does not dismiss when a press outside releases inside the panel", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+    pointer("pointerdown", document.body, 10, 10);
+    pointer("pointerup", panel, 10, 10);
     expect(hook.openMenu).toBe("pop");
   });
 

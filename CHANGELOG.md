@@ -3,6 +3,13 @@
 
 #### Fixed
 
+- **A drag on the page no longer dismisses an open `data_table` menu.**
+  Dismissal was firing on pointer*down* outside, so the ordinary way
+  anyone scrolls a phone - press the page and drag - killed the menu
+  before it moved. It now takes a *tap*: press and release must both
+  land outside, within a small movement slop, and a gesture the browser
+  hands to the scroller (which cancels rather than releases) leaves the
+  menu alone. This mirrors the native popover's own light-dismiss.
 - **`data_table` filter and column menus live in the page, not the
   browser's top layer.** A top-layer panel is positioned against the
   viewport while its trigger sits in the page, so JavaScript had to
