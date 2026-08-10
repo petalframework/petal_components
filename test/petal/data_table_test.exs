@@ -515,6 +515,127 @@ defmodule PetalComponents.DataTableTest do
     assert empty_html =~ "No results for these filters"
   end
 
+  test "reorderable renders move controls whose payload carries the complete resulting order" do
+    assigns = base(%{})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" column_toggle reorderable>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+        <:col :let={row} field={:amount}>{row.amount}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(phx-value-op="move_column")
+    # the first column's up and the last column's down are disabled
+    assert Regex.match?(
+             ~r/disabled[^>]*phx-value-op="move_column"[^>]*phx-value-field="name"/s,
+             html
+           ) or
+             Regex.match?(~r/phx-value-field="name"[^>]*disabled/s, html)
+
+    # the payload is a DELTA (field + dir), never a computed destination -
+    # a destination snapshot loses one of two rapid gestures
+    assert html =~ ~s(phx-value-dir="up")
+    assert html =~ ~s(phx-value-dir="down")
+    refute html =~ "phx-value-order"
+    # rows carry stable ids so morphdom does not shuffle focus
+    assert html =~ ~s(id="t-colrow-email")
+  end
+
+  test "column_order reorders the table, the menu and the filter buttons together" do
+    assigns = base(%{order: ["amount", "name"]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        column_toggle
+        column_order={@order}
+      >
+        <:col :let={row} field={:name} filterable="text">{row.name}</:col>
+        <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+        <:col :let={row} field={:amount} filterable="number">{row.amount}</:col>
+      </.data_table>
+      """)
+
+    # headers render amount, name, then the unlisted email
+    [_, headers] = String.split(html, "<thead>", parts: 2)
+    amount_i = :binary.match(headers, "Amount") |> elem(0)
+    name_i = :binary.match(headers, "Name") |> elem(0)
+    email_i = :binary.match(headers, "Email") |> elem(0)
+    assert amount_i < name_i and name_i < email_i
+
+    # filter buttons follow the same order
+    [toolbar, _] = String.split(html, "<thead>", parts: 2)
+    f_amount = :binary.match(toolbar, ~s(data-pc-menu-trigger="t-filter-amount")) |> elem(0)
+    f_name = :binary.match(toolbar, ~s(data-pc-menu-trigger="t-filter-name")) |> elem(0)
+    assert f_amount < f_name
+
+    # unknown fields in a stale saved order are ignored, not crashed on
+    assigns = base(%{order: ["ghost", "email"]})
+
+    stale =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" column_order={@order}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    assert stale =~ "Email"
+  end
+
+  test "move_column/4 serializes gestures and survives junk" do
+    fields = [:name, :email, :amount]
+
+    # [] means declared order; a move applies to it
+    assert PetalComponents.DataTable.move_column([], fields, :email, "up") ==
+             ["email", "name", "amount"]
+
+    # applying to the server's CURRENT order - two rapid gestures compose
+    # instead of the second undoing the first
+    once = PetalComponents.DataTable.move_column([], fields, :email, "up")
+    twice = PetalComponents.DataTable.move_column(once, fields, :amount, "up")
+    assert twice == ["email", "amount", "name"]
+
+    # edges and unknowns are no-ops, duplicates collapse
+    assert PetalComponents.DataTable.move_column([], fields, :name, "up") ==
+             ["name", "email", "amount"]
+
+    assert PetalComponents.DataTable.move_column([], fields, :ghost, "down") ==
+             ["name", "email", "amount"]
+
+    assert PetalComponents.DataTable.move_column(["email", "email"], fields, :name, "up") ==
+             ["name", "email", "amount"]
+
+    # stale fields in a saved order are dropped, not carried as ghosts -
+    # a ghost entry would make a visible move button do nothing until
+    # the field "crossed" it
+    assert PetalComponents.DataTable.move_column(["ghost", "email"], fields, :email, "down") ==
+             ["name", "email", "amount"]
+  end
+
+  test "a duplicated field in column_order renders one column, not two" do
+    assigns = base(%{order: ["email", "email", "name"]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" column_order={@order}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    [_, headers_on] = String.split(html, "<thead>", parts: 2)
+    [headers, _] = String.split(headers_on, "</thead>", parts: 2)
+    assert length(String.split(headers, "Email")) - 1 == 1
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{

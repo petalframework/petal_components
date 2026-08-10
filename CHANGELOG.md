@@ -15,6 +15,22 @@
 
 #### Added
 
+- **Column reordering (`reorderable`).** Move up/down controls in the
+  Columns menu, riding the `on_ui` event as a `move_column` op carrying
+  a `field` + `dir` delta, applied server-side via the new
+  `DataTable.move_column/4` helper - one line in the handler, and
+  race-free by construction: a computed destination would be a snapshot
+  of the DOM the user saw, so two rapid moves would both start from it
+  and the second would silently undo the first. `column_order`
+  is presentation state like `hidden_columns` (never in URLs; stale
+  saved orders with unknown fields are ignored, not crashed on), and
+  the table, the menu and the filter buttons all follow it together.
+  Buttons rather than drag by design: the op grammar is the contract,
+  so drag can layer on later as a pure enhancement pushing the same op.
+  When a move disables the button that was pressed (the column reached
+  an edge), keyboard focus falls to its enabled sibling instead of
+  dying.
+
 - **The case-sensitivity of text equality is now a written contract,
   decided with evidence rather than inherited.** `:eq` (with `:neq`,
   `:in`, `:not_in`) folds case - a person picking "is" in a filter
