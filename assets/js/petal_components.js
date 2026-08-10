@@ -4809,12 +4809,32 @@ export const PetalDataTable = {
       this.toggleMenu(trigger.getAttribute("data-pc-menu-trigger"));
     };
 
-    this.onOutside = (e) => {
-      if (!this.openMenu) return;
-      const panel = this.menuPanel();
-      const trigger = this.menuTrigger();
-      if (panel?.contains(e.target) || trigger?.contains(e.target)) return;
-      this.closeMenu();
+    // Dismiss on a TAP outside, not a press outside. Closing on
+    // pointerdown means a drag that starts on the page - the ordinary
+    // way anyone scrolls a phone - kills the menu before it moves. The
+    // native popover's light dismiss has the same shape: press and
+    // release must both land outside, and a gesture that turns into a
+    // scroll never releases (it cancels).
+    this.onPressStart = (e) => {
+      this.press =
+        this.openMenu && this.isOutsideMenu(e.target)
+          ? { x: e.clientX, y: e.clientY }
+          : null;
+    };
+
+    this.onPressEnd = (e) => {
+      const press = this.press;
+      this.press = null;
+      if (!press || !this.openMenu) return;
+
+      // a release far from the press is a drag, not a tap - iOS uses a
+      // comparable slop before it commits to "this was a tap"
+      const dragged = Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10;
+      if (!dragged && this.isOutsideMenu(e.target)) this.closeMenu();
+    };
+
+    this.onPressCancel = () => {
+      this.press = null;
     };
 
     this.onMenuKeydown = (e) => {
@@ -4830,7 +4850,9 @@ export const PetalDataTable = {
 
     this.el.addEventListener("click", this.onMenuClick);
     this.el.addEventListener("keydown", this.onMenuKeydown);
-    document.addEventListener("pointerdown", this.onOutside, true);
+    document.addEventListener("pointerdown", this.onPressStart, true);
+    document.addEventListener("pointerup", this.onPressEnd, true);
+    document.addEventListener("pointercancel", this.onPressCancel, true);
     window.addEventListener("resize", this.onWindowResize);
 
     this.el.addEventListener("input", this.onInput);
@@ -4842,6 +4864,13 @@ export const PetalDataTable = {
   // id lookups without CSS.escape: ids here come from a developer's
   // table id and field names, and escaping is one more thing to get
   // wrong (it is also absent in jsdom, so specs would diverge)
+  isOutsideMenu(target) {
+    const panel = this.menuPanel();
+    const trigger = this.menuTrigger();
+
+    return !panel?.contains(target) && !trigger?.contains(target);
+  },
+
   menuPanel() {
     return this.openMenu ? document.getElementById(this.openMenu) : null;
   },
@@ -4981,7 +5010,9 @@ export const PetalDataTable = {
     this.el.removeEventListener("submit", this.onSubmit);
     this.el.removeEventListener("click", this.onMenuClick);
     this.el.removeEventListener("keydown", this.onMenuKeydown);
-    document.removeEventListener("pointerdown", this.onOutside, true);
+    document.removeEventListener("pointerdown", this.onPressStart, true);
+    document.removeEventListener("pointerup", this.onPressEnd, true);
+    document.removeEventListener("pointercancel", this.onPressCancel, true);
     window.removeEventListener("resize", this.onWindowResize);
   },
 

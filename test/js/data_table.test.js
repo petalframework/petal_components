@@ -66,6 +66,19 @@ function mountWithFilter({ navTemplate, filters, formHtml }) {
   };
 }
 
+// pointer gestures: jsdom has no PointerEvent, but a MouseEvent named
+// "pointerdown"/"pointerup" carries the clientX/Y the hook reads
+function pointer(type, target, x = 0, y = 0) {
+  target.dispatchEvent(
+    new MouseEvent(type, { bubbles: true, clientX: x, clientY: y }),
+  );
+}
+
+function tapOutside(x = 5, y = 5) {
+  pointer("pointerdown", document.body, x, y);
+  pointer("pointerup", document.body, x, y);
+}
+
 function submit(form) {
   form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
@@ -254,7 +267,7 @@ describe("PetalDataTable", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
     trigger.click();
-    document.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    tapOutside();
     expect(hook.openMenu).toBe(null);
 
     trigger.click();
@@ -284,6 +297,43 @@ describe("PetalDataTable", () => {
 
     expect(panel.hidden).toBe(false);
     expect(panel.hasAttribute("data-pc-open")).toBe(true);
+    expect(hook.openMenu).toBe("pop");
+  });
+
+  it("survives a drag on the page - only a tap outside dismisses", () => {
+    const { hook, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    // dragging the page to scroll it: press outside, move, release far away
+    trigger.click();
+    pointer("pointerdown", document.body, 100, 400);
+    pointer("pointerup", document.body, 100, 180);
+    expect(hook.openMenu).toBe("pop");
+
+    // a gesture the browser hands to the scroller never releases at all
+    pointer("pointerdown", document.body, 100, 400);
+    pointer("pointercancel", document.body, 100, 400);
+    pointer("pointerup", document.body, 100, 120);
+    expect(hook.openMenu).toBe("pop");
+
+    // and a real tap still dismisses
+    tapOutside(100, 400);
+    expect(hook.openMenu).toBe(null);
+  });
+
+  it("does not dismiss when a press outside releases inside the panel", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+    pointer("pointerdown", document.body, 10, 10);
+    pointer("pointerup", panel, 10, 10);
     expect(hook.openMenu).toBe("pop");
   });
 
