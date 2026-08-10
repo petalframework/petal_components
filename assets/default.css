@@ -2725,6 +2725,22 @@
   .pc-data-table__filter-options {
     @apply flex max-h-56 flex-col gap-1 overflow-y-auto;
   }
+  .pc-data-table__column-row {
+    @apply justify-between gap-2;
+  }
+  .pc-data-table__column-row-label {
+    @apply flex min-w-0 flex-1 cursor-pointer items-center gap-2;
+  }
+  .pc-data-table__column-move {
+    @apply flex shrink-0 items-center;
+  }
+  .pc-data-table__column-move-btn {
+    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-data-table__column-move-icon.pc-data-table__column-move-icon {
+    @apply w-4! h-4!;
+  }
   .pc-data-table__filter-option {
     @apply flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-400/10;
   }

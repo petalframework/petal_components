@@ -15,6 +15,20 @@
 
 #### Added
 
+- **Column reordering (`reorderable`).** Move up/down controls in the
+  Columns menu, riding the `on_ui` event as a `move_column` op whose
+  payload carries the COMPLETE resulting order - the handler is one
+  line, no permutation math, and double-clicks are harmless because
+  the payload states the destination rather than a delta. `column_order`
+  is presentation state like `hidden_columns` (never in URLs; stale
+  saved orders with unknown fields are ignored, not crashed on), and
+  the table, the menu and the filter buttons all follow it together.
+  Buttons rather than drag by design: the op grammar is the contract,
+  so drag can layer on later as a pure enhancement pushing the same op.
+  When a move disables the button that was pressed (the column reached
+  an edge), keyboard focus falls to its enabled sibling instead of
+  dying.
+
 - **The case-sensitivity of text equality is now a written contract,
   decided with evidence rather than inherited.** `:eq` (with `:neq`,
   `:in`, `:not_in`) folds case - a person picking "is" in a filter

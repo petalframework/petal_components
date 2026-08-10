@@ -5037,7 +5037,22 @@ export const PetalDataTable = {
         // hiding an ancestor blurs its focused descendant, and LiveView
         // only re-focuses text inputs and selects - never a checkbox or
         // a button, which is what these panels are full of
-        if (this.refocus?.isConnected) this.refocus.focus();
+        if (this.refocus?.isConnected) {
+          let target = this.refocus;
+          // the patch can disable the very control that was pressed - a
+          // move-to-top button, say. Fall to the nearest enabled control
+          // in the same row so keyboard flow continues instead of dying.
+          if (target.disabled) {
+            // parentElement first: closest() matches the element itself,
+            // and the disabled control may carry an id of its own
+            const row = target.parentElement?.closest("[id]");
+            target =
+              Array.from(row?.querySelectorAll("button, input") ?? []).find(
+                (el) => !el.disabled,
+              ) ?? target;
+          }
+          target.focus();
+        }
       } else {
         this.openMenu = null;
       }

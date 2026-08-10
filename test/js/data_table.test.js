@@ -458,6 +458,32 @@ describe("PetalDataTable", () => {
     expect(document.activeElement).toBe(box);
   });
 
+  it("falls to an enabled sibling when the pressed control is disabled by the patch", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form">
+        <span id="row-email">
+          <button type="button" id="up">up</button>
+          <button type="button" id="down">down</button>
+        </span>
+      </form>`,
+    });
+
+    trigger.click();
+    const up = panel.querySelector("#up");
+    up.focus();
+
+    // the patch: the moved column reached the top, its up button disables
+    hook.beforeUpdate();
+    panel.hidden = true;
+    up.blur();
+    up.disabled = true;
+    hook.updated();
+
+    expect(document.activeElement).toBe(panel.querySelector("#down"));
+  });
+
   it("Escape does not escape the table - an enclosing modal keeps its own", () => {
     const { hook, panel, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",

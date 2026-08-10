@@ -750,6 +750,7 @@ defmodule Dev.PlaygroundLive do
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
        dt_hidden: [],
+       dt_order: [],
        dt_refunded: [],
        radio: %{
          style: "cards",
@@ -1494,11 +1495,18 @@ defmodule Dev.PlaygroundLive do
           socket.assigns.dt_hidden
       end
 
+    order =
+      case params do
+        %{"op" => "move_column", "order" => order} -> String.split(order, ",")
+        _ -> socket.assigns.dt_order
+      end
+
     {:noreply,
      socket
      |> assign(:dt, run_dt(state, refunded))
      |> assign(:dt_selected, selected)
      |> assign(:dt_hidden, hidden)
+     |> assign(:dt_order, order)
      |> assign(:dt_refunded, refunded)}
   end
 
@@ -7379,6 +7387,8 @@ defmodule Dev.PlaygroundLive do
           selected={@dt_selected}
           column_toggle
           hidden_columns={@dt_hidden}
+          reorderable
+          column_order={@dt_order}
         >
           <:col :let={row} field={:name} sortable>{row.name}</:col>
           <:col :let={row} field={:email} filterable="text">{row.email}</:col>

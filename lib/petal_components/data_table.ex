@@ -33,8 +33,10 @@ defmodule PetalComponents.DataTable do
   Selection (`selectable`) is UI state, not query state - it rides an
   event in BOTH wiring modes (`on_ui`, defaulting to `on_change`) and
   never touches URLs. Its ops sit outside `State`: `select` (id),
-  `select_all`, `clear_selection` - a MapSet plus three clauses is the
-  whole backend. Selection is keyed by `row_id`, which must uniquely
+  `select_all`, `clear_selection`, `toggle_column` and `move_column`
+  (whose payload carries the complete resulting `order`, so the handler
+  is one line) - a MapSet plus a handful of clauses is the whole
+  backend. Selection is keyed by `row_id`, which must uniquely
   identify a record across the whole dataset, not just the current
   page (primary keys qualify, display fields do not) - a selection
   retained while paging is only as sound as this key. Same-page
@@ -187,6 +189,22 @@ defmodule PetalComponents.DataTable do
 
   attr :column_toggle_label, :string, default: "Columns"
 
+  attr :reorderable, :boolean,
+    default: false,
+    doc: "render move up/down controls in the Columns menu (requires `column_toggle`)"
+
+  attr :column_order, :list,
+    default: [],
+    doc: """
+    fields in display order (atoms or strings) - presentation state on
+    the `on_ui` event, like `hidden_columns`, never in URLs. Fields not
+    listed keep their declared order after the listed ones. Empty means
+    the declared `:col` order.
+    """
+
+  attr :move_up_label, :string, default: "Move up", doc: "reorder buttons, localizable"
+  attr :move_down_label, :string, default: "Move down"
+
   attr :filter_op_labels, :map,
     default: %{},
     doc: "overrides for the operator display names, e.g. %{contains: \"enthält\"}"
@@ -243,7 +261,8 @@ defmodule PetalComponents.DataTable do
     fields = Map.new(assigns.col, fn col -> {to_string(col.field), col.field} end)
 
     hidden = Enum.map(assigns.hidden_columns, &to_string/1)
-    visible_cols = Enum.reject(assigns.col, &(to_string(&1.field) in hidden))
+    ordered_cols = apply_column_order(assigns.col, assigns.column_order)
+    visible_cols = Enum.reject(ordered_cols, &(to_string(&1.field) in hidden))
 
     # the UI can't reach all-hidden (the last checkbox disables), but a
     # hand-built hidden_columns can - enforce the invariant here too by
@@ -254,7 +273,10 @@ defmodule PetalComponents.DataTable do
         _ -> {visible_cols, hidden}
       end
 
-    filter_cols = Enum.filter(assigns.col, & &1[:filterable])
+    filter_cols =
+      assigns.col
+      |> apply_column_order(assigns.column_order)
+      |> Enum.filter(& &1[:filterable])
 
     link_mode? = is_nil(assigns.on_change)
 
@@ -274,6 +296,7 @@ defmodule PetalComponents.DataTable do
       |> assign(:skeleton_rows, List.duplicate(%{}, min(assigns.state.page_size, 10)))
       |> assign(:filter_cols, filter_cols)
       |> assign(:visible_cols, visible_cols)
+      |> assign(:ordered_cols, ordered_cols)
       |> assign(:hidden, hidden)
       |> assign(:op_labels, Map.merge(default_op_labels(), assigns.filter_op_labels))
       |> assign(:ui_event, ui_event)
@@ -384,19 +407,53 @@ defmodule PetalComponents.DataTable do
                 role="group"
                 aria-label={@column_toggle_label}
               >
-                <label :for={col <- @col} class="pc-data-table__filter-option">
-                  <input
-                    type="checkbox"
-                    class="pc-checkbox"
-                    checked={to_string(col.field) not in @hidden}
-                    disabled={length(@visible_cols) == 1 and to_string(col.field) not in @hidden}
-                    phx-click={@ui_event}
-                    phx-target={@target}
-                    phx-value-op="toggle_column"
-                    phx-value-field={col.field}
-                  />
-                  <span>{col[:label] || humanize(col.field)}</span>
-                </label>
+                <div
+                  :for={{col, index} <- Enum.with_index(@ordered_cols)}
+                  id={"#{@id}-colrow-#{col.field}"}
+                  class="pc-data-table__filter-option pc-data-table__column-row"
+                >
+                  <label class="pc-data-table__column-row-label">
+                    <input
+                      type="checkbox"
+                      class="pc-checkbox"
+                      checked={to_string(col.field) not in @hidden}
+                      disabled={length(@visible_cols) == 1 and to_string(col.field) not in @hidden}
+                      phx-click={@ui_event}
+                      phx-target={@target}
+                      phx-value-op="toggle_column"
+                      phx-value-field={col.field}
+                    />
+                    <span>{col[:label] || humanize(col.field)}</span>
+                  </label>
+                  <span :if={@reorderable} class="pc-data-table__column-move">
+                    <button
+                      type="button"
+                      class="pc-data-table__column-move-btn"
+                      disabled={index == 0}
+                      phx-click={@ui_event}
+                      phx-target={@target}
+                      phx-value-op="move_column"
+                      phx-value-field={col.field}
+                      phx-value-order={moved_order(@ordered_cols, index, -1)}
+                      aria-label={"#{@move_up_label}: #{plain_label(col)}"}
+                    >
+                      <.icon name="hero-chevron-up" class="pc-data-table__column-move-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      class="pc-data-table__column-move-btn"
+                      disabled={index == length(@ordered_cols) - 1}
+                      phx-click={@ui_event}
+                      phx-target={@target}
+                      phx-value-op="move_column"
+                      phx-value-field={col.field}
+                      phx-value-order={moved_order(@ordered_cols, index, 1)}
+                      aria-label={"#{@move_down_label}: #{plain_label(col)}"}
+                    >
+                      <.icon name="hero-chevron-down" class="pc-data-table__column-move-icon" />
+                    </button>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -735,6 +792,38 @@ defmodule PetalComponents.DataTable do
       aria-label={@select_all_label}
     />
     """
+  end
+
+  # Listed fields first, in the given order; unlisted fields keep their
+  # declared relative order after them. Tolerates strings or atoms and
+  # ignores unknown fields, so a stale saved order cannot break render.
+  defp apply_column_order(cols, []), do: cols
+
+  defp apply_column_order(cols, order) do
+    order = Enum.map(order, &to_string/1)
+    by_field = Map.new(cols, &{to_string(&1.field), &1})
+    listed = order |> Enum.map(&Map.get(by_field, &1)) |> Enum.reject(&is_nil/1)
+    rest = Enum.reject(cols, &(to_string(&1.field) in order))
+    listed ++ rest
+  end
+
+  # Each button carries the COMPLETE resulting order, so the handler is
+  # one line - no permutation math server-side, and the op is idempotent
+  # under double-clicks (the payload states the destination, not a delta).
+  defp moved_order(cols, index, delta) do
+    fields = Enum.map(cols, &to_string(&1.field))
+
+    fields
+    |> List.delete_at(index)
+    |> List.insert_at(index + delta, Enum.at(fields, index))
+    |> Enum.join(",")
+  end
+
+  defp plain_label(col) do
+    case col[:label] do
+      label when is_binary(label) -> label
+      _other -> humanize(col.field)
+    end
   end
 
   # A human name beats a primary key: "Select row 0198f2a1-b3c4-..." is
