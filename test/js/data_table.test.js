@@ -68,10 +68,11 @@ function mountWithFilter({ navTemplate, filters, formHtml }) {
 
 // pointer gestures: jsdom has no PointerEvent, but a MouseEvent named
 // "pointerdown"/"pointerup" carries the clientX/Y the hook reads
-function pointer(type, target, x = 0, y = 0) {
-  target.dispatchEvent(
-    new MouseEvent(type, { bubbles: true, clientX: x, clientY: y }),
-  );
+function pointer(type, target, x = 0, y = 0, pointerId = 1) {
+  const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y });
+  // jsdom's MouseEvent has no pointerId, and the hook keys presses by it
+  Object.defineProperty(event, "pointerId", { value: pointerId });
+  target.dispatchEvent(event);
 }
 
 function tapOutside(x = 5, y = 5) {
@@ -320,6 +321,29 @@ describe("PetalDataTable", () => {
     expect(hook.openMenu).toBe("pop");
 
     // and a real tap still dismisses
+    tapOutside(100, 400);
+    expect(hook.openMenu).toBe(null);
+  });
+
+  it("ignores multi-finger gestures outside the panel", () => {
+    const { hook, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    // a pinch: two fingers land, both lift roughly where they started
+    pointer("pointerdown", document.body, 100, 400, 1);
+    pointer("pointerdown", document.body, 200, 400, 2);
+    pointer("pointerup", document.body, 100, 401, 1);
+    pointer("pointerup", document.body, 200, 401, 2);
+    expect(hook.openMenu).toBe("pop");
+
+    // one finger cancelling must not disarm a later single-finger tap
+    pointer("pointerdown", document.body, 100, 400, 3);
+    pointer("pointercancel", document.body, 100, 400, 3);
     tapOutside(100, 400);
     expect(hook.openMenu).toBe(null);
   });

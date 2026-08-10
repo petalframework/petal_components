@@ -4815,17 +4815,27 @@ export const PetalDataTable = {
     // native popover's light dismiss has the same shape: press and
     // release must both land outside, and a gesture that turns into a
     // scroll never releases (it cancels).
+    // Per pointer, because fingers come in twos: a pinch or two-finger
+    // scroll would otherwise have one finger overwrite the other's press
+    // record, or one finger's cancel disarm the other's tap.
+    this.presses = new Map();
+    this.multiTouch = false;
+
     this.onPressStart = (e) => {
-      this.press =
-        this.openMenu && this.isOutsideMenu(e.target)
-          ? { x: e.clientX, y: e.clientY }
-          : null;
+      if (!this.openMenu) return;
+      if (this.presses.size > 0) this.multiTouch = true;
+      if (this.isOutsideMenu(e.target)) {
+        this.presses.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
     };
 
     this.onPressEnd = (e) => {
-      const press = this.press;
-      this.press = null;
-      if (!press || !this.openMenu) return;
+      const press = this.presses.get(e.pointerId);
+      this.presses.delete(e.pointerId);
+
+      const gesture = this.multiTouch;
+      if (this.presses.size === 0) this.multiTouch = false;
+      if (!press || gesture || !this.openMenu) return;
 
       // a release far from the press is a drag, not a tap - iOS uses a
       // comparable slop before it commits to "this was a tap"
@@ -4833,8 +4843,9 @@ export const PetalDataTable = {
       if (!dragged && this.isOutsideMenu(e.target)) this.closeMenu();
     };
 
-    this.onPressCancel = () => {
-      this.press = null;
+    this.onPressCancel = (e) => {
+      this.presses.delete(e.pointerId);
+      if (this.presses.size === 0) this.multiTouch = false;
     };
 
     this.onMenuKeydown = (e) => {
@@ -5014,6 +5025,7 @@ export const PetalDataTable = {
     document.removeEventListener("pointerup", this.onPressEnd, true);
     document.removeEventListener("pointercancel", this.onPressCancel, true);
     window.removeEventListener("resize", this.onWindowResize);
+    this.presses?.clear();
   },
 
   committedFilters() {
