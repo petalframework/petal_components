@@ -134,6 +134,10 @@ defmodule PetalComponents.DataTable do
     default: "Apply",
     doc: "the filter editors' submit label, localizable"
 
+  attr :filter_options_placeholder, :string,
+    default: "Filter options\u2026",
+    doc: "the select editor's option-filter placeholder (shown from 8 options up), localizable"
+
   attr :selectable, :boolean, default: false, doc: "render a leading checkbox column"
 
   attr :selected, :list,
@@ -382,6 +386,7 @@ defmodule PetalComponents.DataTable do
             target={@target}
             op_labels={@op_labels}
             apply_label={@apply_label}
+            filter_options_placeholder={@filter_options_placeholder}
           />
           {render_slot(@toolbar)}
           <div :if={@column_toggle} class="pc-popover pc-data-table__columns">
@@ -968,6 +973,7 @@ defmodule PetalComponents.DataTable do
               options={@options}
               op_labels={@op_labels}
               label={@label}
+              filter_options_placeholder={@filter_options_placeholder}
             />
             <.button size="sm" type="submit" class="pc-data-table__filter-apply">
               {@apply_label}
@@ -1001,11 +1007,28 @@ defmodule PetalComponents.DataTable do
     """
   end
 
+  # eight or more options get a client-side filter box - a checkbox wall
+  # with no way to narrow it is where long lists go to die
+  @option_filter_threshold 8
+
   defp filter_editor(%{type: "select"} = assigns) do
     current = assigns.filter |> current_values() |> Enum.map(&to_string/1)
-    assigns = assign(assigns, :current, current)
+
+    assigns =
+      assigns
+      |> assign(:current, current)
+      |> assign(:show_option_filter, length(assigns.options) >= @option_filter_threshold)
 
     ~H"""
+    <input
+      :if={@show_option_filter}
+      type="text"
+      data-pc-dt-option-filter
+      autocomplete="off"
+      placeholder={@filter_options_placeholder}
+      aria-label={"#{@label} option filter"}
+      class="pc-text-input pc-data-table__filter-value pc-data-table__option-filter"
+    />
     <div class="pc-data-table__filter-options" role="group" aria-label={"#{@label} options"}>
       <label :for={{label, value} <- @options} class="pc-data-table__filter-option">
         <input

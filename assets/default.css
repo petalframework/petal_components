@@ -2722,6 +2722,9 @@
     .pc-data-table__filter-value2 {
     @apply block;
   }
+  .pc-data-table__option-filter.pc-data-table__option-filter {
+    @apply mb-1 h-8 text-sm;
+  }
   .pc-data-table__filter-options {
     @apply flex max-h-56 flex-col gap-1 overflow-y-auto;
   }
