@@ -103,6 +103,14 @@ defmodule PetalComponents.DataTable do
 
   attr :clear_filters_label, :string, default: "Clear filters"
 
+  attr :results_label, :string,
+    default: "results",
+    doc: "the announced result-count noun, localizable"
+
+  attr :actions_label, :string,
+    default: "Actions",
+    doc: "the actions column's header, announced but not shown"
+
   attr :searchable, :boolean,
     default: false,
     doc: "render the quick-search input in the toolbar (drives `state.search`)"
@@ -130,6 +138,15 @@ defmodule PetalComponents.DataTable do
     default: [],
     doc: "the currently selected row ids (any terms; compared as strings)"
 
+  attr :row_label, :any,
+    default: nil,
+    doc: """
+    a 1-arity function returning a human name for a row, used as the
+    selection checkbox's accessible name. Without it the checkbox
+    announces its position ("Select row 3"), because a primary key -
+    a UUID, say - is not something a screen reader user can act on.
+    """
+
   attr :row_id, :any,
     default: :id,
     doc: """
@@ -151,6 +168,10 @@ defmodule PetalComponents.DataTable do
     doc: "the selection count's word, localizable"
 
   attr :clear_selection_label, :string, default: "Clear selection"
+
+  attr :select_row_label, :string,
+    default: "Select row",
+    doc: "the row checkbox's aria-label prefix, localizable"
 
   attr :select_all_label, :string,
     default: "Select all rows",
@@ -345,7 +366,6 @@ defmodule PetalComponents.DataTable do
               type="button"
               id={"#{@id}-columns-trigger"}
               data-pc-menu-trigger={"#{@id}-columns"}
-              aria-haspopup="dialog"
               aria-expanded="false"
               aria-controls={"#{@id}-columns"}
               class="pc-popover__trigger pc-button pc-button--sm pc-button--gray-outline"
@@ -355,7 +375,6 @@ defmodule PetalComponents.DataTable do
             </button>
             <div
               id={"#{@id}-columns"}
-              role="dialog"
               hidden
               data-pc-menu
               class="pc-popover__panel pc-popover__panel--bottom-end"
@@ -442,7 +461,7 @@ defmodule PetalComponents.DataTable do
               phx-target={@target}
               phx-value-op="select"
               phx-value-id={row_key(row, @row_id)}
-              aria-label={"Select row #{row_key(row, @row_id)}"}
+              aria-label={row_aria_label(row, @row_label, @rows, @select_row_label)}
             />
           </:col>
           <:col
@@ -460,7 +479,12 @@ defmodule PetalComponents.DataTable do
               {render_slot(col, row)}
             <% end %>
           </:col>
-          <:col :let={row} :if={@action != []} label="" class="pc-data-table__actions-th">
+          <:col
+            :let={row}
+            :if={@action != []}
+            label={sr_only_label(@actions_label)}
+            class="pc-data-table__actions-th"
+          >
             <span :if={!@loading} class="pc-data-table__actions">
               {render_slot(@action, row)}
             </span>
@@ -499,7 +523,10 @@ defmodule PetalComponents.DataTable do
       </div>
 
       <div class="pc-data-table__footer">
-        <span class="pc-data-table__range">{range_text(@state, @of_label, @page_label)}</span>
+        <span class="pc-data-table__range" role="status" aria-atomic="true">
+          <span aria-hidden="true">{range_text(@state, @of_label, @page_label)}</span>
+          <span class="sr-only">{range_announcement(assigns)}</span>
+        </span>
         <div :if={@page_size_options != []} class="pc-data-table__page-size">
           <label for={"#{@id}-page-size"} class="pc-data-table__page-size-label">
             {@per_page_label}
@@ -710,6 +737,27 @@ defmodule PetalComponents.DataTable do
     """
   end
 
+  # A human name beats a primary key: "Select row 0198f2a1-b3c4-..." is
+  # what a UUID announces, once per row. Falls back to the row's position
+  # on the page, which is at least sayable.
+  defp row_aria_label(row, fun, _rows, prefix) when is_function(fun, 1),
+    do: "#{prefix} #{fun.(row)}"
+
+  defp row_aria_label(row, _none, rows, prefix) do
+    case Enum.find_index(rows, &(&1 == row)) do
+      nil -> prefix
+      index -> "#{prefix} #{index + 1}"
+    end
+  end
+
+  defp sr_only_label(text) do
+    assigns = %{text: text}
+
+    ~H"""
+    <span class="sr-only">{@text}</span>
+    """
+  end
+
   defp row_key(row, fun) when is_function(fun, 1), do: to_string(fun.(row))
   defp row_key(row, field) when is_atom(field), do: to_string(Map.get(row, field))
 
@@ -770,7 +818,6 @@ defmodule PetalComponents.DataTable do
           type="button"
           id={"#{@pop_id}-trigger"}
           data-pc-menu-trigger={@pop_id}
-          aria-haspopup="dialog"
           aria-expanded="false"
           aria-controls={@pop_id}
           class={[
@@ -784,7 +831,6 @@ defmodule PetalComponents.DataTable do
         </button>
         <div
           id={@pop_id}
-          role="dialog"
           hidden
           data-pc-menu
           class="pc-popover__panel pc-popover__panel--bottom-start"
@@ -873,6 +919,7 @@ defmodule PetalComponents.DataTable do
       step="any"
       name="value"
       value={@value}
+      aria-label={"#{@label} lower bound"}
       class="pc-text-input pc-data-table__filter-value"
     />
     <input
@@ -899,6 +946,7 @@ defmodule PetalComponents.DataTable do
       type="date"
       name="value"
       value={@value}
+      aria-label={"#{@label} value"}
       class="pc-text-input pc-data-table__filter-value"
     />
     """
@@ -917,6 +965,7 @@ defmodule PetalComponents.DataTable do
       type="text"
       name="value"
       value={@value}
+      aria-label={"#{@label} value"}
       class="pc-text-input pc-data-table__filter-value"
     />
     """
@@ -995,6 +1044,29 @@ defmodule PetalComponents.DataTable do
 
   defp display_value(%{value: %{} = value}, _options), do: inspect(value)
   defp display_value(%{value: value}, _options), do: to_string(value)
+
+  # Announced separately from the visible range: the visible string uses
+  # an en dash, which screen readers frequently read as nothing at all
+  # ("1 25 of 500"), and the zero case renders empty - which would make
+  # the region silent in precisely the case that matters most.
+  defp range_announcement(%{state: %State{total: nil} = state} = assigns),
+    do: "#{assigns.page_label} #{state.page}"
+
+  defp range_announcement(%{state: %State{total: 0}} = assigns) do
+    case filtering?(assigns.state) do
+      true -> assigns.no_filtered_results_text
+      false -> assigns.no_results_text
+    end
+  end
+
+  defp range_announcement(%{state: %State{} = state} = assigns) do
+    first = (state.page - 1) * state.page_size + 1
+    last = min(state.page * state.page_size, state.total)
+    "#{first} to #{last} #{assigns.of_label} #{state.total} #{assigns.results_label}"
+  end
+
+  defp filtering?(%State{filters: [], search: nil}), do: false
+  defp filtering?(%State{}), do: true
 
   defp range_text(%State{total: nil} = state, _of_label, page_label),
     do: "#{page_label} #{state.page}"

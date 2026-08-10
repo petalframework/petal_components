@@ -20,9 +20,16 @@ defmodule PetalComponents.Pagination do
 
   attr :previous_label, :string,
     default: "Previous",
-    doc: "simple variant: label for the previous button"
+    doc:
+      "the previous button's label - visible in the simple variant, announced in the numbered one"
 
-  attr :next_label, :string, default: "Next", doc: "simple variant: label for the next button"
+  attr :next_label, :string,
+    default: "Next",
+    doc: "the next button's label - visible in the simple variant, announced in the numbered one"
+
+  attr :aria_label, :string,
+    default: "Pagination",
+    doc: "names the navigation landmark, localizable"
 
   attr :link_type, :string,
     default: "a",
@@ -119,30 +126,11 @@ defmodule PetalComponents.Pagination do
 
     ~H"""
     <div {@rest} class={["pc-pagination", @class]}>
-      <ul class="pc-pagination__inner">
-        <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
-          <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
-            <li>
-              <Link.a
-                phx-click={event_name(@event)}
-                {phx_values(@event_values)}
-                phx-target={if @event?, do: @target}
-                phx-value-page={item.number}
-                link_type={if @event?, do: "button", else: @link_type}
-                to={if not @event?, do: get_path(@path, item.number, @current_page)}
-                class="pc-pagination__item__previous"
-                disabled={!item.enabled?}
-              >
-                <.icon name="hero-chevron-left-solid" class="pc-pagination__item__previous__chevron" />
-              </Link.a>
-            </li>
-          <% end %>
-
-          <%= if item.type == "page" do %>
-            <li>
-              <%= if item.current? do %>
-                <span class={get_box_class(item)}>{item.number}</span>
-              <% else %>
+      <nav aria-label={@aria_label}>
+        <ul class="pc-pagination__inner">
+          <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
+            <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
+              <li>
                 <Link.a
                   phx-click={event_name(@event)}
                   {phx_values(@event_values)}
@@ -150,40 +138,66 @@ defmodule PetalComponents.Pagination do
                   phx-value-page={item.number}
                   link_type={if @event?, do: "button", else: @link_type}
                   to={if not @event?, do: get_path(@path, item.number, @current_page)}
-                  class={get_box_class(item)}
+                  class="pc-pagination__item__previous"
+                  disabled={!item.enabled?}
                 >
-                  {item.number}
+                  <.icon
+                    name="hero-chevron-left-solid"
+                    class="pc-pagination__item__previous__chevron"
+                  />
+                  <span class="sr-only">{@previous_label}</span>
                 </Link.a>
-              <% end %>
-            </li>
-          <% end %>
+              </li>
+            <% end %>
 
-          <%= if item.type == "..." do %>
-            <li>
-              <span class="pc-pagination__item__ellipsis">
-                ...
-              </span>
-            </li>
-          <% end %>
+            <%= if item.type == "page" do %>
+              <li>
+                <%= if item.current? do %>
+                  <span class={get_box_class(item)} aria-current="page">{item.number}</span>
+                <% else %>
+                  <Link.a
+                    phx-click={event_name(@event)}
+                    {phx_values(@event_values)}
+                    phx-target={if @event?, do: @target}
+                    phx-value-page={item.number}
+                    link_type={if @event?, do: "button", else: @link_type}
+                    to={if not @event?, do: get_path(@path, item.number, @current_page)}
+                    class={get_box_class(item)}
+                  >
+                    {item.number}
+                  </Link.a>
+                <% end %>
+              </li>
+            <% end %>
 
-          <%= if item.type == "next" and (item.enabled? or @show_boundary_chevrons) do %>
-            <li>
-              <Link.a
-                phx-click={event_name(@event)}
-                {phx_values(@event_values)}
-                phx-target={if @event?, do: @target}
-                phx-value-page={item.number}
-                link_type={if @event?, do: "button", else: @link_type}
-                to={if not @event?, do: get_path(@path, item.number, @current_page)}
-                class="pc-pagination__item__next"
-                disabled={!item.enabled?}
-              >
-                <.icon name="hero-chevron-right-solid" class="pc-pagination__item__next__chevron" />
-              </Link.a>
-            </li>
+            <%= if item.type == "..." do %>
+              <li>
+                <span class="pc-pagination__item__ellipsis">
+                  ...
+                </span>
+              </li>
+            <% end %>
+
+            <%= if item.type == "next" and (item.enabled? or @show_boundary_chevrons) do %>
+              <li>
+                <Link.a
+                  phx-click={event_name(@event)}
+                  {phx_values(@event_values)}
+                  phx-target={if @event?, do: @target}
+                  phx-value-page={item.number}
+                  link_type={if @event?, do: "button", else: @link_type}
+                  to={if not @event?, do: get_path(@path, item.number, @current_page)}
+                  class="pc-pagination__item__next"
+                  disabled={!item.enabled?}
+                >
+                  <.icon name="hero-chevron-right-solid" class="pc-pagination__item__next__chevron" />
+                  <span class="sr-only">{@next_label}</span>
+                </Link.a>
+              </li>
+            <% end %>
           <% end %>
-        <% end %>
-      </ul>
+        </ul>
+      </nav>
     </div>
     """
   end

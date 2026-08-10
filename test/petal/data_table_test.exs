@@ -422,6 +422,99 @@ defmodule PetalComponents.DataTableTest do
     assert capped =~ ~s(style="max-height: 24rem")
   end
 
+  test "the filter panels are disclosures, not dialogs" do
+    assigns = base(%{})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" column_toggle>
+        <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+      </.data_table>
+      """)
+
+    # role="dialog" promises focus management these panels deliberately
+    # do not do, and an unnamed dialog is an automated-scan failure
+    refute html =~ ~s(role="dialog")
+    refute html =~ ~s(aria-haspopup="dialog")
+    assert html =~ ~s(aria-expanded="false")
+    assert html =~ "aria-controls"
+    # the field you actually type in has a name
+    assert html =~ ~s(aria-label="Email value")
+  end
+
+  test "selection checkboxes announce something a person can act on" do
+    assigns =
+      base(%{
+        rows: [%{id: "0198f2a1-b3c4-7d5e", name: "Amy"}, %{id: "0198f2a1-ffff", name: "Bea"}],
+        namer: fn row -> row.name end
+      })
+
+    # without a row_label, a UUID primary key would be read out in full
+    positional =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" selectable selected={[]}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert positional =~ ~s(aria-label="Select row 1")
+    assert positional =~ ~s(aria-label="Select row 2")
+    refute positional =~ "Select row 0198f2a1"
+
+    named =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        selectable
+        selected={[]}
+        row_label={@namer}
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert named =~ ~s(aria-label="Select row Amy")
+  end
+
+  test "the range summary is a live region that speaks the zero case" do
+    assigns = base(%{state: %State{total: 74, page: 2, page_size: 25}})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(role="status")
+    assert html =~ ~s(aria-atomic="true")
+    # the visible en dash is hidden from the region and spoken as words
+    assert html =~ ~s(<span aria-hidden="true">26–50 of 74</span>)
+    assert html =~ "26 to 50 of 74 results"
+
+    empty =
+      base(%{
+        rows: [],
+        state: %State{total: 0, filters: [%{field: :name, op: :contains, value: "zz"}]}
+      })
+
+    assigns = empty
+
+    empty_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} path={@path}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    # range_text renders nothing at zero - the region would be silent in
+    # exactly the case that matters most without its own sentence
+    assert empty_html =~ "No results for these filters"
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{
