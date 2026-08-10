@@ -348,6 +348,29 @@ describe("PetalDataTable", () => {
     expect(hook.openMenu).toBe(null);
   });
 
+  it("does not dismiss while a finger is still resting inside the panel", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    // one finger held inside the panel, a second taps the page
+    pointer("pointerdown", panel, 150, 500, 1);
+    pointer("pointerdown", document.body, 40, 40, 2);
+    pointer("pointerup", document.body, 40, 40, 2);
+    expect(hook.openMenu).toBe("pop");
+
+    pointer("pointerup", panel, 150, 500, 1);
+    expect(hook.openMenu).toBe("pop");
+
+    // with every finger lifted, a plain tap dismisses again
+    tapOutside(40, 40);
+    expect(hook.openMenu).toBe(null);
+  });
+
   it("does not dismiss when a press outside releases inside the panel", () => {
     const { hook, panel, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",

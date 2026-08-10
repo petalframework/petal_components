@@ -4818,12 +4818,18 @@ export const PetalDataTable = {
     // Per pointer, because fingers come in twos: a pinch or two-finger
     // scroll would otherwise have one finger overwrite the other's press
     // record, or one finger's cancel disarm the other's tap.
+    // `active` is EVERY pointer currently down, `presses` only the ones
+    // that started outside. Tracking both matters: a finger resting
+    // inside the panel is invisible to `presses`, and without it a
+    // second finger tapping outside would look like a lone clean tap.
+    this.active = new Set();
     this.presses = new Map();
     this.multiTouch = false;
 
     this.onPressStart = (e) => {
       if (!this.openMenu) return;
-      if (this.presses.size > 0) this.multiTouch = true;
+      this.active.add(e.pointerId);
+      if (this.active.size > 1) this.multiTouch = true;
       if (this.isOutsideMenu(e.target)) {
         this.presses.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }
@@ -4832,9 +4838,10 @@ export const PetalDataTable = {
     this.onPressEnd = (e) => {
       const press = this.presses.get(e.pointerId);
       this.presses.delete(e.pointerId);
+      this.active.delete(e.pointerId);
 
       const gesture = this.multiTouch;
-      if (this.presses.size === 0) this.multiTouch = false;
+      if (this.active.size === 0) this.multiTouch = false;
       if (!press || gesture || !this.openMenu) return;
 
       // a release far from the press is a drag, not a tap - iOS uses a
@@ -4845,7 +4852,8 @@ export const PetalDataTable = {
 
     this.onPressCancel = (e) => {
       this.presses.delete(e.pointerId);
-      if (this.presses.size === 0) this.multiTouch = false;
+      this.active.delete(e.pointerId);
+      if (this.active.size === 0) this.multiTouch = false;
     };
 
     this.onMenuKeydown = (e) => {
@@ -5026,6 +5034,7 @@ export const PetalDataTable = {
     document.removeEventListener("pointercancel", this.onPressCancel, true);
     window.removeEventListener("resize", this.onWindowResize);
     this.presses?.clear();
+    this.active?.clear();
   },
 
   committedFilters() {
