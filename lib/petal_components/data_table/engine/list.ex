@@ -183,7 +183,13 @@ defmodule PetalComponents.DataTable.Engine.List do
   # the catch-all `false` rather than raising. Each comparator now tries
   # numbers, then dates, then text, so the op means the same thing
   # whatever the column holds.
-  defp matches?(field_value, :neq, value), do: not matches?(field_value, :eq, value)
+  # A negation must never turn "this filter cannot be evaluated" into a
+  # match. :neq with "abc" against a numeric column would otherwise
+  # invert a coercion failure into EVERY row matching - the loudest
+  # possible wrong answer. An unusable filter matches nothing here, as
+  # it does everywhere else in this engine.
+  defp matches?(field_value, :neq, value),
+    do: evaluable?(field_value, value) and not matches?(field_value, :eq, value)
 
   defp matches?(field_value, :gt, value), do: compare(field_value, value, [:gt])
   defp matches?(field_value, :gte, value), do: compare(field_value, value, [:gt, :eq])
@@ -207,13 +213,13 @@ defmodule PetalComponents.DataTable.Engine.List do
   end
 
   defp matches?(field_value, :not_contains, value),
-    do: not matches?(field_value, :contains, value)
+    do: text_value?(value) and not matches?(field_value, :contains, value)
 
   defp matches?(field_value, :in, values) when is_list(values) do
     Enum.any?(values, &values_equal?(field_value, &1))
   end
 
-  defp matches?(field_value, :not_in, values) when is_list(values),
+  defp matches?(field_value, :not_in, values) when is_list(values) and values != [],
     do: not matches?(field_value, :in, values)
 
   defp matches?(field_value, op, value) when op in [:before, :on, :after] do
@@ -254,6 +260,24 @@ defmodule PetalComponents.DataTable.Engine.List do
         false
     end
   end
+
+  # Can the positive form of this filter actually be evaluated against a
+  # field of this shape? Mirrors the coercion the :eq clauses perform.
+  defp evaluable?(field_value, value) when is_binary(field_value), do: text_value?(value)
+  defp evaluable?(field_value, value) when is_number(field_value), do: number_value?(value)
+
+  defp evaluable?(field_value, value) do
+    case to_date(field_value) do
+      {:ok, _} -> match?({:ok, _}, to_date(value))
+      :error -> text_value?(value)
+    end
+  end
+
+  defp text_value?(value) when is_binary(value) or is_number(value), do: true
+  defp text_value?(value) when is_atom(value), do: not is_nil(value)
+  defp text_value?(_other), do: false
+
+  defp number_value?(value), do: match?({:ok, _}, number(value))
 
   defp empty_value?(nil), do: true
   defp empty_value?(""), do: true

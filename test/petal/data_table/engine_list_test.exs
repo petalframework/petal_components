@@ -109,6 +109,20 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert names(%{field: :name, op: :not_in, value: ["Amy"]}) == ["Bea", "Cal"]
     end
 
+    test "a negation never inverts a coercion failure into matching everything" do
+      # :neq "abc" against a numeric column cannot be evaluated - the
+      # positive form fails to coerce, and a bare `not` would turn that
+      # into every row matching
+      assert names(%{field: :amount, op: :neq, value: "abc"}) == []
+      assert names(%{field: :joined, op: :neq, value: "not-a-date"}) == []
+      assert names(%{field: :name, op: :not_contains, value: nil}) == []
+      assert names(%{field: :name, op: :not_in, value: []}) == []
+
+      # and the usable cases still invert normally
+      assert names(%{field: :amount, op: :neq, value: "40"}) == ["Amy", "Cal"]
+      assert names(%{field: :joined, op: :neq, value: "2026-01-15"}) == ["Bea", "Cal"]
+    end
+
     test "emptiness counts nil, empty string and empty list - and nothing else" do
       # the only ops for which a nil field is a match rather than a miss
       assert names(%{field: :note, op: :is_empty, value: true}) == ["Amy", "Bea"]
