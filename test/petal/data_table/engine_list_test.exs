@@ -1,3 +1,10 @@
+defmodule TestSupport.SearchRow do
+  @moduledoc false
+  # stands in for an Ecto schema struct: not Enumerable, carries a
+  # __meta__-like field the search sweep must skip
+  defstruct [:id, :name, :email, __meta__: :stub]
+end
+
 defmodule PetalComponents.DataTable.Engine.ListTest do
   use ExUnit.Case, async: true
 
@@ -201,6 +208,79 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
         Engine.run(rows, struct!(State, filters: [%{field: :name, op: :eq, value: "café"}]))
 
       assert Enum.map(hit, & &1.id) == [1, 2]
+    end
+  end
+
+  describe "differential-gate findings" do
+    # Every case here was found by running the same State through this
+    # engine AND through a Flop/Postgres bridge over identical rows -
+    # the two-implementation test that unit tests cannot perform.
+
+    @money [
+      %{id: 1, name: "Amy", price: Decimal.new("10.50"), joined: ~D[2026-01-15]},
+      %{id: 2, name: "Bea", price: Decimal.new("-10.00"), joined: ~D[2026-03-10]},
+      %{id: 3, name: "Cal", price: Decimal.new("99.99"), joined: ~D[2026-06-01]},
+      %{id: 4, name: "Dee", price: nil, joined: nil}
+    ]
+
+    defp money(filter) do
+      {rows, _} = Engine.run(@money, struct!(State, filters: [filter]))
+      Enum.map(rows, & &1.id)
+    end
+
+    test "Decimal columns filter like numbers (E1: every op matched zero rows)" do
+      assert money(%{field: :price, op: :eq, value: "10.50"}) == [1]
+      assert money(%{field: :price, op: :neq, value: "10.50"}) == [2, 3]
+      assert money(%{field: :price, op: :gt, value: "0"}) == [1, 3]
+      assert money(%{field: :price, op: :lte, value: "10.50"}) == [1, 2]
+      assert money(%{field: :price, op: :between, value: ["0", "50"]}) == [1]
+      assert money(%{field: :price, op: :is_empty, value: true}) == [4]
+    end
+
+    test "Decimal columns sort by value, not by struct internals (E1: -10.00 sorted largest)" do
+      {rows, _} = Engine.run(@money, struct!(State, order_by: [price: :asc]))
+      # nils last, then numeric order - negative first
+      assert Enum.map(rows, & &1.id) == [2, 1, 3, 4]
+
+      {rows, _} = Engine.run(@money, struct!(State, order_by: [price: :desc]))
+      assert Enum.map(rows, & &1.id) == [3, 1, 2, 4]
+    end
+
+    test "between works on dates, exactly like the comparators it decomposes into (E2)" do
+      assert money(%{field: :joined, op: :between, value: ["2026-02-01", "2026-06-01"]}) ==
+               [2, 3]
+
+      # inclusive both bounds, matching the pinned semantics
+      assert money(%{field: :joined, op: :between, value: ["2026-01-15", "2026-03-10"]}) ==
+               [1, 2]
+    end
+
+    test ":in works on date and Decimal columns via text form (G4: select filters matched nothing)" do
+      assert money(%{field: :joined, op: :in, value: ["2026-01-15", "2026-06-01"]}) == [1, 3]
+      assert money(%{field: :price, op: :in, value: ["10.50"]}) == [1]
+      # text-form comparison: a padded "010.50" is not the same text
+      assert money(%{field: :price, op: :in, value: ["010.50"]}) == []
+    end
+
+    test "date ops are defined only for date-typed cells (G5)" do
+      rows = [%{id: 1, when: "2026-01-05"}, %{id: 2, when: ~D[2026-01-05]}]
+
+      {hit, _} =
+        Engine.run(rows, struct!(State, filters: [%{field: :when, op: :on, value: "2026-01-05"}]))
+
+      # the text cell holding an ISO string does NOT match - no SQL
+      # engine would cast every row to find out
+      assert Enum.map(hit, & &1.id) == [2]
+    end
+
+    test "default quick-search fields survive Ecto-style structs (G3)" do
+      rows = [
+        struct(TestSupport.SearchRow, id: 1, name: "Amy", email: "amy@x.com"),
+        struct(TestSupport.SearchRow, id: 2, name: "Bea", email: "bea@x.com")
+      ]
+
+      {hit, _} = Engine.run(rows, struct!(State, search: "amy"))
+      assert Enum.map(hit, & &1.id) == [1]
     end
   end
 

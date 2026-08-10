@@ -71,9 +71,7 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp apply_search([], _term, _fields), do: []
 
   defp apply_search([first | _] = rows, term, fields) do
-    fields =
-      fields ||
-        for {k, v} <- first, is_binary(v), do: k
+    fields = fields || default_search_fields(first)
 
     needle = String.downcase(term)
 
@@ -85,6 +83,20 @@ defmodule PetalComponents.DataTable.Engine.List do
         end
       end)
     end)
+  end
+
+  # Ecto structs are not Enumerable - `for {k, v} <- row` raises on
+  # exactly the rows a database produces. Strip the struct plumbing and
+  # sweep the string fields, same as for a plain map.
+  defp default_search_fields(%_{} = row) do
+    row
+    |> Map.from_struct()
+    |> Map.drop([:__meta__])
+    |> Enum.flat_map(fn {k, v} -> if is_binary(v), do: [k], else: [] end)
+  end
+
+  defp default_search_fields(row) when is_map(row) do
+    for {k, v} <- row, is_binary(v), do: k
   end
 
   # -- sorting ---------------------------------------------------------------
@@ -125,6 +137,12 @@ defmodule PetalComponents.DataTable.Engine.List do
     end
   end
 
+  # Decimal first: it is a struct too, but Erlang term order over its
+  # fields (coef/exp/sign) sorted -10.00 as the LARGEST value
+  defp cmp(%Decimal{} = a, %Decimal{} = b), do: Decimal.compare(a, b)
+  defp cmp(%Decimal{} = a, b) when is_number(b), do: Decimal.compare(a, to_decimal(b))
+  defp cmp(a, %Decimal{} = b) when is_number(a), do: Decimal.compare(to_decimal(a), b)
+
   defp cmp(%m{} = a, %m{} = b) when m in [Date, DateTime, NaiveDateTime, Time],
     do: m.compare(a, b)
 
@@ -164,6 +182,16 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp matches?(nil, _op, _value), do: false
 
+  # Struct scalars read as their text form for the text-shaped ops: a
+  # select filter on a date column posts "2026-01-15" and must match
+  # ~D[2026-01-15]; :in is a text-form comparison on every column type
+  # ("010" does not match 10). Comparators and date ops keep their own
+  # typed clauses below.
+  defp matches?(%mod{} = field_value, op, value)
+       when mod in [Decimal, Date, DateTime, NaiveDateTime, Time] and
+              op in [:contains, :not_contains, :starts_with, :in, :not_in],
+       do: matches?(to_string(field_value), op, value)
+
   defp matches?(field_value, :contains, value) when is_scalar(field_value),
     do: with_text(value, &String.contains?(downcase(field_value), &1))
 
@@ -175,6 +203,13 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp matches?(field_value, :eq, value) when is_number(field_value),
     do: with_number(value, &(field_value == &1))
+
+  # Money columns are %Decimal{} structs in every Ecto app - neither
+  # is_number/1 nor is_scalar/1, so before this clause every operator
+  # silently matched zero rows against them (found by the differential
+  # gate, not by any of 860 unit tests)
+  defp matches?(%Decimal{} = field_value, :eq, value),
+    do: with_decimal(value, &(Decimal.compare(field_value, &1) == :eq))
 
   # Atoms and booleans compare as their text form - the same treatment
   # :in (values_equal?/2) and :contains already give them. Without this
@@ -203,11 +238,11 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp matches?(field_value, :lt, value), do: compare(field_value, value, [:lt])
   defp matches?(field_value, :lte, value), do: compare(field_value, value, [:lt, :eq])
 
-  defp matches?(field_value, :between, [min, max]) when is_number(field_value) do
-    with_number(min, fn lo ->
-      with_number(max, fn hi -> field_value >= lo and field_value <= hi end)
-    end)
-  end
+  # between IS gte and lte - one definition, so a date range behaves
+  # exactly like the two comparators it decomposes into (the gate found
+  # the old number-only guard made a date range match nothing, silently)
+  defp matches?(field_value, :between, [min, max]),
+    do: matches?(field_value, :gte, min) and matches?(field_value, :lte, max)
 
   defp matches?(field_value, :between, %{"min" => min, "max" => max}),
     do: matches?(field_value, :between, [min, max])
@@ -230,7 +265,12 @@ defmodule PetalComponents.DataTable.Engine.List do
        when is_scalar(field_value) and is_list(values) and values != [],
        do: not matches?(field_value, :in, values)
 
-  defp matches?(field_value, op, value) when op in [:before, :on, :after] do
+  # Date ops are defined only for date-typed cells. The old clause
+  # coerced binary cells too, so a :string column holding "2026-01-05"
+  # matched :on filters here while no SQL engine would cast every row -
+  # a cross-engine divergence waiting for pathological data.
+  defp matches?(%mod{} = field_value, op, value)
+       when mod in [Date, DateTime, NaiveDateTime] and op in [:before, :on, :after] do
     with {:ok, field_date} <- to_date(field_value),
          {:ok, value_date} <- to_date(value) do
       case {op, Date.compare(field_date, value_date)} do
@@ -254,6 +294,9 @@ defmodule PetalComponents.DataTable.Engine.List do
       is_number(field_value) ->
         with_number(value, &(cmp(field_value, &1) in wanted))
 
+      is_struct(field_value, Decimal) ->
+        with_decimal(value, &(Decimal.compare(field_value, &1) in wanted))
+
       match?({:ok, _}, to_date(field_value)) ->
         with {{:ok, a}, {:ok, b}} <- {to_date(field_value), to_date(value)} do
           Date.compare(a, b) in wanted
@@ -273,6 +316,8 @@ defmodule PetalComponents.DataTable.Engine.List do
   # field of this shape? Mirrors the coercion the :eq clauses perform.
   defp evaluable?(field_value, value) when is_binary(field_value), do: text_value?(value)
   defp evaluable?(field_value, value) when is_number(field_value), do: number_value?(value)
+
+  defp evaluable?(%Decimal{}, value), do: match?({:ok, _}, decimal(value))
 
   defp evaluable?(field_value, value) do
     case to_date(field_value) do
@@ -315,6 +360,29 @@ defmodule PetalComponents.DataTable.Engine.List do
     do: fun.(value |> to_string() |> String.downcase())
 
   defp with_text(_other, _fun), do: false
+
+  defp with_decimal(value, fun) do
+    case decimal(value) do
+      {:ok, d} -> fun.(d)
+      :error -> false
+    end
+  end
+
+  defp decimal(%Decimal{} = d), do: {:ok, d}
+  defp decimal(value) when is_integer(value), do: {:ok, Decimal.new(value)}
+  defp decimal(value) when is_float(value), do: {:ok, Decimal.from_float(value)}
+
+  defp decimal(value) when is_binary(value) do
+    case Decimal.parse(value) do
+      {d, ""} -> {:ok, d}
+      _ -> :error
+    end
+  end
+
+  defp decimal(_other), do: :error
+
+  defp to_decimal(n) when is_integer(n), do: Decimal.new(n)
+  defp to_decimal(n) when is_float(n), do: Decimal.from_float(n)
 
   defp number(value) when is_number(value), do: {:ok, value}
 

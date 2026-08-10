@@ -242,6 +242,21 @@ defmodule PetalComponents.DataTable.StateTest do
     end
   end
 
+  describe "nil filter values" do
+    test "a JSON-null value drops a value-carrying filter, keeps a valueless one" do
+      params = %{
+        "filters" => [
+          %{"field" => "name", "op" => "eq", "value" => nil},
+          %{"field" => "name", "op" => "is_empty", "value" => nil}
+        ]
+      }
+
+      state = State.from_params(params, fields: [:name])
+      # eq nil would read as "" and quietly match empty-string rows
+      assert [%{op: :is_empty}] = state.filters
+    end
+  end
+
   describe "toggle_sort/2" do
     test "cycles asc -> desc -> removed and resets the page" do
       state = %State{page: 7}

@@ -3,6 +3,29 @@
 
 #### Fixed
 
+- **Decimal columns now filter and sort.** `%Decimal{}` - what every
+  Ecto money column holds - was readable by no operator (every filter
+  silently matched zero rows) and sorted by struct internals, so
+  -10.00 ordered as the largest value. Found by the differential gate:
+  the same `State` run through the in-memory engine and through a
+  Flop/Postgres bridge over identical rows, where 31 of 39
+  disagreements traced to this one defect. Decimals now compare
+  numerically everywhere - equality, comparators, `:between`, sorting -
+  and read as text for `:in` and the pattern ops, like every scalar.
+- **`:between` now works on any ordered column.** It was guarded to
+  numbers, so a date range - the most common data-table filter there
+  is - matched nothing while `:gte`/`:lte` on the same column worked.
+  It is now defined as `:gte` AND `:lte`, one ladder, so ranges behave
+  identically to the comparators they decompose into.
+- **`:in` and the pattern operators work on date and Decimal columns**
+  via their text form - a select filter on a date column used to match
+  nothing at all.
+- **Default quick-search fields survive Ecto structs.** The sweep used
+  `for {k, v} <- row`, which raises on structs - exactly the rows a
+  database engine produces.
+- **A JSON-null filter value is dropped** for value-carrying operators
+  instead of quietly reading as `""` and matching empty-string rows.
+
 - **`sticky_header` never worked.** `.pc-table--basic` and `--ghost`
   used `overflow: hidden`, which makes the table a scroll container and
   traps `position: sticky` - so the header scrolled away in every
@@ -14,6 +37,13 @@
   column visibility rendered a button that did nothing.
 
 #### Added
+
+- **Two more pinned contract rules**, both cross-engine findings:
+  date operators are defined only for date-typed cells (a text column
+  holding an ISO string does not match - no SQL engine would cast
+  every row to find out), and an empty `order_by` or a tie within one
+  has no defined cross-engine row order - append a unique tiebreaker
+  for stable paging.
 
 - **Column reordering (`reorderable`).** Move up/down controls in the
   Columns menu, riding the `on_ui` event as a `move_column` op carrying

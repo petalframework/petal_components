@@ -56,7 +56,15 @@ defmodule PetalComponents.DataTable.State do
       text all compare with the same op.
     * `:before`/`:on`/`:after` are date-shaped aliases of `:lt`/`:eq`/
       `:gt`; they exist so a date filter reads as a date filter, and an
-      adapter may map them to the same primitives.
+      adapter may map them to the same primitives. They are defined
+      only for date-typed cells (`Date`, `DateTime`, `NaiveDateTime`) -
+      a text column holding an ISO string does not match, because no
+      SQL engine would cast every row to find out.
+    * an empty `order_by`, and ties within one, have NO defined row
+      order across engines: this engine preserves input order, SQL
+      without ORDER BY promises nothing. For stable paging, append a
+      unique tiebreaker (the primary key) to every sort - adapters
+      should do the same.
 
   Engines may support a subset. `ops/0` returns the recognised set and
   `valueless_op?/1` identifies the ops that carry no value.
@@ -367,10 +375,13 @@ defmodule PetalComponents.DataTable.State do
     Enum.flat_map(list, fn
       %{"field" => f, "op" => op, "value" => value} ->
         with {:ok, field} <- Map.fetch(fields, f),
-             {:ok, op} <- Map.fetch(@op_strings, op) do
+             {:ok, op} <- Map.fetch(@op_strings, op),
+             # a JSON null value is nonsense for a value-carrying op -
+             # it would read as "" and quietly match empty-string rows
+             false <- is_nil(value) and op not in @valueless_ops do
           [%{field: field, op: op, value: value}]
         else
-          :error -> []
+          _skip -> []
         end
 
       _other ->
