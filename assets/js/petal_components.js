@@ -4777,7 +4777,7 @@ export const PetalDataTable = {
       // event mode: the form pushes its own phx-submit - only the menu
       // close is ours
       if (!form.hasAttribute("data-pc-dt-filter")) {
-        this.closeMenu();
+        this.closeMenu({ restoreFocus: true });
         return;
       }
 
@@ -4789,7 +4789,7 @@ export const PetalDataTable = {
       const next = this.readFilter(form, field);
       if (next) filters.push(next);
 
-      this.closeMenu();
+      this.closeMenu({ restoreFocus: true });
       this.patchTo(this.navUrl(filters));
     };
 
@@ -4858,6 +4858,8 @@ export const PetalDataTable = {
 
     this.onMenuKeydown = (e) => {
       if (e.key !== "Escape" || !this.openMenu) return;
+      // a data table inside a modal would otherwise close both at once
+      e.stopPropagation();
       const trigger = this.menuTrigger();
       this.closeMenu();
       trigger?.focus();
@@ -4867,8 +4869,25 @@ export const PetalDataTable = {
       if (this.openMenu) this.alignMenu();
     };
 
+    // Tab out of the panel closes it. relatedTarget lies on iOS, so this
+    // is the combobox's proven shape: defer a tick, then ask the document
+    // where focus actually landed.
+    this.onMenuFocusOut = () => {
+      if (!this.openMenu) return;
+      setTimeout(() => {
+        if (!this.openMenu) return;
+        const panel = this.menuPanel();
+        const trigger = this.menuTrigger();
+        const active = document.activeElement;
+        if (!active || active === document.body) return;
+        if (panel?.contains(active) || trigger?.contains(active)) return;
+        this.closeMenu();
+      }, 0);
+    };
+
     this.el.addEventListener("click", this.onMenuClick);
     this.el.addEventListener("keydown", this.onMenuKeydown);
+    this.el.addEventListener("focusout", this.onMenuFocusOut);
     document.addEventListener("pointerdown", this.onPressStart, true);
     document.addEventListener("pointerup", this.onPressEnd, true);
     document.addEventListener("pointercancel", this.onPressCancel, true);
@@ -4926,9 +4945,13 @@ export const PetalDataTable = {
     });
   },
 
-  closeMenu() {
+  closeMenu({ restoreFocus = false } = {}) {
     const panel = this.menuPanel();
-    this.menuTrigger()?.setAttribute("aria-expanded", "false");
+    const trigger = this.menuTrigger();
+    trigger?.setAttribute("aria-expanded", "false");
+    // closing hides the panel, which blurs whatever was focused inside
+    // it - without this the user lands on <body>
+    if (restoreFocus) trigger?.focus();
     this.openMenu = null;
     if (!panel) return;
     panel.removeAttribute("data-pc-open");
@@ -4993,6 +5016,12 @@ export const PetalDataTable = {
     panel.style.overflowY = "auto";
   },
 
+  beforeUpdate() {
+    const panel = this.menuPanel();
+    const active = document.activeElement;
+    this.refocus = panel && active && panel.contains(active) ? active : null;
+  },
+
   updated() {
     this.syncIndeterminate();
 
@@ -5005,6 +5034,10 @@ export const PetalDataTable = {
         panel.setAttribute("data-pc-open", "");
         this.menuTrigger()?.setAttribute("aria-expanded", "true");
         this.alignMenu();
+        // hiding an ancestor blurs its focused descendant, and LiveView
+        // only re-focuses text inputs and selects - never a checkbox or
+        // a button, which is what these panels are full of
+        if (this.refocus?.isConnected) this.refocus.focus();
       } else {
         this.openMenu = null;
       }
@@ -5029,6 +5062,7 @@ export const PetalDataTable = {
     this.el.removeEventListener("submit", this.onSubmit);
     this.el.removeEventListener("click", this.onMenuClick);
     this.el.removeEventListener("keydown", this.onMenuKeydown);
+    this.el.removeEventListener("focusout", this.onMenuFocusOut);
     document.removeEventListener("pointerdown", this.onPressStart, true);
     document.removeEventListener("pointerup", this.onPressEnd, true);
     document.removeEventListener("pointercancel", this.onPressCancel, true);

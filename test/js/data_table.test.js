@@ -416,6 +416,70 @@ describe("PetalDataTable", () => {
     expect(document.getElementById("pop2").hidden).toBe(false);
   });
 
+  it("returns focus to the trigger when a menu closes by Apply", () => {
+    const { hook, trigger, form } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form" data-pc-dt-filter data-field="email">
+        <input name="value" value="amy" />
+      </form>`,
+    });
+
+    trigger.click();
+    form.querySelector("input").focus();
+    submit(form);
+
+    // closing hides the panel, which blurs whatever was inside it -
+    // without restoring focus the user is dumped on <body>
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("re-focuses the control a patch blurred inside an open menu", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form">
+        <input type="checkbox" id="col-email" />
+      </form>`,
+    });
+
+    trigger.click();
+    const box = panel.querySelector("#col-email");
+    box.focus();
+    expect(document.activeElement).toBe(box);
+
+    // a patch re-applies the server's `hidden`, blurring the checkbox;
+    // LiveView only restores text inputs and selects, never checkboxes
+    hook.beforeUpdate();
+    panel.hidden = true;
+    box.blur();
+    hook.updated();
+
+    expect(document.activeElement).toBe(box);
+  });
+
+  it("Escape does not escape the table - an enclosing modal keeps its own", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form"></form>`,
+    });
+
+    trigger.click();
+
+    let reachedOuter = false;
+    const outer = () => (reachedOuter = true);
+    document.addEventListener("keydown", outer);
+
+    panel.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    document.removeEventListener("keydown", outer);
+    expect(hook.openMenu).toBe(null);
+    expect(reachedOuter).toBe(false);
+  });
+
   it("never repositions on scroll - the page carries the panel", () => {
     const { hook, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",
