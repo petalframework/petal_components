@@ -74,6 +74,48 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
     end
   end
 
+  describe "comparators across column types" do
+    @typed [
+      %{id: 1, name: "Amy", amount: 300, joined: ~D[2026-01-15], note: nil},
+      %{id: 2, name: "Bea", amount: 40, joined: ~D[2026-06-01], note: ""},
+      %{id: 3, name: "Cal", amount: 150, joined: ~D[2026-03-10], note: "hi"}
+    ]
+
+    defp names(filter) do
+      {rows, _} = Engine.run(@typed, struct!(State, filters: [filter]))
+      Enum.map(rows, & &1.name)
+    end
+
+    test "neq works on text, not only numbers" do
+      # guarded on is_number before: "is not" against any text column
+      # matched nothing, silently, because the catch-all returns false
+      assert names(%{field: :name, op: :neq, value: "Amy"}) == ["Bea", "Cal"]
+      assert names(%{field: :amount, op: :neq, value: "40"}) == ["Amy", "Cal"]
+    end
+
+    test "eq and the comparators work on dates, not only numbers" do
+      assert names(%{field: :joined, op: :eq, value: "2026-01-15"}) == ["Amy"]
+      assert names(%{field: :joined, op: :lt, value: "2026-06-01"}) == ["Amy", "Cal"]
+      assert names(%{field: :joined, op: :gte, value: "2026-03-10"}) == ["Bea", "Cal"]
+    end
+
+    test "gte and lte include the boundary" do
+      assert names(%{field: :amount, op: :gte, value: "150"}) == ["Amy", "Cal"]
+      assert names(%{field: :amount, op: :lte, value: "150"}) == ["Bea", "Cal"]
+    end
+
+    test "negations mirror their positive op exactly" do
+      assert names(%{field: :name, op: :not_contains, value: "a"}) == []
+      assert names(%{field: :name, op: :not_in, value: ["Amy"]}) == ["Bea", "Cal"]
+    end
+
+    test "emptiness counts nil, empty string and empty list - and nothing else" do
+      # the only ops for which a nil field is a match rather than a miss
+      assert names(%{field: :note, op: :is_empty, value: true}) == ["Amy", "Bea"]
+      assert names(%{field: :note, op: :is_not_empty, value: true}) == ["Cal"]
+    end
+  end
+
   describe "sorting" do
     test "sorts strings case-insensitively" do
       assert ids(run(order_by: [name: :asc], page_size: 10)) == [3, 2, 1, 5, 4]

@@ -2701,6 +2701,14 @@
   .pc-data-table__filter-value2 {
     @apply hidden;
   }
+  /* is_empty / is_not_empty take no value, so the input goes away - :has
+     keeps this JS-free, the same trick the between bound uses below */
+  .pc-data-table__filter-form:has(select[name="filter_op"] option[value="is_empty"]:checked)
+    .pc-data-table__filter-value,
+  .pc-data-table__filter-form:has(select[name="filter_op"] option[value="is_not_empty"]:checked)
+    .pc-data-table__filter-value {
+    @apply hidden;
+  }
   /* the between op needs its second bound; :has keeps this JS-free in both wiring modes */
   .pc-data-table__filter-form:has(select[name="filter_op"] option[value="between"]:checked)
     .pc-data-table__filter-value2 {
