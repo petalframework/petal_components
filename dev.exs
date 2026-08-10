@@ -1497,8 +1497,16 @@ defmodule Dev.PlaygroundLive do
 
     order =
       case params do
-        %{"op" => "move_column", "order" => order} -> String.split(order, ",")
-        _ -> socket.assigns.dt_order
+        %{"op" => "move_column", "field" => f, "dir" => dir} ->
+          PetalComponents.DataTable.move_column(
+            socket.assigns.dt_order,
+            [:name, :email, :status, :amount],
+            f,
+            dir
+          )
+
+        _ ->
+          socket.assigns.dt_order
       end
 
     {:noreply,

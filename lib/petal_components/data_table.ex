@@ -434,6 +434,7 @@ defmodule PetalComponents.DataTable do
                       phx-target={@target}
                       phx-value-op="move_column"
                       phx-value-field={col.field}
+                      phx-value-dir="up"
                       phx-value-order={moved_order(@ordered_cols, index, -1)}
                       aria-label={"#{@move_up_label}: #{plain_label(col)}"}
                     >
@@ -447,6 +448,7 @@ defmodule PetalComponents.DataTable do
                       phx-target={@target}
                       phx-value-op="move_column"
                       phx-value-field={col.field}
+                      phx-value-dir="down"
                       phx-value-order={moved_order(@ordered_cols, index, 1)}
                       aria-label={"#{@move_down_label}: #{plain_label(col)}"}
                     >
@@ -794,13 +796,52 @@ defmodule PetalComponents.DataTable do
     """
   end
 
+  @doc """
+  Applies one `move_column` gesture to the CURRENT order - the race-free
+  alternative to trusting the event's `order` payload.
+
+  The payload's complete `order` is computed from the DOM the user saw;
+  two rapid moves before the first patch lands would both start from
+  that same snapshot, and the second would silently undo the first.
+  Applying the `field`/`dir` delta to the server's own current order
+  serializes gestures instead:
+
+      def handle_event("table", %{"op" => "move_column", "field" => f, "dir" => dir}, socket) do
+        fields = [:name, :email, :status, :amount]
+        {:noreply, update(socket, :order, &DataTable.move_column(&1, fields, f, dir))}
+      end
+
+  `current_order` may be `[]` (meaning the declared order, supplied as
+  `all_fields`). Unknown fields and edge positions are no-ops.
+  """
+  def move_column(current_order, all_fields, field, dir) when dir in ["up", "down", :up, :down] do
+    base =
+      case current_order do
+        [] -> Enum.map(all_fields, &to_string/1)
+        order -> order |> Enum.map(&to_string/1) |> Enum.uniq()
+      end
+
+    # fields not yet in a partial saved order follow it, declared order kept
+    base = base ++ (all_fields |> Enum.map(&to_string/1) |> Enum.reject(&(&1 in base)))
+    field = to_string(field)
+    delta = if dir in ["up", :up], do: -1, else: 1
+
+    case Enum.find_index(base, &(&1 == field)) do
+      nil -> base
+      index when index + delta < 0 or index + delta >= length(base) -> base
+      index -> base |> List.delete_at(index) |> List.insert_at(index + delta, field)
+    end
+  end
+
   # Listed fields first, in the given order; unlisted fields keep their
   # declared relative order after them. Tolerates strings or atoms and
   # ignores unknown fields, so a stale saved order cannot break render.
   defp apply_column_order(cols, []), do: cols
 
   defp apply_column_order(cols, order) do
-    order = Enum.map(order, &to_string/1)
+    # uniq: a duplicated field in a hand-built order would duplicate the
+    # column (headers, cells and menu-row DOM ids alike)
+    order = order |> Enum.map(&to_string/1) |> Enum.uniq()
     by_field = Map.new(cols, &{to_string(&1.field), &1})
     listed = order |> Enum.map(&Map.get(by_field, &1)) |> Enum.reject(&is_nil/1)
     rest = Enum.reject(cols, &(to_string(&1.field) in order))

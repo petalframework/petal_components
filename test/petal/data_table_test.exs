@@ -589,6 +589,46 @@ defmodule PetalComponents.DataTableTest do
     assert stale =~ "Email"
   end
 
+  test "move_column/4 serializes gestures and survives junk" do
+    fields = [:name, :email, :amount]
+
+    # [] means declared order; a move applies to it
+    assert PetalComponents.DataTable.move_column([], fields, :email, "up") ==
+             ["email", "name", "amount"]
+
+    # applying to the server's CURRENT order - two rapid gestures compose
+    # instead of the second undoing the first
+    once = PetalComponents.DataTable.move_column([], fields, :email, "up")
+    twice = PetalComponents.DataTable.move_column(once, fields, :amount, "up")
+    assert twice == ["email", "amount", "name"]
+
+    # edges and unknowns are no-ops, duplicates collapse
+    assert PetalComponents.DataTable.move_column([], fields, :name, "up") ==
+             ["name", "email", "amount"]
+
+    assert PetalComponents.DataTable.move_column([], fields, :ghost, "down") ==
+             ["name", "email", "amount"]
+
+    assert PetalComponents.DataTable.move_column(["email", "email"], fields, :name, "up") ==
+             ["name", "email", "amount"]
+  end
+
+  test "a duplicated field in column_order renders one column, not two" do
+    assigns = base(%{order: ["email", "email", "name"]})
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" column_order={@order}>
+        <:col :let={row} field={:name}>{row.name}</:col>
+        <:col :let={row} field={:email}>{row.email}</:col>
+      </.data_table>
+      """)
+
+    [_, headers_on] = String.split(html, "<thead>", parts: 2)
+    [headers, _] = String.split(headers_on, "</thead>", parts: 2)
+    assert length(String.split(headers, "Email")) - 1 == 1
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{
