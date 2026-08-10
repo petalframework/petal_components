@@ -297,7 +297,12 @@ defmodule PetalComponents.DataTable.Engine.List do
       is_struct(field_value, Decimal) ->
         with_decimal(value, &(Decimal.compare(field_value, &1) in wanted))
 
-      match?({:ok, _}, to_date(field_value)) ->
+      # date comparison only for date-TYPED cells - a text cell that
+      # happens to parse as a date stays text, per the pinned rule (and
+      # ISO strings order correctly as text anyway, which is exactly
+      # what a SQL engine does with a text column)
+      is_struct(field_value, Date) or is_struct(field_value, DateTime) or
+          is_struct(field_value, NaiveDateTime) ->
         with {{:ok, a}, {:ok, b}} <- {to_date(field_value), to_date(value)} do
           Date.compare(a, b) in wanted
         else
@@ -319,14 +324,12 @@ defmodule PetalComponents.DataTable.Engine.List do
 
   defp evaluable?(%Decimal{}, value), do: match?({:ok, _}, decimal(value))
 
-  defp evaluable?(field_value, value) do
-    case to_date(field_value) do
-      {:ok, _} -> match?({:ok, _}, to_date(value))
-      # a field the positive op cannot read is unevaluable regardless of
-      # how good the value is - both sides have to be readable
-      :error -> is_scalar(field_value) and text_value?(value)
-    end
-  end
+  defp evaluable?(%mod{}, value) when mod in [Date, DateTime, NaiveDateTime],
+    do: match?({:ok, _}, to_date(value))
+
+  # a field the positive op cannot read is unevaluable regardless of
+  # how good the value is - both sides have to be readable
+  defp evaluable?(field_value, value), do: is_scalar(field_value) and text_value?(value)
 
   defp text_value?(value) when is_binary(value) or is_number(value), do: true
   defp text_value?(value) when is_atom(value), do: not is_nil(value)

@@ -262,6 +262,29 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert money(%{field: :price, op: :in, value: ["010.50"]}) == []
     end
 
+    test "comparators and between treat text cells as text, even ISO-looking ones" do
+      rows = [
+        %{id: 1, stamp: "2026-01-05T09:00"},
+        %{id: 2, stamp: "2026-01-05T23:00"},
+        %{id: 3, stamp: ~D[2026-01-05]}
+      ]
+
+      pick = fn filter ->
+        {out, _} = Engine.run(rows, struct!(State, filters: [filter]))
+        Enum.map(out, & &1.id)
+      end
+
+      # text between is lexicographic - the 23:00 STRING is outside a
+      # range ending at 12:00 (date-coercion would have flattened it to
+      # the day and wrongly included it), while the true Date cell
+      # rightly matches a range within its own day
+      assert pick.(%{field: :stamp, op: :between, value: ["2026-01-05T00:00", "2026-01-05T12:00"]}) ==
+               [1, 3]
+
+      # a real Date cell still compares as a date
+      assert pick.(%{field: :stamp, op: :gte, value: "2026-01-05"}) == [3]
+    end
+
     test "date ops are defined only for date-typed cells (G5)" do
       rows = [%{id: 1, when: "2026-01-05"}, %{id: 2, when: ~D[2026-01-05]}]
 
