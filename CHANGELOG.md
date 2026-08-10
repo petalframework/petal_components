@@ -15,6 +15,17 @@
 
 #### Added
 
+- **The range summary is now a live region.** Filtering 74 rows down to
+  3 previously announced nothing. It speaks a written-out sentence
+  ("26 to 50 of 74 results") separate from the visible text, because
+  the visible en dash is frequently read as nothing at all, and because
+  the visible string is empty in the zero case - the one that matters
+  most. Localizable via `results_label`.
+- **`data_table` gains `row_label`** for naming rows in the selection
+  checkbox's accessible name, and `actions_label` for the actions
+  column's announced-but-unseen header.
+- **`pagination` gains `aria_label`** to name its navigation landmark.
+
 - **`data_table` gains `max_height`**, which caps the body and makes it
   scroll under a pinned header. This is what `sticky_header` needs
   inside a data table: the capped region becomes the scrollport the
