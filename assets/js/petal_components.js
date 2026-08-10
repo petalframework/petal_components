@@ -5055,6 +5055,12 @@ export const PetalDataTable = {
     }
 
     const op = form.querySelector('select[name="filter_op"]')?.value || "eq";
+
+    // is_empty / is_not_empty carry no value, so an empty input must not
+    // read as "remove this filter" the way it does for every other op
+    if (op === "is_empty" || op === "is_not_empty")
+      return { field, op, value: true };
+
     const value = (form.querySelector('[name="value"]')?.value || "").trim();
 
     if (op === "between") {

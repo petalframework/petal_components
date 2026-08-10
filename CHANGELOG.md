@@ -3,6 +3,18 @@
 
 #### Fixed
 
+- **Comparators now work on every column type.** `:neq` was guarded on
+  numbers, so "is not" against any text column matched nothing - and
+  matched nothing *silently*, since an unhandled combination falls
+  through to a catch-all rather than raising. `:eq`, `:lt` and `:gt`
+  had the same hole for dates. Every comparator now tries numbers, then
+  dates, then text, so an operator means the same thing whatever the
+  column holds.
+- **A filter operator without a label no longer crashes the render.**
+  Two `Map.fetch!` lookups raised a `KeyError` while drawing the
+  toolbar; unlabelled (for example adapter-specific) ops now render
+  humanised.
+
 - **A drag on the page no longer dismisses an open `data_table` menu.**
   Dismissal was firing on pointer*down* outside, so the ordinary way
   anyone scrolls a phone - press the page and drag - killed the menu
@@ -76,6 +88,18 @@
 ### 4.13.0 - 2026-08-08
 
 #### Added
+
+- **Five operators the vocabulary was missing**: `:not_contains`,
+  `:gte`, `:lte`, `:not_in`, and the null-ness pair `:is_empty` /
+  `:is_not_empty`. Measured against Flop, Ash, Ecto, TanStack, AG Grid,
+  MUI and the filter menus of Notion and Airtable, these were the
+  near-universal ones we lacked. Value-less operators hide their value
+  input (CSS `:has()`, no JS) and are understood by both wiring modes.
+- **`State.ops/0` and `State.valueless_op?/1`**, so an adapter can
+  enumerate the contract rather than hardcode it.
+- **Operator semantics are now pinned in writing** - `:between` is
+  inclusive, `:is_empty` matches nil/`""`/`[]`, text comparison is
+  case-insensitive - because "obvious" differs per query library.
 
 - **`<.data_table>` - the component core (4.12 data table, milestone 1).**
   Composed around `<.table>`, driven entirely by `DataTable.State`:

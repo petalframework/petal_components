@@ -21,10 +21,31 @@ defmodule PetalComponents.DataTable.State do
 
   ## Filter operators
 
-  Text: `:contains`, `:eq`, `:starts_with` - number: `:eq`, `:neq`,
-  `:gt`, `:lt`, `:between` - select: `:in` - date: `:before`, `:on`,
-  `:after`. Engines may support a subset; unknown ops are an engine
-  concern, not a state concern.
+  The vocabulary describes what the USER expressed, not how a database
+  spells it. Each engine translates intent into its own query language,
+  which is why `:contains` here means "text contains" even though some
+  query libraries use that name for array membership.
+
+    * text - `:contains`, `:not_contains`, `:eq`, `:neq`, `:starts_with`
+    * ordered (numbers, dates) - `:gt`, `:gte`, `:lt`, `:lte`, `:between`
+    * sets - `:in`, `:not_in`
+    * null-ness - `:is_empty`, `:is_not_empty`
+    * dates, read as intent - `:before`, `:on`, `:after`
+
+  Semantics pinned deliberately, because "obvious" differs per engine:
+
+    * `:between` is INCLUSIVE of both bounds.
+    * `:is_empty` matches nil, `""` and `[]` - a blank-ish `" "` is not
+      empty. Trim before filtering if you want it to be.
+    * text comparisons are case-insensitive.
+    * comparators work on whatever the column holds - numbers, dates and
+      text all compare with the same op.
+    * `:before`/`:on`/`:after` are date-shaped aliases of `:lt`/`:eq`/
+      `:gt`; they exist so a date filter reads as a date filter, and an
+      adapter may map them to the same primitives.
+
+  Engines may support a subset. `ops/0` returns the recognised set and
+  `valueless_op?/1` identifies the ops that carry no value.
 
   ## Security
 
@@ -48,7 +69,12 @@ defmodule PetalComponents.DataTable.State do
           total: non_neg_integer() | nil
         }
 
-  @ops ~w(contains eq starts_with neq gt lt between in before on after)a
+  @ops ~w(contains not_contains eq neq starts_with gt gte lt lte between
+          in not_in is_empty is_not_empty before on after)a
+
+  # Ops that carry no value - the editors render no input for them and
+  # put_filter/4 must not read them as "clear this filter".
+  @valueless_ops ~w(is_empty is_not_empty)a
   @op_strings Map.new(@ops, &{Atom.to_string(&1), &1})
   @dir_strings %{"asc" => :asc, "desc" => :desc}
 
@@ -123,7 +149,20 @@ defmodule PetalComponents.DataTable.State do
     %{state | order_by: order_by, page: 1}
   end
 
+  @doc "The operators this contract recognises."
+  def ops, do: @ops
+
+  @doc "True for operators that carry no value, like `:is_empty`."
+  def valueless_op?(op), do: op in @valueless_ops
+
   @doc "Replaces the filter for `field` (or removes it when `value` is nil/empty), resetting to page 1."
+  def put_filter(%__MODULE__{} = state, field, op, value)
+      when op in @valueless_ops do
+    filter = %{field: field, op: op, value: value}
+    rest = Enum.reject(state.filters, &(&1.field == field))
+    %{state | filters: rest ++ [filter], page: 1}
+  end
+
   def put_filter(%__MODULE__{} = state, field, _op, value)
       when value in [nil, "", []] do
     %{state | filters: Enum.reject(state.filters, &(&1.field == field)), page: 1}
@@ -201,7 +240,20 @@ defmodule PetalComponents.DataTable.State do
     end
   end
 
-  defp apply_filter_op(state, field, params) do
+  defp apply_filter_op(state, field, %{"filter_op" => op} = params)
+       when is_binary(op) do
+    case Map.fetch(@op_strings, op) do
+      {:ok, valueless} when valueless in @valueless_ops ->
+        put_filter(state, field, valueless, true)
+
+      _ ->
+        do_apply_filter_op(state, field, params)
+    end
+  end
+
+  defp apply_filter_op(state, field, params), do: do_apply_filter_op(state, field, params)
+
+  defp do_apply_filter_op(state, field, params) do
     resolved =
       cond do
         # the select editor's shape - its grammar is always :in, whether

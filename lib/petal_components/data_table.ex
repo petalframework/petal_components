@@ -700,18 +700,24 @@ defmodule PetalComponents.DataTable do
 
   # -- filters ---------------------------------------------------------------
 
-  @text_ops ~w(contains eq starts_with)a
-  @number_ops ~w(eq neq gt lt between)a
-  @date_ops ~w(before on after)a
+  @text_ops ~w(contains not_contains eq neq starts_with is_empty is_not_empty)a
+  @number_ops ~w(eq neq gt gte lt lte between is_empty is_not_empty)a
+  @date_ops ~w(before on after is_empty is_not_empty)a
 
   defp default_op_labels do
     %{
       contains: "contains",
       eq: "is",
       starts_with: "starts with",
+      not_contains: "does not contain",
       neq: "is not",
       gt: ">",
+      gte: "\u2265",
       lt: "<",
+      lte: "\u2264",
+      not_in: "is none of",
+      is_empty: "is empty",
+      is_not_empty: "is not empty",
       between: "between",
       in: "is any of",
       before: "before",
@@ -909,7 +915,7 @@ defmodule PetalComponents.DataTable do
       aria-label={"#{@label} operator"}
     >
       <option :for={op <- @ops} value={op} selected={op == @current_op}>
-        {Map.fetch!(@op_labels, op)}
+        {op_label(@op_labels, op)}
       </option>
     </select>
     """
@@ -921,6 +927,12 @@ defmodule PetalComponents.DataTable do
   defp filter_submit_js(event, target, _pop_id) do
     if target, do: JS.push(event, target: target), else: JS.push(event)
   end
+
+  # An op with no label is a custom one an adapter added - render the atom
+  # rather than raising mid-render, which is what Map.fetch!/2 did.
+  defp op_label(labels, op), do: Map.get(labels, op, humanize_op(op))
+
+  defp humanize_op(op), do: op |> to_string() |> String.replace("_", " ")
 
   defp normalize_options(options) do
     Enum.map(options, fn
@@ -940,7 +952,10 @@ defmodule PetalComponents.DataTable do
   defp current_pair(_other), do: {nil, nil}
 
   defp predicate_text(label, filter, op_labels, options) do
-    "#{label} #{Map.fetch!(op_labels, filter.op)} #{display_value(filter, options)}"
+    case State.valueless_op?(filter.op) do
+      true -> "#{label} #{op_label(op_labels, filter.op)}"
+      false -> "#{label} #{op_label(op_labels, filter.op)} #{display_value(filter, options)}"
+    end
   end
 
   defp display_value(%{op: :in, value: values}, options) do

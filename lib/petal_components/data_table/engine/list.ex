@@ -153,6 +153,15 @@ defmodule PetalComponents.DataTable.Engine.List do
     Enum.filter(rows, fn row -> matches?(fetch(row, field), op, value) end)
   end
 
+  # These two run before the nil short-circuit below, because they are the
+  # only ops where a nil field is a MATCH rather than a miss. Semantics
+  # are pinned deliberately and documented in State: empty means nil, an
+  # empty string, or an empty list - the shapes a form or an association
+  # actually produces. A blank-ish " " is NOT empty; trim before filtering
+  # if you want it to be.
+  defp matches?(field_value, :is_empty, _value), do: empty_value?(field_value)
+  defp matches?(field_value, :is_not_empty, _value), do: not empty_value?(field_value)
+
   defp matches?(nil, _op, _value), do: false
 
   defp matches?(field_value, :contains, value) when is_scalar(field_value),
@@ -167,14 +176,32 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp matches?(field_value, :eq, value) when is_number(field_value),
     do: with_number(value, &(field_value == &1))
 
-  defp matches?(field_value, :neq, value) when is_number(field_value),
-    do: with_number(value, &(field_value != &1))
+  # Atoms and booleans compare as their text form - the same treatment
+  # :in (values_equal?/2) and :contains already give them. Without this
+  # clause :eq fell through to date coercion and a status: :active or
+  # admin?: true column silently matched nothing.
+  defp matches?(field_value, :eq, value) when is_atom(field_value),
+    do: with_text(value, &(downcase(field_value) == &1))
 
-  defp matches?(field_value, :gt, value) when is_number(field_value),
-    do: with_number(value, &(field_value > &1))
+  # Comparators are op-first, not type-first. Guarding :neq on numbers
+  # meant "is not" against any text column matched nothing at all, and
+  # guarding the comparators on numbers meant a plain :lt against a date
+  # column did the same - silently, since an unmatched clause falls to
+  # the catch-all `false` rather than raising. Each comparator now tries
+  # numbers, then dates, then text, so the op means the same thing
+  # whatever the column holds.
+  # A negation must never turn "this filter cannot be evaluated" into a
+  # match. :neq with "abc" against a numeric column would otherwise
+  # invert a coercion failure into EVERY row matching - the loudest
+  # possible wrong answer. An unusable filter matches nothing here, as
+  # it does everywhere else in this engine.
+  defp matches?(field_value, :neq, value),
+    do: evaluable?(field_value, value) and not matches?(field_value, :eq, value)
 
-  defp matches?(field_value, :lt, value) when is_number(field_value),
-    do: with_number(value, &(field_value < &1))
+  defp matches?(field_value, :gt, value), do: compare(field_value, value, [:gt])
+  defp matches?(field_value, :gte, value), do: compare(field_value, value, [:gt, :eq])
+  defp matches?(field_value, :lt, value), do: compare(field_value, value, [:lt])
+  defp matches?(field_value, :lte, value), do: compare(field_value, value, [:lt, :eq])
 
   defp matches?(field_value, :between, [min, max]) when is_number(field_value) do
     with_number(min, fn lo ->
@@ -185,9 +212,23 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp matches?(field_value, :between, %{"min" => min, "max" => max}),
     do: matches?(field_value, :between, [min, max])
 
+  defp matches?(field_value, :eq, value) do
+    case {to_date(field_value), to_date(value)} do
+      {{:ok, a}, {:ok, b}} -> Date.compare(a, b) == :eq
+      _ -> false
+    end
+  end
+
+  defp matches?(field_value, :not_contains, value) when is_scalar(field_value),
+    do: text_value?(value) and not matches?(field_value, :contains, value)
+
   defp matches?(field_value, :in, values) when is_list(values) do
     Enum.any?(values, &values_equal?(field_value, &1))
   end
+
+  defp matches?(field_value, :not_in, values)
+       when is_scalar(field_value) and is_list(values) and values != [],
+       do: not matches?(field_value, :in, values)
 
   defp matches?(field_value, op, value) when op in [:before, :on, :after] do
     with {:ok, field_date} <- to_date(field_value),
@@ -204,6 +245,54 @@ defmodule PetalComponents.DataTable.Engine.List do
   end
 
   defp matches?(_field_value, _op, _value), do: false
+
+  # one comparison ladder for every comparator: numbers, then dates, then
+  # text. `wanted` is the set of Erlang comparison results that count as
+  # a match, so :gte is just :gt plus :eq rather than a second ladder.
+  defp compare(field_value, value, wanted) do
+    cond do
+      is_number(field_value) ->
+        with_number(value, &(cmp(field_value, &1) in wanted))
+
+      match?({:ok, _}, to_date(field_value)) ->
+        with {{:ok, a}, {:ok, b}} <- {to_date(field_value), to_date(value)} do
+          Date.compare(a, b) in wanted
+        else
+          _ -> false
+        end
+
+      is_scalar(field_value) ->
+        with_text(value, &(cmp(downcase(field_value), &1) in wanted))
+
+      true ->
+        false
+    end
+  end
+
+  # Can the positive form of this filter actually be evaluated against a
+  # field of this shape? Mirrors the coercion the :eq clauses perform.
+  defp evaluable?(field_value, value) when is_binary(field_value), do: text_value?(value)
+  defp evaluable?(field_value, value) when is_number(field_value), do: number_value?(value)
+
+  defp evaluable?(field_value, value) do
+    case to_date(field_value) do
+      {:ok, _} -> match?({:ok, _}, to_date(value))
+      # a field the positive op cannot read is unevaluable regardless of
+      # how good the value is - both sides have to be readable
+      :error -> is_scalar(field_value) and text_value?(value)
+    end
+  end
+
+  defp text_value?(value) when is_binary(value) or is_number(value), do: true
+  defp text_value?(value) when is_atom(value), do: not is_nil(value)
+  defp text_value?(_other), do: false
+
+  defp number_value?(value), do: match?({:ok, _}, number(value))
+
+  defp empty_value?(nil), do: true
+  defp empty_value?(""), do: true
+  defp empty_value?([]), do: true
+  defp empty_value?(_other), do: false
 
   defp values_equal?(a, b) when is_scalar(a),
     do: with_text(b, &(downcase(a) == &1))
