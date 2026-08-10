@@ -110,7 +110,7 @@ defmodule PetalComponents.Showcase.DataTable do
   example :columns, "Columns visibility and order",
     inert: true,
     description:
-      "column_toggle renders a Columns dropdown - every declared column with a checkbox, toggling immediately (the panel stays open for multi-toggling). reorderable adds move controls whose payload carries the COMPLETE resulting order, so the handler is one line and double-clicks are harmless. Both are presentation state on the on_ui event, never in URLs; the last visible column can't be hidden." do
+      "column_toggle renders a Columns dropdown - every declared column with a checkbox, toggling immediately (the panel stays open for multi-toggling). reorderable adds move controls posting a field + dir delta; DataTable.move_column/4 applies it to your current order in one line, race-free under rapid clicks. Both are presentation state on the on_ui event, never in URLs; the last visible column can't be hidden." do
     ~H"""
     <% state = %State{page_size: 4} %>
     <% {rows, state} = Engine.List.run(PetalComponents.Showcase.DataTable.sample_rows(), state) %>

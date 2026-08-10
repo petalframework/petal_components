@@ -34,9 +34,9 @@ defmodule PetalComponents.DataTable do
   event in BOTH wiring modes (`on_ui`, defaulting to `on_change`) and
   never touches URLs. Its ops sit outside `State`: `select` (id),
   `select_all`, `clear_selection`, `toggle_column` and `move_column`
-  (whose payload carries the complete resulting `order`, so the handler
-  is one line) - a MapSet plus a handful of clauses is the whole
-  backend. Selection is keyed by `row_id`, which must uniquely
+  (a `field` + `dir` delta, applied to your current order with
+  `move_column/4` - one line in the handler, race-free under rapid
+  clicks) - a MapSet plus a handful of clauses is the whole backend. Selection is keyed by `row_id`, which must uniquely
   identify a record across the whole dataset, not just the current
   page (primary keys qualify, display fields do not) - a selection
   retained while paging is only as sound as this key. Same-page
