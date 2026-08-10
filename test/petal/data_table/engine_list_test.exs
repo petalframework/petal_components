@@ -123,6 +123,24 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert names(%{field: :joined, op: :neq, value: "2026-01-15"}) == ["Bea", "Cal"]
     end
 
+    test "a negation does not include rows whose field the positive op cannot read" do
+      rows = [
+        %{name: "Amy", meta: %{nested: 1}},
+        %{name: "Bea", meta: "text"}
+      ]
+
+      pick = fn filter ->
+        {out, _} = Engine.run(rows, struct!(State, filters: [filter]))
+        Enum.map(out, & &1.name)
+      end
+
+      # :contains / :in / :eq cannot read a map field - their negations
+      # must exclude that row rather than invert an unreadable field
+      assert pick.(%{field: :meta, op: :not_contains, value: "zz"}) == ["Bea"]
+      assert pick.(%{field: :meta, op: :not_in, value: ["y"]}) == ["Bea"]
+      assert pick.(%{field: :meta, op: :neq, value: "x"}) == ["Bea"]
+    end
+
     test "emptiness counts nil, empty string and empty list - and nothing else" do
       # the only ops for which a nil field is a match rather than a miss
       assert names(%{field: :note, op: :is_empty, value: true}) == ["Amy", "Bea"]

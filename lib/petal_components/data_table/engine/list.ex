@@ -212,15 +212,16 @@ defmodule PetalComponents.DataTable.Engine.List do
     end
   end
 
-  defp matches?(field_value, :not_contains, value),
+  defp matches?(field_value, :not_contains, value) when is_scalar(field_value),
     do: text_value?(value) and not matches?(field_value, :contains, value)
 
   defp matches?(field_value, :in, values) when is_list(values) do
     Enum.any?(values, &values_equal?(field_value, &1))
   end
 
-  defp matches?(field_value, :not_in, values) when is_list(values) and values != [],
-    do: not matches?(field_value, :in, values)
+  defp matches?(field_value, :not_in, values)
+       when is_scalar(field_value) and is_list(values) and values != [],
+       do: not matches?(field_value, :in, values)
 
   defp matches?(field_value, op, value) when op in [:before, :on, :after] do
     with {:ok, field_date} <- to_date(field_value),
@@ -269,7 +270,9 @@ defmodule PetalComponents.DataTable.Engine.List do
   defp evaluable?(field_value, value) do
     case to_date(field_value) do
       {:ok, _} -> match?({:ok, _}, to_date(value))
-      :error -> text_value?(value)
+      # a field the positive op cannot read is unevaluable regardless of
+      # how good the value is - both sides have to be readable
+      :error -> is_scalar(field_value) and text_value?(value)
     end
   end
 
