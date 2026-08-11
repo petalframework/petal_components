@@ -4962,6 +4962,7 @@
   select.pc-text-input[multiple],
   .pc-input-group:has(.pc-input-group__block),
   .pc-alert-base-classes,
+  .pc-radio-card__fake-input,
   .pc-chat__composer-input,
   .pc-tooltip__content {
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
