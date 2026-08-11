@@ -14,6 +14,16 @@ defmodule PetalComponents.BorderPlasma do
   arc of light around the rim that illuminates them as it passes. Good for
   CTAs, pricing cards and hero panels that need to pull the eye without
   moving anything across the screen.
+
+  ## Cost
+
+  This is the most paint-expensive effect in the library and it should be
+  spent like it: one hero panel or one CTA per view, not a border on every
+  card. Animated custom properties repaint on the main thread, so each
+  instance re-rasterises its gradient layers (two of them blurred) at up
+  to the display's refresh rate. A page full of simultaneous instances -
+  like the playground demo - is a worst case no real app should ship.
+  Reduced-motion users pay nothing: the field rests lit and still.
   """
   use Phoenix.Component
 

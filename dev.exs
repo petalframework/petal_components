@@ -784,7 +784,13 @@ defmodule Dev.PlaygroundLive do
          size: "60px",
          glow: false
        },
-       plasma: %{mode: "pulse", intensity: "medium", duration: "2.3s", glow: "outside"},
+       plasma: %{
+         mode: "pulse",
+         intensity: "medium",
+         duration: "2.3s",
+         glow: "outside",
+         palette: "rainbow"
+       },
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1020,6 +1026,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_plasma", %{"k" => "glow", "v" => v}, socket)
       when v in ~w(outside inside both),
       do: {:noreply, update(socket, :plasma, &%{&1 | glow: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "palette", "v" => v}, socket)
+      when v in ~w(rainbow brand mono ocean sunset),
+      do: {:noreply, update(socket, :plasma, &%{&1 | palette: v})}
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
@@ -2043,7 +2053,8 @@ defmodule Dev.PlaygroundLive do
         pl.mode != "pulse" && ~s(mode="#{pl.mode}"),
         pl.intensity != "medium" && ~s(intensity="#{pl.intensity}"),
         pl.duration != "2.3s" && ~s(duration="#{pl.duration}"),
-        pl.glow != "outside" && ~s(glow="#{pl.glow}")
+        pl.glow != "outside" && ~s(glow="#{pl.glow}"),
+        pl.palette != "rainbow" && ~s(palette="#{pl.palette}")
       ]
       |> Enum.filter(& &1)
 
@@ -2972,11 +2983,12 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.border_plasma
-            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.glow}"}
+            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.glow}-#{@plasma.palette}"}
             mode={@plasma.mode}
             intensity={@plasma.intensity}
             duration={@plasma.duration}
             glow={@plasma.glow}
+            palette={@plasma.palette}
             class="w-full max-w-sm"
           >
             <div class="p-8">
@@ -3056,6 +3068,26 @@ defmodule Dev.PlaygroundLive do
               </:item>
             </.toggle_group>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">palette</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Palette"
+              value={@plasma.palette}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={p <- ~w(rainbow brand mono ocean sunset)}
+                value={p}
+                phx-value-k="palette"
+                phx-value-v={p}
+              >
+                {p}
+              </:item>
+            </.toggle_group>
+          </div>
         </div>
         <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
           both modes hold still for reduced-motion users - the ring stays lit, it just stops moving
@@ -3132,7 +3164,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <.border_plasma glow="inside">
             <div class="p-5">
-              <div class="text-gray-400 dark:text-gray-500">Working...</div>
+              <.shimmer_text class="text-gray-400 dark:text-gray-500">Working...</.shimmer_text>
               <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <li
                   :for={
@@ -3156,8 +3188,10 @@ defmodule Dev.PlaygroundLive do
             <div class="mb-3 text-xs text-center text-gray-400 dark:text-gray-500">
               glow="both" on a pill CTA
             </div>
-            <.border_plasma glow="both" border_radius="9999px" intensity="strong">
-              <div class="px-7 py-2.5 font-medium text-gray-900 dark:text-white">Subscribe</div>
+            <.border_plasma glow="both" border_radius="9999px" intensity="strong" class="inline-block">
+              <div class="px-7 py-2.5 font-medium text-center text-gray-900 dark:text-white">
+                Subscribe
+              </div>
             </.border_plasma>
           </div>
         </div>

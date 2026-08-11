@@ -5765,6 +5765,10 @@
     /* The halo sweeps too: the bloom keeps its variant geometry and gains
        the window, so the outer glow travels with the beam. */
     .pc-border-plasma--rotate > .pc-border-plasma__bloom {
+      inset: calc(-30px - 48px);
+      border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 78px);
+      padding: 48px;
+      background-origin: padding-box;
       -webkit-mask: conic-gradient(
         from var(--pc-plasma-angle, 0deg),
         transparent 0%,
