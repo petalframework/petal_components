@@ -302,6 +302,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "aurora", name: "Aurora", ready: true},
         %{slug: "border-beam", name: "Border beam", ready: true},
+        %{slug: "border-plasma", name: "Border plasma", ready: true},
         %{slug: "meteors", name: "Meteors", ready: true},
         %{slug: "shine-border", name: "Shine border", ready: true},
         %{slug: "marquee", name: "Marquee", ready: true},
@@ -783,6 +784,7 @@ defmodule Dev.PlaygroundLive do
          size: "60px",
          glow: false
        },
+       plasma: %{mode: "pulse", intensity: "medium", duration: "5s", width: "2px"},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1004,6 +1006,19 @@ defmodule Dev.PlaygroundLive do
            :progress,
            &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)}
          )}
+
+  def handle_event("ctl_plasma", %{"k" => "mode", "v" => v}, socket) when v in ~w(pulse rotate),
+    do: {:noreply, update(socket, :plasma, &%{&1 | mode: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "intensity", "v" => v}, socket)
+      when v in ~w(subtle medium strong),
+      do: {:noreply, update(socket, :plasma, &%{&1 | intensity: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "duration", "v" => v}, socket) when v in ~w(3s 5s 8s),
+    do: {:noreply, update(socket, :plasma, &%{&1 | duration: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
+    do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -2018,6 +2033,20 @@ defmodule Dev.PlaygroundLive do
     "<.meteors #{Enum.join(attrs, " ")} />"
   end
 
+  defp plasma_snippet(pl) do
+    attrs =
+      [
+        pl.mode != "pulse" && ~s(mode="#{pl.mode}"),
+        pl.intensity != "medium" && ~s(intensity="#{pl.intensity}"),
+        ~s(duration="#{pl.duration}"),
+        pl.width != "2px" && ~s(border_width="#{pl.width}")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.border_plasma" | attrs], " ")
+    open <> ">\n  <div class=\"p-8\">...</div>\n</.border_plasma>"
+  end
+
   defp beam_snippet(bm) do
     attrs =
       [
@@ -2919,6 +2948,187 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift. Select, checkbox, radio and switch are the same field surface;
         their pages render the rest of the registry.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "border-plasma"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Border plasma</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A glowing border that breathes in place, or sweeps a conic gradient
+        around the ring. Pure CSS on a masked border ring. Colours come off the
+        theme's primary and secondary tokens, and the panel follows the rail radius.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.border_plasma
+            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.width}"}
+            mode={@plasma.mode}
+            intensity={@plasma.intensity}
+            duration={@plasma.duration}
+            border_width={@plasma.width}
+            class="w-full max-w-sm"
+          >
+            <div class="p-8">
+              <div class="text-xs font-medium tracking-wide uppercase text-gray-400">New in 4.14</div>
+              <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Border plasma
+              </div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                The whole ring lights up, instead of one dot running around it.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Mode"
+              value={@plasma.mode}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={m <- ~w(pulse rotate)} value={m} phx-value-k="mode" phx-value-v={m}>
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">intensity</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Intensity"
+              value={@plasma.intensity}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={i <- ~w(subtle medium strong)}
+                value={i}
+                phx-value-k="intensity"
+                phx-value-v={i}
+              >
+                {i}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Duration"
+              value={@plasma.duration}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={d <- ~w(3s 5s 8s)} value={d} phx-value-k="duration" phx-value-v={d}>
+                {d}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Border width"
+              value={@plasma.width}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={w <- ~w(1px 2px 4px)} value={w} phx-value-k="width" phx-value-v={w}>
+                {w}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          both modes hold still for reduced-motion users - the ring stays lit, it just stops moving
+        </p>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{plasma_snippet(@plasma)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Both modes, side by side
+      </div>
+      <div class="grid gap-6 px-6 py-10 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">pulse</div>
+          <.border_plasma>
+            <div class="p-6">
+              <div class="font-semibold text-gray-900 dark:text-gray-100">Breathing</div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Nothing travels. The ring just swells and settles.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">rotate</div>
+          <.border_plasma mode="rotate">
+            <div class="p-6">
+              <div class="font-semibold text-gray-900 dark:text-gray-100">Sweeping</div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                A conic arc spins the whole way round the border.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        On a CTA (strong, with its own colours)
+      </div>
+      <div class="flex justify-center px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.border_plasma
+          intensity="strong"
+          color_from="#f43f5e"
+          color_to="#3b82f6"
+          duration="3s"
+          class="inline-block"
+        >
+          <div class="px-6 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">
+            Buy now
+          </div>
+        </.border_plasma>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.BorderPlasma.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.BorderPlasma} function={:border_plasma} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.BorderPlasma</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
       </div>
     </div>
     """

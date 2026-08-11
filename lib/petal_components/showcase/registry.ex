@@ -15,6 +15,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Avatar,
     PetalComponents.Showcase.Badge,
     PetalComponents.Showcase.BorderBeam,
+    PetalComponents.Showcase.BorderPlasma,
     PetalComponents.Showcase.Breadcrumbs,
     PetalComponents.Showcase.Button,
     PetalComponents.Showcase.ButtonGroup,

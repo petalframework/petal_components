@@ -25,6 +25,7 @@ defmodule PetalComponents do
         Badge,
         Aurora,
         BorderBeam,
+        BorderPlasma,
         BrandIcon,
         Breadcrumbs,
         Button,
