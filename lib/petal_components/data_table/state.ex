@@ -60,11 +60,21 @@ defmodule PetalComponents.DataTable.State do
       only for date-typed cells (`Date`, `DateTime`, `NaiveDateTime`) -
       a text column holding an ISO string does not match, because no
       SQL engine would cast every row to find out.
+    * a `nil` value on a value-carrying op is unsatisfiable - it
+      matches NO rows. `from_params/2` never emits one (a blank input
+      drops the filter instead), so this only concerns hand-built
+      states. Asking for empty cells is what `:is_empty` is for.
+    * map-shaped cells are filter-only. Erlang orders maps by size,
+      then keys, then values; jsonb has its own type-ordering rules,
+      and no SQL expression reconciles the two - so a map column has
+      NO defined sort order across engines. Don't mark one sortable.
     * an empty `order_by`, and ties within one, have NO defined row
       order across engines: this engine preserves input order, SQL
       without ORDER BY promises nothing. For stable paging, append a
-      unique tiebreaker (the primary key) to every sort - adapters
-      should do the same.
+      unique tiebreaker (the primary key) to every sort. That is the
+      APPLICATION's job, at the point the state is built - an adapter
+      must reproduce `order_by` exactly as given and never append one
+      silently, or the same state would order differently per engine.
 
   Engines may support a subset. `ops/0` returns the recognised set and
   `valueless_op?/1` identifies the ops that carry no value.
@@ -89,6 +99,18 @@ defmodule PetalComponents.DataTable.State do
   case-insensitive and index-backed - wrapping it in `lower()` defeats
   the index (measured ~28x slower). An adapter that knows a column is
   citext should emit plain `=` there.
+
+  Reproduce `order_by` exactly - do not append a tiebreaker on the
+  application's behalf (see the tie rule above), and do not reorder or
+  drop entries. If the state's sort is unstable, that is the caller's
+  bug to fix where the state is built.
+
+  Text-shaped ops against float columns compare the TEXT FORM of the
+  float, and Elixir and SQL format extremes differently:
+  `to_string(1.0e20)` is `"1.0e20"` while Postgres renders `1e+20` -
+  so `:contains`/`:in` against exponent-range floats can diverge
+  between engines. Integral floats (`10.0`) agree. Money belongs in a
+  decimal column, which has no such gap.
 
   ## Security
 

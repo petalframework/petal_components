@@ -39,7 +39,11 @@ defmodule PetalComponents.DataTable.Engine.List do
 
     * `:search_fields` - the fields the quick-search term matches
       against (case-insensitive contains). Defaults to every field of
-      the first row whose value is a string.
+      the FIRST row whose value is a string - which means the default
+      set depends on that row's data: a text column that is nil in row
+      one is silently excluded, and a loaded UUID column is silently
+      included. Fine for a demo; pass `:search_fields` explicitly in
+      anything real.
   """
   def run(rows, state, opts \\ [])
 
@@ -357,6 +361,16 @@ defmodule PetalComponents.DataTable.Engine.List do
   # Filter values come straight from params and can be ANY shape (a list,
   # a map, whatever the query string carried) - a text op against a
   # non-scalar is a no-match, never a to_string crash.
+  #
+  # nil FIRST: nil is an atom, and the atom clause would read it as ""
+  # - turning "filter by nothing" into "match empty strings" for :eq
+  # and "match every non-nil row" for :contains/:starts_with and the
+  # comparators, while the negations (guarded by text_value?/1, which
+  # rejects nil) matched nothing. One rejection here lines all ten text
+  # ops up: a nil value on a value-carrying op matches NO rows.
+  # from_params/2 never emits one; :is_empty is how you ask for empties.
+  defp with_text(nil, _fun), do: false
+
   defp with_text(value, fun) when is_binary(value), do: fun.(String.downcase(value))
 
   defp with_text(value, fun) when is_number(value) or is_atom(value),
