@@ -506,6 +506,58 @@ describe("PetalDataTable", () => {
     expect(reachedOuter).toBe(false);
   });
 
+  it("the option-filter box narrows the checkbox list, keeps checked rows, survives patches", () => {
+    const { hook, panel, trigger } = mountWithFilter({
+      navTemplate: "/orders?:filters",
+      filters: [],
+      formHtml: `<form class="pc-data-table__filter-form">
+        <input type="text" data-pc-dt-option-filter />
+        <div class="pc-data-table__filter-options">
+          <label class="pc-data-table__filter-option"><input type="checkbox" value="alpha" checked /><span>Alpha</span></label>
+          <label class="pc-data-table__filter-option"><input type="checkbox" value="beta" /><span>Beta</span></label>
+          <label class="pc-data-table__filter-option"><input type="checkbox" value="gamma" /><span>Gamma</span></label>
+        </div>
+      </form>`,
+    });
+
+    trigger.click();
+    const box = panel.querySelector("[data-pc-dt-option-filter]");
+    const rows = () =>
+      [...panel.querySelectorAll(".pc-data-table__filter-option")].map(
+        (r) => r.hidden,
+      );
+
+    box.value = "bet";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    // Alpha stays visible despite not matching - it is CHECKED, and
+    // hiding an active selection reads as losing it
+    expect(rows()).toEqual([false, false, true]);
+
+    // typing in the option filter must never trigger navigation
+    vi.advanceTimersByTime(1000);
+    expect(hook.openMenu).toBe("pop");
+
+    // a patch re-renders rows all-visible; the sync reapplies the term
+    panel
+      .querySelectorAll(".pc-data-table__filter-option")
+      .forEach((r) => (r.hidden = false));
+    hook.updated();
+    expect(rows()).toEqual([false, false, true]);
+
+    // unchecking the kept-visible row re-runs the narrowing - the stale
+    // row must not linger
+    box.value = "bet";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    const alpha = panel.querySelector('input[value="alpha"]');
+    alpha.checked = false;
+    alpha.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(rows()).toEqual([true, false, true]);
+
+    box.value = "";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(rows()).toEqual([false, false, false]);
+  });
+
   it("never repositions on scroll - the page carries the panel", () => {
     const { hook, trigger } = mountWithFilter({
       navTemplate: "/orders?:filters",

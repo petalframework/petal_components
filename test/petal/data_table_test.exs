@@ -636,6 +636,34 @@ defmodule PetalComponents.DataTableTest do
     assert length(String.split(headers, "Email")) - 1 == 1
   end
 
+  test "select editors gain an option-filter box from 8 options up" do
+    seven = Enum.map(1..7, &"opt#{&1}")
+    eight = Enum.map(1..8, &"opt#{&1}")
+    assigns = base(%{seven: seven, eight: eight})
+
+    small =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table">
+        <:col :let={row} field={:name} filterable="select" options={@seven}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    refute small =~ "data-pc-dt-option-filter"
+
+    large =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table">
+        <:col :let={row} field={:name} filterable="select" options={@eight}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert large =~ "data-pc-dt-option-filter"
+    assert large =~ ~s(aria-label="Name option filter")
+    # never submitted: no name attribute on the filter box
+    assert Regex.match?(~r/<input[^>]*data-pc-dt-option-filter[^>]*>/, large)
+    refute Regex.match?(~r/<input[^>]*data-pc-dt-option-filter[^>]*name=/, large)
+  end
+
   test "a map-shaped between range renders instead of crashing" do
     assigns =
       base(%{

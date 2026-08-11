@@ -4751,6 +4751,14 @@ export const PetalDataTable = {
     this.searchTimer = null;
 
     this.onInput = (e) => {
+      // the select editor's option-filter box: purely visual narrowing
+      // of the checkbox list, never submitted, never navigates
+      const optionFilter = e.target.closest("[data-pc-dt-option-filter]");
+      if (optionFilter) {
+        this.filterOptions(optionFilter);
+        return;
+      }
+
       if (!e.target.closest("[data-pc-dt-search]")) return;
       clearTimeout(this.searchTimer);
       const wait = parseInt(this.el.dataset.debounce || "300", 10);
@@ -4758,6 +4766,17 @@ export const PetalDataTable = {
     };
 
     this.onChange = (e) => {
+      // unchecking a kept-visible-because-checked option row must rerun
+      // the narrowing, or the stale row lingers until the term changes
+      const optionRow = e.target.closest(".pc-data-table__filter-option");
+      if (optionRow) {
+        const box = optionRow
+          .closest(".pc-data-table__filter-form")
+          ?.querySelector("[data-pc-dt-option-filter]");
+        if (box?.value) this.filterOptions(box);
+        return;
+      }
+
       if (!e.target.closest("[data-pc-dt-page-size]")) return;
       // the nav URL reads the live search input too, so the pending
       // debounced patch is redundant - and letting it fire later would
@@ -5024,6 +5043,7 @@ export const PetalDataTable = {
 
   updated() {
     this.syncIndeterminate();
+    this.syncOptionFilters();
 
     // a patch re-renders panels from the server: `hidden` comes back and
     // the inline offsets this hook owns are dropped
@@ -5057,6 +5077,30 @@ export const PetalDataTable = {
         this.openMenu = null;
       }
     }
+  },
+
+  // Hide checkbox rows whose label does not contain the typed term.
+  // Checked rows stay visible regardless - hiding an active selection
+  // behind a filter box reads as losing it.
+  filterOptions(input) {
+    const list = input.nextElementSibling;
+    if (!list) return;
+    const term = input.value.trim().toLowerCase();
+
+    list.querySelectorAll(".pc-data-table__filter-option").forEach((row) => {
+      const matches =
+        term === "" || (row.textContent || "").toLowerCase().includes(term);
+      const checked = row.querySelector("input:checked");
+      row.hidden = !matches && !checked;
+    });
+  },
+
+  // a patch re-renders the option rows all-visible while the focused
+  // input keeps its value - reapply the narrowing
+  syncOptionFilters() {
+    this.el
+      .querySelectorAll("[data-pc-dt-option-filter]")
+      .forEach((input) => input.value && this.filterOptions(input));
   },
 
   // indeterminate is a DOM property, not an attribute - mirror the
