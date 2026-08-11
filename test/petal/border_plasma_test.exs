@@ -14,8 +14,10 @@ defmodule PetalComponents.BorderPlasmaTest do
         """)
 
       assert html =~ "pc-border-plasma"
-      assert html =~ "pc-border-plasma__ring"
-      assert html =~ "pc-border-plasma__bloom"
+      assert html =~ "pc-border-plasma__jewels"
+      assert html =~ "pc-border-plasma__sheen"
+      assert html =~ "pc-border-plasma__inner"
+      assert html =~ "pc-border-plasma--rainbow"
       assert html =~ "pc-border-plasma__content"
       assert html =~ "Content"
       assert html =~ ~s(aria-hidden="true")
@@ -133,16 +135,23 @@ defmodule PetalComponents.BorderPlasmaTest do
       end
     end
 
-    test "spread overrides the intensity's bloom distance" do
+    test "palette picks the jewel colour source" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
-        <.border_plasma intensity="subtle" spread="24px">Content</.border_plasma>
+        <.border_plasma palette="brand">Content</.border_plasma>
         """)
 
-      assert html =~ "pc-border-plasma--subtle"
-      assert html =~ "--pc-plasma-spread: 24px"
+      assert html =~ "pc-border-plasma--brand"
+      refute html =~ "pc-border-plasma--rainbow"
+
+      mono =
+        rendered_to_string(~H"""
+        <.border_plasma palette="mono">Content</.border_plasma>
+        """)
+
+      assert mono =~ "pc-border-plasma--mono"
     end
   end
 

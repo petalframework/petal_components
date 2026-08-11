@@ -2958,10 +2958,11 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Border plasma</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Pockets of light parked around the border, breathing out of phase and
-        spilling past the edge in both directions - or one luminous arc sweeping
-        the ring. Pure CSS. Colours come off the theme's primary and secondary
-        tokens, and the panel follows the rail radius.
+        Jewels of light parked around the rim, breathing out of phase and washing
+        inward over the panel - clipped at the border, so the silhouette stays
+        crisp. Rotate sweeps a neutral light around the rim that lights the
+        colours as it passes. Pure CSS; rainbow by default, or on-brand via
+        palette="brand".
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -3091,8 +3092,38 @@ defmodule Dev.PlaygroundLive do
             <div class="p-6">
               <div class="font-semibold text-gray-900 dark:text-gray-100">Sweeping</div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                A conic arc spins the whole way round the border.
+                A neutral light laps the rim, lighting the colours as it passes.
               </p>
+            </div>
+          </.border_plasma>
+        </div>
+      </div>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        The three palettes
+      </div>
+      <div class="grid gap-6 px-6 py-10 border border-gray-200 sm:grid-cols-3 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">rainbow (default)</div>
+          <.border_plasma>
+            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
+              Eight hues, the reference look.
+            </div>
+          </.border_plasma>
+        </div>
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">brand</div>
+          <.border_plasma palette="brand">
+            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
+              Every jewel derived from your theme.
+            </div>
+          </.border_plasma>
+        </div>
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">mono</div>
+          <.border_plasma palette="mono">
+            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
+              Grayscale, for quiet surfaces.
             </div>
           </.border_plasma>
         </div>
