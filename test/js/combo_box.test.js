@@ -42,6 +42,9 @@ function mountCombo({
   freeText = false,
   create = false,
   remote = false,
+  required = false,
+  disabled = false,
+  footer = "",
 } = {}) {
   const selectOptions = [...options, ...groups.flatMap((g) => g.options)]
     .map(
@@ -55,8 +58,8 @@ function mountCombo({
     groups
       .map(
         (g) => `
-        <div class="pc-combo-box__group" role="group" data-pc-combo-group>
-          <div class="pc-combo-box__group-heading" aria-hidden="true">${g.label}</div>
+        <div class="pc-combo-box__group" role="group" aria-label="${g.label}" data-pc-combo-group>
+          <div class="pc-combo-box__group-heading">${g.label}</div>
           ${g.options.map(optionHtml).join("")}
         </div>`,
       )
@@ -71,26 +74,33 @@ function mountCombo({
   if (remote) el.setAttribute("data-remote-event", "search");
   const inputHtml = `<input type="text" id="${id}-input" class="pc-combo-box__input" role="combobox"
           aria-expanded="false" aria-autocomplete="list" aria-controls="${id}-listbox"
-          autocomplete="off" placeholder="Pick..." />`;
+          ${required ? `aria-required="true" aria-describedby="${id}-error"` : ""}
+          ${disabled ? "disabled" : ""}
+          autocomplete="off" placeholder="Pick..." data-placeholder-text="Pick..." />`;
+
+  const clearHtml = (cls) =>
+    `<button type="button" class="${cls}" data-pc-combo-clear aria-label="Clear selection" ${disabled ? "disabled" : ""}><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>`;
 
   const bodyHtml = trigger
     ? `<button type="button" id="${id}-trigger" class="pc-combo-box__trigger" role="combobox"
         aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-listbox"
+        ${required ? `aria-required="true" aria-describedby="${id}-error"` : ""}
+        ${disabled ? "disabled" : ""}
         data-pc-combo-trigger data-placeholder="true">
         <span class="pc-combo-box__trigger-label" data-pc-combo-trigger-label
           data-placeholder-text="Pick..." data-count-label="selected">Pick...</span>
-      </button>${clearable ? '<button type="button" class="pc-combo-box__trigger-clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}`
+      </button>${clearable ? clearHtml("pc-combo-box__trigger-clear") : ""}`
     : `<div class="pc-combo-box__control">
       <div class="pc-combo-box__content">
         ${multiple ? '<div class="pc-combo-box__chips" data-pc-combo-chips data-remove-label="Remove"></div>' : ""}
         ${inputHtml}
       </div>
-      ${clearable ? '<button type="button" class="pc-combo-box__clear" data-pc-combo-clear aria-label="Clear selection"><span class="hero-x-mark-mini pc-combo-box__clear-icon"></span></button>' : ""}
+      ${clearable ? clearHtml("pc-combo-box__clear") : ""}
       ${multiple ? "" : '<span class="hero-chevron-down-mini pc-combo-box__chevron"></span>'}
     </div>`;
 
   el.innerHTML = `
-    <select id="${id}-select" name="city${multiple ? "[]" : ""}" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert ${multiple ? "multiple" : ""}>
+    <select id="${id}-select" name="city${multiple ? "[]" : ""}" class="pc-combo-box__select" tabindex="-1" aria-hidden="true" inert ${multiple ? "multiple" : ""} ${required ? "required" : ""} ${disabled ? "disabled" : ""}>
       ${multiple ? "" : '<option value=""></option>'}
       ${selectOptions}
     </select>
@@ -101,10 +111,12 @@ function mountCombo({
       <div role="listbox" id="${id}-listbox" class="pc-combo-box__list" aria-label="Options">
         ${listHtml}
         ${create ? '<div class="pc-combo-box__create" data-pc-combo-create role="option" aria-selected="false" hidden><span>Create "<span data-pc-combo-create-query></span>"</span></div>' : ""}
-        <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
       </div>
+      <div class="pc-combo-box__empty" data-pc-combo-empty hidden>No results found</div>
+      ${footer ? `<div class="pc-combo-box__footer">${footer}</div>` : ""}
     </div>
-    <div class="pc-combo-box__live" data-pc-combo-live data-results-label="results" data-no-results-text="No results found" aria-live="polite"></div>`;
+    ${required ? `<div id="${id}-error" class="pc-combo-box__error" data-pc-combo-error role="alert" hidden></div>` : ""}
+    <div class="pc-combo-box__live" data-pc-combo-live data-results-label="results" data-no-results-text="No results found" data-max-items-text="Maximum selections reached" aria-live="polite"></div>`;
   document.body.appendChild(el);
 
   const hook = Object.create(hooks.PetalComboBox);
@@ -127,7 +139,13 @@ function mountCombo({
     highlighted: () => el.querySelector("[data-highlighted]"),
     empty: () => el.querySelector("[data-pc-combo-empty]"),
     chips: () => [...el.querySelectorAll("[data-pc-combo-chip]")],
+    chipValues: () =>
+      [...el.querySelectorAll("[data-pc-combo-chip]")].map(
+        (chip) => chip.dataset.value,
+      ),
     live: () => el.querySelector("[data-pc-combo-live]"),
+    error: () => el.querySelector("[data-pc-combo-error]"),
+    clear: () => el.querySelector("[data-pc-combo-clear]"),
     trigger: el.querySelector("[data-pc-combo-trigger]"),
     triggerLabel: () => el.querySelector("[data-pc-combo-trigger-label]"),
   };
@@ -964,20 +982,24 @@ describe("multiple with chips", () => {
     expect(c.items().filter((i) => !i.hidden).length).toBeGreaterThan(1);
   });
 
-  it("the placeholder attribute is server truth - the hook never rewrites it", () => {
-    // the cap-rest is pure CSS on [data-max-reached]; the attribute must
-    // survive every selection transition so live server changes always win
+  it("the cap says the same thing on screen as in the live region, and the server's placeholder is what it restores", () => {
+    // the cap used to blank the placeholder to transparent in CSS, so the
+    // field LOOKED empty while a screen reader still read the placeholder
+    // aloud. The hook swaps the text instead - and data-placeholder-text
+    // keeps the server's own placeholder the truth to come back to.
     const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
     c.control.click();
     c.items()[0].click();
     expect(c.input.getAttribute("placeholder")).toBe("Pick...");
     c.items()[1].click();
     expect(c.el.hasAttribute("data-max-reached")).toBe(true);
-    expect(c.input.getAttribute("placeholder")).toBe("Pick...");
-    // server changes it while capped - updated() must not revert it
-    c.input.setAttribute("placeholder", "Añadir…");
+    expect(c.input.getAttribute("placeholder")).toBe("Maximum selections reached");
+    expect(c.live().textContent).toContain("Maximum selections reached");
+    // server changes the placeholder while capped: the cap text still
+    // shows, and the NEW server value is what uncapping restores
+    c.input.dataset.placeholderText = "Añadir…";
     c.hook.updated();
-    expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
+    expect(c.input.getAttribute("placeholder")).toBe("Maximum selections reached");
     c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
     expect(c.el.hasAttribute("data-max-reached")).toBe(false);
     expect(c.input.getAttribute("placeholder")).toBe("Añadir…");
@@ -1583,5 +1605,342 @@ describe("server ownership", () => {
     expect(formInputs).toBe(0);
     key(c.input, "Enter");
     expect(formInputs).toBe(1);
+  });
+});
+
+// The pre-release a11y/behaviour sweep. Each spec here pins a finding that
+// was reproducible on the live demo page - the repro is in the comment.
+describe("chips: Backspace targets what the user sees", () => {
+  it("removes the LAST CHIP, not the last option in the select's DOM order", () => {
+    // audit repro: preselect Sydney + Tokyo, then pick Stockholm and
+    // Lisbon in that order. Chips read [syd, tyo, sto, lis]; the select's
+    // DOM order is [syd, tyo, lis, sto], so reading the select deleted
+    // Stockholm - a chip from the MIDDLE of the row.
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    c.hook.updated();
+    c.control.click();
+    c.items().find((i) => i.dataset.value === "sto").click();
+    c.items().find((i) => i.dataset.value === "lis").click();
+    expect(c.chipValues()).toEqual(["syd", "tyo", "sto", "lis"]);
+    expect(c.hook.selectedValues()).toEqual(["syd", "tyo", "lis", "sto"]);
+
+    c.input.value = "";
+    key(c.input, "Backspace");
+    expect(c.chipValues()).toEqual(["syd", "tyo", "sto"]);
+    expect(c.select.querySelector('option[value="lis"]').selected).toBe(false);
+    expect(c.select.querySelector('option[value="sto"]').selected).toBe(true);
+  });
+
+  it("keeps walking backwards through the row, one chip per press", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items().find((i) => i.dataset.value === "sto").click();
+    c.items().find((i) => i.dataset.value === "syd").click();
+    expect(c.chipValues()).toEqual(["sto", "syd"]);
+    c.input.value = "";
+    key(c.input, "Backspace");
+    expect(c.chipValues()).toEqual(["sto"]);
+    key(c.input, "Backspace");
+    expect(c.chipValues()).toEqual([]);
+    // nothing left to remove is a no-op, never a throw
+    key(c.input, "Backspace");
+    expect(c.chipValues()).toEqual([]);
+  });
+
+  it("a typed query still owns Backspace", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    c.control.click();
+    c.items()[0].click();
+    type(c.input, "sto");
+    key(c.input, "Backspace");
+    expect(c.chipValues()).toEqual(["syd"]);
+  });
+});
+
+describe("trigger variant: clearing leaves a coherent state", () => {
+  it("closes the panel and puts focus on the trigger", () => {
+    // before: the panel stayed open with focus parked on the trigger -
+    // outside the panel - so arrows and typing were dead and Escape read
+    // as "already closed" and leaked to the enclosing modal
+    const c = mountCombo({ options: CITIES, trigger: true, clearable: true });
+    c.trigger.click();
+    c.items()[0].click();
+    expect(c.select.value).toBe("syd");
+    c.trigger.click();
+    expect(c.panel.hidden).toBe(false);
+
+    c.clear().click();
+    expect(c.select.value).toBe("");
+    expect(c.panel.hidden).toBe(true);
+    expect(document.activeElement).toBe(c.trigger);
+    expect(c.trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("Escape after a clear is handled by the page again, not swallowed", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, clearable: true });
+    c.trigger.click();
+    c.items()[0].click();
+    c.trigger.click();
+    c.clear().click();
+    // the panel is shut, so Escape belongs to whatever encloses us (a
+    // modal); the combobox only stops it while it owns an open panel
+    const ev = key(c.input, "Escape");
+    expect(ev.defaultPrevented).toBe(false);
+  });
+
+  it("a still-open panel keeps stopping Escape", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, clearable: true });
+    c.trigger.click();
+    const ev = key(c.input, "Escape");
+    expect(ev.defaultPrevented).toBe(true);
+    expect(c.panel.hidden).toBe(true);
+  });
+});
+
+describe("disabled", () => {
+  it("the clear button does nothing - no value change, no event", () => {
+    // reproduced live in three clicks: pick a value, flip disabled, and
+    // the X was still focusable and still cleared - and because a
+    // disabled select posts nothing, it desynced client from server
+    const c = mountCombo({
+      options: CITIES,
+      clearable: true,
+      disabled: true,
+    });
+    c.select.value = "syd";
+    c.hook.updated();
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.clear().click();
+    expect(c.select.value).toBe("syd");
+    expect(changes).toBe(0);
+    expect(c.clear().disabled).toBe(true);
+  });
+});
+
+describe("max_items is a real stop, not a visual one", () => {
+  it("stamps aria-disabled on unchosen options and takes them out of the keyboard path", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    const capped = c.items().filter((i) => i.dataset.value === "lis")[0];
+    expect(capped.getAttribute("aria-disabled")).toBe("true");
+    // chosen options stay live - removing is the way back
+    expect(c.items()[0].hasAttribute("aria-disabled")).toBe(false);
+    expect(c.hook.navItems().map((i) => i.dataset.value)).toEqual([
+      "syd",
+      "tyo",
+    ]);
+
+    // lifting the cap restores them
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(capped.hasAttribute("aria-disabled")).toBe(false);
+    expect(capped.hasAttribute("data-disabled")).toBe(false);
+  });
+
+  it("never un-disables an option the server disabled", () => {
+    const c = mountCombo({
+      options: [...CITIES, option("mel", "Melbourne", true)],
+      multiple: true,
+      maxItems: 2,
+    });
+    const melbourne = c.items().find((i) => i.dataset.value === "mel");
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    c.chips()[0].querySelector("[data-pc-combo-chip-remove]").click();
+    expect(c.el.hasAttribute("data-max-reached")).toBe(false);
+    expect(melbourne.getAttribute("aria-disabled")).toBe("true");
+    expect(melbourne.hasAttribute("data-disabled")).toBe(true);
+  });
+
+  it("announces the cap, and announces again on a blocked pick", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 2 });
+    c.control.click();
+    c.items()[0].click();
+    c.items()[1].click();
+    expect(c.live().textContent).toContain("Maximum selections reached");
+
+    // a live region only speaks on a CHANGE, so a second blocked press
+    // with the identical string would be silence - the text must differ
+    const first = c.live().textContent;
+    c.hook.choose(c.items().find((i) => i.dataset.value === "lis"));
+    expect(c.live().textContent).not.toBe(first);
+    expect(c.live().textContent).toContain("Maximum selections reached");
+    expect(c.chipValues()).toEqual(["syd", "tyo"]);
+  });
+
+  it("mounting at the cap is not a state change - nothing is announced", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, maxItems: 1 });
+    c.select.querySelector('option[value="syd"]').selected = true;
+    const fresh = Object.create(hooks.PetalComboBox);
+    fresh.el = c.el;
+    fresh.mounted();
+    mounted.push(fresh);
+    expect(fresh.el.hasAttribute("data-max-reached")).toBe(true);
+    expect(c.live().textContent).toBe("");
+  });
+});
+
+describe("required: the form never fails in silence", () => {
+  it("takes the report over - visible message, focus on the control, aria-invalid", () => {
+    // the hidden select is inert and sr-only, so the browser could
+    // neither draw its bubble nor focus it: submit was blocked with
+    // nothing shown, nothing announced, and focus on <body>
+    const c = mountCombo({ options: CITIES, required: true });
+    expect(c.select.checkValidity()).toBe(false);
+    expect(c.error().hidden).toBe(false);
+    expect(c.error().textContent).toBe(c.select.validationMessage);
+    expect(c.error().getAttribute("role")).toBe("alert");
+    expect(document.activeElement).toBe(c.input);
+    expect(c.input.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("choosing a value retires the message", () => {
+    const c = mountCombo({ options: CITIES, required: true });
+    c.select.checkValidity();
+    expect(c.error().hidden).toBe(false);
+    c.control.click();
+    c.items()[0].click();
+    expect(c.error().hidden).toBe(true);
+    expect(c.error().textContent).toBe("");
+    expect(c.input.hasAttribute("aria-invalid")).toBe(false);
+  });
+
+  it("the trigger anatomy reports on the trigger", () => {
+    const c = mountCombo({ options: CITIES, required: true, trigger: true });
+    c.select.checkValidity();
+    expect(document.activeElement).toBe(c.trigger);
+    expect(c.trigger.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("a combobox with no constraint has nothing to report", () => {
+    const c = mountCombo({ options: CITIES });
+    expect(c.error()).toBeNull();
+    expect(c.select.checkValidity()).toBe(true);
+  });
+});
+
+describe("panel slots", () => {
+  it("lets a focusable control in a footer take the press", () => {
+    // preventDefault on every panel press is what kept focus in the search
+    // input - and made a text field in a :header / :footer slot impossible
+    // to focus by pointer
+    const c = mountCombo({
+      options: CITIES,
+      footer: '<input type="text" id="footer-field" /><span id="footer-text">x</span>',
+    });
+    c.control.click();
+    const field = document.getElementById("footer-field");
+    const press = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    field.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(false);
+
+    // ordinary chrome still keeps focus where it is
+    const chromePress = pointerEvent("pointerdown", "mouse", {
+      cancelable: true,
+    });
+    document.getElementById("footer-text").dispatchEvent(chromePress);
+    expect(chromePress.defaultPrevented).toBe(true);
+  });
+});
+
+describe("lifecycle hardening", () => {
+  it("a stranded pointerdown does not disarm outside-tap dismissal forever", () => {
+    // a press that never gets its pointerup (a right-click handing the
+    // release to the context menu) used to sit in the active set for the
+    // rest of the open session, so every later tap read as multi-touch
+    const clock = vi.spyOn(performance, "now").mockReturnValue(1_000);
+    const c = mountCombo({ options: CITIES });
+    c.control.click();
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "mouse", { pointerId: 7 }),
+    );
+    // ...no pointerup for 7 ever arrives
+    clock.mockReturnValue(5_000);
+    document.body.dispatchEvent(
+      pointerEvent("pointerdown", "mouse", { pointerId: 8, clientX: 5, clientY: 5 }),
+    );
+    document.body.dispatchEvent(
+      pointerEvent("pointerup", "mouse", { pointerId: 8, clientX: 5, clientY: 5 }),
+    );
+    expect(c.panel.hidden).toBe(true);
+    clock.mockRestore();
+  });
+
+  it("updated() re-reads the conditionally rendered chrome", () => {
+    // clearable={@editing} and multiple={@mode == :many} are ordinary
+    // server state: a clear button that arrives on a patch needs binding,
+    // and a chips container we never re-read stays null so no chip renders
+    const c = mountCombo({ options: CITIES });
+    expect(c.hook.multiple).toBe(false);
+    expect(c.hook.clearButton).toBeNull();
+
+    c.select.multiple = true;
+    const chips = document.createElement("div");
+    chips.className = "pc-combo-box__chips";
+    chips.setAttribute("data-pc-combo-chips", "");
+    chips.dataset.removeLabel = "Remove";
+    c.el.querySelector(".pc-combo-box__content").prepend(chips);
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.setAttribute("data-pc-combo-clear", "");
+    c.control.appendChild(clear);
+
+    c.hook.updated();
+    expect(c.hook.multiple).toBe(true);
+    expect(c.hook.chips).toBe(chips);
+    expect(c.hook.clearButton).toBe(clear);
+
+    c.control.click();
+    c.items()[0].click();
+    expect(c.chipValues()).toEqual(["syd"]);
+    clear.click();
+    expect(c.select.value).toBe("");
+
+    // a second patch must not double-bind the same node
+    c.hook.updated();
+    let changes = 0;
+    c.select.addEventListener("change", () => changes++);
+    c.control.click();
+    c.items()[1].click();
+    clear.click();
+    expect(changes).toBe(2);
+  });
+
+  it("destroyed() on half-mounted markup neither throws nor strands listeners", () => {
+    const el = document.createElement("div");
+    el.id = "half";
+    // an input but no listbox: mounted() bails, so teardown must too
+    el.innerHTML = `<select class="pc-combo-box__select"></select>
+      <div class="pc-combo-box__control">
+        <input type="text" class="pc-combo-box__input" />
+      </div>`;
+    document.body.appendChild(el);
+    const hook = Object.create(hooks.PetalComboBox);
+    hook.el = el;
+    hook.mounted();
+    expect(() => hook.destroyed()).not.toThrow();
+  });
+
+  it("destroyed() clears the deferred close and the post-reset re-sync", () => {
+    vi.useFakeTimers();
+    const form = document.createElement("form");
+    document.body.appendChild(form);
+    const c = mountCombo({ options: CITIES });
+    form.appendChild(c.el);
+    // rebind to the form the way a server-rendered one would be
+    const hook = Object.create(hooks.PetalComboBox);
+    hook.el = c.el;
+    hook.mounted();
+    hook.el.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+    form.dispatchEvent(new Event("reset"));
+    hook.destroyed();
+    expect(() => vi.runAllTimers()).not.toThrow();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.useRealTimers();
   });
 });
