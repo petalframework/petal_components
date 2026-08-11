@@ -96,7 +96,8 @@ defmodule PetalComponents.ComboBox do
 
   attr :max_items, :integer,
     default: nil,
-    doc: "multiple only: cap on chosen options; at the cap, unchosen options render inert"
+    doc:
+      "multiple only: cap on chosen options; at the cap, unchosen options go genuinely inert - aria-disabled and skipped by the keyboard - until something is removed"
 
   attr :clearable, :boolean,
     default: false,
@@ -154,19 +155,47 @@ defmodule PetalComponents.ComboBox do
     values: ["sm", "md", "lg"],
     doc: "control density - follows the field-size family"
 
-  attr :placeholder, :string, default: "Select an option…"
-  attr :disabled, :boolean, default: false
+  attr :label, :string,
+    default: nil,
+    doc: """
+    the control's accessible name, rendered as aria-label on the visible
+    combobox (the input, or the trigger button). `<.field type="combobox">`
+    supplies this from its own label - pass it here when you use the
+    component standalone, or the placeholder ends up being the only name
+    a screen reader has.
+    """
+
+  attr :placeholder, :string,
+    default: "Select an option…",
+    doc: "empty-state text in the control - a hint, never the accessible name (see label)"
+
+  attr :disabled, :boolean, default: false, doc: "disables the control and all of its chrome"
 
   attr :required, :boolean,
     default: false,
-    doc: "renders on the hidden select, so native required validation guards the real control"
+    doc: """
+    marks the control required: `aria-required` on the visible combobox and
+    `required` on the hidden select, so native constraint validation guards
+    the real control. The select is inert and off-screen, so the hook takes
+    the browser's failed-validation report over - it shows the browser's own
+    message on the visible control and puts focus there.
+    """
 
   attr :form_id, :string,
     default: nil,
     doc: "the form this control belongs to when rendered outside it (the select's form attribute)"
 
-  attr :no_results_text, :string, default: "No results found"
+  attr :no_results_text, :string,
+    default: "No results found",
+    doc: "the empty-state row's text, also announced in the live region"
+
   attr :results_label, :string, default: "results", doc: "the live-region word after the count"
+
+  attr :max_items_text, :string,
+    default: "Maximum selections reached",
+    doc:
+      "multiple with max_items: announced (and shown in place of the placeholder) once the cap blocks further picks"
+
   attr :clear_label, :string, default: "Clear selection", doc: "aria-label for the clear button"
 
   attr :remove_label, :string,
@@ -175,7 +204,10 @@ defmodule PetalComponents.ComboBox do
 
   attr :listbox_label, :string, default: "Options", doc: "accessible name for the listbox"
   attr :class, :any, default: nil, doc: "extra classes for the wrapper"
-  attr :rest, :global
+
+  attr :rest, :global,
+    doc:
+      "arbitrary HTML attributes for the wrapper element (phx-* bindings, data-*). Use label for the accessible name - aria-* on a wrapper div names nothing"
 
   slot :option,
     doc: """
@@ -196,8 +228,10 @@ defmodule PetalComponents.ComboBox do
   slot :footer,
     doc: """
     panel chrome rendered below the option list - counts, "manage"
-    links. Lives OUTSIDE the listbox; pointer-interactive content works,
-    keyboard focus stays with the options.
+    links. Lives OUTSIDE the listbox. Pointer-interactive content works,
+    and a focusable control here (input, select, button) takes focus on
+    click without closing the panel; the arrow-key highlight stays with
+    the options either way.
     """
 
   slot :selected,
@@ -303,6 +337,9 @@ defmodule PetalComponents.ComboBox do
         aria-haspopup="listbox"
         aria-expanded="false"
         aria-controls={"#{@id}-listbox"}
+        aria-label={@label}
+        aria-required={@required && "true"}
+        aria-describedby={@required && "#{@id}-error"}
         data-pc-combo-trigger
         data-placeholder={@current_values == [] && "true"}
         disabled={@disabled}
@@ -386,10 +423,14 @@ defmodule PetalComponents.ComboBox do
             aria-expanded="false"
             aria-autocomplete="list"
             aria-controls={"#{@id}-listbox"}
+            aria-label={@label}
+            aria-required={@required && "true"}
+            aria-describedby={@required && "#{@id}-error"}
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
             placeholder={@placeholder}
+            data-placeholder-text={@placeholder}
             value={@selected_label}
             disabled={@disabled}
           />
@@ -400,6 +441,7 @@ defmodule PetalComponents.ComboBox do
           class="pc-combo-box__clear"
           data-pc-combo-clear
           aria-label={@clear_label}
+          disabled={@disabled}
         >
           <.icon name="hero-x-mark-mini" class="pc-combo-box__clear-icon" />
         </button>
@@ -421,10 +463,12 @@ defmodule PetalComponents.ComboBox do
             aria-expanded="false"
             aria-autocomplete="list"
             aria-controls={"#{@id}-listbox"}
+            aria-label={@search_placeholder}
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
             placeholder={@search_placeholder}
+            data-placeholder-text={@search_placeholder}
           />
         </div>
         <div :if={@header != []} class="pc-combo-box__header">
@@ -451,8 +495,17 @@ defmodule PetalComponents.ComboBox do
         >
           <%= for group <- @groups do %>
             <%= if group.label do %>
-              <div class="pc-combo-box__group" role="group" data-pc-combo-group>
-                <div class="pc-combo-box__group-heading" aria-hidden="true">{group.label}</div>
+              <%!-- the group carries its heading as its accessible name (the
+              data table's convention): aria-hidden on the heading hid the
+              sectioning from assistive tech entirely, so a screen reader
+              heard one flat list where sighted users see sections --%>
+              <div
+                class="pc-combo-box__group"
+                role="group"
+                aria-label={group.label}
+                data-pc-combo-group
+              >
+                <div class="pc-combo-box__group-heading">{group.label}</div>
                 <.option_items
                   options={group.options}
                   current_values={@current_values}
@@ -478,8 +531,11 @@ defmodule PetalComponents.ComboBox do
             <.icon name="hero-plus-mini" class="pc-combo-box__create-icon" />
             <span>{@create_label} "<span data-pc-combo-create-query></span>"</span>
           </div>
-          <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
         </div>
+        <%!-- a listbox may only contain options and groups - the empty row is
+        panel chrome, so it lives OUTSIDE with the other chrome regions
+        (__loading, __header, __footer). The live region announces it. --%>
+        <div class="pc-combo-box__empty" data-pc-combo-empty hidden>{@no_results_text}</div>
         <div :if={@footer != []} class="pc-combo-box__footer">
           {render_slot(@footer)}
         </div>
@@ -494,11 +550,27 @@ defmodule PetalComponents.ComboBox do
         data-value={opt.value}
       >{render_slot(@chip, opt)}</template>
 
+      <%!-- required lives on the inert, off-screen select, so the browser can
+      neither draw its validation bubble nor focus it - a submit would fail
+      in silence. The hook takes the report over and writes the browser's
+      own (already localized) message here: visible, role=alert so it is
+      announced, and aria-describedby from the control. --%>
+      <div
+        :if={@required}
+        id={"#{@id}-error"}
+        class="pc-combo-box__error"
+        data-pc-combo-error
+        role="alert"
+        hidden
+      >
+      </div>
+
       <div
         class="pc-combo-box__live"
         data-pc-combo-live
         data-results-label={@results_label}
         data-no-results-text={@no_results_text}
+        data-max-items-text={@max_items_text}
         aria-live="polite"
       >
       </div>

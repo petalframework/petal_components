@@ -2352,14 +2352,24 @@
   .pc-combo-box__clear-icon.pc-combo-box__clear-icon {
     @apply w-4! h-4!;
   }
-  /* at max_items, unchosen options rest until something is removed */
+  /* a disabled combobox has no live chrome: the button carries the disabled
+     attribute (so it leaves the tab order and swallows clicks) and this
+     keeps a stray pointer from reaching it either - both anatomies alike */
+  .pc-combo-box__clear:disabled,
+  .pc-combo-box__trigger-clear:disabled {
+    @apply pointer-events-none;
+  }
+  /* at max_items, unchosen options rest until something is removed. The
+     hook stamps aria-disabled to match, so the keyboard and the a11y tree
+     agree with what this rule shows - CSS alone made the cap a silent
+     dead end for anyone not using a mouse. */
   .pc-combo-box[data-max-reached] .pc-combo-box__option:not([aria-selected="true"]) {
     @apply pointer-events-none opacity-50;
   }
-  /* inviting more picks while the cap dims every option reads wrong -
-     the placeholder rests at the cap; the attribute stays server truth */
-  .pc-combo-box[data-max-reached] .pc-combo-box__input::placeholder {
-    @apply text-transparent;
+  /* the hook's constraint-validation message: the field-error look, since
+     that is what it is - the report the inert hidden select cannot make */
+  .pc-combo-box__error {
+    @apply mt-1.5 text-sm text-danger-600 dark:text-danger-400;
   }
   .pc-combo-box__live {
     @apply sr-only;
