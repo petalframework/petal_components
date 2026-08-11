@@ -841,7 +841,7 @@ defmodule Dev.PlaygroundLive do
   end
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
-  def handle_params(params, _uri, socket) do
+  def handle_params(params, uri, socket) do
     socket =
       socket
       |> assign(:active, allow(params["c"], @slugs, "button"))
@@ -854,7 +854,7 @@ defmodule Dev.PlaygroundLive do
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
       |> assign(:nav_open, false)
-      |> maybe_run_dt_link(params)
+      |> maybe_run_dt_link(params, uri)
 
     {:noreply, maybe_start_progress_sim(socket)}
   end
@@ -862,14 +862,24 @@ defmodule Dev.PlaygroundLive do
   # Link mode's whole loop: the table patches State-encoded URLs, this
   # decodes them back through the same whitelist and re-runs the engine.
   # No events, no other server state - the URL IS the table state.
-  defp maybe_run_dt_link(%{assigns: %{active: "data-table-link"}} = socket, params) do
+  defp maybe_run_dt_link(%{assigns: %{active: "data-table-link"}} = socket, params, uri) do
     alias PetalComponents.DataTable.State
+
+    # PhoenixPlayground's dead render hands handle_params only the path
+    # params - the query string arrives solely in uri (the theme dials
+    # have always had this flash). Decode it from there so a shared or
+    # curled URL renders the right rows on FIRST paint, which is the
+    # claim this page exists to make. Plug's decoder, not URI's, because
+    # filters use bracket-indexed params. On connected patches params
+    # already carries the query and the merge is a no-op.
+    query = uri |> URI.parse() |> Map.get(:query) || ""
+    params = Map.merge(Plug.Conn.Query.decode(query), params)
 
     state = State.from_params(params, fields: [:name, :email, :status, :amount])
     assign(socket, :dt_link, run_dt(state))
   end
 
-  defp maybe_run_dt_link(socket, _params), do: socket
+  defp maybe_run_dt_link(socket, _params, _uri), do: socket
 
   # The progress flagship simulates a live upload while you watch. One
   # timer at a time; it dies quietly when you leave the page or take
