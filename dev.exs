@@ -3125,34 +3125,6 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{plasma_snippet(@plasma)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Both modes, side by side
-      </div>
-      <div class="grid gap-6 px-6 py-10 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">pulse</div>
-          <.border_plasma>
-            <div class="p-6">
-              <div class="font-semibold text-gray-900 dark:text-gray-100">Breathing</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Nothing travels. The pockets swell and settle, each on its own clock.
-              </p>
-            </div>
-          </.border_plasma>
-        </div>
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">rotate</div>
-          <.border_plasma mode="rotate">
-            <div class="p-6">
-              <div class="font-semibold text-gray-900 dark:text-gray-100">Sweeping</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                A neutral light laps the rim, lighting the colours as it passes.
-              </p>
-            </div>
-          </.border_plasma>
-        </div>
-      </div>
-
       <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
         Three glows, three jobs
       </div>
@@ -3215,69 +3187,8 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        The three palettes
-      </div>
-      <div class="grid gap-6 px-6 py-10 border border-gray-200 sm:grid-cols-3 rounded-xl dark:border-gray-800">
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">rainbow (default)</div>
-          <.border_plasma>
-            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
-              Eight hues, the reference look.
-            </div>
-          </.border_plasma>
-        </div>
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">brand</div>
-          <.border_plasma palette="brand">
-            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
-              Every jewel derived from your theme.
-            </div>
-          </.border_plasma>
-        </div>
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">mono</div>
-          <.border_plasma palette="mono">
-            <div class="p-6 text-sm text-gray-500 dark:text-gray-400">
-              Grayscale, for quiet surfaces.
-            </div>
-          </.border_plasma>
-        </div>
-      </div>
-
-      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        On a CTA (strong, with its own colours)
-      </div>
-      <div class="flex justify-center px-6 py-14 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.border_plasma
-          intensity="strong"
-          color_from="#f43f5e"
-          color_to="#3b82f6"
-          duration="3s"
-          class="inline-block"
-        >
-          <div class="px-6 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">
-            Buy now
-          </div>
-        </.border_plasma>
-      </div>
-
-      <div :for={ex <- PetalComponents.Showcase.BorderPlasma.examples()} class="mt-10">
-        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
-        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          {ex.description}
-        </p>
-        <.showcase_example example={ex} />
-      </div>
-
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.BorderPlasma} function={:border_plasma} />
-
-      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        These examples render from the shared <code>PetalComponents.Showcase.BorderPlasma</code>
-        registry - the same source petal.build renders, so the playground and the marketing
-        docs can't drift.
-      </div>
     </div>
     """
   end
