@@ -5469,6 +5469,7 @@
   .pc-border-plasma__bloom,
   .pc-border-plasma__sheen {
     @apply pointer-events-none absolute;
+    animation-play-state: var(--pc-plasma-play, running);
   }
 
   /* THE FIELD IS DECLARED HERE, ON THE ANIMATED LAYERS, DELIBERATELY. A

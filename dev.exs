@@ -128,6 +128,24 @@ defmodule Dev.Layouts do
             document.head.appendChild(style);
             setTimeout(() => style.remove(), 250);
           });
+          // Playground-only economy: border_plasma repaints on the main
+          // thread every frame, and the demo page runs many instances at
+          // once - a worst case no real app ships. Pause any instance
+          // that scrolls out of view (the reference library's own driver
+          // does the same). The shipped component stays pure CSS.
+          const plasmaPause = new IntersectionObserver((entries) => {
+            for (const e of entries) {
+              e.target.style.setProperty(
+                "--pc-plasma-play",
+                e.isIntersecting ? "running" : "paused"
+              );
+            }
+          }, { rootMargin: "100px" });
+          const watchPlasmas = () => {
+            document.querySelectorAll(".pc-border-plasma").forEach((el) => plasmaPause.observe(el));
+          };
+          watchPlasmas();
+          document.addEventListener("phx:update", watchPlasmas);
         </script>
         {@inner_content}
       </body>
