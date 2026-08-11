@@ -5457,7 +5457,7 @@
 
   /* Pulse lights the entire ring - a closed conic loop, first colour repeated
      at both ends so there is no seam to spot. */
-  .pc-border-plasma--pulse :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+  .pc-border-plasma--pulse > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
     background-image: conic-gradient(
       from var(--pc-plasma-angle, 0deg),
       var(--pc-plasma-from),
@@ -5468,7 +5468,7 @@
 
   /* Rotate is an arc, not a loop: colour across roughly a third of the ring,
      transparent for the rest, with the whole gradient spun by the angle. */
-  .pc-border-plasma--rotate :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+  .pc-border-plasma--rotate > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
     background-image: conic-gradient(
       from var(--pc-plasma-angle, 0deg),
       transparent 0%,
@@ -5479,12 +5479,14 @@
     );
   }
 
+  /* Child combinators throughout, not descendant: a plasma nested inside
+     another plasma must not pick up the outer one's mode or duration. */
   @media (prefers-reduced-motion: no-preference) {
-    .pc-border-plasma--pulse :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+    .pc-border-plasma--pulse > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
       animation: pc-plasma-pulse var(--pc-plasma-duration, 4s) ease-in-out infinite;
     }
 
-    .pc-border-plasma--rotate :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+    .pc-border-plasma--rotate > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
       animation: pc-plasma-rotate var(--pc-plasma-duration, 6s) linear infinite;
     }
   }
