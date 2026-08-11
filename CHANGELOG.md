@@ -3,6 +3,17 @@
 
 #### Fixed
 
+- **The radio-card "checked" rules that tripped strict CSS parsers are
+  gone.** Three selectors in `default.css` escaped their colons with
+  `\\:` instead of `\:`, so Tailwind v4's `--minify` optimizer
+  (Lightning CSS) warned "not recognized as a valid pseudo-class" four
+  times on every consumer asset build. They were also dead selectors:
+  nothing the field component renders carries those literal
+  `peer-checked:*` class names - the checked state has lived on
+  `.pc-radio-card__input:checked ~ .pc-radio-card__fake-input` since
+  the card got its fake-input anatomy. Deleted, and a guard test now
+  fails the suite if a Tailwind utility name ever leaks into a shipped
+  selector again. (#582)
 - **Decimal columns now filter and sort.** `%Decimal{}` - what every
   Ecto money column holds - was readable by no operator (every filter
   silently matched zero rows) and sorted by struct internals, so

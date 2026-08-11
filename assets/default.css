@@ -1953,19 +1953,6 @@
     @apply dark:text-gray-400;
   }
 
-  /* Apply styles when input is checked using peer-checked variants */
-  .pc-radio-card.peer-checked\\:border-primary-500 {
-    @apply border-primary-500;
-  }
-
-  .pc-radio-card.peer-checked\\:bg-primary-50 {
-    @apply bg-primary-50;
-  }
-
-  .pc-radio-card.dark\\:peer-checked\\:bg-primary-700 {
-    @apply dark:bg-primary-700;
-  }
-
   /* Dropdown */
 
   .pc-dropdown {
