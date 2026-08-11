@@ -2435,19 +2435,24 @@ export const PetalCarousel = {
     const scrollPosition =
       (this.slideWidth + this.spaceBtwSlides) * (index + this.n_slidesCloned);
 
-    if (smooth) {
-      this.slideWrapper.scrollTo({
-        left: this.isVertical ? 0 : scrollPosition,
-        top: this.isVertical ? scrollPosition : 0,
-        behavior: "smooth",
-      });
-    } else {
-      if (this.isVertical) {
-        this.slideWrapper.scrollTo(0, scrollPosition);
-      } else {
-        this.slideWrapper.scrollTo(scrollPosition, 0);
-      }
+    this.scrollSlidesTo(scrollPosition, smooth);
+  },
+
+  // The single scroll entry point for slide transitions - goto() AND the
+  // loop-wrap paths (which scroll into the clone strip and can't go through
+  // goto) all funnel here, so the reduced-motion gate can't be bypassed.
+  // Instant jumps are already a supported path (loop teleports use them),
+  // so reduced motion just routes every scroll through it.
+  scrollSlidesTo(scrollPosition, smooth = true) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      smooth = false;
     }
+
+    this.slideWrapper.scrollTo({
+      left: this.isVertical ? 0 : scrollPosition,
+      top: this.isVertical ? scrollPosition : 0,
+      behavior: smooth ? "smooth" : "auto",
+    });
   },
 
   setupInfiniteScrolling() {
@@ -2973,11 +2978,7 @@ export const PetalCarousel = {
         // At first slide with loop enabled, scroll to the cloned slides at the beginning
         const scrollPosition =
           (this.slideWidth + this.spaceBtwSlides) * (this.n_slidesCloned - 1);
-        this.slideWrapper.scrollTo({
-          left: this.isVertical ? 0 : scrollPosition,
-          top: this.isVertical ? scrollPosition : 0,
-          behavior: "smooth",
-        });
+        this.scrollSlidesTo(scrollPosition);
       } else {
         // Normal previous slide
         this.activeIndex = this.activeIndex - 1;
@@ -3021,11 +3022,7 @@ export const PetalCarousel = {
         const scrollPosition =
           (this.slideWidth + this.spaceBtwSlides) *
           (this.n_slides + this.n_slidesCloned);
-        this.slideWrapper.scrollTo({
-          left: this.isVertical ? 0 : scrollPosition,
-          top: this.isVertical ? scrollPosition : 0,
-          behavior: "smooth",
-        });
+        this.scrollSlidesTo(scrollPosition);
       } else {
         // Normal next slide
         this.activeIndex = this.activeIndex + 1;

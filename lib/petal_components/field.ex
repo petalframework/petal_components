@@ -448,7 +448,7 @@ defmodule PetalComponents.Field do
         <% end %>
 
         <%= if @empty_message && Enum.empty?(@options) do %>
-          <div class="pc-checkbox-group--empty-message">
+          <div class="pc-radio-group--empty-message">
             {@empty_message}
           </div>
         <% end %>
