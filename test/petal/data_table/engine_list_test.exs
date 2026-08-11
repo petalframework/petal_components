@@ -262,6 +262,39 @@ defmodule PetalComponents.DataTable.Engine.ListTest do
       assert money(%{field: :price, op: :in, value: ["010.50"]}) == []
     end
 
+    test "a nil value on any value-carrying op matches no rows (round 2: nil.*)" do
+      # Round two of the gate caught the engine self-inconsistent here:
+      # with_text/2 read nil as "" (nil is an atom), so `:eq nil`
+      # matched empty-string rows and `:contains`/`:gt`-family nil
+      # matched every non-nil row - a filter silently widening to the
+      # table - while the negations matched nothing. All ten line up
+      # now: nil is unsatisfiable, and :is_empty is the empties op.
+      rows = [
+        %{id: 1, name: "amy"},
+        %{id: 2, name: ""},
+        %{id: 3, name: nil}
+      ]
+
+      pick = fn op ->
+        {out, _} =
+          Engine.run(rows, struct!(State, filters: [%{field: :name, op: op, value: nil}]))
+
+        Enum.map(out, & &1.id)
+      end
+
+      for op <- [:contains, :not_contains, :eq, :neq, :starts_with, :gt, :gte, :lt, :lte],
+          do: assert(pick.(op) == [], "expected #{op} with nil value to match no rows")
+
+      assert pick.(:in) == []
+      assert pick.(:not_in) == []
+
+      # the sanctioned way to ask for empties still works
+      {out, _} =
+        Engine.run(rows, struct!(State, filters: [%{field: :name, op: :is_empty, value: true}]))
+
+      assert Enum.map(out, & &1.id) == [2, 3]
+    end
+
     test "comparators and between treat text cells as text, even ISO-looking ones" do
       rows = [
         %{id: 1, stamp: "2026-01-05T09:00"},
