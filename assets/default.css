@@ -5379,6 +5379,9 @@
 
 
   /* Border Plasma */
+  /* Border plasma. The pulse gradient geometry, oscillator tuning and layer
+     treatment are ported from border-beam by Jakub Antalik (MIT):
+     https://github.com/Jakubantalik/border-beam - credited in the README. */
   .pc-border-plasma {
     @apply relative bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-style: solid;
