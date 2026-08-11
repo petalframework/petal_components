@@ -265,14 +265,23 @@ defmodule PetalComponents.Field do
       # combo_box derives its own id from the name when none is passed, and
       # the label's for= has to name a control that actually exists - so
       # resolve the id HERE and pass it down. One id, no way to drift.
+      # No identity at all (no id, no field, nil/empty name) resolves to
+      # nil so the call flows into combo_box's own ArgumentError - a loud
+      # programming error beats minting the same constant id for every
+      # instance on the page.
       |> then(fn a ->
-        id = a.id || "combo_box_" <> String.replace(a.name || "", ~r/[^A-Za-z0-9_]/, "_")
+        id =
+          a.id ||
+            case a.name do
+              name when name in [nil, ""] -> nil
+              name -> "combo_box_" <> String.replace(name, ~r/[^A-Za-z0-9_]/, "_")
+            end
 
         a
         |> assign(:combo_id, id)
         |> assign(
           :combo_label_for,
-          if(a.combo_variant == "trigger", do: "#{id}-trigger", else: "#{id}-input")
+          id && if(a.combo_variant == "trigger", do: "#{id}-trigger", else: "#{id}-input")
         )
       end)
       # the combobox appends [] itself for multiple; the hidden empty

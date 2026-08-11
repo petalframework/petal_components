@@ -691,7 +691,10 @@ defmodule PetalComponents.ComboBox do
   defp resolve_id(%{id: id}) when is_binary(id), do: id
   defp resolve_id(%{field: %{id: id}}) when is_binary(id), do: "#{id}_combo_box"
 
-  defp resolve_id(%{name: name}) when is_binary(name) do
+  # an empty name is no identity: deriving from it mints the same
+  # "combo_box_" id for every such instance on the page, so it falls
+  # through to the raise with the others
+  defp resolve_id(%{name: name}) when is_binary(name) and name != "" do
     "combo_box_" <> String.replace(name, ~r/[^A-Za-z0-9_]/, "_")
   end
 

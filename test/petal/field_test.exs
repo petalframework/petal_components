@@ -1498,5 +1498,24 @@ defmodule PetalComponents.FieldTest do
       # the probe itself has to be able to fail
       assert warn.("not-a-real-type") =~ "must be one of"
     end
+
+    test "a nil or empty name raises combo_box's own identity error, never a constant id" do
+      # the old fallback minted the same "combo_box_" id for EVERY
+      # identityless instance - two on a page meant duplicate ids and
+      # ambiguous label targets. With the fallback gone, the identityless
+      # call flows into resolve_id/1's deliberate ArgumentError: a form
+      # control with no identity is a programming error and says so,
+      # loudly, instead of silently colliding. (A field with the :name
+      # key MISSING entirely is a pre-existing KeyError for every type.)
+      for name <- [nil, ""] do
+        assigns = %{name: name}
+
+        assert_raise ArgumentError, ~r/needs an :id, a :field or a :name/, fn ->
+          rendered_to_string(~H"""
+          <.field type="combobox" name={@name} value={nil} label="City" options={[{"Sydney", "syd"}]} />
+          """)
+        end
+      end
+    end
   end
 end
