@@ -1017,8 +1017,9 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_plasma", %{"k" => "duration", "v" => v}, socket) when v in ~w(2.3s 4s 6s),
     do: {:noreply, update(socket, :plasma, &%{&1 | duration: v})}
 
-  def handle_event("ctl_plasma", %{"k" => "glow", "v" => v}, socket) when v in ~w(outside inside),
-    do: {:noreply, update(socket, :plasma, &%{&1 | glow: v})}
+  def handle_event("ctl_plasma", %{"k" => "glow", "v" => v}, socket)
+      when v in ~w(outside inside both),
+      do: {:noreply, update(socket, :plasma, &%{&1 | glow: v})}
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
@@ -2042,7 +2043,7 @@ defmodule Dev.PlaygroundLive do
         pl.mode != "pulse" && ~s(mode="#{pl.mode}"),
         pl.intensity != "medium" && ~s(intensity="#{pl.intensity}"),
         pl.duration != "2.3s" && ~s(duration="#{pl.duration}"),
-        pl.glow == "inside" && "clip"
+        pl.glow != "outside" && ~s(glow="#{pl.glow}")
       ]
       |> Enum.filter(& &1)
 
@@ -2975,7 +2976,7 @@ defmodule Dev.PlaygroundLive do
             mode={@plasma.mode}
             intensity={@plasma.intensity}
             duration={@plasma.duration}
-            clip={@plasma.glow == "inside"}
+            glow={@plasma.glow}
             class="w-full max-w-sm"
           >
             <div class="p-8">
@@ -3050,7 +3051,7 @@ defmodule Dev.PlaygroundLive do
               on_change="ctl_plasma"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={g <- ~w(outside inside)} value={g} phx-value-k="glow" phx-value-v={g}>
+              <:item :for={g <- ~w(outside inside both)} value={g} phx-value-k="glow" phx-value-v={g}>
                 {g}
               </:item>
             </.toggle_group>
@@ -3102,35 +3103,63 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
 
-      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Halo vs clipped
+      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
+        Three glows, three jobs
       </div>
       <div class="grid gap-6 px-6 py-14 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
-        <div>
+        <div class="sm:col-span-2">
           <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
-            default - the glow spills onto the page
+            glow="outside" - a prompt panel with the halo on the page
           </div>
-          <.border_plasma>
-            <div class="p-6">
-              <div class="font-semibold text-gray-900 dark:text-gray-100">Halo</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Light hangs behind the panel and bleeds past the border.
-              </p>
+          <.border_plasma class="max-w-xl mx-auto">
+            <div class="p-5">
+              <.icon name="hero-at-symbol" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <p class="mt-3 text-gray-400 dark:text-gray-500">Build anything...</p>
+              <div class="flex items-center gap-2 mt-4">
+                <span class="px-3 py-1 text-sm rounded-full text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-800">
+                  Agent
+                </span>
+                <span class="px-3 py-1 text-sm rounded-full text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-800">
+                  Auto
+                </span>
+              </div>
             </div>
           </.border_plasma>
         </div>
         <div>
           <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
-            clip - nothing leaves the silhouette
+            glow="inside" - a working card, silhouette crisp
           </div>
-          <.border_plasma clip>
-            <div class="p-6">
-              <div class="font-semibold text-gray-900 dark:text-gray-100">Clipped</div>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                The wash hugs the edges inside; the outline stays crisp.
-              </p>
+          <.border_plasma glow="inside">
+            <div class="p-5">
+              <div class="text-gray-400 dark:text-gray-500">Working...</div>
+              <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <li
+                  :for={
+                    t <- [
+                      "Generate colour palettes",
+                      "Recommend font pairings",
+                      "Create layout templates"
+                    ]
+                  }
+                  class="flex items-center gap-2"
+                >
+                  <span class="inline-block w-3.5 h-3.5 border border-dashed rounded-full border-gray-400"></span>
+                  {t}
+                </li>
+              </ul>
             </div>
           </.border_plasma>
+        </div>
+        <div class="flex items-center justify-center">
+          <div>
+            <div class="mb-3 text-xs text-center text-gray-400 dark:text-gray-500">
+              glow="both" on a pill CTA
+            </div>
+            <.border_plasma glow="both" border_radius="9999px" intensity="strong">
+              <div class="px-7 py-2.5 font-medium text-gray-900 dark:text-white">Subscribe</div>
+            </.border_plasma>
+          </div>
         </div>
       </div>
 

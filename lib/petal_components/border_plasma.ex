@@ -3,8 +3,8 @@ defmodule PetalComponents.BorderPlasma do
   A border of whispery, warping light: long thin washes of colour ride a
   hairline rim, whole corners swell and dissipate on their own clocks, and
   by default a soft halo spills past the border onto the page. Set
-  `clip` and every layer stays inside the panel's crisp silhouette
-  instead. Pure CSS (registered custom properties driving one shared
+  `glow="inside"` to keep every layer inside a crisp silhouette, or
+  `glow="both"` for the halo and the inner wash together. Pure CSS (registered custom properties driving one shared
   gradient field through three differently-masked layers) — no JavaScript
   required.
 
@@ -51,10 +51,11 @@ defmodule PetalComponents.BorderPlasma do
     values: ["subtle", "medium", "strong"],
     doc: "how bright the rim jewels burn and how much light washes inward over the panel"
 
-  attr :clip, :boolean,
-    default: false,
+  attr :glow, :string,
+    default: "outside",
+    values: ["outside", "inside", "both"],
     doc:
-      "false (default) lets the glow halo spill past the border onto the page; true keeps every layer inside the panel's silhouette"
+      "where the light lives: a halo spilling past the border onto the page (outside, the default), a wash hugging the edges inside a crisp silhouette (inside), or the two together (both)"
 
   attr :border_width, :string,
     default: "1px",
@@ -118,7 +119,7 @@ defmodule PetalComponents.BorderPlasma do
         "pc-border-plasma--#{@mode}",
         "pc-border-plasma--#{@intensity}",
         "pc-border-plasma--#{@palette}",
-        @clip && "pc-border-plasma--clip",
+        @glow != "outside" && "pc-border-plasma--glow-#{@glow}",
         @class
       ]}
       style={@style}

@@ -18,7 +18,7 @@ defmodule PetalComponents.BorderPlasmaTest do
       assert html =~ "pc-border-plasma__core"
       assert html =~ "pc-border-plasma__bloom"
       assert html =~ "pc-border-plasma__sheen"
-      refute html =~ "pc-border-plasma--clip"
+      refute html =~ "pc-border-plasma--glow"
       assert html =~ "pc-border-plasma--rainbow"
       assert html =~ "pc-border-plasma__content"
       assert html =~ "Content"
@@ -36,12 +36,19 @@ defmodule PetalComponents.BorderPlasmaTest do
       # bloom + core + stroke + sheen: light is decoration, every layer of it
       assert count_substring(html, ~s(aria-hidden="true")) == 4
 
-      clipped =
+      inside =
         rendered_to_string(~H"""
-        <.border_plasma clip>Content</.border_plasma>
+        <.border_plasma glow="inside">Content</.border_plasma>
         """)
 
-      assert clipped =~ "pc-border-plasma--clip"
+      assert inside =~ "pc-border-plasma--glow-inside"
+
+      both =
+        rendered_to_string(~H"""
+        <.border_plasma glow="both">Content</.border_plasma>
+        """)
+
+      assert both =~ "pc-border-plasma--glow-both"
     end
 
     test "defaults to pulse mode at medium intensity" do
