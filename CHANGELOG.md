@@ -3,6 +3,27 @@
 
 #### Fixed
 
+- **The carousel honours `prefers-reduced-motion` when sliding.** The
+  hook always requested `scrollTo({behavior: "smooth"})`, and the
+  stylesheet's reduced-motion override targeted a `smooth-scroll` class
+  nothing ever applies - an explicit scrollTo behavior beats the CSS
+  property anyway, so the animation never turned off. Every slide
+  scroll (`goto()` and the two loop-wrap paths) now funnels through one
+  `scrollSlidesTo()` that checks the media query and jumps instantly,
+  the same path the loop teleports already use.
+- **The radio group's empty message uses its own class.** The
+  `options={[]}` branch emitted `pc-checkbox-group--empty-message`
+  (copy-pasted from the checkbox group), leaving
+  `pc-radio-group--empty-message` in the stylesheet matching nothing.
+  The radio-card group's empty message also picks up the same `text-sm`
+  styling as its siblings - it previously had no rule at all.
+- **Four more dead selectors swept out of `default.css`**, found by the
+  same audit that resolved #582: `.select-wrapper select` (its markup
+  was renamed to `pc-time-select`/`pc-datetime-select`/`pc-date-select`
+  in early 2023), the two carousel `.smooth-scroll` rules above,
+  `.pc-pagination__item--current` (pagination emits `--is-current`),
+  and `.pc-carousel__icon`. None ever matched rendered markup, so
+  nothing changes visually.
 - **The radio-card "checked" rules that tripped strict CSS parsers are
   gone.** Three selectors in `default.css` escaped their colons with
   `\\:` instead of `\:`, so Tailwind v4's `--minify` optimizer

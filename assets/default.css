@@ -1768,7 +1768,8 @@
     @apply inline-flex items-center gap-3 cursor-pointer;
   }
   .pc-checkbox-group--empty-message,
-  .pc-radio-group--empty-message {
+  .pc-radio-group--empty-message,
+  .pc-radio-card-group--empty-message {
     @apply text-sm;
   }
 
@@ -2924,10 +2925,6 @@
   }
   .pc-pagination__item--is-not-current {
     @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
-  }
-  .pc-pagination__item--current {
-    @apply inline-flex h-9 min-w-9 items-center justify-center px-2;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item__previous {
     @apply mr-1 inline-flex h-9 min-w-9 items-center justify-center px-2 text-gray-600 enabled:hover:bg-gray-100 enabled:hover:text-gray-900 disabled:opacity-40 dark:text-gray-400 enabled:dark:hover:bg-gray-400/17 enabled:dark:hover:text-gray-200 transition-colors duration-150;
@@ -4527,11 +4524,6 @@
   }
 
   /* Other */
-
-  /* This is for selects inside of a group of selects. Phoenix doesn't provide a way to add a class to these. */
-  .select-wrapper select {
-    @apply text-sm border-gray-300 rounded-md shadow-xs cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 dark:bg-gray-800 dark:text-gray-300 focus:outline-hidden;
-  }
 
   /* No bangs needed in the has-error family: form.ex puts has-error on the
      same element as the pc class (`has-error pc-text-input`), so
@@ -6205,10 +6197,6 @@
     @apply opacity-40 cursor-default;
   }
 
-  .pc-carousel__icon {
-    @apply text-current;
-  }
-
   .pc-carousel__slides {
     @apply relative w-full h-full;
   }
@@ -6258,10 +6246,6 @@
     scroll-snap-align: center;
     min-width: 100%;
     height: 100%;
-  }
-
-  .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
-    scroll-behavior: smooth;
   }
 
   /* Fade transition specific styles */
@@ -6447,13 +6431,13 @@
     z-index: 20;
   }
 
+  /* Slide-transition scrolling honours reduced motion in the hook itself
+     (goto() swaps smooth scrollTo for an instant jump) - a CSS
+     scroll-behavior override can't reach it, since an explicit
+     scrollTo({behavior}) wins over the property. */
   @media (prefers-reduced-motion: reduce) {
     .pc-carousel__slide {
       transition-duration: 1ms !important;
-    }
-
-    .pc-carousel[data-transition-type="slide"] .pc-carousel__slides.smooth-scroll {
-      scroll-behavior: auto;
     }
   }
 
