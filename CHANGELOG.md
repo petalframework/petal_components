@@ -1,5 +1,5 @@
 # Changelog
-### Unreleased
+### 4.13.0 - 2026-08-11
 
 #### Fixed
 
@@ -252,11 +252,6 @@
   16px on coarse pointers, keeping their `h-9` box.
 - **`::backdrop` is transparent for top-layer panels**, so no UA can
   paint a dimming layer behind an anchored popover.
-
-### 4.13.0 - 2026-08-08
-
-#### Added
-
 - **Five operators the vocabulary was missing**: `:not_contains`,
   `:gte`, `:lte`, `:not_in`, and the null-ness pair `:is_empty` /
   `:is_not_empty`. Measured against Flop, Ash, Ecto, TanStack, AG Grid,
