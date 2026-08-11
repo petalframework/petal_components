@@ -4766,6 +4766,17 @@ export const PetalDataTable = {
     };
 
     this.onChange = (e) => {
+      // unchecking a kept-visible-because-checked option row must rerun
+      // the narrowing, or the stale row lingers until the term changes
+      const optionRow = e.target.closest(".pc-data-table__filter-option");
+      if (optionRow) {
+        const box = optionRow
+          .closest(".pc-data-table__filter-form")
+          ?.querySelector("[data-pc-dt-option-filter]");
+        if (box?.value) this.filterOptions(box);
+        return;
+      }
+
       if (!e.target.closest("[data-pc-dt-page-size]")) return;
       // the nav URL reads the live search input too, so the pending
       // debounced patch is redundant - and letting it fire later would

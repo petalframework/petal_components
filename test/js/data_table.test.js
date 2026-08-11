@@ -544,6 +544,15 @@ describe("PetalDataTable", () => {
     hook.updated();
     expect(rows()).toEqual([false, false, true]);
 
+    // unchecking the kept-visible row re-runs the narrowing - the stale
+    // row must not linger
+    box.value = "bet";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    const alpha = panel.querySelector('input[value="alpha"]');
+    alpha.checked = false;
+    alpha.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(rows()).toEqual([true, false, true]);
+
     box.value = "";
     box.dispatchEvent(new Event("input", { bubbles: true }));
     expect(rows()).toEqual([false, false, false]);
