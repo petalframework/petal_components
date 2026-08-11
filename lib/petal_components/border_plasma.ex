@@ -1,10 +1,12 @@
 defmodule PetalComponents.BorderPlasma do
   @moduledoc """
-  A border made of jewels of light: many small pools of colour parked
-  around the rim, breathing out of phase and washing inward over the
-  panel's edge - clipped at the border, so the silhouette stays crisp and
-  the light lives on the glass. Pure CSS (registered custom properties and
-  a plus-lighter inner layer) — no JavaScript required.
+  A border of whispery, warping light: long thin washes of colour ride a
+  hairline rim, whole corners swell and dissipate on their own clocks, and
+  by default a soft halo spills past the border onto the page. Set
+  `clip` and every layer stays inside the panel's crisp silhouette
+  instead. Pure CSS (registered custom properties driving one shared
+  gradient field through three differently-masked layers) — no JavaScript
+  required.
 
   The sibling of `border_beam`: the beam sends one travelling light around
   the edge; plasma keeps a field of light alive on it. `mode="pulse"`
@@ -49,9 +51,15 @@ defmodule PetalComponents.BorderPlasma do
     values: ["subtle", "medium", "strong"],
     doc: "how bright the rim jewels burn and how much light washes inward over the panel"
 
+  attr :clip, :boolean,
+    default: false,
+    doc:
+      "false (default) lets the glow halo spill past the border onto the page; true keeps every layer inside the panel's silhouette"
+
   attr :border_width, :string,
-    default: "2px",
-    doc: "thickness of the glowing ring. 1px reads as a hairline, 3px+ as a band"
+    default: "1px",
+    doc:
+      "thickness of the glowing rim line. The reference look is a 1px hairline; 2px+ reads as a band"
 
   attr :border_radius, :string,
     default: nil,
@@ -110,18 +118,21 @@ defmodule PetalComponents.BorderPlasma do
         "pc-border-plasma--#{@mode}",
         "pc-border-plasma--#{@intensity}",
         "pc-border-plasma--#{@palette}",
+        @clip && "pc-border-plasma--clip",
         @class
       ]}
       style={@style}
       {@rest}
     >
-      <div class="pc-border-plasma__jewels" aria-hidden="true"></div>
-      <div class="pc-border-plasma__sheen" aria-hidden="true"></div>
+      <%!-- Halo layers sit at z-index -1: painted over the page but under the
+      panel's content. In clip mode the same two become the inner wash and
+      the blurred ring. The stroke and sheen paint after the content - the
+      hairline rides the rim, never over the middle. --%>
+      <div class="pc-border-plasma__bloom" aria-hidden="true"></div>
+      <div class="pc-border-plasma__core" aria-hidden="true"></div>
       <div class="pc-border-plasma__content">{render_slot(@inner_block)}</div>
-      <%!-- Painted after the content so the spill sits over the panel's edge
-      without z-index games; plus-lighter only ever ADDS light, so nothing
-      underneath is obscured. --%>
-      <div class="pc-border-plasma__inner" aria-hidden="true"></div>
+      <div class="pc-border-plasma__stroke" aria-hidden="true"></div>
+      <div class="pc-border-plasma__sheen" aria-hidden="true"></div>
     </div>
     """
   end

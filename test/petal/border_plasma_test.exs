@@ -14,16 +14,18 @@ defmodule PetalComponents.BorderPlasmaTest do
         """)
 
       assert html =~ "pc-border-plasma"
-      assert html =~ "pc-border-plasma__jewels"
+      assert html =~ "pc-border-plasma__stroke"
+      assert html =~ "pc-border-plasma__core"
+      assert html =~ "pc-border-plasma__bloom"
       assert html =~ "pc-border-plasma__sheen"
-      assert html =~ "pc-border-plasma__inner"
+      refute html =~ "pc-border-plasma--clip"
       assert html =~ "pc-border-plasma--rainbow"
       assert html =~ "pc-border-plasma__content"
       assert html =~ "Content"
       assert html =~ ~s(aria-hidden="true")
     end
 
-    test "all three decorative layers are hidden from assistive tech" do
+    test "all four decorative layers are hidden from assistive tech" do
       assigns = %{}
 
       html =
@@ -31,9 +33,15 @@ defmodule PetalComponents.BorderPlasmaTest do
         <.border_plasma>Content</.border_plasma>
         """)
 
-      # bloom + ring + the inner spill: light is decoration, every layer of it
-      assert count_substring(html, ~s(aria-hidden="true")) == 3
-      assert html =~ "pc-border-plasma__inner"
+      # bloom + core + stroke + sheen: light is decoration, every layer of it
+      assert count_substring(html, ~s(aria-hidden="true")) == 4
+
+      clipped =
+        rendered_to_string(~H"""
+        <.border_plasma clip>Content</.border_plasma>
+        """)
+
+      assert clipped =~ "pc-border-plasma--clip"
     end
 
     test "defaults to pulse mode at medium intensity" do
@@ -58,7 +66,7 @@ defmodule PetalComponents.BorderPlasmaTest do
         """)
 
       assert html =~ "--pc-plasma-duration: 4s"
-      assert html =~ "--pc-plasma-border-width: 2px"
+      assert html =~ "--pc-plasma-border-width: 1px"
     end
 
     test "colours are left to the theme tokens unless passed" do

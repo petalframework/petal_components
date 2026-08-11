@@ -2958,11 +2958,11 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Border plasma</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Jewels of light parked around the rim, breathing out of phase and washing
-        inward over the panel - clipped at the border, so the silhouette stays
-        crisp. Rotate sweeps a neutral light around the rim that lights the
-        colours as it passes. Pure CSS; rainbow by default, or on-brand via
-        palette="brand".
+        Whispery lines of light warp along the rim, whole corners swell and
+        dissipate on their own clocks, and a soft halo spills past the border
+        onto the page - or set clip and nothing leaves the silhouette. Rotate
+        sweeps a neutral light around the rim that wakes the colours as it
+        passes. Pure CSS; rainbow by default, or on-brand via palette="brand".
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -3093,6 +3093,38 @@ defmodule Dev.PlaygroundLive do
               <div class="font-semibold text-gray-900 dark:text-gray-100">Sweeping</div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 A neutral light laps the rim, lighting the colours as it passes.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+      </div>
+
+      <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        Halo vs clipped
+      </div>
+      <div class="grid gap-6 px-6 py-14 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            default - the glow spills onto the page
+          </div>
+          <.border_plasma>
+            <div class="p-6">
+              <div class="font-semibold text-gray-900 dark:text-gray-100">Halo</div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Light hangs behind the panel and bleeds past the border.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            clip - nothing leaves the silhouette
+          </div>
+          <.border_plasma clip>
+            <div class="p-6">
+              <div class="font-semibold text-gray-900 dark:text-gray-100">Clipped</div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                The wash hugs the edges inside; the outline stays crisp.
               </p>
             </div>
           </.border_plasma>
