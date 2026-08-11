@@ -639,6 +639,7 @@ defmodule PetalComponents.FieldTest do
       """)
 
     assert html =~ "No options"
+    assert html =~ "pc-radio-group--empty-message"
 
     assigns = %{form: to_form(%{}, as: :user)}
 
