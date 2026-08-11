@@ -65,7 +65,7 @@ defmodule PetalComponents.BorderPlasma do
     default: "outside",
     values: ["outside", "inside", "both"],
     doc:
-      "where the light lives: a halo spilling past the border onto the page (outside, the default), a wash hugging the edges inside a crisp silhouette (inside), or the two together (both)"
+      "where PULSE's light lives: a halo spilling past the border onto the page (outside, the default), a wash hugging the edges inside a crisp silhouette (inside), or the two together (both). Rotate always keeps its light inside the silhouette, as the reference effect does"
 
   attr :border_width, :string,
     default: "1px",

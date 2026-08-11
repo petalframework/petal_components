@@ -5566,10 +5566,10 @@
     transform: none;
     background-image:
       var(--pc-plasma-field),
-      radial-gradient(ellipse 60px 60px at 0% 0%, rgb(255 255 255 / calc(0.18 * var(--pc-plasma-q-tl, 1))), transparent 70%),
-      radial-gradient(ellipse 60px 60px at 100% 0%, rgb(255 255 255 / calc(0.18 * var(--pc-plasma-q-tr, 1))), transparent 70%),
-      radial-gradient(ellipse 60px 60px at 0% 100%, rgb(255 255 255 / calc(0.18 * var(--pc-plasma-q-bl, 1))), transparent 70%),
-      radial-gradient(ellipse 60px 60px at 100% 100%, rgb(255 255 255 / calc(0.18 * var(--pc-plasma-q-br, 1))), transparent 70%);
+      radial-gradient(ellipse 90px 90px at 0% 0%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-tl, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 100% 0%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-tr, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 0% 100%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-bl, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 100% 100%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-br, 1))), transparent 85%);
     -webkit-mask-image:
       linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
       linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
@@ -5579,7 +5579,7 @@
     -webkit-mask-composite: source-over;
     mask-composite: add;
     opacity: calc(0.44 * var(--pc-plasma-strength, 1));
-    filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+    filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
   }
 
   .pc-border-plasma--glow-inside > .pc-border-plasma__bloom {
@@ -5718,12 +5718,13 @@
     /* The wash follows the beam: same colours, held to the edge band AND
        the window, with the reference's inset white sheen. */
     .pc-border-plasma--rotate > .pc-border-plasma__core {
+      z-index: 1;
       background-image: var(--pc-plasma-field);
       box-shadow: inset 0 0 9px 1px rgb(255 255 255 / 0.27);
       transform: none;
       inset: 0;
       border-radius: inherit;
-      filter: hue-rotate(var(--pc-plasma-hue, 0deg)) saturate(1.2);
+      filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) saturate(1.2);
       opacity: calc(0.45 * var(--pc-plasma-strength, 1));
       -webkit-mask-image:
         conic-gradient(
@@ -5765,36 +5766,50 @@
     /* The halo sweeps too: the bloom keeps its variant geometry and gains
        the window, so the outer glow travels with the beam. */
     .pc-border-plasma--rotate > .pc-border-plasma__bloom {
-      inset: calc(-30px - 48px);
-      border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 78px);
-      padding: 48px;
-      background-origin: padding-box;
-      -webkit-mask: conic-gradient(
-        from var(--pc-plasma-angle, 0deg),
-        transparent 0%,
-        transparent 30%,
-        rgb(255 255 255 / 0.1) 36%,
-        rgb(255 255 255 / 0.35) 44%,
-        #fff 52%,
-        #fff 80%,
-        rgb(255 255 255 / 0.35) 86%,
-        rgb(255 255 255 / 0.1) 92%,
-        transparent 95%,
-        transparent 100%
-      );
-      mask: conic-gradient(
-        from var(--pc-plasma-angle, 0deg),
-        transparent 0%,
-        transparent 30%,
-        rgb(255 255 255 / 0.1) 36%,
-        rgb(255 255 255 / 0.35) 44%,
-        #fff 52%,
-        #fff 80%,
-        rgb(255 255 255 / 0.35) 86%,
-        rgb(255 255 255 / 0.1) 92%,
-        transparent 95%,
-        transparent 100%
-      );
+      inset: 0;
+      z-index: 2;
+      border-radius: inherit;
+      clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+      transform: none;
+      padding: var(--pc-plasma-border-width, 1px);
+      opacity: calc(0.66 * var(--pc-plasma-strength, 1));
+      filter: blur(8px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.9) saturate(1.2);
+      -webkit-mask:
+        conic-gradient(
+          from var(--pc-plasma-angle, 0deg),
+          transparent 0%,
+          transparent 30%,
+          rgb(255 255 255 / 0.1) 36%,
+          rgb(255 255 255 / 0.35) 44%,
+          #fff 52%,
+          #fff 80%,
+          rgb(255 255 255 / 0.35) 86%,
+          rgb(255 255 255 / 0.1) 92%,
+          transparent 95%,
+          transparent 100%
+        ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: source-in, xor;
+      mask:
+        conic-gradient(
+          from var(--pc-plasma-angle, 0deg),
+          transparent 0%,
+          transparent 30%,
+          rgb(255 255 255 / 0.1) 36%,
+          rgb(255 255 255 / 0.35) 44%,
+          #fff 52%,
+          #fff 80%,
+          rgb(255 255 255 / 0.35) 86%,
+          rgb(255 255 255 / 0.1) 92%,
+          transparent 95%,
+          transparent 100%
+        ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: intersect, exclude;
+      background-image: var(--pc-plasma-field);
+      background-origin: border-box;
       animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
     }
   }
