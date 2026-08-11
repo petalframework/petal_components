@@ -2958,9 +2958,10 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Border plasma</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        A glowing border that breathes in place, or sweeps a conic gradient
-        around the ring. Pure CSS on a masked border ring. Colours come off the
-        theme's primary and secondary tokens, and the panel follows the rail radius.
+        Pockets of light parked around the border, breathing out of phase and
+        spilling past the edge in both directions - or one luminous arc sweeping
+        the ring. Pure CSS. Colours come off the theme's primary and secondary
+        tokens, and the panel follows the rail radius.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -2979,7 +2980,7 @@ defmodule Dev.PlaygroundLive do
                 Border plasma
               </div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                The whole ring lights up, instead of one dot running around it.
+                Light pools on the border and leaks into the panel, instead of one dot running around it.
               </p>
             </div>
           </.border_plasma>
@@ -3079,7 +3080,7 @@ defmodule Dev.PlaygroundLive do
             <div class="p-6">
               <div class="font-semibold text-gray-900 dark:text-gray-100">Breathing</div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Nothing travels. The ring just swells and settles.
+                Nothing travels. The pockets swell and settle, each on its own clock.
               </p>
             </div>
           </.border_plasma>

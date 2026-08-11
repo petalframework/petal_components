@@ -5386,32 +5386,68 @@
        override these; nothing is emitted unless the author passed a colour. */
     --pc-plasma-from: var(--color-primary-500);
     --pc-plasma-to: var(--color-secondary-500);
+    /* The two brand colours only give two hues; plasma reads as plasma
+       because the light is not one colour. Mix the in-betweens instead of
+       inventing palette values, and let the hue-drift animation move the
+       whole field through its neighbours. */
+    --pc-plasma-mid: color-mix(in oklch, var(--pc-plasma-from), var(--pc-plasma-to) 50%);
+    --pc-plasma-mid-warm: color-mix(in oklch, var(--pc-plasma-to), var(--pc-plasma-from) 20%);
     border-style: solid;
     border-width: var(--pc-plasma-border-width, 2px);
     border-radius: var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
+    /* The light field: four pockets of light parked around the border, NOT a
+       uniform ring - most of the edge stays dark and the light lives in
+       regions, which is the whole difference between plasma and shine_border.
+       Ellipse sizes are box-relative so the same field wraps a button or a
+       hero. Each pocket scales off its own oscillator (p1..p4, resting at 1)
+       so the pockets breathe out of phase in pulse mode. */
+    --pc-plasma-field: radial-gradient(
+        ellipse calc(46% * var(--pc-plasma-p1, 1)) calc(38% * var(--pc-plasma-p1, 1)) at 14% 0%,
+        var(--pc-plasma-from),
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse calc(38% * var(--pc-plasma-p2, 1)) calc(52% * var(--pc-plasma-p2, 1)) at 100% 32%,
+        var(--pc-plasma-to),
+        transparent 74%
+      ),
+      radial-gradient(
+        ellipse calc(54% * var(--pc-plasma-p3, 1)) calc(34% * var(--pc-plasma-p3, 1)) at 58% 100%,
+        var(--pc-plasma-mid),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse calc(32% * var(--pc-plasma-p4, 1)) calc(44% * var(--pc-plasma-p4, 1)) at 0% 68%,
+        var(--pc-plasma-mid-warm),
+        transparent 76%
+      );
   }
 
-  /* Intensity dial: how bright the ring burns at each end of the breath, how
-     much bloom leaks past the edge, and how far it carries. */
+  /* Intensity dial: how bright the hairline burns, how much light leaks
+     inward over the content edge, how much bloom escapes outside, and how
+     far it carries. */
   .pc-border-plasma--subtle {
-    --pc-plasma-dim: 0.2;
-    --pc-plasma-bright: 0.55;
-    --pc-plasma-bloom: 0.35;
-    --pc-plasma-spread: 7px;
+    --pc-plasma-dim: 0.25;
+    --pc-plasma-bright: 0.6;
+    --pc-plasma-bloom: 0.45;
+    --pc-plasma-inner: 0.14;
+    --pc-plasma-spread: 14px;
   }
 
   .pc-border-plasma--medium {
-    --pc-plasma-dim: 0.35;
-    --pc-plasma-bright: 0.85;
-    --pc-plasma-bloom: 0.65;
-    --pc-plasma-spread: 11px;
+    --pc-plasma-dim: 0.4;
+    --pc-plasma-bright: 0.9;
+    --pc-plasma-bloom: 0.7;
+    --pc-plasma-inner: 0.24;
+    --pc-plasma-spread: 22px;
   }
 
   .pc-border-plasma--strong {
-    --pc-plasma-dim: 0.55;
+    --pc-plasma-dim: 0.6;
     --pc-plasma-bright: 1;
     --pc-plasma-bloom: 1;
-    --pc-plasma-spread: 18px;
+    --pc-plasma-inner: 0.38;
+    --pc-plasma-spread: 30px;
   }
 
   /* Ring and bloom share one geometry: fill the box, then mask the content
@@ -5446,47 +5482,86 @@
 
   /* The bloom rides a deliberately fatter ring than the crisp one. Blurring a
      hairline just dilutes it to nothing - there has to be more light in the
-     line than the blur radius spends. Twice the border width is enough to
-     read as a halo without the glow detaching from the edge. */
+     line than the blur radius spends. Three times the border width leaves
+     enough light for the wide blur, and the hue drift rides the same filter. */
   .pc-border-plasma__bloom {
-    inset: calc(-2 * var(--pc-plasma-border-width, 2px));
-    padding: calc(2 * var(--pc-plasma-border-width, 2px));
-    opacity: calc(var(--pc-plasma-bloom, 0.6) * (0.4 + 0.6 * var(--pc-plasma-t, 1)));
-    filter: blur(var(--pc-plasma-spread, 10px));
+    inset: calc(-3 * var(--pc-plasma-border-width, 2px));
+    padding: calc(3 * var(--pc-plasma-border-width, 2px));
+    opacity: calc(var(--pc-plasma-bloom, 0.7) * (0.5 + 0.5 * var(--pc-plasma-t, 1)));
+    filter: blur(var(--pc-plasma-spread, 22px)) hue-rotate(var(--pc-plasma-hue, 0deg));
   }
 
-  /* Pulse lights the entire ring - a closed conic loop, first colour repeated
-     at both ends so there is no seam to spot. */
-  .pc-border-plasma--pulse > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
-    background-image: conic-gradient(
-      from var(--pc-plasma-angle, 0deg),
-      var(--pc-plasma-from),
-      var(--pc-plasma-to),
-      var(--pc-plasma-from)
-    );
+  /* The inner spill - the layer the reference look actually hinges on. The
+     same light field, heavily blurred, painted OVER the content near the
+     edges. plus-lighter adds light to whatever is underneath, so it works
+     on an opaque surface; the exclude mask keeps it to an edge band so the
+     middle of the panel stays clean and text stays readable. Painted last
+     in the DOM so no z-index is needed to sit above the content. */
+  .pc-border-plasma__inner {
+    @apply pointer-events-none absolute;
+    inset: 0;
+    border-radius: inherit;
+    /* A vignette mask, not the content-box exclude trick: the exclude mask's
+       hard inner edge reads as a rectangle floating inside the panel even
+       under heavy blur. A radial fade keeps the middle clean and lets the
+       spill die off gradually, like light actually does. */
+    -webkit-mask: radial-gradient(ellipse farthest-side at 50% 50%, transparent 52%, #fff 96%);
+    mask: radial-gradient(ellipse farthest-side at 50% 50%, transparent 52%, #fff 96%);
+    background-image: var(--pc-plasma-field);
+    opacity: calc(var(--pc-plasma-inner, 0.24) * (0.5 + 0.5 * var(--pc-plasma-t, 1)));
+    filter: blur(18px) hue-rotate(var(--pc-plasma-hue, 0deg));
+    mix-blend-mode: plus-lighter;
   }
 
-  /* Rotate is an arc, not a loop: colour across roughly a third of the ring,
-     transparent for the rest, with the whole gradient spun by the angle. */
-  .pc-border-plasma--rotate > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+  /* Pulse paints the pocket field on every layer; the pockets do the moving. */
+  .pc-border-plasma--pulse > .pc-border-plasma__ring,
+  .pc-border-plasma--pulse > .pc-border-plasma__bloom {
+    background-image: var(--pc-plasma-field);
+  }
+
+  .pc-border-plasma--pulse > .pc-border-plasma__ring {
+    filter: hue-rotate(var(--pc-plasma-hue, 0deg));
+  }
+
+  /* Rotate is an arc, not a loop: one luminous region sweeping the ring,
+     dark for the rest of the lap. The inner layer carries the same arc so
+     the spill follows the sweep around the panel. */
+  .pc-border-plasma--rotate > .pc-border-plasma__ring,
+  .pc-border-plasma--rotate > .pc-border-plasma__bloom,
+  .pc-border-plasma--rotate > .pc-border-plasma__inner {
     background-image: conic-gradient(
       from var(--pc-plasma-angle, 0deg),
       transparent 0%,
       var(--pc-plasma-from) 12%,
-      var(--pc-plasma-to) 30%,
+      var(--pc-plasma-mid) 22%,
+      var(--pc-plasma-to) 32%,
       transparent 48%,
       transparent 100%
     );
   }
 
   /* Child combinators throughout, not descendant: a plasma nested inside
-     another plasma must not pick up the outer one's mode or duration. */
+     another plasma must not pick up the outer one's mode or duration.
+     Pulse runs four pocket oscillators at deliberately unequal durations -
+     the phases drift apart on their own, which is what makes the breathing
+     read as organic rather than a blink. The hue drift is one slow wander
+     shared by every layer. */
   @media (prefers-reduced-motion: no-preference) {
-    .pc-border-plasma--pulse > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
-      animation: pc-plasma-pulse var(--pc-plasma-duration, 4s) ease-in-out infinite;
+    .pc-border-plasma--pulse > .pc-border-plasma__ring,
+    .pc-border-plasma--pulse > .pc-border-plasma__bloom,
+    .pc-border-plasma--pulse > .pc-border-plasma__inner {
+      animation:
+        pc-plasma-pulse var(--pc-plasma-duration, 4s) ease-in-out infinite,
+        pc-plasma-p1 var(--pc-plasma-duration, 4s) ease-in-out infinite,
+        pc-plasma-p2 calc(var(--pc-plasma-duration, 4s) * 1.31) ease-in-out infinite,
+        pc-plasma-p3 calc(var(--pc-plasma-duration, 4s) * 1.63) ease-in-out infinite,
+        pc-plasma-p4 calc(var(--pc-plasma-duration, 4s) * 1.17) ease-in-out infinite,
+        pc-plasma-drift calc(var(--pc-plasma-duration, 4s) * 3) ease-in-out infinite;
     }
 
-    .pc-border-plasma--rotate > :is(.pc-border-plasma__ring, .pc-border-plasma__bloom) {
+    .pc-border-plasma--rotate > .pc-border-plasma__ring,
+    .pc-border-plasma--rotate > .pc-border-plasma__bloom,
+    .pc-border-plasma--rotate > .pc-border-plasma__inner {
       animation: pc-plasma-rotate var(--pc-plasma-duration, 6s) linear infinite;
     }
   }
@@ -6014,13 +6089,96 @@
   initial-value: 0deg;
 }
 
+/* The four pocket oscillators and the hue drift. Registered as typed
+   properties (below) so the browser can interpolate them; resting values
+   are full-size and zero drift, so reduced motion gets a lit, still field. */
+@property --pc-plasma-p1 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-p2 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-p3 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-p4 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-hue {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
 @keyframes pc-plasma-pulse {
   0%,
   100% {
-    --pc-plasma-t: 0;
+    --pc-plasma-t: 0.45;
   }
   50% {
     --pc-plasma-t: 1;
+  }
+}
+
+@keyframes pc-plasma-p1 {
+  0%,
+  100% {
+    --pc-plasma-p1: 0.78;
+  }
+  50% {
+    --pc-plasma-p1: 1.18;
+  }
+}
+
+@keyframes pc-plasma-p2 {
+  0%,
+  100% {
+    --pc-plasma-p2: 1.12;
+  }
+  50% {
+    --pc-plasma-p2: 0.74;
+  }
+}
+
+@keyframes pc-plasma-p3 {
+  0%,
+  100% {
+    --pc-plasma-p3: 0.85;
+  }
+  50% {
+    --pc-plasma-p3: 1.22;
+  }
+}
+
+@keyframes pc-plasma-p4 {
+  0%,
+  100% {
+    --pc-plasma-p4: 1.08;
+  }
+  50% {
+    --pc-plasma-p4: 0.8;
+  }
+}
+
+@keyframes pc-plasma-drift {
+  0%,
+  100% {
+    --pc-plasma-hue: -14deg;
+  }
+  50% {
+    --pc-plasma-hue: 16deg;
   }
 }
 

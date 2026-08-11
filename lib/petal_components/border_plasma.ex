@@ -1,13 +1,17 @@
 defmodule PetalComponents.BorderPlasma do
   @moduledoc """
-  A glowing border that either breathes in place or sweeps a conic gradient
-  around the ring. Pure CSS (registered custom properties + a masked border
-  ring) — no JavaScript required.
+  A border made of light pockets: several soft regions of colour parked
+  around the edge, breathing out of phase and spilling both outward past the
+  border and inward over the panel's edge. Pure CSS (registered custom
+  properties, a masked border ring, and a plus-lighter inner layer) — no
+  JavaScript required.
 
-  The sibling of `border_beam`: where the beam sends one travelling light
-  around the edge, plasma lights the whole ring at once. Good for CTAs,
-  pricing cards and hero panels that need to pull the eye without moving
-  anything across the screen.
+  The sibling of `border_beam`: the beam sends one travelling light around
+  the edge; plasma keeps a field of light alive on it. `mode="pulse"`
+  (default) breathes the pockets in place; `mode="rotate"` sweeps one
+  luminous arc around the ring instead. Good for CTAs, pricing cards and
+  hero panels that need to pull the eye without moving anything across the
+  screen.
   """
   use Phoenix.Component
 
@@ -111,6 +115,10 @@ defmodule PetalComponents.BorderPlasma do
       <div class="pc-border-plasma__bloom" aria-hidden="true"></div>
       <div class="pc-border-plasma__ring" aria-hidden="true"></div>
       <div class="pc-border-plasma__content">{render_slot(@inner_block)}</div>
+      <%!-- Painted after the content so the spill sits over the panel's edge
+      without z-index games; plus-lighter only ever ADDS light, so nothing
+      underneath is obscured. --%>
+      <div class="pc-border-plasma__inner" aria-hidden="true"></div>
     </div>
     """
   end

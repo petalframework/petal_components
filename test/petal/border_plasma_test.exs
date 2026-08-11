@@ -21,7 +21,7 @@ defmodule PetalComponents.BorderPlasmaTest do
       assert html =~ ~s(aria-hidden="true")
     end
 
-    test "both decorative layers are hidden from assistive tech" do
+    test "all three decorative layers are hidden from assistive tech" do
       assigns = %{}
 
       html =
@@ -29,7 +29,9 @@ defmodule PetalComponents.BorderPlasmaTest do
         <.border_plasma>Content</.border_plasma>
         """)
 
-      assert count_substring(html, ~s(aria-hidden="true")) == 2
+      # bloom + ring + the inner spill: light is decoration, every layer of it
+      assert count_substring(html, ~s(aria-hidden="true")) == 3
+      assert html =~ "pc-border-plasma__inner"
     end
 
     test "defaults to pulse mode at medium intensity" do
