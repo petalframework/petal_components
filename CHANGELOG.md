@@ -3,6 +3,14 @@
 
 #### Fixed
 
+- **Radio cards no longer inflate into pills at `radius="full"`.** The
+  card surface (`.pc-radio-card__fake-input`) joins the tall-element
+  clamp (1rem ceiling) the other multi-line controls already use. The
+  4.10.0 sweep capped the six controls that grow past one line but
+  missed this one - a radio card does too the moment it carries a
+  description, and at the full stop the resulting ellipse crowded the
+  `end` and `corner` indicator dots. Every stop below full is
+  unchanged.
 - **`combo_box` has an accessible name, and `<.field type="combobox">`
   no longer warns at compile time.** The role=combobox input carried no
   label mechanism at all - `{@rest}` lands on the wrapper, so
