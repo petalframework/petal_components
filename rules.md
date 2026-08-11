@@ -59,7 +59,7 @@ end
 
 ### 5. Register the JS hooks
 
-petal_components v4 ships a bundled JS hook set - toasts, the command palette and its trigger, the colour-scheme switch, carousel, charts, local time, sliders, OTP input, the chat family, popover, the navigation menu's hover mode, the effects, and the enhanced inputs (everything else is CSS + LiveView.JS only). You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
+petal_components v4 ships a bundled JS hook set - toasts, the command palette and its trigger, the colour-scheme switch, carousel, charts, local time, sliders, OTP input, the chat family, popover, the combobox, the data table, the navigation menu's hover mode, the effects, and the enhanced inputs (everything else is CSS + LiveView.JS only). You never register hooks individually - spread the whole set once. Open `assets/js/app.js`, import the hooks, and merge them into your `LiveSocket`:
 
 ```js
 import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
@@ -124,7 +124,7 @@ One deliberate choice to know about: the `gray` role ships Tailwind's **zinc** v
 2. **Do not invent Tailwind soup for things petal_components already does.** No hand-rolled modal divs, no manual dropdown JS, no DIY form labels. There is almost certainly an existing component for it.
 3. **Look up the schema before guessing attrs.** Do not assume attr names from memory. Call `list_components` and `get_component` (see below) to get the real attr/slot signature before writing HEEx.
 4. **Call components as plain HEEx tags after `use PetalComponents`.** `<.button>`, `<.modal>`, `<.table>`, `<.card>`, etc. If you have not imported, qualify with the module: `<PetalComponents.Button.button />`. Note: the `pc-*` prefix you see in source is the CSS class prefix for styling, not part of the function name.
-5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Many components (toasts, command palette, colour scheme, carousel, charts, chat, enhanced inputs and more) use bundled JS hooks — register the whole set once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
+5. **Components work in both live and dead views.** Interactivity is Phoenix.LiveView.JS only (no Alpine.js as of v4). Many components (toasts, command palette, colour scheme, carousel, charts, chat, combobox, data table, enhanced inputs and more) use bundled JS hooks — register the whole set once in your LiveSocket: `import PetalComponents from "../../deps/petal_components/assets/js/petal_components"` then `hooks: { ...PetalComponents }`.
 6. **Form inputs come in two layers, pick deliberately.** Use `<.field type="..." />` when you want label + input + error + help text bundled (the common case in form contexts). Use the standalone primitives (`<.text_input>`, `<.select>`, `<.checkbox>`, etc.) when composing your own field layout.
 
 ## Discovering components
@@ -277,6 +277,80 @@ end
 ```
 
 Selection and column visibility are UI state (the clauses above; move them to a separate `on_ui` event if you prefer) - keep them in assigns, never in URLs. For URL-driven tables pass `path` instead of `on_change`: every interaction becomes a patch URL and `State.from_params/2` in `handle_params` is the whole backend. `row_id` must uniquely identify records across all pages.
+
+### Combobox (searchable select, chips, remote search)
+
+Reach for `<.combo_box>` whenever a `<.select>` has more options than someone wants to scroll. It is form-native: the real control is a hidden `<select>` the `PetalComboBox` hook keeps in sync, so changesets, `phx-change` and LiveView form recovery behave exactly as they do for a plain select. Filtering is client-side and dependency-free.
+
+```heex
+<.combo_box
+  id="country"
+  name="country"
+  label="Country"
+  options={["Australia", "Japan", "Portugal"]}
+/>
+```
+
+Always pass `label` (or go through `<.field>`, below). It is the control's accessible name - without it the placeholder is all a screen reader has.
+
+Options take the shapes `select` users expect, and groups are `{heading, options}`:
+
+```heex
+<.combo_box
+  id="city"
+  name="city"
+  label="City"
+  value="syd"
+  options={[
+    {"Oceania", [{"Sydney", "syd"}, {"Melbourne", "mel", disabled: true}]},
+    {"Europe", [{"Lisbon", "lis"}, {"Stockholm", "sto"}]}
+  ]}
+/>
+```
+
+`multiple` turns the control into a chip row - each choice is a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. `max_items` caps it; at the cap the unchosen options go inert. The hidden select becomes a `<select multiple>` and the name gains `[]`, so every choice survives the post.
+
+```heex
+<.combo_box
+  id="tags"
+  name="tags"
+  label="Tags"
+  multiple
+  max_items={5}
+  value={@tags}
+  options={["elixir", "phoenix", "liveview", "ecto"]}
+/>
+```
+
+For a remote data source, name an event with `remote_options_event_name` (add `remote_options_target={@myself}` from a LiveComponent). Typing pushes the raw search term, debounced, and the reply becomes the option list:
+
+```elixir
+def handle_event("search_users", term, socket) do
+  results = MyApp.Accounts.search(term) |> Enum.map(&%{text: &1.name, value: &1.id})
+  {:reply, %{results: results}, socket}
+end
+```
+
+In a form, use `<.field type="combobox">` - it brings the label, changeset errors and help text, and forwards every combobox attr:
+
+```heex
+<.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+  <.field
+    type="combobox"
+    field={f[:country]}
+    label="Country"
+    help_text="Where the account is billed"
+    options={@countries}
+    clearable
+  />
+</.form>
+```
+
+One gotcha through `<.field>`: the anatomy attr is `combo_variant`, NOT `variant` (`:variant` already belongs to radio-card there). `combo_variant="trigger"` gives the select-like button whose panel carries the search input - the picker shape, and what the data table's filter editor uses. On the bare `<.combo_box>` the attr is just `variant`.
+
+```heex
+<.field type="combobox" field={f[:owner]} label="Owner" combo_variant="trigger" options={@people} />
+```
 
 ### Alert / inline feedback
 
