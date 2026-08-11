@@ -265,6 +265,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "table", name: "Table", ready: true},
         %{slug: "data-table", name: "Data table", ready: true},
+        %{slug: "data-table-link", name: "Data table · links", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
@@ -853,9 +854,22 @@ defmodule Dev.PlaygroundLive do
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
       |> assign(:nav_open, false)
+      |> maybe_run_dt_link(params)
 
     {:noreply, maybe_start_progress_sim(socket)}
   end
+
+  # Link mode's whole loop: the table patches State-encoded URLs, this
+  # decodes them back through the same whitelist and re-runs the engine.
+  # No events, no other server state - the URL IS the table state.
+  defp maybe_run_dt_link(%{assigns: %{active: "data-table-link"}} = socket, params) do
+    alias PetalComponents.DataTable.State
+
+    state = State.from_params(params, fields: [:name, :email, :status, :amount])
+    assign(socket, :dt_link, run_dt(state))
+  end
+
+  defp maybe_run_dt_link(socket, _params), do: socket
 
   # The progress flagship simulates a live upload while you watch. One
   # timer at a time; it dies quietly when you leave the page or take
@@ -7454,6 +7468,73 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "data-table-link"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Data table &middot; link mode</h1>
+      <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
+        The same table, driven entirely by the URL: sort, filter, search and page all patch
+        State-encoded query params, <code class="text-sm">handle_params</code>
+        decodes them back through the field whitelist and re-runs the engine. No events -
+        every view is a link you can share, bookmark or curl. Try sorting, then reload.
+      </p>
+
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
+        <% {state, rows} = @dt_link %>
+        <.data_table
+          id="pg-dt-link"
+          rows={rows}
+          state={state}
+          path={
+            theme_path(%{
+              active: "data-table-link",
+              primary: @primary,
+              secondary: @secondary,
+              gray: @gray,
+              radius: @radius
+            })
+          }
+          striped
+          searchable
+          page_size_options={[5, 10, 20]}
+        >
+          <:col :let={row} field={:name} sortable>{row.name}</:col>
+          <:col :let={row} field={:email} filterable="text">{row.email}</:col>
+          <:col
+            :let={row}
+            field={:status}
+            filterable="select"
+            options={[{"Paid", "paid"}, {"Pending", "pending"}, {"Refunded", "refunded"}]}
+          >
+            <.badge
+              size="sm"
+              variant="soft"
+              color={
+                case row.status do
+                  "paid" -> "success"
+                  "pending" -> "warning"
+                  _ -> "danger"
+                end
+              }
+              label={row.status}
+            />
+          </:col>
+          <:col :let={row} field={:amount} sortable align="right" filterable="number">
+            ${row.amount}
+          </:col>
+        </.data_table>
+      </div>
+
+      <div class="mt-4">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
+          The state this page decoded from the URL:
+        </p>
+        <pre class="p-3 overflow-x-auto text-xs rounded-lg bg-gray-100 dark:bg-gray-800"><code>{inspect(elem(@dt_link, 0), pretty: true, width: 60)}</code></pre>
+      </div>
     </div>
     """
   end
