@@ -5389,21 +5389,6 @@
     border-radius: var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
     isolation: isolate;
     --pc-plasma-scale: 1;
-    /* Every layer shares one field: eight long, THIN ellipses hugging the
-       edges (80x19, 74x11...), ported stop-for-stop from the reference's
-       runtime CSS. You never see an ellipse outline - only its intersection
-       with a hairline ring, an edge band, or a blur - which is why the
-       light reads as whispery warping lines, not blobs. Each stop's alpha
-       rides its QUADRANT's opacity oscillator, so whole corners of light
-       swell and die independently. */
-    --pc-plasma-field: radial-gradient(ellipse calc(80px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(19px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx1, 0px)) calc(0% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c1) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(74px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(11px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(73% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c2) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(15px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(44px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx3, 0px)) calc(33% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(19px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(38px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(101% + var(--pc-plasma-bx1, 0px)) calc(72% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(84px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(13px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx2, 0px)) calc(100% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c5) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(60px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(21px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(24% + var(--pc-plasma-bx3, 0px)) calc(101% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(17px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(40px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(0% + var(--pc-plasma-bx1, 0px)) calc(60% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(13px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(32px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(-1% + var(--pc-plasma-bx2, 0px)) calc(28% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent);
   }
 
   /* Palettes: opaque colours only - alpha is the quadrant oscillators' job.
@@ -5431,6 +5416,28 @@
     --pc-plasma-c6: color-mix(in oklch, var(--pc-plasma-to), var(--pc-plasma-from) 35%);
     --pc-plasma-c7: color-mix(in oklch, var(--pc-plasma-to), white 25%);
     --pc-plasma-c8: color-mix(in oklch, var(--pc-plasma-from), white 25%);
+  }
+
+  .pc-border-plasma--ocean {
+    --pc-plasma-c1: rgb(60 140 200);
+    --pc-plasma-c2: rgb(100 80 220);
+    --pc-plasma-c3: rgb(120 70 240);
+    --pc-plasma-c4: rgb(90 80 220);
+    --pc-plasma-c5: rgb(80 100 255);
+    --pc-plasma-c6: rgb(70 110 255);
+    --pc-plasma-c7: rgb(50 120 180);
+    --pc-plasma-c8: rgb(110 90 230);
+  }
+
+  .pc-border-plasma--sunset {
+    --pc-plasma-c1: rgb(255 180 50);
+    --pc-plasma-c2: rgb(255 80 60);
+    --pc-plasma-c3: rgb(255 60 80);
+    --pc-plasma-c4: rgb(255 120 60);
+    --pc-plasma-c5: rgb(255 100 80);
+    --pc-plasma-c6: rgb(255 200 50);
+    --pc-plasma-c7: rgb(255 150 40);
+    --pc-plasma-c8: rgb(255 90 70);
   }
 
   .pc-border-plasma--mono {
@@ -5462,6 +5469,30 @@
   .pc-border-plasma__bloom,
   .pc-border-plasma__sheen {
     @apply pointer-events-none absolute;
+  }
+
+  /* THE FIELD IS DECLARED HERE, ON THE ANIMATED LAYERS, DELIBERATELY. A
+     custom property substitutes its inner var()s on the element that
+     DECLARES it - declared on the root, the oscillators would resolve
+     where they never animate and the whole pulse freezes (shipped that
+     bug twice; never again). */
+  .pc-border-plasma__stroke,
+  .pc-border-plasma__core {
+    /* Every layer shares one field: eight long, THIN ellipses hugging the
+       edges (80x19, 74x11...), ported stop-for-stop from the reference's
+       runtime CSS. You never see an ellipse outline - only its intersection
+       with a hairline ring, an edge band, or a blur - which is why the
+       light reads as whispery warping lines, not blobs. Each stop's alpha
+       rides its QUADRANT's opacity oscillator, so whole corners of light
+       swell and die independently. */
+    --pc-plasma-field: radial-gradient(ellipse calc(80px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(19px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx1, 0px)) calc(0% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c1) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(74px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(11px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(73% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c2) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(15px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(44px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx3, 0px)) calc(33% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(19px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(38px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(101% + var(--pc-plasma-bx1, 0px)) calc(72% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(84px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(13px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx2, 0px)) calc(100% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c5) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(60px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(21px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(24% + var(--pc-plasma-bx3, 0px)) calc(101% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(17px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(40px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(0% + var(--pc-plasma-bx1, 0px)) calc(60% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(13px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(32px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(-1% + var(--pc-plasma-bx2, 0px)) calc(28% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent);
   }
 
   /* THE STROKE: the field sliced through a hairline ring (the xor mask).
@@ -5574,17 +5605,17 @@
       from var(--pc-plasma-angle, 0deg),
       transparent 0%,
       transparent 54%,
-      rgb(255 255 255 / 0.1) 57%,
-      rgb(255 255 255 / 0.3) 60%,
-      rgb(255 255 255 / 0.6) 63%,
-      rgb(255 255 255 / 0.75) 66%,
-      rgb(255 255 255 / 0.6) 69%,
-      rgb(255 255 255 / 0.3) 72%,
-      rgb(255 255 255 / 0.1) 75%,
+      rgb(255 255 255 / 0.06) 57%,
+      rgb(255 255 255 / 0.18) 60%,
+      rgb(255 255 255 / 0.36) 63%,
+      rgb(255 255 255 / 0.45) 66%,
+      rgb(255 255 255 / 0.36) 69%,
+      rgb(255 255 255 / 0.18) 72%,
+      rgb(255 255 255 / 0.06) 75%,
       transparent 78%,
       transparent 100%
     );
-    filter: blur(1px);
+    filter: blur(2px);
     mix-blend-mode: plus-lighter;
     display: none;
   }

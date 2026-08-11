@@ -19,7 +19,7 @@ defmodule PetalComponents.BorderPlasma do
 
   # Pulse is a slow breath; rotate is a lap. Sharing one number would make
   # one of them wrong, so the default follows the mode.
-  @default_durations %{"pulse" => "4s", "rotate" => "6s"}
+  @default_durations %{"pulse" => "2.3s", "rotate" => "6s"}
 
   attr :mode, :string,
     default: "pulse",
@@ -29,9 +29,9 @@ defmodule PetalComponents.BorderPlasma do
 
   attr :palette, :string,
     default: "rainbow",
-    values: ["rainbow", "brand", "mono"],
+    values: ["rainbow", "brand", "mono", "ocean", "sunset"],
     doc:
-      "where the jewels get their colours: an eight-hue rainbow (the reference look), the theme's primary/secondary (brand), or grayscale (mono)"
+      "where the light gets its colours: an eight-hue rainbow (the reference look), the theme's primary/secondary (brand), grayscale (mono), blues (ocean), or ambers (sunset)"
 
   attr :color_from, :string,
     default: nil,

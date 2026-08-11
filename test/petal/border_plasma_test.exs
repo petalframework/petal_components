@@ -65,7 +65,7 @@ defmodule PetalComponents.BorderPlasmaTest do
         <.border_plasma>Content</.border_plasma>
         """)
 
-      assert html =~ "--pc-plasma-duration: 4s"
+      assert html =~ "--pc-plasma-duration: 2.3s"
       assert html =~ "--pc-plasma-border-width: 1px"
     end
 
