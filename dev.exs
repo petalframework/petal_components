@@ -784,7 +784,7 @@ defmodule Dev.PlaygroundLive do
          size: "60px",
          glow: false
        },
-       plasma: %{mode: "pulse", intensity: "medium", duration: "5s", width: "2px"},
+       plasma: %{mode: "pulse", intensity: "medium", duration: "2.3s", glow: "outside"},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1014,8 +1014,11 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(subtle medium strong),
       do: {:noreply, update(socket, :plasma, &%{&1 | intensity: v})}
 
-  def handle_event("ctl_plasma", %{"k" => "duration", "v" => v}, socket) when v in ~w(3s 5s 8s),
+  def handle_event("ctl_plasma", %{"k" => "duration", "v" => v}, socket) when v in ~w(2.3s 4s 6s),
     do: {:noreply, update(socket, :plasma, &%{&1 | duration: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "glow", "v" => v}, socket) when v in ~w(outside inside),
+    do: {:noreply, update(socket, :plasma, &%{&1 | glow: v})}
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
@@ -2038,8 +2041,8 @@ defmodule Dev.PlaygroundLive do
       [
         pl.mode != "pulse" && ~s(mode="#{pl.mode}"),
         pl.intensity != "medium" && ~s(intensity="#{pl.intensity}"),
-        ~s(duration="#{pl.duration}"),
-        pl.width != "2px" && ~s(border_width="#{pl.width}")
+        pl.duration != "2.3s" && ~s(duration="#{pl.duration}"),
+        pl.glow == "inside" && "clip"
       ]
       |> Enum.filter(& &1)
 
@@ -2968,11 +2971,11 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-14">
           <.border_plasma
-            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.width}"}
+            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.glow}"}
             mode={@plasma.mode}
             intensity={@plasma.intensity}
             duration={@plasma.duration}
-            border_width={@plasma.width}
+            clip={@plasma.glow == "inside"}
             class="w-full max-w-sm"
           >
             <div class="p-8">
@@ -3032,23 +3035,23 @@ defmodule Dev.PlaygroundLive do
               on_change="ctl_plasma"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={d <- ~w(3s 5s 8s)} value={d} phx-value-k="duration" phx-value-v={d}>
+              <:item :for={d <- ~w(2.3s 4s 6s)} value={d} phx-value-k="duration" phx-value-v={d}>
                 {d}
               </:item>
             </.toggle_group>
           </div>
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">width</div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">glow</div>
             <.toggle_group
               variant="outline"
               size="sm"
-              aria_label="Border width"
-              value={@plasma.width}
+              aria_label="Glow"
+              value={@plasma.glow}
               on_change="ctl_plasma"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={w <- ~w(1px 2px 4px)} value={w} phx-value-k="width" phx-value-v={w}>
-                {w}
+              <:item :for={g <- ~w(outside inside)} value={g} phx-value-k="glow" phx-value-v={g}>
+                {g}
               </:item>
             </.toggle_group>
           </div>

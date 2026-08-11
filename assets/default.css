@@ -5485,14 +5485,17 @@
        light reads as whispery warping lines, not blobs. Each stop's alpha
        rides its QUADRANT's opacity oscillator, so whole corners of light
        swell and die independently. */
-    --pc-plasma-field: radial-gradient(ellipse calc(80px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(19px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx1, 0px)) calc(0% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c1) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(74px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(11px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(73% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c2) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(15px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(44px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx3, 0px)) calc(33% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(19px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(38px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(101% + var(--pc-plasma-bx1, 0px)) calc(72% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(84px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(13px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx2, 0px)) calc(100% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c5) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(60px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(21px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(24% + var(--pc-plasma-bx3, 0px)) calc(101% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(17px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(40px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(0% + var(--pc-plasma-bx1, 0px)) calc(60% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
-      radial-gradient(ellipse calc(13px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(32px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(-1% + var(--pc-plasma-bx2, 0px)) calc(28% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent);
+    --pc-plasma-field: radial-gradient(ellipse calc(92px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(34px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx1, 0px)) calc(0% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c1) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(110px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(40px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx3, 0px)) calc(0% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(85px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(20px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(73% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c2) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(17px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(66px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx3, 0px)) calc(33% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(38px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(70px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx1, 0px)) calc(33% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(22px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(57px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(101% + var(--pc-plasma-bx1, 0px)) calc(72% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(97px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(23px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx2, 0px)) calc(100% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c5) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(120px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(30px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx3, 0px)) calc(100% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(69px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(38px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(24% + var(--pc-plasma-bx3, 0px)) calc(101% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(20px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(60px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(0% + var(--pc-plasma-bx1, 0px)) calc(60% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(15px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(48px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(-1% + var(--pc-plasma-bx2, 0px)) calc(28% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent);
   }
 
   /* THE STROKE: the field sliced through a hairline ring (the xor mask).
@@ -5507,7 +5510,7 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     background-image: var(--pc-plasma-field);
-    opacity: calc(0.94 * var(--pc-plasma-strength, 1));
+    opacity: calc(0.78 * var(--pc-plasma-strength, 1));
     filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
   }
 
@@ -5520,8 +5523,8 @@
     border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 10px);
     background-image: var(--pc-plasma-field);
     transform: scale(0.95, 0.9);
-    opacity: calc(0.34 * var(--pc-plasma-strength, 1));
-    filter: blur(3px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+    opacity: calc(0.44 * var(--pc-plasma-strength, 1));
+    filter: blur(6px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
   }
 
   /* THE OUTER HALO (halo variant): the wide bloom, 30px proud, heavily
@@ -5539,7 +5542,7 @@
       radial-gradient(ellipse calc(88px * var(--pc-plasma-scale, 1)) calc(32px * var(--pc-plasma-scale, 1)) at 24% 99%, color-mix(in srgb, var(--pc-plasma-c6) 77%, transparent), transparent),
       radial-gradient(ellipse calc(28px * var(--pc-plasma-scale, 1)) calc(58px * var(--pc-plasma-scale, 1)) at 0% 60%, color-mix(in srgb, var(--pc-plasma-c7) 77%, transparent), transparent);
     transform: scale(0.95, 0.9);
-    opacity: calc(0.3 * var(--pc-plasma-strength, 1));
+    opacity: calc(0.36 * var(--pc-plasma-strength, 1));
     filter: blur(22.5px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
   }
 
