@@ -3,6 +3,51 @@
 
 #### Fixed
 
+- **`combo_box` has an accessible name, and `<.field type="combobox">`
+  no longer warns at compile time.** The role=combobox input carried no
+  label mechanism at all - `{@rest}` lands on the wrapper, so
+  `aria-label` named a roleless div and the placeholder was the only
+  name a screen reader had. There is a `label` attr now, rendered onto
+  the element that carries the role, and `<.field>` points its `for=` at
+  the control that actually renders (the input, or the trigger button)
+  and passes the label down. Separately, `combobox` was never added to
+  field's declared `:type` values, so every call site warned - fatal in
+  projects building with `--warnings-as-errors`.
+- **A `required` combo_box no longer deadlocks the form.** `required`
+  sits on the hidden select, which is `inert` and `sr-only` - so the
+  browser could neither draw its validation bubble nor move focus to it,
+  and submit was blocked with nothing visible, nothing announced, and
+  focus on `<body>`. The hook takes the report over: the browser's own
+  message goes into a `role="alert"` region on the control,
+  `aria-required` and `aria-invalid` reach the a11y tree, and focus
+  lands somewhere the user can act.
+- **`max_items` is a real stop instead of a visual one.** The cap was
+  enforced in CSS alone, so the keyboard still walked onto capped
+  options, `aria-activedescendant` still pointed at them, and Enter was
+  refused in silence. Capped options are `aria-disabled` now, the
+  keyboard skips them, the cap is announced, and the placeholder says
+  the same thing on screen as in the live region rather than being
+  blanked to transparent.
+- **A disabled combo_box no longer ships a working clear button.** The
+  input variant's clear stayed focusable and clickable, and because a
+  disabled select posts nothing, clearing it desynced client from
+  server.
+- **Backspace removes the chip you can see.** It read the hidden
+  select's DOM order while chips render in pick order, so picking out of
+  option order made Backspace delete a chip from the middle of the row.
+- **The trigger variant's clear leaves a coherent state.** It used to
+  leave the panel open with focus parked on the trigger - outside the
+  panel - so arrows and typing were dead and Escape leaked to the
+  enclosing modal instead of closing the panel. It closes the panel and
+  returns focus to the trigger.
+- **`combo_box` group headings reach assistive tech**, the empty row
+  moved out of `role="listbox"` (which may only contain options and
+  groups), a stranded pointerdown no longer disarms outside-tap
+  dismissal for the rest of an open session, `updated()` re-reads
+  `multiple` / the chips container / the clear button so
+  `clearable={@editing}` behaves like the server state it is,
+  `destroyed()` no longer throws on half-mounted markup, and a focusable
+  control in a `:header` / `:footer` slot can take a pointer press.
 - **The carousel honours `prefers-reduced-motion` when sliding.** The
   hook always requested `scrollTo({behavior: "smooth"})`, and the
   stylesheet's reduced-motion override targeted a `smooth-scroll` class
@@ -321,8 +366,6 @@
   cleanly. Rich slots (`:option`, `:selected`, `:chip`,
   `:header`/`:footer`) stay on the bare component by design.
 
-#### Added
-
 - **`combo_box` M3b - the modes: `free_text`, `create`, remote search.**
   The last of the Tom Select parity surface, on the new architecture:
   - `free_text`: Enter at the empty stop commits the typed text as a
@@ -340,8 +383,6 @@
     mode - one writer per region). Designed loading row
     (`loading_label`), stale replies dropped by sequence, chosen
     results inserted into the select.
-
-#### Added
 
 - **`combo_box` M3a - the slot family completes: `:header`, `:footer`,
   `:selected`, `:chip`.** All four speak the `:option` slot's grammar
@@ -371,8 +412,6 @@
   playground get a working table with zero setup. The `<.data_table>`
   component builds on this next.
 
-#### Added
-
 - **`combo_box` trigger variant supports `clearable`.** A chosen
   single-select trigger had no road back to the empty state (Nic's
   find - the input variant had the X, the trigger silently ignored the
@@ -383,63 +422,6 @@
   placeholder label, keeps the panel closed and returns focus to the
   trigger. Multiple mode stays clear-less by design on both variants -
   chips and panel toggles are its road back.
-
-#### Fixed
-
-- **`combo_box`: iOS taps on control chrome and the trigger button
-  reliably toggle the panel.** iOS Safari fires `focusout` with
-  `relatedTarget: null` even when focus moves WITHIN the component, so
-  a chevron or trigger tap closed the panel mid-press and the tap's own
-  click instantly reopened it - an invisible flash that read as a dead
-  chevron zone (input variant) and a picker that never closes (trigger
-  variant). Device-log verified. The focusout close now defers one tick
-  and verifies where focus actually landed instead of trusting
-  `relatedTarget`; genuine Tab-away and click-away close exactly as
-  before.
-
-- **`combo_box`: a touch-scroll no longer dismisses the panel.** The
-  outside dismiss closed on `pointerdown`, so starting a scroll gesture
-  anywhere outside the panel killed it the instant the finger landed
-  (Nic's iOS find). The dismiss is now a completed press - `pointerdown`
-  arms it, `pointerup` in (roughly) the same spot closes; a scroll ends
-  in `pointercancel` or a far-away release and leaves the panel open,
-  matching shadcn/Base UI and the old Tom Select behavior. A clean tap
-  outside still closes, and the desktop focusout path is unchanged.
-
-#### Fixed
-
-- **`combo_box`: chevron press reliably toggles the panel closed on
-  every platform.** Two interacting bugs: on desktop, pressing the
-  (non-focusable) chevron blurred the input, focusout closed the panel
-  mid-press, and the click then saw a closed panel and REOPENED it -
-  the toggle flashed instead of closing. On iOS no blur fires, but tap-
-  target correction rewrites the synthesized click's target and
-  coordinates onto the nearby text field, so the tap read as caret work
-  and nothing closed. Fix: chrome-vs-caret is decided at `pointerdown`
-  (which hit-tests the real touch point and is never rewritten), the
-  click consumes that record, and chrome presses are preventDefaulted
-  so the input never blurs mid-press. Input presses keep caret
-  behavior and never discard the active query.
-
-#### Fixed
-
-- **`combo_box` multiple: the highlight stays on the item just picked.**
-  Choosing used to reset the filter and re-home the highlight on the
-  first option - a disorienting jump when picking from the middle of the
-  list (Nic's on-device find). Now arrowing resumes from the item you
-  just toggled (Base UI/downshift grammar); the trigger variant's
-  multiple mode gets the same fix through the shared path.
-
-#### Changed
-
-- **`combo_box` multiple: the placeholder stays visible with chips
-  present** ("Add members…" style - the reui/Mantine TagsInput
-  convention) instead of vanishing after the first pick, and it rests
-  while `max_items` is reached (pure CSS on `data-max-reached` - the
-  attribute itself stays server truth, so live placeholder changes
-  always win). Single-select behavior unchanged.
-
-#### Added
 
 - **`combo_box` `:option` slot - rich options.** Render anything inside
   each panel option (avatars, flags, secondary text); `:let` receives
@@ -502,6 +484,57 @@
   `total` is unknown. `previous_label`/`next_label` attrs make the copy
   localizable; link and event modes work unchanged. The numbered layout is
   untouched and stays the default (`variant="numbered"`).
+
+#### Changed
+
+- **`combo_box` multiple: the placeholder stays visible with chips
+  present** ("Add members…" style - the reui/Mantine TagsInput
+  convention) instead of vanishing after the first pick, and it rests
+  while `max_items` is reached (pure CSS on `data-max-reached` - the
+  attribute itself stays server truth, so live placeholder changes
+  always win). Single-select behavior unchanged.
+
+#### Fixed
+
+- **`combo_box`: iOS taps on control chrome and the trigger button
+  reliably toggle the panel.** iOS Safari fires `focusout` with
+  `relatedTarget: null` even when focus moves WITHIN the component, so
+  a chevron or trigger tap closed the panel mid-press and the tap's own
+  click instantly reopened it - an invisible flash that read as a dead
+  chevron zone (input variant) and a picker that never closes (trigger
+  variant). Device-log verified. The focusout close now defers one tick
+  and verifies where focus actually landed instead of trusting
+  `relatedTarget`; genuine Tab-away and click-away close exactly as
+  before.
+
+- **`combo_box`: a touch-scroll no longer dismisses the panel.** The
+  outside dismiss closed on `pointerdown`, so starting a scroll gesture
+  anywhere outside the panel killed it the instant the finger landed
+  (Nic's iOS find). The dismiss is now a completed press - `pointerdown`
+  arms it, `pointerup` in (roughly) the same spot closes; a scroll ends
+  in `pointercancel` or a far-away release and leaves the panel open,
+  matching shadcn/Base UI and the old Tom Select behavior. A clean tap
+  outside still closes, and the desktop focusout path is unchanged.
+
+- **`combo_box`: chevron press reliably toggles the panel closed on
+  every platform.** Two interacting bugs: on desktop, pressing the
+  (non-focusable) chevron blurred the input, focusout closed the panel
+  mid-press, and the click then saw a closed panel and REOPENED it -
+  the toggle flashed instead of closing. On iOS no blur fires, but tap-
+  target correction rewrites the synthesized click's target and
+  coordinates onto the nearby text field, so the tap read as caret work
+  and nothing closed. Fix: chrome-vs-caret is decided at `pointerdown`
+  (which hit-tests the real touch point and is never rewritten), the
+  click consumes that record, and chrome presses are preventDefaulted
+  so the input never blurs mid-press. Input presses keep caret
+  behavior and never discard the active query.
+
+- **`combo_box` multiple: the highlight stays on the item just picked.**
+  Choosing used to reset the filter and re-home the highlight on the
+  first option - a disorienting jump when picking from the middle of the
+  list (Nic's on-device find). Now arrowing resumes from the item you
+  just toggled (Base UI/downshift grammar); the trigger variant's
+  multiple mode gets the same fix through the shared path.
 
 ### 4.11.3 - 2026-08-05
 

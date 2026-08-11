@@ -1418,5 +1418,105 @@ defmodule PetalComponents.FieldTest do
       assert html =~ "pc-combo-box--sm"
       assert html =~ "pc-combo-box__trigger"
     end
+
+    test "the label names the focusable control, not the wrapper div" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field type="combobox" name="city" value={nil} label="City" options={[{"Sydney", "syd"}]} />
+        """)
+
+      # for= used to point at @id, which lands on the combobox WRAPPER -
+      # a roleless div, so clicking the label focused nothing
+      assert html =~ ~s|for="combo_box_city-input"|
+      assert html =~ ~r/<input[^>]*id="combo_box_city-input"[^>]*aria-label="City"/s
+    end
+
+    test "the trigger anatomy's label points at the trigger button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field
+          type="combobox"
+          name="city"
+          value={nil}
+          label="City"
+          combo_variant="trigger"
+          options={[{"Sydney", "syd"}]}
+        />
+        """)
+
+      # a button is a labelable element, so this is a real association -
+      # and it is the control that is focusable while the panel is shut
+      assert html =~ ~s|for="combo_box_city-trigger"|
+      assert html =~ ~s|id="combo_box_city-trigger"|
+    end
+
+    test "an explicit id still owns the association" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field
+          type="combobox"
+          id="picker"
+          name="city"
+          value={nil}
+          label="City"
+          options={[{"Sydney", "syd"}]}
+        />
+        """)
+
+      assert html =~ ~s|for="picker-input"|
+      assert html =~ ~s|id="picker-input"|
+    end
+
+    test ~s|type="combobox" compiles without an attr warning| do
+      # ComponentCase only IMPORTS Phoenix.Component, so attr validation
+      # never runs in this suite - it runs in the consumer's module. Compile
+      # a caller the way a consumer project does and read stderr, or the
+      # missing values: entry goes unnoticed again (it shipped once).
+      warn = fn type ->
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Code.compile_string("""
+          defmodule FieldTypeProbe#{:erlang.unique_integer([:positive])} do
+            use Phoenix.Component
+            import PetalComponents.Field
+
+            def render(assigns) do
+              ~H\"\"\"
+              <.field type="#{type}" name="city" value={nil} label="City" options={[]} />
+              \"\"\"
+            end
+          end
+          """)
+        end)
+      end
+
+      refute warn.("combobox") =~ "must be one of"
+      # the probe itself has to be able to fail
+      assert warn.("not-a-real-type") =~ "must be one of"
+    end
+
+    test "a nil or empty name raises combo_box's own identity error, never a constant id" do
+      # the old fallback minted the same "combo_box_" id for EVERY
+      # identityless instance - two on a page meant duplicate ids and
+      # ambiguous label targets. With the fallback gone, the identityless
+      # call flows into resolve_id/1's deliberate ArgumentError: a form
+      # control with no identity is a programming error and says so,
+      # loudly, instead of silently colliding. (A field with the :name
+      # key MISSING entirely is a pre-existing KeyError for every type.)
+      for name <- [nil, ""] do
+        assigns = %{name: name}
+
+        assert_raise ArgumentError, ~r/needs an :id, a :field or a :name/, fn ->
+          rendered_to_string(~H"""
+          <.field type="combobox" name={@name} value={nil} label="City" options={[{"Sydney", "syd"}]} />
+          """)
+        end
+      end
+    end
   end
 end

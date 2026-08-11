@@ -32,7 +32,7 @@ defmodule PetalComponents.Field do
   attr :type, :string,
     default: "text",
     values:
-      ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
+      ~w(checkbox checkbox-group color combobox date datetime-local email file hidden month number password
                range range-dual radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
@@ -262,6 +262,28 @@ defmodule PetalComponents.Field do
       # :variant belongs to radio-card here - the combobox anatomy rides
       # combo_variant ("input" | "trigger")
       |> assign_new(:combo_variant, fn -> "input" end)
+      # combo_box derives its own id from the name when none is passed, and
+      # the label's for= has to name a control that actually exists - so
+      # resolve the id HERE and pass it down. One id, no way to drift.
+      # No identity at all (no id, no field, nil/empty name) resolves to
+      # nil so the call flows into combo_box's own ArgumentError - a loud
+      # programming error beats minting the same constant id for every
+      # instance on the page.
+      |> then(fn a ->
+        id =
+          a.id ||
+            case a.name do
+              name when name in [nil, ""] -> nil
+              name -> "combo_box_" <> String.replace(name, ~r/[^A-Za-z0-9_]/, "_")
+            end
+
+        a
+        |> assign(:combo_id, id)
+        |> assign(
+          :combo_label_for,
+          id && if(a.combo_variant == "trigger", do: "#{id}-trigger", else: "#{id}-input")
+        )
+      end)
       # the combobox appends [] itself for multiple; the hidden empty
       # input must post the SAME name or a bare-name field submits a
       # mixed shape (the FormField path appends [] upstream already)
@@ -278,13 +300,19 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
-      <.field_label required={@required} for={@id} class={@label_class}>
+      <%!-- @id lands on the combobox WRAPPER (a roleless div), so for= has to
+      name the focusable control inside it: the input, or the trigger button
+      in the trigger anatomy. Both are labelable elements, so clicking the
+      label focuses the real control. The label also rides down as the
+      combobox's accessible name. --%>
+      <.field_label required={@required} for={@combo_label_for} class={@label_class}>
         {@label}
       </.field_label>
       <input :if={@multiple} type="hidden" name={@hidden_name} value="" />
       <PetalComponents.ComboBox.combo_box
-        id={@id}
+        id={@combo_id}
         name={@name}
+        label={@label}
         value={@selected || @value}
         options={@options}
         multiple={@multiple}

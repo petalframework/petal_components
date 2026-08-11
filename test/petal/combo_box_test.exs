@@ -599,6 +599,185 @@ defmodule PetalComponents.ComboBoxTest do
     end
   end
 
+  describe "accessible name" do
+    test "label names the visible input, not the wrapper" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="c" name="country" label="Country" options={["Australia"]} />
+        """)
+
+      # the name has to sit on the role=combobox element itself - the
+      # wrapper is a roleless div and naming it names nothing
+      assert html =~ ~r/<input[^>]*id="c-input"[^>]*aria-label="Country"/s
+      refute html =~ ~r/<div[^>]*id="c"[^>]*aria-label=/s
+    end
+
+    test "the trigger anatomy names the button and the panel's search input" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="t"
+          name="country"
+          variant="trigger"
+          label="Country"
+          search_placeholder="Find a country…"
+          options={["Australia"]}
+        />
+        """)
+
+      assert html =~ ~r/<button[^>]*aria-label="Country"[^>]*data-pc-combo-trigger/s
+
+      assert html =~ ~r/<input[^>]*id="t-input"[^>]*aria-label="Find a country…"/s
+    end
+
+    test "no label leaves no empty aria-label behind" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="c" name="country" options={["Australia"]} />
+        """)
+
+      refute html =~ "aria-label=\"\""
+    end
+  end
+
+  describe "required" do
+    test "renders aria-required on the visible combobox and an error region to report into" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="c" name="country" label="Country" required options={["Australia"]} />
+        """)
+
+      # the state has to reach the a11y tree: the select carrying it is
+      # aria-hidden, so aria-required on the visible control is the only cue
+      assert html =~ ~r/<input[^>]*id="c-input"[^>]*aria-required="true"/s
+      assert html =~ ~r/<input[^>]*id="c-input"[^>]*aria-describedby="c-error"/s
+      assert html =~ ~r/<div[^>]*id="c-error"[^>]*role="alert"[^>]*hidden/s
+      assert html =~ "data-pc-combo-error"
+      # still the real constraint - the hook only takes over the reporting
+      assert html =~ ~r/<select[^>]*required/s
+    end
+
+    test "the trigger anatomy carries the same state" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="t" name="country" variant="trigger" required options={["Australia"]} />
+        """)
+
+      assert html =~ ~r/<button[^>]*aria-required="true"[^>]*data-pc-combo-trigger/s
+      assert html =~ ~s|aria-describedby="t-error"|
+    end
+
+    test "without required there is no error region and no dangling description" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="c" name="country" options={["Australia"]} />
+        """)
+
+      refute html =~ "data-pc-combo-error"
+      refute html =~ "aria-describedby"
+      refute html =~ "aria-required"
+    end
+  end
+
+  test "a disabled combobox ships no live clear button" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="c" name="city" clearable disabled value="syd" options={[{"Sydney", "syd"}]} />
+      """)
+
+    # the clear used to stay tabbable and clickable inside a disabled
+    # widget, and clearing it desynced the server (a disabled select posts
+    # nothing) - both anatomies disable it now
+    assert html =~ ~r/<button[^>]*pc-combo-box__clear[^>]*disabled/s
+
+    trigger =
+      rendered_to_string(~H"""
+      <.combo_box
+        id="t"
+        name="city"
+        variant="trigger"
+        clearable
+        disabled
+        value="syd"
+        options={[{"Sydney", "syd"}]}
+      />
+      """)
+
+    assert trigger =~ ~r/<button[^>]*pc-combo-box__trigger-clear[^>]*disabled/s
+  end
+
+  test "groups expose their heading instead of hiding it" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box
+        id="c"
+        name="city"
+        options={[{"Oceania", [{"Sydney", "syd"}]}, {"Europe", [{"Lisbon", "lis"}]}]}
+      />
+      """)
+
+    assert html =~ ~r/role="group"[^>]*aria-label="Oceania"/s
+    assert html =~ ~r/role="group"[^>]*aria-label="Europe"/s
+    # the heading used to be aria-hidden, so the sections vanished entirely
+    refute html =~ ~r/pc-combo-box__group-heading[^>]*aria-hidden/s
+  end
+
+  test "the empty row is panel chrome, not a listbox child" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box id="c" name="city" no_results_text="Nothing here" options={[{"Sydney", "syd"}]} />
+      """)
+
+    assert html =~ "Nothing here"
+    # a listbox may only contain options and groups; every other chrome
+    # region (loading, header, footer) already lives outside it
+    [_, after_list] = String.split(html, ~s|role="listbox"|, parts: 2)
+    [inside_list, outside_list] = String.split(after_list, "</div>\n", parts: 2)
+    refute inside_list =~ "pc-combo-box__empty"
+    assert outside_list =~ "pc-combo-box__empty"
+  end
+
+  test "max_items carries the cap announcement and the placeholder to restore" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.combo_box
+        id="c"
+        name="tags"
+        multiple
+        max_items={2}
+        placeholder="Build your stack…"
+        max_items_text="That's the lot"
+        options={["a", "b", "c"]}
+      />
+      """)
+
+    assert html =~ ~s|data-max-items="2"|
+    assert html =~ ~s|data-max-items-text="That&#39;s the lot"|
+    # the hook swaps the placeholder at the cap and restores from here, so
+    # a server-rendered placeholder stays the truth
+    assert html =~ ~s|data-placeholder-text="Build your stack…"|
+  end
+
   test "raises without any id source" do
     assigns = %{}
 

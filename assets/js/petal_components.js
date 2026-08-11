@@ -3690,6 +3690,11 @@ function sameValueMultiset(a, b) {
   return true;
 }
 
+// Slot content the panel must let the pointer focus - everything else in
+// there is chrome whose press has to keep focus in the search input.
+// [tabindex] covers hand-rolled widgets; the option rows have none.
+const FOCUSABLE_IN_PANEL = "input, select, textarea, button, [tabindex]";
+
 export const PetalComboBox = {
   mounted() {
     this.select = this.el.querySelector(".pc-combo-box__select");
@@ -3716,7 +3721,7 @@ export const PetalComboBox = {
       );
     }
     this.live = this.el.querySelector("[data-pc-combo-live]");
-    this.clearBtn = this.el.querySelector("[data-pc-combo-clear]");
+    this.errorEl = this.el.querySelector("[data-pc-combo-error]");
     this.query = "";
 
     this.onInput = (e) => {
@@ -3761,7 +3766,14 @@ export const PetalComboBox = {
     // focusout close would swallow the click before it lands; the search
     // input (trigger variant) must stay clickable for caret work
     this.onPanelPointerDown = (e) => {
-      if (e.target !== this.input) e.preventDefault();
+      if (e.target === this.input) return;
+      // ...but a focusable control in a :header / :footer slot needs the
+      // press to do its normal job: preventDefault here is what made a
+      // text field or select in a slot impossible to focus by pointer.
+      // The panel survives the focus move because onFocusOut only closes
+      // when focus lands OUTSIDE the component.
+      if (e.target.closest && e.target.closest(FOCUSABLE_IN_PANEL)) return;
+      e.preventDefault();
     };
     // Chrome-vs-caret is decided at POINTERDOWN, not click: pointer events
     // hit-test the real touch point, while iOS tap-target correction
@@ -3853,9 +3865,34 @@ export const PetalComboBox = {
     // clear from reading as a control/trigger toggle.
     this.onClearClick = (e) => {
       e.stopPropagation();
+      // the select carries the disabled state in both anatomies, so it is
+      // the one honest check - a disabled widget must not ship a working
+      // control, and a cleared-but-disabled select posts nothing, which
+      // would desync the server from what the user sees
+      if (this.select.disabled) return;
       this.select.value = "";
       this.dispatchChange();
       this.syncFromSelect();
+      if (this.trigger) {
+        // the trigger variant's search input lives INSIDE the panel, so
+        // clearing with it open parked focus on the trigger - outside the
+        // panel, with nothing driving it: arrows dead, and Escape read as
+        // "panel already closed" and leaked to the enclosing modal. Close
+        // it; focus belongs on the trigger either way.
+        this.closePanel();
+        this.trigger.focus();
+      } else {
+        this.input.focus();
+      }
+    };
+    // The hidden select is the form control, but it is inert and off
+    // screen: the browser can neither draw its validation bubble nor move
+    // focus to it, so a failed submit was silent - blocked, unexplained,
+    // focus on <body>. Take the report over. preventDefault only drops the
+    // (undrawable) native UI; the submit stays blocked, as required means.
+    this.onSelectInvalid = (e) => {
+      e.preventDefault();
+      this.showError(this.select.validationMessage);
       (this.trigger || this.input).focus();
     };
     this.onFocusOut = (e) => {
@@ -3866,7 +3903,8 @@ export const PetalComboBox = {
       // focus actually landed once it settles; closing a tick later is
       // imperceptible on the genuine Tab-away/click-away paths.
       if (this.el.contains(e.relatedTarget)) return;
-      setTimeout(() => {
+      clearTimeout(this.focusOutTimer);
+      this.focusOutTimer = setTimeout(() => {
         if (!this.el.contains(document.activeElement)) this.closePanel();
       }, 0);
     };
@@ -3904,7 +3942,17 @@ export const PetalComboBox = {
     // landing mid-press disarms it - multi-touch is a gesture (pinch,
     // two-finger scroll), never a deliberate dismiss tap.
     this.onOutsidePointerDown = (e) => {
-      this.activePointers.add(e.pointerId);
+      // A press that never gets its pointerup or pointercancel - a
+      // right-click handing the release to the context menu, a pointer
+      // lost to a system gesture - would sit in here forever and read as
+      // "a second finger is down" on every later press, disarming
+      // outside-tap dismissal for the rest of the open session. Age
+      // leftovers out at press time, the way the press verdicts do.
+      const now = performance.now();
+      for (const [id, at] of this.activePointers) {
+        if (now - at > 1000) this.activePointers.delete(id);
+      }
+      this.activePointers.set(e.pointerId, now);
       if (this.activePointers.size > 1) {
         this.outsidePress = null;
         return;
@@ -3928,7 +3976,13 @@ export const PetalComboBox = {
       }
     };
     // form.reset() resets the select; nothing else would re-sync the chrome
-    this.onFormReset = () => setTimeout(() => this.syncFromSelect(), 0);
+    this.onFormReset = () => {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = setTimeout(() => {
+        this.clearError();
+        this.syncFromSelect();
+      }, 0);
+    };
     this.onReposition = () => this.positionPanel();
 
     this.input.addEventListener("input", this.onInput);
@@ -3936,10 +3990,9 @@ export const PetalComboBox = {
     this.list.addEventListener("pointerover", this.onPointerOver);
     this.list.addEventListener("click", this.onListClick);
     this.panel.addEventListener("pointerdown", this.onPanelPointerDown);
-    this.clearButton = this.el.querySelector("[data-pc-combo-clear]");
-    if (this.clearButton) {
-      this.clearButton.addEventListener("click", this.onClearClick);
-    }
+    this.clearButton = null;
+    this.bindClearButton();
+    this.select.addEventListener("invalid", this.onSelectInvalid);
     this.pressVerdicts = new Map();
     this.suppressOpenAt = -Infinity;
     if (this.control) {
@@ -3958,6 +4011,8 @@ export const PetalComboBox = {
     this.form = this.select.form;
     if (this.form) this.form.addEventListener("reset", this.onFormReset);
     this.syncFromSelect();
+    // everything from here is a real state CHANGE, so it can be announced
+    this.announceReady = true;
   },
 
   updated() {
@@ -3968,6 +4023,14 @@ export const PetalComboBox = {
     const prevEvent = this.remoteEvent;
     const prevTarget = this.remoteTarget;
     this.freeText = this.el.hasAttribute("data-free-text");
+    this.multiple = this.select.multiple;
+    this.chips = this.el.querySelector("[data-pc-combo-chips]");
+    this.errorEl = this.el.querySelector("[data-pc-combo-error]");
+    // clearable={@editing} / multiple={@mode == :many} are ordinary server
+    // state: a clear button that appeared on this patch has no listener
+    // until we bind it, and a chips container we never re-read stays null
+    // so no chip ever renders
+    this.bindClearButton();
     this.remoteEvent = this.el.dataset.remoteEvent || null;
     this.remoteTarget = this.el.dataset.remoteTarget || null;
     if (this.remoteEvent !== prevEvent || this.remoteTarget !== prevTarget) {
@@ -4012,13 +4075,32 @@ export const PetalComboBox = {
     }
   },
 
+  // the clear button is conditionally rendered, so binding is not a
+  // one-shot: rebind whenever the node identity changes (a patch that
+  // added, removed or replaced it), never twice on the same node
+  bindClearButton() {
+    const next = this.el.querySelector("[data-pc-combo-clear]");
+    if (next === this.clearButton) return;
+    if (this.clearButton) {
+      this.clearButton.removeEventListener("click", this.onClearClick);
+    }
+    this.clearButton = next;
+    if (this.clearButton) {
+      this.clearButton.addEventListener("click", this.onClearClick);
+    }
+  },
+
   destroyed() {
-    if (!this.input) return;
+    // mounted() bails on half-mounted markup without binding anything, so
+    // teardown bails on exactly the same shape - dereferencing this.list
+    // here threw, and the throw left the document listeners attached
+    if (!this.select || !this.input || !this.panel || !this.list) return;
     this.input.removeEventListener("input", this.onInput);
     this.input.removeEventListener("keydown", this.onKeydown);
     this.list.removeEventListener("pointerover", this.onPointerOver);
     this.list.removeEventListener("click", this.onListClick);
     this.panel.removeEventListener("pointerdown", this.onPanelPointerDown);
+    this.select.removeEventListener("invalid", this.onSelectInvalid);
     if (this.control) {
       this.control.removeEventListener(
         "pointerdown",
@@ -4035,6 +4117,11 @@ export const PetalComboBox = {
     this.el.removeEventListener("focusout", this.onFocusOut);
     clearTimeout(this.labelPatchTimer);
     clearTimeout(this.remoteTimer);
+    // the deferred close and the post-reset re-sync both reach into the
+    // tree they were queued against - torn down in the same tick as a
+    // focusout or a reset, they would run against a detached one
+    clearTimeout(this.focusOutTimer);
+    clearTimeout(this.resetTimer);
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
@@ -4084,7 +4171,8 @@ export const PetalComboBox = {
     this.input.setAttribute("aria-expanded", "true");
     if (this.trigger) this.trigger.setAttribute("aria-expanded", "true");
     this.outsidePress = null;
-    this.activePointers = new Set();
+    // pointerId -> the time it went down, so a stranded press can age out
+    this.activePointers = new Map();
     document.addEventListener("pointerdown", this.onOutsidePointerDown, true);
     document.addEventListener("pointerup", this.onOutsidePointerUp, true);
     document.addEventListener(
@@ -4180,10 +4268,42 @@ export const PetalComboBox = {
     return this.multiple && !isNaN(max) && this.selectedValues().length >= max;
   },
 
+  // At the cap the unchosen options stop being choosable, and CSS alone
+  // only made them LOOK that way: visibleItems()/navItems() read
+  // data-disabled, screen readers read aria-disabled, so without both the
+  // keyboard walked onto an option that Enter then silently refused.
+  // data-max-blocked keeps OUR capping separable from a server-rendered
+  // per-option `disabled: true`, which must survive the cap lifting.
+  applyCap(capped) {
+    for (const item of this.items()) {
+      const blocked = capped && item.getAttribute("aria-selected") !== "true";
+      if (blocked && !item.hasAttribute("data-disabled")) {
+        item.setAttribute("data-max-blocked", "");
+        item.setAttribute("data-disabled", "true");
+        item.setAttribute("aria-disabled", "true");
+      } else if (!blocked && item.hasAttribute("data-max-blocked")) {
+        item.removeAttribute("data-max-blocked");
+        item.removeAttribute("data-disabled");
+        item.removeAttribute("aria-disabled");
+      }
+    }
+  },
+
   chosenItem() {
     const value = this.select.value;
     if (!value) return null;
     return this.items().find((i) => i.dataset.value === value) || null;
+  },
+
+  // the chip row is the visual order of record; the select is only the
+  // fallback for a multiple combobox rendered without a chips container
+  lastChipValue() {
+    if (this.chips) {
+      const chips = this.chips.querySelectorAll("[data-pc-combo-chip]");
+      return chips.length ? chips[chips.length - 1].dataset.value : null;
+    }
+    const values = this.selectedValues();
+    return values.length ? values[values.length - 1] : null;
   },
 
   restoreDisplay() {
@@ -4334,6 +4454,11 @@ export const PetalComboBox = {
 
   syncFromSelect() {
     const values = this.selectedValues();
+    // a satisfied constraint retires the message the hook drew for it -
+    // .validity is the reading that does NOT re-fire the invalid event
+    if (this.errorEl && !this.errorEl.hidden && this.select.validity.valid) {
+      this.clearError();
+    }
     for (const i of this.items()) {
       i.setAttribute(
         "aria-selected",
@@ -4344,10 +4469,26 @@ export const PetalComboBox = {
     if (this.multiple) {
       this.syncChips();
       const capped = this.maxReached();
+      // the transition is tracked in hook state, not read back off the
+      // attribute: a patch can rewrite the root element's attributes, and
+      // that must not read as "the cap was just reached" all over again
+      const wasCapped = this.capped === true;
+      this.capped = capped;
       this.el.toggleAttribute("data-max-reached", capped);
-      // the placeholder rests at the cap via CSS on [data-max-reached] -
-      // the hook never touches the attribute, so a server-rendered
-      // placeholder (including live changes to it) is always the truth
+      this.applyCap(capped);
+      // "invites more picks while every option is dimmed" was the reason
+      // the placeholder used to be blanked to transparent at the cap - but
+      // that left the field looking empty while a screen reader still read
+      // the placeholder aloud. Say the same thing both ways instead. The
+      // server's placeholder rides in data-placeholder-text, so it stays
+      // the truth to return to (a patch updates it even while capped).
+      const base = this.input.dataset.placeholderText;
+      const maxText = this.live && this.live.dataset.maxItemsText;
+      if (base != null) this.input.placeholder = (capped && maxText) || base;
+      // reaching the cap is a state change worth hearing once - but a
+      // combobox that MOUNTS at its cap has not just changed, and a page
+      // full of them announcing on load would be noise
+      if (capped && !wasCapped && this.announceReady) this.announceMax();
     }
     // :selected slot content is server-rendered; the label carries the
     // values it was rendered for. When they match the selection (the
@@ -4438,7 +4579,13 @@ export const PetalComboBox = {
     this.ensureOption(value, item.dataset.label || value);
     if (this.multiple) {
       const selected = this.selectedValues().includes(value);
-      if (!selected && this.maxReached()) return;
+      if (!selected && this.maxReached()) {
+        // capped options are aria-disabled so the keyboard should never
+        // land here - a pointer or assistive tech still can, and refusing
+        // in silence was the whole complaint
+        this.announceMax();
+        return;
+      }
       this.setSelected(value, !selected);
       // the panel stays open for more picks; the query resets so the next
       // keystrokes start a fresh search. The highlight stays on the item
@@ -4490,10 +4637,13 @@ export const PetalComboBox = {
     )) {
       stale.remove();
     }
+    // rows go before the create row when there is one, otherwise at the
+    // end of the listbox - the empty row is panel chrome and lives
+    // outside the list, so it is not an anchor insertBefore can use
     const anchor =
-      (this.createRow && this.createRow.parentElement === this.list
+      this.createRow && this.createRow.parentElement === this.list
         ? this.createRow
-        : null) || this.el.querySelector("[data-pc-combo-empty]");
+        : null;
     for (const result of results) {
       const row = document.createElement("div");
       row.className = "pc-combo-box__option";
@@ -4529,7 +4679,10 @@ export const PetalComboBox = {
       this.choose(existing);
       return;
     }
-    if (this.multiple && this.maxReached()) return;
+    if (this.multiple && this.maxReached()) {
+      this.announceMax();
+      return;
+    }
     const option = this.ensureOption(raw, raw);
     if (this.multiple) {
       option.selected = true;
@@ -4552,7 +4705,40 @@ export const PetalComboBox = {
     if (!this.live) return;
     const label = this.live.dataset.resultsLabel || "results";
     const empty = this.live.dataset.noResultsText || "No results found";
-    this.live.textContent = count === 0 ? empty : `${count} ${label}`;
+    const base = count === 0 ? empty : `${count} ${label}`;
+    // filter() runs after every pick, so a cap message written on its own
+    // would be overwritten a tick later by the result count. While the cap
+    // is on, the two belong together anyway: a bare count invites picks
+    // that are then refused.
+    const max = this.capped && this.live.dataset.maxItemsText;
+    this.live.textContent = max ? `${max}. ${base}` : base;
+  },
+
+  // A blocked pick used to be pure silence: choose() returned early and
+  // nothing spoke. A live region only speaks on a CHANGE, though, and a
+  // second blocked press carries the identical string - so alternate an
+  // invisible zero-width space to guarantee every press is heard.
+  announceMax() {
+    const text = this.live && this.live.dataset.maxItemsText;
+    if (!text) return;
+    this.live.textContent =
+      this.live.textContent === text ? `${text}\u200b` : text;
+  },
+
+  // The browser writes validationMessage in the user's own locale - the
+  // right message to show, and nothing new to translate.
+  showError(message) {
+    (this.trigger || this.input).setAttribute("aria-invalid", "true");
+    if (!this.errorEl) return;
+    this.errorEl.textContent = message;
+    this.errorEl.hidden = false;
+  },
+
+  clearError() {
+    (this.trigger || this.input).removeAttribute("aria-invalid");
+    if (!this.errorEl) return;
+    this.errorEl.textContent = "";
+    this.errorEl.hidden = true;
   },
 
   filter() {
@@ -4701,8 +4887,12 @@ export const PetalComboBox = {
         break;
       case "Backspace": {
         if (!this.multiple || this.input.value !== "") return;
-        const values = this.selectedValues();
-        if (values.length) this.setSelected(values[values.length - 1], false);
+        // Backspace removes the chip the user sees LAST. selectedValues()
+        // is the select's DOM order, which diverges from the chip row the
+        // moment someone picks out of option order (chips follow pick
+        // order by design) - reading it deleted a chip from the middle.
+        const value = this.lastChipValue();
+        if (value != null) this.setSelected(value, false);
         break;
       }
       case "Enter": {
