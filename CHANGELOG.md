@@ -1,4 +1,29 @@
 # Changelog
+### 4.14.0 - 2026-08-11
+
+#### Added
+
+- **New `border_plasma` effect: a glowing border that breathes in place,
+  or sweeps a conic gradient around the ring.** `border_beam` sends one
+  travelling light around the edge, which reads as motion crossing the
+  screen. Plasma lights the whole ring instead, so it pulls the eye
+  without dragging it - the treatment you want on a pricing card or a
+  hero CTA that sits next to body copy. `mode="pulse"` is the default
+  breath; `mode="rotate"` spins a conic arc for something busier. Three
+  `intensity` steps (subtle, medium, strong) set how hard the ring burns
+  and how far the bloom carries, and `spread` overrides the bloom
+  distance on its own. Unlike the rest of the effects family, the
+  default colours come off the theme rail (`--color-primary-500` and
+  `--color-secondary-500`) rather than hard-coded hexes, so a plasma
+  picks up a consumer's brand without being told - `color_from` and
+  `color_to` still take literals when you want them. Pure CSS: a
+  registered `--pc-plasma-angle` drives the sweep and a registered
+  `--pc-plasma-t` drives the breath, both masked to the border ring with
+  the padding-box trick. No hook, nothing to wire up. Reduced motion is
+  handled by never starting the animation rather than hiding the effect,
+  and the breath rests at full brightness, so those users get a static
+  lit ring instead of a dead border.
+
 ### 4.13.0 - 2026-08-11
 
 #### Fixed

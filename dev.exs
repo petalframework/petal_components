@@ -128,6 +128,24 @@ defmodule Dev.Layouts do
             document.head.appendChild(style);
             setTimeout(() => style.remove(), 250);
           });
+          // Playground-only economy: border_plasma repaints on the main
+          // thread every frame, and the demo page runs many instances at
+          // once - a worst case no real app ships. Pause any instance
+          // that scrolls out of view (the reference library's own driver
+          // does the same). The shipped component stays pure CSS.
+          const plasmaPause = new IntersectionObserver((entries) => {
+            for (const e of entries) {
+              e.target.style.setProperty(
+                "--pc-plasma-play",
+                e.isIntersecting ? "running" : "paused"
+              );
+            }
+          }, { rootMargin: "100px" });
+          const watchPlasmas = () => {
+            document.querySelectorAll(".pc-border-plasma").forEach((el) => plasmaPause.observe(el));
+          };
+          watchPlasmas();
+          document.addEventListener("phx:update", watchPlasmas);
         </script>
         {@inner_content}
       </body>
@@ -302,6 +320,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "aurora", name: "Aurora", ready: true},
         %{slug: "border-beam", name: "Border beam", ready: true},
+        %{slug: "border-plasma", name: "Border plasma", ready: true},
         %{slug: "meteors", name: "Meteors", ready: true},
         %{slug: "shine-border", name: "Shine border", ready: true},
         %{slug: "marquee", name: "Marquee", ready: true},
@@ -783,6 +802,13 @@ defmodule Dev.PlaygroundLive do
          size: "60px",
          glow: false
        },
+       plasma: %{
+         mode: "pulse",
+         intensity: "medium",
+         duration: "2.3s",
+         glow: "outside",
+         palette: "rainbow"
+       },
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1004,6 +1030,27 @@ defmodule Dev.PlaygroundLive do
            :progress,
            &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)}
          )}
+
+  def handle_event("ctl_plasma", %{"k" => "mode", "v" => v}, socket) when v in ~w(pulse rotate),
+    do: {:noreply, update(socket, :plasma, &%{&1 | mode: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "intensity", "v" => v}, socket)
+      when v in ~w(subtle medium strong),
+      do: {:noreply, update(socket, :plasma, &%{&1 | intensity: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "duration", "v" => v}, socket) when v in ~w(2.3s 4s 6s),
+    do: {:noreply, update(socket, :plasma, &%{&1 | duration: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "glow", "v" => v}, socket)
+      when v in ~w(outside inside both),
+      do: {:noreply, update(socket, :plasma, &%{&1 | glow: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "palette", "v" => v}, socket)
+      when v in ~w(rainbow brand mono ocean sunset),
+      do: {:noreply, update(socket, :plasma, &%{&1 | palette: v})}
+
+  def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
+    do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -2018,6 +2065,21 @@ defmodule Dev.PlaygroundLive do
     "<.meteors #{Enum.join(attrs, " ")} />"
   end
 
+  defp plasma_snippet(pl) do
+    attrs =
+      [
+        pl.mode != "pulse" && ~s(mode="#{pl.mode}"),
+        pl.intensity != "medium" && ~s(intensity="#{pl.intensity}"),
+        pl.duration != "2.3s" && ~s(duration="#{pl.duration}"),
+        pl.glow != "outside" && ~s(glow="#{pl.glow}"),
+        pl.palette != "rainbow" && ~s(palette="#{pl.palette}")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.border_plasma" | attrs], " ")
+    open <> ">\n  <div class=\"p-8\">...</div>\n</.border_plasma>"
+  end
+
   defp beam_snippet(bm) do
     attrs =
       [
@@ -2920,6 +2982,213 @@ defmodule Dev.PlaygroundLive do
         docs can't drift. Select, checkbox, radio and switch are the same field surface;
         their pages render the rest of the registry.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "border-plasma"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Border plasma</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Whispery lines of light warp along the rim, whole corners swell and
+        dissipate on their own clocks, and a soft halo spills past the border
+        onto the page - or set clip and nothing leaves the silhouette. Rotate
+        sweeps a neutral light around the rim that wakes the colours as it
+        passes. Pure CSS; rainbow by default, or on-brand via palette="brand".
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-14">
+          <.border_plasma
+            id={"pg-plasma-#{@plasma.mode}-#{@plasma.intensity}-#{@plasma.duration}-#{@plasma.glow}-#{@plasma.palette}"}
+            mode={@plasma.mode}
+            intensity={@plasma.intensity}
+            duration={@plasma.duration}
+            glow={@plasma.glow}
+            palette={@plasma.palette}
+            class="w-full max-w-sm"
+          >
+            <div class="p-8">
+              <div class="text-xs font-medium tracking-wide uppercase text-gray-400">New in 4.14</div>
+              <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Border plasma
+              </div>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Light pools on the border and leaks into the panel, instead of one dot running around it.
+              </p>
+            </div>
+          </.border_plasma>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Mode"
+              value={@plasma.mode}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={m <- ~w(pulse rotate)} value={m} phx-value-k="mode" phx-value-v={m}>
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">intensity</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Intensity"
+              value={@plasma.intensity}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={i <- ~w(subtle medium strong)}
+                value={i}
+                phx-value-k="intensity"
+                phx-value-v={i}
+              >
+                {i}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">duration</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Duration"
+              value={@plasma.duration}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={d <- ~w(2.3s 4s 6s)} value={d} phx-value-k="duration" phx-value-v={d}>
+                {d}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">glow</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Glow"
+              value={@plasma.glow}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={g <- ~w(outside inside both)} value={g} phx-value-k="glow" phx-value-v={g}>
+                {g}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">palette</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Palette"
+              value={@plasma.palette}
+              on_change="ctl_plasma"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={p <- ~w(rainbow brand mono ocean sunset)}
+                value={p}
+                phx-value-k="palette"
+                phx-value-v={p}
+              >
+                {p}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          both modes hold still for reduced-motion users - the ring stays lit, it just stops moving
+        </p>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{plasma_snippet(@plasma)}</code></pre>
+
+      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
+        Three glows, three jobs
+      </div>
+      <div class="grid gap-6 px-6 py-14 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
+        <div class="sm:col-span-2">
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            glow="outside" - a prompt panel with the halo on the page
+          </div>
+          <.border_plasma class="max-w-xl mx-auto">
+            <div class="p-5">
+              <.icon name="hero-at-symbol" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <p class="mt-3 text-gray-400 dark:text-gray-500">Build anything...</p>
+              <div class="flex items-center gap-2 mt-4">
+                <span class="px-3 py-1 text-sm rounded-full text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-800">
+                  Agent
+                </span>
+                <span class="px-3 py-1 text-sm rounded-full text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-800">
+                  Auto
+                </span>
+              </div>
+            </div>
+          </.border_plasma>
+        </div>
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            glow="inside" - a working card, silhouette crisp
+          </div>
+          <.border_plasma glow="inside">
+            <div class="p-5">
+              <.shimmer_text class="text-gray-400 dark:text-gray-500">Working...</.shimmer_text>
+              <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <li
+                  :for={
+                    t <- [
+                      "Generate colour palettes",
+                      "Recommend font pairings",
+                      "Create layout templates"
+                    ]
+                  }
+                  class="flex items-center gap-2"
+                >
+                  <span class="inline-block w-3.5 h-3.5 border border-dashed rounded-full border-gray-400"></span>
+                  {t}
+                </li>
+              </ul>
+            </div>
+          </.border_plasma>
+        </div>
+        <div class="flex items-center justify-center">
+          <div>
+            <div class="mb-3 text-xs text-center text-gray-400 dark:text-gray-500">
+              glow="both" on a pill CTA
+            </div>
+            <.border_plasma glow="both" border_radius="9999px" intensity="strong" class="inline-block">
+              <div class="px-7 py-2.5 font-medium text-center text-gray-900 dark:text-white">
+                Subscribe
+              </div>
+            </.border_plasma>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.BorderPlasma} function={:border_plasma} />
     </div>
     """
   end

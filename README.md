@@ -228,6 +228,7 @@ Petal Components stands on other people's work:
 - [Tailwind CSS](https://tailwindcss.com/) - every component is styled with Tailwind v4.
 - [Apache ECharts](https://echarts.apache.org/) - the engine under `<.chart>`.
 - [Heroicons](https://heroicons.com/) - the icon set under `<.icon>`.
+- [border-beam](https://github.com/Jakubantalik/border-beam) by [Jakub Antalik](https://github.com/Jakubantalik) (MIT) - `<.border_plasma>`'s pulse effect ports its gradient geometry, oscillator tuning and layer treatment.
 
 ## License
 

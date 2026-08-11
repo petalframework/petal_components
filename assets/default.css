@@ -5379,6 +5379,450 @@
   }
 
 
+  /* Border Plasma */
+  /* Border plasma. The pulse gradient geometry, oscillator tuning and layer
+     treatment are ported from border-beam by Jakub Antalik (MIT):
+     https://github.com/Jakubantalik/border-beam - credited in the README. */
+  .pc-border-plasma {
+    @apply relative border-gray-200 dark:border-gray-400/17;
+    border-style: solid;
+    border-width: var(--pc-plasma-border-width, 1px);
+    border-radius: var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem));
+    isolation: isolate;
+    --pc-plasma-scale: 1;
+  }
+
+  /* Palettes: opaque colours only - alpha is the quadrant oscillators' job.
+     Rainbow is the reference's own eight (MIT), brand derives all eight
+     from the theme pair, mono keeps the architecture in grayscale. */
+  .pc-border-plasma--rainbow {
+    --pc-plasma-c1: rgb(255 50 100);
+    --pc-plasma-c2: rgb(255 120 40);
+    --pc-plasma-c3: rgb(240 50 180);
+    --pc-plasma-c4: rgb(180 40 240);
+    --pc-plasma-c5: rgb(100 70 255);
+    --pc-plasma-c6: rgb(40 140 255);
+    --pc-plasma-c7: rgb(50 200 80);
+    --pc-plasma-c8: rgb(30 185 170);
+  }
+
+  .pc-border-plasma--brand {
+    --pc-plasma-from: var(--color-primary-500);
+    --pc-plasma-to: var(--color-secondary-500);
+    --pc-plasma-c1: var(--pc-plasma-from);
+    --pc-plasma-c2: color-mix(in oklch, var(--pc-plasma-from), var(--pc-plasma-to) 25%);
+    --pc-plasma-c3: color-mix(in oklch, var(--pc-plasma-from), var(--pc-plasma-to) 50%);
+    --pc-plasma-c4: color-mix(in oklch, var(--pc-plasma-from), var(--pc-plasma-to) 75%);
+    --pc-plasma-c5: var(--pc-plasma-to);
+    --pc-plasma-c6: color-mix(in oklch, var(--pc-plasma-to), var(--pc-plasma-from) 35%);
+    --pc-plasma-c7: color-mix(in oklch, var(--pc-plasma-to), white 25%);
+    --pc-plasma-c8: color-mix(in oklch, var(--pc-plasma-from), white 25%);
+  }
+
+  .pc-border-plasma--ocean {
+    --pc-plasma-c1: rgb(60 140 200);
+    --pc-plasma-c2: rgb(100 80 220);
+    --pc-plasma-c3: rgb(120 70 240);
+    --pc-plasma-c4: rgb(90 80 220);
+    --pc-plasma-c5: rgb(80 100 255);
+    --pc-plasma-c6: rgb(70 110 255);
+    --pc-plasma-c7: rgb(50 120 180);
+    --pc-plasma-c8: rgb(110 90 230);
+  }
+
+  .pc-border-plasma--sunset {
+    --pc-plasma-c1: rgb(255 180 50);
+    --pc-plasma-c2: rgb(255 80 60);
+    --pc-plasma-c3: rgb(255 60 80);
+    --pc-plasma-c4: rgb(255 120 60);
+    --pc-plasma-c5: rgb(255 100 80);
+    --pc-plasma-c6: rgb(255 200 50);
+    --pc-plasma-c7: rgb(255 150 40);
+    --pc-plasma-c8: rgb(255 90 70);
+  }
+
+  .pc-border-plasma--mono {
+    --pc-plasma-c1: rgb(200 200 200);
+    --pc-plasma-c2: rgb(160 160 160);
+    --pc-plasma-c3: rgb(220 220 220);
+    --pc-plasma-c4: rgb(150 150 150);
+    --pc-plasma-c5: rgb(190 190 190);
+    --pc-plasma-c6: rgb(170 170 170);
+    --pc-plasma-c7: rgb(210 210 210);
+    --pc-plasma-c8: rgb(140 140 140);
+  }
+
+  /* Intensity is one multiplier, like the reference's --beam-strength. */
+  .pc-border-plasma--subtle {
+    --pc-plasma-strength: 0.6;
+  }
+
+  .pc-border-plasma--medium {
+    --pc-plasma-strength: 1;
+  }
+
+  .pc-border-plasma--strong {
+    --pc-plasma-strength: 1.45;
+  }
+
+  .pc-border-plasma__stroke,
+  .pc-border-plasma__core,
+  .pc-border-plasma__bloom,
+  .pc-border-plasma__sheen {
+    @apply pointer-events-none absolute;
+    animation-play-state: var(--pc-plasma-play, running);
+  }
+
+  /* THE FIELD IS DECLARED HERE, ON THE ANIMATED LAYERS, DELIBERATELY. A
+     custom property substitutes its inner var()s on the element that
+     DECLARES it - declared on the root, the oscillators would resolve
+     where they never animate and the whole pulse freezes (shipped that
+     bug twice; never again). */
+  .pc-border-plasma__stroke,
+  .pc-border-plasma__core {
+    /* Every layer shares one field: eight long, THIN ellipses hugging the
+       edges (80x19, 74x11...), ported stop-for-stop from the reference's
+       runtime CSS. You never see an ellipse outline - only its intersection
+       with a hairline ring, an edge band, or a blur - which is why the
+       light reads as whispery warping lines, not blobs. Each stop's alpha
+       rides its QUADRANT's opacity oscillator, so whole corners of light
+       swell and die independently. */
+    --pc-plasma-field: radial-gradient(ellipse calc(92px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(34px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx1, 0px)) calc(0% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c1) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(24px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(78px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(27% + var(--pc-plasma-bx3, 0px)) calc(0% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(150px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(22px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(50% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(85px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(20px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(73% + var(--pc-plasma-bx2, 0px)) calc(-1% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c2) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(17px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(66px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx3, 0px)) calc(33% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(64px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(18px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(100% + var(--pc-plasma-bx1, 0px)) calc(33% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-tr, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(22px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(57px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(101% + var(--pc-plasma-bx1, 0px)) calc(72% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c4) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(97px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(23px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx2, 0px)) calc(100% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c5) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(30px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(64px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(67% + var(--pc-plasma-bx3, 0px)) calc(100% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c3) calc(var(--pc-plasma-q-br, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(180px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(26px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(45% + var(--pc-plasma-bx1, 0px)) calc(101% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(69px * var(--pc-plasma-bw3, 1) * var(--pc-plasma-scale, 1)) calc(38px * var(--pc-plasma-bh3, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(24% + var(--pc-plasma-bx3, 0px)) calc(101% + var(--pc-plasma-by3, 0px)), color-mix(in srgb, var(--pc-plasma-c6) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(20px * var(--pc-plasma-bw1, 1) * var(--pc-plasma-scale, 1)) calc(60px * var(--pc-plasma-bh1, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(0% + var(--pc-plasma-bx1, 0px)) calc(60% + var(--pc-plasma-by1, 0px)), color-mix(in srgb, var(--pc-plasma-c7) calc(var(--pc-plasma-q-bl, 1) * 100%), transparent), transparent),
+      radial-gradient(ellipse calc(15px * var(--pc-plasma-bw2, 1) * var(--pc-plasma-scale, 1)) calc(48px * var(--pc-plasma-bh2, 1) * var(--pc-plasma-bgh, 1) * var(--pc-plasma-scale, 1)) at calc(-1% + var(--pc-plasma-bx2, 0px)) calc(28% + var(--pc-plasma-by2, 0px)), color-mix(in srgb, var(--pc-plasma-c8) calc(var(--pc-plasma-q-tl, 1) * 100%), transparent), transparent);
+  }
+
+  /* THE STROKE: the field sliced through a hairline ring (the xor mask).
+     Bright and crisp - this is the warping coloured line on the rim. */
+  .pc-border-plasma__stroke {
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--pc-plasma-border-width, 1px);
+    clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-image: var(--pc-plasma-field);
+    opacity: calc(0.78 * var(--pc-plasma-strength, 1));
+    filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+  }
+
+  /* THE CORE GLOW (halo variant): the same field hung BEHIND the panel,
+     10px proud of it, softly blurred and squashed so it hugs the shape.
+     z-index -1 paints it under the content but over the page. */
+  .pc-border-plasma__core {
+    inset: -10px;
+    z-index: -1;
+    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 10px);
+    background-image: var(--pc-plasma-field);
+    transform: scale(0.95, 0.9);
+    opacity: calc(0.44 * var(--pc-plasma-strength, 1));
+    filter: blur(6px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+  }
+
+  /* THE OUTER HALO (halo variant): the wide bloom, 30px proud, heavily
+     blurred - the spectacular glow that spills onto the page. */
+  .pc-border-plasma__bloom {
+    inset: -30px;
+    z-index: -1;
+    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 30px);
+    background-image:
+      radial-gradient(ellipse calc(110px * var(--pc-plasma-scale, 1)) calc(30px * var(--pc-plasma-scale, 1)) at 27% 3%, color-mix(in srgb, var(--pc-plasma-c1) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(100px * var(--pc-plasma-scale, 1)) calc(20px * var(--pc-plasma-scale, 1)) at 73% 1%, color-mix(in srgb, var(--pc-plasma-c2) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(26px * var(--pc-plasma-scale, 1)) calc(62px * var(--pc-plasma-scale, 1)) at 100% 33%, color-mix(in srgb, var(--pc-plasma-c3) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(30px * var(--pc-plasma-scale, 1)) calc(56px * var(--pc-plasma-scale, 1)) at 101% 72%, color-mix(in srgb, var(--pc-plasma-c4) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(120px * var(--pc-plasma-scale, 1)) calc(22px * var(--pc-plasma-scale, 1)) at 67% 99%, color-mix(in srgb, var(--pc-plasma-c5) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(88px * var(--pc-plasma-scale, 1)) calc(32px * var(--pc-plasma-scale, 1)) at 24% 99%, color-mix(in srgb, var(--pc-plasma-c6) 77%, transparent), transparent),
+      radial-gradient(ellipse calc(28px * var(--pc-plasma-scale, 1)) calc(58px * var(--pc-plasma-scale, 1)) at 0% 60%, color-mix(in srgb, var(--pc-plasma-c7) 77%, transparent), transparent);
+    transform: scale(0.95, 0.9);
+    opacity: calc(0.36 * var(--pc-plasma-strength, 1));
+    filter: blur(22.5px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+  }
+
+  /* CLIP VARIANT: nothing leaves the silhouette. The stroke dims to the
+     reference's inner-card treatment, the core becomes the edge-band wash
+     (white fading out 28px from every edge, plus white corner accents),
+     and the bloom becomes the ring itself blurred, all clipped. */
+  .pc-border-plasma--glow-inside > .pc-border-plasma__stroke {
+    opacity: calc(1.54 * var(--pc-plasma-strength, 1));
+    filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+  }
+
+  .pc-border-plasma--glow-inside > .pc-border-plasma__core,
+  .pc-border-plasma--glow-both > .pc-border-plasma__core {
+    z-index: 1;
+    inset: 0;
+    border-radius: inherit;
+    clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+    transform: none;
+    background-image:
+      var(--pc-plasma-field),
+      radial-gradient(ellipse 90px 90px at 0% 0%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-tl, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 100% 0%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-tr, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 0% 100%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-bl, 1))), transparent 85%),
+      radial-gradient(ellipse 90px 90px at 100% 100%, rgb(255 255 255 / calc(0.12 * var(--pc-plasma-q-br, 1))), transparent 85%);
+    -webkit-mask-image:
+      linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+      linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+    mask-image:
+      linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+      linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+    opacity: calc(0.44 * var(--pc-plasma-strength, 1));
+    filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+  }
+
+  .pc-border-plasma--glow-inside > .pc-border-plasma__bloom {
+    z-index: 2;
+    inset: 0;
+    border-radius: inherit;
+    clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+    transform: none;
+    padding: var(--pc-plasma-border-width, 1px);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: calc(0.66 * var(--pc-plasma-strength, 1));
+    filter: blur(8px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+  }
+
+  /* Rotate's neutral sweeping light (unchanged from the arc port). */
+  .pc-border-plasma__sheen {
+    inset: 0;
+    border-radius: inherit;
+    clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+    padding: calc(var(--pc-plasma-border-width, 1px) + 1px);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-image: conic-gradient(
+      from var(--pc-plasma-angle, 0deg),
+      transparent 0%,
+      transparent 54%,
+      rgb(255 255 255 / 0.06) 57%,
+      rgb(255 255 255 / 0.18) 60%,
+      rgb(255 255 255 / 0.36) 63%,
+      rgb(255 255 255 / 0.45) 66%,
+      rgb(255 255 255 / 0.36) 69%,
+      rgb(255 255 255 / 0.18) 72%,
+      rgb(255 255 255 / 0.06) 75%,
+      transparent 78%,
+      transparent 100%
+    );
+    filter: blur(2px);
+    mix-blend-mode: plus-lighter;
+    display: none;
+  }
+
+  /* The oscillator table, ported 1:1 from the reference's driver: three
+     size pairs, three drift pairs, a global height wave, and FOUR staggered
+     quadrant opacities (each corner's light swells and dies on its own
+     clock - negative delays start them mid-phase). Periods expressed as
+     multiples of the duration attr exactly as the reference scales them.
+     The hue revolution stays on its own fixed 14s clock. */
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-border-plasma--pulse > .pc-border-plasma__stroke,
+    .pc-border-plasma--pulse > .pc-border-plasma__core,
+    .pc-border-plasma--pulse > .pc-border-plasma__bloom {
+      animation:
+        pc-plasma-bw1 calc(var(--pc-plasma-duration, 4s) * 2.5) ease-in-out infinite,
+        pc-plasma-bh1 calc(var(--pc-plasma-duration, 4s) * 3.51) ease-in-out infinite,
+        pc-plasma-bd1 calc(var(--pc-plasma-duration, 4s) * 1.6) ease-in-out infinite,
+        pc-plasma-bw2 calc(var(--pc-plasma-duration, 4s) * 3.06) ease-in-out infinite,
+        pc-plasma-bh2 calc(var(--pc-plasma-duration, 4s) * 2.25) ease-in-out infinite,
+        pc-plasma-bd2 calc(var(--pc-plasma-duration, 4s) * 1.88) ease-in-out infinite,
+        pc-plasma-bw3 calc(var(--pc-plasma-duration, 4s) * 2.73) ease-in-out infinite,
+        pc-plasma-bh3 calc(var(--pc-plasma-duration, 4s) * 3.9) ease-in-out infinite,
+        pc-plasma-bd3 calc(var(--pc-plasma-duration, 4s) * 1.45) ease-in-out infinite,
+        pc-plasma-bgh calc(var(--pc-plasma-duration, 4s) * 1.04) ease-in-out infinite,
+        pc-plasma-q-tl var(--pc-plasma-duration, 4s) ease-in-out infinite,
+        pc-plasma-q-tr calc(var(--pc-plasma-duration, 4s) * 1.32) ease-in-out calc(var(--pc-plasma-duration, 4s) * -0.28) infinite,
+        pc-plasma-q-bl calc(var(--pc-plasma-duration, 4s) * 0.84) ease-in-out calc(var(--pc-plasma-duration, 4s) * -0.55) infinite,
+        pc-plasma-q-br calc(var(--pc-plasma-duration, 4s) * 1.58) ease-in-out calc(var(--pc-plasma-duration, 4s) * -0.83) infinite,
+        pc-plasma-hue-cycle var(--pc-plasma-hue-period, 14s) linear infinite;
+    }
+
+    /* Rotate, ported from the reference's runtime CSS: the rim is DARK
+       except one huge soft window - half the perimeter wide, with long
+       ramps - that laps the border in ~2s, revealing the STATIC colour
+       field and a white highlight riding inside it. No oscillators; the
+       sweep is the whole motion, which is what makes it read as one
+       fluid beam instead of pockets igniting. */
+    .pc-border-plasma--rotate > .pc-border-plasma__stroke {
+      background-image:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 54%,
+        rgb(255 255 255 / 0.1) 57%,
+        rgb(255 255 255 / 0.3) 60%,
+        rgb(255 255 255 / 0.6) 63%,
+        rgb(255 255 255 / 0.75) 66%,
+        rgb(255 255 255 / 0.6) 69%,
+        rgb(255 255 255 / 0.3) 72%,
+        rgb(255 255 255 / 0.1) 75%,
+        transparent 78%,
+        transparent 100%
+      ),
+        var(--pc-plasma-field);
+      opacity: calc(0.26 * var(--pc-plasma-strength, 1));
+      -webkit-mask:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: source-in, xor;
+      mask:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: intersect, exclude;
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
+    }
+
+    /* The wash follows the beam: same colours, held to the edge band AND
+       the window, with the reference's inset white sheen. */
+    .pc-border-plasma--rotate > .pc-border-plasma__core {
+      z-index: 1;
+      background-image: var(--pc-plasma-field);
+      box-shadow: inset 0 0 9px 1px rgb(255 255 255 / 0.27);
+      transform: none;
+      inset: 0;
+      border-radius: inherit;
+      filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) saturate(1.2);
+      opacity: calc(0.45 * var(--pc-plasma-strength, 1));
+      -webkit-mask-image:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+        linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+      -webkit-mask-composite: source-in, source-over;
+      mask-image:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+        linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+      mask-composite: intersect, add;
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
+    }
+
+    /* The halo sweeps too: the bloom keeps its variant geometry and gains
+       the window, so the outer glow travels with the beam. */
+    .pc-border-plasma--rotate > .pc-border-plasma__bloom {
+      inset: 0;
+      z-index: 2;
+      border-radius: inherit;
+      clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
+      transform: none;
+      padding: var(--pc-plasma-border-width, 1px);
+      opacity: calc(0.66 * var(--pc-plasma-strength, 1));
+      filter: blur(8px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.9) saturate(1.2);
+      -webkit-mask:
+        conic-gradient(
+          from var(--pc-plasma-angle, 0deg),
+          transparent 0%,
+          transparent 30%,
+          rgb(255 255 255 / 0.1) 36%,
+          rgb(255 255 255 / 0.35) 44%,
+          #fff 52%,
+          #fff 80%,
+          rgb(255 255 255 / 0.35) 86%,
+          rgb(255 255 255 / 0.1) 92%,
+          transparent 95%,
+          transparent 100%
+        ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: source-in, xor;
+      mask:
+        conic-gradient(
+          from var(--pc-plasma-angle, 0deg),
+          transparent 0%,
+          transparent 30%,
+          rgb(255 255 255 / 0.1) 36%,
+          rgb(255 255 255 / 0.35) 44%,
+          #fff 52%,
+          #fff 80%,
+          rgb(255 255 255 / 0.35) 86%,
+          rgb(255 255 255 / 0.1) 92%,
+          transparent 95%,
+          transparent 100%
+        ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: intersect, exclude;
+      background-image: var(--pc-plasma-field);
+      background-origin: border-box;
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
+    }
+  }
+
+  /* Content sits above the glow layers; the halo's negative-z layers pass
+     behind it, the stroke rides the rim outside it. */
+  .pc-border-plasma__content {
+    @apply relative bg-white dark:bg-gray-900;
+    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) - var(--pc-plasma-border-width, 1px));
+  }
+
   /* Meteors */
   .pc-meteors {
     @apply pointer-events-none absolute inset-0 overflow-hidden;
@@ -5876,6 +6320,358 @@
   syntax: "<number>";
   inherits: false;
   initial-value: 0;
+}
+
+/* The plasma breath. Rests at 1 (full brightness) so a plasma that never
+   animates - reduced motion, or rotate mode - reads as a deliberate static
+   glow instead of a dimmed one. */
+@property --pc-plasma-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+/* Registering the sweep angle is what makes it animatable at all: an
+   unregistered custom property has no type, so the browser can only step it
+   discretely and the sweep would judder round in jumps. */
+@property --pc-plasma-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* The four pocket oscillators and the hue drift. Registered as typed
+   properties (below) so the browser can interpolate them; resting values
+   are full-size and zero drift, so reduced motion gets a lit, still field. */
+@property --pc-plasma-bw1 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bh1 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bx1 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-by1 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-bw2 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bh2 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bx2 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-by2 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-bw3 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bh3 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-bx3 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-by3 {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --pc-plasma-bgh {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-q-tl {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-q-tr {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-q-bl {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-q-br {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --pc-plasma-hue {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes pc-plasma-pulse {
+  0%,
+  100% {
+    --pc-plasma-t: 0.45;
+  }
+  50% {
+    --pc-plasma-t: 1;
+  }
+}
+
+@keyframes pc-plasma-p1 {
+  0%,
+  100% {
+    --pc-plasma-p1: 0.78;
+  }
+  50% {
+    --pc-plasma-p1: 1.18;
+  }
+}
+
+@keyframes pc-plasma-p2 {
+  0%,
+  100% {
+    --pc-plasma-p2: 1.12;
+  }
+  50% {
+    --pc-plasma-p2: 0.74;
+  }
+}
+
+@keyframes pc-plasma-p3 {
+  0%,
+  100% {
+    --pc-plasma-p3: 0.85;
+  }
+  50% {
+    --pc-plasma-p3: 1.22;
+  }
+}
+
+@keyframes pc-plasma-p4 {
+  0%,
+  100% {
+    --pc-plasma-p4: 1.08;
+  }
+  50% {
+    --pc-plasma-p4: 0.8;
+  }
+}
+
+/* The full hue revolution - the reference's own trick for motion: every
+   stop cycles through the whole palette on a fixed clock, so no colour is
+   ever pinned to an edge. */
+@keyframes pc-plasma-hue-cycle {
+  from {
+    --pc-plasma-hue: 0deg;
+  }
+  to {
+    --pc-plasma-hue: 360deg;
+  }
+}
+
+/* Size pairs (a -> b ranges verbatim from the reference driver). */
+@keyframes pc-plasma-bw1 {
+  0%,
+  100% {
+    --pc-plasma-bw1: 0.72;
+  }
+  50% {
+    --pc-plasma-bw1: 1.308;
+  }
+}
+
+@keyframes pc-plasma-bh1 {
+  0%,
+  100% {
+    --pc-plasma-bh1: 1.252;
+  }
+  50% {
+    --pc-plasma-bh1: 0.762;
+  }
+}
+
+@keyframes pc-plasma-bw2 {
+  0%,
+  100% {
+    --pc-plasma-bw2: 1.28;
+  }
+  50% {
+    --pc-plasma-bw2: 0.762;
+  }
+}
+
+@keyframes pc-plasma-bh2 {
+  0%,
+  100% {
+    --pc-plasma-bh2: 0.776;
+  }
+  50% {
+    --pc-plasma-bh2: 1.294;
+  }
+}
+
+@keyframes pc-plasma-bw3 {
+  0%,
+  100% {
+    --pc-plasma-bw3: 0.832;
+  }
+  50% {
+    --pc-plasma-bw3: 1.322;
+  }
+}
+
+@keyframes pc-plasma-bh3 {
+  0%,
+  100% {
+    --pc-plasma-bh3: 1.21;
+  }
+  50% {
+    --pc-plasma-bh3: 0.72;
+  }
+}
+
+/* Drift pairs: each ellipse slides along its edge and leans in and out. */
+@keyframes pc-plasma-bd1 {
+  0%,
+  100% {
+    --pc-plasma-bx1: -14px;
+    --pc-plasma-by1: 7.7px;
+  }
+  50% {
+    --pc-plasma-bx1: 12.6px;
+    --pc-plasma-by1: -9.8px;
+  }
+}
+
+@keyframes pc-plasma-bd2 {
+  0%,
+  100% {
+    --pc-plasma-bx2: 11.2px;
+    --pc-plasma-by2: -14px;
+  }
+  50% {
+    --pc-plasma-bx2: -12.6px;
+    --pc-plasma-by2: 9.1px;
+  }
+}
+
+@keyframes pc-plasma-bd3 {
+  0%,
+  100% {
+    --pc-plasma-bx3: -8.4px;
+    --pc-plasma-by3: -11.9px;
+  }
+  50% {
+    --pc-plasma-bx3: 14px;
+    --pc-plasma-by3: 6.3px;
+  }
+}
+
+/* The global height wave every stop shares. */
+@keyframes pc-plasma-bgh {
+  0%,
+  100% {
+    --pc-plasma-bgh: 0.84;
+  }
+  50% {
+    --pc-plasma-bgh: 1.16;
+  }
+}
+
+/* Quadrant opacities: whole corners of light swell and die (down to 0.54),
+   staggered so the glow is always arriving somewhere and leaving somewhere
+   else - the intensify-and-dissipate half of the reference look. */
+@keyframes pc-plasma-q-tl {
+  0%,
+  100% {
+    --pc-plasma-q-tl: 0.54;
+  }
+  50% {
+    --pc-plasma-q-tl: 1;
+  }
+}
+
+@keyframes pc-plasma-q-tr {
+  0%,
+  100% {
+    --pc-plasma-q-tr: 0.54;
+  }
+  50% {
+    --pc-plasma-q-tr: 1;
+  }
+}
+
+@keyframes pc-plasma-q-bl {
+  0%,
+  100% {
+    --pc-plasma-q-bl: 0.54;
+  }
+  50% {
+    --pc-plasma-q-bl: 1;
+  }
+}
+
+@keyframes pc-plasma-q-br {
+  0%,
+  100% {
+    --pc-plasma-q-br: 0.54;
+  }
+  50% {
+    --pc-plasma-q-br: 1;
+  }
+}
+
+@keyframes pc-plasma-rotate {
+  from {
+    --pc-plasma-angle: 0deg;
+  }
+  to {
+    --pc-plasma-angle: 360deg;
+  }
 }
 
 @keyframes pc-shine {
