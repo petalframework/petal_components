@@ -5561,7 +5561,6 @@
   .pc-border-plasma--glow-both > .pc-border-plasma__core {
     z-index: 1;
     inset: 0;
-    z-index: -1;
     border-radius: inherit;
     clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
     transform: none;
@@ -5586,7 +5585,6 @@
   .pc-border-plasma--glow-inside > .pc-border-plasma__bloom {
     z-index: 2;
     inset: 0;
-    z-index: -1;
     border-radius: inherit;
     clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
     transform: none;
@@ -5628,10 +5626,6 @@
     display: none;
   }
 
-  .pc-border-plasma--rotate > .pc-border-plasma__sheen {
-    display: block;
-  }
-
   /* The oscillator table, ported 1:1 from the reference's driver: three
      size pairs, three drift pairs, a global height wave, and FOUR staggered
      quadrant opacities (each corner's light swells and dies on its own
@@ -5660,38 +5654,144 @@
         pc-plasma-hue-cycle var(--pc-plasma-hue-period, 14s) linear infinite;
     }
 
-    .pc-border-plasma--rotate > .pc-border-plasma__stroke,
-    .pc-border-plasma--rotate > .pc-border-plasma__core,
-    .pc-border-plasma--rotate > .pc-border-plasma__bloom {
-      -webkit-mask-image: conic-gradient(
+    /* Rotate, ported from the reference's runtime CSS: the rim is DARK
+       except one huge soft window - half the perimeter wide, with long
+       ramps - that laps the border in ~2s, revealing the STATIC colour
+       field and a white highlight riding inside it. No oscillators; the
+       sweep is the whole motion, which is what makes it read as one
+       fluid beam instead of pockets igniting. */
+    .pc-border-plasma--rotate > .pc-border-plasma__stroke {
+      background-image:
+        conic-gradient(
         from var(--pc-plasma-angle, 0deg),
-        rgb(255 255 255 / 0.2) 0%,
-        rgb(255 255 255 / 0.2) 48%,
-        rgb(255 255 255 / 0.7) 58%,
-        #fff 64%,
-        #fff 71%,
-        rgb(255 255 255 / 0.7) 78%,
-        rgb(255 255 255 / 0.2) 86%,
-        rgb(255 255 255 / 0.2) 100%
-      );
-      mask-image: conic-gradient(
+        transparent 0%,
+        transparent 54%,
+        rgb(255 255 255 / 0.1) 57%,
+        rgb(255 255 255 / 0.3) 60%,
+        rgb(255 255 255 / 0.6) 63%,
+        rgb(255 255 255 / 0.75) 66%,
+        rgb(255 255 255 / 0.6) 69%,
+        rgb(255 255 255 / 0.3) 72%,
+        rgb(255 255 255 / 0.1) 75%,
+        transparent 78%,
+        transparent 100%
+      ),
+        var(--pc-plasma-field);
+      opacity: calc(0.26 * var(--pc-plasma-strength, 1));
+      -webkit-mask:
+        conic-gradient(
         from var(--pc-plasma-angle, 0deg),
-        rgb(255 255 255 / 0.2) 0%,
-        rgb(255 255 255 / 0.2) 48%,
-        rgb(255 255 255 / 0.7) 58%,
-        #fff 64%,
-        #fff 71%,
-        rgb(255 255 255 / 0.7) 78%,
-        rgb(255 255 255 / 0.2) 86%,
-        rgb(255 255 255 / 0.2) 100%
-      );
-      animation:
-        pc-plasma-rotate var(--pc-plasma-duration, 6s) linear infinite,
-        pc-plasma-hue-cycle var(--pc-plasma-hue-period, 14s) linear infinite;
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: source-in, xor;
+      mask:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: intersect, exclude;
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
     }
 
-    .pc-border-plasma--rotate > .pc-border-plasma__sheen {
-      animation: pc-plasma-rotate var(--pc-plasma-duration, 6s) linear infinite;
+    /* The wash follows the beam: same colours, held to the edge band AND
+       the window, with the reference's inset white sheen. */
+    .pc-border-plasma--rotate > .pc-border-plasma__core {
+      background-image: var(--pc-plasma-field);
+      box-shadow: inset 0 0 9px 1px rgb(255 255 255 / 0.27);
+      transform: none;
+      inset: 0;
+      border-radius: inherit;
+      filter: hue-rotate(var(--pc-plasma-hue, 0deg)) saturate(1.2);
+      opacity: calc(0.45 * var(--pc-plasma-strength, 1));
+      -webkit-mask-image:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+        linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+      -webkit-mask-composite: source-in, source-over;
+      mask-image:
+        conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      ),
+        linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+        linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+      mask-composite: intersect, add;
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
+    }
+
+    /* The halo sweeps too: the bloom keeps its variant geometry and gains
+       the window, so the outer glow travels with the beam. */
+    .pc-border-plasma--rotate > .pc-border-plasma__bloom {
+      -webkit-mask: conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      );
+      mask: conic-gradient(
+        from var(--pc-plasma-angle, 0deg),
+        transparent 0%,
+        transparent 30%,
+        rgb(255 255 255 / 0.1) 36%,
+        rgb(255 255 255 / 0.35) 44%,
+        #fff 52%,
+        #fff 80%,
+        rgb(255 255 255 / 0.35) 86%,
+        rgb(255 255 255 / 0.1) 92%,
+        transparent 95%,
+        transparent 100%
+      );
+      animation: pc-plasma-rotate var(--pc-plasma-duration, 2s) linear infinite;
     }
   }
 

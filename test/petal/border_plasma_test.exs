@@ -105,7 +105,7 @@ defmodule PetalComponents.BorderPlasmaTest do
   end
 
   describe "modes" do
-    test "rotate swaps the modifier class and takes a slower default duration" do
+    test "rotate swaps the modifier class and takes its own default duration" do
       assigns = %{}
 
       html =
@@ -115,7 +115,7 @@ defmodule PetalComponents.BorderPlasmaTest do
 
       assert html =~ "pc-border-plasma--rotate"
       refute html =~ "pc-border-plasma--pulse"
-      assert html =~ "--pc-plasma-duration: 6s"
+      assert html =~ "--pc-plasma-duration: 2s"
     end
 
     test "an explicit duration wins over the per-mode default" do

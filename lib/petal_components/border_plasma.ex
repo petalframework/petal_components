@@ -19,7 +19,7 @@ defmodule PetalComponents.BorderPlasma do
 
   # Pulse is a slow breath; rotate is a lap. Sharing one number would make
   # one of them wrong, so the default follows the mode.
-  @default_durations %{"pulse" => "2.3s", "rotate" => "6s"}
+  @default_durations %{"pulse" => "2.3s", "rotate" => "2s"}
 
   attr :mode, :string,
     default: "pulse",
@@ -44,7 +44,7 @@ defmodule PetalComponents.BorderPlasma do
   attr :duration, :string,
     default: nil,
     doc:
-      "length of one breath (pulse) or one lap (rotate). Defaults to 4s for pulse, 6s for rotate"
+      "length of one breath (pulse) or one lap (rotate). Defaults to 2.3s for pulse, 2s for rotate"
 
   attr :intensity, :string,
     default: "medium",
