@@ -295,7 +295,9 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
-        %{slug: "primitives", name: "Primitives", ready: true},
+        %{slug: "collapsible", name: "Collapsible", ready: true},
+        %{slug: "kbd", name: "Kbd", ready: true},
+        %{slug: "separator", name: "Separator", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
     },
@@ -768,15 +770,9 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
-       prim: %{
-         kbd_size: "md",
-         kbd_separator: "+",
-         sep_orientation: "horizontal",
-         sep_label: "center",
-         sep_decorative: true,
-         coll_open: false,
-         coll_disabled: false
-       },
+       kbd: %{size: "md", separator: "+"},
+       separator: %{orientation: "horizontal", label_position: "center", decorative: true},
+       collapsible: %{open: false, disabled: false},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
        dt_hidden: [],
@@ -1019,15 +1015,20 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
-  def handle_event("ctl_prim", %{"k" => k, "v" => v}, socket)
-      when k in ~w(kbd_size kbd_separator sep_orientation sep_label),
-      do: {:noreply, update(socket, :prim, &Map.put(&1, String.to_existing_atom(k), v))}
+  def handle_event("ctl_kbd", %{"k" => k, "v" => v}, socket) when k in ~w(size separator),
+    do: {:noreply, update(socket, :kbd, &Map.put(&1, String.to_existing_atom(k), v))}
 
-  def handle_event("ctl_prim", %{"k" => k}, socket)
-      when k in ~w(sep_decorative coll_open coll_disabled),
-      do:
-        {:noreply,
-         update(socket, :prim, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+  def handle_event("ctl_separator", %{"k" => k, "v" => v}, socket)
+      when k in ~w(orientation label_position),
+      do: {:noreply, update(socket, :separator, &Map.put(&1, String.to_existing_atom(k), v))}
+
+  def handle_event("ctl_separator", %{"k" => "decorative"}, socket),
+    do: {:noreply, update(socket, :separator, &%{&1 | decorative: !&1.decorative})}
+
+  def handle_event("ctl_collapsible", %{"k" => k}, socket) when k in ~w(open disabled),
+    do:
+      {:noreply,
+       update(socket, :collapsible, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
@@ -8657,40 +8658,33 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
-  defp render_page(%{active: "primitives"} = assigns) do
+  defp render_page(%{active: "kbd"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
-      <h1 class="text-3xl font-bold tracking-tight">Primitives</h1>
+      <h1 class="text-3xl font-bold tracking-tight">Kbd</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Three small parts you end up hand-rolling in every app: the keyboard chip, the
-        divider, and the one-region disclosure. Pure HEEx, CSS and LiveView.JS - no hooks,
-        nothing to wire up.
+        The keyboard chip you end up hand-rolling in every app. Semantic
+        <code class="pc-inline-code">&lt;kbd&gt;</code>
+        elements with a key cap treatment - known key names fold to their glyph, anything
+        else renders as you typed it. Pure HEEx and CSS, nothing to wire up.
       </p>
 
-      <h2 class="mt-10 text-xl font-semibold">Kbd</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Semantic <code class="pc-inline-code">&lt;kbd&gt;</code>
-        elements with a key cap treatment. Known key names fold to their glyph,
-        anything else renders as you typed it.
-      </p>
-
-      <div class="mt-4 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center justify-center gap-5 px-6 py-10">
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             Open the command palette
-            <.kbd keys={["cmd", "K"]} size={@prim.kbd_size} separator={@prim.kbd_separator} />
+            <.kbd keys={["cmd", "K"]} size={@kbd.size} separator={@kbd.separator} />
           </div>
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             Toggle the sidebar
             <.kbd
               keys={["ctrl", "shift", "B"]}
-              size={@prim.kbd_size}
-              separator={@prim.kbd_separator}
+              size={@kbd.size}
+              separator={@kbd.separator}
             />
           </div>
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-            Assign to yourself
-            <.kbd keys={["A", "I"]} size={@prim.kbd_size} separator={@prim.kbd_separator} />
+            Assign to yourself <.kbd keys={["A", "I"]} size={@kbd.size} separator={@kbd.separator} />
           </div>
         </div>
         <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
@@ -8700,10 +8694,10 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Kbd size"
-              value={@prim.kbd_size}
-              on_change="ctl_prim"
+              value={@kbd.size}
+              on_change="ctl_kbd"
             >
-              <:item :for={z <- ~w(sm md)} value={z} phx-value-k="kbd_size" phx-value-v={z}>
+              <:item :for={z <- ~w(sm md)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
               </:item>
             </.toggle_group>
@@ -8714,13 +8708,13 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Kbd separator"
-              value={@prim.kbd_separator}
-              on_change="ctl_prim"
+              value={@kbd.separator}
+              on_change="ctl_kbd"
             >
               <:item
                 :for={g <- ["+", "·", "then", " "]}
                 value={g}
-                phx-value-k="kbd_separator"
+                phx-value-k="separator"
                 phx-value-v={g}
               >
                 {if g == " ", do: "none", else: g}
@@ -8734,7 +8728,7 @@ defmodule Dev.PlaygroundLive do
         <div class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
           The command palette trigger uses the same chip
         </div>
-        <.command_trigger dialog_id="pg-prim-command" label="Search" kbd="⌘K" />
+        <.command_trigger dialog_id="pg-kbd-command" label="Search" kbd="⌘K" />
       </div>
 
       <div
@@ -8748,32 +8742,41 @@ defmodule Dev.PlaygroundLive do
         <.showcase_example example={ex} />
       </div>
 
-      <h2 class="mt-12 text-xl font-semibold">Separator</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        A hairline with no margin of its own, optionally labelled. Decorative by default;
-        flip that off when the rule really does divide content screen readers should hear
-        as separate.
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Kbd} function={:kbd} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "separator"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Separator</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A hairline with no margin of its own, optionally labelled - app layouts already
+        control their own rhythm. Decorative by default; flip that off when the rule
+        really does divide content screen readers should hear as separate.
       </p>
 
-      <div class="mt-4 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-12">
-          <div :if={@prim.sep_orientation == "horizontal"} class="w-full max-w-sm">
+          <div :if={@separator.orientation == "horizontal"} class="w-full max-w-sm">
             <.button label="Sign in with email" class="w-full" />
             <.separator
               label="OR"
-              label_position={@prim.sep_label}
-              decorative={@prim.sep_decorative}
+              label_position={@separator.label_position}
+              decorative={@separator.decorative}
               class="my-5"
             />
             <.button variant="outline" label="Continue with GitHub" class="w-full" />
           </div>
           <div
-            :if={@prim.sep_orientation == "vertical"}
+            :if={@separator.orientation == "vertical"}
             class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-800"
           >
             <.button variant="ghost" size="sm" label="Bold" />
             <.button variant="ghost" size="sm" label="Italic" />
-            <.separator orientation="vertical" decorative={@prim.sep_decorative} class="h-6" />
+            <.separator orientation="vertical" decorative={@separator.decorative} class="h-6" />
             <.button variant="ghost" size="sm" label="Link" />
             <.button variant="ghost" size="sm" label="Code" />
           </div>
@@ -8785,13 +8788,13 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Separator orientation"
-              value={@prim.sep_orientation}
-              on_change="ctl_prim"
+              value={@separator.orientation}
+              on_change="ctl_separator"
             >
               <:item
                 :for={o <- ~w(horizontal vertical)}
                 value={o}
-                phx-value-k="sep_orientation"
+                phx-value-k="orientation"
                 phx-value-v={o}
               >
                 {o}
@@ -8806,13 +8809,13 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Label position"
-              value={@prim.sep_label}
-              on_change="ctl_prim"
+              value={@separator.label_position}
+              on_change="ctl_separator"
             >
               <:item
                 :for={o <- ~w(start center end)}
                 value={o}
-                phx-value-k="sep_label"
+                phx-value-k="label_position"
                 phx-value-v={o}
               >
                 {o}
@@ -8826,10 +8829,10 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Separator aria"
-              value={if @prim.sep_decorative, do: ["decorative"], else: []}
-              on_change="ctl_prim"
+              value={if @separator.decorative, do: ["decorative"], else: []}
+              on_change="ctl_separator"
             >
-              <:item value="decorative" phx-value-k="sep_decorative">decorative</:item>
+              <:item value="decorative" phx-value-k="decorative">decorative</:item>
             </.toggle_group>
           </div>
         </div>
@@ -8852,16 +8855,25 @@ defmodule Dev.PlaygroundLive do
         <.showcase_example example={ex} />
       </div>
 
-      <h2 class="mt-12 text-xl font-semibold">Collapsible</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        One disclosure region. Tab to the trigger and press Enter or Space - it is a real
-        button, so the keyboard works without any wiring. The open dial below is the server
-        driving it; clicking the trigger is the client doing the same job without a round
-        trip. Turn on Reduce Motion in your OS and the height animation drops out while both
-        rest states stay fully legible.
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Separator} function={:separator} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "collapsible"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Collapsible</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One disclosure region - the accordion without the group. Tab to the trigger and
+        press Enter or Space; it is a real button, so the keyboard works without any wiring.
+        The open dial below is the server driving it; clicking the trigger is the client
+        doing the same job without a round trip. Turn on Reduce Motion in your OS and the
+        height animation drops out while both rest states stay fully legible.
       </p>
 
-      <div class="mt-4 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="px-6 py-10">
           <div class="max-w-md mx-auto">
             <.field
@@ -8870,7 +8882,11 @@ defmodule Dev.PlaygroundLive do
               label="Webhook URL"
               value="https://example.com/hooks/deploy"
             />
-            <.collapsible id="pg-collapsible" open={@prim.coll_open} disabled={@prim.coll_disabled}>
+            <.collapsible
+              id="pg-collapsible"
+              open={@collapsible.open}
+              disabled={@collapsible.disabled}
+            >
               <:trigger>Advanced options</:trigger>
               <div class="space-y-3">
                 <.field
@@ -8901,14 +8917,14 @@ defmodule Dev.PlaygroundLive do
               size="sm"
               aria_label="Collapsible state"
               value={
-                for {k, on} <- [{"open", @prim.coll_open}, {"disabled", @prim.coll_disabled}],
+                for {k, on} <- [{"open", @collapsible.open}, {"disabled", @collapsible.disabled}],
                     on,
                     do: k
               }
-              on_change="ctl_prim"
+              on_change="ctl_collapsible"
             >
-              <:item value="open" phx-value-k="coll_open">open</:item>
-              <:item value="disabled" phx-value-k="coll_disabled">disabled</:item>
+              <:item value="open" phx-value-k="open">open</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
             </.toggle_group>
           </div>
         </div>
@@ -8925,14 +8941,8 @@ defmodule Dev.PlaygroundLive do
         <.showcase_example example={ex} />
       </div>
 
-      <h2 class="mt-12 mb-2 text-lg font-semibold">Properties</h2>
-      <.showcase_props component={PetalComponents.Kbd} function={:kbd} />
-      <div class="mt-6">
-        <.showcase_props component={PetalComponents.Separator} function={:separator} />
-      </div>
-      <div class="mt-6">
-        <.showcase_props component={PetalComponents.Collapsible} function={:collapsible} />
-      </div>
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Collapsible} function={:collapsible} />
     </div>
     """
   end
