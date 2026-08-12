@@ -29,6 +29,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Command,
     PetalComponents.Showcase.Confetti,
     PetalComponents.Showcase.Dropdown,
+    PetalComponents.Showcase.HoverCard,
     PetalComponents.Showcase.LanguageSelect,
     PetalComponents.Showcase.SocialButton,
     PetalComponents.Showcase.Field,

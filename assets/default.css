@@ -7586,3 +7586,93 @@
       transition-duration: 1ms;
     }
   }
+
+@layer components {
+  /* Hover Card */
+
+  .pc-hover-card {
+    @apply relative inline-block;
+  }
+
+  .pc-hover-card__trigger {
+    @apply inline-block;
+  }
+
+  /* The tooltip's reveal mechanics (visibility + opacity under
+     group-hover / group-focus-within) on the popover's floating surface.
+     visibility interpolates in steps, so on the way out the panel stays
+     visible for the whole delay AND the fade, then flips hidden in one go -
+     it can never be half-faded and still clickable. On the way in it flips
+     visible immediately after the delay, so the fade is seen. */
+  .pc-hover-card__panel {
+    @apply absolute z-40 invisible w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 text-left opacity-0 border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-400/17 group-hover/pc-hover-card:visible group-hover/pc-hover-card:opacity-100 group-focus-within/pc-hover-card:visible group-focus-within/pc-hover-card:opacity-100;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+    transition-property: opacity, visibility;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    /* At rest is the way OUT, so the resting delay is the close delay. */
+    transition-delay: var(--pc-hover-card-close-delay, 150ms);
+  }
+
+  /* ...and under hover or focus it is the way IN, so the open delay wins. */
+  .pc-hover-card:hover .pc-hover-card__panel,
+  .pc-hover-card:focus-within .pc-hover-card__panel {
+    transition-delay: var(--pc-hover-card-open-delay, 350ms);
+  }
+
+  /* The hover bridge. The placement offsets leave a real gap between trigger
+     and panel; without this a pointer crossing that gap leaves the group and
+     the card starts closing under the cursor. A transparent ring around the
+     panel spans the gap so the hover chain holds. It sits behind the panel
+     and inherits its visibility, so it is never a hit target while closed. */
+  .pc-hover-card__panel::before {
+    content: "";
+    @apply absolute -inset-2 -z-10;
+  }
+
+  /* Placement geometry, identical to the popover panel's. */
+  .pc-hover-card__panel--top {
+    @apply bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom;
+  }
+  .pc-hover-card__panel--top-start {
+    @apply bottom-full left-0 mb-2 origin-bottom-left;
+  }
+  .pc-hover-card__panel--top-end {
+    @apply bottom-full right-0 mb-2 origin-bottom-right;
+  }
+  .pc-hover-card__panel--bottom {
+    @apply top-full left-1/2 -translate-x-1/2 mt-2 origin-top;
+  }
+  .pc-hover-card__panel--bottom-start {
+    @apply top-full left-0 mt-2 origin-top-left;
+  }
+  .pc-hover-card__panel--bottom-end {
+    @apply top-full right-0 mt-2 origin-top-right;
+  }
+  .pc-hover-card__panel--left {
+    @apply right-full top-1/2 -translate-y-1/2 mr-2 origin-right;
+  }
+  .pc-hover-card__panel--left-start {
+    @apply right-full top-0 mr-2 origin-top-right;
+  }
+  .pc-hover-card__panel--left-end {
+    @apply right-full bottom-0 mr-2 origin-bottom-right;
+  }
+  .pc-hover-card__panel--right {
+    @apply left-full top-1/2 -translate-y-1/2 ml-2 origin-left;
+  }
+  .pc-hover-card__panel--right-start {
+    @apply left-full top-0 ml-2 origin-top-left;
+  }
+  .pc-hover-card__panel--right-end {
+    @apply left-full bottom-0 ml-2 origin-bottom-left;
+  }
+
+  /* Drop the fade, KEEP the delays. The delay is interaction design - without
+     it every glancing pointer fires a card - the fade is decoration. */
+  @media (prefers-reduced-motion: reduce) {
+    .pc-hover-card__panel {
+      transition-duration: 1ms;
+    }
+  }
+}

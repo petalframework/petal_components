@@ -39,6 +39,7 @@ defmodule PetalComponents do
         Dropdown,
         Field,
         Form,
+        HoverCard,
         Icon,
         Input,
         ComboBox,
