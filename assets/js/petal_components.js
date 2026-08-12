@@ -4925,6 +4925,691 @@ export const PetalComboBox = {
   },
 };
 
+// Sortable: every order decision as a pure function.
+//
+// Drag-to-reorder is one of the few things CSS and Phoenix.LiveView.JS
+// genuinely cannot do - pointer tracking, FLIP gap animation and a keyboard
+// lift state machine all need imperative code. So the hook exists, but the
+// thinking does not live in it: the reorder maths, the arrow-key stepping,
+// the announcement strings and the whole lift state machine are pure
+// functions here, unit-tested in test/js/sortable.test.js without a DOM. The
+// hook below is only the layer that reads rects, moves nodes and talks to
+// LiveView.
+export const SortableCore = {
+  // A tap is not a drag and a scroll is not a lift. Touch waits for a long
+  // press; mouse and pen wait for real movement so a plain click still is one.
+  LONG_PRESS_MS: 250,
+  TOUCH_SLOP_PX: 8,
+  POINTER_SLOP_PX: 4,
+
+  arrayMove(list, from, to) {
+    const next = list.slice();
+    if (from < 0 || from >= next.length) return next;
+    const clamped = Math.max(0, Math.min(to, next.length - 1));
+    const [moved] = next.splice(from, 1);
+    next.splice(clamped, 0, moved);
+    return next;
+  },
+
+  // Where a pointer at (x, y) wants the dragged item, given every item's rect
+  // in current DOM order.
+  //
+  // The two orientations genuinely want different rules. A list has rows of
+  // varying height, so it uses midpoints: an item is displaced only once the
+  // pointer crosses its centre line, which is the hysteresis that stops two
+  // unequal rows flickering back and forth across one boundary. A grid has
+  // uniform cells and reflows in two dimensions, where the same rule sends an
+  // item somewhere it was never dragged (hover the bottom-left cell from the
+  // left and reading-order counting lands you top-right). So a grid uses the
+  // cell under the pointer directly. That works because the list is reordered
+  // live as you drag: the rects ARE the current arrangement, so the cell you
+  // are over is exactly the slot you are asking for, and once the item lands
+  // there the pointer is still inside it - stable, not oscillating.
+  indexFromPoint({ rects, x, y, orientation = "vertical", activeIndex = -1 }) {
+    if (orientation === "grid") {
+      const over = rects.findIndex(
+        (r) =>
+          x >= r.left && x <= r.left + r.width && y >= r.top && y <= r.top + r.height,
+      );
+
+      // Only fall through to counting when the pointer is in a gutter or off
+      // the end of the grid, where no cell can answer.
+      if (over !== -1) return over;
+    }
+
+    let passed = 0;
+
+    rects.forEach((rect, i) => {
+      if (i === activeIndex) return;
+      if (SortableCore.pointerPassed(rect, x, y, orientation)) passed += 1;
+    });
+
+    return Math.max(0, Math.min(passed, rects.length - 1));
+  },
+
+  pointerPassed(rect, x, y, orientation) {
+    if (orientation === "grid") {
+      // Reading order: a whole row above the pointer is behind it, a whole
+      // row below is ahead, and within its own row it is a left/right call.
+      if (y > rect.top + rect.height) return true;
+      if (y < rect.top) return false;
+      return x > rect.left + rect.width / 2;
+    }
+
+    return y > rect.top + rect.height / 2;
+  },
+
+  // One arrow-key step, clamped to the list. Returns null for a key this
+  // component does not own, so the hook leaves that event alone.
+  nextKeyboardIndex({
+    index,
+    key,
+    orientation = "vertical",
+    columns = 1,
+    count,
+  }) {
+    const span = Math.max(1, columns);
+
+    const step =
+      orientation === "grid"
+        ? { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -span, ArrowDown: span }[key]
+        : { ArrowUp: -1, ArrowDown: 1 }[key];
+
+    if (step === undefined) return null;
+
+    return Math.max(0, Math.min(index + step, count - 1));
+  },
+
+  // Screen readers get no feedback from a moving box, so every transition
+  // says where the item now is. Positions are 1-based for humans.
+  announce(phase, label, index, total) {
+    const at = `position ${index + 1} of ${total}`;
+
+    switch (phase) {
+      case "lift":
+        return `Picked up ${label}, ${at}`;
+      case "move":
+        return `Moved ${label} to ${at}`;
+      case "drop":
+        return `Dropped ${label} at ${at}`;
+      case "cancel":
+        return `Reorder cancelled. ${label} returned to ${at}`;
+      default:
+        return "";
+    }
+  },
+
+  // The keyboard lift state machine, pure. `state` is null when idle.
+  // Returns the next state, what to announce, the id order the DOM should
+  // now be in (null = unchanged), the reorder event to push (null = none),
+  // and whether the key was ours to swallow.
+  keyboardReduce(state, action) {
+    const unchanged = {
+      state,
+      announcement: null,
+      order: null,
+      event: null,
+      handled: false,
+    };
+
+    switch (action.type) {
+      case "lift": {
+        // A disabled item is not liftable, and a second lift is the drop.
+        if (state || action.disabled) return unchanged;
+
+        const order = action.order.slice();
+        const from = order.indexOf(action.id);
+        if (from === -1) return unchanged;
+
+        const label = action.label || action.id;
+
+        return {
+          state: { id: action.id, label, from, index: from, order, origin: order },
+          announcement: SortableCore.announce("lift", label, from, order.length),
+          order: null,
+          event: null,
+          handled: true,
+        };
+      }
+
+      case "move": {
+        if (!state) return unchanged;
+
+        const to = SortableCore.nextKeyboardIndex({
+          index: state.index,
+          key: action.key,
+          orientation: action.orientation,
+          columns: action.columns,
+          count: state.order.length,
+        });
+
+        if (to === null) return unchanged;
+
+        // Clamped against an end of the list: ours to swallow (the page must
+        // not scroll under a lifted item) but nothing moved, so stay quiet.
+        if (to === state.index) return { ...unchanged, handled: true };
+
+        const order = SortableCore.arrayMove(state.order, state.index, to);
+
+        return {
+          state: { ...state, index: to, order },
+          announcement: SortableCore.announce(
+            "move",
+            state.label,
+            to,
+            order.length,
+          ),
+          order,
+          event: null,
+          handled: true,
+        };
+      }
+
+      case "drop": {
+        if (!state) return unchanged;
+
+        // Landing where it started is not a reorder. Announce it, but do not
+        // make the server persist a no-op.
+        const moved = state.index !== state.from;
+
+        return {
+          state: null,
+          announcement: SortableCore.announce(
+            "drop",
+            state.label,
+            state.index,
+            state.order.length,
+          ),
+          order: null,
+          event: moved
+            ? { id: state.id, from: state.from, to: state.index }
+            : null,
+          handled: true,
+        };
+      }
+
+      case "cancel": {
+        if (!state) return unchanged;
+
+        return {
+          state: null,
+          announcement: SortableCore.announce(
+            "cancel",
+            state.label,
+            state.from,
+            state.origin.length,
+          ),
+          order: state.origin,
+          event: null,
+          handled: true,
+        };
+      }
+
+      default:
+        return unchanged;
+    }
+  },
+};
+
+const SORTABLE_ITEM = ".pc-sortable__item";
+
+export const PetalSortable = {
+  mounted() {
+    this.kb = null; // keyboard lift state, owned by SortableCore.keyboardReduce
+    this.drag = null; // an in-flight pointer drag
+    this.press = null; // a press that has not earned a lift yet
+
+    this.onPointerDown = (e) => this.pointerDown(e);
+    this.onPointerMove = (e) => this.pointerMove(e);
+    this.onPointerUp = (e) => this.pointerUp(e);
+    this.onKeyDown = (e) => this.keyDown(e);
+    // iOS turns a long press into a selection callout and a context menu,
+    // which is exactly the gesture that lifts an item here.
+    this.onContextMenu = (e) => {
+      if (this.drag) e.preventDefault();
+    };
+    // Pointer events alone cannot cancel a scroll the browser has already
+    // claimed. A non-passive touchmove is the only reliable veto.
+    this.onTouchMove = (e) => {
+      if (this.drag) e.preventDefault();
+    };
+
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    this.el.addEventListener("keydown", this.onKeyDown);
+    this.el.addEventListener("contextmenu", this.onContextMenu);
+    this.el.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    window.addEventListener("pointermove", this.onPointerMove, {
+      passive: false,
+    });
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerUp);
+  },
+
+  // A patch can replace or reorder the very children this hook is holding
+  // rects for, so an in-flight pointer drag is abandoned rather than left
+  // animating a detached tree. A keyboard lift is cheaper to keep: re-resolve
+  // it by data-sortable-id, never by the index we remembered.
+  updated() {
+    if (this.press || this.drag) this.abortPointer();
+    if (!this.kb) return;
+
+    const order = this.ids();
+    const index = order.indexOf(this.kb.id);
+
+    if (index === -1) {
+      this.kb = null;
+      return;
+    }
+
+    this.kb = { ...this.kb, order, index };
+    const el = this.itemById(this.kb.id);
+    if (el) el.classList.add("pc-sortable__item--lifted");
+  },
+
+  destroyed() {
+    this.abortPointer();
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("keydown", this.onKeyDown);
+    this.el.removeEventListener("contextmenu", this.onContextMenu);
+    this.el.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerUp);
+  },
+
+  // --- reading the DOM -----------------------------------------------------
+
+  items() {
+    return Array.from(this.el.querySelectorAll(`:scope > ${SORTABLE_ITEM}`));
+  },
+
+  ids() {
+    return this.items().map((el) => el.dataset.sortableId);
+  },
+
+  itemById(id) {
+    return this.items().find((el) => el.dataset.sortableId === id) || null;
+  },
+
+  labelFor(el) {
+    return (
+      el.dataset.sortableLabel ||
+      el.textContent.trim().slice(0, 80) ||
+      el.dataset.sortableId
+    );
+  },
+
+  disabled() {
+    return this.el.dataset.disabled === "true";
+  },
+
+  orientation() {
+    return this.el.dataset.orientation === "grid" ? "grid" : "vertical";
+  },
+
+  // How many items share the first row. Read from live rects rather than a
+  // configured column count, so a responsive grid steps correctly at every
+  // breakpoint without being told what it is.
+  columns() {
+    const items = this.items();
+    if (items.length === 0) return 1;
+
+    const top = items[0].getBoundingClientRect().top;
+    let n = 0;
+
+    for (const el of items) {
+      if (Math.abs(el.getBoundingClientRect().top - top) > 1) break;
+      n += 1;
+    }
+
+    return Math.max(1, n);
+  },
+
+  // --- moving the DOM ------------------------------------------------------
+
+  measure() {
+    const map = new Map();
+    this.items().forEach((el) => map.set(el, el.getBoundingClientRect()));
+    return map;
+  },
+
+  // FLIP: every sibling is snapped back to where it was, then released to
+  // transition home. The transition itself lives in CSS, which is what makes
+  // prefers-reduced-motion a one-line media query rather than a JS branch.
+  flip(before) {
+    const items = this.items();
+    const active = this.drag && this.drag.el;
+
+    items.forEach((el) => {
+      const first = before.get(el);
+      if (!first || el === active) return;
+
+      const last = el.getBoundingClientRect();
+      const dx = first.left - last.left;
+      const dy = first.top - last.top;
+      if (dx === 0 && dy === 0) return;
+
+      el.style.transition = "none";
+      el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    });
+
+    // One forced reflow so the inverted positions are the browser's current
+    // truth; without it the clear below is coalesced and nothing animates.
+    void this.el.offsetHeight;
+
+    items.forEach((el) => {
+      if (el === active) return;
+      el.style.transition = "";
+      el.style.transform = "";
+    });
+  },
+
+  moveTo(el, index) {
+    const others = this.items().filter((item) => item !== el);
+    const before = others[index];
+
+    if (before) this.el.insertBefore(el, before);
+    else this.el.appendChild(el);
+  },
+
+  // Re-sorting by appending in order: each append moves an existing node, so
+  // the list ends up in exactly `order` with no nodes created or destroyed.
+  // Focus is restored because moving a focused node drops focus in Safari.
+  applyOrder(order) {
+    const before = this.measure();
+    const focused = document.activeElement;
+
+    order.forEach((id) => {
+      const el = this.itemById(id);
+      if (el) this.el.appendChild(el);
+    });
+
+    this.flip(before);
+    if (focused && this.el.contains(focused)) focused.focus();
+  },
+
+  // --- talking to the server ----------------------------------------------
+
+  say(text) {
+    if (!text) return;
+
+    const region = document.getElementById(`${this.el.id}-live`);
+    if (!region) return;
+
+    // Re-announcing an identical string (two moves into the same slot) needs
+    // the region to actually change, so clear it first.
+    region.textContent = "";
+    region.textContent = text;
+  },
+
+  emit(id, from, to) {
+    const detail = { id, from, to };
+    const name = this.el.dataset.onReorder;
+
+    if (name) {
+      if (this.el.getAttribute("phx-target")) {
+        this.pushEventTo(this.el, name, detail);
+      } else {
+        this.pushEvent(name, detail);
+      }
+    }
+
+    // Dead views and plain-JS consumers get the same payload, mirroring
+    // petal:otp-complete on input_otp.
+    this.el.dispatchEvent(
+      new CustomEvent("petal:sortable", { bubbles: true, detail }),
+    );
+  },
+
+  // --- pointer -------------------------------------------------------------
+
+  pointerDown(e) {
+    if (this.disabled() || this.kb || this.press || this.drag) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    const el = e.target.closest(SORTABLE_ITEM);
+    if (!el || el.parentElement !== this.el) return;
+    if (el.dataset.disabled === "true") return;
+
+    // Handle mode: everything outside the grip stays interactive, so links
+    // and checkboxes inside a row keep working.
+    if (
+      this.el.dataset.handle === "true" &&
+      !e.target.closest("[data-sortable-handle]")
+    ) {
+      return;
+    }
+
+    const touch = e.pointerType === "touch";
+
+    this.press = {
+      el,
+      x: e.clientX,
+      y: e.clientY,
+      pointerId: e.pointerId,
+      touch,
+      timer: touch ? setTimeout(() => this.lift(), SortableCore.LONG_PRESS_MS) : null,
+    };
+  },
+
+  pointerMove(e) {
+    if (this.press && !this.drag) {
+      const dist = Math.hypot(e.clientX - this.press.x, e.clientY - this.press.y);
+
+      // A finger that moves before the long press expires is scrolling the
+      // page, not lifting. A mouse that moves at all is dragging.
+      if (this.press.touch) {
+        if (dist > SortableCore.TOUCH_SLOP_PX) this.abortPointer();
+      } else if (dist > SortableCore.POINTER_SLOP_PX) {
+        this.lift();
+      }
+    }
+
+    if (!this.drag) return;
+
+    e.preventDefault();
+    this.track(e.clientX, e.clientY);
+
+    const items = this.items();
+    const activeIndex = items.indexOf(this.drag.el);
+    if (activeIndex === -1) return this.abortPointer();
+
+    const to = SortableCore.indexFromPoint({
+      rects: items.map((el) => el.getBoundingClientRect()),
+      x: e.clientX,
+      y: e.clientY,
+      orientation: this.orientation(),
+      activeIndex,
+    });
+
+    if (to === activeIndex) return;
+
+    const before = this.measure();
+    this.moveTo(this.drag.el, to);
+    this.syncHome();
+    this.track(e.clientX, e.clientY);
+    this.flip(before);
+  },
+
+  pointerUp() {
+    if (this.drag) return this.finishDrag();
+    if (this.press) this.abortPointer();
+  },
+
+  lift() {
+    const press = this.press;
+    if (!press) return;
+
+    clearTimeout(press.timer);
+    this.press = null;
+
+    const rect = press.el.getBoundingClientRect();
+
+    this.drag = {
+      el: press.el,
+      id: press.el.dataset.sortableId,
+      label: this.labelFor(press.el),
+      from: this.ids().indexOf(press.el.dataset.sortableId),
+      pointerId: press.pointerId,
+      // Where inside the item the pointer grabbed it, so it does not jump.
+      offsetX: rect.left - press.x,
+      offsetY: rect.top - press.y,
+      home: { left: rect.left, top: rect.top },
+    };
+
+    press.el.classList.add("pc-sortable__item--dragging");
+    this.el.classList.add("pc-sortable--dragging");
+
+    // Capture keeps the stream of pointer events coming to this node even
+    // when the pointer outruns it, and lets preventDefault veto the scroll.
+    try {
+      press.el.setPointerCapture(press.pointerId);
+    } catch {
+      /* capture is best-effort; the window listeners still fire */
+    }
+
+    this.say(
+      SortableCore.announce(
+        "lift",
+        this.drag.label,
+        this.drag.from,
+        this.items().length,
+      ),
+    );
+  },
+
+  // The dragged node is really moved through the list as you drag, so its
+  // layout position changes underneath it. Re-read that home position and
+  // the transform stays a pure pointer offset instead of accumulating drift.
+  syncHome() {
+    const el = this.drag.el;
+    const prev = el.style.transform;
+
+    el.style.transform = "none";
+    const rect = el.getBoundingClientRect();
+    el.style.transform = prev;
+
+    this.drag.home = { left: rect.left, top: rect.top };
+  },
+
+  track(x, y) {
+    const { home, offsetX, offsetY, el } = this.drag;
+    const dx = x + offsetX - home.left;
+    const dy = y + offsetY - home.top;
+
+    el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+  },
+
+  finishDrag() {
+    const drag = this.drag;
+    this.drag = null;
+    this.clearDragStyles(drag);
+
+    const to = this.ids().indexOf(drag.id);
+    if (to === -1) return;
+
+    this.say(
+      SortableCore.announce("drop", drag.label, to, this.items().length),
+    );
+
+    if (to !== drag.from) this.emit(drag.id, drag.from, to);
+  },
+
+  // Drop everything without emitting: a press that turned out to be a click,
+  // or a drag whose DOM was pulled out from under it by a patch.
+  abortPointer() {
+    if (this.press) {
+      clearTimeout(this.press.timer);
+      this.press = null;
+    }
+
+    if (this.drag) {
+      const drag = this.drag;
+      this.drag = null;
+      this.clearDragStyles(drag);
+    }
+  },
+
+  clearDragStyles(drag) {
+    drag.el.style.transform = "";
+    drag.el.style.transition = "";
+    drag.el.classList.remove("pc-sortable__item--dragging");
+    this.el.classList.remove("pc-sortable--dragging");
+
+    try {
+      drag.el.releasePointerCapture(drag.pointerId);
+    } catch {
+      /* already released, or never captured */
+    }
+  },
+
+  // --- keyboard ------------------------------------------------------------
+
+  keyDown(e) {
+    if (this.disabled()) return;
+
+    const el = e.target.closest(SORTABLE_ITEM);
+    if (!el || el.parentElement !== this.el) return;
+
+    const action = this.actionFor(e, el);
+    if (!action) return;
+
+    const result = SortableCore.keyboardReduce(this.kb, action);
+    if (!result.handled) return;
+
+    e.preventDefault();
+
+    const lifted = this.kb;
+    this.kb = result.state;
+
+    if (result.order) this.applyOrder(result.order);
+    if (result.state) el.classList.add("pc-sortable__item--lifted");
+    if (!result.state && lifted) this.unlift(lifted.id);
+    if (result.announcement) this.say(result.announcement);
+    if (result.event) {
+      this.emit(result.event.id, result.event.from, result.event.to);
+    }
+  },
+
+  actionFor(e, el) {
+    if (e.key === " " || e.key === "Spacebar" || e.key === "Space") {
+      return this.kb
+        ? { type: "drop" }
+        : {
+            type: "lift",
+            id: el.dataset.sortableId,
+            label: this.labelFor(el),
+            order: this.ids(),
+            disabled: el.dataset.disabled === "true",
+          };
+    }
+
+    if (e.key === "Escape") return { type: "cancel" };
+
+    if (e.key.startsWith("Arrow")) {
+      return {
+        type: "move",
+        key: e.key,
+        orientation: this.orientation(),
+        columns: this.orientation() === "grid" ? this.columns() : 1,
+      };
+    }
+
+    return null;
+  },
+
+  // Focus follows the item, not the slot it used to sit in - a drop that
+  // left focus behind would strand a keyboard user two rows from their work.
+  unlift(id) {
+    const el = this.itemById(id);
+    if (!el) return;
+
+    el.classList.remove("pc-sortable__item--lifted");
+    const target = el.querySelector("[data-sortable-handle]") || el;
+    target.focus();
+  },
+};
+
 // Link-mode wiring for the data table's quick search and rows-per-page
 // select. Event mode posts through plain phx-change forms and never
 // mounts this hook; link mode has no events by design (handle_params is
@@ -5454,4 +6139,5 @@ export default {
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,
+  PetalSortable,
 };

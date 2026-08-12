@@ -7586,3 +7586,109 @@
       transition-duration: 1ms;
     }
   }
+
+/* Sortable - drag-to-reorder lists and grids.
+ * The dragged element IS the overlay: it is really moved through the list as
+ * you drag, so there is no clone and the accessible order is always the DOM
+ * order. Siblings FLIP into the gap; the transform transition below is the
+ * whole animation, which is why reduced motion is one media query at the
+ * bottom rather than a branch in the hook. */
+@layer components {
+  .pc-sortable {
+    @apply flex flex-col gap-2;
+  }
+
+  .pc-sortable--grid {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-3;
+  }
+
+  .pc-sortable__item {
+    @apply relative flex items-center gap-3 px-3 py-2.5 bg-white border border-gray-200 text-gray-900 shadow-xs;
+    @apply dark:bg-gray-400/8 dark:border-gray-400/20 dark:text-gray-100;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500;
+    /* manipulation, not none: the page must still scroll under a list that
+       happens to be sortable. A lift vetoes the scroll itself, from the
+       hook's non-passive touchmove, once a long press has earned it. */
+    touch-action: manipulation;
+    transition:
+      transform 200ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 150ms ease-out;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Whole-item drag: the row itself is the grab target. In handle mode the
+     grip owns the cursor instead, so the row stays an ordinary row. */
+  .pc-sortable:not([data-handle="true"]):not([data-disabled="true"])
+    .pc-sortable__item:not([data-disabled="true"]) {
+    @apply cursor-grab;
+  }
+
+  /* The lifted item, pointer or keyboard: the floating-panel treatment used
+     by popover and modal, so it reads as being above the list. */
+  .pc-sortable__item--dragging,
+  .pc-sortable__item--lifted {
+    @apply z-30 bg-white shadow-lg border-primary-500 dark:bg-gray-900 dark:border-primary-500/70;
+  }
+
+  .pc-sortable__item--dragging {
+    /* pointer-driven, so a transition here would lag the finger */
+    @apply cursor-grabbing select-none;
+    transition: none;
+    scale: 1.02;
+  }
+
+  .pc-sortable__item--lifted {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  /* Nothing under the pointer should paint a hover or select text mid-drag. */
+  .pc-sortable--dragging {
+    @apply select-none;
+  }
+
+  .pc-sortable--dragging .pc-sortable__item:not(.pc-sortable__item--dragging) {
+    @apply pointer-events-none;
+  }
+
+  .pc-sortable__item--disabled {
+    @apply opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-400/4;
+  }
+
+  .pc-sortable__handle {
+    @apply flex shrink-0 items-center justify-center -ml-1 p-1 cursor-grab text-gray-400 transition-colors;
+    @apply hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    /* the grip is the one surface that trades page scroll for dragging */
+    touch-action: none;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-sortable__handle[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-50 hover:text-gray-400 dark:hover:text-gray-500;
+  }
+
+  .pc-sortable--dragging .pc-sortable__handle {
+    @apply cursor-grabbing;
+  }
+
+  .pc-sortable__grip {
+    @apply w-4 h-4;
+  }
+
+  /* The keyboard instructions and the announcement region: present for
+     assistive tech, absent from layout (sr-only is absolutely positioned, so
+     a flex or grid parent never sees them as children). */
+  .pc-sortable__sr {
+    @apply sr-only;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-sortable__item {
+      transition: none;
+    }
+
+    .pc-sortable__item--dragging {
+      scale: 1;
+    }
+  }
+}

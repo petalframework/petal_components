@@ -62,6 +62,7 @@ defmodule PetalComponents do
         Skeleton,
         SlideOver,
         SocialButton,
+        Sortable,
         Sparkline,
         ShineBorder,
         SpotlightCard,
