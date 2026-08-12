@@ -49,12 +49,13 @@ Both suites must be green before opening a PR.
 
 Pick an issue from the [milestones](https://github.com/petalframework/petal_components/milestones). Each component issue is a full build brief: API sketch, variants, playground page spec, accessibility requirements, and a test checklist. The briefs are written to be workable by a contributor pairing with an AI coding assistant; paste the issue in and it has everything it needs.
 
-A component PR contains four things:
+A component PR contains five things:
 
 1. **The module**: `lib/petal_components/<name>.ex`. Every attr gets a `doc:` string; the moduledoc carries usage examples. Match the attr naming and slot patterns of neighbouring components.
 2. **The styles**: a `pc-<name>` section in `assets/default.css`. Consume the `--pc-radius` token, ride the gray ramp for neutrals, style dark mode via `dark:`, use `focus-visible` (never persistent `:focus` fills), and respect `prefers-reduced-motion`.
 3. **The tests**: `test/petal/<name>_test.exs`. Every attr, variant, and slot gets a rendering assertion; ARIA attributes are asserted explicitly. If you added a hook, unit-test its logic in `test/js/`.
-4. **The playground page**: a nav entry and page in `dev.exs` with dials for the attrs that matter and 1 to 3 realistic scenarios (a real product moment, not lorem ipsum). Check it in light and dark, keyboard-only, and with reduced motion.
+4. **The showcase module**: `lib/petal_components/showcase/<name>.ex` (`use PetalComponents.Showcase, component: ..., title: ...`), holding the canonical examples as `example/3` blocks, plus its entry in `lib/petal_components/showcase/registry.ex`. The macro captures each example's exact source for the playground's View Code panel and compiles it as the live preview, and petal.build renders the same registry, so the code shown can never drift from what runs. A test asserts every showcase module is registered, so a missing registry entry fails the suite.
+5. **The playground page**: a nav entry and page in `dev.exs` with dials for the attrs that matter and 1 to 3 realistic scenarios (a real product moment, not lorem ipsum), rendering the showcase examples plus any interactive dial sections. Check it in light and dark, keyboard-only, and with reduced motion.
 
 House rules that will come up in review:
 
