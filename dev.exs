@@ -821,6 +821,7 @@ defmodule Dev.PlaygroundLive do
          step: "whole"
        },
        slideover: %{origin: "right", width: "md"},
+       drawer: %{handle: true, drag: true, snaps: "off", scale: false},
        tabs: %{variant: "segmented", active: "overview", number: true},
        table: %{
          sort_by: "name",
@@ -1138,6 +1139,13 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_slideover", %{"k" => "width", "v" => v}, socket) when v in ~w(sm md lg),
     do: {:noreply, update(socket, :slideover, &%{&1 | width: v})}
+
+  def handle_event("ctl_drawer", %{"k" => "snaps", "v" => v}, socket) when v in ~w(off 0.4-0.9),
+    do: {:noreply, update(socket, :drawer, &%{&1 | snaps: v})}
+
+  def handle_event("ctl_drawer", %{"k" => k, "v" => v}, socket)
+      when k in ~w(handle drag scale) and v in ~w(on off),
+      do: {:noreply, update(socket, :drawer, &Map.put(&1, String.to_existing_atom(k), v == "on"))}
 
   def handle_event("close_slide_over", _, socket), do: {:noreply, socket}
 
@@ -5159,7 +5167,7 @@ defmodule Dev.PlaygroundLive do
 
   defp render_page(%{active: "slide-over"} = assigns) do
     ~H"""
-    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10" data-pc-drawer-wrapper>
       <h1 class="text-3xl font-bold tracking-tight">Slide over</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         An edge-attached panel (a "sheet") for forms and detail views that don't warrant a
@@ -5247,8 +5255,148 @@ defmodule Dev.PlaygroundLive do
         </:footer>
       </.slide_over>
 
+      <h2 class="mt-12 text-lg font-semibold">Bottom-sheet drawer</h2>
+      <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">
+        <code>origin="bottom"</code>
+        is a mobile drawer: rounded top corners, a grab handle, safe-area padding, and
+        drag-to-dismiss. Grab the sheet anywhere its body is scrolled to the top and pull it
+        down, or flick it. Escape, click-away and the close button work exactly as they always
+        did - dragging routes through the same close event. Judge this one at phone width.
+      </p>
+
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.SlideOver.show_slide_over("bottom", "pg-drawer")}
+          >
+            <.icon name="hero-adjustments-horizontal" class="w-4 h-4 mr-1" /> Open drawer
+          </.button>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">handle</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Handle"
+              value={(@drawer.handle && "on") || "off"}
+              on_change="ctl_drawer"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="on" phx-value-k="handle" phx-value-v="on">on</:item>
+              <:item value="off" phx-value-k="handle" phx-value-v="off">off</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              drag to dismiss
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Drag to dismiss"
+              value={(@drawer.drag && "on") || "off"}
+              on_change="ctl_drawer"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="on" phx-value-k="drag" phx-value-v="on">on</:item>
+              <:item value="off" phx-value-k="drag" phx-value-v="off">off</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">snap points</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Snap points"
+              value={@drawer.snaps}
+              on_change="ctl_drawer"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="off" phx-value-k="snaps" phx-value-v="off">off</:item>
+              <:item value="0.4-0.9" phx-value-k="snaps" phx-value-v="0.4-0.9">
+                [0.4, 0.9]
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              scale background
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Scale background"
+              value={(@drawer.scale && "on") || "off"}
+              on_change="ctl_drawer"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="on" phx-value-k="scale" phx-value-v="on">on</:item>
+              <:item value="off" phx-value-k="scale" phx-value-v="off">off</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <.slide_over
+        id="pg-drawer"
+        hide
+        origin="bottom"
+        handle={@drawer.handle}
+        drag_to_dismiss={@drawer.drag}
+        snap_points={(@drawer.snaps == "0.4-0.9" && [0.4, 0.9]) || nil}
+        initial_snap={(@drawer.snaps == "0.4-0.9" && 0.4) || nil}
+        scale_background={@drawer.scale}
+        title="Filters"
+        description="Narrow the list down"
+      >
+        <div class="flex flex-col gap-3">
+          <.field
+            :for={
+              {name, label, checked} <- [
+                {"pg_stock", "In stock", true},
+                {"pg_preorder", "Available to pre-order", false},
+                {"pg_soon", "Back in soon", false},
+                {"pg_under_50", "Under $50", true},
+                {"pg_50_150", "$50 to $150", false},
+                {"pg_over_150", "Over $150", false},
+                {"pg_free_ship", "Free shipping", false},
+                {"pg_rated", "Rated 4 stars and up", false}
+              ]
+            }
+            type="checkbox"
+            name={name}
+            value={checked}
+            label={label}
+          />
+        </div>
+        <:footer>
+          <div class="flex items-center justify-between w-full gap-4">
+            <.button
+              color="gray"
+              variant="ghost"
+              phx-click={PetalComponents.SlideOver.hide_slide_over("bottom", "pg-drawer")}
+            >
+              Clear all
+            </.button>
+            <.button phx-click={PetalComponents.SlideOver.hide_slide_over("bottom", "pg-drawer")}>
+              Show 42 results
+            </.button>
+          </div>
+        </:footer>
+      </.slide_over>
+
       <div
-        :for={ex <- examples_for(PetalComponents.Showcase.SlideOver, ~w(cart)a)}
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.SlideOver,
+              ~w(cart filter_drawer queue_drawer action_drawer)a
+            )
+        }
         class="mt-10"
       >
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
