@@ -7636,8 +7636,12 @@
     @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-800;
   }
 
+  /* One ramp step darker than the horizontal rule. The horizontal one sits in
+     open layout with a label and whitespace reinforcing it; the vertical one
+     is a bare hairline wedged between toolbar buttons, where gray-200 reads as
+     a gap rather than a divider. */
   .pc-separator--vertical {
-    @apply w-px shrink-0 self-stretch bg-gray-200 dark:bg-gray-800;
+    @apply w-px shrink-0 self-stretch bg-gray-300 dark:bg-gray-700;
   }
 
   /* Labelled: flanking hairlines either side of the text. Declared after
