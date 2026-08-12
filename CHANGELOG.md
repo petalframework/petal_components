@@ -1,4 +1,28 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **New `scrollspy` component: the "on this page" rail that follows the
+  reader down a long article.** Pass the sections as `items` and the
+  `PetalScrollspy` hook takes it from there, watching them with an
+  IntersectionObserver and sliding an indicator bar to whichever one is
+  at reading position. The fiddly parts are the point: when several
+  sections are on screen the one that most recently reached the
+  activation line wins, a closing section too short to ever reach that
+  line still highlights once you hit the bottom of the scroll, and a
+  `#hash` in the URL activates immediately on load instead of waiting
+  for the first observer callback. `offset` sets `scroll-margin-top` on
+  the targets so a fixed site header stops covering the heading you just
+  jumped to, `threshold` moves the activation line, `indicator="none"`
+  drops the bar for a colour-only active state, and one level of
+  nesting handles h2/h3 structure. The hook is not tied to the renderer:
+  put `phx-hook="PetalScrollspy"` on any container whose links carry
+  `data-scrollspy-target` and it drives your own markup, setting
+  `aria-current="location"` and `pc-scrollspy-link--active` on the active
+  link. Smooth scrolling and the indicator transition both drop out under
+  `prefers-reduced-motion`, and scrolling never moves focus.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
