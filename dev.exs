@@ -262,6 +262,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true},
         %{slug: "skeleton", name: "Skeleton", ready: true},
+        %{slug: "empty", name: "Empty state", ready: true},
         %{slug: "loading", name: "Loading", ready: true}
       ]
     },
@@ -762,6 +763,7 @@ defmodule Dev.PlaygroundLive do
          rev: 0
        },
        badge: %{color: "primary", variant: "outline", size: "md", icon: false},
+       empty: %{variant: "default", size: "md", actions: "primary"},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
@@ -1691,6 +1693,17 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "icon"}, socket),
     do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
 
+  def handle_event("ctl_empty", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default compact card dashed),
+      do: {:noreply, update(socket, :empty, &%{&1 | variant: v})}
+
+  def handle_event("ctl_empty", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :empty, &%{&1 | size: v})}
+
+  def handle_event("ctl_empty", %{"k" => "actions", "v" => v}, socket)
+      when v in ~w(none primary both),
+      do: {:noreply, update(socket, :empty, &%{&1 | actions: v})}
+
   def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
 
   def handle_event("chat_suggest", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
@@ -2292,6 +2305,32 @@ defmodule Dev.PlaygroundLive do
 
     open = Enum.join(["<.alert" | attrs], " ")
     open <> ">Your subscription renews on 12 August.</.alert>"
+  end
+
+  defp empty_snippet(e) do
+    attrs =
+      [
+        e.variant != "default" && ~s(variant="#{e.variant}"),
+        e.size != "md" && ~s(size="#{e.size}"),
+        ~s(title="No projects yet"),
+        ~s(description="Projects hold your environments, deploys and team access.")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.empty" | attrs], " ")
+
+    case e.actions do
+      "none" ->
+        open <> " />"
+
+      "primary" ->
+        open <>
+          ">\n  <:actions>\n    <.button size=\"sm\" label=\"Create project\" />\n  </:actions>\n</.empty>"
+
+      "both" ->
+        open <>
+          ">\n  <:actions>\n    <.button size=\"sm\" label=\"Create project\" />\n    <.button size=\"sm\" variant=\"outline\" color=\"gray\" label=\"Import from Git\" />\n  </:actions>\n</.empty>"
+    end
   end
 
   defp badge_snippet(b) do
@@ -5270,6 +5309,116 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "empty"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Empty state</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        What a list, table, inbox or search renders when it has nothing to show.
+        Media, title, description, actions, a trailing line - every part optional,
+        pure markup and CSS.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-xl">
+            <.empty
+              variant={@empty.variant}
+              size={@empty.size}
+              title="No projects yet"
+              description="Projects hold your environments, deploys and team access. Create one to get started."
+            >
+              <:actions :if={@empty.actions != "none"}>
+                <.button size="sm" label="Create project" />
+                <.button
+                  :if={@empty.actions == "both"}
+                  size="sm"
+                  variant="outline"
+                  color="gray"
+                  label="Import from Git"
+                />
+              </:actions>
+            </.empty>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@empty.variant}
+              on_change="ctl_empty"
+            >
+              <:item
+                :for={v <- ~w(default compact card dashed)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@empty.size}
+              on_change="ctl_empty"
+            >
+              <:item :for={s <- ~w(sm md lg)} value={s} phx-value-k="size" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">actions</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Actions"
+              value={@empty.actions}
+              on_change="ctl_empty"
+            >
+              <:item :for={a <- ~w(none primary both)} value={a} phx-value-k="actions" phx-value-v={a}>
+                {a}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{empty_snippet(@empty)}</code></pre>
+
+      <div :for={ex <- PetalComponents.Showcase.Empty.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Empty} function={:empty} />
     </div>
     """
   end
