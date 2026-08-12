@@ -79,41 +79,35 @@ defmodule PetalComponents.Empty do
 
   import PetalComponents.Icon
 
-  attr(:title, :string, default: nil, doc: "the headline, e.g. \"No results found\"")
+  attr :title, :string, default: nil, doc: "the headline, e.g. \"No results found\""
 
-  attr(:description, :string,
+  attr :description, :string,
     default: nil,
     doc: "one or two sentences of supporting text under the title"
-  )
 
-  attr(:variant, :string,
+  attr :variant, :string,
     default: "default",
     values: ["default", "compact", "card", "dashed"],
     doc:
       "default: centred with generous vertical padding; compact: tighter, for table/list empties; card: wrapped in the floating-panel surface; dashed: dashed border, drop-target look"
-  )
 
-  attr(:size, :string,
+  attr :size, :string,
     default: "md",
     values: ["sm", "md", "lg"],
     doc: "scales the media, the type and the spacing"
-  )
 
-  attr(:class, :any, default: nil, doc: "CSS class for the outer container")
-  attr(:rest, :global)
+  attr :class, :any, default: nil, doc: "CSS class for the outer container"
+  attr :rest, :global
 
-  slot(:icon,
+  slot :icon,
     doc:
       "custom icon or illustration; without it a default treatment renders - a muted circle with a dashed ring around a heroicon glyph"
-  )
 
-  slot(:actions,
+  slot :actions,
     doc: "primary and secondary actions (buttons or links) rendered under the description"
-  )
 
-  slot(:inner_block,
+  slot :inner_block,
     doc: "an optional trailing line, e.g. a \"Learn more\" link rendered under the actions"
-  )
 
   @doc """
   The empty state: media, title, description, actions, trailing line - every
