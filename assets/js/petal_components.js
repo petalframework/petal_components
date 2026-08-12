@@ -1580,19 +1580,25 @@ export const PetalNumberField = {
     this.write(next, cfg.precision);
   },
 
+  // Returns whether it mutated the value, so callers can avoid firing
+  // synthetic events for writes that changed nothing.
   write(value, precision) {
     const text = numberFieldMath.format(value, precision);
     if (text === this.input.value) {
       this.syncAria();
-      return;
+      return false;
     }
     this.input.value = text;
     this.syncAria();
     this.input.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
   },
 
   // Typed text is left alone until blur: clamping mid-keystroke would snap
-  // "1" to the maximum on the way to "15".
+  // "1" to the maximum on the way to "15". The synthetic change fires ONLY
+  // when the clamp actually rewrote the value - for in-range typed input the
+  // browser's own native change already fires on blur, and dispatching a
+  // second one doubled every change handler.
   commitTyped() {
     const cfg = this.config();
     const current = this.currentValue();
@@ -1600,11 +1606,20 @@ export const PetalNumberField = {
       this.syncAria();
       return;
     }
-    this.write(numberFieldMath.clamp(current, cfg.min, cfg.max), cfg.precision);
-    this.input.dispatchEvent(new Event("change", { bubbles: true }));
+    const mutated = this.write(
+      numberFieldMath.clamp(current, cfg.min, cfg.max),
+      cfg.precision,
+    );
+    if (mutated) {
+      this.input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   },
 
   handleKeydown(e) {
+    // Home/End write() directly, bypassing step()'s guard - and readonly
+    // inputs still receive keydown, so without this a readonly value could
+    // be rewritten from the keyboard.
+    if (this.input.disabled || this.input.readOnly) return;
     const cfg = this.config();
     const big = e.shiftKey ? cfg.bigStep : cfg.step;
 
@@ -1648,6 +1663,9 @@ export const PetalNumberField = {
   startRepeat(e, btn) {
     if (e.button !== undefined && e.button !== 0) return;
     if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+    // Mirror step()'s guard: a hold on a readonly control otherwise focuses
+    // the input and schedules a repeat timer that no-ops every tick.
+    if (this.input.disabled || this.input.readOnly) return;
     e.preventDefault();
     this.input.focus();
 

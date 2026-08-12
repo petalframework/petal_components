@@ -214,6 +214,34 @@ defmodule PetalComponents.NumberFieldTest do
       end
     end
 
+    test "aria-valuenow describes the ROUNDED value the user sees, not the raw parse" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.number_field name="qty" value="5.5" precision={0} min={1} max={6} />
+        """)
+
+      input = one(html, "input")
+      # display rounds 5.5 -> 6; announcing 5.5 against a visible 6 would
+      # desync the first paint from what the hook later syncs
+      assert at(input, "value") == "6"
+      assert at(input, "aria-valuenow") == "6"
+      # and the bound check follows the rounded value: 6 IS at max
+      assert one(html, "[data-pc-number-step=inc]") |> at("aria-disabled") == "true"
+    end
+
+    test "aria-label rides the global attrs for standalone use" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.number_field name="qty" value="3" aria-label="Quantity" />
+        """)
+
+      assert at(one(html, "input"), "aria-label") == "Quantity"
+    end
+
     test "buttons are labelled, typed and kept out of the tab order" do
       assigns = %{}
 

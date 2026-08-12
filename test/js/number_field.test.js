@@ -189,6 +189,25 @@ describe("PetalNumberField keyboard", () => {
     expect(home.defaultPrevented).toBe(false);
   });
 
+  it("a readonly input ignores every keyboard write, including home and end", () => {
+    // readonly inputs still receive keydown (unlike disabled), and Home/End
+    // write() directly - the guard has to live in handleKeydown itself
+    const { input } = mount({ value: "5", min: 1, max: 99, readOnly: true });
+
+    key(input, "Home");
+    key(input, "End");
+    key(input, "ArrowUp");
+    expect(input.value).toBe("5");
+  });
+
+  it("a hold on a readonly control never starts the repeat timer", () => {
+    const { input, inc, hook } = mount({ value: "5", min: 1, max: 99, readOnly: true });
+
+    inc.dispatchEvent(pointer("pointerdown"));
+    expect(input.value).toBe("5");
+    expect(hook.repeatTimer).toBeFalsy();
+  });
+
   it("a plain character keystroke is left to the browser", () => {
     const { input } = mount({ value: "5" });
 
@@ -321,6 +340,22 @@ describe("PetalNumberField blur", () => {
     input.value = "abc";
     input.dispatchEvent(new Event("blur"));
     expect(input.value).toBe("abc");
+  });
+
+  it("fires the synthetic change only when the clamp rewrote the value", () => {
+    // in-range typed input gets the browser's own native change on blur;
+    // a synthetic one on top doubled every change handler
+    const { input } = mount({ value: "", min: 1, max: 99 });
+    const changes = [];
+    input.addEventListener("change", () => changes.push(input.value));
+
+    input.value = "50";
+    input.dispatchEvent(new Event("blur"));
+    expect(changes).toEqual([]);
+
+    input.value = "150";
+    input.dispatchEvent(new Event("blur"));
+    expect(changes).toEqual(["99"]);
   });
 });
 

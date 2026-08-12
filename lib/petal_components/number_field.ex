@@ -71,6 +71,11 @@ defmodule PetalComponents.NumberField do
   `aria-disabled` rather than `disabled`, so it stays discoverable to a screen
   reader. A `disabled` control uses the native attribute throughout.
 
+  Inside `<.field>` the label wires up automatically. Standalone, the input
+  has NO accessible name - the APG pattern requires one, so pass
+  `aria-label` (it rides through the global attrs) or reference a visible
+  label with `aria-labelledby`.
+
   ## Formatting beyond `precision`
 
   `precision` rounds and pads to a fixed number of decimals on blur. That is the
@@ -194,13 +199,21 @@ defmodule PetalComponents.NumberField do
     min = to_number(assigns.min)
     max = to_number(assigns.max)
 
+    # ARIA and the bound checks must describe what the user SEES: with
+    # precision, value="5.5" renders "6", so aria-valuenow and at-bound
+    # dimming are computed from the rounded number, never the raw parse
+    # (otherwise first paint announces 5.5 against a visible 6 until the
+    # hook's mount-time sync papers over it).
+    rounded = round_to_precision(number, assigns.precision)
+    display = display_value(number, assigns.value, assigns.precision)
+
     assigns =
       assigns
       |> assign(:id, resolve_id(assigns.id, assigns.name))
-      |> assign(:display, display_value(number, assigns.value, assigns.precision))
-      |> assign(:value_now, number)
-      |> assign(:at_min, at_bound?(number, min, :min))
-      |> assign(:at_max, at_bound?(number, max, :max))
+      |> assign(:display, display)
+      |> assign(:value_now, if(rounded && is_integer(assigns.precision), do: display, else: rounded))
+      |> assign(:at_min, at_bound?(rounded, min, :min))
+      |> assign(:at_max, at_bound?(rounded, max, :max))
       |> assign(:big_step, assigns.big_step || big_step_default(assigns.step))
       |> assign(:show_buttons, assigns.variant != "plain")
 
@@ -346,6 +359,16 @@ defmodule PetalComponents.NumberField do
   end
 
   defp display_value(_number, raw, _precision), do: normalize(raw)
+
+  # The numeric twin of display_value/3: what the rendered string means as a
+  # number, for aria-valuenow and the at-bound checks.
+  defp round_to_precision(nil, _precision), do: nil
+
+  defp round_to_precision(number, precision) when is_integer(precision) and precision >= 0 do
+    Float.round(number / 1, precision)
+  end
+
+  defp round_to_precision(number, _precision), do: number
 
   defp normalize(nil), do: nil
   defp normalize(value) when is_binary(value), do: value
