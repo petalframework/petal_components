@@ -252,6 +252,53 @@ defmodule Dev.PlaygroundLive do
   and each connected tab is just another cheap process [^4].
   """
 
+  # Two-step mocked agent flow: the assistant asks which framework, then what
+  # to scaffold. Both round-trip through real handle_event callbacks.
+  @q_framework %{
+    id: "q-framework",
+    title: "Which framework are you targeting?",
+    description: "This picks the generators I'll reach for.",
+    fields: [
+      %{
+        id: "framework",
+        type: :single_select,
+        label: "Framework",
+        required: true,
+        options: [
+          %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView, server-rendered"},
+          %{value: "rails", label: "Rails", description: "Ruby, Hotwire, convention-first"},
+          %{value: "next", label: "Next.js", description: "React, app router, RSC"}
+        ]
+      }
+    ]
+  }
+
+  @q_scope %{
+    id: "q-scope",
+    title: "Before I scaffold, two things",
+    fields: [
+      %{
+        id: "features",
+        type: :multi_select,
+        label: "Which features do you need?",
+        options: [
+          %{value: "auth", label: "Auth"},
+          %{value: "billing", label: "Billing"},
+          %{value: "admin", label: "Admin panel"}
+        ]
+      },
+      %{id: "team", type: :text, label: "Team name", placeholder: "Platform"},
+      %{
+        id: "confidence",
+        type: :scale,
+        label: "How settled is this scope?",
+        min_label: "Still exploring",
+        max_label: "Locked",
+        required: true
+      }
+    ]
+  }
+
   # Inline SVG so the attachments example renders with no static asset host.
   @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
 
@@ -778,6 +825,19 @@ defmodule Dev.PlaygroundLive do
        tg_size: "md",
        chat_rag_sources: @chat_rag_sources,
        chat_shot_image: @chat_shot_image,
+       q_framework: @q_framework,
+       q_scope: @q_scope,
+       quiz: %{
+         # nil until answered; then the answer map or :skipped
+         framework: nil,
+         scope: nil,
+         asked_scope: false,
+         submitting: false,
+         # dial state for the standalone demo below the flow
+         field: "single_cards",
+         allow_skip: true,
+         state: "pending"
+       },
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -1827,6 +1887,46 @@ defmodule Dev.PlaygroundLive do
      |> assign(:chat, %{socket.assigns.chat | attach_limit: v})}
   end
 
+  # The whole point of the component: submit is a plain phx-submit, the parent
+  # updates assigns, and the card flips to its resolved state. No client state.
+  def handle_event("questionnaire_submit", %{"spec_id" => "q-framework"} = params, socket) do
+    quiz = %{socket.assigns.quiz | framework: params["answers"] || %{}, asked_scope: true}
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
+  def handle_event("questionnaire_submit", %{"spec_id" => "q-scope"} = params, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | scope: params["answers"] || %{}})}
+  end
+
+  def handle_event("questionnaire_submit", _params, socket), do: {:noreply, socket}
+
+  def handle_event("questionnaire_skip", %{"id" => "q-framework"}, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | framework: :skipped})}
+  end
+
+  def handle_event("questionnaire_skip", %{"id" => "q-scope"}, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | scope: :skipped})}
+  end
+
+  def handle_event("questionnaire_skip", _params, socket), do: {:noreply, socket}
+
+  def handle_event("quiz_reset", _params, socket) do
+    quiz = %{socket.assigns.quiz | framework: nil, scope: nil, asked_scope: false}
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
+  def handle_event("ctl_quiz", %{"k" => k, "v" => v}, socket) do
+    quiz =
+      case k do
+        "field" -> %{socket.assigns.quiz | field: v}
+        "allow_skip" -> %{socket.assigns.quiz | allow_skip: v == "on"}
+        "state" -> %{socket.assigns.quiz | state: v}
+        _ -> socket.assigns.quiz
+      end
+
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
   # Uploads need a change event on the form to make progress.
   def handle_event("chat_validate", _params, socket), do: {:noreply, socket}
 
@@ -1927,6 +2027,59 @@ defmodule Dev.PlaygroundLive do
        |> assign(:chat, chat)}
     end
   end
+
+  # One field at a time, so each type can be looked at on its own.
+  defp quiz_demo_spec("single_cards"), do: @q_framework
+
+  defp quiz_demo_spec("single_buttons") do
+    %{
+      id: "q-demo",
+      title: "Which framework are you targeting?",
+      fields: [
+        %{
+          id: "framework",
+          type: :single_select,
+          label: "Framework",
+          style: "buttons",
+          required: true,
+          options: [
+            %{value: "phoenix", label: "Phoenix"},
+            %{value: "rails", label: "Rails"},
+            %{value: "next", label: "Next.js"}
+          ]
+        }
+      ]
+    }
+  end
+
+  defp quiz_demo_spec("multi") do
+    %{
+      id: "q-demo",
+      title: "Which features do you need?",
+      fields: [Enum.at(@q_scope.fields, 0)]
+    }
+  end
+
+  defp quiz_demo_spec("text") do
+    %{id: "q-demo", title: "What should I call it?", fields: [Enum.at(@q_scope.fields, 1)]}
+  end
+
+  defp quiz_demo_spec(_scale) do
+    %{id: "q-demo", title: "How settled is this scope?", fields: [Enum.at(@q_scope.fields, 2)]}
+  end
+
+  defp quiz_demo_resolved(%{state: "skipped"}), do: :skipped
+
+  defp quiz_demo_resolved(%{state: "resolved", field: field}) do
+    case field do
+      "multi" -> %{"features" => ["auth", "billing"]}
+      "text" -> %{"team" => "Platform"}
+      "scale" -> %{"confidence" => "5"}
+      _ -> %{"framework" => "phoenix"}
+    end
+  end
+
+  defp quiz_demo_resolved(_quiz), do: nil
 
   # A real app writes these somewhere it can serve from. The playground has no
   # static host for a temp dir, so small images become data URIs (enough to
@@ -9091,6 +9244,121 @@ defmodule Dev.PlaygroundLive do
         paperclip, then each chip's remove button, then the textarea, then send.
       </div>
 
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Human in the loop</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        A live two-step flow. The assistant asks which framework, you answer, the
+        card flips to resolved chips and it asks the follow-up. Submit is a plain
+        phx-submit into this page's handle_event - the component holds no client
+        state at all. Keyboard-only works end to end: arrows move within a group,
+        Space toggles a checkbox, Enter submits.
+      </p>
+      <Chat.conversation id="pg-chat-quiz">
+        <Chat.chat_message role="user">Scaffold me a starter app.</Chat.chat_message>
+        <Chat.chat_message role="assistant">
+          <Chat.questionnaire
+            spec={@q_framework}
+            resolved={@quiz.framework}
+            allow_skip
+            submitting={@quiz.submitting}
+          />
+        </Chat.chat_message>
+        <Chat.chat_message :if={@quiz.asked_scope || @quiz.framework == :skipped} role="assistant">
+          <Chat.questionnaire
+            spec={@q_scope}
+            resolved={@quiz.scope}
+            allow_skip
+            submit_label="Send answers"
+          />
+        </Chat.chat_message>
+        <:footer>
+          <.button size="sm" variant="outline" phx-click="quiz_reset">Reset the flow</.button>
+        </:footer>
+      </Chat.conversation>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Field types and states</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        One field at a time, through every state.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.questionnaire
+            spec={quiz_demo_spec(@quiz.field)}
+            resolved={quiz_demo_resolved(@quiz)}
+            submitting={@quiz.state == "submitting"}
+            allow_skip={@quiz.allow_skip}
+          />
+        </div>
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">field type</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Field type"
+              value={@quiz.field}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(single_cards single_buttons multi text scale)}
+                value={v}
+                phx-value-k="field"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">allow_skip</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Allow skip"
+              value={if @quiz.allow_skip, do: "on", else: "off"}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="allow_skip" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Questionnaire state"
+              value={@quiz.state}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(pending submitting resolved skipped)}
+                value={v}
+                phx-value-k="state"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The spec is a plain map the app (or the model) emits; the component is a
+        thin renderer over it. Single-select composes <code>field type="radio-card"</code>
+        when the options carry descriptions and <code>type="radio-group"</code>
+        when they don't; multi-select is a checkbox group, text is a text field.
+        Only the 1-to-5 scale is new markup - five real radios in a segmented
+        row, so arrows move between steps natively. Inputs are named <code>answers[field_id]</code>
+        so submit lands as a map with a "spec_id" key and an "answers" map.
+        Resolved replaces the form with chips - no disabled form left in the DOM
+        pretending to be interactive.
+      </div>
+
       <h2 class="mt-10 mb-1 text-lg font-semibold">A support thread with attachments</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         The received side. Images tile into a grid, files are download rows with
@@ -9204,7 +9472,8 @@ defmodule Dev.PlaygroundLive do
           :chat_error,
           :chat_sources,
           :citation,
-          :message_attachments
+          :message_attachments,
+          :questionnaire
         ]}
       />
 

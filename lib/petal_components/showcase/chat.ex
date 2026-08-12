@@ -19,8 +19,54 @@ defmodule PetalComponents.Showcase.Chat do
       :chat_error,
       :chat_sources,
       :citation,
-      :message_attachments
+      :message_attachments,
+      :questionnaire
     ]
+
+  @framework_spec %{
+    id: "showcase-q-framework",
+    title: "Which framework are you targeting?",
+    description: "This picks the generators I'll reach for.",
+    fields: [
+      %{
+        id: "framework",
+        type: :single_select,
+        label: "Framework",
+        required: true,
+        options: [
+          %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView, server-rendered"},
+          %{value: "rails", label: "Rails", description: "Ruby, Hotwire, convention-first"},
+          %{value: "next", label: "Next.js", description: "React, app router, RSC"}
+        ]
+      }
+    ]
+  }
+
+  @scoping_spec %{
+    id: "showcase-q-scope",
+    title: "Before I scaffold, two things",
+    fields: [
+      %{
+        id: "features",
+        type: :multi_select,
+        label: "Which features do you need?",
+        options: [
+          %{value: "auth", label: "Auth"},
+          %{value: "billing", label: "Billing"},
+          %{value: "admin", label: "Admin panel"}
+        ]
+      },
+      %{id: "team", type: :text, label: "Team name", placeholder: "Platform"},
+      %{
+        id: "confidence",
+        type: :scale,
+        label: "How settled is this scope?",
+        min_label: "Still exploring",
+        max_label: "Locked",
+        required: true
+      }
+    ]
+  }
 
   @rag_sources [
     %{
@@ -63,6 +109,8 @@ defmodule PetalComponents.Showcase.Chat do
   defp rag_sources, do: @rag_sources
   defp shot_image, do: @shot_image
   defp logs_image, do: @logs_image
+  defp framework_spec, do: @framework_spec
+  defp scoping_spec, do: @scoping_spec
 
   example :flagship, "A complete chat",
     description:
@@ -280,6 +328,56 @@ defmodule PetalComponents.Showcase.Chat do
       <.chat_message role="assistant">
         Thanks - the stack trace in that screenshot points at the card token
         expiring before submit. I can see the charge attempt on invoice 4471.
+      </.chat_message>
+    </.conversation>
+    """
+  end
+
+  example :questionnaire, "Questionnaire",
+    description:
+      "The model pauses to ask a structured question and the answer lands in the transcript. Server-driven: a plain phx-submit, no client state. Options with descriptions render as radio cards, plain ones as radios." do
+    ~H"""
+    <.conversation id="showcase-chat-questionnaire" class="w-full max-w-xl mx-auto">
+      <.chat_message role="user">Scaffold me a starter app.</.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire spec={framework_spec()} allow_skip />
+      </.chat_message>
+    </.conversation>
+    """
+  end
+
+  example :questionnaire_mixed, "Questionnaire - mixed fields",
+    description:
+      "All four field types in one bubble: multi-select, short text, and a 1-to-5 scale with end captions. Required fields use the native required attribute, so enforcement is the browser's." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto">
+      <.questionnaire spec={scoping_spec()} submit_label="Send answers" />
+    </div>
+    """
+  end
+
+  example :questionnaire_resolved, "Questionnaire - resolved and skipped",
+    description:
+      "Once the app has the answer, pass it back as resolved and the form becomes quiet chips - nothing focusable is left behind. :skipped renders the one-line skipped state." do
+    ~H"""
+    <.conversation id="showcase-chat-questionnaire-resolved" class="w-full max-w-xl mx-auto">
+      <.chat_message role="assistant">
+        <.questionnaire spec={framework_spec()} resolved={%{"framework" => "phoenix"}} />
+      </.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire
+          spec={scoping_spec()}
+          resolved={
+            %{
+              "features" => ["auth", "billing"],
+              "team" => "Platform",
+              "confidence" => "5"
+            }
+          }
+        />
+      </.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire spec={framework_spec()} resolved={:skipped} />
       </.chat_message>
     </.conversation>
     """

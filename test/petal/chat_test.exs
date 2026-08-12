@@ -1002,6 +1002,385 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  describe "questionnaire/1" do
+    defp full_spec do
+      %{
+        id: "q-framework",
+        title: "Which framework are you targeting?",
+        description: "This picks the generators I'll reach for.",
+        fields: [
+          %{
+            id: "framework",
+            type: :single_select,
+            label: "Framework",
+            required: true,
+            options: [
+              %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView"},
+              %{value: "rails", label: "Rails", description: "Ruby, Hotwire"}
+            ]
+          },
+          %{
+            id: "features",
+            type: :multi_select,
+            label: "Features",
+            options: [%{value: "auth", label: "Auth"}, %{value: "billing", label: "Billing"}]
+          },
+          %{id: "team", type: :text, label: "Team name", placeholder: "Acme"},
+          %{
+            id: "confidence",
+            type: :scale,
+            label: "How sure are you?",
+            min_label: "Not sure",
+            max_label: "Certain",
+            required: true
+          }
+        ]
+      }
+    end
+
+    test "renders the title, description and a form posting the default event" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert_has_class(html, "pc-questionnaire")
+      assert html =~ "Which framework are you targeting?"
+      assert html =~ "This picks the generators I&#39;ll reach for."
+      assert html =~ ~s{phx-submit="questionnaire_submit"}
+    end
+
+    test "a custom on_submit name is respected" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} on_submit="answer_it" />|)
+
+      assert html =~ ~s{phx-submit="answer_it"}
+      refute html =~ ~s{phx-submit="questionnaire_submit"}
+    end
+
+    test "input names produce the documented params shape" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      # hidden spec id, echoed back on submit
+      assert html =~ ~s{<input type="hidden" name="spec_id" value="q-framework">}
+      # single-select and text are scalar
+      assert html =~ ~s{name="answers[framework]"}
+      assert html =~ ~s{name="answers[team]"}
+      # multi-select collects into a list
+      assert html =~ ~s{name="answers[features][]"}
+      # the scale is a scalar radio group
+      assert html =~ ~s{name="answers[confidence]"}
+    end
+
+    test "single-select with option descriptions renders radio cards" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html =~ "pc-radio-card"
+      assert html =~ "Phoenix"
+      assert html =~ "Elixir, LiveView"
+    end
+
+    test "single-select without descriptions renders a plain radio group" do
+      assigns = %{
+        spec: %{
+          id: "q",
+          title: "Pick",
+          fields: [
+            %{
+              id: "pick",
+              type: :single_select,
+              label: "Pick",
+              options: [%{value: "a", label: "A"}, %{value: "b", label: "B"}]
+            }
+          ]
+        }
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html =~ "pc-radio-group"
+      refute html =~ "pc-radio-card"
+    end
+
+    test "style overrides the option-shape heuristic both ways" do
+      cards = %{
+        id: "q",
+        title: "Pick",
+        fields: [
+          %{
+            id: "pick",
+            type: :single_select,
+            label: "Pick",
+            style: "cards",
+            options: [%{value: "a", label: "A"}]
+          }
+        ]
+      }
+
+      buttons =
+        put_in(cards, [:fields], [
+          %{
+            id: "pick",
+            type: :single_select,
+            label: "Pick",
+            style: "buttons",
+            options: [%{value: "a", label: "A", description: "with a description"}]
+          }
+        ])
+
+      assigns = %{cards: cards, buttons: buttons}
+
+      assert rendered_to_string(~H|<.questionnaire spec={@cards} />|) =~ "pc-radio-card"
+
+      html = rendered_to_string(~H|<.questionnaire spec={@buttons} />|)
+      assert html =~ "pc-radio-group"
+      refute html =~ "pc-radio-card"
+    end
+
+    test "the scale renders exactly five radios sharing one name, values 1 to 5" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert_has_class(html, "pc-questionnaire__scale")
+
+      for value <- 1..5 do
+        assert html =~ ~s{name="answers[confidence]" value="#{value}"}
+      end
+
+      assert length(Regex.scan(~r/name="answers\[confidence\]"/, html)) == 5
+    end
+
+    test "the scale end captions are associated with the radios" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html =~ "Not sure"
+      assert html =~ "Certain"
+      assert html =~ ~s{aria-describedby="q-framework-confidence-captions"}
+      assert html =~ ~s{id="q-framework-confidence-captions"}
+    end
+
+    test "a scale with no end labels renders no captions" do
+      assigns = %{
+        spec: %{id: "q", title: "T", fields: [%{id: "s", type: :scale, label: "Scale"}]}
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      refute html =~ "pc-questionnaire__scale-captions"
+      refute html =~ "aria-describedby"
+    end
+
+    test "required fields carry the native required attribute and a visible marker" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html =~ "required"
+      assert html =~ "pc-label--required"
+    end
+
+    test "an optional-only spec has no required attribute" do
+      assigns = %{
+        spec: %{id: "q", title: "T", fields: [%{id: "team", type: :text, label: "Team"}]}
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      refute html =~ "required"
+    end
+
+    test "every field is a fieldset with a legend naming the question" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert length(Regex.scan(~r/<fieldset/, html)) == 4
+      assert html =~ "<legend"
+      assert html =~ "Framework (required)"
+      assert html =~ ">Features<"
+    end
+
+    test "the form is labelled by the questionnaire title" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html =~ ~s{id="q-framework-title"}
+      assert html =~ ~s{aria-labelledby="q-framework-title"}
+    end
+
+    test "allow_skip renders a skip button carrying the spec id; absent by default" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} allow_skip />|)
+
+      assert_has_class(html, "pc-questionnaire__skip")
+      assert html =~ ~s{phx-click="questionnaire_skip"}
+      assert html =~ ~s{phx-value-id="q-framework"}
+
+      refute rendered_to_string(~H|<.questionnaire spec={@spec} />|) =~ "pc-questionnaire__skip"
+    end
+
+    test "a custom on_skip name is respected" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} allow_skip on_skip="pass" />|)
+
+      assert html =~ ~s{phx-click="pass"}
+    end
+
+    test "submitting disables every input and both buttons and shows a status spinner" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} allow_skip submitting />|)
+
+      assert html =~ ~s{role="status"}
+      assert_has_class(html, "pc-questionnaire__spinner")
+      assert html =~ "Submitting"
+      # radios, checkboxes, the text input, both buttons
+      assert length(Regex.scan(~r/disabled/, html)) >= 10
+    end
+
+    test "the pending form has no disabled controls" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} allow_skip />|)
+
+      refute html =~ "disabled"
+      refute html =~ ~s{role="status"}
+    end
+
+    test "a resolved map renders chips and no form at all" do
+      assigns = %{
+        spec: full_spec(),
+        resolved: %{
+          "framework" => "phoenix",
+          "features" => ["auth", "billing"],
+          "team" => "Platform",
+          "confidence" => "5"
+        }
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} resolved={@resolved} />|)
+
+      assert_has_class(html, "pc-questionnaire--resolved")
+      refute html =~ "<form"
+      refute html =~ "<input"
+      refute html =~ "<fieldset"
+
+      # option values render as their labels
+      assert html =~ "Phoenix"
+      refute html =~ "phoenix"
+      # multi-select gets one chip per choice
+      assert html =~ "Auth"
+      assert html =~ "Billing"
+      assert html =~ "Platform"
+      # the scale shows the number plus its end label
+      assert html =~ "5 · Certain"
+      # framework 1 + features 2 + team 1 + confidence 1
+      assert length(Regex.scan(~r/pc-questionnaire__chip/, html)) == 5
+    end
+
+    test "an unanswered field is left out of the summary" do
+      assigns = %{spec: full_spec(), resolved: %{"team" => "Platform"}}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} resolved={@resolved} />|)
+
+      assert html =~ "Platform"
+      assert length(Regex.scan(~r/pc-questionnaire__chip/, html)) == 1
+      refute html =~ "How sure are you?"
+    end
+
+    test "atom-keyed resolved maps work too" do
+      assigns = %{spec: full_spec(), resolved: %{team: "Platform"}}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} resolved={@resolved} />|)
+
+      assert html =~ "Platform"
+    end
+
+    test "resolved :skipped renders the skipped summary and no form" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} resolved={:skipped} />|)
+
+      assert_has_class(html, "pc-questionnaire--skipped")
+      assert html =~ "Skipped"
+      refute html =~ "<form"
+      refute html =~ "<input"
+    end
+
+    test "string-keyed and atom-keyed specs render identically" do
+      atom_spec = %{
+        id: "q",
+        title: "Pick one",
+        fields: [
+          %{
+            id: "pick",
+            type: :single_select,
+            label: "Pick",
+            required: true,
+            options: [%{value: "a", label: "A"}]
+          }
+        ]
+      }
+
+      string_spec = %{
+        "id" => "q",
+        "title" => "Pick one",
+        "fields" => [
+          %{
+            "id" => "pick",
+            "type" => "single_select",
+            "label" => "Pick",
+            "required" => true,
+            "options" => [%{"value" => "a", "label" => "A"}]
+          }
+        ]
+      }
+
+      assigns = %{atom_spec: atom_spec, string_spec: string_spec}
+
+      assert rendered_to_string(~H|<.questionnaire spec={@atom_spec} />|) ==
+               rendered_to_string(~H|<.questionnaire spec={@string_spec} />|)
+    end
+
+    test "a custom submit_label is used" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} submit_label="Send answers" />|)
+
+      assert html =~ "Send answers"
+      refute html =~ ">Submit<"
+    end
+
+    test "class is appended last and rest passes through" do
+      assigns = %{spec: full_spec()}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} class="mine" id="q-block" />|)
+
+      assert html =~ "mine"
+      assert html =~ ~s{id="q-block"}
+    end
+
+    test "a spec with no description omits it" do
+      assigns = %{
+        spec: %{id: "q", title: "T", fields: [%{id: "t", type: :text, label: "T"}]}
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      refute html =~ "pc-questionnaire__description"
+    end
+  end
+
   describe "marker" do
     test "inline with icon" do
       assigns = %{}

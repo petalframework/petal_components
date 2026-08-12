@@ -13,6 +13,7 @@ defmodule PetalComponents.Chat do
     * `chat_sources/1`   — the RAG sources row under an answer
     * `citation/1`       — an inline numbered citation chip
     * `message_attachments/1` — images and files inside a sent message
+    * `questionnaire/1`  — structured human-in-the-loop input in the thread
 
   ## Importing
 
@@ -745,6 +746,375 @@ defmodule PetalComponents.Chat do
       </a>
     </div>
     """
+  end
+
+  @doc """
+  Structured human-in-the-loop input, rendered inside the conversation. The
+  model (via your app) emits a question spec; this renders it as a form in the
+  transcript, and once the app has the answer it renders back as a quiet
+  summary so the transcript stays honest about what was asked and answered.
+
+  Server-driven end to end — a plain `phx-submit`, no client state, no client
+  form engine.
+
+      <Chat.chat_message role="assistant">
+        <Chat.questionnaire spec={@question} resolved={@answers} allow_skip />
+      </Chat.chat_message>
+
+  ## The spec
+
+      %{
+        id: "q-framework",
+        title: "Which framework are you targeting?",
+        description: "This picks the generators I'll reach for.",
+        fields: [
+          %{id: "framework", type: :single_select, label: "Framework", required: true,
+            options: [
+              %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView"},
+              %{value: "rails", label: "Rails", description: "Ruby, Hotwire"}
+            ]},
+          %{id: "features", type: :multi_select, label: "Features",
+            options: [%{value: "auth", label: "Auth"}, %{value: "billing", label: "Billing"}]},
+          %{id: "team", type: :text, label: "Team name", placeholder: "Acme"},
+          %{id: "confidence", type: :scale, label: "How sure are you?",
+            min_label: "Not sure", max_label: "Certain", required: true}
+        ]
+      }
+
+  String and atom keys are both accepted. `:single_select` renders radio-cards
+  when any option carries a `description`, plain radios otherwise — override
+  per field with `style: "cards"` or `style: "buttons"`.
+
+  ## The params you get back
+
+  Inputs are named `answers[<field_id>]` (`answers[<field_id>][]` for
+  multi-select), plus a hidden `spec_id` echoing the spec:
+
+      def handle_event("questionnaire_submit", %{"spec_id" => id, "answers" => answers}, socket) do
+        # %{"framework" => "phoenix", "features" => ["auth"], "confidence" => "4"}
+        {:noreply, socket |> answer(id, answers) |> ask_the_model(answers)}
+      end
+
+      def handle_event("questionnaire_skip", %{"id" => id}, socket) do
+        {:noreply, assign(socket, :answers, :skipped)}
+      end
+
+  Required fields use the native `required` attribute — server-side validation
+  stays in your app.
+
+  ## Resolving it
+
+  Pass the answer map back as `resolved` and the form is replaced by chips;
+  pass `:skipped` for the skipped line. Nothing focusable is left behind — no
+  disabled form pretending to still be a control.
+  """
+  attr :spec, :map,
+    required: true,
+    doc:
+      "the question spec: %{id, title, description, fields: [...]}. Each field is %{id, type, label, required, options, placeholder, min_label, max_label, style}, where type is :single_select | :multi_select | :text | :scale. String or atom keys both accepted"
+
+  attr :resolved, :any,
+    default: nil,
+    doc:
+      "nil while pending. A map of answers keyed by field id renders the resolved summary; the atom :skipped renders the skipped state"
+
+  attr :on_submit, :string,
+    default: "questionnaire_submit",
+    doc: "phx-submit event name posted to the parent LiveView"
+
+  attr :allow_skip, :boolean,
+    default: false,
+    doc: "renders a Skip button that posts on_skip with the spec id"
+
+  attr :on_skip, :string,
+    default: "questionnaire_skip",
+    doc: "phx-click event for the skip button, with phx-value-id set to the spec id"
+
+  attr :submitting, :boolean,
+    default: false,
+    doc:
+      "disables every input and both buttons and shows a spinner while the app forwards the answer"
+
+  attr :submit_label, :string, default: "Submit", doc: "text on the submit button"
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def questionnaire(assigns) do
+    spec = normalize_spec(assigns.spec)
+
+    assigns =
+      assigns
+      |> assign(:spec, spec)
+      |> assign(:title_id, "#{spec.id}-title")
+      |> assign(:answers, resolved_answers(spec, assigns.resolved))
+
+    ~H"""
+    <div
+      class={[
+        "pc-questionnaire",
+        @resolved == :skipped && "pc-questionnaire--skipped",
+        is_map(@resolved) && "pc-questionnaire--resolved",
+        @class
+      ]}
+      {@rest}
+    >
+      <div class="pc-questionnaire__header">
+        <h3 id={@title_id} class="pc-questionnaire__title">{@spec.title}</h3>
+        <p :if={@spec.description} class="pc-questionnaire__description">{@spec.description}</p>
+      </div>
+
+      <%= cond do %>
+        <% @resolved == :skipped -> %>
+          <p class="pc-questionnaire__skipped-note">Skipped</p>
+        <% is_map(@resolved) -> %>
+          <dl class="pc-questionnaire__summary">
+            <div :for={{field, chips} <- @answers} class="pc-questionnaire__answer">
+              <dt class="pc-questionnaire__answer-label">{field.label}</dt>
+              <dd class="pc-questionnaire__answer-value">
+                <span :for={chip <- chips} class="pc-questionnaire__chip">{chip}</span>
+              </dd>
+            </div>
+          </dl>
+        <% true -> %>
+          <form
+            phx-submit={@on_submit}
+            aria-labelledby={@title_id}
+            class="pc-questionnaire__form"
+          >
+            <input type="hidden" name="spec_id" value={@spec.id} />
+            <.questionnaire_field
+              :for={field <- @spec.fields}
+              field={field}
+              spec_id={@spec.id}
+              submitting={@submitting}
+            />
+            <div class="pc-questionnaire__actions">
+              <button
+                type="submit"
+                disabled={@submitting}
+                class="pc-questionnaire__submit"
+              >
+                <span :if={@submitting} role="status" class="pc-questionnaire__spinner-wrap">
+                  <span class="pc-questionnaire__spinner" aria-hidden="true"></span>
+                  <span class="sr-only">Submitting</span>
+                </span>
+                {@submit_label}
+              </button>
+              <button
+                :if={@allow_skip}
+                type="button"
+                phx-click={@on_skip}
+                phx-value-id={@spec.id}
+                disabled={@submitting}
+                class="pc-questionnaire__skip"
+              >
+                Skip
+              </button>
+            </div>
+          </form>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :field, :map, required: true
+  attr :spec_id, :string, required: true
+  attr :submitting, :boolean, required: true
+
+  defp questionnaire_field(assigns) do
+    assigns =
+      assigns
+      |> assign(:name, "answers[#{assigns.field.id}]")
+      |> assign(:legend, questionnaire_legend(assigns.field))
+
+    ~H"""
+    <fieldset class={["pc-questionnaire__field", "pc-questionnaire__field--#{@field.type}"]}>
+      <legend class="sr-only">{@legend}</legend>
+      <%= case @field.type do %>
+        <% :single_select -> %>
+          <PetalComponents.Field.field
+            :if={questionnaire_style(@field) == "cards"}
+            type="radio-card"
+            name={@name}
+            label={@field.label}
+            options={@field.options}
+            required={@field.required}
+            disabled={@submitting}
+            group_layout="col"
+            no_margin
+          />
+          <PetalComponents.Field.field
+            :if={questionnaire_style(@field) != "cards"}
+            type="radio-group"
+            name={@name}
+            label={@field.label}
+            options={option_tuples(@field.options)}
+            required={@field.required}
+            disabled={@submitting}
+            group_layout="col"
+            no_margin
+          />
+        <% :multi_select -> %>
+          <PetalComponents.Field.field
+            type="checkbox-group"
+            name={@name}
+            label={@field.label}
+            options={option_tuples(@field.options)}
+            required={@field.required}
+            disabled={@submitting}
+            group_layout="col"
+            no_margin
+          />
+        <% :text -> %>
+          <PetalComponents.Field.field
+            type="text"
+            name={@name}
+            label={@field.label}
+            placeholder={@field.placeholder}
+            required={@field.required}
+            disabled={@submitting}
+            no_margin
+          />
+        <% :scale -> %>
+          <.questionnaire_scale
+            field={@field}
+            name={@name}
+            spec_id={@spec_id}
+            submitting={@submitting}
+          />
+      <% end %>
+    </fieldset>
+    """
+  end
+
+  attr :field, :map, required: true
+  attr :name, :string, required: true
+  attr :spec_id, :string, required: true
+  attr :submitting, :boolean, required: true
+
+  defp questionnaire_scale(assigns) do
+    assigns = assign(assigns, :caption_id, "#{assigns.spec_id}-#{assigns.field.id}-captions")
+
+    ~H"""
+    <span class={["pc-label", @field.required && "pc-label--required"]}>{@field.label}</span>
+    <div class="pc-questionnaire__scale">
+      <label :for={value <- 1..5} class="pc-questionnaire__scale-step">
+        <input
+          type="radio"
+          name={@name}
+          value={value}
+          required={@field.required}
+          disabled={@submitting}
+          aria-describedby={(@field.min_label || @field.max_label) && @caption_id}
+          class="sr-only pc-questionnaire__scale-input"
+        />
+        <span class="pc-questionnaire__scale-number">{value}</span>
+      </label>
+    </div>
+    <div
+      :if={@field.min_label || @field.max_label}
+      id={@caption_id}
+      class="pc-questionnaire__scale-captions"
+    >
+      <span>{@field.min_label}</span>
+      <span>{@field.max_label}</span>
+    </div>
+    """
+  end
+
+  # -- questionnaire plumbing ------------------------------------------------
+
+  defp normalize_spec(spec) when is_map(spec) do
+    %{
+      id: to_string(source_key(spec, :id) || "questionnaire"),
+      title: source_key(spec, :title),
+      description: source_key(spec, :description),
+      fields: spec |> source_key(:fields) |> List.wrap() |> Enum.map(&normalize_spec_field/1)
+    }
+  end
+
+  defp normalize_spec_field(field) do
+    %{
+      id: to_string(source_key(field, :id)),
+      type: normalize_field_type(source_key(field, :type)),
+      label: source_key(field, :label),
+      required: source_key(field, :required) == true,
+      placeholder: source_key(field, :placeholder),
+      style: source_key(field, :style),
+      min_label: source_key(field, :min_label),
+      max_label: source_key(field, :max_label),
+      options: field |> source_key(:options) |> List.wrap() |> Enum.map(&normalize_option/1)
+    }
+  end
+
+  defp normalize_field_type(type) when type in [:single_select, "single_select"],
+    do: :single_select
+
+  defp normalize_field_type(type) when type in [:multi_select, "multi_select"], do: :multi_select
+  defp normalize_field_type(type) when type in [:scale, "scale"], do: :scale
+  defp normalize_field_type(_), do: :text
+
+  defp normalize_option(option) when is_map(option) do
+    %{
+      value: to_string(source_key(option, :value)),
+      label: source_key(option, :label) || to_string(source_key(option, :value)),
+      description: source_key(option, :description)
+    }
+  end
+
+  # Cards when the author asked for them, or when any option carries a
+  # description worth showing. Plain radios otherwise.
+  defp questionnaire_style(%{style: style}) when style in ["cards", "buttons"], do: style
+
+  defp questionnaire_style(%{options: options}) do
+    if Enum.any?(options, & &1.description), do: "cards", else: "buttons"
+  end
+
+  defp questionnaire_legend(%{label: label, required: true}), do: "#{label} (required)"
+  defp questionnaire_legend(%{label: label}), do: label
+
+  defp option_tuples(options), do: Enum.map(options, &{&1.label, &1.value})
+
+  # [{field, [chip, ...]}] for every field the answer map actually answered.
+  defp resolved_answers(_spec, resolved) when not is_map(resolved), do: []
+
+  defp resolved_answers(spec, resolved) do
+    spec.fields
+    |> Enum.map(fn field -> {field, answer_chips(field, answer_for(resolved, field.id))} end)
+    |> Enum.reject(fn {_field, chips} -> chips == [] end)
+  end
+
+  defp answer_for(resolved, id) do
+    case Map.fetch(resolved, id) do
+      {:ok, value} -> value
+      :error -> Map.get(resolved, String.to_atom(id))
+    end
+  end
+
+  defp answer_chips(_field, nil), do: []
+  defp answer_chips(_field, ""), do: []
+
+  defp answer_chips(field, values) when is_list(values),
+    do: Enum.flat_map(values, &answer_chips(field, &1))
+
+  defp answer_chips(%{type: :scale} = field, value) do
+    caption =
+      case to_string(value) do
+        "1" -> field.min_label
+        "5" -> field.max_label
+        _ -> nil
+      end
+
+    [if(caption, do: "#{value} · #{caption}", else: to_string(value))]
+  end
+
+  defp answer_chips(field, value) do
+    value = to_string(value)
+
+    case Enum.find(field.options, &(&1.value == value)) do
+      nil -> [value]
+      option -> [option.label]
+    end
   end
 
   # -- attachment plumbing ---------------------------------------------------

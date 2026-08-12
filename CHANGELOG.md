@@ -4,6 +4,23 @@
 
 #### Added
 
+- **`Chat.questionnaire/1`: structured human-in-the-loop input in the
+  transcript.** When the model needs a decision rather than a sentence, it
+  emits a question spec and this renders it as a form inside the thread -
+  single-select, multi-select, short text and a 1-to-5 scale. Submit is a
+  plain `phx-submit` your LiveView forwards to the model; there is no
+  client form engine and no client state. Pass the answers back as
+  `resolved` and the form is replaced by quiet chips so the transcript
+  stays honest about what was asked and answered, with nothing focusable
+  left behind; `:skipped` renders the skipped line. It composes the
+  existing `field/1` primitives - radio-cards when the options carry
+  descriptions, plain radios when they don't, checkbox groups for
+  multi-select - so required markers, labels and error scaffolding come
+  for free. Only the scale is new markup: five real radios in a segmented
+  row, so arrow keys move between steps natively. Every question is a
+  `<fieldset>` with a `<legend>`, the form is `aria-labelledby` the title,
+  and the scale's end captions are tied in with `aria-describedby`.
+
 - **Composer attachments: `prompt_input` takes an upload, and
   `message_attachments` renders what was sent.** Hand `prompt_input` an
   `%UploadConfig{}` from `allow_upload/3` and it grows a paperclip trigger
