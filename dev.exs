@@ -284,6 +284,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "table", name: "Table", ready: true},
         %{slug: "data-table", name: "Data table", ready: true},
         %{slug: "data-table-link", name: "Data table · links", ready: true},
+        %{slug: "filters", name: "Filters", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
@@ -333,6 +334,9 @@ defmodule Dev.PlaygroundLive do
   ]
 
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+  # the whitelist both filter-bar demos decode against - link mode's
+  # from_params and event mode's handle_op take the same list
+  @filters_fields [:name, :category, :price, :in_stock, :added_on]
   @locale_codes ~w(en fr de es pt)
   @playground_languages [
     %{locale: "en", flag: "🇬🇧", label: "English"},
@@ -772,6 +776,10 @@ defmodule Dev.PlaygroundLive do
        dt_hidden: [],
        dt_order: [],
        dt_refunded: [],
+       # the filter bar demo: one State shared with a data table (event mode),
+       # plus the registered field types the dials switch on and off
+       filters_state: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_filters(),
+       filters_types: ~w(text select number_range boolean date_range),
        radio: %{
          style: "cards",
          variant: "outline",
@@ -881,6 +889,7 @@ defmodule Dev.PlaygroundLive do
       # mobile menu so picking a component reveals it immediately.
       |> assign(:nav_open, false)
       |> maybe_run_dt_link(params, uri)
+      |> maybe_run_filters_link(params, uri)
 
     {:noreply, maybe_start_progress_sim(socket)}
   end
@@ -906,6 +915,24 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp maybe_run_dt_link(socket, _params, _uri), do: socket
+
+  # The filter page's third example: link mode, where the URL IS the filter
+  # state. Same decode as the data table's link page - the query string is
+  # the only place the filters live, so a shared or curled URL renders the
+  # right rows on first paint and the back button walks the history.
+  defp maybe_run_filters_link(%{assigns: %{active: "filters"}} = socket, params, uri) do
+    alias PetalComponents.DataTable.State
+
+    query = uri |> URI.parse() |> Map.get(:query) || ""
+    params = Map.merge(Plug.Conn.Query.decode(query), params)
+    state = State.from_params(params, fields: @filters_fields)
+
+    socket
+    |> assign(:filters_link, run_filters(state))
+    |> assign(:filters_query, query)
+  end
+
+  defp maybe_run_filters_link(socket, _params, _uri), do: socket
 
   # The progress flagship simulates a live upload while you watch. One
   # timer at a time; it dies quietly when you leave the page or take
@@ -1587,6 +1614,36 @@ defmodule Dev.PlaygroundLive do
      |> assign(:dt_hidden, hidden)
      |> assign(:dt_order, order)
      |> assign(:dt_refunded, refunded)}
+  end
+
+  # The filter bar's whole backend, event mode: State.handle_op speaks the
+  # payloads the chips and editors post, so this is one call plus a re-run
+  # through the free in-memory engine. The data table below it shares the
+  # same State, which is why filtering from either surface updates both.
+  def handle_event("pg_filters", params, socket) do
+    alias PetalComponents.DataTable.State
+
+    {state, _rows} = socket.assigns.filters_state
+    state = State.handle_op(state, params, fields: @filters_fields)
+
+    {:noreply, assign(socket, :filters_state, run_filters(state))}
+  end
+
+  def handle_event("pg_filters_types", %{"k" => type}, socket) do
+    types = socket.assigns.filters_types
+    types = if type in types, do: List.delete(types, type), else: types ++ [type]
+
+    {:noreply, assign(socket, :filters_types, types)}
+  end
+
+  defp run_filters(state) do
+    {rows, state} =
+      PetalComponents.DataTable.Engine.List.run(
+        PetalComponents.Showcase.Filters.products(),
+        state
+      )
+
+    {state, rows}
   end
 
   defp run_dt(state, refunded \\ []) do
@@ -7814,6 +7871,193 @@ defmodule Dev.PlaygroundLive do
         </p>
         <pre class="p-3 overflow-x-auto text-xs rounded-lg bg-gray-100 dark:bg-gray-800"><code>{inspect(elem(@dt_link, 0), pretty: true, width: 60)}</code></pre>
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "filters"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Filters</h1>
+      <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
+        A filter bar driven by the same State struct the data table uses. Chips carry field,
+        operator and value; the Add filter popover walks field &rarr; operator &rarr; value in
+        one panel, no round trip. Keyboard only: Tab to the trigger, Enter to open, Tab through
+        the field list, Enter to pick, Tab to the inputs, Enter to apply, Escape to back out.
+      </p>
+
+      <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl overflow-hidden">
+        <div class="p-6">
+          <% {state, rows} = @filters_state %>
+          <.filters id="pg-filters" state={state} on_change="pg_filters">
+            <:field :if={"text" in @filters_types} field={:name} label="Name" type="text" />
+            <:field
+              :if={"select" in @filters_types}
+              field={:category}
+              label="Category"
+              type="select"
+              options={[{"Hand tools", "hand"}, {"Power tools", "power"}, {"Finishing", "finishing"}]}
+            />
+            <:field
+              :if={"number_range" in @filters_types}
+              field={:price}
+              label="Price"
+              type="number_range"
+            />
+            <:field
+              :if={"boolean" in @filters_types}
+              field={:in_stock}
+              label="In stock"
+              type="boolean"
+            />
+            <:field
+              :if={"date_range" in @filters_types}
+              field={:added_on}
+              label="Added"
+              type="date_range"
+            />
+          </.filters>
+
+          <ul class="grid gap-2 mt-5 sm:grid-cols-2">
+            <li
+              :for={p <- rows}
+              class="flex items-center justify-between gap-3 px-3 py-2 text-sm border border-gray-200 rounded-lg dark:border-gray-400/20"
+            >
+              <span class="font-medium">{p.name}</span>
+              <span class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <.badge size="sm" variant="soft" color="gray" label={p.category} />
+                <span>${p.price}</span>
+              </span>
+            </li>
+            <li
+              :if={rows == []}
+              class="py-6 text-sm text-center text-gray-500 sm:col-span-2 dark:text-gray-400"
+            >
+              Nothing matches these filters.
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              registered field types
+            </div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Field types"
+              value={@filters_types}
+              on_change="pg_filters_types"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={t <- ~w(text select number_range boolean date_range)}
+                value={t}
+                phx-value-k={t}
+              >
+                {t}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">One State, bar and table</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The composition proof. Both components read and write the same struct on the same event,
+        so a chip added here filters the table below, and a column header filter adds a chip up
+        here. Sorting and paging ride the same grammar.
+      </p>
+      <div class="p-6 border border-gray-200 dark:border-gray-400/20 rounded-xl">
+        <% {shared_state, shared_rows} = @filters_state %>
+        <.filters id="pg-filters-shared" state={shared_state} on_change="pg_filters">
+          <:field field={:name} label="Name" type="text" />
+          <:field
+            field={:category}
+            label="Category"
+            type="select"
+            options={[{"Hand tools", "hand"}, {"Power tools", "power"}, {"Finishing", "finishing"}]}
+          />
+          <:field field={:price} label="Price" type="number_range" />
+          <:field field={:in_stock} label="In stock" type="boolean" />
+        </.filters>
+        <div class="mt-4">
+          <.data_table
+            id="pg-filters-table"
+            rows={shared_rows}
+            state={shared_state}
+            on_change="pg_filters"
+            striped
+          >
+            <:col :let={p} field={:name} sortable>{p.name}</:col>
+            <:col
+              :let={p}
+              field={:category}
+              filterable="select"
+              options={[{"Hand tools", "hand"}, {"Power tools", "power"}, {"Finishing", "finishing"}]}
+            >
+              {p.category}
+            </:col>
+            <:col :let={p} field={:price} sortable align="right" filterable="number">${p.price}</:col>
+            <:col :let={p} field={:in_stock} align="center">
+              {if p.in_stock, do: "yes", else: "no"}
+            </:col>
+          </.data_table>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Link mode: the URL is the state</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        No events. Every chip removal, apply and clear-all is a patch URL built from
+        <code class="text-sm">State.to_params/1</code>
+        , and <code class="text-sm">handle_params</code>
+        decodes it back through the field whitelist. Apply a filter, then reload or hit back.
+      </p>
+      <div class="p-6 border border-gray-200 dark:border-gray-400/20 rounded-xl">
+        <% {link_state, link_rows} = @filters_link %>
+        <.filters
+          id="pg-filters-link"
+          state={link_state}
+          path={
+            theme_path(%{
+              active: "filters",
+              primary: @primary,
+              secondary: @secondary,
+              gray: @gray,
+              radius: @radius
+            })
+          }
+        >
+          <:field field={:name} label="Name" type="text" />
+          <:field
+            field={:category}
+            label="Category"
+            type="select"
+            options={[{"Hand tools", "hand"}, {"Power tools", "power"}, {"Finishing", "finishing"}]}
+          />
+          <:field field={:price} label="Price" type="number_range" />
+          <:field field={:added_on} label="Added" type="date_range" />
+        </.filters>
+        <p class="mt-4 mb-1 text-sm text-gray-500 dark:text-gray-400">
+          The query string this page decoded ({length(link_rows)} matching):
+        </p>
+        <pre class="p-3 overflow-x-auto text-xs rounded-lg bg-gray-100 dark:bg-gray-800"><code>{if @filters_query == "", do: "(none)", else: @filters_query}</code></pre>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Filters, ~w(empty chips shared_state)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <.showcase_props component={PetalComponents.Filters} function={:filters} />
     </div>
     """
   end
