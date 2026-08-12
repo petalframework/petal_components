@@ -250,6 +250,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
         %{slug: "input-otp", name: "Input OTP", ready: true},
+        %{slug: "calendar", name: "Calendar", ready: true},
+        %{slug: "date-picker", name: "Date picker", ready: true},
         %{slug: "color-scheme", name: "Color scheme", ready: true}
       ]
     },
@@ -785,6 +787,15 @@ defmodule Dev.PlaygroundLive do
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       cal: %{mode: "single", starts_on: 1, outside: true, window: false},
+       cal_month: Date.beginning_of_month(Date.utc_today()),
+       cal_single: Date.utc_today(),
+       cal_range: {nil, nil},
+       cal_multi: [],
+       picker: %{mode: "range", two_months: true, clearable: true},
+       pick_stay: {Date.utc_today(), Date.add(Date.utc_today(), 4)},
+       pick_birthday: ~D[1987-06-12],
+       pick_deadline: nil,
        progress: %{
          value: 0,
          color: "primary",
@@ -1449,6 +1460,58 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_cal", %{"k" => "mode", "v" => v}, socket)
+      when v in ~w(single range multiple),
+      do: {:noreply, update(socket, :cal, &%{&1 | mode: v})}
+
+  def handle_event("ctl_cal", %{"k" => "starts_on", "v" => v}, socket) when v in ~w(1 7),
+    do: {:noreply, update(socket, :cal, &%{&1 | starts_on: String.to_integer(v)})}
+
+  def handle_event("ctl_cal", %{"k" => k}, socket) when k in ~w(outside window),
+    do:
+      {:noreply,
+       update(socket, :cal, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_picker", %{"k" => "mode", "v" => v}, socket) when v in ~w(single range),
+    do: {:noreply, update(socket, :picker, &%{&1 | mode: v})}
+
+  def handle_event("ctl_picker", %{"k" => k}, socket) when k in ~w(two_months clearable),
+    do:
+      {:noreply,
+       update(socket, :picker, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # The playground drives the calendar the event way, which is also the fastest
+  # way to feel the keyboard map: arrow off the end of a month and the server
+  # renders the next one under your focus.
+  def handle_event("cal_month", %{"month" => iso}, socket) do
+    {:noreply, assign(socket, :cal_month, parse_date!(iso))}
+  end
+
+  def handle_event("cal_pick", %{"date" => iso}, socket) do
+    date = parse_date!(iso)
+
+    socket =
+      case socket.assigns.cal.mode do
+        "single" -> assign(socket, :cal_single, date)
+        "multiple" -> update(socket, :cal_multi, &toggle_date(&1, date))
+        "range" -> update(socket, :cal_range, &extend_range(&1, date))
+      end
+
+    {:noreply, assign(socket, :cal_month, Date.beginning_of_month(date))}
+  end
+
+  def handle_event("stay_pick", %{"date" => iso}, socket),
+    do: {:noreply, update(socket, :pick_stay, &extend_range(&1, parse_date!(iso)))}
+
+  def handle_event("birthday_pick", %{"date" => iso}, socket),
+    do: {:noreply, assign(socket, :pick_birthday, parse_date!(iso))}
+
+  def handle_event("deadline_pick", %{"date" => iso}, socket),
+    do: {:noreply, assign(socket, :pick_deadline, parse_date!(iso))}
+
+  def handle_event("deadline_clear", _params, socket),
+    do: {:noreply, assign(socket, :pick_deadline, nil)}
+
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
 
@@ -1853,6 +1916,47 @@ defmodule Dev.PlaygroundLive do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))
   end
+
+  # Calendar plumbing. The component hands back ISO strings and takes Dates, so
+  # the page owns the tiny bit of state in between - which is the whole point of
+  # the event wiring.
+  defp parse_date!(iso), do: Date.from_iso8601!(iso)
+
+  defp toggle_date(dates, date) do
+    if Enum.any?(dates, &(Date.compare(&1, date) == :eq)),
+      do: Enum.reject(dates, &(Date.compare(&1, date) == :eq)),
+      else: Enum.sort([date | dates], Date)
+  end
+
+  # One click anchors, the next closes, the third starts over. Clicking before
+  # the anchor swaps the ends rather than rejecting the click.
+  defp extend_range({nil, _to}, date), do: {date, nil}
+  defp extend_range({_from, %Date{}}, date), do: {date, nil}
+
+  defp extend_range({from, nil}, date) do
+    if Date.before?(date, from), do: {date, from}, else: {from, date}
+  end
+
+  defp cal_value(%{mode: "single"}, assigns), do: assigns.cal_single
+  defp cal_value(%{mode: "range"}, assigns), do: assigns.cal_range
+  defp cal_value(%{mode: "multiple"}, assigns), do: assigns.cal_multi
+
+  defp cal_summary(%{mode: "single"}, assigns), do: date_text(assigns.cal_single)
+
+  defp cal_summary(%{mode: "range"}, assigns) do
+    {from, to} = assigns.cal_range
+    date_text(from) <> " to " <> date_text(to)
+  end
+
+  defp cal_summary(%{mode: "multiple"}, assigns) do
+    case assigns.cal_multi do
+      [] -> "nothing picked"
+      dates -> Enum.map_join(dates, ", ", &date_text/1)
+    end
+  end
+
+  defp date_text(%Date{} = date), do: Calendar.strftime(date, "%d %b %Y")
+  defp date_text(_), do: "-"
 
   defp input_meta("text"), do: {"Full name", "Ada Lovelace"}
   defp input_meta("email"), do: {"Email address", "you@example.com"}
@@ -9123,6 +9227,282 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Badge</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "calendar"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Calendar</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A month grid on plain Elixir <code>Date</code>. No date dependency, no timezone
+        guessing. Tab into the grid and drive it with the arrow keys: PageUp and PageDown
+        page the month, Home and End jump to the ends of the week.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center gap-4 px-6 py-10">
+          <.calendar
+            id="pg-calendar"
+            mode={@cal.mode}
+            value={cal_value(@cal, assigns)}
+            month={@cal_month}
+            starts_on={@cal.starts_on}
+            show_outside_days={@cal.outside}
+            min={@cal.window && Date.utc_today()}
+            max={@cal.window && Date.add(Date.utc_today(), 30)}
+            on_select="cal_pick"
+            on_month_change="cal_month"
+          />
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Selected:
+            <span class="font-medium text-gray-900 dark:text-gray-100">
+              {cal_summary(@cal, assigns)}
+            </span>
+          </p>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Mode"
+              value={@cal.mode}
+              on_change="ctl_cal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={m <- ~w(single range multiple)}
+                value={m}
+                phx-value-k="mode"
+                phx-value-v={m}
+              >
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">week starts</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Week starts"
+              value={to_string(@cal.starts_on)}
+              on_change="ctl_cal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="1" phx-value-k="starts_on" phx-value-v="1">Monday</:item>
+              <:item value="7" phx-value-k="starts_on" phx-value-v="7">Sunday</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"outside", @cal.outside}, {"window", @cal.window}], on, do: k}
+              on_change="ctl_cal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="outside" phx-value-k="outside">outside days</:item>
+              <:item value="window" phx-value-k="window">next 30 days only</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        <span class="font-medium text-gray-900 dark:text-gray-100">Keyboard demo.</span>
+        Tab until a day takes focus, then: arrows move a day or a week, Home and End go to the
+        ends of the week, PageUp and PageDown page the month (hold Shift for a year), Enter
+        picks. Only one day is ever in the tab order, so Tab leaves the grid rather than
+        walking all 42 cells.
+      </div>
+
+      <div
+        :for={
+          ex <- examples_for(PetalComponents.Showcase.Calendar, ~w(range multiple limits week_start)a)
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Calendar} function={:calendar} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Calendar</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "date-picker"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Date picker</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A text input with the calendar in a panel under it. Type a date or pick one; the
+        form posts ISO 8601 either way. Escape closes the panel and puts you back on the
+        input.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-10">
+          <div class="max-w-sm">
+            <.date_picker
+              id="pg-date-picker"
+              name="pg_date"
+              mode={@picker.mode}
+              label="Check in and out"
+              format="%d %b %Y"
+              two_months={@picker.mode == "range" && @picker.two_months}
+              clearable={@picker.clearable}
+              value={if @picker.mode == "range", do: @pick_stay, else: @pick_birthday}
+              min={Date.utc_today()}
+              help_text="Try typing 14 Mar 2027, then blur."
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Mode"
+              value={@picker.mode}
+              on_change="ctl_picker"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={m <- ~w(single range)} value={m} phx-value-k="mode" phx-value-v={m}>
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [
+                      {"two_months", @picker.two_months},
+                      {"clearable", @picker.clearable}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_picker"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="two_months" phx-value-k="two_months">two months</:item>
+              <:item value="clearable" phx-value-k="clearable">clearable</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Booking range</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Check in and check out in one control, two months on screen, nothing before today
+        selectable. Clicking a day pushes an event, so the server owns the range.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm">
+          <.date_picker
+            id="pg-booking"
+            name="booking[stay]"
+            mode="range"
+            two_months
+            label="Stay"
+            format="%a %d %b"
+            min={Date.utc_today()}
+            value={@pick_stay}
+            on_select="stay_pick"
+          />
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Birthday</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        A date decades back is faster to type than to page to, which is what the parse-on-blur
+        contract is for. Type <code>12 Jun 1987</code> and the grid follows you there.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="max-w-sm">
+          <.date_picker
+            id="pg-birthday"
+            name="profile[born_on]"
+            label="Date of birth"
+            format="%d %b %Y"
+            max={Date.utc_today()}
+            value={@pick_birthday}
+            on_select="birthday_pick"
+          />
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Deadline, in a form</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The field surface, errors and all. Weekends are blacked out with a function, and the
+        hidden input posts ISO 8601 whatever the display format says.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <form class="max-w-sm">
+          <.date_picker
+            id="pg-deadline"
+            name="task[due_on]"
+            label="Due date"
+            required
+            clearable
+            placeholder="Pick a weekday"
+            format="%d/%m/%Y"
+            min={Date.utc_today()}
+            disabled_dates={&(Date.day_of_week(&1) in [6, 7])}
+            value={@pick_deadline}
+            errors={if @pick_deadline, do: [], else: ["can't be blank"]}
+            on_select="deadline_pick"
+            on_clear="deadline_clear"
+          />
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Posts as <code>task[due_on]={date_text(@pick_deadline)}</code>
+          </p>
+        </form>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.DatePicker, ~w(basic errors)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.DatePicker} function={:date_picker} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.DatePicker</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>

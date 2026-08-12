@@ -7586,3 +7586,172 @@
       transition-duration: 1ms;
     }
   }
+
+@layer components {
+  /* Calendar */
+
+  .pc-calendar {
+    @apply inline-block select-none text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-calendar__header {
+    @apply flex items-center justify-between gap-2 pb-2;
+  }
+
+  .pc-calendar__caption {
+    @apply flex-1 text-sm font-semibold text-center;
+  }
+
+  .pc-calendar__nav {
+    @apply inline-flex items-center justify-center w-8 h-8 shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/12 dark:hover:text-gray-100;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-calendar__nav-icon {
+    @apply w-4 h-4;
+  }
+
+  /* Keeps the caption optically centred when one arrow is suppressed, which is
+     what a two-pane range picker does to the second month. */
+  .pc-calendar__nav-spacer {
+    @apply w-8 h-8 shrink-0;
+  }
+
+  /* The caption is already in the DOM above the grid; this region exists only
+     so a month change is announced, not so it is seen twice. */
+  .pc-calendar__announcer {
+    @apply sr-only;
+  }
+
+  .pc-calendar__grid {
+    @apply border-collapse;
+  }
+
+  .pc-calendar__weekday {
+    @apply w-9 h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
+  }
+
+  /* Cells carry the range band so it runs edge to edge between days; the day
+     button inside keeps its own rounding. */
+  .pc-calendar__cell {
+    @apply p-0 align-middle;
+  }
+
+  .pc-calendar__cell--in-range,
+  .pc-calendar__cell--range-start,
+  .pc-calendar__cell--range-end {
+    @apply bg-primary-50 dark:bg-primary-500/15;
+  }
+
+  .pc-calendar__cell--range-start {
+    border-start-start-radius: var(--pc-radius, 0.625rem);
+    border-end-start-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-calendar__cell--range-end {
+    border-start-end-radius: var(--pc-radius, 0.625rem);
+    border-end-end-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-calendar__day {
+    @apply relative flex items-center justify-center w-9 h-9 mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-calendar__day--outside {
+    @apply text-gray-400 dark:text-gray-600;
+  }
+
+  /* Today is a marker, not a selection - a dot under the number, so a day that
+     is both today and selected still reads as both. */
+  .pc-calendar__day--today::after {
+    @apply absolute bottom-1 w-1 h-1 rounded-full bg-primary-500;
+    content: "";
+  }
+
+  .pc-calendar__day--selected,
+  .pc-calendar__day--selected:hover {
+    @apply bg-primary-600 text-white dark:bg-primary-500 dark:text-white;
+  }
+
+  .pc-calendar__day--selected::after {
+    @apply bg-white;
+  }
+
+  .pc-calendar__day--in-range {
+    @apply bg-transparent text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-calendar__day--in-range:hover {
+    @apply bg-primary-100 dark:bg-primary-500/25;
+  }
+
+  /* Disabled days stay in the tab-and-arrow order per the APG, so they get the
+     look of being unavailable without leaving the grid. */
+  .pc-calendar__day--disabled,
+  .pc-calendar__day--disabled:hover {
+    @apply text-gray-300 bg-transparent cursor-not-allowed dark:text-gray-600;
+  }
+
+  .pc-calendar__day--disabled::after {
+    @apply hidden;
+  }
+
+  /* Date picker */
+
+  .pc-date-picker {
+    @apply relative;
+  }
+
+  .pc-date-picker__control {
+    @apply relative;
+  }
+
+  .pc-date-picker__input {
+    @apply pr-10;
+  }
+
+  .pc-date-picker__toggle,
+  .pc-date-picker__clear {
+    @apply absolute inset-y-0 flex items-center text-gray-400 transition-colors duration-150 cursor-pointer;
+    @apply hover:text-gray-600 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-date-picker__toggle {
+    @apply right-0 pr-3;
+  }
+
+  .pc-date-picker__clear {
+    @apply right-7 pr-2;
+  }
+
+  .pc-date-picker__icon {
+    @apply w-5 h-5;
+  }
+
+  .pc-date-picker__panel {
+    @apply absolute left-0 z-40 mt-2 p-3 bg-white border border-gray-200 shadow-lg w-max origin-top-left;
+    @apply dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
+  .pc-date-picker__months--two {
+    @apply flex flex-col gap-4 sm:flex-row sm:gap-6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-calendar__day,
+    .pc-calendar__nav,
+    .pc-date-picker__toggle,
+    .pc-date-picker__clear {
+      transition-duration: 1ms;
+    }
+  }
+}

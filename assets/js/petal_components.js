@@ -5424,7 +5424,533 @@ export const PetalDataTable = {
   },
 };
 
+// Dates as UTC midnight, always. A local-midnight Date crossing a DST boundary
+// lands on the previous day in half the world, which is exactly the class of bug
+// a calendar cannot afford. ISO strings in, ISO strings out.
+const isoToUTC = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  if (!m) return null;
+  return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+};
+
+const utcToISO = (date) => date.toISOString().slice(0, 10);
+
+const addDays = (iso, n) => {
+  const d = isoToUTC(iso);
+  if (!d) return null;
+  d.setUTCDate(d.getUTCDate() + n);
+  return utcToISO(d);
+};
+
+// Clamping to the target month's last day is what stops "31 January, page a
+// month" landing in March.
+const addMonths = (iso, n) => {
+  const d = isoToUTC(iso);
+  if (!d) return null;
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + n);
+  const lastDay = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return utcToISO(d);
+};
+
+const isoMonth = (iso) => (iso || "").slice(0, 7);
+
+// Roving tabindex plus the APG arrow-key map. CSS cannot move focus and a
+// server round trip per arrow key is not navigation, it is latency - this is
+// the one job that genuinely needs a hook. Everything else about the grid
+// (real buttons, phx-click, patch links) works with this file deleted.
+export const PetalCalendar = {
+  mounted() {
+    this.grid = this.el.querySelector('[role="grid"]');
+    if (!this.grid) return;
+
+    this.pendingFocus = null;
+    this.onKeydown = (e) => this.keydown(e);
+    this.onFocusIn = (e) => this.focusIn(e);
+    this.grid.addEventListener("keydown", this.onKeydown);
+    this.grid.addEventListener("focusin", this.onFocusIn);
+  },
+
+  // A month change re-renders the whole grid, so the day we asked to land on
+  // only exists now. Without this, paging with PageDown drops focus to the body
+  // and the keyboard user is stranded.
+  updated() {
+    if (!this.pendingFocus) return;
+    const iso = this.pendingFocus;
+    this.pendingFocus = null;
+    const target = this.dayFor(iso) || this.firstDayOfMonth();
+    if (target) {
+      this.setTabbable(target);
+      target.focus();
+    }
+  },
+
+  destroyed() {
+    if (!this.grid) return;
+    this.grid.removeEventListener("keydown", this.onKeydown);
+    this.grid.removeEventListener("focusin", this.onFocusIn);
+  },
+
+  days() {
+    return Array.from(this.grid.querySelectorAll("[data-date]"));
+  },
+
+  dayFor(iso) {
+    return this.days().find((d) => d.dataset.date === iso) || null;
+  },
+
+  firstDayOfMonth() {
+    return this.days().find((d) => d.dataset.outside !== "true") || null;
+  },
+
+  setTabbable(button) {
+    for (const day of this.days()) {
+      day.setAttribute("tabindex", day === button ? "0" : "-1");
+    }
+  },
+
+  focusIn(e) {
+    const day = e.target.closest && e.target.closest("[data-date]");
+    if (day) this.setTabbable(day);
+  },
+
+  // Home/End are week bounds, not month bounds, and the week starts wherever
+  // starts_on says it does.
+  weekBound(iso, edge) {
+    const startsOn = Number(this.el.dataset.startsOn || 1);
+    const d = isoToUTC(iso);
+    if (!d) return null;
+    const dow = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
+    const offset = (dow - startsOn + 7) % 7;
+    return edge === "start" ? addDays(iso, -offset) : addDays(iso, 6 - offset);
+  },
+
+  keydown(e) {
+    const current = e.target.closest && e.target.closest("[data-date]");
+    if (!current) return;
+
+    const iso = current.dataset.date;
+    let target = null;
+
+    switch (e.key) {
+      case "ArrowLeft":
+        target = addDays(iso, -1);
+        break;
+      case "ArrowRight":
+        target = addDays(iso, 1);
+        break;
+      case "ArrowUp":
+        target = addDays(iso, -7);
+        break;
+      case "ArrowDown":
+        target = addDays(iso, 7);
+        break;
+      case "Home":
+        target = this.weekBound(iso, "start");
+        break;
+      case "End":
+        target = this.weekBound(iso, "end");
+        break;
+      case "PageUp":
+        target = addMonths(iso, e.shiftKey ? -12 : -1);
+        break;
+      case "PageDown":
+        target = addMonths(iso, e.shiftKey ? 12 : 1);
+        break;
+      case "Enter":
+      case " ":
+        // A disabled day stays focusable per the APG, so swallow the activation
+        // rather than letting a native button click through.
+        if (current.dataset.disabled === "true") e.preventDefault();
+        return;
+      default:
+        return;
+    }
+
+    if (!target) return;
+    e.preventDefault();
+    this.focusDate(target);
+  },
+
+  focusDate(iso) {
+    // Landing in another month means the month must change, even when the day
+    // happens to be painted as an outside day - the grid follows the focus.
+    if (isoMonth(iso) === isoMonth(this.el.dataset.month)) {
+      const day = this.dayFor(iso);
+      if (day) {
+        this.setTabbable(day);
+        day.focus();
+        return;
+      }
+    }
+
+    const direction = iso < (this.el.dataset.month || "") ? "prev" : "next";
+    const nav = this.el.querySelector(`[data-pc-nav="${direction}"]`);
+    if (!nav) return;
+
+    // Clicking the arrow as-rendered only ever moves one month, so a year jump
+    // (Shift+PageUp) would land eleven months short. Retarget the arrow at the
+    // month we actually want and let LiveView read it at click time - that keeps
+    // phx-target and the patch URL intact instead of forging our own event.
+    const monthStart = `${iso.slice(0, 7)}-01`;
+    if (nav.hasAttribute("phx-value-month")) {
+      nav.setAttribute("phx-value-month", monthStart);
+    } else if (nav.hasAttribute("href")) {
+      nav.setAttribute(
+        "href",
+        nav.getAttribute("href").replace(/\d{4}-\d{2}-\d{2}/, monthStart),
+      );
+    }
+
+    this.pendingFocus = iso;
+    nav.click();
+  },
+};
+
+// Parse a human-typed date against the configured strftime format. Deliberately
+// lenient about padding and case, deliberately strict about the result: an
+// impossible date (31 February) fails the round trip and gets rejected.
+const parseFormatted = (text, format, monthNames) => {
+  const word = "([\\p{L}]+)";
+  const fields = [];
+  let pattern = "";
+
+  for (let i = 0; i < format.length; i++) {
+    const char = format[i];
+    if (char !== "%") {
+      pattern += char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      continue;
+    }
+    let directive = format[++i];
+    if (directive === "-" || directive === "0" || directive === "_") {
+      directive = format[++i];
+    }
+    switch (directive) {
+      case "Y":
+        pattern += "(\\d{4})";
+        fields.push("Y");
+        break;
+      case "y":
+        pattern += "(\\d{2})";
+        fields.push("y");
+        break;
+      case "m":
+        pattern += "\\s*(\\d{1,2})";
+        fields.push("m");
+        break;
+      case "d":
+      case "e":
+        pattern += "\\s*(\\d{1,2})";
+        fields.push("d");
+        break;
+      case "B":
+      case "b":
+      case "h":
+        pattern += word;
+        fields.push("B");
+        break;
+      // Day names carry no information we need - match and discard.
+      case "A":
+      case "a":
+        pattern += "[\\p{L}]+";
+        break;
+      case "%":
+        pattern += "%";
+        break;
+      default:
+        return null;
+    }
+  }
+
+  let match;
+  try {
+    match = new RegExp(`^\\s*${pattern}\\s*$`, "iu").exec(text);
+  } catch {
+    return null;
+  }
+  if (!match) return null;
+
+  const parts = {};
+  fields.forEach((field, index) => (parts[field] = match[index + 1]));
+
+  let year = parts.Y ? +parts.Y : parts.y ? 2000 + +parts.y : null;
+  let month = parts.m ? +parts.m : null;
+
+  if (parts.B) {
+    const needle = parts.B.toLowerCase();
+    const index = monthNames.findIndex(
+      (name) =>
+        name.toLowerCase() === needle ||
+        name.toLowerCase().slice(0, 3) === needle.slice(0, 3),
+    );
+    if (index === -1) return null;
+    month = index + 1;
+  }
+
+  const day = parts.d ? +parts.d : null;
+  if (!year || !month || !day) return null;
+
+  const iso = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const parsed = isoToUTC(iso);
+  return parsed && utcToISO(parsed) === iso ? iso : null;
+};
+
+// The picker's client half: move focus into the grid on open, parse what the
+// user types, and - when no on_select event is wired - own the value outright so
+// the component still works in a dead view.
+export const PetalDatePicker = {
+  mounted() {
+    this.input = this.el.querySelector("[data-pc-date-input]");
+    this.panel = this.el.querySelector(".pc-date-picker__panel");
+    if (!this.input || !this.panel) return;
+
+    this.lastValid = this.input.value;
+
+    this.onOpen = () => this.focusGrid();
+    this.onBlur = () => this.parse();
+    this.onInputKeydown = (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      this.parse();
+    };
+    this.onPanelClick = (e) => this.panelClick(e);
+    this.onClearClick = (e) => this.clearClick(e);
+
+    this.el.addEventListener("pc:date-picker:open", this.onOpen);
+    this.input.addEventListener("blur", this.onBlur);
+    this.input.addEventListener("keydown", this.onInputKeydown);
+    this.panel.addEventListener("click", this.onPanelClick);
+
+    this.clearButton = this.el.querySelector("[data-pc-date-clear]");
+    if (this.clearButton) {
+      this.clearButton.addEventListener("click", this.onClearClick);
+    }
+  },
+
+  destroyed() {
+    if (!this.input || !this.panel) return;
+    this.el.removeEventListener("pc:date-picker:open", this.onOpen);
+    this.input.removeEventListener("blur", this.onBlur);
+    this.input.removeEventListener("keydown", this.onInputKeydown);
+    this.panel.removeEventListener("click", this.onPanelClick);
+    if (this.clearButton) {
+      this.clearButton.removeEventListener("click", this.onClearClick);
+    }
+    clearTimeout(this.focusTimer);
+  },
+
+  calendar() {
+    return this.panel.querySelector(".pc-calendar");
+  },
+
+  monthNames() {
+    const calendar = this.calendar();
+    const names = calendar && calendar.dataset.monthNames;
+    return names ? names.split(",") : [];
+  },
+
+  // With a select event wired the server owns the value; the hook only handles
+  // focus and typing.
+  serverOwned() {
+    const calendar = this.calendar();
+    return !!(calendar && calendar.dataset.selectEvent);
+  },
+
+  hidden(role) {
+    return this.el.querySelector(`[data-pc-date-${role}]`);
+  },
+
+  focusGrid() {
+    // The JS.show transition is still running when the dispatch lands, and you
+    // cannot focus a display:none button.
+    clearTimeout(this.focusTimer);
+    this.focusTimer = setTimeout(() => {
+      const days = Array.from(this.panel.querySelectorAll("[data-date]"));
+      if (!days.length) return;
+      const target =
+        days.find((d) => d.getAttribute("tabindex") === "0") || days[0];
+      target.focus();
+    }, 0);
+  },
+
+  parse() {
+    const text = (this.input.value || "").trim();
+
+    if (text === "") {
+      this.lastValid = "";
+      if (!this.serverOwned()) this.commit(null, null);
+      return;
+    }
+
+    const format = this.el.dataset.format || "%Y-%m-%d";
+    const separator = this.el.dataset.rangeSeparator || " - ";
+
+    if (this.el.dataset.mode === "range") {
+      const [rawFrom, rawTo] = text.split(separator.trim() || "-");
+      const from = this.parseOne(rawFrom, format);
+      const to = this.parseOne(rawTo, format);
+      if (!from && !to) return this.revert();
+      this.lastValid = this.input.value;
+      if (!this.serverOwned()) this.commit(from, to);
+      return;
+    }
+
+    const iso = this.parseOne(text, format);
+    if (!iso) return this.revert();
+    this.lastValid = this.input.value;
+    if (!this.serverOwned()) this.commit(iso, null);
+  },
+
+  parseOne(text, format) {
+    const trimmed = (text || "").trim();
+    if (!trimmed) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const d = isoToUTC(trimmed);
+      return d && utcToISO(d) === trimmed ? trimmed : null;
+    }
+    return parseFormatted(trimmed, format, this.monthNames());
+  },
+
+  // Reverting beats posting nothing: a half-typed date that silently cleared the
+  // field is the worst outcome of the three.
+  revert() {
+    this.input.value = this.lastValid || "";
+  },
+
+  panelClick(e) {
+    if (this.serverOwned()) return;
+    const day = e.target.closest && e.target.closest("[data-date]");
+    if (!day || day.dataset.disabled === "true") return;
+    e.preventDefault();
+
+    const iso = day.dataset.date;
+
+    if (this.el.dataset.mode !== "range") {
+      this.commit(iso, null);
+      return;
+    }
+
+    const from = this.hidden("from");
+    const to = this.hidden("to");
+    const haveFrom = from && from.value;
+    const haveTo = to && to.value;
+
+    if (!haveFrom || haveTo) {
+      this.commit(iso, null);
+    } else if (iso < from.value) {
+      this.commit(iso, from.value);
+    } else {
+      this.commit(from.value, iso);
+    }
+  },
+
+  clearClick(e) {
+    if (this.serverOwned()) return;
+    e.preventDefault();
+    this.commit(null, null);
+    this.input.focus();
+  },
+
+  commit(from, to) {
+    if (this.el.dataset.mode === "range") {
+      this.write(this.hidden("from"), from);
+      this.write(this.hidden("to"), to);
+    } else {
+      this.write(this.hidden("value"), from);
+    }
+
+    this.input.value = this.formatDisplay(from, to);
+    this.lastValid = this.input.value;
+    this.paint(from, to);
+  },
+
+  write(el, value) {
+    if (!el) return;
+    el.value = value || "";
+    // phx-change forms and plain listeners both want to hear about this; the
+    // hidden input is the only thing that actually posts.
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  },
+
+  formatDisplay(from, to) {
+    const format = this.el.dataset.format || "%Y-%m-%d";
+    const separator = this.el.dataset.rangeSeparator || " - ";
+    const one = (iso) => (iso ? this.strftime(iso, format) : "");
+    if (this.el.dataset.mode !== "range") return one(from);
+    if (!from && !to) return "";
+    return `${one(from)}${separator}${one(to)}`;
+  },
+
+  // Only the directives the display path can produce. Anything else falls
+  // through as-is rather than guessing.
+  strftime(iso, format) {
+    const d = isoToUTC(iso);
+    if (!d) return "";
+    const names = this.monthNames();
+    const pad = (n) => String(n).padStart(2, "0");
+    const month = d.getUTCMonth();
+    const name = names[month] || "";
+
+    return format.replace(/%[-0_]?([A-Za-z%])/g, (whole, directive) => {
+      switch (directive) {
+        case "Y":
+          return String(d.getUTCFullYear());
+        case "y":
+          return pad(d.getUTCFullYear() % 100);
+        case "m":
+          return whole.includes("-") ? String(month + 1) : pad(month + 1);
+        case "d":
+          return whole.includes("-") ? String(d.getUTCDate()) : pad(d.getUTCDate());
+        case "e":
+          return String(d.getUTCDate());
+        case "B":
+          return name;
+        case "b":
+        case "h":
+          return name.slice(0, 3);
+        case "%":
+          return "%";
+        default:
+          return whole;
+      }
+    });
+  },
+
+  // Client-owned selection has no server re-render to repaint the grid, so the
+  // hook keeps the visual state in step itself.
+  paint(from, to) {
+    const range = this.el.dataset.mode === "range";
+    for (const day of this.panel.querySelectorAll("[data-date]")) {
+      const iso = day.dataset.date;
+      const isFrom = !!from && iso === from;
+      const isTo = !!to && iso === to;
+      const between = range && !!from && !!to && iso > from && iso < to;
+      const selected = isFrom || isTo || between;
+
+      day.classList.toggle("pc-calendar__day--selected", selected);
+      day.classList.toggle("pc-calendar__day--in-range", between);
+      day.classList.toggle("pc-calendar__day--range-start", isFrom);
+      day.classList.toggle("pc-calendar__day--range-end", isTo);
+
+      const cell = day.closest('[role="gridcell"]');
+      if (!cell) continue;
+      if (selected) cell.setAttribute("aria-selected", "true");
+      else cell.removeAttribute("aria-selected");
+      cell.classList.toggle("pc-calendar__cell--in-range", between);
+      cell.classList.toggle("pc-calendar__cell--range-start", isFrom);
+      cell.classList.toggle("pc-calendar__cell--range-end", isTo);
+    }
+  },
+};
+
 export default {
+  PetalCalendar,
+  PetalDatePicker,
   PetalChart,
   PetalColorScheme,
   PetalLocalTime,
