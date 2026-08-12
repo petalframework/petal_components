@@ -1,4 +1,37 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **New `alert_dialog` component: the confirm/cancel question you ask
+  before something irreversible.** `<.modal>` is the general-purpose
+  overlay, and it lets you out cheaply - close button, click away, done.
+  That is the wrong behaviour when the next click deletes an account, so
+  `alert_dialog` inverts it. It carries `role="alertdialog"` so assistive
+  tech announces it as an interruption that wants a decision, opens with
+  focus on the **cancel** button rather than the first focusable, cancels
+  on Escape, and ignores backdrop clicks entirely. The friction is the
+  feature: there are two answers and you have to pick one. A `default`
+  variant renders the primary confirm treatment; `destructive` moves the
+  confirm button to the danger ramp and adds a danger icon accent, which
+  the `:icon` slot overrides. `description` is the one-line consequence
+  and wires itself to `aria-describedby`; the body slot composes live
+  data underneath it, so "you are about to delete 14 invoices" reads off
+  an assign instead of a hardcoded string. Long bodies scroll inside the
+  panel while the title and the action row stay put. Open it from
+  anywhere with `open_alert_dialog/2`, or drop an opener in the
+  `:trigger` slot and skip repeating the id.
+
+  Built on the native `<dialog>`, the same call `command_dialog` makes:
+  `showModal()` supplies the top layer, focus containment and focus
+  restoration to the opener for free, and a native modal dialog already
+  ignores backdrop clicks, which is exactly what this pattern wants. The
+  hook is small and only covers what `Phoenix.LiveView.JS` cannot reach -
+  `showModal()`/`close()` are DOM methods with no JS-command equivalent,
+  and Escape's native `cancel` event has to be intercepted so it runs
+  your `on_cancel` instead of quietly closing. The surface, the
+  transitions and the reduced-motion behaviour are all CSS.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
