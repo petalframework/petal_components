@@ -5972,6 +5972,19 @@ defmodule Dev.PlaygroundLive do
               title={e.title}
               description={e.description}
             />
+            <%!-- the local_time composition the docs promise: the time attr is a
+                  plain string (Phoenix has no nested slots), so live timestamps
+                  ride the entry BODY - this is the pattern to copy --%>
+            <:item marker="dot" color="gray" state="complete" title="Nightly build archived">
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                Completed
+                <.local_time
+                  id="timeline-nightly-time"
+                  at={DateTime.add(DateTime.utc_now(), -7, :hour)}
+                  format="relative"
+                /> on runner 4.
+              </span>
+            </:item>
           </.timeline>
         </div>
         <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">

@@ -119,7 +119,7 @@ defmodule PetalComponents.Timeline do
   attr :label, :string,
     default: nil,
     doc:
-      "accessible name for the list, announced instead of the generic \"list\" (e.g. \"Order history\")"
+      "accessible name for the list, announced instead of the generic \"list\" (e.g. \"Order history\"). Always set it on horizontal timelines: they are focusable scroll regions (tabindex=0), and a focusable region without a name is an a11y failure"
 
   attr :class, :any, default: nil, doc: "CSS class on the root list"
   attr :rest, :global
@@ -133,7 +133,8 @@ defmodule PetalComponents.Timeline do
 
     attr :description, :string, doc: "one-line body; use the inner block instead for rich content"
     attr :marker, :string, doc: ~s|"dot" (default), "icon", "avatar", or "number"|
-    attr :icon, :string, doc: ~s|heroicon name when marker="icon", e.g. "hero-truck"|
+    attr :icon, :string,
+      doc: ~s|heroicon name when marker="icon", e.g. "hero-truck". Defaults to "hero-check" when omitted|
     attr :src, :string, doc: ~s|image URL when marker="avatar"|
 
     attr :name, :string,
@@ -158,9 +159,11 @@ defmodule PetalComponents.Timeline do
   accessibility contract.
   """
   def timeline(assigns) do
+    alternating? = assigns.variant == "alternating" and assigns.orientation == "vertical"
+
     assigns =
       assigns
-      |> assign(:entries, entries(assigns.item))
+      |> assign(:entries, entries(assigns.item, alternating?))
       |> assign(:horizontal?, assigns.orientation == "horizontal")
 
     ~H"""
@@ -229,8 +232,10 @@ defmodule PetalComponents.Timeline do
 
   # Flattens each :item slot into everything the markup needs, so the template
   # stays a straight loop: defaults applied, 1-based numbering resolved, and the
-  # neighbour lookups (last entry, next entry's state) done once.
-  defp entries(items) do
+  # neighbour lookups (last entry, next entry's state) done once. Sides exist
+  # only for the alternating variant - every other layout gets side: nil so no
+  # meaningless --start/--end classes land in the DOM.
+  defp entries(items, alternating?) do
     states = Enum.map(items, &one_of(&1, :state, @states, "complete"))
     count = length(items)
 
@@ -243,7 +248,7 @@ defmodule PetalComponents.Timeline do
         last?: index == count - 1,
         state: Enum.at(states, index),
         next_state: Enum.at(states, index + 1),
-        side: if(rem(index, 2) == 0, do: "start", else: "end"),
+        side: alternating? && if(rem(index, 2) == 0, do: "start", else: "end"),
         marker: one_of(item, :marker, @markers, "dot"),
         color: one_of(item, :color, @colors, "primary"),
         icon: Map.get(item, :icon) || "hero-check",

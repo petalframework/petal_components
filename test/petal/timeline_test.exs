@@ -157,6 +157,25 @@ defmodule PetalComponents.TimelineTest do
       assert doc |> LazyHTML.query("li.pc-timeline__item--end") |> Enum.count() == 1
     end
 
+    test "sides exist only for the alternating variant" do
+      assigns = %{}
+
+      for attrs <- [%{}, %{variant: "compact"}, %{orientation: "horizontal"}] do
+        assigns = Map.put(assigns, :attrs, attrs)
+
+        html =
+          rendered_to_string(~H"""
+          <.timeline {@attrs}>
+            <:item title="One" />
+            <:item title="Two" />
+          </.timeline>
+          """)
+
+        refute_has_class(html, "pc-timeline__item--start")
+        refute_has_class(html, "pc-timeline__item--end")
+      end
+    end
+
     test "horizontal drops the variant class and takes keyboard focus" do
       assigns = %{}
 
@@ -291,6 +310,19 @@ defmodule PetalComponents.TimelineTest do
 
       assert has_icon?(html, "hero-truck")
       assert_has_class(html, "pc-timeline__marker--icon")
+    end
+
+    test "icon markers without an icon fall back to hero-check (the documented default)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline>
+          <:item title="Done" marker="icon" />
+        </.timeline>
+        """)
+
+      assert has_icon?(html, "hero-check")
     end
 
     test "number markers count from one" do

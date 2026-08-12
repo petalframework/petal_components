@@ -7718,6 +7718,38 @@
     @apply bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-300;
   }
 
+  /* Avatars keep their photo (no wash), but the marker still needs the
+     semantic TEXT colour: the current-state ring below is drawn in
+     currentColor, and without these the ring on an avatar marker fell back
+     to inherited body-text gray. */
+  .pc-timeline__marker--avatar.pc-timeline__marker--primary {
+    @apply text-primary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--secondary {
+    @apply text-secondary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--gray {
+    @apply text-gray-400;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--info {
+    @apply text-info-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--success {
+    @apply text-success-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--warning {
+    @apply text-warning-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--danger {
+    @apply text-danger-500;
+  }
+
   /* States. Two classes deep so they land on top of the colour rules above
      without an `!important` fight. */
   .pc-timeline__marker.pc-timeline__marker--current {
