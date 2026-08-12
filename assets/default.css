@@ -7586,3 +7586,300 @@
       transition-duration: 1ms;
     }
   }
+
+/* ==========================================================================
+   Timeline
+   A record, not a wizard - see the stepper section above for the interactive
+   sibling. The rail is a flex column (or row, when horizontal) whose connector
+   is `flex: 1`, so it always reaches the next marker no matter how tall the
+   entry's content grows. Vertical rhythm lives on the content's padding rather
+   than the <li>, so the line runs through the gap instead of stopping short.
+   ========================================================================== */
+@layer components {
+  .pc-timeline {
+    @apply m-0 list-none p-0;
+  }
+
+  .pc-timeline--vertical {
+    @apply flex flex-col;
+  }
+
+  .pc-timeline__item {
+    @apply flex gap-4;
+  }
+
+  /* Rail width is fixed rather than shrink-to-fit so a timeline that mixes dot
+     and icon markers keeps one straight line and one content indent. */
+  .pc-timeline__rail {
+    @apply flex w-8 flex-none flex-col items-center;
+  }
+
+  .pc-timeline__content {
+    @apply min-w-0 flex-1 pb-6;
+  }
+
+  .pc-timeline__item--last .pc-timeline__content {
+    @apply pb-0;
+  }
+
+  /* Markers */
+  .pc-timeline__marker {
+    @apply flex flex-none items-center justify-center rounded-full;
+  }
+
+  .pc-timeline__marker--dot {
+    @apply h-2.5 w-2.5;
+  }
+
+  .pc-timeline--vertical .pc-timeline__marker--dot {
+    @apply mt-1.5;
+  }
+
+  .pc-timeline__marker--icon,
+  .pc-timeline__marker--number,
+  .pc-timeline__marker--avatar {
+    @apply h-8 w-8;
+  }
+
+  .pc-timeline__icon {
+    @apply h-4 w-4;
+  }
+
+  .pc-timeline__number {
+    @apply text-xs font-semibold;
+  }
+
+  .pc-timeline__marker--avatar {
+    @apply bg-transparent;
+  }
+
+  /* Semantic colours. Dots carry a text colour as well as a background so the
+     current-state ring (currentColor) works the same for every marker type. */
+  .pc-timeline__marker--dot.pc-timeline__marker--primary {
+    @apply bg-primary-500 text-primary-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--secondary {
+    @apply bg-secondary-500 text-secondary-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--gray {
+    @apply bg-gray-400 text-gray-400;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--info {
+    @apply bg-info-500 text-info-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--success {
+    @apply bg-success-500 text-success-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--warning {
+    @apply bg-warning-500 text-warning-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--danger {
+    @apply bg-danger-500 text-danger-500;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--primary,
+  .pc-timeline__marker--number.pc-timeline__marker--primary {
+    @apply bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--secondary,
+  .pc-timeline__marker--number.pc-timeline__marker--secondary {
+    @apply bg-secondary-50 text-secondary-600 dark:bg-secondary-500/15 dark:text-secondary-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--gray,
+  .pc-timeline__marker--number.pc-timeline__marker--gray {
+    @apply bg-gray-100 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--info,
+  .pc-timeline__marker--number.pc-timeline__marker--info {
+    @apply bg-info-50 text-info-600 dark:bg-info-500/15 dark:text-info-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--success,
+  .pc-timeline__marker--number.pc-timeline__marker--success {
+    @apply bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--warning,
+  .pc-timeline__marker--number.pc-timeline__marker--warning {
+    @apply bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--danger,
+  .pc-timeline__marker--number.pc-timeline__marker--danger {
+    @apply bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-300;
+  }
+
+  /* Avatars keep their photo (no wash), but the marker still needs the
+     semantic TEXT colour: the current-state ring below is drawn in
+     currentColor, and without these the ring on an avatar marker fell back
+     to inherited body-text gray. */
+  .pc-timeline__marker--avatar.pc-timeline__marker--primary {
+    @apply text-primary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--secondary {
+    @apply text-secondary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--gray {
+    @apply text-gray-400;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--info {
+    @apply text-info-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--success {
+    @apply text-success-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--warning {
+    @apply text-warning-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--danger {
+    @apply text-danger-500;
+  }
+
+  /* States. Two classes deep so they land on top of the colour rules above
+     without an `!important` fight. */
+  .pc-timeline__marker.pc-timeline__marker--current {
+    box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 20%, transparent);
+  }
+
+  .pc-timeline__marker.pc-timeline__marker--upcoming {
+    @apply border-2 border-gray-300 bg-transparent text-gray-400 dark:border-gray-400/30 dark:text-gray-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--upcoming {
+    @apply h-3 w-3;
+  }
+
+  /* Connectors */
+  .pc-timeline--vertical .pc-timeline__connector {
+    @apply my-1.5 w-0 flex-1 border-l-2 border-gray-200 dark:border-gray-400/25;
+  }
+
+  .pc-timeline--horizontal .pc-timeline__connector {
+    @apply mx-2 h-0 flex-1 border-t-2 border-gray-200 dark:border-gray-400/25;
+  }
+
+  .pc-timeline--dashed .pc-timeline__connector {
+    @apply border-dashed;
+  }
+
+  .pc-timeline__connector--upcoming {
+    @apply border-gray-100 dark:border-gray-400/12;
+  }
+
+  /* Content */
+  .pc-timeline__time {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__title {
+    @apply mt-0.5 text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-timeline__description {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__body {
+    @apply mt-3;
+  }
+
+  .pc-timeline__state-label {
+    @apply sr-only;
+  }
+
+  /* Upcoming entries read as not-yet-happened, without relying on colour: the
+     visually-hidden state label is always there for screen readers. */
+  .pc-timeline__item--upcoming .pc-timeline__title {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__item--upcoming .pc-timeline__description,
+  .pc-timeline__item--upcoming .pc-timeline__time {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+
+  /* Alternating: a centre rail with entries either side, from md up. Below
+     that it stays the default left rail, which is the only thing that fits on
+     a phone. The rail sits in the middle grid column and each entry's content
+     takes column 1 or 3 depending on its side. */
+  .pc-timeline--alternating .pc-timeline__item {
+    @apply md:grid md:grid-cols-[1fr_2rem_1fr] md:gap-0;
+  }
+
+  .pc-timeline--alternating .pc-timeline__rail {
+    @apply md:col-start-2 md:row-start-1;
+  }
+
+  .pc-timeline--alternating .pc-timeline__item--start .pc-timeline__content {
+    @apply md:col-start-3 md:row-start-1 md:pl-4;
+  }
+
+  .pc-timeline--alternating .pc-timeline__item--end .pc-timeline__content {
+    @apply md:col-start-1 md:row-start-1 md:pr-4 md:text-right;
+  }
+
+  /* Compact: activity-feed density. Marker sizes hold so avatars stay
+     legible - it's the rhythm and the type that tighten. */
+  .pc-timeline--compact .pc-timeline__item {
+    @apply gap-3;
+  }
+
+  .pc-timeline--compact .pc-timeline__content {
+    @apply pb-4;
+  }
+
+  .pc-timeline--compact .pc-timeline__title {
+    @apply mt-0 text-[13px] font-medium;
+  }
+
+  .pc-timeline--compact .pc-timeline__description {
+    @apply mt-0.5 text-xs;
+  }
+
+  .pc-timeline--compact .pc-timeline__time {
+    @apply text-[11px];
+  }
+
+  /* Horizontal: milestones on a rail, content underneath, scrolling sideways
+     with snap points when the row outgrows its container. The list itself is
+     the scroller, so it takes focus and shows a ring - a scroll region that
+     can't be reached by keyboard is a trap for anyone not using a mouse. */
+  .pc-timeline--horizontal {
+    @apply flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-timeline--horizontal {
+      scroll-behavior: smooth;
+    }
+  }
+
+  .pc-timeline--horizontal .pc-timeline__item {
+    @apply w-56 flex-none snap-start flex-col gap-3;
+  }
+
+  .pc-timeline--horizontal .pc-timeline__rail {
+    @apply w-full flex-row items-center;
+  }
+
+  .pc-timeline--horizontal .pc-timeline__content {
+    @apply w-full pb-0;
+  }
+}

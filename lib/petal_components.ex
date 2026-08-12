@@ -67,6 +67,7 @@ defmodule PetalComponents do
         SpotlightCard,
         Stepper,
         Table,
+        Timeline,
         Toast,
         Tabs,
         ToggleGroup,

@@ -53,6 +53,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Table,
     PetalComponents.Showcase.Tabs,
     PetalComponents.Showcase.TextAnimation,
+    PetalComponents.Showcase.Timeline,
     PetalComponents.Showcase.Toast,
     PetalComponents.Showcase.ToggleGroup,
     PetalComponents.Showcase.Tooltip,
