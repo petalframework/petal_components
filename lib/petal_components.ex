@@ -60,6 +60,7 @@ defmodule PetalComponents do
         Progress,
         Rating,
         Skeleton,
+        Slider,
         SlideOver,
         SocialButton,
         Sparkline,

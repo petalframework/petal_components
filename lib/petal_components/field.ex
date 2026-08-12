@@ -13,6 +13,14 @@ defmodule PetalComponents.Field do
 
       <.field field={@form[:email]} type="email" />
       <.field label="Name" value="" name="name" errors={["oh no!"]} />
+
+  > #### Sliders have moved {: .info}
+  >
+  > `type="range"` and `type="range-dual"` still work and are not going
+  > anywhere in this release, but `PetalComponents.Slider.slider/1` supersedes
+  > them. It is the same native `<input type="range">` machinery with marks, a
+  > value readout, vertical orientation and sizes on top, so reach for
+  > `<.slider>` in new code.
   """
   attr :id, :any,
     default: nil,

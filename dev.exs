@@ -782,8 +782,18 @@ defmodule Dev.PlaygroundLive do
          disabled: false
        },
        switch: %{size: "md", disabled: false, error: false},
-       slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
-       slider_form: slider_form("money"),
+       slider: %{
+         mode: "single",
+         show_value: "inline",
+         orientation: "horizontal",
+         step: 1,
+         size: "md",
+         marks: false,
+         disabled: false
+       },
+       slider_price: to_form(%{"min" => "250", "max" => "750"}, as: :pg_price),
+       slider_volume: 60,
+       slider_year: 2010,
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{
          value: 0,
@@ -1457,23 +1467,40 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
-  def handle_event("ctl_slider", %{"k" => "format", "v" => v}, socket)
-      when v in ~w(money percent plain),
-      do:
-        {:noreply,
-         socket
-         |> update(:slider, &%{&1 | format: v})
-         |> assign(:slider_form, slider_form(v))}
-
-  def handle_event("ctl_slider", %{"k" => "disabled"}, socket),
-    do: {:noreply, update(socket, :slider, &%{&1 | disabled: !&1.disabled})}
-
-  def handle_event("ctl_slider", %{"k" => "fill"}, socket),
-    do: {:noreply, update(socket, :slider, &%{&1 | fill: !&1.fill})}
-
-  def handle_event("ctl_slider", %{"k" => "thumbs", "v" => v}, socket)
+  def handle_event("ctl_slider", %{"k" => "mode", "v" => v}, socket)
       when v in ~w(single dual),
-      do: {:noreply, update(socket, :slider, &%{&1 | thumbs: v})}
+      do: {:noreply, update(socket, :slider, &%{&1 | mode: v})}
+
+  def handle_event("ctl_slider", %{"k" => "show_value", "v" => v}, socket)
+      when v in ~w(none tooltip inline),
+      do: {:noreply, update(socket, :slider, &%{&1 | show_value: v})}
+
+  def handle_event("ctl_slider", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(horizontal vertical),
+      do: {:noreply, update(socket, :slider, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_slider", %{"k" => "step", "v" => v}, socket)
+      when v in ~w(1 5 25),
+      do: {:noreply, update(socket, :slider, &%{&1 | step: String.to_integer(v)})}
+
+  def handle_event("ctl_slider", %{"k" => "size", "v" => v}, socket)
+      when v in ~w(sm md lg),
+      do: {:noreply, update(socket, :slider, &%{&1 | size: v})}
+
+  def handle_event("ctl_slider", %{"k" => k}, socket) when k in ~w(marks disabled),
+    do:
+      {:noreply,
+       update(socket, :slider, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # The price filter is an ordinary form change - the two thumbs post two fields.
+  def handle_event("slider_price", %{"pg_price" => params}, socket),
+    do: {:noreply, assign(socket, :slider_price, to_form(params, as: :pg_price))}
+
+  def handle_event("slider_volume", %{"volume" => v}, socket),
+    do: {:noreply, assign(socket, :slider_volume, String.to_integer(v))}
+
+  def handle_event("slider_year", %{"year" => v}, socket),
+    do: {:noreply, assign(socket, :slider_year, String.to_integer(v))}
 
   def handle_event("ctl_radio", %{"k" => "style", "v" => v}, socket)
       when v in ~w(cards plain),
@@ -2137,50 +2164,56 @@ defmodule Dev.PlaygroundLive do
     "<.input_otp #{Enum.join(attrs, " ")} />"
   end
 
-  defp slider_form("money"), do: to_form(%{"min" => "250", "max" => "750"}, as: :pg_range)
-  defp slider_form("percent"), do: to_form(%{"min" => "20", "max" => "80"}, as: :pg_range)
-  defp slider_form("plain"), do: to_form(%{"min" => "25", "max" => "75"}, as: :pg_range)
+  defp slider_preview_marks,
+    do: [
+      %{value: 0, label: "0"},
+      %{value: 25, label: ""},
+      %{value: 50, label: "50"},
+      %{value: 75, label: ""},
+      %{value: 100, label: "100"}
+    ]
 
-  defp slider_bounds("money"),
-    do: %{bound_min: 0, bound_max: 1000, step: 25, prefix: "$", suffix: "", label: "Price range"}
+  defp slider_year_marks,
+    do:
+      for(
+        y <- 1990..2030//5,
+        do: %{value: y, label: if(rem(y, 10) == 0, do: to_string(y), else: "")}
+      )
 
-  defp slider_bounds("percent"),
-    do: %{bound_min: 0, bound_max: 100, step: 5, prefix: "", suffix: "%", label: "Discount range"}
+  # A stand-in catalogue so the price filter has something real to count.
+  defp slider_catalogue,
+    do: [40, 75, 120, 180, 240, 310, 380, 450, 520, 600, 680, 740, 810, 880, 950]
 
-  defp slider_bounds("plain"),
-    do: %{bound_min: 0, bound_max: 100, step: 1, prefix: "", suffix: "", label: "Value range"}
-
-  defp slider_snippet(%{thumbs: "single"} = s) do
-    attrs =
-      [
-        ~s(type="range"),
-        ~s(name="volume"),
-        ~s(label="Volume"),
-        ~s(value="60"),
-        ~s(min="0"),
-        ~s(max="100"),
-        s.fill && "fill",
-        s.disabled && "disabled"
-      ]
-      |> Enum.filter(& &1)
-
-    "<.field #{Enum.join(attrs, " ")} />"
+  defp slider_price_count(form) do
+    lo = slider_param(form, :min, 0)
+    hi = slider_param(form, :max, 1000)
+    Enum.count(slider_catalogue(), &(&1 >= lo and &1 <= hi))
   end
 
-  defp slider_snippet(s) do
-    b = slider_bounds(s.format)
+  defp slider_param(form, key, default) do
+    case Integer.parse(to_string(form[key].value || "")) do
+      {n, _} -> n
+      :error -> default
+    end
+  end
 
+  defp slider_volume_icon(v) when v == 0, do: "hero-speaker-x-mark"
+  defp slider_volume_icon(v) when v < 50, do: "hero-speaker-wave"
+  defp slider_volume_icon(_), do: "hero-speaker-wave"
+
+  defp slider_snippet(%{mode: "dual"} = s) do
     attrs =
       [
-        ~s(type="range-dual"),
         ~s(min_field={@form[:min]}),
         ~s(max_field={@form[:max]}),
-        ~s(range_min={#{b.bound_min}}),
-        ~s(range_max={#{b.bound_max}}),
-        b.step != 1 && ~s(step={#{b.step}}),
-        b.prefix != "" && ~s(value_prefix="#{b.prefix}"),
-        b.suffix != "" && ~s(value_suffix="#{b.suffix}"),
-        ~s(label="#{b.label}"),
+        ~s(min={0}),
+        ~s(max={100}),
+        s.step != 1 && ~s(step={#{s.step}}),
+        ~s(label="Budget"),
+        s.size != "md" && ~s(size="#{s.size}"),
+        s.orientation != "horizontal" && ~s(orientation="#{s.orientation}"),
+        s.show_value != "none" && ~s(show_value="#{s.show_value}"),
+        s.marks && ~s(marks={[%{value: 0, label: "0"}, %{value: 50, label: "50"}]}),
         s.disabled && "disabled"
       ]
       |> Enum.filter(& &1)
@@ -2188,10 +2221,35 @@ defmodule Dev.PlaygroundLive do
 
     """
     <.form for={@form} phx-change="filter">
-      <.field
+      <.slider
     #{Enum.join(attrs, "\n")}
       />
     </.form>\
+    """
+  end
+
+  defp slider_snippet(s) do
+    attrs =
+      [
+        ~s(name="budget"),
+        ~s(label="Budget"),
+        ~s(value={60}),
+        ~s(min={0}),
+        ~s(max={100}),
+        s.step != 1 && ~s(step={#{s.step}}),
+        s.size != "md" && ~s(size="#{s.size}"),
+        s.orientation != "horizontal" && ~s(orientation="#{s.orientation}"),
+        s.show_value != "none" && ~s(show_value="#{s.show_value}"),
+        s.marks && ~s(marks={[%{value: 0, label: "0"}, %{value: 50, label: "50"}]}),
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    """
+    <.slider
+    #{Enum.join(attrs, "\n")}
+    />\
     """
   end
 
@@ -7211,83 +7269,118 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp render_page(%{active: "slider"} = assigns) do
-    assigns = assign(assigns, :sb, slider_bounds(assigns.slider.format))
-
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Slider</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        One thumb or two, one grammar: the same track, thumb and focus ring
-        whether you render a single range (pure CSS on the native input) or the
-        dual range (two thumbs and a hook for min/max filtering).
+        One thumb or two, on a native range input. The browser gives the keyboard
+        map, the ARIA and the form posting; the library paints the track, the fill,
+        the marks and the value bubble on top.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center justify-center px-6 py-12">
-          <div class="w-full max-w-sm">
-            <.field
-              :if={@slider.thumbs == "dual"}
-              id={"pg-slider-#{@slider.format}-#{@slider.disabled}"}
-              type="range-dual"
-              min_field={@slider_form[:min]}
-              max_field={@slider_form[:max]}
-              range_min={@sb.bound_min}
-              range_max={@sb.bound_max}
-              step={@sb.step}
-              value_prefix={@sb.prefix}
-              value_suffix={@sb.suffix}
-              label={@sb.label}
+        <div class="flex items-center justify-center px-6 py-16">
+          <div class={if @slider.orientation == "vertical", do: "", else: "w-full max-w-sm"}>
+            <.slider
+              id="pg-slider-preview"
+              name="pg_slider"
+              label="Budget"
+              value={60}
+              values={if @slider.mode == "dual", do: [25, 75]}
+              min={0}
+              max={100}
+              step={@slider.step}
+              size={@slider.size}
+              orientation={@slider.orientation}
+              show_value={@slider.show_value}
               disabled={@slider.disabled}
-              no_margin
-            />
-            <.field
-              :if={@slider.thumbs == "single"}
-              id={"pg-single-#{@slider.fill}-#{@slider.disabled}"}
-              type="range"
-              name="pg_flag_volume"
-              label="Volume"
-              value="60"
-              min="0"
-              max="100"
-              fill={@slider.fill}
-              disabled={@slider.disabled}
-              no_margin
+              marks={if @slider.marks, do: slider_preview_marks(), else: []}
             />
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
           <div>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumbs</div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
             <.toggle_group
               variant="outline"
               size="sm"
-              aria_label="Thumbs"
-              value={@slider.thumbs}
+              aria_label="Mode"
+              value={@slider.mode}
               on_change="ctl_slider"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={t <- ~w(single dual)} value={t} phx-value-k="thumbs" phx-value-v={t}>
-                {t}
+              <:item :for={m <- ~w(single dual)} value={m} phx-value-k="mode" phx-value-v={m}>
+                {m}
               </:item>
             </.toggle_group>
           </div>
-          <div :if={@slider.thumbs == "dual"}>
-            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">format</div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">show_value</div>
             <.toggle_group
               variant="outline"
               size="sm"
-              aria_label="Format"
-              value={@slider.format}
+              aria_label="Show value"
+              value={@slider.show_value}
               on_change="ctl_slider"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item
-                :for={f <- ~w(money percent plain)}
-                value={f}
-                phx-value-k="format"
-                phx-value-v={f}
+                :for={v <- ~w(none tooltip inline)}
+                value={v}
+                phx-value-k="show_value"
+                phx-value-v={v}
               >
-                {f}
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@slider.orientation}
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={o <- ~w(horizontal vertical)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">step</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Step"
+              value={to_string(@slider.step)}
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(1 5 25)} value={s} phx-value-k="step" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@slider.size}
+              on_change="ctl_slider"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>
+                {z}
               </:item>
             </.toggle_group>
           </div>
@@ -7299,12 +7392,14 @@ defmodule Dev.PlaygroundLive do
               size="sm"
               aria_label="State"
               value={
-                for {k, on} <- [{"fill", @slider.fill}, {"disabled", @slider.disabled}], on, do: k
+                for {k, on} <- [{"marks", @slider.marks}, {"disabled", @slider.disabled}],
+                    on,
+                    do: k
               }
               on_change="ctl_slider"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :if={@slider.thumbs == "single"} value="fill" phx-value-k="fill">fill</:item>
+              <:item value="marks" phx-value-k="marks">marks</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
             </.toggle_group>
           </div>
@@ -7324,10 +7419,97 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{slider_snippet(@slider)}</code></pre>
 
-      <div
-        :for={ex <- examples_for(PetalComponents.Showcase.Field, ~w(sliders slider_dual)a)}
-        class="mt-10"
-      >
+      <div class="flex items-start gap-2 p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        <.icon name="hero-command-line" class="w-4 h-4 mt-0.5 shrink-0" />
+        <div>
+          <span class="font-medium text-gray-700 dark:text-gray-200">Keyboard:</span>
+          tab to a thumb, then arrows to nudge one step, PageUp / PageDown for a
+          bigger jump, Home / End for the bounds. All of it is the native input -
+          none of it is re-implemented here.
+        </div>
+      </div>
+
+      <h2 class="mt-12 mb-1 text-lg font-semibold">Price range filter</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Two thumbs posting two form fields, so filtering is a plain <code>phx-change</code>
+        on the form. The result count below updates as you drag - no JavaScript in
+        the app, and the values survive a reconnect because the server holds them.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.form for={@slider_price} phx-change="slider_price">
+          <.slider
+            id="pg-slider-price"
+            min_field={@slider_price[:min]}
+            max_field={@slider_price[:max]}
+            min={0}
+            max={1000}
+            step={50}
+            label="Price"
+            value_prefix="$"
+            show_value="inline"
+            marks={[
+              %{value: 0, label: "$0"},
+              %{value: 500, label: "$500"},
+              %{value: 1000, label: "$1,000"}
+            ]}
+          />
+        </.form>
+        <div class="pt-4 mt-6 text-sm border-t border-gray-200 dark:border-gray-800">
+          <span class="font-semibold text-gray-900 dark:text-white">
+            {slider_price_count(@slider_price)}
+          </span>
+          <span class="text-gray-500 dark:text-gray-400">
+            of {length(slider_catalogue())} products in range
+          </span>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Volume</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The everyday single-thumb case: an icon that reacts to the level, the
+        value inline in the label row, and a suffix so the number carries a unit.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center gap-4">
+          <.icon name={slider_volume_icon(@slider_volume)} class="w-5 h-5 text-gray-400 shrink-0" />
+          <form phx-change="slider_volume" class="flex-1">
+            <.slider
+              id="pg-slider-volume"
+              name="volume"
+              label="Output volume"
+              value={@slider_volume}
+              min={0}
+              max={100}
+              value_suffix="%"
+              show_value="inline"
+            />
+          </form>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Model year</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        A coarse scale where every stop matters: <code>step</code>
+        of 5 snaps the thumb, a mark sits on each stop, and the tooltip carries the
+        number so no row is spent on a readout.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <form phx-change="slider_year">
+          <.slider
+            id="pg-slider-year"
+            name="year"
+            label="Model year"
+            value={@slider_year}
+            min={1990}
+            max={2030}
+            step={5}
+            show_value="tooltip"
+            marks={slider_year_marks()}
+          />
+        </form>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Slider.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
         <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
           {ex.description}
@@ -7336,13 +7518,14 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
-      <.showcase_props component={PetalComponents.Field} function={:field} />
+      <.showcase_props component={PetalComponents.Slider} function={:slider} />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        These examples render from the shared <code>PetalComponents.Showcase.Field</code>
-        registry - the same source petal.build renders, so the playground and the marketing
-        docs can't drift. Sliders are field types (range / range-dual), so they live in the
-        field registry with the rest of the form surface.
+        <code>&lt;.field type="range"&gt;</code>
+        and <code>type="range-dual"</code>
+        still work and are not going anywhere in this release, but <code>&lt;.slider&gt;</code>
+        supersedes them - same native machinery, with marks, a value readout,
+        vertical orientation and sizes on top. Reach for the slider in new code.
       </div>
     </div>
     """

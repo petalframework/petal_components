@@ -1,4 +1,39 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **New `slider` component: a range slider with one thumb or two, marks, a
+  value readout, sizes and vertical orientation.** It is a native
+  `<input type="range">` underneath, so the arrow / Home / End / PageUp /
+  PageDown keyboard map, the `role="slider"` and `aria-valuemin`/`valuemax`/
+  `valuenow` announcement, touch handling and form posting all come from the
+  browser rather than being re-implemented. What the library adds is paint: a
+  track and fill that ride the gray and primary ramps in both schemes, tick
+  marks that invert once the fill swallows them, and a value bubble or inline
+  readout with a prefix and suffix.
+
+  Dual mode is two overlaid inputs posting two form fields, so a price filter
+  is a plain `phx-change` with no JavaScript in your app:
+
+  ```heex
+  <.slider min_field={@form[:min]} max_field={@form[:max]} min={0} max={1000} step={50} label="Price" value_prefix="$" show_value="inline" />
+  ```
+
+  Geometry rides CSS custom properties that the server renders inline, so the
+  control paints correctly before the `PetalSlider` hook connects and with JS
+  off entirely. The hook only does what the client alone can know: keeping
+  those percentages live while you drag, enforcing the thumb ordering two
+  native inputs cannot enforce themselves, and emitting a bubbling
+  `petal:slider-change` event for apps that want the value without a form.
+
+#### Deprecated
+
+- `<.field type="range">` and `<.field type="range-dual">` are superseded by
+  `<.slider>`. Both still work and nothing is being removed in this release -
+  the docs now point at the slider for new code.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
