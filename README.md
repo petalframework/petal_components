@@ -122,7 +122,7 @@ You can also fetch it at https://petal.build/petal-components/rules.md.
 
 **Data display**: `<.table>`, `<.pagination>`, `<.breadcrumbs>`, `<.badge>`, `<.avatar>`, `<.marquee>`, `<.icon>`, `<.link>`
 
-A visual grid is at https://petal.build/components. A live playground is at https://petal-components-demo.fly.dev.
+A visual grid is at https://petal.build/components. The live playground is at https://playground.petal.build.
 
 ## Examples
 
@@ -208,9 +208,7 @@ mix test
 
 ## Contributing
 
-Suggest a component on the [public roadmap](https://petal.build/components/roadmap). PRs welcome - clone the repo, run the dev server above, and submit.
-
-There is also a [Phoenix umbrella app](https://github.com/petalframework/petal_development) with `petal_components` as a submodule alongside a boilerplate Phoenix app for integrated testing.
+The component roadmap lives in the [milestones](https://github.com/petalframework/petal_components/milestones): each issue is a complete build brief (API sketch, variants, playground page spec, accessibility requirements, test checklist). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the playground workflow, and the review process. Suggestions also welcome on the [public roadmap](https://petal.build/components/roadmap).
 
 ## Companion projects
 
