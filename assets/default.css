@@ -7586,3 +7586,281 @@
       transition-duration: 1ms;
     }
   }
+
+/* Sidebar - the app-shell navigation rail.
+ *
+ * Wrapped in its own @layer components block on purpose: everything after the
+ * showcase-props section above sits OUTSIDE any cascade layer, and unlayered
+ * rules outrank a consumer's utilities, which would quietly break
+ * <.sidebar class="..."> overrides.
+ *
+ * State lives in data attributes on .pc-sidebar (data-collapsed,
+ * data-mobile-open, data-collapsible, data-side) so LiveView.JS can flip them
+ * with no hook and no round trip. Collapse behaviour is scoped to md and up;
+ * below that the sidebar is a sheet, and none of the rail rules apply.
+ */
+@layer components {
+  .pc-sidebar-shell {
+    @apply flex w-full min-h-svh bg-white dark:bg-gray-950;
+  }
+
+  .pc-sidebar-shell__main {
+    @apply flex flex-col flex-1 min-w-0;
+  }
+
+  .pc-sidebar {
+    --pc-sidebar-width: 16rem;
+    /* Wide enough for a 2rem trigger plus a 1.25rem brand mark in the header
+       without clipping, which 3.5rem was not. */
+    --pc-sidebar-icon-width: 4rem;
+    @apply relative flex-none self-stretch;
+    width: var(--pc-sidebar-width);
+    transition: width 200ms ease;
+  }
+
+  .pc-sidebar[data-side="right"] {
+    @apply order-last;
+  }
+
+  .pc-sidebar__panel {
+    /* h-full tracks a bounded shell (a demo frame, a dashboard card); max-h-svh
+       caps it at the viewport so sticky still works under long page content. */
+    @apply sticky top-0 z-30 flex flex-col w-full h-full overflow-hidden bg-gray-50 border-gray-200 max-h-svh dark:bg-gray-900 dark:border-gray-800;
+  }
+
+  .pc-sidebar[data-side="left"] .pc-sidebar__panel {
+    @apply border-r;
+  }
+
+  .pc-sidebar[data-side="right"] .pc-sidebar__panel {
+    @apply border-l;
+  }
+
+  /* focus_wrap traps Tab between its two sentinel divs. On desktop that would
+     fence the whole page into the sidebar, so the sentinels only exist while
+     the mobile sheet is actually open. */
+  .pc-sidebar:not([data-mobile-open="true"]) .pc-sidebar__panel > [tabindex="0"][aria-hidden="true"] {
+    @apply hidden;
+  }
+
+  .pc-sidebar__scrim {
+    @apply hidden;
+  }
+
+  .pc-sidebar__nav {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+
+  .pc-sidebar__header {
+    @apply flex items-center flex-none gap-2 px-3 border-b border-gray-200 h-14 dark:border-gray-800;
+  }
+
+  .pc-sidebar__brand {
+    @apply text-sm font-semibold truncate text-gray-900 dark:text-gray-50;
+  }
+
+  .pc-sidebar__content {
+    @apply flex flex-col flex-1 gap-4 px-2 py-4 overflow-x-hidden overflow-y-auto;
+  }
+
+  .pc-sidebar__footer {
+    @apply flex-none px-2 py-3 border-t border-gray-200 dark:border-gray-800;
+  }
+
+  /* Groups */
+
+  .pc-sidebar-group {
+    @apply flex flex-col gap-1;
+  }
+
+  .pc-sidebar-group__label {
+    @apply px-2 py-1 text-xs font-medium tracking-wide truncate text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-sidebar-group__toggle {
+    @apply flex items-center w-full gap-1 text-left cursor-pointer;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-sidebar-group__toggle .pc-sidebar-group__label {
+    @apply flex-1;
+  }
+
+  .pc-sidebar-group__chevron {
+    @apply flex-none w-3.5 h-3.5 mr-2 text-gray-400;
+    transition: rotate 150ms ease;
+  }
+
+  .pc-sidebar-group__toggle[aria-expanded="true"] .pc-sidebar-group__chevron {
+    rotate: 90deg;
+  }
+
+  .pc-sidebar-group__items {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .pc-sidebar-group__items[data-open="false"] {
+    @apply hidden;
+  }
+
+  /* Items */
+
+  .pc-sidebar-item__parent {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .pc-sidebar-item {
+    @apply flex items-center w-full gap-2.5 px-2 py-2 text-sm font-medium text-left cursor-pointer;
+    @apply text-gray-700 hover:bg-gray-200/70 hover:text-gray-900;
+    @apply dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .pc-sidebar-item--active {
+    @apply bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-50;
+  }
+
+  .pc-sidebar-item__icon {
+    @apply flex-none w-5 h-5;
+  }
+
+  .pc-sidebar-item__label {
+    @apply flex-1 truncate;
+  }
+
+  .pc-sidebar-item__badge {
+    @apply flex-none px-1.5 py-0.5 text-xs font-semibold tabular-nums text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-800;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  .pc-sidebar-item--active .pc-sidebar-item__badge {
+    @apply text-gray-900 bg-white dark:text-gray-50 dark:bg-gray-950;
+  }
+
+  .pc-sidebar-item__chevron {
+    @apply flex-none w-3.5 h-3.5 text-gray-400;
+    transition: rotate 150ms ease;
+  }
+
+  .pc-sidebar-item[aria-expanded="true"] .pc-sidebar-item__chevron {
+    rotate: 90deg;
+  }
+
+  .pc-sidebar-item__sub {
+    @apply flex flex-col gap-0.5 pl-4 ml-4 border-l border-gray-200 dark:border-gray-800;
+  }
+
+  .pc-sidebar-item__sub[data-open="false"] {
+    @apply hidden;
+  }
+
+  /* Trigger */
+
+  .pc-sidebar-trigger {
+    @apply inline-flex items-center justify-center flex-none w-8 h-8 cursor-pointer;
+    @apply text-gray-600 hover:bg-gray-200/70 hover:text-gray-900;
+    @apply dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .pc-sidebar-trigger__icon {
+    @apply w-5 h-5;
+  }
+
+  /* Desktop: the collapse rail. */
+  @media (width >= 48rem) {
+    .pc-sidebar-trigger--mobile {
+      @apply hidden;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] {
+      width: var(--pc-sidebar-icon-width);
+    }
+
+    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] {
+      @apply w-0;
+    }
+
+    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] .pc-sidebar__panel {
+      @apply hidden;
+    }
+
+    /* Icon rail: labels stay in the accessibility tree, they just stop taking
+       space. The title attribute carries the same text on hover. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__badge,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__brand {
+      @apply sr-only;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__chevron,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__chevron,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__sub {
+      @apply hidden;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item {
+      @apply justify-center px-0;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__header {
+      @apply justify-center px-0;
+    }
+  }
+
+  /* Mobile: the sheet takeover. Anything collapsible leaves the flow and slides
+     in over the shell; collapsible="none" stays pinned. */
+  @media (width < 48rem) {
+    .pc-sidebar-trigger--collapse {
+      @apply hidden;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"]) {
+      @apply w-0;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"]) .pc-sidebar__panel {
+      @apply fixed inset-y-0 z-50 border-0;
+      width: var(--pc-sidebar-width);
+      max-width: 85vw;
+      transition: transform 200ms ease;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"])[data-side="left"] .pc-sidebar__panel {
+      @apply left-0;
+      transform: translateX(-100%);
+    }
+
+    .pc-sidebar:not([data-collapsible="none"])[data-side="right"] .pc-sidebar__panel {
+      @apply right-0;
+      transform: translateX(100%);
+    }
+
+    /* Must carry the same :not() + attribute weight as the per-side rules above,
+       or those win the specificity tie and the panel stays translated off-screen. */
+    .pc-sidebar:not([data-collapsible="none"])[data-mobile-open="true"] .pc-sidebar__panel {
+      transform: translateX(0);
+    }
+
+    .pc-sidebar[data-mobile-open="true"] .pc-sidebar__scrim {
+      @apply fixed inset-0 z-40 block bg-gray-950/50;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-sidebar,
+    .pc-sidebar__panel,
+    .pc-sidebar-item,
+    .pc-sidebar-item__chevron,
+    .pc-sidebar-group__chevron,
+    .pc-sidebar-trigger {
+      transition: none;
+    }
+  }
+}

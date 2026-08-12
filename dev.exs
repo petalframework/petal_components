@@ -272,6 +272,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "pagination", name: "Pagination", ready: true},
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
         %{slug: "stepper", name: "Stepper", ready: true},
+        %{slug: "sidebar", name: "Sidebar", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
         %{slug: "user-menu", name: "User menu", ready: true},
@@ -833,6 +834,12 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
+       sidebar: %{
+         collapsible: "icon",
+         side: "left",
+         collapsed: false,
+         badges: true
+       },
        stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
        toast: %{pos: "bottom-right", undone: 0},
        car: %{
@@ -1237,6 +1244,19 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_accordion", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md),
     do: {:noreply, update(socket, :accordion, &%{&1 | size: v})}
+
+  def handle_event("ctl_sidebar", %{"k" => "collapsible", "v" => v}, socket)
+      when v in ~w(icon offcanvas none),
+      do: {:noreply, update(socket, :sidebar, &%{&1 | collapsible: v})}
+
+  def handle_event("ctl_sidebar", %{"k" => "side", "v" => v}, socket) when v in ~w(left right),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | side: v})}
+
+  def handle_event("ctl_sidebar", %{"k" => "collapsed"}, socket),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | collapsed: !&1.collapsed})}
+
+  def handle_event("ctl_sidebar", %{"k" => "badges"}, socket),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | badges: !&1.badges})}
 
   def handle_event("ctl_stepper", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(horizontal vertical),
@@ -6115,6 +6135,184 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Card</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "sidebar"} = assigns) do
+    ~H"""
+    <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Sidebar</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The app shell almost every LiveView product hand-rolls: grouped nav with icons and
+        badges, a collapse rail, and a sheet takeover on mobile. Collapse is a data attribute
+        flipped by LiveView.JS - no hook, no round trip.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <.sidebar_shell
+            for="pg-sidebar"
+            class="h-[30rem] min-h-0 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-800"
+          >
+            <:sidebar>
+              <.sidebar
+                id="pg-sidebar"
+                label="Product"
+                side={@sidebar.side}
+                collapsible={@sidebar.collapsible}
+                collapsed={@sidebar.collapsed}
+              >
+                <:header>
+                  <.icon name="hero-cube" class="w-5 h-5 shrink-0 text-primary-500" />
+                  <span class="pc-sidebar__brand">Acme Inc</span>
+                  <.sidebar_trigger for="pg-sidebar" class="ml-auto" />
+                </:header>
+
+                <.sidebar_group label="Workspace">
+                  <.sidebar_item
+                    label="Dashboard"
+                    path="#"
+                    link_type="a"
+                    icon="hero-home"
+                    active
+                  />
+                  <.sidebar_item
+                    label="Inbox"
+                    path="#"
+                    link_type="a"
+                    icon="hero-inbox"
+                    badge={if @sidebar.badges, do: "12"}
+                  />
+                  <.sidebar_item
+                    label="Invoices"
+                    path="#"
+                    link_type="a"
+                    icon="hero-document-text"
+                    badge={if @sidebar.badges, do: "3"}
+                  />
+                </.sidebar_group>
+
+                <.sidebar_group id="pg-sidebar-acct" label="Account" collapsible>
+                  <.sidebar_item
+                    id="pg-sidebar-settings"
+                    label="Settings"
+                    icon="hero-cog-6-tooth"
+                    open
+                  >
+                    <.sidebar_item label="Profile" path="#" link_type="a" />
+                    <.sidebar_item label="Billing" path="#" link_type="a" />
+                  </.sidebar_item>
+                  <.sidebar_item label="Team" path="#" link_type="a" icon="hero-user-group" />
+                </.sidebar_group>
+
+                <:footer>
+                  <.sidebar_item
+                    label="Ada Lovelace"
+                    path="#"
+                    link_type="a"
+                    icon="hero-user-circle"
+                  />
+                </:footer>
+              </.sidebar>
+            </:sidebar>
+
+            <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-800">
+              <.sidebar_trigger for="pg-sidebar" target="mobile" />
+              <span class="text-sm font-semibold">Dashboard</span>
+            </header>
+            <div class="p-4 text-sm text-gray-500 dark:text-gray-400">
+              Page content. Narrow the window below 768px and the sidebar becomes a sheet -
+              this region goes inert, Escape closes it, and focus returns to the burger.
+            </div>
+          </.sidebar_shell>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">collapsible</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Collapse mode"
+              value={@sidebar.collapsible}
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(icon offcanvas none)}
+                value={v}
+                phx-value-k="collapsible"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">side</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Side"
+              value={@sidebar.side}
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(left right)} value={v} phx-value-k="side" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div class="md:col-span-2">
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"collapsed", @sidebar.collapsed}, {"badges", @sidebar.badges}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="collapsed" phx-value-k="collapsed">collapsed on first paint</:item>
+              <:item value="badges" phx-value-k="badges">badges</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The "collapsed on first paint" dial is the <code>collapsed</code>
+        attr - it is what the server renders, so a live_redirect can never flash the wrong
+        state. The toggle in the sidebar header is the client-side flip: it changes the DOM
+        without telling the server, which is why re-running a dial resets it. Persist the
+        choice by keeping it in your own assign and passing it back in.
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Sidebar.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Sidebar}
+        functions={[:sidebar_shell, :sidebar, :sidebar_group, :sidebar_item, :sidebar_trigger]}
+      />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Sidebar</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
