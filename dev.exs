@@ -243,6 +243,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "toggle-group", name: "Toggle group", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "input-group", name: "Input group", ready: true},
+        %{slug: "number-field", name: "Number field", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "combo-box", name: "Combobox", ready: true},
@@ -785,6 +786,7 @@ defmodule Dev.PlaygroundLive do
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       number: %{variant: "stacked", size: "md", bounds: "qty", disabled: false},
        progress: %{
          value: 0,
          color: "primary",
@@ -1448,6 +1450,20 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_number", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(stacked split plain),
+      do: {:noreply, update(socket, :number, &%{&1 | variant: v})}
+
+  def handle_event("ctl_number", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :number, &%{&1 | size: v})}
+
+  def handle_event("ctl_number", %{"k" => "bounds", "v" => v}, socket)
+      when v in ~w(qty pct free),
+      do: {:noreply, update(socket, :number, &%{&1 | bounds: v})}
+
+  def handle_event("ctl_number", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :number, &%{&1 | disabled: !&1.disabled})}
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
@@ -2135,6 +2151,29 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.input_otp #{Enum.join(attrs, " ")} />"
+  end
+
+  defp number_bounds("qty"), do: %{min: 1, max: 99, step: 1, label: "1 to 99, step 1"}
+  defp number_bounds("pct"), do: %{min: 0, max: 100, step: 5, label: "0 to 100, step 5"}
+  defp number_bounds("free"), do: %{min: nil, max: nil, step: 0.5, label: "unbounded, step 0.5"}
+
+  defp number_snippet(n) do
+    b = number_bounds(n.bounds)
+
+    attrs =
+      [
+        ~s(name="quantity"),
+        ~s(value="12"),
+        b.min && ~s(min={#{b.min}}),
+        b.max && ~s(max={#{b.max}}),
+        b.step != 1 && ~s(step={#{b.step}}),
+        n.variant != "stacked" && ~s(variant="#{n.variant}"),
+        n.size != "md" && ~s(size="#{n.size}"),
+        n.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.number_field #{Enum.join(attrs, " ")} />"
   end
 
   defp slider_form("money"), do: to_form(%{"min" => "250", "max" => "750"}, as: :pg_range)
@@ -7025,6 +7064,196 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.InputOtp</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "number-field"} = assigns) do
+    assigns = assign(assigns, :bounds, number_bounds(assigns.number.bounds))
+
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Number field</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A real spinbutton for quantities, prices and percentages. One text
+        input carrying <code>role="spinbutton"</code>, not <code>&lt;input type="number"&gt;</code>, so the steppers look the same
+        in every browser and a half-typed value survives. It's live - type in
+        it, hold a button, spin the wheel.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-xs">
+            <.number_field
+              name="pg_quantity"
+              value="12"
+              min={@bounds.min}
+              max={@bounds.max}
+              step={@bounds.step}
+              variant={@number.variant}
+              size={@number.size}
+              disabled={@number.disabled}
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@number.variant}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(stacked split plain)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@number.size}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>{z}</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">bounds</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Bounds"
+              value={@number.bounds}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={b <- ~w(qty pct free)} value={b} phx-value-k="bounds" phx-value-v={b}>
+                {number_bounds(b).label}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={if @number.disabled, do: ["disabled"], else: []}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        Keyboard only: <kbd class="pc-kbd">↑</kbd>
+        and <kbd class="pc-kbd">↓</kbd>
+        step, <kbd class="pc-kbd">shift</kbd>
+        + arrow steps by <code>big_step</code>, <kbd class="pc-kbd">page up</kbd>
+        and <kbd class="pc-kbd">page down</kbd>
+        do the same without the modifier, and <kbd class="pc-kbd">home</kbd>
+        / <kbd class="pc-kbd">end</kbd>
+        jump to the bounds. The buttons are never tab stops - the input is the
+        one stop, the way the ARIA spinbutton pattern asks.
+      </p>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{number_snippet(@number)}</code></pre>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Cart quantity</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The split variant in its natural home: a line-item row where the value
+        wants to sit between the two controls. At the minimum the decrement
+        greys out with <code>aria-disabled</code>, so it keeps its label for a
+        screen reader instead of disappearing.
+      </p>
+      <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Ceramic pour-over</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">$48.00</div>
+          </div>
+          <div class="w-32">
+            <.number_field name="pg_cart_qty" value="1" min={1} max={10} variant="split" size="sm" />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Price, formatted on blur</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        <code>precision={2}</code>
+        rounds and pads when you leave the field, and leaves the raw text alone
+        while you type - so <code>7.5</code>
+        becomes <code>7.50</code>, but only once you're done. Tab out to watch
+        it. Currency and percent display go through <code>Intl.NumberFormat</code>
+        on the same blur; the moduledoc has that pattern.
+      </p>
+      <div class="max-w-xs">
+        <.number_field name="pg_price" value="24.5" min={0} step={0.5} precision={2}>
+          <:leading>$</:leading>
+        </.number_field>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Percentage allocation</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Bounded 0 to 100 with a step of 5 and a <code>big_step</code>
+        of 25, so shift+arrow moves a quarter at a time. Clamping is the hook's
+        job on the client, but bounds are advice a browser cannot enforce for
+        you - validate them on the server too.
+      </p>
+      <div class="max-w-xs">
+        <.number_field name="pg_allocation" value="25" min={0} max={100} step={5} big_step={25}>
+          <:trailing>%</:trailing>
+        </.number_field>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.NumberField, ~w(sizes in_a_field)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.NumberField} function={:number_field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.NumberField</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>

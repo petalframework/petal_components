@@ -54,6 +54,7 @@ defmodule PetalComponents do
         Meteors,
         Modal,
         NavigationMenu,
+        NumberField,
         NumberTicker,
         Pagination,
         Popover,
