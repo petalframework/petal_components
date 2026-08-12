@@ -122,6 +122,33 @@ defmodule PetalComponents.DataTableTest do
     refute html =~ "data-filters="
   end
 
+  test "every form carries a table-scoped id" do
+    # LiveViewTest warns on form[phx-change]:not([id]) - and raises under
+    # missing_form_id: :raise - so a bare form here becomes noise in every
+    # host app's test suite. Ids derive from the table id so two tables
+    # can share a page without colliding.
+    assigns = base()
+
+    html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        on_change="table"
+        searchable
+        page_size_options={[10, 20]}
+      >
+        <:col :let={row} field={:name} filterable="text">{row.name}</:col>
+      </.data_table>
+      """)
+
+    assert html =~ ~s(id="t-search-form")
+    assert html =~ ~s(id="t-page-size-form")
+    assert html =~ ~s(id="t-filter-name-form")
+    assert html |> parse_html() |> LazyHTML.query("form:not([id])") |> Enum.count() == 0
+  end
+
   test "filterable link mode: hook + :filters placeholder + JSON stamp + clear URL" do
     assigns =
       base(%{

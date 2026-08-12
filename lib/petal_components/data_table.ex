@@ -353,7 +353,12 @@ defmodule PetalComponents.DataTable do
           <div :if={@searchable} class="pc-data-table__search">
             <.icon name="hero-magnifying-glass" class="pc-data-table__search-icon" />
             <%= if @on_change do %>
-              <form phx-change={@on_change} phx-submit={@on_change} phx-target={@target}>
+              <form
+                id={"#{@id}-search-form"}
+                phx-change={@on_change}
+                phx-submit={@on_change}
+                phx-target={@target}
+              >
                 <input type="hidden" name="op" value="search" />
                 <input
                   type="text"
@@ -594,7 +599,7 @@ defmodule PetalComponents.DataTable do
             {@per_page_label}
           </label>
           <%= if @on_change do %>
-            <form phx-change={@on_change} phx-target={@target}>
+            <form id={"#{@id}-page-size-form"} phx-change={@on_change} phx-target={@target}>
               <input type="hidden" name="op" value="page_size" />
               <select
                 id={"#{@id}-page-size"}
@@ -960,6 +965,7 @@ defmodule PetalComponents.DataTable do
           class="pc-popover__panel pc-popover__panel--bottom-start"
         >
           <form
+            id={"#{@pop_id}-form"}
             class={["pc-data-table__filter-form", "pc-data-table__filter-form--#{@type}"]}
             phx-submit={@submit_js}
             data-pc-dt-filter={is_nil(@on_change) || nil}
