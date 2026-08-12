@@ -283,7 +283,6 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "table", name: "Table", ready: true},
         %{slug: "data-table", name: "Data table", ready: true},
-        %{slug: "data-table-link", name: "Data table · links", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
@@ -868,9 +867,14 @@ defmodule Dev.PlaygroundLive do
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
   def handle_params(params, uri, socket) do
+    # /c/data-table-link folded into /c/data-table (Aug 2026). Old shared
+    # links keep working: same page, and the State query params decode as
+    # before. The address bar normalises on the first link-mode click.
+    c = if params["c"] == "data-table-link", do: "data-table", else: params["c"]
+
     socket =
       socket
-      |> assign(:active, allow(params["c"], @slugs, "button"))
+      |> assign(:active, allow(c, @slugs, "button"))
       |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
@@ -888,16 +892,16 @@ defmodule Dev.PlaygroundLive do
   # Link mode's whole loop: the table patches State-encoded URLs, this
   # decodes them back through the same whitelist and re-runs the engine.
   # No events, no other server state - the URL IS the table state.
-  defp maybe_run_dt_link(%{assigns: %{active: "data-table-link"}} = socket, params, uri) do
+  defp maybe_run_dt_link(%{assigns: %{active: "data-table"}} = socket, params, uri) do
     alias PetalComponents.DataTable.State
 
     # PhoenixPlayground's dead render hands handle_params only the path
     # params - the query string arrives solely in uri (the theme dials
     # have always had this flash). Decode it from there so a shared or
     # curled URL renders the right rows on FIRST paint, which is the
-    # claim this page exists to make. Plug's decoder, not URI's, because
-    # filters use bracket-indexed params. On connected patches params
-    # already carries the query and the merge is a no-op.
+    # claim the link-mode demo exists to make. Plug's decoder, not URI's,
+    # because filters use bracket-indexed params. On connected patches
+    # params already carries the query and the merge is a no-op.
     query = uri |> URI.parse() |> Map.get(:query) || ""
     params = Map.merge(Plug.Conn.Query.decode(query), params)
 
@@ -7668,12 +7672,17 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Data table</h1>
       <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
-        Sortable, paged and filter-aware, driven by one State struct. This live demo runs
-        EVENT mode: every interaction pushes a single op-grammar event, the handler applies it
-        with State helpers and re-runs the free in-memory engine. Link mode does the same
-        through patch URLs - state you can curl.
+        Sortable, paged and filter-aware, driven by one State struct. Wire it to events or
+        to the URL - the two live demos below run the same free in-memory engine, one per
+        mode.
       </p>
 
+      <h2 class="mb-1 text-lg font-semibold">Event mode</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Every interaction pushes a single op-grammar event, the handler applies it with
+        State helpers and re-runs the engine. Sort this one and the URL stays put -
+        the state lives on the server.
+      </p>
       <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
         <% {state, rows} = @dt %>
         <.data_table
@@ -7729,48 +7738,24 @@ defmodule Dev.PlaygroundLive do
         </.data_table>
       </div>
 
-      <div
-        :for={
-          ex <-
-            examples_for(
-              PetalComponents.Showcase.DataTable,
-              ~w(basic toolbar selection columns loading empty)a
-            )
-        }
-        class="mt-10"
-      >
-        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
-        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          {ex.description}
-        </p>
-        <.showcase_example example={ex} />
-      </div>
-
-      <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "data-table-link"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
-      <h1 class="text-3xl font-bold tracking-tight">Data table &middot; link mode</h1>
-      <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
-        The same table, driven entirely by the URL: sort, filter, search and page all patch
-        State-encoded query params, <code class="text-sm">handle_params</code>
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Link mode</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The same rows and engine, driven entirely by the URL: sort, filter, search and page
+        all patch State-encoded query params, <code class="text-sm">handle_params</code>
         decodes them back through the field whitelist and re-runs the engine. No events -
-        every view is a link you can share, bookmark or curl. Try sorting, then reload.
+        every view is a link you can share, bookmark or curl. No selection or column
+        controls here either: those are UI state, and UI state rides events, never URLs.
+        Try sorting, then reload.
       </p>
-
       <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
-        <% {state, rows} = @dt_link %>
+        <% {link_state, link_rows} = @dt_link %>
         <.data_table
           id="pg-dt-link"
-          rows={rows}
-          state={state}
+          rows={link_rows}
+          state={link_state}
           path={
             theme_path(%{
-              active: "data-table-link",
+              active: "data-table",
               primary: @primary,
               secondary: @secondary,
               gray: @gray,
@@ -7810,10 +7795,29 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-4">
         <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
-          The state this page decoded from the URL:
+          The state this demo decoded from the URL:
         </p>
         <pre class="p-3 overflow-x-auto text-xs rounded-lg bg-gray-100 dark:bg-gray-800"><code>{inspect(elem(@dt_link, 0), pretty: true, width: 60)}</code></pre>
       </div>
+
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.DataTable,
+              ~w(basic toolbar selection columns loading empty)a
+            )
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
     </div>
     """
   end
