@@ -5505,7 +5505,7 @@
   /* THE STROKE: the field sliced through a hairline ring (the xor mask).
      Bright and crisp - this is the warping coloured line on the rim. */
   .pc-border-plasma__stroke {
-    inset: 0;
+    inset: calc(-1 * var(--pc-plasma-border-width, 1px));
     border-radius: inherit;
     padding: var(--pc-plasma-border-width, 1px);
     clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
@@ -5522,9 +5522,11 @@
      10px proud of it, softly blurred and squashed so it hugs the shape.
      z-index -1 paints it under the content but over the page. */
   .pc-border-plasma__core {
-    inset: -10px;
+    inset: calc(-10px - 12px);
+    padding: 12px;
+    background-origin: padding-box;
     z-index: -1;
-    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 10px);
+    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 22px);
     background-image: var(--pc-plasma-field);
     transform: scale(0.95, 0.9);
     opacity: calc(0.44 * var(--pc-plasma-strength, 1));
@@ -5534,9 +5536,11 @@
   /* THE OUTER HALO (halo variant): the wide bloom, 30px proud, heavily
      blurred - the spectacular glow that spills onto the page. */
   .pc-border-plasma__bloom {
-    inset: -30px;
+    inset: calc(-30px - 68px);
+    padding: 68px;
+    background-origin: padding-box;
     z-index: -1;
-    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 30px);
+    border-radius: calc(var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)) + 98px);
     background-image:
       radial-gradient(ellipse calc(110px * var(--pc-plasma-scale, 1)) calc(30px * var(--pc-plasma-scale, 1)) at 27% 3%, color-mix(in srgb, var(--pc-plasma-c1) 77%, transparent), transparent),
       radial-gradient(ellipse calc(100px * var(--pc-plasma-scale, 1)) calc(20px * var(--pc-plasma-scale, 1)) at 73% 1%, color-mix(in srgb, var(--pc-plasma-c2) 77%, transparent), transparent),
@@ -5586,7 +5590,7 @@
 
   .pc-border-plasma--glow-inside > .pc-border-plasma__bloom {
     z-index: 2;
-    inset: 0;
+    inset: calc(-1 * var(--pc-plasma-border-width, 1px));
     border-radius: inherit;
     clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
     transform: none;
@@ -5601,7 +5605,7 @@
 
   /* Rotate's neutral sweeping light (unchanged from the arc port). */
   .pc-border-plasma__sheen {
-    inset: 0;
+    inset: calc(-1 * var(--pc-plasma-border-width, 1px));
     border-radius: inherit;
     clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
     padding: calc(var(--pc-plasma-border-width, 1px) + 1px);
@@ -5768,7 +5772,7 @@
     /* The halo sweeps too: the bloom keeps its variant geometry and gains
        the window, so the outer glow travels with the beam. */
     .pc-border-plasma--rotate > .pc-border-plasma__bloom {
-      inset: 0;
+      inset: calc(-1 * var(--pc-plasma-border-width, 1px));
       z-index: 2;
       border-radius: inherit;
       clip-path: inset(0 round var(--pc-plasma-radius, min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem)));
