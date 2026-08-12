@@ -1435,6 +1435,281 @@ export const PetalInputOTP = {
   },
 };
 
+// Number field maths, kept pure and exported so the specs can pin the rules
+// without a DOM: parsing, clamping, decimal-safe stepping and blur formatting.
+export const numberFieldMath = {
+  // "" and "abc" are both "no number yet" - a half-typed field must not
+  // resolve to 0, or every keystroke would fight the user.
+  parse(text) {
+    if (text === null || text === undefined) return null;
+    const trimmed = String(text).trim();
+    if (trimmed === "") return null;
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : null;
+  },
+
+  clamp(n, min, max) {
+    if (n === null) return null;
+    let out = n;
+    if (min !== null && out < min) out = min;
+    if (max !== null && out > max) out = max;
+    return out;
+  },
+
+  decimals(n) {
+    const s = String(n);
+    const dot = s.indexOf(".");
+    if (dot === -1 || s.includes("e") || s.includes("E")) return 0;
+    return s.length - dot - 1;
+  },
+
+  // 0.1 + 0.2 is 0.30000000000000004 in every browser. Re-round to the
+  // decimals the operands actually carry so a 0.1 step reads as 0.3.
+  add(value, delta) {
+    const places = Math.min(
+      Math.max(this.decimals(value), this.decimals(delta)),
+      12,
+    );
+    return Number((value + delta).toFixed(places));
+  },
+
+  format(n, precision) {
+    if (n === null) return "";
+    if (precision === null || precision === undefined) return String(n);
+    return n.toFixed(precision);
+  },
+};
+
+// Number field: one text input carrying role="spinbutton", plus the buttons.
+// The hook owns everything the markup can't - stepping, clamping, the keyboard
+// map, wheel, hold-to-repeat, and keeping aria-valuenow honest.
+export const PetalNumberField = {
+  mounted() {
+    this.repeatTimer = null;
+    // A variant switch swaps which buttons exist, so binding is idempotent
+    // and re-runs on every patch rather than assuming mount-time nodes.
+    this.bound = new WeakSet();
+    this.stopRepeat = () => this.cancelRepeat();
+    window.addEventListener("pointerup", this.stopRepeat);
+    window.addEventListener("blur", this.stopRepeat);
+
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  updated() {
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  bind() {
+    this.input = this.el.querySelector("[data-pc-number-input]");
+    if (!this.input) return;
+    this.buttons = Array.from(this.el.querySelectorAll("[data-pc-number-step]"));
+
+    if (!this.bound.has(this.input)) {
+      this.bound.add(this.input);
+      this.input.addEventListener("keydown", (e) => this.handleKeydown(e));
+      // passive: false or preventDefault is ignored and the page scrolls
+      // out from under the field.
+      this.input.addEventListener("wheel", (e) => this.handleWheel(e), {
+        passive: false,
+      });
+      this.input.addEventListener("blur", () => this.commitTyped());
+      this.input.addEventListener("input", () => this.syncAria());
+    }
+
+    this.buttons.forEach((btn) => {
+      if (this.bound.has(btn)) return;
+      this.bound.add(btn);
+      btn.addEventListener("pointerdown", (e) => this.startRepeat(e, btn));
+      // pointerup alone leaks a stuck repeat when the finger slides off the
+      // button before lifting.
+      ["pointerup", "pointerleave", "pointercancel"].forEach((type) =>
+        btn.addEventListener(type, this.stopRepeat),
+      );
+    });
+  },
+
+  destroyed() {
+    this.cancelRepeat();
+    if (this.stopRepeat) {
+      window.removeEventListener("pointerup", this.stopRepeat);
+      window.removeEventListener("blur", this.stopRepeat);
+    }
+  },
+
+  config() {
+    const d = this.el.dataset;
+    const step = numberFieldMath.parse(d.step);
+    const bigStep = numberFieldMath.parse(d.bigStep);
+    const precision = numberFieldMath.parse(d.precision);
+    const resolvedStep = step === null ? 1 : step;
+
+    return {
+      min: numberFieldMath.parse(d.min),
+      max: numberFieldMath.parse(d.max),
+      step: resolvedStep,
+      bigStep: bigStep === null ? resolvedStep * 10 : bigStep,
+      precision: precision === null ? null : Math.trunc(precision),
+    };
+  },
+
+  currentValue() {
+    return numberFieldMath.parse(this.input.value);
+  },
+
+  // An empty field starts from the lower bound when there is one, so the
+  // first press on a 1..99 quantity lands on 1, not 0.
+  origin(cfg) {
+    if (cfg.min !== null) return cfg.min;
+    if (cfg.max !== null && cfg.max < 0) return cfg.max;
+    return 0;
+  },
+
+  step(delta) {
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const current = this.currentValue();
+    const base = current === null ? this.origin(cfg) - delta : current;
+    const next = numberFieldMath.clamp(
+      numberFieldMath.add(base, delta),
+      cfg.min,
+      cfg.max,
+    );
+    this.write(next, cfg.precision);
+  },
+
+  // Returns whether it mutated the value, so callers can avoid firing
+  // synthetic events for writes that changed nothing.
+  write(value, precision) {
+    const text = numberFieldMath.format(value, precision);
+    if (text === this.input.value) {
+      this.syncAria();
+      return false;
+    }
+    this.input.value = text;
+    this.syncAria();
+    this.input.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  },
+
+  // Typed text is left alone until blur: clamping mid-keystroke would snap
+  // "1" to the maximum on the way to "15". The synthetic change fires ONLY
+  // when the clamp actually rewrote the value - for in-range typed input the
+  // browser's own native change already fires on blur, and dispatching a
+  // second one doubled every change handler.
+  commitTyped() {
+    const cfg = this.config();
+    const current = this.currentValue();
+    if (current === null) {
+      this.syncAria();
+      return;
+    }
+    const mutated = this.write(
+      numberFieldMath.clamp(current, cfg.min, cfg.max),
+      cfg.precision,
+    );
+    if (mutated) {
+      this.input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  },
+
+  handleKeydown(e) {
+    // Home/End write() directly, bypassing step()'s guard - and readonly
+    // inputs still receive keydown, so without this a readonly value could
+    // be rewritten from the keyboard.
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const big = e.shiftKey ? cfg.bigStep : cfg.step;
+
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        return this.step(big);
+      case "ArrowDown":
+        e.preventDefault();
+        return this.step(-big);
+      case "PageUp":
+        e.preventDefault();
+        return this.step(cfg.bigStep);
+      case "PageDown":
+        e.preventDefault();
+        return this.step(-cfg.bigStep);
+      case "Home":
+        if (cfg.min === null) return;
+        e.preventDefault();
+        return this.write(cfg.min, cfg.precision);
+      case "End":
+        if (cfg.max === null) return;
+        e.preventDefault();
+        return this.write(cfg.max, cfg.precision);
+      default:
+        return undefined;
+    }
+  },
+
+  // Only while focused, so a scroll down the page never rewrites a number
+  // the pointer happened to pass over.
+  handleWheel(e) {
+    if (document.activeElement !== this.input) return;
+    if (this.input.disabled || this.input.readOnly) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    const cfg = this.config();
+    this.step(e.deltaY < 0 ? cfg.step : -cfg.step);
+  },
+
+  startRepeat(e, btn) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+    // Mirror step()'s guard: a hold on a readonly control otherwise focuses
+    // the input and schedules a repeat timer that no-ops every tick.
+    if (this.input.disabled || this.input.readOnly) return;
+    e.preventDefault();
+    this.input.focus();
+
+    const cfg = this.config();
+    const delta = btn.dataset.pcNumberStep === "inc" ? cfg.step : -cfg.step;
+    this.step(delta);
+
+    // A press is one step; a hold accelerates from a deliberate pause down
+    // to a fast repeat, the way a native spinner feels.
+    let interval = 120;
+    const tick = () => {
+      if (btn.getAttribute("aria-disabled") === "true") return;
+      this.step(delta);
+      interval = Math.max(40, interval - 12);
+      this.repeatTimer = setTimeout(tick, interval);
+    };
+    this.repeatTimer = setTimeout(tick, 400);
+  },
+
+  cancelRepeat() {
+    if (this.repeatTimer) clearTimeout(this.repeatTimer);
+    this.repeatTimer = null;
+  },
+
+  syncAria() {
+    const cfg = this.config();
+    const value = this.currentValue();
+
+    if (value === null) this.input.removeAttribute("aria-valuenow");
+    else this.input.setAttribute("aria-valuenow", String(value));
+
+    this.buttons.forEach((btn) => {
+      const inc = btn.dataset.pcNumberStep === "inc";
+      const bound = inc ? cfg.max : cfg.min;
+      const atBound =
+        value !== null &&
+        bound !== null &&
+        (inc ? value >= bound : value <= bound);
+      if (atBound) btn.setAttribute("aria-disabled", "true");
+      else btn.removeAttribute("aria-disabled");
+    });
+  },
+};
+
 // Positions a top-layer popover (<div popover>) next to its trigger.
 // The browser handles open/close and light-dismiss via the popover attribute;
 // this hook only computes fixed coordinates, flipping to the opposite side
@@ -5446,6 +5721,7 @@ export default {
   PetalWordRotate,
   PetalTypingEffect,
   PetalInputOTP,
+  PetalNumberField,
   PetalPopover,
   PetalCommand,
   PetalCommandTrigger,
