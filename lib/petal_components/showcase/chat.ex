@@ -18,7 +18,8 @@ defmodule PetalComponents.Showcase.Chat do
       :suggestions,
       :chat_error,
       :chat_sources,
-      :citation
+      :citation,
+      :message_attachments
     ]
 
   @rag_sources [
@@ -51,9 +52,17 @@ defmodule PetalComponents.Showcase.Chat do
   # Chat is not pulled in by `use PetalComponents`, so import it here.
   import PetalComponents.Chat
 
+  # Inline SVG placeholders: the examples have to render standalone on
+  # petal.build and in the playground, so they can't reach for a static asset.
+  @shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
+
+  @logs_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%231e293b'/><rect x='20' y='28' width='380' height='12' rx='3' fill='%2394a3b8'/><rect x='20' y='60' width='300' height='12' rx='3' fill='%2394a3b8'/><rect x='20' y='92' width='420' height='12' rx='3' fill='%23f87171'/><rect x='20' y='124' width='260' height='12' rx='3' fill='%2394a3b8'/><rect x='20' y='156' width='340' height='12' rx='3' fill='%2394a3b8'/><rect x='20' y='188' width='200' height='12' rx='3' fill='%2394a3b8'/></svg>"
+
   # Examples render with `assigns = %{}`, so the seed data comes from here
   # rather than an assign.
   defp rag_sources, do: @rag_sources
+  defp shot_image, do: @shot_image
+  defp logs_image, do: @logs_image
 
   example :flagship, "A complete chat",
     description:
@@ -253,6 +262,26 @@ defmodule PetalComponents.Showcase.Chat do
       which is why a LiveView per tab is unremarkable
       <.citation index={1} source={Enum.at(rag_sources(), 0)} />.
     </p>
+    """
+  end
+
+  example :message_attachments, "Message attachments",
+    description:
+      "What the user sent along with the text. Images tile into a grid, files are download rows with the size on the end. A mixed list puts the images first." do
+    ~H"""
+    <.conversation id="showcase-chat-attachments" class="w-full max-w-xl mx-auto">
+      <.chat_message role="user">
+        <.message_attachments attachments={[
+          %{kind: :image, url: shot_image(), name: "checkout-error.png", size: 184_320},
+          %{kind: :image, url: logs_image(), name: "server-logs.png", size: 92_100},
+          %{kind: :file, url: "#", name: "invoice-4471.pdf", size: 96_400}
+        ]} /> The checkout page throws on submit. Screenshot, logs and the invoice attached.
+      </.chat_message>
+      <.chat_message role="assistant">
+        Thanks - the stack trace in that screenshot points at the card token
+        expiring before submit. I can see the charge attempt on invoice 4471.
+      </.chat_message>
+    </.conversation>
     """
   end
 

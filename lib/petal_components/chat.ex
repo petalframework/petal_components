@@ -12,6 +12,7 @@ defmodule PetalComponents.Chat do
     * `prompt_input/1`   — the composer (textarea + send)
     * `chat_sources/1`   — the RAG sources row under an answer
     * `citation/1`       — an inline numbered citation chip
+    * `message_attachments/1` — images and files inside a sent message
 
   ## Importing
 
@@ -441,6 +442,43 @@ defmodule PetalComponents.Chat do
   While `loading`, the input stays editable (so you can draft your next message)
   and the send button becomes a stop button that pushes `on_stop` — wire it to
   cancel your generation task.
+
+  ## Attachments
+
+  Pass an `%Phoenix.LiveView.UploadConfig{}` from `allow_upload/3` and the
+  composer grows a paperclip trigger, a chip strip for the pending entries,
+  drag-onto-the-composer, paste-an-image, and inline upload errors. It is
+  ordinary LiveView uploads — this component only renders them:
+
+      def mount(_, _, socket) do
+        {:ok, allow_upload(socket, :attachments, accept: ~w(.png .jpg .jpeg .pdf),
+                           max_entries: 4, max_file_size: 5_000_000)}
+      end
+
+      def handle_event("validate", _params, socket), do: {:noreply, socket}
+
+      def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+        {:noreply, cancel_upload(socket, :attachments, ref)}
+      end
+
+      def handle_event("send", %{"prompt" => text}, socket) do
+        files = consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+          {:ok, store(path, entry)}
+        end)
+        {:noreply, send_message(socket, text, files)}
+      end
+
+      <Chat.prompt_input
+        phx-submit="send"
+        phx-change="validate"
+        upload={@uploads.attachments}
+        on_cancel_upload="cancel-upload"
+        accept_hint="Images and PDFs up to 5 MB"
+      />
+
+  `phx-change` is required for uploads to progress — LiveView needs a change
+  event on the form. With no `upload` the composer renders exactly as it always
+  has.
   """
   attr :id, :string, doc: "defaults to a generated id so multiple composers can coexist"
 
@@ -473,6 +511,21 @@ defmodule PetalComponents.Chat do
     default: nil,
     doc: "event pushed when the edit banner's cancel (X) is clicked"
 
+  attr :upload, :any,
+    default: nil,
+    doc:
+      "a %Phoenix.LiveView.UploadConfig{} from allow_upload/3. When set the composer renders a paperclip trigger wrapping a visually hidden live_file_input, attachment chips for @upload.entries, becomes a phx-drop-target, and accepts pasted images"
+
+  attr :on_cancel_upload, :string,
+    default: "cancel-upload",
+    doc:
+      "event pushed by a chip's remove button, with phx-value-ref set to the entry ref (wire it to cancel_upload/3)"
+
+  attr :accept_hint, :string,
+    default: nil,
+    doc:
+      ~s|human-readable hint of accepted types and size (e.g. "Images and PDFs up to 10 MB"), used as the paperclip button's title and accessible description|
+
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
   slot :actions, doc: "extra controls left of the send button"
@@ -484,6 +537,7 @@ defmodule PetalComponents.Chat do
     <form
       id={@id}
       phx-hook="PetalChatComposer"
+      phx-drop-target={@upload && @upload.ref}
       class={["pc-chat__composer", @editing && "pc-chat__composer--editing", @class]}
       {@rest}
     >
@@ -502,7 +556,28 @@ defmodule PetalComponents.Chat do
           <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__composer-banner-icon" />
         </button>
       </div>
+      <ul
+        :if={@upload && @upload.entries != []}
+        role="list"
+        class="pc-chat__composer-attachments"
+      >
+        <.attachment_chip
+          :for={entry <- @upload.entries}
+          entry={entry}
+          upload={@upload}
+          on_cancel_upload={@on_cancel_upload}
+        />
+      </ul>
       <div class="pc-chat__composer-row">
+        <label :if={@upload} class="pc-chat__composer-attach" title={@accept_hint}>
+          <PetalComponents.Icon.icon name="hero-paper-clip" class="pc-chat__composer-attach-icon" />
+          <.live_file_input
+            upload={@upload}
+            class="sr-only"
+            aria-label="Attach files"
+            aria-description={@accept_hint}
+          />
+        </label>
         <textarea
           id={"#{@id}-input"}
           name={@name}
@@ -549,9 +624,179 @@ defmodule PetalComponents.Chat do
           <% end %>
         </button>
       </div>
+      <div :if={@upload && upload_error_messages(@upload) != []} class="pc-chat__composer-errors">
+        <p
+          :for={message <- upload_error_messages(@upload)}
+          role="alert"
+          class="pc-chat__composer-error"
+        >
+          <PetalComponents.Icon.icon
+            name="hero-exclamation-circle"
+            class="pc-chat__composer-error-icon"
+          />
+          {message}
+        </p>
+      </div>
     </form>
     """
   end
+
+  attr :entry, :any, required: true
+  attr :upload, :any, required: true
+  attr :on_cancel_upload, :string, required: true
+
+  defp attachment_chip(assigns) do
+    assigns = assign(assigns, :image?, image_entry?(assigns.entry))
+
+    ~H"""
+    <li class={[
+      "pc-chat__attachment",
+      if(@image?, do: "pc-chat__attachment--image", else: "pc-chat__attachment--file")
+    ]}>
+      <.live_img_preview :if={@image?} entry={@entry} class="pc-chat__attachment-thumb" />
+      <PetalComponents.Icon.icon
+        :if={!@image?}
+        name="hero-document"
+        class="pc-chat__attachment-icon"
+      />
+      <span :if={!@image?} class="pc-chat__attachment-meta">
+        <span class="pc-chat__attachment-name">{@entry.client_name}</span>
+        <span class="pc-chat__attachment-size">{format_bytes(@entry.client_size)}</span>
+      </span>
+      <span
+        :if={@entry.progress < 100}
+        role="progressbar"
+        aria-valuenow={@entry.progress}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label={"Uploading #{@entry.client_name}"}
+        data-progress={@entry.progress}
+        style={"--pc-attachment-progress: #{@entry.progress}"}
+        class="pc-chat__attachment-progress"
+      ></span>
+      <button
+        type="button"
+        phx-click={@on_cancel_upload}
+        phx-value-ref={@entry.ref}
+        aria-label={"Remove #{@entry.client_name}"}
+        class="pc-chat__attachment-remove"
+      >
+        <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__attachment-remove-icon" />
+      </button>
+    </li>
+    """
+  end
+
+  @doc """
+  Attachments rendered inside a sent message — the images and files that went
+  along with the text. Drop it in a `chat_message/1` body, before or after the
+  prose:
+
+      <Chat.chat_message role="user">
+        <Chat.message_attachments attachments={msg.attachments} />
+        {msg.text}
+      </Chat.chat_message>
+
+  Images render as a thumbnail grid (one image goes large, two or more tile),
+  files as compact download rows. A mixed list puts the images first.
+  """
+  attr :attachments, :list,
+    required: true,
+    doc:
+      "list of maps: %{kind: :image | :file, url, name, size}. :kind picks the rendering, :size is bytes and is formatted for display or omitted when nil. String or atom keys both accepted"
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def message_attachments(assigns) do
+    items = normalize_attachments(assigns.attachments)
+    {images, files} = Enum.split_with(items, &(&1.kind == :image))
+
+    assigns = assigns |> assign(:images, images) |> assign(:files, files)
+
+    ~H"""
+    <div :if={@images != [] or @files != []} class={["pc-chat__message-attachments", @class]} {@rest}>
+      <div
+        :if={@images != []}
+        class={[
+          "pc-chat__message-attachments-grid",
+          length(@images) > 1 && "pc-chat__message-attachments-grid--multi"
+        ]}
+      >
+        <a
+          :for={image <- @images}
+          href={image.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pc-chat__attachment-image"
+        >
+          <img src={image.url} alt={image.name} loading="lazy" />
+        </a>
+      </div>
+      <a
+        :for={file <- @files}
+        href={file.url}
+        download
+        class="pc-chat__attachment-row"
+      >
+        <PetalComponents.Icon.icon name="hero-document" class="pc-chat__attachment-icon" />
+        <span class="pc-chat__attachment-name">{file.name}</span>
+        <span :if={file.size} class="pc-chat__attachment-size">{format_bytes(file.size)}</span>
+      </a>
+    </div>
+    """
+  end
+
+  # -- attachment plumbing ---------------------------------------------------
+
+  defp image_entry?(%{client_type: "image/" <> _}), do: true
+  defp image_entry?(_), do: false
+
+  defp normalize_attachments(attachments) when is_list(attachments) do
+    Enum.map(attachments, fn attachment ->
+      %{
+        kind: if(source_key(attachment, :kind) in [:image, "image"], do: :image, else: :file),
+        url: source_key(attachment, :url),
+        name: source_key(attachment, :name),
+        size: source_key(attachment, :size)
+      }
+    end)
+  end
+
+  defp normalize_attachments(_), do: []
+
+  # Config-level errors first (too_many_files and friends), then per-entry ones
+  # named with the file they belong to, so "too large" says which file.
+  defp upload_error_messages(upload) do
+    config_errors = Enum.map(upload_errors(upload), &upload_error_copy/1)
+
+    entry_errors =
+      Enum.flat_map(upload.entries, fn entry ->
+        Enum.map(upload_errors(upload, entry), fn error ->
+          "#{entry.client_name}: #{upload_error_copy(error)}"
+        end)
+      end)
+
+    config_errors ++ entry_errors
+  end
+
+  defp upload_error_copy(:too_large), do: "This file is too large."
+  defp upload_error_copy(:not_accepted), do: "This file type isn't accepted."
+  defp upload_error_copy(:too_many_files), do: "Too many files selected."
+
+  defp upload_error_copy(:external_client_failure),
+    do: "Something went wrong uploading this file."
+
+  defp upload_error_copy(other), do: "Upload failed (#{inspect(other)})."
+
+  defp format_bytes(nil), do: nil
+  defp format_bytes(bytes) when bytes < 1_000, do: "#{bytes} B"
+  defp format_bytes(bytes) when bytes < 1_000_000, do: "#{Float.round(bytes / 1_000, 1)} KB"
+
+  defp format_bytes(bytes) when bytes < 1_000_000_000,
+    do: "#{Float.round(bytes / 1_000_000, 1)} MB"
+
+  defp format_bytes(bytes), do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
 
   @doc """
   A collapsible "thinking" / reasoning block for reasoning-model output. Native

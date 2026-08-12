@@ -252,6 +252,9 @@ defmodule Dev.PlaygroundLive do
   and each connected tab is just another cheap process [^4].
   """
 
+  # Inline SVG so the attachments example renders with no static asset host.
+  @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
+
   @chat_history [
     %{id: "m-yesterday", role: :marker, text: "Yesterday"},
     %{id: "hist-q", role: :user, text: "Does it support dark mode?", stream_id: nil},
@@ -774,6 +777,7 @@ defmodule Dev.PlaygroundLive do
        tg_variant: "solid",
        tg_size: "md",
        chat_rag_sources: @chat_rag_sources,
+       chat_shot_image: @chat_shot_image,
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -807,7 +811,9 @@ defmodule Dev.PlaygroundLive do
          sent: false,
          sources_expanded: false,
          sources_max: 5,
-         rag_streaming: false
+         rag_streaming: false,
+         attach_hint: true,
+         attach_limit: "5mb"
        },
        alert: %{
          color: "gray",
@@ -920,6 +926,11 @@ defmodule Dev.PlaygroundLive do
          gap: "cozy",
          points: 14
        }
+     )
+     |> allow_upload(:chat_attachments,
+       accept: ~w(.png .jpg .jpeg .pdf),
+       max_entries: 4,
+       max_file_size: 5_000_000
      )}
   end
 
@@ -1796,6 +1807,33 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | sources_max: max})}
   end
 
+  def handle_event("ctl_chat", %{"k" => "attach_hint", "v" => v}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | attach_hint: v == "on"})}
+  end
+
+  # Re-allow the upload with a tiny cap so the "too large" error is one drop
+  # away. disallow_upload first - allow_upload raises on a name it already owns.
+  def handle_event("ctl_chat", %{"k" => "attach_limit", "v" => v}, socket) do
+    max = if v == "tiny", do: 20_000, else: 5_000_000
+
+    {:noreply,
+     socket
+     |> disallow_upload(:chat_attachments)
+     |> allow_upload(:chat_attachments,
+       accept: ~w(.png .jpg .jpeg .pdf),
+       max_entries: 4,
+       max_file_size: max
+     )
+     |> assign(:chat, %{socket.assigns.chat | attach_limit: v})}
+  end
+
+  # Uploads need a change event on the form to make progress.
+  def handle_event("chat_validate", _params, socket), do: {:noreply, socket}
+
+  def handle_event("chat_cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :chat_attachments, ref)}
+  end
+
   # Streams the same grounded answer word by word. Each tick re-renders the
   # buffer through to_html/2, so the [^N] chips appear as the markers complete
   # and a half-arrived "[^" never flashes broken.
@@ -1842,10 +1880,12 @@ defmodule Dev.PlaygroundLive do
 
   defp chat_start(socket, prompt) do
     prompt = String.trim(prompt)
+    pending? = socket.assigns.uploads.chat_attachments.entries != []
 
-    if prompt == "" || socket.assigns.chat.streaming do
+    if (prompt == "" && !pending?) || socket.assigns.chat.streaming do
       {:noreply, socket}
     else
+      attachments = consume_chat_attachments(socket)
       chat = socket.assigns.chat
       seq = chat.seq + 1
       id = "pg-chat-ans-#{seq}"
@@ -1860,7 +1900,13 @@ defmodule Dev.PlaygroundLive do
       turns =
         base ++
           [
-            %{id: "u#{seq}", role: :user, text: prompt, stream_id: nil},
+            %{
+              id: "u#{seq}",
+              role: :user,
+              text: prompt,
+              stream_id: nil,
+              attachments: attachments
+            },
             %{id: "a#{seq}", role: :assistant, text: reply, stream_id: id}
           ]
 
@@ -1880,6 +1926,32 @@ defmodule Dev.PlaygroundLive do
        |> push_event("pc-chat-set-input", %{id: "pg-chat-composer", value: ""})
        |> assign(:chat, chat)}
     end
+  end
+
+  # A real app writes these somewhere it can serve from. The playground has no
+  # static host for a temp dir, so small images become data URIs (enough to
+  # prove message_attachments renders what was actually uploaded) and anything
+  # else becomes a file row.
+  defp consume_chat_attachments(socket) do
+    consume_uploaded_entries(socket, :chat_attachments, fn %{path: path}, entry ->
+      image? = String.starts_with?(entry.client_type, "image/")
+      inlineable? = image? && entry.client_size <= 1_000_000
+
+      url =
+        if inlineable? do
+          "data:#{entry.client_type};base64,#{Base.encode64(File.read!(path))}"
+        else
+          "#"
+        end
+
+      {:ok,
+       %{
+         kind: if(inlineable?, do: :image, else: :file),
+         url: url,
+         name: entry.client_name,
+         size: entry.client_size
+       }}
+    end)
   end
 
   defp patch_theme(socket, delta) do
@@ -8813,6 +8885,11 @@ defmodule Dev.PlaygroundLive do
               role="user"
               class={@chat.editing == i && "pc-chat__row--editing"}
             >
+              <Chat.message_attachments
+                :if={Map.get(turn, :attachments, []) != []}
+                attachments={Map.get(turn, :attachments)}
+                class="mb-2"
+              />
               {turn.text}
               <:actions>
                 <Chat.message_actions visible={@chat.actions}>
@@ -8881,11 +8958,15 @@ defmodule Dev.PlaygroundLive do
             <Chat.prompt_input
               id="pg-chat-composer"
               phx-submit="chat_send"
+              phx-change="chat_validate"
+              upload={@uploads.chat_attachments}
+              on_cancel_upload="chat_cancel_upload"
+              accept_hint={@chat.attach_hint && "Images and PDFs up to 5 MB"}
               editing={@chat.editing != nil}
               on_cancel_edit="chat_cancel_edit"
               loading={@chat.streaming}
               on_stop="chat_stop"
-              placeholder="Ask the (canned) assistant..."
+              placeholder="Ask the (canned) assistant, or paste a screenshot..."
             />
           </:footer>
         </Chat.conversation>
@@ -8961,8 +9042,79 @@ defmodule Dev.PlaygroundLive do
               </:item>
             </.toggle_group>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">accept_hint</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Accept hint"
+              value={if @chat.attach_hint, do: "on", else: "off"}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="attach_hint" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size limit</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Upload size limit"
+              value={@chat.attach_limit}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(5mb tiny)}
+                value={v}
+                phx-value-k="attach_limit"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
         </div>
       </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The composer above takes real uploads. Click the paperclip, drag a file
+        onto the composer, or paste a screenshot straight into the textarea -
+        each one lands as a chip with a progress ring and a remove button, and
+        sending renders them back into the message with <code>message_attachments</code>. It's ordinary <code>allow_upload/3</code>: the component only renders <code>@uploads.name</code>. Flip the size limit dial to
+        <code>tiny</code>
+        (20 KB) and drop a normal screenshot to see the inline error, and <code>accept_hint</code>
+        off/on to toggle the paperclip's description. Keyboard: Tab reaches the
+        paperclip, then each chip's remove button, then the textarea, then send.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A support thread with attachments</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The received side. Images tile into a grid, files are download rows with
+        the size on the end, and a mixed list puts the images first.
+      </p>
+      <Chat.conversation id="pg-chat-attachments">
+        <Chat.chat_message role="user">
+          <Chat.message_attachments
+            attachments={[
+              %{kind: :image, url: @chat_shot_image, name: "checkout-error.png", size: 184_320},
+              %{kind: :file, url: "#", name: "invoice-4471.pdf", size: 96_400}
+            ]}
+            class="mb-2"
+          /> Checkout throws on submit. Screenshot and the invoice attached.
+        </Chat.chat_message>
+        <Chat.chat_message role="assistant">
+          That trace is a card token expiring before submit. I pulled the
+          gateway log for invoice 4471 - same window.
+          <Chat.message_attachments
+            attachments={[%{kind: :file, url: "#", name: "gateway-4471.log", size: 4_820}]}
+            class="mt-2"
+          />
+        </Chat.chat_message>
+      </Chat.conversation>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">Citations while streaming</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
@@ -9051,7 +9203,8 @@ defmodule Dev.PlaygroundLive do
           :suggestions,
           :chat_error,
           :chat_sources,
-          :citation
+          :citation,
+          :message_attachments
         ]}
       />
 
