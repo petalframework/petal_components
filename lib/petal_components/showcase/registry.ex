@@ -44,6 +44,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Popover,
     PetalComponents.Showcase.Progress,
     PetalComponents.Showcase.Rating,
+    PetalComponents.Showcase.ScrollArea,
     PetalComponents.Showcase.ShineBorder,
     PetalComponents.Showcase.Skeleton,
     PetalComponents.Showcase.SlideOver,

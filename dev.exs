@@ -224,6 +224,18 @@ defmodule Dev.PlaygroundLive do
     }
   ]
 
+  @scroll_log """
+  09:14:01.118 [info]  release v4.15.0 building on builder-04 (elixir 1.19.1 / otp 28)
+  09:14:04.902 [info]  ==> deps compiled in 3.7s, 214 modules
+  09:14:11.470 [info]  ==> assets: tailwind 4.1.3 wrote priv/static/assets/app.css in 812ms
+  09:14:12.006 [info]  ==> digest: 46 files, 1.9MB total, gzip 412KB
+  09:14:19.331 [info]  image pushed: registry.fly.io/acme-prod:deployment-01K2 (sha256:9f21c4ab)
+  09:14:26.884 [info]  machine 5683d9 updating in syd, waiting for health checks
+  09:14:38.019 [info]  machine 5683d9 healthy after 11.1s, 1 of 2 machines updated
+  09:14:51.744 [info]  machine 90e8ff healthy after 9.4s, 2 of 2 machines updated
+  09:14:52.100 [info]  deployment complete, 0 failed, rollback not required\
+  """
+
   @nav [
     %{
       group: "Foundations",
@@ -295,6 +307,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "scroll-area", name: "Scroll area", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
     },
@@ -809,6 +822,8 @@ defmodule Dev.PlaygroundLive do
          glow: "outside",
          palette: "rainbow"
        },
+       scroll: %{orientation: "vertical", fade: "off", gutter: "auto", visibility: "auto"},
+       scroll_log: @scroll_log,
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1051,6 +1066,20 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical horizontal both),
+      do: {:noreply, update(socket, :scroll, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "fade", "v" => v}, socket) when v in ~w(off on),
+    do: {:noreply, update(socket, :scroll, &%{&1 | fade: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "gutter", "v" => v}, socket) when v in ~w(auto stable),
+    do: {:noreply, update(socket, :scroll, &%{&1 | gutter: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "visibility", "v" => v}, socket)
+      when v in ~w(auto always),
+      do: {:noreply, update(socket, :scroll, &%{&1 | visibility: v})}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -8633,6 +8662,221 @@ defmodule Dev.PlaygroundLive do
           :navigation_menu_footer_link
         ]}
       />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "scroll-area"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Scroll area</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One themed treatment for every overflow region, so a scrolling panel
+        looks like it belongs to the design system instead of inheriting
+        whatever the OS decided. One div, zero JavaScript: modern
+        scrollbar-width and scrollbar-color where the engine honours them, a
+        ::-webkit-scrollbar fallback where it does not. Size the viewport with
+        classes; the component never grows sizing attrs of its own.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <%!-- The border lives on the wrapper, not the scroll area: fade_edges
+        masks the whole element, border included. --%>
+        <div class="px-6 py-10">
+          <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+            <.scroll_area
+              orientation={@scroll.orientation}
+              fade_edges={@scroll.fade == "on"}
+              gutter_stable={@scroll.gutter == "stable"}
+              visibility={@scroll.visibility}
+              aria-label="Playground content"
+              class="w-full max-h-64"
+            >
+              <div class={[
+                "space-y-3 text-sm text-gray-700 dark:text-gray-300",
+                @scroll.orientation != "vertical" && "w-max"
+              ]}>
+                <p :for={n <- 1..12}>
+                  Line {n} - long enough to run past the right edge, so the horizontal scrollbar has somewhere to go and you can see both axes at once.
+                </p>
+              </div>
+            </.scroll_area>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@scroll.orientation}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={o <- ~w(vertical horizontal both)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">fade edges</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Fade edges"
+              value={@scroll.fade}
+              on_change="ctl_scroll"
+            >
+              <:item :for={f <- ~w(off on)} value={f} phx-value-k="fade" phx-value-v={f}>
+                {f}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gutter</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Gutter"
+              value={@scroll.gutter}
+              on_change="ctl_scroll"
+            >
+              <:item :for={g <- ~w(auto stable)} value={g} phx-value-k="gutter" phx-value-v={g}>
+                {g}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">visibility</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Visibility"
+              value={@scroll.visibility}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={v <- ~w(auto always)}
+                value={v}
+                phx-value-k="visibility"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-4 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          tab into the panel and the arrow keys, Page Up/Down, Home and End all scroll it - that is native browser behaviour, not a hook
+        </p>
+      </div>
+
+      <div class="p-4 mt-6 text-sm border rounded-xl border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+        <div class="mb-1 font-medium text-gray-900 dark:text-gray-100">
+          Scrollbars belong to the OS
+        </div>
+        <p>
+          On macOS with "Show scroll bars: Automatically" - the default - the
+          scrollbar is an overlay: it appears while you scroll, sits over the
+          content, ignores most theming and has no gutter to reserve. Most
+          mobile browsers do the same. On Windows, Linux, and macOS set to
+          "Always", you get a classic scrollbar that takes real layout space and
+          picks up the theming in full.
+        </p>
+        <p class="mt-2">
+          So <code class="font-mono text-xs">visibility="always"</code>
+          is a request, not a guarantee - WebKit honours it, Firefox has no
+          mechanism for it. <code class="font-mono text-xs">gutter_stable</code>
+          is a no-op wherever scrollbars are overlays, because there is no
+          gutter to reserve. This component themes what the platform exposes.
+          It does not fight the OS.
+        </p>
+      </div>
+
+      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
+        Three places it earns its keep
+      </div>
+
+      <div class="grid gap-6 p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            A tag rail - horizontal, faded edges
+          </div>
+          <div class="max-w-sm p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+            <div class="mb-3 text-sm font-medium text-gray-900 dark:text-gray-100">Topics</div>
+            <.scroll_area orientation="horizontal" fade_edges class="w-full pb-2">
+              <div class="flex gap-2 w-max">
+                <.badge
+                  :for={
+                    tag <-
+                      ~w(elixir phoenix liveview heex tailwind oban ecto postgres fly accessibility)
+                  }
+                  label={tag}
+                  variant="soft"
+                />
+              </div>
+            </.scroll_area>
+          </div>
+        </div>
+
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            A chat transcript - vertical, faded edges, named for screen readers
+          </div>
+          <div class="max-w-md p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+            <.scroll_area fade_edges aria-label="Chat messages" class="max-h-56">
+              <div class="space-y-3">
+                <div
+                  :for={
+                    {role, text} <- [
+                      {:user, "Can I theme the scrollbar without shipping a JS scrollbar?"},
+                      {:assistant,
+                       "Yes. scrollbar-width and scrollbar-color cover Chrome 121+ and Firefox, and ::-webkit-scrollbar covers Safari and older Chromium."},
+                      {:user, "What about macOS overlay scrollbars?"},
+                      {:assistant,
+                       "Those are the OS's call. We theme what the platform exposes and leave the behaviour alone - you keep native momentum, keyboard and AT support for free."},
+                      {:user, "And the fade at the edges?"},
+                      {:assistant,
+                       "A mask-image gradient on the scrolling axis. No extra DOM, so there is nothing for a screen reader to trip over."}
+                    ]
+                  }
+                  class={[
+                    "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                    role == :user &&
+                      "ml-auto bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900",
+                    role == :assistant &&
+                      "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  ]}
+                >
+                  {text}
+                </div>
+              </div>
+            </.scroll_area>
+          </div>
+        </div>
+
+        <div>
+          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
+            A deploy log - both axes, gutter reserved
+          </div>
+          <.scroll_area
+            orientation="both"
+            gutter_stable
+            aria-label="Deploy log"
+            class="max-h-48 max-w-md p-4 rounded-lg bg-gray-900 dark:border dark:border-gray-800"
+          >
+            <pre class="font-mono text-xs leading-6 text-gray-100 w-max">{@scroll_log}</pre>
+          </.scroll_area>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ScrollArea} function={:scroll_area} />
     </div>
     """
   end

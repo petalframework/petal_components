@@ -7586,3 +7586,143 @@
       transition-duration: 1ms;
     }
   }
+
+/* Scroll area - one themed treatment for every overflow region.
+ *
+ * CSS only, by design. `scrollbar-width` + `scrollbar-color` do the work on
+ * Chrome 121+ and Firefox; the ::-webkit-scrollbar block below covers older
+ * Chromium and current Safari. The two never fight: an engine that honours
+ * `scrollbar-color` ignores the webkit pseudo-elements outright.
+ *
+ * Note the base deliberately sets NO ::-webkit-scrollbar width/height. Giving
+ * one is what opts a WebKit element out of overlay scrollbars, so it belongs
+ * to --always, not to every scroll area on the page.
+ *
+ * Layered on purpose - these are component defaults and a consumer's own
+ * utilities must be able to beat them. */
+@layer components {
+  .pc-scroll-area {
+    --pc-scroll-area-thumb: var(--color-gray-300);
+    --pc-scroll-area-thumb-hover: var(--color-gray-400);
+    --pc-scroll-area-size: 8px;
+    --pc-scroll-area-fade: 1.5rem;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--pc-scroll-area-thumb) transparent;
+    overscroll-behavior: contain;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+  }
+
+  .pc-scroll-area:where(.dark, .dark *) {
+    --pc-scroll-area-thumb: var(--color-gray-600);
+    --pc-scroll-area-thumb-hover: var(--color-gray-500);
+  }
+
+  /* Fallback path: Safari and Chromium < 121 */
+  .pc-scroll-area::-webkit-scrollbar-track,
+  .pc-scroll-area::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  .pc-scroll-area::-webkit-scrollbar-thumb {
+    background-color: var(--pc-scroll-area-thumb);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 9999px;
+  }
+  .pc-scroll-area::-webkit-scrollbar-thumb:hover {
+    background-color: var(--pc-scroll-area-thumb-hover);
+  }
+
+  /* Orientation - the off axis is clipped, never scrollable by accident */
+  .pc-scroll-area--vertical {
+    @apply overflow-x-hidden overflow-y-auto;
+  }
+  .pc-scroll-area--horizontal {
+    @apply overflow-x-auto overflow-y-hidden;
+  }
+  .pc-scroll-area--both {
+    @apply overflow-auto;
+  }
+
+  .pc-scroll-area--gutter-stable {
+    scrollbar-gutter: stable;
+  }
+
+  /* An explicit track size is the WebKit opt-out from overlay scrollbars.
+     Firefox has no equivalent, so there this is a no-op - documented. */
+  .pc-scroll-area--always::-webkit-scrollbar {
+    width: var(--pc-scroll-area-size);
+    height: var(--pc-scroll-area-size);
+  }
+
+  /* Fade edges - static masks on the scrolling axis. The mask is anchored to
+     the element's box, not to the content, so it stays put while you scroll. */
+  .pc-scroll-area--fade.pc-scroll-area--vertical {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--pc-scroll-area-fade),
+      #000 calc(100% - var(--pc-scroll-area-fade)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--pc-scroll-area-fade),
+      #000 calc(100% - var(--pc-scroll-area-fade)),
+      transparent 100%
+    );
+  }
+
+  .pc-scroll-area--fade.pc-scroll-area--horizontal {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--pc-scroll-area-fade),
+      #000 calc(100% - var(--pc-scroll-area-fade)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--pc-scroll-area-fade),
+      #000 calc(100% - var(--pc-scroll-area-fade)),
+      transparent 100%
+    );
+  }
+
+  .pc-scroll-area--fade.pc-scroll-area--both {
+    -webkit-mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 var(--pc-scroll-area-fade),
+        #000 calc(100% - var(--pc-scroll-area-fade)),
+        transparent 100%
+      ),
+      linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--pc-scroll-area-fade),
+        #000 calc(100% - var(--pc-scroll-area-fade)),
+        transparent 100%
+      );
+    mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 var(--pc-scroll-area-fade),
+        #000 calc(100% - var(--pc-scroll-area-fade)),
+        transparent 100%
+      ),
+      linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--pc-scroll-area-fade),
+        #000 calc(100% - var(--pc-scroll-area-fade)),
+        transparent 100%
+      );
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+}
