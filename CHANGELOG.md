@@ -1,4 +1,24 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **New `file_upload` component: the whole upload surface for a Phoenix
+  LiveView upload.** Hand it an `@uploads.<name>` from `allow_upload/3`
+  and it renders the drop zone, the file list with thumbnails and type
+  icons, per-entry progress, cancel buttons and the errors from
+  `upload_errors/1` and `upload_errors/2` in plain English. It sits on
+  top of LiveView's upload machinery rather than beside it: drag and
+  drop is `phx-drop-target`, previews are `live_img_preview`, progress
+  is `entry.progress`. No hook, no JS, no new dependencies.
+  Four variants - `dropzone`, `compact`, `avatar` and `gallery` - plus
+  an `:entry` slot when you want to render the rows yourself. The hint
+  line ("PNG or JPG, up to 8 MB, max 4 files") is derived from the
+  config, so it cannot drift from what the server will actually accept.
+  Requires a LiveView; `<.field type="file">` is still the static
+  option and is unchanged.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added

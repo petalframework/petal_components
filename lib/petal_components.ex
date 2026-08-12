@@ -38,6 +38,7 @@ defmodule PetalComponents do
         Container,
         Dropdown,
         Field,
+        FileUpload,
         Form,
         Icon,
         Input,

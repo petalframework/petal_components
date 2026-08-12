@@ -250,6 +250,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "switch", name: "Switch", ready: true},
         %{slug: "slider", name: "Slider", ready: true},
         %{slug: "input-otp", name: "Input OTP", ready: true},
+        %{slug: "file-upload", name: "File upload", ready: true},
         %{slug: "color-scheme", name: "Color scheme", ready: true}
       ]
     },
@@ -709,7 +710,8 @@ defmodule Dev.PlaygroundLive do
 
   def mount(_params, _session, socket) do
     {:ok,
-     assign(socket,
+     socket
+     |> assign(
        nav: @nav,
        primaries: @primaries,
        grays: @grays,
@@ -862,8 +864,44 @@ defmodule Dev.PlaygroundLive do
          two_series: false,
          gap: "cozy",
          points: 14
-       }
-     )}
+       },
+       file_upload: %{variant: "dropzone", max_entries: 4, saved: []}
+     )
+     |> allow_pg_uploads(4)}
+  end
+
+  # The file-upload page runs on real LiveView uploads, not a mock. Drag and
+  # drop, progress and cancel only exist because allow_upload/3 is wired here.
+  @pg_hero_accept ~w(.png .jpg .jpeg .gif .pdf)
+
+  defp allow_pg_uploads(socket, max_entries) do
+    socket
+    |> allow_upload(:pg_files,
+      accept: @pg_hero_accept,
+      max_entries: max_entries,
+      max_file_size: 8_000_000,
+      auto_upload: true
+    )
+    |> allow_upload(:pg_auto, accept: :any, max_entries: 3, auto_upload: true)
+    |> allow_upload(:pg_manual, accept: :any, max_entries: 3)
+    |> allow_upload(:pg_avatar,
+      accept: ~w(.png .jpg .jpeg),
+      max_entries: 1,
+      max_file_size: 2_000_000,
+      auto_upload: true
+    )
+    |> allow_upload(:pg_gallery,
+      accept: ~w(.png .jpg .jpeg .webp),
+      max_entries: 6,
+      auto_upload: true
+    )
+    # A deliberately tiny cap so visitors can trip :too_large on purpose.
+    |> allow_upload(:pg_small,
+      accept: ~w(.pdf .png .jpg),
+      max_entries: 3,
+      max_file_size: 20_000,
+      auto_upload: true
+    )
   end
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
@@ -991,6 +1029,51 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_icon", %{"v" => v}, socket) when v in ~w(left right),
     do: {:noreply, assign(socket, :icon, v)}
+
+  def handle_event("ctl_file_upload", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(dropzone compact avatar gallery),
+      do: {:noreply, update(socket, :file_upload, &%{&1 | variant: v})}
+
+  # max_entries is baked into the config at allow_upload/3 time, so changing
+  # it means dropping the config and re-allowing it.
+  def handle_event("ctl_file_upload", %{"k" => "max", "v" => v}, socket)
+      when v in ~w(1 4 8) do
+    n = String.to_integer(v)
+
+    socket =
+      socket
+      |> disallow_upload(:pg_files)
+      |> allow_upload(:pg_files,
+        accept: @pg_hero_accept,
+        max_entries: n,
+        max_file_size: 8_000_000,
+        auto_upload: true
+      )
+      |> update(:file_upload, &%{&1 | max_entries: n, saved: []})
+
+    {:noreply, socket}
+  end
+
+  # Every upload form on the page posts here; entries only reach the server
+  # because the form carries phx-change.
+  def handle_event("pg_upload_validate", _params, socket), do: {:noreply, socket}
+
+  # One cancel handler for all six demo configs. The suffix names the config
+  # and the guard keeps the atom lookup bounded to what mount already allowed.
+  def handle_event("pg_upload_cancel_" <> which, %{"ref" => ref}, socket)
+      when which in ~w(files auto manual avatar gallery small),
+      do: {:noreply, cancel_upload(socket, String.to_existing_atom("pg_" <> which), ref)}
+
+  def handle_event("pg_upload_save", _params, socket) do
+    names =
+      consume_uploaded_entries(socket, :pg_files, fn _meta, entry ->
+        # Nothing is written to disk - the playground only proves the entries
+        # made the round trip and were consumed.
+        {:ok, entry.client_name}
+      end)
+
+    {:noreply, update(socket, :file_upload, &%{&1 | saved: names})}
+  end
 
   def handle_event("flip", %{"k" => "loading"}, socket),
     do: {:noreply, update(socket, :loading, &(!&1))}
@@ -4846,6 +4929,183 @@ defmodule Dev.PlaygroundLive do
         These examples render from the shared <code>PetalComponents.Showcase.Modal</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "file-upload"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">File upload</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A dropzone over Phoenix.LiveView uploads. Every upload on this page is
+        real: drag a file in, watch the progress, cancel it mid-flight. The
+        component renders the UploadConfig it is handed, so the validation and
+        the progress are the server's, not the browser's.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-10">
+          <form id="pg-upload-form" phx-change="pg_upload_validate" phx-submit="pg_upload_save">
+            <.file_upload
+              upload={@uploads.pg_files}
+              variant={@file_upload.variant}
+              label="Drop images or PDFs here"
+              cancel_event="pg_upload_cancel_files"
+            />
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+              <.button type="submit" size="sm" disabled={@uploads.pg_files.entries == []}>
+                Save
+              </.button>
+              <span
+                :if={@file_upload.saved != []}
+                class="text-sm text-gray-500 dark:text-gray-400"
+              >
+                consumed: {Enum.join(@file_upload.saved, ", ")}
+              </span>
+            </div>
+          </form>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@file_upload.variant}
+              on_change="ctl_file_upload"
+            >
+              <:item
+                :for={v <- ~w(dropzone compact avatar gallery)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max_entries</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Max entries"
+              value={to_string(@file_upload.max_entries)}
+              on_change="ctl_file_upload"
+            >
+              <:item :for={v <- ~w(1 4 8)} value={v} phx-value-k="max" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-4 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        <span class="font-medium text-gray-700 dark:text-gray-200">Keyboard only:</span>
+        tab into the zone (the native input is clipped, not hidden, so it stays
+        in the tab order and the zone shows its focus ring), press Enter or
+        Space to open the picker, then tab on to each file's cancel button -
+        every one is named after its file.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">auto_upload, both ways</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        With auto_upload the bytes start moving the moment you pick a file.
+        Without it the entries sit at 0% until the form is submitted, which is
+        why the row still has to read sensibly at zero.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="mb-3 font-mono text-xs text-gray-400">auto_upload: true</div>
+          <form id="pg-upload-auto" phx-change="pg_upload_validate">
+            <.file_upload
+              upload={@uploads.pg_auto}
+              label="Uploads on pick"
+              cancel_event="pg_upload_cancel_auto"
+            />
+          </form>
+        </div>
+        <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="mb-3 font-mono text-xs text-gray-400">auto_upload: false</div>
+          <form id="pg-upload-manual" phx-change="pg_upload_validate">
+            <.file_upload
+              upload={@uploads.pg_manual}
+              label="Waits for submit"
+              cancel_event="pg_upload_cancel_manual"
+            />
+          </form>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Profile photo</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        One circular target, one file. Hover or tab to it for the replace
+        overlay; pick an image and the preview takes over the circle.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <form id="pg-upload-avatar" phx-change="pg_upload_validate">
+          <.file_upload
+            upload={@uploads.pg_avatar}
+            variant="avatar"
+            label="Profile photo"
+            cancel_event="pg_upload_cancel_avatar"
+          />
+        </form>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Listing photos</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The gallery grid, six photos deep. Each tile carries its own progress
+        and cancel; the add tile bows out once the config is full.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <form id="pg-upload-gallery" phx-change="pg_upload_validate">
+          <.file_upload
+            upload={@uploads.pg_gallery}
+            variant="gallery"
+            label="Listing photos"
+            cancel_event="pg_upload_cancel_gallery"
+          />
+        </form>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Documents, with a cap you can trip</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        max_file_size is set to 20 KB here on purpose. Drop anything bigger and
+        the row turns and says why, with the message tied to the file so a
+        screen reader reads the two together.
+      </p>
+      <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <form id="pg-upload-small" phx-change="pg_upload_validate">
+          <.file_upload
+            upload={@uploads.pg_small}
+            label="Attach supporting documents"
+            cancel_event="pg_upload_cancel_small"
+          />
+        </form>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.FileUpload.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.FileUpload} function={:file_upload} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The examples above render statically from the shared
+        <code>PetalComponents.Showcase.FileUpload</code>
+        registry, so their thumbnails stay blank - <code>live_img_preview</code>
+        needs a running LiveView. The live sections at the top of this page are
+        the real thing.
       </div>
     </div>
     """
