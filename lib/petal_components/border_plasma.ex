@@ -5,8 +5,8 @@ defmodule PetalComponents.BorderPlasma do
   by default a soft halo spills past the border onto the page. Set
   `glow="inside"` to keep every layer inside a crisp silhouette, or
   `glow="both"` for the halo and the inner wash together. Pure CSS (registered custom properties driving one shared
-  gradient field through three differently-masked layers) — no JavaScript
-  required.
+  gradient field through a stack of differently-masked layers) — no
+  JavaScript required.
 
   The sibling of `border_beam`: the beam sends one travelling light around
   the edge; plasma keeps a field of light alive on it. `mode="pulse"`
@@ -20,10 +20,14 @@ defmodule PetalComponents.BorderPlasma do
   This is the most paint-expensive effect in the library and it should be
   spent like it: one hero panel or one CTA per view, not a border on every
   card. Animated custom properties repaint on the main thread, so each
-  instance re-rasterises its gradient layers (two of them blurred) at up
-  to the display's refresh rate. A page full of simultaneous instances -
-  like the playground demo - is a worst case no real app should ship.
-  Reduced-motion users pay nothing: the field rests lit and still.
+  instance re-rasterises its gradient layers (two of them blurred; three
+  with `glow="both"`, which restores the near halo via a dedicated aura
+  layer and is the most expensive configuration) at up to the display's
+  refresh rate. A page full of simultaneous instances - like the
+  playground demo - is a worst case no real app should ship. The glow's
+  invisible paint boxes extend ~120px past the panel, so give it that
+  much clearance inside `overflow: auto` containers or the scroll range
+  grows. Reduced-motion users pay nothing: the field rests lit and still.
   """
   use Phoenix.Component
 
@@ -65,7 +69,7 @@ defmodule PetalComponents.BorderPlasma do
     default: "outside",
     values: ["outside", "inside", "both"],
     doc:
-      "where PULSE's light lives: a halo spilling past the border onto the page (outside, the default), a wash hugging the edges inside a crisp silhouette (inside), or the two together (both). Rotate always keeps its light inside the silhouette, as the reference effect does"
+      "where PULSE's light lives: a halo spilling past the border onto the page (outside, the default), a wash hugging the edges inside a crisp silhouette (inside), or the two together (both - the most paint-expensive option; prefer outside or inside when several instances share a view). Rotate always keeps its light inside the silhouette, as the reference effect does"
 
   attr :border_width, :string,
     default: "1px",
@@ -136,10 +140,13 @@ defmodule PetalComponents.BorderPlasma do
       {@rest}
     >
       <%!-- Halo layers sit at z-index -1: painted over the page but under the
-      panel's content. In clip mode the same two become the inner wash and
-      the blurred ring. The stroke and sheen paint after the content - the
-      hairline rides the rim, never over the middle. --%>
+      panel's content. In clip mode the bloom and core become the inner wash
+      and the blurred ring; in glow="both" the aura (hidden otherwise) takes
+      over the near halo so the core is free to be the inner wash. The stroke
+      and sheen paint after the content - the hairline rides the rim, never
+      over the middle. --%>
       <div class="pc-border-plasma__bloom" aria-hidden="true"></div>
+      <div class="pc-border-plasma__aura" aria-hidden="true"></div>
       <div class="pc-border-plasma__core" aria-hidden="true"></div>
       <div class="pc-border-plasma__content">{render_slot(@inner_block)}</div>
       <div class="pc-border-plasma__stroke" aria-hidden="true"></div>
