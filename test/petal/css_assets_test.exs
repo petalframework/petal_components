@@ -136,6 +136,23 @@ defmodule PetalComponents.CssAssetsTest do
       end
     end
 
+    test "the hue revolution is rainbow-only", %{css: css} do
+      # Pulse animates --pc-plasma-hue through 360deg; consumed raw, it
+      # drags every palette around the colour wheel (brand blues morphing
+      # to yellow - shipped). The gain multiplier defaults to 0 so only
+      # rainbow's opt-in cycles hue.
+      refute css =~ "hue-rotate(var(--pc-plasma-hue",
+             "a plasma filter consumes the hue var without the gain multiplier"
+
+      assert css =~ "hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0)))"
+      assert rule_body(css, ".pc-border-plasma--rainbow") =~ "--pc-plasma-hue-gain: 1"
+
+      for palette <- ["brand", "ocean", "sunset", "mono"] do
+        refute rule_body(css, ".pc-border-plasma--#{palette}") =~ "--pc-plasma-hue-gain",
+               "palette #{palette} must not opt into the hue revolution"
+      end
+    end
+
     test "forced-colors drops the transparent-border halo layers", %{css: css} do
       # WHCM repaints transparent borders in an opaque system colour, so
       # the headroom borders would render as giant blurred frames.
