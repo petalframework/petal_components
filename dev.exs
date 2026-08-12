@@ -2693,7 +2693,11 @@ defmodule Dev.PlaygroundLive do
           </div>
         </nav>
 
-        <main class="flex-1 min-w-0 overflow-y-auto">
+        <%!-- overflow-x-hidden: decorative bleed (the plasma halo's oversized
+        blur-headroom boxes reach ~116px past their panels) must clip at the
+        pane edge instead of growing phantom horizontal scroll on mobile.
+        The glow still paints to the edge; only the scroll range is fenced. --%>
+        <main class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
           {render_page(assigns)}
         </main>
       </div>
