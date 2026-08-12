@@ -58,6 +58,7 @@ defmodule PetalComponents do
         Pagination,
         Popover,
         Progress,
+        QrCode,
         Rating,
         Skeleton,
         SlideOver,
