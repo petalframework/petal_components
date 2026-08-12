@@ -50,7 +50,10 @@ defmodule PetalComponents.HoverCard do
   The panel is a child of the wrapper, so hovering the panel keeps the whole
   thing open - the card stays put while you read it or click a button inside
   it. The gap between trigger and panel is bridged by a transparent
-  `::before` on the panel, so crossing it never drops the hover.
+  `::before` on the panel, so crossing it never drops the hover. The bridge
+  extends only toward the trigger's side, but be aware it is invisible: while
+  the card is open, a pointer resting in that ~8px band between trigger and
+  panel still counts as hovering the card.
 
   ## Inline by design, and the one gotcha
 

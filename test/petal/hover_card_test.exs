@@ -23,6 +23,9 @@ defmodule PetalComponents.HoverCardTest do
     assert_has_class(html, "pc-hover-card__panel--bottom")
     # the group name the CSS reveal hangs off
     assert_has_class(html, "group/pc-hover-card")
+    # the panel is INTERACTIVE content (links live inside) - pin that no
+    # pointer-events suppression sneaks onto it
+    refute html =~ "pointer-events-none"
   end
 
   test "the panel is a child of the wrapper, so hovering it keeps the card open" do
@@ -96,6 +99,10 @@ defmodule PetalComponents.HoverCardTest do
     end
   end
 
+  # Introspection rather than assert_raise: Phoenix enforces `values:` at
+  # compile time for literal attrs only, so an invalid placement cannot be
+  # exercised at runtime from a test - pinning the declared contract is the
+  # strongest available assertion, not a skipped one.
   test "placement is constrained to the twelve values the CSS knows about" do
     %{attrs: attrs} =
       PetalComponents.HoverCard.__components__() |> Map.fetch!(:hover_card)

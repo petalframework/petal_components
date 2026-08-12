@@ -7622,12 +7622,41 @@
 
   /* The hover bridge. The placement offsets leave a real gap between trigger
      and panel; without this a pointer crossing that gap leaves the group and
-     the card starts closing under the cursor. A transparent ring around the
-     panel spans the gap so the hover chain holds. It sits behind the panel
-     and inherits its visibility, so it is never a hit target while closed. */
+     the card starts closing under the cursor. A transparent extension spans
+     the gap so the hover chain holds. It reaches ONLY toward the trigger's
+     side - a uniform ring would silently capture hover and clicks over page
+     content 8px past the three gapless edges while the card is open
+     (Radix/shadcn bridge one side for the same reason). It sits behind the
+     panel and inherits its visibility, so it is never a hit target while
+     closed. */
   .pc-hover-card__panel::before {
     content: "";
-    @apply absolute -inset-2 -z-10;
+    @apply absolute inset-0 -z-10;
+  }
+
+  /* Panel above the trigger: the gap (and the bridge) is below it. */
+  .pc-hover-card__panel--top::before,
+  .pc-hover-card__panel--top-start::before,
+  .pc-hover-card__panel--top-end::before {
+    bottom: -0.5rem;
+  }
+
+  .pc-hover-card__panel--bottom::before,
+  .pc-hover-card__panel--bottom-start::before,
+  .pc-hover-card__panel--bottom-end::before {
+    top: -0.5rem;
+  }
+
+  .pc-hover-card__panel--left::before,
+  .pc-hover-card__panel--left-start::before,
+  .pc-hover-card__panel--left-end::before {
+    right: -0.5rem;
+  }
+
+  .pc-hover-card__panel--right::before,
+  .pc-hover-card__panel--right-start::before,
+  .pc-hover-card__panel--right-end::before {
+    left: -0.5rem;
   }
 
   /* Placement geometry, identical to the popover panel's. */

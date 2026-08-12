@@ -6966,7 +6966,10 @@ defmodule Dev.PlaygroundLive do
         <%!-- tall enough that the card clears the preview frame at every
               placement, so the dial never reads as a clipping bug --%>
         <div class="flex items-center justify-center px-6 py-16 min-h-[28rem]">
+          <%!-- stable id: dial changes patch this subtree, and without it
+                LiveView re-mints the generated id attribute every render --%>
           <.hover_card
+            id="hover-card-hero"
             placement={@hover_card.placement}
             open_delay={@hover_card.open_delay}
             close_delay={@hover_card.close_delay}
