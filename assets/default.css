@@ -5394,8 +5394,14 @@
 
   /* Palettes: opaque colours only - alpha is the quadrant oscillators' job.
      Rainbow is the reference's own eight (MIT), brand derives all eight
-     from the theme pair, mono keeps the architecture in grayscale. */
+     from the theme pair, mono keeps the architecture in grayscale.
+     THE HUE REVOLUTION IS RAINBOW-ONLY: pulse's oscillator stack animates
+     --pc-plasma-hue through 360deg, and every layer consumes it through a
+     gain multiplier that defaults to 0 - so brand/ocean/sunset/mono hold
+     their anchor hues (blues stay blue) and only rainbow opts in below.
+     Rotate never runs the oscillators, so it was always on-anchor. */
   .pc-border-plasma--rainbow {
+    --pc-plasma-hue-gain: 1;
     --pc-plasma-c1: rgb(255 50 100);
     --pc-plasma-c2: rgb(255 120 40);
     --pc-plasma-c3: rgb(240 50 180);
@@ -5517,7 +5523,7 @@
     mask-composite: exclude;
     background-image: var(--pc-plasma-field);
     opacity: calc(0.78 * var(--pc-plasma-strength, 1));
-    filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+    filter: hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(1.9) saturate(1.2);
   }
 
   /* THE CORE GLOW (halo variant): the same field hung BEHIND the panel,
@@ -5547,7 +5553,7 @@
     background-image: var(--pc-plasma-field);
     transform: scale(0.95, 0.9);
     opacity: calc(0.44 * var(--pc-plasma-strength, 1));
-    filter: blur(11px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+    filter: blur(11px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(1.9) saturate(1.2);
   }
 
   /* The aura exists only for glow="both"; everywhere else it stays dark.
@@ -5586,7 +5592,7 @@
       radial-gradient(ellipse calc(28px * var(--pc-plasma-scale, 1)) calc(58px * var(--pc-plasma-scale, 1)) at 0% 60%, color-mix(in srgb, var(--pc-plasma-c7) 77%, transparent), color-mix(in srgb, var(--pc-plasma-c7) 42%, transparent) 38%, color-mix(in srgb, var(--pc-plasma-c7) 16%, transparent) 67%, transparent);
     transform: scale(0.95, 0.9);
     opacity: calc(0.34 * var(--pc-plasma-strength, 1));
-    filter: blur(28px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(1.9) saturate(1.2);
+    filter: blur(28px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(1.9) saturate(1.2);
   }
 
   /* CLIP VARIANT: nothing leaves the silhouette. The stroke dims to the
@@ -5595,7 +5601,7 @@
      and the bloom becomes the ring itself blurred, all clipped. */
   .pc-border-plasma--glow-inside > .pc-border-plasma__stroke {
     opacity: calc(1.54 * var(--pc-plasma-strength, 1));
-    filter: hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+    filter: hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(0.75) saturate(1.2);
   }
 
   .pc-border-plasma--glow-inside > .pc-border-plasma__core,
@@ -5626,7 +5632,7 @@
     -webkit-mask-composite: source-over;
     mask-composite: add;
     opacity: calc(0.44 * var(--pc-plasma-strength, 1));
-    filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+    filter: blur(9px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(0.75) saturate(1.2);
   }
 
   .pc-border-plasma--glow-inside > .pc-border-plasma__bloom {
@@ -5644,7 +5650,7 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: calc(0.66 * var(--pc-plasma-strength, 1));
-    filter: blur(8px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.75) saturate(1.2);
+    filter: blur(8px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(0.75) saturate(1.2);
   }
 
   /* ROTATE'S GEOMETRY LIVES OUTSIDE THE MOTION MEDIA BLOCK deliberately:
@@ -5669,7 +5675,7 @@
     padding: 0;
     background-origin: border-box;
     border-radius: inherit;
-    filter: blur(9px) hue-rotate(var(--pc-plasma-hue, 0deg)) saturate(1.2);
+    filter: blur(9px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) saturate(1.2);
     opacity: calc(0.45 * var(--pc-plasma-strength, 1));
     -webkit-mask-image:
       conic-gradient(
@@ -5719,7 +5725,7 @@
     transform: none;
     padding: var(--pc-plasma-border-width, 1px);
     opacity: calc(0.66 * var(--pc-plasma-strength, 1));
-    filter: blur(8px) hue-rotate(var(--pc-plasma-hue, 0deg)) brightness(0.9) saturate(1.2);
+    filter: blur(8px) hue-rotate(calc(var(--pc-plasma-hue, 0deg) * var(--pc-plasma-hue-gain, 0))) brightness(0.9) saturate(1.2);
     -webkit-mask:
       conic-gradient(
         from var(--pc-plasma-angle, 0deg),

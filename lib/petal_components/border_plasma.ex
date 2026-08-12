@@ -45,7 +45,7 @@ defmodule PetalComponents.BorderPlasma do
     default: "rainbow",
     values: ["rainbow", "brand", "mono", "ocean", "sunset"],
     doc:
-      "where the light gets its colours: an eight-hue rainbow (the reference look), the theme's primary/secondary (brand), grayscale (mono), blues (ocean), or ambers (sunset)"
+      "where the light gets its colours: an eight-hue rainbow (the reference look), the theme's primary/secondary (brand), grayscale (mono), blues (ocean), or ambers (sunset). Only rainbow runs the slow hue revolution; every other palette holds its anchor hues, so brand light stays on brand"
 
   attr :color_from, :string,
     default: nil,
