@@ -5424,6 +5424,401 @@ export const PetalDataTable = {
   },
 };
 
+// Context menu: right-click / long-press / Shift+F10, opened at the pointer.
+//
+// The hook exists because CSS cannot read cursor coordinates. Everything
+// else here follows the machinery the library already uses: the visual
+// viewport for geometry (PetalPopover), and tap-outside-not-press-outside
+// dismiss (PetalDataTable), which is what stops a drag-to-scroll gesture
+// killing the menu the instant a finger lands.
+//
+// The panel is a native popover="manual" element, so it paints in the top
+// layer and an overflow-hidden ancestor - a card grid, a table cell, a
+// scroll pane - can never clip it. Manual, not auto: the UA's light
+// dismiss fires on pointerdown, which is the exact behaviour above that we
+// need to avoid, and auto would also close this menu whenever any other
+// popover on the page opened.
+const PC_LONG_PRESS_MS = 500;
+// Movement past this is a drag, not a press - the same slop iOS uses
+// before it commits to calling a gesture a tap.
+const PC_TAP_SLOP = 10;
+
+export const PetalContextMenu = {
+  mounted() {
+    this.open = false;
+    this.longPressTimer = null;
+    this.pressPoint = null;
+    this.returnFocusTo = null;
+
+    // Outside-tap bookkeeping, per pointer because fingers come in twos:
+    // `active` is every pointer currently down, `presses` only the ones
+    // that started outside the menu.
+    this.active = new Set();
+    this.presses = new Map();
+    this.multiTouch = false;
+
+    this.onContextMenu = (e) => {
+      if (!this.inTrigger(e.target)) {
+        // A right-click on our own panel: swallow it rather than stacking
+        // the OS menu on top of ours. Anywhere else on the page is none of
+        // this hook's business and keeps the browser default.
+        if (this.panel()?.contains(e.target)) e.preventDefault();
+        return;
+      }
+
+      e.preventDefault();
+      this.cancelLongPress();
+      this.openAt(e.clientX, e.clientY, { focusFirst: false });
+    };
+
+    // Touch has no right-click, so a held finger stands in for one. The
+    // timer is armed only on the trigger region and dies on any movement,
+    // which is how a scroll flick that starts on a card stays a scroll.
+    this.onPointerDown = (e) => {
+      this.trackPressStart(e);
+      if (e.pointerType !== "touch" || !this.inTrigger(e.target)) return;
+
+      const x = e.clientX;
+      const y = e.clientY;
+      // disarm any half-finished press before arming this one, or the
+      // reset below would wipe the point we just recorded
+      this.cancelLongPress();
+      this.pressPoint = { x, y };
+      this.longPressTimer = setTimeout(() => {
+        this.longPressTimer = null;
+        this.openAt(x, y, { focusFirst: false });
+      }, PC_LONG_PRESS_MS);
+    };
+
+    this.onPointerMove = (e) => {
+      if (!this.pressPoint) return;
+      const moved = Math.hypot(
+        e.clientX - this.pressPoint.x,
+        e.clientY - this.pressPoint.y,
+      );
+      if (moved > PC_TAP_SLOP) this.cancelLongPress();
+    };
+
+    this.onPointerUp = (e) => {
+      this.cancelLongPress();
+      this.trackPressEnd(e);
+    };
+
+    this.onPointerCancel = (e) => {
+      this.cancelLongPress();
+      this.presses.delete(e.pointerId);
+      this.active.delete(e.pointerId);
+      if (this.active.size === 0) this.multiTouch = false;
+    };
+
+    this.onKeydown = (e) => {
+      if (this.open && this.panel()?.contains(e.target)) {
+        this.onMenuKeydown(e);
+        return;
+      }
+
+      // The two ways a keyboard asks for a context menu. Opened this way
+      // there is no cursor, so the menu lands on the region itself.
+      const asked =
+        e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey && !e.ctrlKey);
+      if (!asked || !this.inTrigger(e.target)) return;
+
+      e.preventDefault();
+      const t = this.trigger().getBoundingClientRect();
+      this.openAt(t.left + 8, t.top + 8, { focusFirst: true });
+    };
+
+    // Fixed coordinates go stale the moment the page moves under them, and
+    // a menu hovering over content it no longer points at is worse than no
+    // menu. Resize only reflows the same cursor point.
+    this.onScroll = (e) => {
+      if (!this.open) return;
+      const panel = this.panel();
+      if (panel === e.target || panel?.contains(e.target)) return;
+      this.close();
+    };
+
+    this.onResize = () => {
+      if (this.open) this.position();
+    };
+
+    this.onClick = (e) => this.onItemClick(e);
+
+    this.el.addEventListener("contextmenu", this.onContextMenu);
+    this.el.addEventListener("keydown", this.onKeydown);
+    this.el.addEventListener("click", this.onClick);
+    document.addEventListener("pointerdown", this.onPointerDown, true);
+    document.addEventListener("pointermove", this.onPointerMove, true);
+    document.addEventListener("pointerup", this.onPointerUp, true);
+    document.addEventListener("pointercancel", this.onPointerCancel, true);
+    document.addEventListener("scroll", this.onScroll, true);
+    window.addEventListener("resize", this.onResize);
+  },
+
+  destroyed() {
+    this.cancelLongPress();
+    this.el.removeEventListener("contextmenu", this.onContextMenu);
+    this.el.removeEventListener("keydown", this.onKeydown);
+    this.el.removeEventListener("click", this.onClick);
+    document.removeEventListener("pointerdown", this.onPointerDown, true);
+    document.removeEventListener("pointermove", this.onPointerMove, true);
+    document.removeEventListener("pointerup", this.onPointerUp, true);
+    document.removeEventListener("pointercancel", this.onPointerCancel, true);
+    document.removeEventListener("scroll", this.onScroll, true);
+    window.removeEventListener("resize", this.onResize);
+    this.presses?.clear();
+    this.active?.clear();
+  },
+
+  // A patch re-renders the panel from the server, which drops the inline
+  // coordinates this hook owns (the server never renders them).
+  updated() {
+    if (this.open) this.position();
+  },
+
+  panel() {
+    const id = this.el.dataset.pcContextMenuPanel;
+    return id ? this.el.querySelector(`[id="${id}"]`) : null;
+  },
+
+  trigger() {
+    return this.el.querySelector(".pc-context-menu__trigger");
+  },
+
+  inTrigger(target) {
+    const trigger = this.trigger();
+    // the panel is a DOM child of the wrapper, so "inside the trigger"
+    // has to exclude it explicitly
+    return (
+      !!trigger &&
+      trigger.contains(target) &&
+      !this.panel()?.contains(target)
+    );
+  },
+
+  // Enabled items only: the arrows skip disabled rows rather than parking
+  // focus on something that will not respond.
+  items() {
+    const panel = this.panel();
+    if (!panel) return [];
+
+    return Array.from(
+      panel.querySelectorAll("[data-pc-context-menu-item]"),
+    ).filter((el) => !el.disabled && el.getAttribute("aria-disabled") !== "true");
+  },
+
+  cancelLongPress() {
+    clearTimeout(this.longPressTimer);
+    this.longPressTimer = null;
+    this.pressPoint = null;
+  },
+
+  trackPressStart(e) {
+    if (!this.open) return;
+    this.active.add(e.pointerId);
+    if (this.active.size > 1) this.multiTouch = true;
+    if (this.isOutside(e.target)) {
+      this.presses.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+  },
+
+  // Dismiss on a tap outside, not a press outside: press and release must
+  // both land outside and stay put, and a pinch or two-finger scroll never
+  // counts at all.
+  trackPressEnd(e) {
+    const press = this.presses.get(e.pointerId);
+    this.presses.delete(e.pointerId);
+    this.active.delete(e.pointerId);
+
+    const gesture = this.multiTouch;
+    if (this.active.size === 0) this.multiTouch = false;
+    if (!press || gesture || !this.open) return;
+
+    const dragged =
+      Math.hypot(e.clientX - press.x, e.clientY - press.y) > PC_TAP_SLOP;
+    if (!dragged && this.isOutside(e.target)) this.close();
+  },
+
+  isOutside(target) {
+    return !this.panel()?.contains(target);
+  },
+
+  onItemClick(e) {
+    if (!this.open) return;
+    const item = e.target.closest?.("[data-pc-context-menu-item]");
+    if (!item || !this.panel()?.contains(item)) return;
+    // the item's own phx-click / navigation has already been queued; all
+    // this does is get the menu out of the way
+    this.close({ restoreFocus: true });
+  },
+
+  onMenuKeydown(e) {
+    const items = this.items();
+    const at = items.indexOf(document.activeElement);
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        // a context menu inside a modal would otherwise close both
+        e.stopPropagation();
+        this.close({ restoreFocus: true });
+        return;
+      case "Tab":
+        // focus leaves the widget: close, hand focus back to the region,
+        // and let the browser's own Tab carry on from there
+        this.close({ restoreFocus: true });
+        return;
+      case "ArrowDown":
+        e.preventDefault();
+        this.focusItem(items, at < 0 ? 0 : at + 1);
+        return;
+      case "ArrowUp":
+        e.preventDefault();
+        this.focusItem(items, at < 0 ? items.length - 1 : at - 1);
+        return;
+      case "Home":
+        e.preventDefault();
+        this.focusItem(items, 0);
+        return;
+      case "End":
+        e.preventDefault();
+        this.focusItem(items, items.length - 1);
+        return;
+      case " ":
+        // Enter activates a link or a button natively; Space only does so
+        // on buttons, and half the items here are anchors.
+        if (at >= 0) {
+          e.preventDefault();
+          items[at].click();
+        }
+        return;
+      default:
+    }
+  },
+
+  // Wrapping at both ends, which is what the APG menu pattern asks for.
+  focusItem(items, index) {
+    if (!items.length) return;
+    const wrapped = ((index % items.length) + items.length) % items.length;
+    items[wrapped].focus();
+  },
+
+  openAt(x, y, { focusFirst }) {
+    const panel = this.panel();
+    if (!panel) return;
+
+    this.point = { x, y };
+
+    if (!this.open) {
+      // Remember where the user actually was, not just the region - a
+      // right-click on a button inside the card should hand focus back to
+      // that button.
+      const active = document.activeElement;
+      this.returnFocusTo =
+        active && this.el.contains(active) && !panel.contains(active)
+          ? active
+          : this.trigger();
+      this.showPanel(panel);
+      this.open = true;
+      this.trigger()?.setAttribute("aria-expanded", "true");
+    }
+
+    // showPopover and the style writes happen in the same task, so the
+    // browser never gets a chance to paint the panel at 0,0 first.
+    this.position();
+
+    if (focusFirst) {
+      const items = this.items();
+      if (items.length) items[0].focus();
+      else panel.focus();
+    } else {
+      // Pointer opens focus the panel; the first arrow press moves in.
+      panel.focus({ preventScroll: true });
+    }
+  },
+
+  close({ restoreFocus = false } = {}) {
+    const panel = this.panel();
+    this.open = false;
+    this.point = null;
+    this.trigger()?.setAttribute("aria-expanded", "false");
+    if (panel) this.hidePanel(panel);
+    // hiding the panel blurs whatever was focused inside it, so without
+    // this the user lands on <body>
+    if (restoreFocus) this.returnFocusTo?.focus?.();
+    this.returnFocusTo = null;
+  },
+
+  // The popover API is the real mechanism; the data attribute is this
+  // hook's own record of state, and the fallback for anywhere popover is
+  // not implemented (older Safari, and jsdom under the specs).
+  showPanel(panel) {
+    panel.setAttribute("data-pc-open", "");
+    try {
+      panel.showPopover();
+    } catch {
+      panel.style.display = "block";
+    }
+  },
+
+  hidePanel(panel) {
+    panel.removeAttribute("data-pc-open");
+    panel.style.display = "";
+    try {
+      panel.hidePopover();
+    } catch {
+      /* not open, or no popover support - the attribute above is enough */
+    }
+  },
+
+  // The box the panel must stay inside, in client coordinates: the visible
+  // region when a keyboard or pinch-zoom has shrunk it, otherwise the
+  // window. Same shape PetalPopover uses.
+  viewport() {
+    const vv = window.visualViewport;
+
+    return vv
+      ? { top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height }
+      : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+  },
+
+  // Down-and-right of the cursor by default, the direction every desktop
+  // OS opens one. Near an edge it flips to the other side of the cursor
+  // rather than sliding, so the pointer never ends up sitting on top of
+  // the first item - which would arm an accidental activation.
+  position() {
+    const panel = this.panel();
+    if (!panel || !this.point) return;
+
+    const pad = 8;
+    const { x, y } = this.point;
+
+    panel.style.maxHeight = "";
+    const r = panel.getBoundingClientRect();
+    const vp = this.viewport();
+
+    const maxHeight = Math.max(vp.height - pad * 2, 0);
+    const height = Math.min(r.height, maxHeight);
+
+    let top = y;
+    if (y + height + pad > vp.top + vp.height) top = y - height;
+
+    let left = x;
+    if (x + r.width + pad > vp.left + vp.width) left = x - r.width;
+
+    // min wins when the panel is bigger than the room it has: better to
+    // overflow the far edge than to start off-screen
+    top = clamp(top, vp.top + pad, vp.top + vp.height - height - pad);
+    left = clamp(left, vp.left + pad, vp.left + vp.width - r.width - pad);
+
+    panel.style.maxHeight = `${Math.round(maxHeight)}px`;
+    panel.style.overflowY = "auto";
+    // whole pixels: sub-pixel writes shimmer against a scrolling page
+    panel.style.top = `${Math.round(top)}px`;
+    panel.style.left = `${Math.round(left)}px`;
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -5453,5 +5848,6 @@ export default {
   PetalNavMenu,
   PetalCommandDialog,
   PetalComboBox,
+  PetalContextMenu,
   PetalDataTable,
 };
