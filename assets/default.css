@@ -1471,10 +1471,23 @@
   }
 
   /* kbd hints: shadcn-calibre chip, nested radius, edge inset matching the
-     leading icon's so both ends of the field read equally padded */
+     leading icon's so both ends of the field read equally padded. The border
+     is drawn inset rather than as a real border so adding the key cap here
+     does not change the box size of the existing consumers (command palette
+     trigger, input group addons) - only how they read. The heavier bottom
+     edge is what makes it look like a key you can press. */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
     @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
+    box-shadow:
+      inset 0 0 0 1px var(--color-gray-200, #e4e4e7),
+      inset 0 -1px 0 0 var(--color-gray-300, #d4d4d8);
+  }
+
+  :is(.dark .pc-kbd, .dark .pc-input-group__addon kbd) {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-gray-100) 12%, transparent),
+      inset 0 -1px 0 0 color-mix(in oklab, var(--color-gray-100) 18%, transparent);
   }
 
   /* Block addons: full-width rows above/below the control (toolbars,
@@ -7586,3 +7599,126 @@
       transition-duration: 1ms;
     }
   }
+
+@layer components {
+  /* ------------------------------------------------------------------ */
+  /* Kbd - keyboard-key chips                                            */
+  /* ------------------------------------------------------------------ */
+
+  /* The cap treatment lives on the shared rule above (see the kbd hints
+     block near .pc-input-group__addon) so the command trigger and input
+     group addons pick it up too. Only the sizes and the sequence wrapper
+     are new here. */
+  .pc-kbd--sm {
+    @apply h-4 min-w-4 px-0.5 text-[0.625rem];
+  }
+
+  .pc-kbd--md {
+    @apply h-5 min-w-5 px-1 text-xs;
+  }
+
+  /* A key sequence: one <kbd> per key with the separator glyph between */
+  .pc-kbd-group {
+    @apply inline-flex items-center gap-1 align-middle;
+  }
+
+  .pc-kbd-group__separator {
+    @apply text-xs font-medium text-gray-400 select-none dark:text-gray-500;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Separator - hairline dividers for app UI                            */
+  /* ------------------------------------------------------------------ */
+
+  /* No margin by design: app layouts own their own rhythm. Colours match
+     .pc-hr so a page can mix the prose rule and the app rule. */
+  .pc-separator--horizontal {
+    @apply h-px w-full shrink-0 bg-gray-200 dark:bg-gray-800;
+  }
+
+  .pc-separator--vertical {
+    @apply w-px shrink-0 self-stretch bg-gray-200 dark:bg-gray-800;
+  }
+
+  /* Labelled: flanking hairlines either side of the text. Declared after
+     --horizontal so it wins the height/background it needs to reset. */
+  .pc-separator--labelled {
+    @apply flex h-auto w-full items-center gap-3 bg-transparent dark:bg-transparent;
+  }
+
+  .pc-separator__line {
+    @apply h-px flex-1 bg-gray-200 dark:bg-gray-800;
+  }
+
+  .pc-separator__label {
+    @apply shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  /* Position collapses one flank to a stub rather than removing it, so the
+     label stays visually tied to the rule at both ends. */
+  .pc-separator--label-start > .pc-separator__line:first-child {
+    @apply w-4 flex-none;
+  }
+
+  .pc-separator--label-end > .pc-separator__line:last-child {
+    @apply w-4 flex-none;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Collapsible - a single disclosure region                            */
+  /* ------------------------------------------------------------------ */
+
+  .pc-collapsible {
+    @apply w-full;
+  }
+
+  .pc-collapsible__trigger {
+    @apply flex w-full items-center justify-between gap-4 py-2 text-left text-sm font-medium text-gray-900 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
+  }
+
+  .pc-collapsible__trigger:not(:disabled):hover .pc-collapsible__label {
+    @apply underline;
+  }
+
+  .pc-collapsible__label {
+    @apply min-w-0;
+  }
+
+  .pc-collapsible__chevron {
+    @apply shrink-0 text-gray-400 transition-transform duration-200 dark:text-gray-500;
+  }
+
+  /* Doubled selector: icon sizing contract (see pagination chevrons). */
+  .pc-collapsible__chevron.pc-collapsible__chevron {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* The height animation: 0fr -> 1fr on a grid row, so any content height
+     animates with no measuring in JS. The inner row does the clipping. */
+  .pc-collapsible__panel {
+    @apply grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 200ms ease;
+  }
+
+  .pc-collapsible[data-state="open"] > .pc-collapsible__panel {
+    grid-template-rows: 1fr;
+  }
+
+  .pc-collapsible__content {
+    @apply min-h-0 overflow-hidden;
+  }
+
+  .pc-collapsible__body {
+    @apply pb-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-collapsible__panel,
+    .pc-collapsible__chevron {
+      transition: none;
+    }
+  }
+}
