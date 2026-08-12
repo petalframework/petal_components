@@ -7587,7 +7587,12 @@
     }
   }
 
-  /* Empty state: media, title, description, actions, trailing line */
+/* Empty state: media, title, description, actions, trailing line.
+   Wrapped in its own layer: appended rules after the last @layer block
+   close would otherwise be UNLAYERED, and unlayered author CSS beats every
+   layer in Tailwind v4 - breaking the pc-* utility-override contract. */
+@layer components {
+
 
   .pc-empty {
     @apply flex w-full flex-col items-center text-center;
@@ -7706,3 +7711,4 @@
   .pc-empty--compact .pc-empty__actions {
     @apply mt-4;
   }
+}

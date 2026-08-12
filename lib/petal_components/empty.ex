@@ -101,7 +101,7 @@ defmodule PetalComponents.Empty do
 
   slot :icon,
     doc:
-      "custom icon or illustration; without it a default treatment renders - a muted circle with a dashed ring around a heroicon glyph"
+      "custom icon or illustration; without it a default treatment renders - a muted circle with a dashed ring around a heroicon glyph. The media wrapper is always aria-hidden, so keep this slot decorative - any meaningful text belongs in the title or description"
 
   slot :actions,
     doc: "primary and secondary actions (buttons or links) rendered under the description"

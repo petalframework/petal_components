@@ -32,6 +32,11 @@ defmodule PetalComponents.EmptyTest do
       )
 
     assert positions == Enum.sort(positions)
+
+    # The title is deliberately a <p>, not a heading: an empty state must
+    # not inject itself into the page's h1-h6 outline (the issue's call).
+    assert doc |> LazyHTML.query("p.pc-empty__title") |> Enum.count() == 1
+    assert doc |> LazyHTML.query("h1, h2, h3, h4, h5, h6") |> Enum.count() == 0
   end
 
   test "the root is a plain div - no landmark or live region" do
