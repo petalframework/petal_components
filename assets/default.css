@@ -7586,3 +7586,116 @@
       transition-duration: 1ms;
     }
   }
+
+/* Resizable - split panes with draggable, keyboard-operable separators.
+ * The painted divider is a hairline; the hit area around it is much larger,
+ * which is the difference between a splitter you can grab and one you hunt. */
+@layer components {
+  .pc-resizable {
+    @apply flex flex-row w-full h-full overflow-hidden;
+  }
+
+  .pc-resizable--vertical {
+    @apply flex-col;
+  }
+
+  /* min-w-0/min-h-0 matter: a flex item defaults to min-size auto, which would
+   * refuse to shrink past its content and quietly break every clamp. */
+  .pc-resizable__panel {
+    @apply relative min-w-0 min-h-0 overflow-hidden;
+  }
+
+  /* The element IS the hit area (1px painted line, 11px grabbable). Negative
+   * margins pull the neighbouring panels back so the extra width costs no
+   * layout - the panels still meet on the hairline. */
+  .pc-resizable__handle {
+    @apply relative z-10 flex items-center justify-center shrink-0 self-stretch;
+    @apply w-[11px] -mx-[5px] cursor-col-resize touch-none select-none outline-none;
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle {
+    @apply w-auto mx-0 h-[11px] -my-[5px] cursor-row-resize;
+  }
+
+  /* The hairline itself. A pseudo-element so hover, drag and focus can tint it
+   * without touching the hit area's geometry. */
+  .pc-resizable__handle::before {
+    content: "";
+    @apply absolute w-px h-full bg-gray-200 transition-colors duration-150 ease-out;
+    @apply dark:bg-gray-400/20;
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle::before {
+    @apply w-full h-px;
+  }
+
+  .pc-resizable__handle:hover::before,
+  .pc-resizable__handle:focus-visible::before,
+  .pc-resizable__handle--dragging::before {
+    @apply bg-primary-500;
+  }
+
+  /* Never a persistent :focus fill. The ring is for keyboard users only, and
+   * on a splitter it has to be unmissable - arrows do nothing until you can
+   * see which separator has focus. */
+  .pc-resizable__handle:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  /* The grip pill: the visible "you can drag this" affordance. */
+  .pc-resizable__grip {
+    @apply relative z-10 flex items-center justify-center;
+    @apply w-[11px] h-6 border border-gray-200 bg-gray-50 text-gray-400;
+    @apply transition-colors duration-150 ease-out;
+    @apply dark:border-gray-400/20 dark:bg-gray-800 dark:text-gray-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip {
+    @apply w-6 h-[11px];
+  }
+
+  /* Three dots, drawn with a repeating gradient so the grip needs no markup. */
+  .pc-resizable__grip::after {
+    content: "";
+    @apply block w-[2px] h-[10px];
+    background-image: repeating-linear-gradient(
+      to bottom,
+      currentColor 0 2px,
+      transparent 2px 4px
+    );
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip::after {
+    @apply w-[10px] h-[2px];
+    background-image: repeating-linear-gradient(
+      to right,
+      currentColor 0 2px,
+      transparent 2px 4px
+    );
+  }
+
+  .pc-resizable__handle:hover .pc-resizable__grip,
+  .pc-resizable__handle:focus-visible .pc-resizable__grip,
+  .pc-resizable__handle--dragging .pc-resizable__grip {
+    @apply border-primary-500 text-primary-500;
+  }
+
+  /* Mid-drag the pointer belongs to the separator: no text selection, and no
+   * child element stealing the pointer stream from the captured handle. */
+  .pc-resizable--dragging {
+    @apply select-none;
+  }
+
+  .pc-resizable--dragging .pc-resizable__panel {
+    @apply pointer-events-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-resizable__handle::before,
+    .pc-resizable__grip {
+      transition-duration: 1ms;
+    }
+  }
+}

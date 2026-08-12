@@ -295,7 +295,8 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
-        %{slug: "container", name: "Container", ready: true}
+        %{slug: "container", name: "Container", ready: true},
+        %{slug: "resizable", name: "Resizable", ready: true}
       ]
     },
     %{
@@ -766,6 +767,8 @@ defmodule Dev.PlaygroundLive do
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
+       rsz: %{orientation: "horizontal", with_handle: true, collapsible: true},
+       rsz_sizes: [65, 35],
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
@@ -1448,6 +1451,21 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_rsz", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(horizontal vertical),
+      do: {:noreply, update(socket, :rsz, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_rsz", %{"k" => k}, socket) when k in ~w(with_handle collapsible),
+    do:
+      {:noreply,
+       update(socket, :rsz, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # The persistence hook point: on_resize pushes the released percentages here.
+  # A real app would stash these in the session, the URL or localStorage - the
+  # library itself stores nothing.
+  def handle_event("pg_resize", %{"sizes" => sizes}, socket),
+    do: {:noreply, assign(socket, :rsz_sizes, Enum.map(sizes, &round/1))}
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
@@ -7659,6 +7677,165 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "resizable"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Resizable</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Split panes with dividers you can drag - and key. Sizes are percentages of the
+        group, so the split stays proportional when the window changes. Nested groups
+        each mount their own hook and only touch their own direct children.
+      </p>
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <span class="font-medium text-gray-700 dark:text-gray-200">Try the keyboard:</span>
+        tab to a divider, then arrows to resize (hold shift for a bigger step),
+        <kbd class="px-1 font-mono text-xs">Home</kbd>
+        to shrink or collapse, <kbd class="px-1 font-mono text-xs">End</kbd>
+        to grow, <kbd class="px-1 font-mono text-xs">Enter</kbd>
+        to toggle a collapsible pane. Double-click a divider to reset it.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <.resizable_group
+            id={"pg-rsz-#{@rsz.orientation}-#{@rsz.with_handle}-#{@rsz.collapsible}"}
+            orientation={@rsz.orientation}
+            class="h-64 border border-gray-200 rounded-xl dark:border-gray-400/20"
+          >
+            <.resizable_panel
+              id="pg-rsz-nav"
+              default_size={28}
+              min_size={18}
+              collapsible={@rsz.collapsible}
+            >
+              <nav class="h-full p-4 text-sm bg-gray-50 dark:bg-gray-800/40">
+                <div class="mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+                  Components
+                </div>
+                <ul class="space-y-1.5 text-gray-600 dark:text-gray-300">
+                  <li>Button</li>
+                  <li class="font-medium text-gray-900 dark:text-white">Resizable</li>
+                  <li>Table</li>
+                </ul>
+              </nav>
+            </.resizable_panel>
+            <.resizable_handle
+              orientation={@rsz.orientation}
+              with_handle={@rsz.with_handle}
+              controls="pg-rsz-nav"
+              label="Resize navigation"
+            />
+            <.resizable_panel default_size={72} min_size={30}>
+              <div class="h-full p-5 overflow-auto">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Resizable</h3>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  Drag the divider. With collapsible on, pull the nav past half its
+                  min_size and it snaps shut - pull back out and it reopens.
+                </p>
+              </div>
+            </.resizable_panel>
+          </.resizable_group>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@rsz.orientation}
+              on_change="ctl_rsz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={o <- ~w(horizontal vertical)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [
+                      {"with_handle", @rsz.with_handle},
+                      {"collapsible", @rsz.collapsible}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_rsz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="with_handle" phx-value-k="with_handle">with handle</:item>
+              <:item value="collapsible" phx-value-k="collapsible">collapsible sidebar</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">on_resize: the persistence hook point</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Drag or key the divider below. On release the group pushes the released
+        percentages to this LiveView, which is where an app would persist them. The
+        library stores nothing itself - the same payload also rides a bubbling
+        <code class="text-xs">petal:resizable-resize</code>
+        DOM event for non-LiveView listeners.
+      </p>
+      <.resizable_group
+        id="pg-rsz-persist"
+        orientation="vertical"
+        on_resize="pg_resize"
+        class="h-64 border border-gray-200 rounded-xl dark:border-gray-400/20"
+      >
+        <.resizable_panel id="pg-rsz-editor" default_size={65} min_size={25}>
+          <div class="h-full p-4 font-mono text-xs leading-5 text-gray-700 whitespace-pre dark:text-gray-200">
+            <div>&lt;.resizable_group orientation="vertical" on_resize="pg_resize"&gt;</div>
+            <div></div>
+            <div>def handle_event("pg_resize", params, socket), do:</div>
+            <div>assign(socket, :rsz_sizes, params["sizes"])</div>
+          </div>
+        </.resizable_panel>
+        <.resizable_handle
+          orientation="vertical"
+          controls="pg-rsz-editor"
+          with_handle
+          label="Resize console"
+        />
+        <.resizable_panel default_size={35} min_size={15}>
+          <div class="h-full p-4 font-mono text-xs bg-gray-50 dark:bg-gray-800/40">
+            <div class="text-gray-400">last pushed sizes</div>
+            <div class="mt-1 text-gray-700 dark:text-gray-200">
+              {Enum.map_join(@rsz_sizes, " / ", &"#{&1}%")}
+            </div>
+          </div>
+        </.resizable_panel>
+      </.resizable_group>
+
+      <div :for={ex <- PetalComponents.Showcase.Resizable.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <.showcase_props component={PetalComponents.Resizable} function={:resizable_group} />
+      <.showcase_props component={PetalComponents.Resizable} function={:resizable_panel} />
+      <.showcase_props component={PetalComponents.Resizable} function={:resizable_handle} />
     </div>
     """
   end
