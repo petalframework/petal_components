@@ -5424,6 +5424,210 @@ export const PetalDataTable = {
   },
 };
 
+// Keyboard navigation for <.tree> (WAI-ARIA TreeView), and nothing else.
+//
+// Roving tabindex is the whole reason this hook exists: the tree must be a
+// single tab stop with exactly one treeitem carrying tabindex="0", and moving
+// DOM focus between arbitrary nodes on an arrow key is not something CSS or
+// LiveView.JS can do. Expansion and selection are deliberately NOT implemented
+// here - the hook clicks the chevron and the label the component already wired,
+// so both expansion models work identically and a pointer user still gets a
+// working tree if the hook never mounts.
+export const PetalTree = {
+  mounted() {
+    this.onKeydown = this.onKeydown.bind(this);
+    this.onFocusIn = this.onFocusIn.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.el.addEventListener("keydown", this.onKeydown);
+    this.el.addEventListener("focusin", this.onFocusIn);
+    this.el.addEventListener("click", this.onClick);
+    this.syncTabIndex();
+  },
+
+  // A server patch re-renders tabindex from the server's own guess. Put the
+  // tab stop back on whichever node the user was actually on.
+  updated() {
+    this.syncTabIndex();
+  },
+
+  destroyed() {
+    this.el.removeEventListener("keydown", this.onKeydown);
+    this.el.removeEventListener("focusin", this.onFocusIn);
+    this.el.removeEventListener("click", this.onClick);
+  },
+
+  nodes() {
+    return Array.from(this.el.querySelectorAll("[data-pc-tree-node]"));
+  },
+
+  // "Visible" is an ARIA term here, not a CSS one: a node whose every ancestor
+  // branch is expanded. Collapsed subtrees stay in the DOM, so this walk is the
+  // only honest test.
+  isVisible(node) {
+    let parent =
+      node.parentElement && node.parentElement.closest("[data-pc-tree-node]");
+    while (parent) {
+      if (parent.dataset.expanded !== "true") return false;
+      parent =
+        parent.parentElement &&
+        parent.parentElement.closest("[data-pc-tree-node]");
+    }
+    return true;
+  },
+
+  visibleNodes() {
+    return this.nodes().filter((node) => this.isVisible(node));
+  },
+
+  current() {
+    const active = document.activeElement;
+    if (active && this.el.contains(active)) {
+      const node = active.closest("[data-pc-tree-node]");
+      if (node) return node;
+    }
+    return (
+      this.el.querySelector('[data-pc-tree-node][tabindex="0"]') ||
+      this.visibleNodes()[0] ||
+      null
+    );
+  },
+
+  syncTabIndex() {
+    const nodes = this.nodes();
+    if (nodes.length === 0) return;
+
+    let target =
+      this.activeId && nodes.find((n) => n.dataset.nodeId === this.activeId);
+    if (!target) {
+      target =
+        nodes.find((n) => n.getAttribute("tabindex") === "0") ||
+        this.visibleNodes()[0] ||
+        nodes[0];
+    }
+    // the branch above the tab stop may have closed under it
+    if (!this.isVisible(target)) target = this.visibleNodes()[0] || nodes[0];
+
+    this.activeId = target.dataset.nodeId;
+    nodes.forEach((node) =>
+      node.setAttribute("tabindex", node === target ? "0" : "-1"),
+    );
+  },
+
+  focusNode(node) {
+    if (!node) return;
+    this.activeId = node.dataset.nodeId;
+    this.syncTabIndex();
+    node.focus();
+  },
+
+  // :scope keeps us on this node's own row - a descendant node has a chevron
+  // and a label too, and querySelector would happily hand one of those back.
+  own(node, selector) {
+    return node.querySelector(`:scope > .pc-tree__row ${selector}`);
+  },
+
+  toggle(node) {
+    const chevron = this.own(node, "[data-pc-tree-chevron]");
+    if (chevron) chevron.click();
+  },
+
+  select(node) {
+    if (node.getAttribute("aria-disabled") === "true") return;
+    const label = this.own(node, "[data-pc-tree-select]");
+    if (label) label.click();
+  },
+
+  step(node, delta) {
+    const visible = this.visibleNodes();
+    this.focusNode(visible[visible.indexOf(node) + delta]);
+  },
+
+  expandOrDescend(node) {
+    if (node.dataset.branch !== "true") return;
+    if (node.dataset.expanded === "true") {
+      this.focusNode(node.querySelector("[data-pc-tree-node]"));
+    } else {
+      this.toggle(node);
+    }
+  },
+
+  collapseOrAscend(node) {
+    if (node.dataset.branch === "true" && node.dataset.expanded === "true") {
+      this.toggle(node);
+      return;
+    }
+    this.focusNode(
+      node.parentElement && node.parentElement.closest("[data-pc-tree-node]"),
+    );
+  },
+
+  expandSiblings(node) {
+    const container = node.parentElement;
+    if (!container) return;
+    Array.from(container.children)
+      .filter((el) => el.matches("[data-pc-tree-node]"))
+      .filter((el) => el.dataset.branch === "true" && el.dataset.expanded !== "true")
+      .forEach((el) => this.toggle(el));
+  },
+
+  onFocusIn(event) {
+    const node =
+      event.target.closest && event.target.closest("[data-pc-tree-node]");
+    if (!node) return;
+    this.activeId = node.dataset.nodeId;
+    this.syncTabIndex();
+  },
+
+  // Clicking a row does not focus anything on its own (the label is a span, on
+  // purpose - a button inside the tree would be a second tab stop), so move the
+  // roving tab stop by hand.
+  onClick(event) {
+    const node =
+      event.target.closest && event.target.closest("[data-pc-tree-node]");
+    if (node) this.focusNode(node);
+  },
+
+  onKeydown(event) {
+    const node = this.current();
+    if (!node) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        this.step(node, 1);
+        break;
+      case "ArrowUp":
+        this.step(node, -1);
+        break;
+      case "ArrowRight":
+        this.expandOrDescend(node);
+        break;
+      case "ArrowLeft":
+        this.collapseOrAscend(node);
+        break;
+      case "Home":
+        this.focusNode(this.visibleNodes()[0]);
+        break;
+      case "End": {
+        const visible = this.visibleNodes();
+        this.focusNode(visible[visible.length - 1]);
+        break;
+      }
+      case "Enter":
+      case " ":
+        this.select(node);
+        break;
+      case "*":
+        this.expandSiblings(node);
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -5454,4 +5658,5 @@ export default {
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,
+  PetalTree,
 };

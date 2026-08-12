@@ -69,6 +69,7 @@ defmodule PetalComponents do
         Table,
         Toast,
         Tabs,
+        Tree,
         ToggleGroup,
         Tooltip,
         TextAnimation,

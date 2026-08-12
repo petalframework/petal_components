@@ -274,6 +274,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
+        %{slug: "tree", name: "Tree", ready: true},
         %{slug: "user-menu", name: "User menu", ready: true},
         %{slug: "language-select", name: "Language select", ready: true}
       ]
@@ -833,6 +834,18 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
+       tree: %{
+         guides: true,
+         expand: "first",
+         picked: nil,
+         # the file explorer scenario runs the server-controlled model
+         expanded: MapSet.new(["lib", "petal_components"]),
+         opened: "tree.ex",
+         loaded: %{},
+         # the settings nav scenario, same model, different data
+         settings_expanded: MapSet.new(["workspace"]),
+         settings_page: "members"
+       },
        stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
        toast: %{pos: "bottom-right", undone: 0},
        car: %{
@@ -1203,6 +1216,16 @@ defmodule Dev.PlaygroundLive do
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
 
+  # The lazy branch's children finally arriving. In a real app this is the
+  # reply from a query or an API call; here it is a 900ms delay so the
+  # :loading row is actually visible.
+  def handle_info({:tree_loaded, id}, socket) do
+    {:noreply,
+     update(socket, :tree, fn tree ->
+       %{tree | loaded: Map.put(tree.loaded, id, tree_lazy_children(id))}
+     end)}
+  end
+
   def handle_info({:chat_tick, id, chunks}, socket) do
     chat = socket.assigns.chat
 
@@ -1237,6 +1260,41 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_accordion", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md),
     do: {:noreply, update(socket, :accordion, &%{&1 | size: v})}
+
+  def handle_event("ctl_tree", %{"k" => "guides"}, socket),
+    do: {:noreply, update(socket, :tree, &%{&1 | guides: !&1.guides})}
+
+  def handle_event("ctl_tree", %{"k" => "expand", "v" => v}, socket) when v in ~w(none first all),
+    do: {:noreply, update(socket, :tree, &%{&1 | expand: v})}
+
+  # The dial tree runs the client-side model, so the server never hears about
+  # expansion - only about the node the user chose.
+  def handle_event("tree_pick", %{"id" => id}, socket),
+    do: {:noreply, update(socket, :tree, &%{&1 | picked: id})}
+
+  # The file explorer runs the server-controlled model: this is the entire
+  # backend for it, plus the lazy fetch below.
+  def handle_event("tree_toggle", %{"id" => id}, socket) do
+    tree = socket.assigns.tree
+    opening? = not MapSet.member?(tree.expanded, id)
+
+    # a lazy branch has no children until we go and get them
+    if opening? and id in tree_lazy_ids() and not Map.has_key?(tree.loaded, id),
+      do: Process.send_after(self(), {:tree_loaded, id}, 900)
+
+    {:noreply, assign(socket, :tree, %{tree | expanded: toggle_member(tree.expanded, id)})}
+  end
+
+  def handle_event("tree_open", %{"id" => id}, socket),
+    do: {:noreply, update(socket, :tree, &%{&1 | opened: id})}
+
+  def handle_event("settings_toggle", %{"id" => id}, socket),
+    do:
+      {:noreply,
+       update(socket, :tree, &%{&1 | settings_expanded: toggle_member(&1.settings_expanded, id)})}
+
+  def handle_event("settings_pick", %{"id" => id}, socket),
+    do: {:noreply, update(socket, :tree, &%{&1 | settings_page: id})}
 
   def handle_event("ctl_stepper", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(horizontal vertical),
@@ -1852,6 +1910,155 @@ defmodule Dev.PlaygroundLive do
   defp examples_for(module, ids) do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))
+  end
+
+  # --- Tree page data -------------------------------------------------------
+
+  defp toggle_member(set, id) do
+    if MapSet.member?(set, id), do: MapSet.delete(set, id), else: MapSet.put(set, id)
+  end
+
+  defp sample_tree do
+    [
+      %{
+        id: "lib",
+        label: "lib",
+        children: [
+          %{
+            id: "petal_components",
+            label: "petal_components",
+            children: [
+              %{id: "button.ex", label: "button.ex"},
+              %{id: "modal.ex", label: "modal.ex"},
+              %{id: "tree.ex", label: "tree.ex"}
+            ]
+          },
+          %{id: "petal_components.ex", label: "petal_components.ex"}
+        ]
+      },
+      %{
+        id: "assets",
+        label: "assets",
+        children: [
+          %{id: "default.css", label: "default.css"},
+          %{
+            id: "js",
+            label: "js",
+            children: [%{id: "petal_components.js", label: "petal_components.js"}]
+          }
+        ]
+      },
+      %{id: "mix.exs", label: "mix.exs"},
+      %{id: "README.md", label: "README.md"}
+    ]
+  end
+
+  defp hero_expanded("all"), do: :all
+  defp hero_expanded("first"), do: ["lib", "assets"]
+  defp hero_expanded(_none), do: []
+
+  defp tree_lazy_ids, do: ["deps"]
+
+  defp tree_lazy_children("deps") do
+    [
+      %{id: "phoenix", label: "phoenix", icon: "hero-cube"},
+      %{id: "phoenix_live_view", label: "phoenix_live_view", icon: "hero-cube"},
+      %{id: "heroicons", label: "heroicons", icon: "hero-cube"}
+    ]
+  end
+
+  # The lazy branch keeps :lazy set so it stays a branch before its children
+  # exist; once they land they are just children like any others.
+  defp explorer_items(tree) do
+    sample_tree() ++
+      [
+        %{
+          id: "deps",
+          label: "deps",
+          lazy: true,
+          children: Map.get(tree.loaded, "deps", [])
+        },
+        %{id: "_build", label: "_build", disabled: true}
+      ]
+  end
+
+  defp org_tree do
+    [
+      %{
+        id: "dana",
+        label: "Dana Okafor",
+        initials: "DO",
+        role: "VP Engineering",
+        city: "Melbourne",
+        children: [
+          %{
+            id: "sam",
+            label: "Sam Reyes",
+            initials: "SR",
+            role: "Platform lead",
+            city: "Sydney",
+            children: [
+              %{
+                id: "kit",
+                label: "Kit Alvarez",
+                initials: "KA",
+                role: "Senior engineer",
+                city: "Perth"
+              },
+              %{
+                id: "noor",
+                label: "Noor Haddad",
+                initials: "NH",
+                role: "Engineer",
+                city: "Sydney"
+              }
+            ]
+          },
+          %{
+            id: "wren",
+            label: "Wren Costa",
+            initials: "WC",
+            role: "Design lead",
+            city: "Melbourne",
+            children: [
+              %{
+                id: "ida",
+                label: "Ida Bergstrom",
+                initials: "IB",
+                role: "Designer",
+                city: "Hobart"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  end
+
+  defp settings_tree do
+    [
+      %{
+        id: "workspace",
+        label: "Workspace",
+        icon: "hero-building-office-2",
+        children: [
+          %{id: "general", label: "General", icon: "hero-cog-6-tooth"},
+          %{id: "members", label: "Members", icon: "hero-users"},
+          %{id: "billing", label: "Billing", icon: "hero-credit-card"}
+        ]
+      },
+      %{
+        id: "security",
+        label: "Security",
+        icon: "hero-shield-check",
+        children: [
+          %{id: "sso", label: "Single sign-on", icon: "hero-key"},
+          %{id: "audit-log", label: "Audit log", icon: "hero-document-text"}
+        ]
+      },
+      %{id: "api-keys", label: "API keys", icon: "hero-command-line"},
+      %{id: "legal-hold", label: "Legal hold", icon: "hero-lock-closed", disabled: true}
+    ]
   end
 
   defp input_meta("text"), do: {"Full name", "Ada Lovelace"}
@@ -9123,6 +9330,197 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Badge</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "tree"} = assigns) do
+    assigns =
+      assigns
+      |> assign(:explorer_items, explorer_items(assigns.tree))
+      |> assign(:hero_expanded, hero_expanded(assigns.tree.expand))
+
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Tree</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Nested data, arbitrary depth, the full WAI-ARIA TreeView keyboard map. Click into
+        the tree and drive it with the keyboard: up and down walk the visible nodes,
+        right expands or descends, left collapses or goes up a level, Home and End jump
+        to the ends, Enter or Space selects, and * opens every branch at the current
+        level. The whole tree is one Tab stop.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-8">
+          <div class="max-w-md mx-auto">
+            <.tree
+              id={"pg-tree-#{@tree.expand}-#{@tree.guides}"}
+              label="Project files"
+              show_guides={@tree.guides}
+              default_expanded={@hero_expanded}
+              selected={@tree.picked}
+              select_event="tree_pick"
+              items={sample_tree()}
+            />
+          </div>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              default_expanded
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Expanded at render"
+              value={@tree.expand}
+              on_change="ctl_tree"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(none first all)} value={v} phx-value-k="expand" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={for {k, on} <- [{"guides", @tree.guides}], on, do: k}
+              on_change="ctl_tree"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="guides" phx-value-k="guides">show_guides</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              last on_select payload
+            </div>
+            <code class="inline-block px-2 py-1 font-mono text-xs bg-gray-100 rounded dark:bg-gray-800">
+              {if @tree.picked, do: ~s|%{"id" => "#{@tree.picked}"}|, else: "nothing picked yet"}
+            </code>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        This tree runs the client-side expansion model: the chevron toggles two attributes
+        with LiveView.JS and CSS animates the height, so opening a folder costs no round
+        trip. The trade is that the open branches live only in the DOM - flip a dial above
+        and the tree re-renders back to default_expanded. Trees that must survive a patch,
+        or that load children on demand, want the server-controlled model instead (the
+        file explorer below).
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Scenario: a file explorer</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The server-controlled model end to end. A MapSet of expanded ids in assigns, one
+        handle_event for the chevron, one for selection. <code>deps/</code>
+        is marked :lazy - open it and the loading row shows until its children arrive
+        900ms later, the way a real query or API call would land.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div class="p-3 border border-gray-200 rounded-xl dark:border-gray-800">
+          <.tree
+            id="pg-tree-explorer"
+            label="Explorer"
+            show_guides
+            expanded={@tree.expanded}
+            on_expand="tree_toggle"
+            selected={@tree.opened}
+            select_event="tree_open"
+            items={@explorer_items}
+          />
+        </div>
+        <div class="p-4 text-sm border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="font-mono text-xs text-gray-400">selected</div>
+          <div class="mt-1 font-medium">{@tree.opened || "nothing open"}</div>
+          <div class="mt-4 font-mono text-xs text-gray-400">expanded</div>
+          <div class="mt-1 font-mono text-xs break-all text-gray-500 dark:text-gray-400">
+            {@tree.expanded |> Enum.sort() |> inspect()}
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Scenario: reporting lines</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The :item slot takes over the row content and receives the whole node map, so the
+        extra keys on this data (a role, a location) render however you like. Everything
+        structural - the chevron, the indent, the guides, aria-level, the roving tabindex -
+        stays with the component.
+      </p>
+      <div class="p-3 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.tree
+          id="pg-tree-org"
+          label="Reporting lines"
+          show_guides
+          default_expanded={:all}
+          items={org_tree()}
+        >
+          <:item :let={person}>
+            <span class="flex items-center justify-center w-6 h-6 text-[10px] font-semibold rounded-full shrink-0 bg-primary-100 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300">
+              {person.initials}
+            </span>
+            <span class="font-medium">{person.label}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{person.role}</span>
+            <span class="ml-auto text-[11px] text-gray-400">{person.city}</span>
+          </:item>
+        </.tree>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Scenario: settings navigation</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        A two-level settings outline where selection drives the page next to it. Same
+        server-controlled model as the explorer, custom icons per node, and one disabled
+        node the user can still focus but not choose.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
+        <div class="p-3 border border-gray-200 rounded-xl dark:border-gray-800">
+          <.tree
+            id="pg-tree-settings"
+            label="Settings"
+            expanded={@tree.settings_expanded}
+            on_expand="settings_toggle"
+            selected={@tree.settings_page}
+            select_event="settings_pick"
+            items={settings_tree()}
+          />
+        </div>
+        <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="text-xs tracking-wide text-gray-400 uppercase">Now showing</div>
+          <div class="mt-1 text-xl font-semibold capitalize">
+            {@tree.settings_page |> to_string() |> String.replace("-", " ")}
+          </div>
+          <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+            Selection is single-select and the server owns it: the component sets
+            aria-selected and the soft primary fill on click so the highlight is instant,
+            then pushes the id so your LiveView can swap the panel.
+          </p>
+        </div>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Tree.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} content_left />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Tree} function={:tree} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Tree</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
