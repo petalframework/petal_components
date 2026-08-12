@@ -212,6 +212,46 @@ defmodule Dev.PlaygroundLive do
     """
   ]
 
+  # A mocked RAG answer: the model cites its context with [^N] footnote markers
+  # and the app hands the same source maps to markdown/1 + chat_sources/1.
+  @chat_rag_sources [
+    %{
+      id: "1",
+      url: "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html",
+      title: "Phoenix.LiveView — behaviour and lifecycle",
+      snippet:
+        "LiveView provides rich, real-time user experiences with server-rendered HTML over a persistent connection."
+    },
+    %{
+      id: "2",
+      url: "https://hexdocs.pm/phoenix_live_view/js-interop.html",
+      title: "JavaScript interoperability",
+      snippet:
+        "Client hooks let you run JavaScript when an element is added, updated or removed from the page."
+    },
+    %{
+      id: "3",
+      url: "https://hexdocs.pm/phoenix/Phoenix.Endpoint.html",
+      title: "Phoenix.Endpoint",
+      snippet: "The endpoint is the boundary where all requests to your application start."
+    },
+    %{
+      id: "4",
+      url: "https://elixir-lang.org/getting-started/processes.html",
+      title: "Processes"
+    }
+  ]
+
+  @chat_rag_answer """
+  LiveView holds a **persistent connection** and diffs the rendered tree on the
+  server, pushing only the parts that changed [^1]. Anything the server can't
+  own - focus, clipboard, a third-party widget - drops down to a client
+  hook [^2].
+
+  Requests still enter through the endpoint like any other Phoenix request [^3],
+  and each connected tab is just another cheap process [^4].
+  """
+
   @chat_history [
     %{id: "m-yesterday", role: :marker, text: "Yesterday"},
     %{id: "hist-q", role: :user, text: "Does it support dark mode?", stream_id: nil},
@@ -733,6 +773,7 @@ defmodule Dev.PlaygroundLive do
        tg_device: "desktop",
        tg_variant: "solid",
        tg_size: "md",
+       chat_rag_sources: @chat_rag_sources,
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -742,7 +783,20 @@ defmodule Dev.PlaygroundLive do
              text: "How do I install petal_components?",
              stream_id: nil
            },
-           %{id: "seed-a", role: :assistant, text: @chat_seed_answer, stream_id: nil}
+           %{id: "seed-a", role: :assistant, text: @chat_seed_answer, stream_id: nil},
+           %{
+             id: "seed-rag-q",
+             role: :user,
+             text: "How does LiveView keep the page in sync?",
+             stream_id: nil
+           },
+           %{
+             id: "seed-rag-a",
+             role: :assistant,
+             text: @chat_rag_answer,
+             stream_id: nil,
+             sources: @chat_rag_sources
+           }
          ],
          streaming: false,
          seq: 1,
@@ -750,7 +804,10 @@ defmodule Dev.PlaygroundLive do
          variant: "plain",
          actions: "always",
          editing: nil,
-         sent: false
+         sent: false,
+         sources_expanded: false,
+         sources_max: 5,
+         rag_streaming: false
        },
        alert: %{
          color: "gray",
@@ -1202,6 +1259,27 @@ defmodule Dev.PlaygroundLive do
 
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
+
+  def handle_info({:chat_rag_tick, buffer, []}, socket) do
+    {:noreply,
+     socket
+     |> assign(:chat, %{socket.assigns.chat | rag_streaming: false})
+     |> push_event("pc-chat-rag-token", %{
+       id: "pg-chat-rag-stream",
+       html: Chat.to_html(buffer, sources: @chat_rag_sources)
+     })}
+  end
+
+  def handle_info({:chat_rag_tick, buffer, [word | rest]}, socket) do
+    buffer = if buffer == "", do: word, else: buffer <> " " <> word
+    Process.send_after(self(), {:chat_rag_tick, buffer, rest}, 60)
+
+    {:noreply,
+     push_event(socket, "pc-chat-rag-token", %{
+       id: "pg-chat-rag-stream",
+       html: Chat.to_html(buffer, sources: @chat_rag_sources)
+     })}
+  end
 
   def handle_info({:chat_tick, id, chunks}, socket) do
     chat = socket.assigns.chat
@@ -1707,6 +1785,32 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_chat", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(plain bubbles) do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | variant: v})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "sources_expanded", "v" => v}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | sources_expanded: v == "open"})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "sources_max", "v" => v}, socket) do
+    max = if v == "all", do: length(@chat_rag_sources), else: String.to_integer(v)
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | sources_max: max})}
+  end
+
+  # Streams the same grounded answer word by word. Each tick re-renders the
+  # buffer through to_html/2, so the [^N] chips appear as the markers complete
+  # and a half-arrived "[^" never flashes broken.
+  def handle_event("chat_rag_stream", _params, socket) do
+    if socket.assigns.chat.rag_streaming do
+      {:noreply, socket}
+    else
+      words = String.split(@chat_rag_answer, " ")
+      Process.send_after(self(), {:chat_rag_tick, "", words}, 150)
+
+      {:noreply,
+       socket
+       |> assign(:chat, %{socket.assigns.chat | rag_streaming: true})
+       |> push_event("pc-chat-rag-token", %{id: "pg-chat-rag-stream", html: ""})}
+    end
   end
 
   def handle_event("ctl_chat", %{"k" => "actions", "v" => v}, socket)
@@ -8731,7 +8835,17 @@ defmodule Dev.PlaygroundLive do
               <%= if turn.stream_id do %>
                 <Chat.streaming_text id={turn.stream_id} />
               <% else %>
-                <Chat.markdown content={turn.text} id={"pg-chat-md-#{turn.id}"} />
+                <Chat.markdown
+                  content={turn.text}
+                  id={"pg-chat-md-#{turn.id}"}
+                  sources={Map.get(turn, :sources)}
+                />
+                <Chat.chat_sources
+                  :if={Map.get(turn, :sources)}
+                  sources={Map.get(turn, :sources)}
+                  expanded={@chat.sources_expanded}
+                  max_visible={@chat.sources_max}
+                />
               <% end %>
               <:actions :if={turn.stream_id == nil}>
                 <Chat.message_actions visible={@chat.actions}>
@@ -8806,7 +8920,88 @@ defmodule Dev.PlaygroundLive do
               </:item>
             </.toggle_group>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              sources expanded
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Sources expanded"
+              value={if @chat.sources_expanded, do: "open", else: "closed"}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(closed open)}
+                value={v}
+                phx-value-k="sources_expanded"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max_visible</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Max visible sources"
+              value={
+                if @chat.sources_max >= length(@chat_rag_sources),
+                  do: "all",
+                  else: to_string(@chat.sources_max)
+              }
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(2 5 all)} value={v} phx-value-k="sources_max" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
         </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Citations while streaming</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The same grounded answer, streamed. Each tick re-renders the growing buffer
+        through <code>to_html(buffer, sources: sources)</code>
+        and pushes the HTML at a format="markdown" streaming_text, so chips light up
+        as their markers complete. A half-arrived "[^" is left alone until the closing
+        bracket lands, so nothing flashes broken.
+      </p>
+      <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <Chat.streaming_text id="pg-chat-rag-stream" event="pc-chat-rag-token" format="markdown" />
+        <div class="mt-3">
+          <Chat.chat_sources
+            sources={@chat_rag_sources}
+            expanded={@chat.sources_expanded}
+            max_visible={@chat.sources_max}
+          />
+        </div>
+        <.button
+          size="sm"
+          variant="outline"
+          class="mt-3"
+          phx-click="chat_rag_stream"
+          disabled={@chat.rag_streaming}
+        >
+          {if @chat.rag_streaming, do: "Streaming...", else: "Stream the grounded answer"}
+        </.button>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Answer grounding is two pieces. Prompt the model to cite as <code>[^N]</code>
+        and pass the same source maps to <code>markdown/1</code>: complete markers
+        become chips, unmatched ones stay as plain text. Chips are real links - Tab
+        reaches one, the preview card opens on focus, Enter opens the source in a new
+        tab. <code>chat_sources</code>
+        is the deduped list underneath, a native
+        &lt;details&gt; with no JS: the dials above flip <code>expanded</code>
+        and cap the list with <code>max_visible</code>, which tucks the rest behind a
+        "Show all" reveal.
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Streaming is real here: the LiveView pushes word-sized tokens with
@@ -8854,7 +9049,9 @@ defmodule Dev.PlaygroundLive do
           :message_actions,
           :copy_button,
           :suggestions,
-          :chat_error
+          :chat_error,
+          :chat_sources,
+          :citation
         ]}
       />
 

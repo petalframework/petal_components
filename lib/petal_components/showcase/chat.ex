@@ -16,11 +16,44 @@ defmodule PetalComponents.Showcase.Chat do
       :message_actions,
       :copy_button,
       :suggestions,
-      :chat_error
+      :chat_error,
+      :chat_sources,
+      :citation
     ]
+
+  @rag_sources [
+    %{
+      id: "1",
+      url: "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html",
+      title: "Phoenix.LiveView — behaviour and lifecycle",
+      snippet:
+        "LiveView provides rich, real-time user experiences with server-rendered HTML over a persistent connection."
+    },
+    %{
+      id: "2",
+      url: "https://hexdocs.pm/phoenix_live_view/js-interop.html",
+      title: "JavaScript interoperability",
+      snippet: "Client hooks let you run JavaScript when an element is added, updated or removed."
+    },
+    %{
+      id: "3",
+      url: "https://hexdocs.pm/phoenix/Phoenix.Endpoint.html",
+      title: "Phoenix.Endpoint",
+      snippet: "The endpoint is the boundary where all requests to your application start."
+    },
+    %{
+      id: "4",
+      url: "https://elixir-lang.org/getting-started/processes.html",
+      title: "Processes"
+    }
+  ]
 
   # Chat is not pulled in by `use PetalComponents`, so import it here.
   import PetalComponents.Chat
+
+  # Examples render with `assigns = %{}`, so the seed data comes from here
+  # rather than an assign.
+  defp rag_sources, do: @rag_sources
 
   example :flagship, "A complete chat",
     description:
@@ -180,6 +213,46 @@ defmodule PetalComponents.Showcase.Chat do
       <.marker variant="border" icon="hero-wrench-screwdriver">Running search_docs</.marker>
       <.chat_message role="assistant">Found 3 matches. Here's the most relevant one.</.chat_message>
     </.conversation>
+    """
+  end
+
+  example :chat_sources, "Sources and citations",
+    description:
+      "Answer grounding for RAG. Prompt the model to cite as [^N]; pass the same source maps to markdown/1 and the markers become chips (hover or tab to one for the preview card). chat_sources renders the deduped list below - native <details>, no JS." do
+    ~H"""
+    <.conversation id="showcase-chat-sources" class="w-full max-w-xl mx-auto">
+      <.chat_message role="user">How does LiveView keep the page in sync?</.chat_message>
+      <.chat_message role="assistant">
+        <.markdown
+          content="LiveView holds a **persistent connection** and diffs the rendered tree server-side, pushing only what changed [^1]. Anything the server can't own - focus, clipboard, third-party widgets - drops down to a client hook [^2].\n\nEvery request still enters through the endpoint [^3]."
+          sources={rag_sources()}
+        />
+        <.chat_sources sources={rag_sources()} />
+      </.chat_message>
+    </.conversation>
+    """
+  end
+
+  example :chat_sources_expanded, "Sources expanded",
+    description:
+      "expanded opens the row on render; max_visible caps the list and tucks the rest behind a \"Show all\" reveal. A source with no favicon_url falls back to a letter avatar, and no snippet just means a shorter row." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto">
+      <.chat_sources sources={rag_sources()} expanded max_visible={2} />
+    </div>
+    """
+  end
+
+  example :citation, "Citation chip",
+    description:
+      "The chip on its own, for prose you assemble yourself. It's a real link - Tab reaches it, the preview card opens on hover or focus, and activating it opens the source in a new tab." do
+    ~H"""
+    <p class="w-full max-w-xl mx-auto text-sm text-gray-700 dark:text-gray-300">
+      Processes in Elixir are cheap and isolated
+      <.citation index={4} source={Enum.at(rag_sources(), 3)} />
+      which is why a LiveView per tab is unremarkable
+      <.citation index={1} source={Enum.at(rag_sources(), 0)} />.
+    </p>
     """
   end
 

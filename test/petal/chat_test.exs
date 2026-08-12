@@ -141,6 +141,325 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  describe "citations in markdown/1" do
+    setup do
+      %{
+        sources: [
+          %{
+            id: "1",
+            url: "https://hexdocs.pm/phoenix_live_view",
+            title: "Phoenix.LiveView",
+            snippet: "Rich, real-time user experiences.",
+            favicon_url: "https://hexdocs.pm/favicon.ico"
+          },
+          %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"}
+        ]
+      }
+    end
+
+    test "turns a [^N] marker into a citation chip wired to the matching source", %{
+      sources: sources
+    } do
+      assigns = %{md: "LiveView is great [^1] and so is Phoenix [^2].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert_has_class(html, "pc-chat__citation")
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix_live_view"}
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix"}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">1</sup>}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">2</sup>}
+      # the raw marker is gone
+      refute html =~ "[^1]"
+    end
+
+    test "without sources the marker passes through as plain text (today's behaviour)" do
+      assigns = %{md: "LiveView is great [^1]."}
+
+      html = rendered_to_string(~H|<.markdown content={@md} />|)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^1]"
+    end
+
+    test "an unmatched marker renders as plain text, not a broken chip", %{sources: sources} do
+      assigns = %{md: "Something unsourced [^9].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ "[^9]"
+      refute html =~ "pc-chat__citation-num\">9<"
+    end
+
+    test "chips carry an accessible name naming the source", %{sources: sources} do
+      assigns = %{md: "Grounded [^1].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{aria-label="Source 1: Phoenix.LiveView"}
+    end
+
+    test "chip links open in a new tab safely", %{sources: sources} do
+      assigns = %{md: "Grounded [^1].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{target="_blank"}
+      assert html =~ ~s{rel="noopener noreferrer"}
+    end
+
+    test "model-controlled source fields are escaped in the chip and its card" do
+      assigns = %{
+        md: "Careful [^1].",
+        sources: [
+          %{
+            id: "1",
+            url: "https://example.com",
+            title: "<script>alert('x')</script>",
+            snippet: "<img src=x onerror=alert(1)>"
+          }
+        ]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      refute html =~ "<script>alert"
+      refute html =~ "<img src=x"
+      assert html =~ "&lt;script&gt;"
+      assert html =~ "&lt;img src=x"
+    end
+
+    test "markers inside code blocks are left alone", %{sources: sources} do
+      assigns = %{md: "```elixir\nfoo = \"[^1]\"\n```", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^1]"
+    end
+
+    test "a marker resolves positionally when sources have no ids" do
+      assigns = %{
+        md: "Positional [^2].",
+        sources: [%{url: "https://a.example"}, %{url: "https://b.example", title: "B"}]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{href="https://b.example"}
+      assert html =~ ~s{aria-label="Source 2: B"}
+    end
+  end
+
+  describe "to_html/2 with sources (the streaming path)" do
+    setup do
+      %{sources: [%{id: "1", url: "https://example.com/doc", title: "The Doc"}]}
+    end
+
+    test "renders chip markup for complete markers", %{sources: sources} do
+      html = PetalComponents.Chat.to_html("Grounded [^1].", sources: sources)
+
+      assert html =~ "pc-chat__citation"
+      assert html =~ ~s{href="https://example.com/doc"}
+    end
+
+    test "leaves a half-streamed marker untouched so nothing flashes broken", %{sources: sources} do
+      html = PetalComponents.Chat.to_html("Grounded [^", sources: sources)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^"
+    end
+
+    test "to_html/1 is unchanged" do
+      assert PetalComponents.Chat.to_html("Grounded [^1].") =~ "[^1]"
+    end
+  end
+
+  describe "citation/1" do
+    test "renders a standalone chip for a source map" do
+      assigns = %{source: %{url: "https://example.com", title: "Example"}}
+
+      html = rendered_to_string(~H|<.citation index={3} source={@source} />|)
+
+      assert_has_class(html, "pc-chat__citation")
+      assert html =~ ~s{aria-label="Source 3: Example"}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">3</sup>}
+    end
+
+    test "the preview card is decorative — the title lives in the accessible name" do
+      assigns = %{source: %{url: "https://example.com", title: "Example", snippet: "Snip"}}
+
+      html = rendered_to_string(~H|<.citation index={1} source={@source} />|)
+
+      assert_has_class(html, "pc-chat__citation-card")
+      assert html =~ ~s{class="pc-chat__citation-card" aria-hidden="true"}
+      assert html =~ "Snip"
+    end
+
+    test "class is appended last" do
+      assigns = %{source: %{url: "https://example.com"}}
+
+      html = rendered_to_string(~H|<.citation index={1} source={@source} class="custom-chip" />|)
+
+      assert html =~ "custom-chip"
+    end
+  end
+
+  describe "chat_sources/1" do
+    setup do
+      %{
+        sources: [
+          %{
+            id: "1",
+            url: "https://hexdocs.pm/phoenix_live_view",
+            title: "Phoenix.LiveView",
+            snippet: "Rich, real-time user experiences.",
+            favicon_url: "https://hexdocs.pm/favicon.ico"
+          },
+          %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"},
+          %{id: "3", url: "https://elixir-lang.org", title: "Elixir"}
+        ]
+      }
+    end
+
+    test "renders a collapsed details row labelled with the count", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} />|)
+
+      assert_has_class(html, "pc-chat__sources")
+      assert_has_class(html, "pc-chat__sources-row")
+      assert html =~ "<details"
+      assert html =~ "<summary"
+      assert html =~ "3 sources"
+      refute Regex.match?(~r/<details[^>]*\sopen[\s>]/, html)
+    end
+
+    test "one source reads in the singular" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Only"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} />|)
+
+      assert html =~ "1 source"
+      refute html =~ "1 sources"
+    end
+
+    test "a custom label overrides the count", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} label="Used 3 pages" />|)
+
+      assert html =~ "Used 3 pages"
+      refute html =~ "3 sources"
+    end
+
+    test "expanded opens the list by default", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert Regex.match?(~r/<details[^>]*\sopen[\s>]/, html)
+    end
+
+    test "each source is a safe external link with title, domain and snippet", %{
+      sources: sources
+    } do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix_live_view"}
+      assert html =~ ~s{target="_blank"}
+      assert html =~ ~s{rel="noopener noreferrer"}
+      assert html =~ "Phoenix.LiveView"
+      assert html =~ "hexdocs.pm"
+      assert html =~ "Rich, real-time user experiences."
+      assert html =~ ~s{role="list"}
+    end
+
+    test "dedupes by url — the same page cited twice is one row" do
+      assigns = %{
+        sources: [
+          %{id: "1", url: "https://example.com/a", title: "A"},
+          %{id: "2", url: "https://example.com/a", title: "A again"}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ "1 source"
+      refute html =~ "A again"
+    end
+
+    test "nil and empty sources render nothing at all" do
+      assigns = %{}
+
+      refute rendered_to_string(~H|<.chat_sources sources={[]} />|) =~ "pc-chat__sources"
+      refute rendered_to_string(~H|<.chat_sources sources={nil} />|) =~ "pc-chat__sources"
+    end
+
+    test "max_visible overflows into a 'Show all' reveal", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded max_visible={2} />|)
+
+      assert_has_class(html, "pc-chat__sources-more")
+      assert html =~ "Show all (3)"
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded max_visible={5} />|)
+
+      refute html =~ "pc-chat__sources-more"
+    end
+
+    test "a source without favicon_url degrades to a letter avatar" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Example"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert_has_class(html, "pc-chat__source-favicon--letter")
+      assert html =~ ">E<" or html =~ "E\n"
+    end
+
+    test "favicons are decorative", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ ~s{alt=""}
+      assert html =~ ~s{loading="lazy"}
+    end
+
+    test "a source without a snippet renders a clean row" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Example"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      refute html =~ "pc-chat__source-snippet"
+      assert html =~ "Example"
+    end
+
+    test "string-keyed source maps render identically to atom-keyed ones" do
+      assigns = %{
+        sources: [%{"id" => "1", "url" => "https://example.com", "title" => "Stringy"}]
+      }
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ "Stringy"
+      assert html =~ ~s{href="https://example.com"}
+    end
+
+    test "class is appended last and rest passes through", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html =
+        rendered_to_string(~H|<.chat_sources sources={@sources} class="mine" id="src-block" />|)
+
+      assert html =~ "mine"
+      assert html =~ ~s{id="src-block"}
+    end
+  end
+
   describe "tool_call/1" do
     test "renders the tool name and a completed check" do
       assigns = %{}

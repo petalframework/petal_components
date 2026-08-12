@@ -10,6 +10,8 @@ defmodule PetalComponents.Chat do
     * `chat_message/1`  — a single message bubble (user or assistant)
     * `streaming_text/1` — token-by-token output via the `PetalChatStream` JS hook
     * `prompt_input/1`   — the composer (textarea + send)
+    * `chat_sources/1`   — the RAG sources row under an answer
+    * `citation/1`       — an inline numbered citation chip
 
   ## Importing
 
@@ -39,6 +41,42 @@ defmodule PetalComponents.Chat do
 
       import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
       new LiveSocket("/live", Socket, { hooks: { ...PetalComponents }, ... })
+
+  ## Answer grounding (RAG citations)
+
+  Sources are plain maps — the host app supplies them, this library only renders
+  them. `url` is the only key that really matters; `title`, `snippet`,
+  `favicon_url` and `id` are optional and degrade gracefully:
+
+      sources = [
+        %{id: "1", url: "https://hexdocs.pm/phoenix_live_view", title: "Phoenix.LiveView",
+          snippet: "LiveView provides rich, real-time user experiences...",
+          favicon_url: "https://hexdocs.pm/favicon.ico"},
+        %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"}
+      ]
+
+  Prompt the model to cite with **`[^N]` footnote markers** ("cite your sources
+  inline as [^1], [^2] matching the numbered context"). Pass `sources` to
+  `markdown/1` and every complete marker becomes a chip; markers with no matching
+  source stay as plain text:
+
+      <Chat.chat_message role="assistant">
+        <Chat.markdown content={msg.text} sources={msg.sources} />
+        <Chat.chat_sources sources={msg.sources} />
+      </Chat.chat_message>
+
+  A marker resolves to the source whose `id` matches `N` and falls back to the
+  Nth source in the list, so an id-less list still works positionally.
+
+  The streaming path takes the same option — `to_html/2` renders the chips into
+  the HTML you push at a `format="markdown"` `streaming_text/1`. Half-arrived
+  markers (`[^` with no closing bracket yet) are left alone, so nothing flashes
+  broken mid-stream:
+
+      socket = push_event(socket, "pc-chat-token", %{
+        id: "answer",
+        html: PetalComponents.Chat.to_html(buffer, sources: sources)
+      })
 
   ## Styling
 
@@ -194,8 +232,22 @@ defmodule PetalComponents.Chat do
   `streaming_text/1`:
 
       socket = push_event(socket, "pc-chat-token", %{id: "answer", html: PetalComponents.Chat.to_html(buffer)})
+
+  Pass `:sources` to turn `[^N]` footnote markers into inline citation chips as
+  the answer streams (see the "Answer grounding" section in the moduledoc):
+
+      PetalComponents.Chat.to_html(buffer, sources: msg.sources)
+
+  ## Options
+
+    * `:sources` — list of source maps. `[^N]` markers matching a source render
+      as chips; unmatched and half-streamed markers are left untouched.
   """
-  def to_html(content), do: render_markdown(content)
+  def to_html(content, opts \\ []) do
+    content
+    |> render_markdown()
+    |> apply_citations(Keyword.get(opts, :sources))
+  end
 
   defp ensure_mdex! do
     if Code.ensure_loaded?(MDEx) do
@@ -275,10 +327,17 @@ defmodule PetalComponents.Chat do
   """
   attr :content, :string, required: true
   attr :id, :string, default: nil, doc: "pass a unique id to enable per-code-block copy buttons"
+
+  attr :sources, :list,
+    default: nil,
+    doc:
+      "when set, complete `[^N]` markers in the content render as inline citation chips for the matching source (by `id`, falling back to the Nth source). Unmatched markers stay as plain text"
+
   attr :class, :any, default: nil
 
   def markdown(assigns) do
-    assigns = assign(assigns, :html, render_markdown(assigns.content))
+    assigns =
+      assign(assigns, :html, apply_citations(render_markdown(assigns.content), assigns.sources))
 
     ~H"""
     <div id={@id} phx-hook={@id && "PetalCodeCopy"} class={["pc-chat__markdown", @class]}>
@@ -701,6 +760,288 @@ defmodule PetalComponents.Chat do
       </button>
     </div>
     """
+  end
+
+  @doc """
+  An inline numbered citation chip — the superscript marker that grounds a
+  sentence in a source. Hovering or focusing it reveals a small preview card
+  (title, domain, snippet); activating it opens the source in a new tab.
+
+  `markdown/1` and `to_html/2` mint these for you from `[^N]` markers, so you
+  rarely call it directly. Reach for it when you are assembling prose yourself:
+
+      Phoenix ships with LiveView <Chat.citation index={1} source={@source} />
+  """
+  attr :index, :integer, required: true, doc: "1-based citation number shown in the chip"
+
+  attr :source, :map,
+    required: true,
+    doc:
+      "the source map this chip points at: %{url, title, snippet, favicon_url}; every key but `url` is optional"
+
+  attr :class, :any, default: nil
+
+  def citation(assigns) do
+    assigns =
+      assign(assigns, :html, citation_html(assigns.index, normalize_source(assigns.source)))
+
+    ~H"""
+    <span class={@class && ["pc-chat__citation-outer", @class]}>{Phoenix.HTML.raw(@html)}</span>
+    """
+  end
+
+  @doc """
+  The sources row under a grounded answer. Collapsed it reads "4 sources" with a
+  stacked-favicon cluster; open it lists each source with its favicon, title,
+  domain and snippet. Native `<details>`, so no JS.
+
+      <Chat.chat_sources sources={@sources} />
+      <Chat.chat_sources sources={@sources} expanded max_visible={3} />
+
+  Sources are deduped by URL before render (the same page cited twice is one
+  row), and a nil or empty list renders nothing at all — no empty shell.
+  """
+  attr :sources, :list,
+    required: true,
+    doc:
+      "list of source maps: %{id, url, title, snippet, favicon_url}; snippet and favicon_url optional. Deduped by URL before render"
+
+  attr :expanded, :boolean,
+    default: false,
+    doc: "render the list open instead of the collapsed 'N sources' row"
+
+  attr :max_visible, :integer,
+    default: 5,
+    doc: "sources shown when expanded before a 'Show all (N)' control reveals the rest"
+
+  attr :label, :string,
+    default: nil,
+    doc: "override the collapsed row label; defaults to '{count} sources' / '1 source'"
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def chat_sources(assigns) do
+    items = assigns.sources |> normalize_sources() |> dedupe_sources()
+
+    assigns =
+      assigns
+      |> assign(:items, items)
+      |> assign(:visible, Enum.take(items, max(assigns.max_visible, 0)))
+      |> assign(:overflow, Enum.drop(items, max(assigns.max_visible, 0)))
+      |> assign(:count, length(items))
+
+    ~H"""
+    <details :if={@items != []} class={["pc-chat__sources", @class]} open={@expanded} {@rest}>
+      <summary class="pc-chat__sources-row">
+        <span class="pc-chat__sources-favicons" aria-hidden="true">
+          <.source_favicon :for={source <- Enum.take(@items, 3)} source={source} />
+        </span>
+        <span class="pc-chat__sources-label">
+          {@label || if(@count == 1, do: "1 source", else: "#{@count} sources")}
+        </span>
+        <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__sources-chevron" />
+      </summary>
+      <ul class="pc-chat__sources-list" role="list">
+        <.source_row :for={source <- @visible} source={source} />
+      </ul>
+      <details :if={@overflow != []} class="pc-chat__sources-more">
+        <summary class="pc-chat__sources-more-summary">Show all ({@count})</summary>
+        <ul class="pc-chat__sources-list" role="list">
+          <.source_row :for={source <- @overflow} source={source} />
+        </ul>
+      </details>
+    </details>
+    """
+  end
+
+  attr :source, :map, required: true
+
+  defp source_row(assigns) do
+    ~H"""
+    <li class="pc-chat__source">
+      <a
+        href={@source.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="pc-chat__source-link"
+      >
+        <.source_favicon source={@source} />
+        <span class="pc-chat__source-text">
+          <span class="pc-chat__source-title">{@source.title || @source.url}</span>
+          <span :if={source_domain(@source)} class="pc-chat__source-domain">
+            {source_domain(@source)}
+          </span>
+          <span :if={@source.snippet} class="pc-chat__source-snippet">{@source.snippet}</span>
+        </span>
+      </a>
+    </li>
+    """
+  end
+
+  attr :source, :map, required: true
+
+  defp source_favicon(assigns) do
+    ~H"""
+    <img
+      :if={@source.favicon_url}
+      src={@source.favicon_url}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      class="pc-chat__source-favicon"
+    />
+    <span
+      :if={!@source.favicon_url}
+      aria-hidden="true"
+      class="pc-chat__source-favicon pc-chat__source-favicon--letter"
+    >
+      {source_initial(@source)}
+    </span>
+    """
+  end
+
+  # -- citation plumbing -----------------------------------------------------
+
+  # Only complete markers match, so a half-streamed "[^" never flashes a broken
+  # chip; it simply stays as text until the closing bracket arrives.
+  @citation_marker ~r/\[\^(\d+)\]/
+  @html_tag ~r/<[^>]*>/
+
+  defp apply_citations(html, sources) when is_binary(html) do
+    case citation_lookup(sources) do
+      lookup when map_size(lookup) == 0 -> html
+      lookup -> splice_citations(html, lookup)
+    end
+  end
+
+  # Walk the sanitized HTML as a tag/text token stream and rewrite markers in
+  # text nodes only: never inside an attribute, never inside <pre>/<code>. The
+  # chip markup is minted here from the numeric index plus escaped source
+  # fields, so model-controlled text can never reach the page as live markup.
+  defp splice_citations(html, lookup) do
+    @html_tag
+    |> Regex.split(html, include_captures: true)
+    |> Enum.reduce({[], 0}, fn part, {acc, depth} ->
+      cond do
+        String.starts_with?(part, "<") -> {[part | acc], code_depth(part, depth)}
+        depth > 0 -> {[part | acc], depth}
+        true -> {[replace_markers(part, lookup) | acc], depth}
+      end
+    end)
+    |> elem(0)
+    |> Enum.reverse()
+    |> IO.iodata_to_binary()
+  end
+
+  defp code_depth(tag, depth) do
+    cond do
+      Regex.match?(~r{^</(?:pre|code)\s*>$}i, tag) -> max(depth - 1, 0)
+      Regex.match?(~r{^<(?:pre|code)(?:\s[^>]*)?>$}i, tag) -> depth + 1
+      true -> depth
+    end
+  end
+
+  defp replace_markers(text, lookup) do
+    Regex.replace(@citation_marker, text, fn marker, number ->
+      case Map.fetch(lookup, number) do
+        {:ok, source} -> citation_html(String.to_integer(number), source)
+        :error -> marker
+      end
+    end)
+  end
+
+  defp citation_lookup(sources) do
+    normalized = normalize_sources(sources)
+
+    by_position =
+      normalized
+      |> Enum.with_index(1)
+      |> Map.new(fn {source, index} -> {Integer.to_string(index), source} end)
+
+    by_id =
+      Enum.reduce(normalized, %{}, fn
+        %{id: nil}, acc -> acc
+        %{id: id} = source, acc -> Map.put_new(acc, to_string(id), source)
+      end)
+
+    Map.merge(by_position, by_id)
+  end
+
+  defp citation_html(index, source) do
+    title = source.title || source_domain(source) || "Source #{index}"
+    domain = source_domain(source)
+
+    ~s(<span class="pc-chat__citation-wrap"><a class="pc-chat__citation" href="#{esc(source.url)}") <>
+      ~s( target="_blank" rel="noopener noreferrer" aria-label="#{esc("Source #{index}: #{title}")}">) <>
+      ~s(<sup class="pc-chat__citation-num">#{index}</sup></a>) <>
+      ~s(<span class="pc-chat__citation-card" aria-hidden="true">) <>
+      citation_card_favicon(source) <>
+      ~s(<span class="pc-chat__citation-card-title">#{esc(title)}</span>) <>
+      if(domain,
+        do: ~s(<span class="pc-chat__citation-card-domain">#{esc(domain)}</span>),
+        else: ""
+      ) <>
+      if(source.snippet,
+        do: ~s(<span class="pc-chat__citation-card-snippet">#{esc(source.snippet)}</span>),
+        else: ""
+      ) <> ~s(</span></span>)
+  end
+
+  defp citation_card_favicon(%{favicon_url: nil} = source) do
+    ~s(<span class="pc-chat__source-favicon pc-chat__source-favicon--letter" aria-hidden="true">) <>
+      esc(source_initial(source)) <> ~s(</span>)
+  end
+
+  defp citation_card_favicon(source) do
+    ~s(<img class="pc-chat__source-favicon" src="#{esc(source.favicon_url)}" alt="") <>
+      ~s( aria-hidden="true" loading="lazy" />)
+  end
+
+  defp esc(nil), do: ""
+
+  defp esc(value),
+    do: value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+
+  defp normalize_sources(sources) when is_list(sources),
+    do: Enum.map(sources, &normalize_source/1)
+
+  defp normalize_sources(_), do: []
+
+  defp normalize_source(source) when is_map(source) do
+    %{
+      id: source_key(source, :id),
+      url: source_key(source, :url),
+      title: source_key(source, :title),
+      snippet: source_key(source, :snippet),
+      favicon_url: source_key(source, :favicon_url)
+    }
+  end
+
+  defp source_key(source, key) do
+    case Map.fetch(source, key) do
+      {:ok, value} -> value
+      :error -> Map.get(source, Atom.to_string(key))
+    end
+  end
+
+  defp dedupe_sources(sources), do: Enum.uniq_by(sources, & &1.url)
+
+  defp source_domain(%{url: url}) when is_binary(url) do
+    case URI.parse(url) do
+      %URI{host: host} when is_binary(host) -> String.replace_prefix(host, "www.", "")
+      _ -> nil
+    end
+  end
+
+  defp source_domain(_), do: nil
+
+  defp source_initial(source) do
+    (source.title || source_domain(source) || "?")
+    |> String.trim()
+    |> String.first()
+    |> Kernel.||("?")
+    |> String.upcase()
   end
 
   defp render_markdown(nil), do: ""
