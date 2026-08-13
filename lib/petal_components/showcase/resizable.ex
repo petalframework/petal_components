@@ -26,7 +26,7 @@ defmodule PetalComponents.Showcase.Resizable do
           </ul>
         </nav>
       </.resizable_panel>
-      <.resizable_handle controls="sx-rsz-docs-nav" with_handle label="Resize navigation" />
+      <.resizable_handle controls="sx-rsz-docs-nav" with_handle value_now={25} value_min={15} label="Resize navigation" />
       <.resizable_panel default_size={75} min_size={30}>
         <article class="h-full p-5 overflow-auto">
           <h3 class="text-base font-semibold text-gray-900 dark:text-white">Theming</h3>
@@ -63,7 +63,7 @@ defmodule PetalComponents.Showcase.Resizable do
               </ul>
             </div>
           </.resizable_panel>
-          <.resizable_handle controls="sx-rsz-ide-files" label="Resize file tree" />
+          <.resizable_handle controls="sx-rsz-ide-files" value_now={22} value_min={12} label="Resize file tree" />
           <.resizable_panel id="sx-rsz-ide-editor" default_size={48} min_size={25}>
             <div class="h-full p-3 overflow-auto font-mono text-xs leading-5 text-gray-700 whitespace-pre dark:text-gray-200">
               <div>&lt;.resizable_group id="ide" orientation="vertical"&gt;</div>
@@ -77,7 +77,7 @@ defmodule PetalComponents.Showcase.Resizable do
               <div>&lt;/.resizable_group&gt;</div>
             </div>
           </.resizable_panel>
-          <.resizable_handle controls="sx-rsz-ide-editor" with_handle label="Resize editor" />
+          <.resizable_handle controls="sx-rsz-ide-editor" with_handle value_now={48} value_min={25} label="Resize editor" />
           <.resizable_panel default_size={30} min_size={15}>
             <div class="h-full p-3 text-xs bg-gray-50 dark:bg-gray-800/40">
               <div class="mb-2 font-semibold text-gray-400">PREVIEW</div>
@@ -86,7 +86,7 @@ defmodule PetalComponents.Showcase.Resizable do
           </.resizable_panel>
         </.resizable_group>
       </.resizable_panel>
-      <.resizable_handle orientation="vertical" with_handle label="Resize terminal" />
+      <.resizable_handle orientation="vertical" with_handle value_now={70} value_min={30} label="Resize terminal" />
       <.resizable_panel id="sx-rsz-ide-term" default_size={30} min_size={10}>
         <div class="h-full p-3 overflow-auto font-mono text-xs leading-5 text-gray-500 dark:text-gray-400">
           <div>$ mix test</div>

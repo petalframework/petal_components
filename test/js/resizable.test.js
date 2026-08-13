@@ -57,6 +57,25 @@ describe("distributeSizes", () => {
     expect(sum(sizes)).toBeCloseTo(100, 6);
   });
 
+  it("clamps a default below min up to the floor before normalising", () => {
+    // default_size < min_size must not paint below the floor on first render
+    const sizes = distributeSizes([
+      { min: 30, max: 100, default: 10 },
+      { min: 10, max: 100 },
+    ]);
+    // 10 clamps up to 30 against the unsized panel's 90, then normalises
+    expect(sizes[0]).toBeCloseTo(25, 1);
+    expect(sizes[1]).toBeCloseTo(75, 1);
+  });
+
+  it("lets a collapsible panel start below min - its floor is the collapsed size", () => {
+    const sizes = distributeSizes([
+      { min: 20, max: 100, default: 5, collapsible: true, collapsedSize: 0 },
+      { min: 10, max: 100 },
+    ]);
+    expect(sizes[0]).toBeCloseTo(5, 1);
+  });
+
   it("returns nothing for an empty group", () => {
     expect(distributeSizes([])).toEqual([]);
   });
@@ -390,6 +409,55 @@ describe("PetalResizable hook", () => {
   it("inverts aria-orientation for a vertical group", () => {
     const { el } = mount({ orientation: "vertical" });
     expect(handles(el)[0].getAttribute("aria-orientation")).toBe("horizontal");
+  });
+
+  it("Enter on a non-collapsible separator is a TRUE no-op", () => {
+    // no resize event, no on_resize push, and the key is left to the page -
+    // firing petal:resizable-resize with unchanged sizes was noise
+    const { el, resizes, hook } = mount({
+      onResize: "save",
+      panels: [panelHtml("p0", { size: 25, min: 20 }), panelHtml("p1", { size: 75 })],
+    });
+    const [h] = handles(el);
+
+    const ev = new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key: "Enter" });
+    h.dispatchEvent(ev);
+
+    expect(resizes).toEqual([]);
+    expect(hook.pushed).toEqual([]);
+    expect(ev.defaultPrevented).toBe(false);
+  });
+
+  it("updated() re-stamps flex and ARIA a patch wiped", () => {
+    const { el, hook } = mount();
+    const [h] = handles(el);
+
+    el.querySelector("#p0").style.flex = "";
+    h.removeAttribute("aria-valuenow");
+
+    hook.updated();
+    expect(flexOf(el, "p0")).toBe("25 1 0px");
+    expect(h.getAttribute("aria-valuenow")).toBe("25");
+  });
+
+  it("updated() re-derives sizes when the panel count changes", () => {
+    const { el, hook } = mount();
+
+    el.insertAdjacentHTML("beforeend", handleHtml + panelHtml("p2", { size: 50 }));
+    hook.updated();
+
+    expect(flexOf(el, "p2")).toMatch(/ 1 0px$/);
+    expect(flexOf(el, "p0")).not.toBe("25 1 0px");
+  });
+
+  it("grabbing a separator with the pointer hands it keyboard focus", () => {
+    // preventDefault on pointerdown suppresses native focus - without the
+    // explicit hand-over, click-then-arrow-keys did nothing
+    const { el } = mount();
+    const [h] = handles(el);
+
+    h.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    expect(document.activeElement).toBe(h);
   });
 
   it("resizes on an arrow key and keeps aria-valuenow current", () => {

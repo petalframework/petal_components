@@ -5484,7 +5484,14 @@ export function distributeSizes(constraints) {
     for (let i = 0; i < n; i++) if (sizes[i] === null) sizes[i] = share;
   }
 
-  const clamped = sizes.map((s, i) => clampPct(s, 0, constraints[i].max));
+  // Clamp to the floor as well as the ceiling: a default_size below
+  // min_size must not paint below the floor on first render (a collapsible
+  // panel's floor is its collapsed size - starting collapsed is legal).
+  const clamped = sizes.map((s, i) => {
+    const c = constraints[i];
+    const floor = c.collapsible ? Math.min(c.collapsedSize, c.min) : c.min;
+    return clampPct(s, floor, c.max);
+  });
   const total = clamped.reduce((a, b) => a + b, 0);
   if (total <= 0) return clamped.map(() => roundPct(100 / n));
 
@@ -5760,6 +5767,10 @@ export const PetalResizable = {
     handle.classList.add("pc-resizable__handle--dragging");
     this.el.classList.add("pc-resizable--dragging");
     this.holdBody();
+    // preventDefault suppresses the browser's native focus-on-pointerdown,
+    // so hand focus over explicitly - a pointer user should be able to grab
+    // a divider and immediately fine-tune with the arrow keys.
+    handle.focus?.();
     e.preventDefault();
   },
 
@@ -5821,6 +5832,12 @@ export const PetalResizable = {
       if (delta === null) return;
       result = resolveDrag(this.sizes, index, delta, this.constraints);
     }
+
+    // A no-op stays a no-op: Enter on a non-collapsible separator (or an
+    // arrow at a hard bound) must not eat the key, fire
+    // petal:resizable-resize, or push on_resize with unchanged sizes.
+    const changed = result.sizes.some((s, i) => s !== this.sizes[i]);
+    if (!changed && !result.collapse) return;
 
     e.preventDefault();
     this.sizes = result.sizes;

@@ -7622,7 +7622,7 @@
   .pc-resizable__handle::before {
     content: "";
     @apply absolute w-px h-full bg-gray-200 transition-colors duration-150 ease-out;
-    @apply dark:bg-gray-400/20;
+    @apply dark:bg-gray-400/25;
   }
 
   .pc-resizable--vertical > .pc-resizable__handle::before {
@@ -7646,9 +7646,12 @@
   /* The grip pill: the visible "you can drag this" affordance. */
   .pc-resizable__grip {
     @apply relative z-10 flex items-center justify-center;
+    /* Note: .pc-resizable__handle--with-handle is deliberately markup-only -
+       the grip below carries all the visible styling; the modifier exists on
+       the separator as a stable override hook for consumers. */
     @apply w-[11px] h-6 border border-gray-200 bg-gray-50 text-gray-400;
     @apply transition-colors duration-150 ease-out;
-    @apply dark:border-gray-400/20 dark:bg-gray-800 dark:text-gray-500;
+    @apply dark:border-gray-400/25 dark:bg-gray-800 dark:text-gray-500;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
   }
 

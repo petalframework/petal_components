@@ -156,7 +156,7 @@ defmodule PetalComponents.Resizable do
       "when true, dragging below roughly half the min_size snaps the panel to collapsed_size and fires petal:resizable-collapse"
 
   attr :collapsed_size, :integer, default: 0, doc: "the size the panel snaps to when collapsed"
-  attr :class, :any, default: nil
+  attr :class, :any, default: nil, doc: "extra classes on the panel"
   attr :rest, :global
 
   slot :inner_block, required: true
@@ -220,7 +220,7 @@ defmodule PetalComponents.Resizable do
     default: "Resize panels",
     doc: "accessible name for the separator; override per split when a page has several"
 
-  attr :class, :any, default: nil
+  attr :class, :any, default: nil, doc: "extra classes on the separator"
   attr :rest, :global
 
   def resizable_handle(assigns) do

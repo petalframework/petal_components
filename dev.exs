@@ -7723,10 +7723,14 @@ defmodule Dev.PlaygroundLive do
                 </ul>
               </nav>
             </.resizable_panel>
+            <%!-- value_* mirror the panel's default/min so SSR ARIA matches
+                  reality before the hook mounts and takes over --%>
             <.resizable_handle
               orientation={@rsz.orientation}
               with_handle={@rsz.with_handle}
               controls="pg-rsz-nav"
+              value_now={28}
+              value_min={18}
               label="Resize navigation"
             />
             <.resizable_panel default_size={72} min_size={30}>
@@ -7813,6 +7817,8 @@ defmodule Dev.PlaygroundLive do
           orientation="vertical"
           controls="pg-rsz-editor"
           with_handle
+          value_now={65}
+          value_min={25}
           label="Resize console"
         />
         <.resizable_panel default_size={35} min_size={15}>
