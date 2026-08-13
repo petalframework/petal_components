@@ -305,6 +305,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "popover", name: "Popover", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
         %{slug: "dropdown", name: "Dropdown", ready: true},
+        %{slug: "context-menu", name: "Context menu", ready: true},
         %{slug: "command", name: "Command", ready: true},
         %{slug: "slide-over", name: "Slide over", ready: true}
       ]
@@ -851,6 +852,7 @@ defmodule Dev.PlaygroundLive do
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
+       context_menu: %{disabled: false},
        chart: %{
          revenue: gen_wave(1100, 1),
          expenses: gen_wave(650, 4),
@@ -1436,6 +1438,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
     do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
+
+  def handle_event("ctl_context_menu", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :context_menu, &%{&1 | disabled: !&1.disabled})}
 
   def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
     do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
@@ -6919,6 +6924,131 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Popover</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "context-menu"} = assigns) do
+    assigns =
+      assign(assigns, :files, [
+        %{
+          id: "forecast",
+          name: "Q3-forecast.xlsx",
+          icon: "hero-document-chart-bar",
+          meta: "Edited 2 days ago"
+        },
+        %{
+          id: "brief",
+          name: "Launch brief.md",
+          icon: "hero-document-text",
+          meta: "Edited 6 hours ago"
+        },
+        %{
+          id: "hero",
+          name: "hero-shot.png",
+          icon: "hero-photo",
+          meta: "Edited last week"
+        }
+      ])
+
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Context menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A right-click menu attached to a region of the page. Same panel as the
+        dropdown, different invocation: the menu opens at the cursor and clamps
+        itself inside the viewport.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-4 py-8 sm:px-6">
+          <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+            Right-click a card. On a phone, hold it for half a second. Keyboard only:
+            tab to a card and press <kbd class="pc-kbd">⇧</kbd>
+            <kbd class="pc-kbd">F10</kbd>
+            (or the Menu key), then arrow through the items and press Escape to get out.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <%!-- disabled is baked into the id ON PURPOSE: flipping the dial
+                  changes the id, forcing a remount so the hook attaches or
+                  detaches. Simplify it to a stable id and the toggle stops
+                  working (LiveView patches never re-run phx-hook wiring). --%>
+            <.context_menu
+              :for={f <- @files}
+              id={"pg-cm-#{f.id}-#{@context_menu.disabled}"}
+              disabled={@context_menu.disabled}
+            >
+              <:trigger>
+                <div class="flex flex-col gap-3 p-4 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-800">
+                  <.icon name={f.icon} class="w-8 h-8 text-gray-400" />
+                  <div class="min-w-0">
+                    <div class="text-sm font-medium truncate">{f.name}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{f.meta}</div>
+                  </div>
+                </div>
+              </:trigger>
+
+              <.context_menu_label>{f.name}</.context_menu_label>
+              <.context_menu_item link_type="button" kbd="↵">
+                <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4" /> Open
+              </.context_menu_item>
+              <.context_menu_item link_type="button" kbd="F2">
+                <.icon name="hero-pencil-square" class="w-4 h-4" /> Rename
+              </.context_menu_item>
+              <.context_menu_item link_type="button" kbd="⌘D">
+                <.icon name="hero-square-2-stack" class="w-4 h-4" /> Duplicate
+              </.context_menu_item>
+              <.context_menu_item link_type="button" disabled>
+                <.icon name="hero-lock-closed" class="w-4 h-4" /> Move to team folder
+              </.context_menu_item>
+              <.context_menu_separator />
+              <.context_menu_item link_type="button" variant="danger" kbd="⌘⌫">
+                <.icon name="hero-trash" class="w-4 h-4" /> Delete
+              </.context_menu_item>
+            </.context_menu>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={for {k, on} <- [{"disabled", @context_menu.disabled}], on, do: k}
+              on_change="ctl_context_menu"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+          <p class="text-xs text-gray-400">
+            disabled hands the region back to the browser's own menu.
+          </p>
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.ContextMenu, ~w(text_selection)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ContextMenu} function={:context_menu} />
+      <.showcase_props component={PetalComponents.ContextMenu} function={:context_menu_item} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ContextMenu</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
