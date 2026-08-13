@@ -7586,3 +7586,15 @@
       transition-duration: 1ms;
     }
   }
+
+/* QR code - the SVG carries its own colour via currentColor, so this is just
+   layout: behave like a block image and never overflow its container. */
+@layer components {
+  .pc-qr-code {
+    @apply block h-auto max-w-full;
+  }
+
+  .pc-qr-code__logo {
+    @apply flex items-center justify-center w-full h-full;
+  }
+}

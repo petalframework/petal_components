@@ -1,4 +1,24 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`<.qr_code>` - a QR code as pure server-rendered SVG.** No JavaScript,
+  crisp at any size, prints, and every dark module lands in a single
+  `<path>` so a dense code is one DOM node instead of eight hundred.
+  `currentColor` theming (`class="size-40 text-gray-900 dark:text-white"`),
+  the spec's 4-module quiet zone, all four error correction levels, `rounded`
+  from square modules to full dots, explicit `color`/`background`, optional
+  pixel `size`, and a `:logo` slot that knocks a hole in the middle and forces
+  error correction to `:h` so the code still scans. `role="img"` with a
+  `label` that never leaks the encoded value - a TOTP URI is a secret. The
+  moduledoc documents the dark-surface inversion rule.
+
+  The encoding matrix comes from [`eqrcode`](https://hex.pm/packages/eqrcode),
+  declared **optional** - it is not installed into your app unless you add
+  `{:eqrcode, "~> 0.2"}` yourself, and `<.qr_code>` raises with those
+  instructions if it is missing. Every other component is unaffected.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added

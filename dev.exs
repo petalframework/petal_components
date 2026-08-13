@@ -285,6 +285,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "data-table", name: "Data table", ready: true},
         %{slug: "data-table-link", name: "Data table · links", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
+        %{slug: "qr-code", name: "QR code", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
     },
@@ -703,6 +704,13 @@ defmodule Dev.PlaygroundLive do
 
   @input_types ~w(text email password search date time select textarea file color)
 
+  @qr_presets ~w(url totp wifi custom)
+  @qr_preset_values %{
+    "url" => "https://petal.build",
+    "totp" => "otpauth://totp/Petal:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Petal",
+    "wifi" => "WIFI:T:WPA;S:MyNetwork;P:secret;;"
+  }
+
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
   @tint_variants ~w(light soft dark outline callout)
@@ -768,6 +776,15 @@ defmodule Dev.PlaygroundLive do
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
+       qr: %{
+         preset: "url",
+         value: "https://petal.build",
+         size: "md",
+         ec: "m",
+         rounded: "0",
+         logo: false,
+         surface: "light"
+       },
        dt_selected: [],
        dt_hidden: [],
        dt_order: [],
@@ -1000,6 +1017,29 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("flip", %{"k" => "show_code"}, socket),
     do: {:noreply, update(socket, :show_code, &(!&1))}
+
+  def handle_event("flip", %{"k" => "qr_logo"}, socket),
+    do: {:noreply, update(socket, :qr, &%{&1 | logo: !&1.logo})}
+
+  # QR code dials. The content preset swaps the encoded value too, so the code
+  # in the hero is always really encoding whatever the preset says.
+  def handle_event("ctl_qr", %{"k" => "preset", "v" => v}, socket) when v in @qr_presets,
+    do: {:noreply, update(socket, :qr, &%{&1 | preset: v, value: qr_preset_value(v, &1.value)})}
+
+  def handle_event("ctl_qr", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg xl),
+    do: {:noreply, update(socket, :qr, &%{&1 | size: v})}
+
+  def handle_event("ctl_qr", %{"k" => "ec", "v" => v}, socket) when v in ~w(l m q h),
+    do: {:noreply, update(socket, :qr, &%{&1 | ec: v})}
+
+  def handle_event("ctl_qr", %{"k" => "rounded", "v" => v}, socket) when v in ~w(0 0.5 1),
+    do: {:noreply, update(socket, :qr, &%{&1 | rounded: v})}
+
+  def handle_event("ctl_qr", %{"k" => "surface", "v" => v}, socket) when v in ~w(light dark),
+    do: {:noreply, update(socket, :qr, &%{&1 | surface: v})}
+
+  def handle_event("ctl_qr_value", %{"pg_qr_value" => value}, socket),
+    do: {:noreply, update(socket, :qr, &%{&1 | preset: "custom", value: value})}
 
   def handle_event("ctl_input", %{"k" => "type", "v" => v}, socket) when v in @input_types,
     do: {:noreply, update(socket, :input, &%{&1 | type: v})}
@@ -1598,6 +1638,48 @@ defmodule Dev.PlaygroundLive do
     {rows, state} = PetalComponents.DataTable.Engine.List.run(rows, state)
 
     {state, rows}
+  end
+
+  # A preset swaps in its canned payload; "custom" keeps whatever is typed.
+  defp qr_preset_value(preset, current), do: Map.get(@qr_preset_values, preset, current)
+
+  defp qr_rounded("0"), do: 0
+  defp qr_rounded("0.5"), do: 0.5
+  defp qr_rounded("1"), do: 1
+
+  defp qr_size_class("sm"), do: "size-28"
+  defp qr_size_class("md"), do: "size-44"
+  defp qr_size_class("lg"), do: "size-60"
+  defp qr_size_class("xl"), do: "size-72"
+
+  # Never hand the component an empty string - there is nothing to encode.
+  defp qr_value(""), do: "https://petal.build"
+  defp qr_value(value), do: value
+
+  # The snippet shows EXACTLY what the hero renders - the same PC monogram
+  # slot content, and the label every hero render passes.
+  defp qr_snippet(qr) do
+    logo =
+      if qr.logo do
+        "\n  <:logo>\n" <>
+          ~s|    <div class="flex items-center justify-center w-full h-full text-5xl font-bold">\n| <>
+          ~s|      <span class="text-primary-600">PC</span>\n| <>
+          "    </div>\n  </:logo>\n</.qr_code>"
+      else
+        "\n/>"
+      end
+
+    background = if qr.surface == "light", do: ~s(\n  background="white"), else: ""
+    colour = if qr.surface == "light", do: "text-gray-900", else: "text-white"
+
+    ~s|<.qr_code| <>
+      ~s|\n  value="#{qr_value(qr.value)}"| <>
+      ~s|\n  error_correction={:#{qr.ec}}| <>
+      ~s|\n  rounded={#{qr.rounded}}| <>
+      background <>
+      ~s|\n  label="QR code for the value shown below"| <>
+      ~s|\n  class="#{qr_size_class(qr.size)} #{colour}"| <>
+      logo
   end
 
   def handle_event("pg_remote_search", term, socket) do
@@ -4183,6 +4265,186 @@ defmodule Dev.PlaygroundLive do
         or from plain JavaScript via a <code>petal:toast</code>
         CustomEvent. Danger toasts announce as <code>role="alert"</code>; the rest as polite status.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "qr-code"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">QR code</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Encoded on the server and emitted as inline SVG. No JavaScript, no canvas, crisp at
+        any size, and it prints. Every dark module goes into a single path, so even a dense
+        code is one DOM node. Colour rides currentColor; size rides classes.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class={[
+          "flex items-center justify-center px-6 py-12",
+          @qr.surface == "dark" && "bg-gray-900"
+        ]}>
+          <div class={@qr.surface == "light" && "p-5 bg-white rounded-xl"}>
+            <.qr_code
+              value={qr_value(@qr.value)}
+              error_correction={String.to_existing_atom(@qr.ec)}
+              rounded={qr_rounded(@qr.rounded)}
+              background={if @qr.surface == "light", do: "white", else: "transparent"}
+              label="QR code for the value shown below"
+              class={[
+                qr_size_class(@qr.size),
+                if(@qr.surface == "light", do: "text-gray-900", else: "text-white")
+              ]}
+            >
+              <:logo :if={@qr.logo}>
+                <div class="flex items-center justify-center w-full h-full text-5xl font-bold">
+                  <span class="text-primary-600">PC</span>
+                </div>
+              </:logo>
+            </.qr_code>
+          </div>
+        </div>
+
+        <div class="px-4 pb-4 sm:px-6">
+          <form phx-change="ctl_qr_value">
+            <label class="block mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              value being encoded
+            </label>
+            <input
+              type="text"
+              name="pg_qr_value"
+              value={@qr.value}
+              autocomplete="off"
+              class="w-full px-3 py-2 font-mono text-xs text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </form>
+          <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+            The same information is right here as text - a QR code must never be the only way in.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">content</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Content preset"
+              value={@qr.preset}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={p <- ~w(url totp wifi)} value={p} phx-value-k="preset" phx-value-v={p}>
+                {p}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@qr.size}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(sm md lg xl)} value={s} phx-value-k="size" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              error correction
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Error correction"
+              value={@qr.ec}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={e <- ~w(l m q h)} value={e} phx-value-k="ec" phx-value-v={e}>
+                {e}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">modules</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Module rounding"
+              value={@qr.rounded}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="0" phx-value-k="rounded" phx-value-v="0">square</:item>
+              <:item value="0.5" phx-value-k="rounded" phx-value-v="0.5">soft</:item>
+              <:item value="1" phx-value-k="rounded" phx-value-v="1">dots</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">surface</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Surface"
+              value={@qr.surface}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="light" phx-value-k="surface" phx-value-v="light">white card</:item>
+              <:item value="dark" phx-value-k="surface" phx-value-v="dark">inverted</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">logo</div>
+            <button
+              phx-click="flip"
+              phx-value-k="qr_logo"
+              class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg dark:border-gray-700"
+            >
+              {if @qr.logo, do: "on", else: "off"}
+            </button>
+          </div>
+        </div>
+        <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          turning the logo on forces error correction to :h - watch the code get denser, that is
+          the redundancy that lets it survive the hole
+        </p>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{qr_snippet(@qr)}</code></pre>
+
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.QrCode, ~w(totp share dark_surface logo)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.QrCode} function={:qr_code} />
     </div>
     """
   end
