@@ -178,11 +178,13 @@ defmodule PetalComponents.SlideOver do
     js =
       JS.remove_class("overflow-hidden", to: "body")
       |> JS.hide(
-        transition: {"ease-in duration-200 pc-slideover-anim-fade-out", "opacity-100", "opacity-0"},
+        transition:
+          {"ease-in duration-200 pc-slideover-anim-fade-out", "opacity-100", "opacity-0"},
         to: "##{id}-overlay"
       )
       |> JS.hide(
-        transition: {"ease-in duration-200 pc-slideover-anim-out-#{origin}", start_class, end_class},
+        transition:
+          {"ease-in duration-200 pc-slideover-anim-out-#{origin}", start_class, end_class},
         to: "##{id}-content"
       )
       |> JS.hide(to: "##{id}", transition: {"duration-200", "", ""})
