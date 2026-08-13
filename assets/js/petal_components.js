@@ -5576,7 +5576,21 @@ export const PetalCalendar = {
     this.focusDate(target);
   },
 
+  // min/max are a hard window, so movement stops at its edges rather than
+  // paging the nav into a month where every single day is disabled - a dead end
+  // you can only leave by paging back. Days disabled by disabled_dates are not
+  // clamped: the APG wants those traversable.
+  clamp(iso) {
+    const min = this.el.dataset.min;
+    const max = this.el.dataset.max;
+    if (min && iso < min) return min;
+    if (max && iso > max) return max;
+    return iso;
+  },
+
   focusDate(iso) {
+    iso = this.clamp(iso);
+
     // Landing in another month means the month must change, even when the day
     // happens to be painted as an outside day - the grid follows the focus.
     if (isoMonth(iso) === isoMonth(this.el.dataset.month)) {
@@ -5747,17 +5761,54 @@ export const PetalDatePicker = {
     return this.panel.querySelector(".pc-calendar");
   },
 
-  monthNames() {
+  labels(key) {
     const calendar = this.calendar();
-    const names = calendar && calendar.dataset.monthNames;
+    const names = calendar && calendar.dataset[key];
     return names ? names.split(",") : [];
   },
 
-  // With a select event wired the server owns the value; the hook only handles
-  // focus and typing.
-  serverOwned() {
+  monthNames() {
+    return this.labels("monthNames");
+  },
+
+  // Monday-first, matching the day_names_long attr; the ISO day number indexes
+  // it.
+  dayNamesLong() {
+    return this.labels("dayNamesLong");
+  },
+
+  // With a select event wired the server owns the value; the hook never writes
+  // it, it only tells the server what the user typed.
+  selectEvent() {
     const calendar = this.calendar();
-    return !!(calendar && calendar.dataset.selectEvent);
+    return (calendar && calendar.dataset.selectEvent) || null;
+  },
+
+  serverOwned() {
+    return !!this.selectEvent();
+  },
+
+  // A typed date has to reach handle_event or typing is decorative. Push the
+  // same event, with the same phx-target, that clicking that day would - the
+  // day buttons carry the target LiveView already resolved for us.
+  push(event, payload) {
+    if (!event) return;
+    const wired = this.panel.querySelector("[data-date][phx-target]");
+    const target = wired && wired.getAttribute("phx-target");
+
+    if (target && typeof this.pushEventTo === "function") {
+      this.pushEventTo(target, event, payload);
+    } else if (typeof this.pushEvent === "function") {
+      this.pushEvent(event, payload);
+    }
+  },
+
+  // Range mode gets one event per end, in the order two clicks would arrive,
+  // because that is the only contract an on_select handler can already have.
+  pushSelection(from, to) {
+    for (const iso of [from, to]) {
+      if (iso) this.push(this.selectEvent(), { date: iso });
+    }
   },
 
   hidden(role) {
@@ -5781,8 +5832,18 @@ export const PetalDatePicker = {
     const text = (this.input.value || "").trim();
 
     if (text === "") {
+      // Emptying the box cannot clear a value the server owns. Push on_clear if
+      // there is one, otherwise put the display back rather than leave it
+      // disagreeing with the hidden input that actually posts.
+      if (this.serverOwned()) {
+        const clear = this.el.dataset.clearEvent;
+        if (clear) this.push(clear, {});
+        else this.revert();
+        return;
+      }
+
       this.lastValid = "";
-      if (!this.serverOwned()) this.commit(null, null);
+      this.commit(null, null);
       return;
     }
 
@@ -5790,19 +5851,46 @@ export const PetalDatePicker = {
     const separator = this.el.dataset.rangeSeparator || " - ";
 
     if (this.el.dataset.mode === "range") {
-      const [rawFrom, rawTo] = text.split(separator.trim() || "-");
+      const [rawFrom, rawTo] = this.splitRange(text, separator);
       const from = this.parseOne(rawFrom, format);
       const to = this.parseOne(rawTo, format);
       if (!from && !to) return this.revert();
       this.lastValid = this.input.value;
-      if (!this.serverOwned()) this.commit(from, to);
+      if (this.serverOwned()) this.pushSelection(from, to);
+      else this.commit(from, to);
       return;
     }
 
     const iso = this.parseOne(text, format);
     if (!iso) return this.revert();
     this.lastValid = this.input.value;
-    if (!this.serverOwned()) this.commit(iso, null);
+    if (this.serverOwned()) this.pushSelection(iso, null);
+    else this.commit(iso, null);
+  },
+
+  // Split on the separator as configured, at its first occurrence. Splitting on
+  // its trimmed remains tears "2026-03-09" apart on its own hyphens, which is
+  // exactly what the default format and the default " - " separator do
+  // together. The trimmed form is only a fallback, and only where a space sits
+  // beside it, so an ISO date can never match it.
+  splitRange(text, separator) {
+    const at = separator ? text.indexOf(separator) : -1;
+    if (at !== -1) {
+      return [text.slice(0, at), text.slice(at + separator.length)];
+    }
+
+    const trimmed = (separator || "").trim();
+    if (!trimmed) return [text, ""];
+
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const loose = new RegExp(`\\s+${escaped}\\s*|\\s*${escaped}\\s+`);
+    const found = loose.exec(text);
+    if (!found) return [text, ""];
+
+    return [
+      text.slice(0, found.index),
+      text.slice(found.index + found[0].length),
+    ];
   },
 
   parseOne(text, format) {
@@ -5895,9 +5983,20 @@ export const PetalDatePicker = {
     const pad = (n) => String(n).padStart(2, "0");
     const month = d.getUTCMonth();
     const name = names[month] || "";
+    // getUTCDay is Sunday-first; day_names_long arrives Monday-first, same as
+    // the Elixir attr, so the ISO day number indexes it. The abbreviation is
+    // the first three letters, which is what Calendar.strftime/2 does for %a -
+    // same relationship %b has to %B here.
+    const isoDay = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
+    const dayLong = this.dayNamesLong()[isoDay - 1] || "";
+    const dayShort = dayLong.slice(0, 3);
 
     return format.replace(/%[-0_]?([A-Za-z%])/g, (whole, directive) => {
       switch (directive) {
+        case "A":
+          return dayLong || whole;
+        case "a":
+          return dayShort || whole;
         case "Y":
           return String(d.getUTCFullYear());
         case "y":
@@ -5932,10 +6031,11 @@ export const PetalDatePicker = {
       const between = range && !!from && !!to && iso > from && iso < to;
       const selected = isFrom || isTo || between;
 
+      // Day-level range-start/end deliberately do not exist: the band and its
+      // rounded ends are cell classes, and the two ends read as selected. Keep
+      // this list identical to Calendar's @day_flags.
       day.classList.toggle("pc-calendar__day--selected", selected);
       day.classList.toggle("pc-calendar__day--in-range", between);
-      day.classList.toggle("pc-calendar__day--range-start", isFrom);
-      day.classList.toggle("pc-calendar__day--range-end", isTo);
 
       const cell = day.closest('[role="gridcell"]');
       if (!cell) continue;

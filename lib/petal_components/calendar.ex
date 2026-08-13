@@ -160,7 +160,8 @@ defmodule PetalComponents.Calendar do
 
   attr :target, :any,
     default: nil,
-    doc: "phx-target for the select and month-change events (a LiveComponent myself)"
+    doc:
+      "phx-target for the select and month-change events; set it to @myself when the calendar lives inside a LiveComponent"
 
   attr :month_param, :string,
     default: "month",
@@ -202,6 +203,9 @@ defmodule PetalComponents.Calendar do
       data-starts-on={@starts_on}
       data-select-event={@on_select}
       data-month-names={Enum.join(@month_names, ",")}
+      data-day-names-long={Enum.join(@day_names_long, ",")}
+      data-min={iso_attr(@min)}
+      data-max={iso_attr(@max)}
       {@rest}
     >
       <div class="pc-calendar__header">
@@ -350,14 +354,16 @@ defmodule PetalComponents.Calendar do
   defp day_type(%{on_select: nil, name: name}) when name not in [nil, false], do: "submit"
   defp day_type(_assigns), do: "button"
 
+  # The range band and its rounded ends are on the cell, so it can run edge to
+  # edge between days. The two ends are also selected, which is what paints
+  # them - there is deliberately no day-level range-start/end class, because a
+  # class with no rule behind it is dead weight in every consumer's stylesheet.
   @day_flags [
     {:outside, "pc-calendar__day--outside"},
     {:today, "pc-calendar__day--today"},
     {:selected, "pc-calendar__day--selected"},
     {:disabled, "pc-calendar__day--disabled"},
-    {:range_middle, "pc-calendar__day--in-range"},
-    {:range_start, "pc-calendar__day--range-start"},
-    {:range_end, "pc-calendar__day--range-end"}
+    {:range_middle, "pc-calendar__day--in-range"}
   ]
 
   defp day_classes(day) do
@@ -370,7 +376,16 @@ defmodule PetalComponents.Calendar do
   # ----------------------------------------------------------------------------
 
   defp normalise(assigns) do
-    assigns = assign(assigns, :month_names, pad(assigns.month_names, @default_month_names, 12))
+    # Pad once, up front: every downstream reader (the caption, the aria labels,
+    # the column headers and the data attrs the hook parses) then sees a full
+    # list, so a caller who passes six day names gets English in the hole rather
+    # than an empty column header or a truncated hook contract.
+    assigns =
+      assigns
+      |> assign(:month_names, pad(assigns.month_names, @default_month_names, 12))
+      |> assign(:day_names, pad(assigns.day_names, @default_day_names, 7))
+      |> assign(:day_names_long, pad(assigns.day_names_long, @default_day_names_long, 7))
+
     selection = selection(assigns.mode, assigns.value)
     month_start = month_start(assigns.month, selection, assigns.today)
     weeks = month_start |> build_weeks(assigns) |> assign_tabindex()
@@ -555,12 +570,14 @@ defmodule PetalComponents.Calendar do
 
   defp month_name(month, month_names), do: Enum.at(month_names, month - 1)
 
+  # min/max can arrive as false from a playground-style toggle, and an absent
+  # attribute is what tells the hook there is no window to clamp against.
+  defp iso_attr(%Date{} = date), do: Date.to_iso8601(date)
+  defp iso_attr(_), do: nil
+
   # day_names arrive Monday-first whatever starts_on is, so rotating them here
   # keeps the attr's contract stable when the dial changes.
   defp weekday_labels(short, long, starts_on) do
-    short = pad(short, @default_day_names, 7)
-    long = pad(long, @default_day_names_long, 7)
-
     Enum.map(0..6, fn i ->
       index = rem(starts_on - 1 + i, 7)
       {Enum.at(short, index), Enum.at(long, index)}

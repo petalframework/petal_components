@@ -29,6 +29,17 @@ const MONTHS = [
   "December",
 ];
 
+// Monday-first, same order the day_names_long attr takes.
+const DAYS_LONG = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
 const utc = (iso) => {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d));
@@ -75,9 +86,12 @@ function calendarMarkup({
   month = "2026-03-01",
   startsOn = 1,
   selectEvent = null,
+  selectTarget = null,
   selected = null,
   disabled = [],
   linkNav = false,
+  min = null,
+  max = null,
   id = "cal",
 } = {}) {
   const days = monthGrid(month, startsOn);
@@ -91,9 +105,16 @@ function calendarMarkup({
       .map((d) => {
         const outside = d.slice(0, 7) !== monthNumber;
         const off = disabled.includes(d);
+        // Mirrors the day button the Elixir side renders: an enabled day in
+        // event mode carries the click wiring, a disabled one never does.
+        const wiring =
+          selectEvent && !off
+            ? `phx-click="${selectEvent}" phx-value-date="${d}"${selectTarget ? ` phx-target="${selectTarget}"` : ""}`
+            : "";
         return `<td role="gridcell"${d === selected ? ' aria-selected="true"' : ""} class="pc-calendar__cell">
           <button type="button" class="pc-calendar__day" data-date="${d}"
             ${outside ? 'data-outside="true"' : ""} ${off ? 'data-disabled="true" aria-disabled="true"' : ""}
+            ${wiring}
             tabindex="${d === focus ? "0" : "-1"}">${Number(d.slice(8))}</button>
         </td>`;
       })
@@ -104,6 +125,8 @@ function calendarMarkup({
   return `
     <div id="${id}" class="pc-calendar" data-month="${month}" data-starts-on="${startsOn}"
       ${selectEvent ? `data-select-event="${selectEvent}"` : ""}
+      ${min ? `data-min="${min}"` : ""} ${max ? `data-max="${max}"` : ""}
+      data-day-names-long="${DAYS_LONG.join(",")}"
       data-month-names="${MONTHS.join(",")}">
       <div class="pc-calendar__header">
         ${navMarkup("prev", addMonthsIso(month, -1), linkNav)}
@@ -172,6 +195,8 @@ function pickerMarkup({
   format = "%Y-%m-%d",
   separator = " - ",
   selectEvent = null,
+  selectTarget = null,
+  clearEvent = null,
   value = "",
   display = "",
   clearable = false,
@@ -184,6 +209,7 @@ function pickerMarkup({
 
   return `
     <div id="dp" class="pc-date-picker" data-mode="${mode}" data-format="${format}"
+      ${clearEvent ? `data-clear-event="${clearEvent}"` : ""}
       data-range-separator="${separator}">
       <div class="pc-date-picker__control">
         <input type="text" id="dp-input" data-pc-date-input value="${display}" />
@@ -192,7 +218,7 @@ function pickerMarkup({
       </div>
       ${hiddens}
       <div id="dp-panel" class="pc-date-picker__panel">
-        ${calendarMarkup({ selectEvent, id: "dp-calendar" })}
+        ${calendarMarkup({ selectEvent, selectTarget, id: "dp-calendar" })}
       </div>
     </div>
   `;
@@ -206,6 +232,14 @@ function mountPicker(opts = {}) {
   const el = wrap.querySelector(".pc-date-picker");
   const hook = Object.create(hooks.PetalDatePicker);
   hook.el = el;
+
+  // Stand in for the LiveView hook API. A hook only ever runs under a
+  // LiveSocket, so these always exist in the real thing.
+  const pushes = [];
+  hook.pushEvent = (event, payload) => pushes.push({ event, payload });
+  hook.pushEventTo = (target, event, payload) =>
+    pushes.push({ target, event, payload });
+
   hook.mounted();
   mounted.push(hook);
 
@@ -218,6 +252,7 @@ function mountPicker(opts = {}) {
     hook,
     el,
     changes,
+    pushes,
     input: el.querySelector("[data-pc-date-input]"),
     hidden: (role) => el.querySelector(`[data-pc-date-${role}]`),
     day: (d) => el.querySelector(`[data-date="${d}"]`),
@@ -405,6 +440,48 @@ describe("PetalCalendar month paging", () => {
   });
 });
 
+// Paging past a min/max window used to retarget the nav into a month where
+// every day is disabled - a dead end you can only get out of by paging back.
+describe("PetalCalendar min/max window", () => {
+  it("does not page above max", () => {
+    const c = mountCalendar({ month: "2026-03-01", max: "2026-03-20" });
+    key(c.day("2026-03-12"), "PageDown");
+    expect(c.navClicks).toEqual([]);
+    expect(document.activeElement.dataset.date).toBe("2026-03-20");
+  });
+
+  it("does not page below min", () => {
+    const c = mountCalendar({ month: "2026-03-01", min: "2026-03-05" });
+    key(c.day("2026-03-12"), "PageUp", { shiftKey: true });
+    expect(c.navClicks).toEqual([]);
+    expect(document.activeElement.dataset.date).toBe("2026-03-05");
+  });
+
+  it("still pages when the target lands inside the window", () => {
+    const c = mountCalendar({
+      month: "2026-03-01",
+      min: "2026-01-01",
+      max: "2026-12-31",
+    });
+    key(c.day("2026-03-12"), "PageDown");
+    expect(c.navClicks).toEqual(["next"]);
+    expect(c.hook.pendingFocus).toBe("2026-04-12");
+  });
+
+  it("pages to the edge month when the window ends part way in", () => {
+    const c = mountCalendar({ month: "2026-03-01", max: "2026-04-10" });
+    key(c.day("2026-03-12"), "PageDown");
+    expect(c.navClicks).toEqual(["next"]);
+    expect(c.hook.pendingFocus).toBe("2026-04-10");
+  });
+
+  it("leaves arrow movement alone when no window is set", () => {
+    const c = mountCalendar();
+    key(c.day("2026-03-12"), "ArrowLeft");
+    expect(document.activeElement.dataset.date).toBe("2026-03-11");
+  });
+});
+
 describe("PetalDatePicker parse on blur", () => {
   it("accepts ISO whatever the display format is", () => {
     const p = mountPicker({ format: "%d %b %Y" });
@@ -458,11 +535,80 @@ describe("PetalDatePicker parse on blur", () => {
     expect(p.hidden("value").value).toBe("2026-03-14");
   });
 
-  it("leaves the value alone when the server owns it", () => {
+  // The hook must never write a value the server owns, but dropping the parse
+  // on the floor is worse: the typed date has to reach handle_event or typing
+  // is a lie. It goes out as the same event a click on that day would push.
+  it("pushes the wired select event when the server owns the value", () => {
     const p = mountPicker({ selectEvent: "pick" });
     p.input.value = "2026-03-14";
     p.input.dispatchEvent(new Event("blur"));
+
     expect(p.hidden("value").value).toBe("");
+    expect(p.pushes).toEqual([
+      { event: "pick", payload: { date: "2026-03-14" } },
+    ]);
+  });
+
+  it("respects phx-target when it pushes", () => {
+    const p = mountPicker({ selectEvent: "pick", selectTarget: "3" });
+    p.input.value = "2026-03-14";
+    p.input.dispatchEvent(new Event("blur"));
+
+    expect(p.pushes).toEqual([
+      { target: "3", event: "pick", payload: { date: "2026-03-14" } },
+    ]);
+  });
+
+  it("pushes both ends of a typed range, in the order two clicks would", () => {
+    const p = mountPicker({ mode: "range", selectEvent: "pick" });
+    p.input.value = "2026-03-09 - 2026-03-17";
+    p.input.dispatchEvent(new Event("blur"));
+
+    expect(p.pushes.map((push) => push.payload.date)).toEqual([
+      "2026-03-09",
+      "2026-03-17",
+    ]);
+  });
+
+  it("does not push anything for text that will not parse", () => {
+    const p = mountPicker({
+      selectEvent: "pick",
+      display: "2026-03-14",
+      value: "2026-03-14",
+    });
+    p.input.value = "next tuesday";
+    p.input.dispatchEvent(new Event("blur"));
+
+    expect(p.pushes).toEqual([]);
+    expect(p.input.value).toBe("2026-03-14");
+  });
+
+  // Emptying the input cannot clear a server-owned value, so the display has to
+  // go back rather than sit there disagreeing with what will post.
+  it("reverts an emptied input when the server owns the value and nothing handles clearing", () => {
+    const p = mountPicker({
+      selectEvent: "pick",
+      display: "2026-03-14",
+      value: "2026-03-14",
+    });
+    p.input.value = "";
+    p.input.dispatchEvent(new Event("blur"));
+
+    expect(p.input.value).toBe("2026-03-14");
+    expect(p.pushes).toEqual([]);
+  });
+
+  it("pushes on_clear instead when one is wired", () => {
+    const p = mountPicker({
+      selectEvent: "pick",
+      clearEvent: "wipe",
+      display: "2026-03-14",
+      value: "2026-03-14",
+    });
+    p.input.value = "";
+    p.input.dispatchEvent(new Event("blur"));
+
+    expect(p.pushes).toEqual([{ event: "wipe", payload: {} }]);
   });
 });
 
@@ -515,15 +661,33 @@ describe("PetalDatePicker selection", () => {
     expect(p.hidden("to").value).toBe("");
   });
 
+  // The band lives on the cell so it runs edge to edge; the day only ever gets
+  // the classes the server would have rendered for the same selection.
   it("range mode paints the band between the ends", () => {
     const p = mountPicker({ mode: "range" });
     p.day("2026-03-09").click();
     p.day("2026-03-12").click();
 
+    const cell = (d) => p.day(d).closest("td");
+
     expect(p.day("2026-03-10").classList.contains("pc-calendar__day--in-range")).toBe(true);
-    expect(p.day("2026-03-09").classList.contains("pc-calendar__day--range-start")).toBe(true);
-    expect(p.day("2026-03-12").classList.contains("pc-calendar__day--range-end")).toBe(true);
     expect(p.day("2026-03-13").classList.contains("pc-calendar__day--in-range")).toBe(false);
+
+    expect(cell("2026-03-09").classList.contains("pc-calendar__cell--range-start")).toBe(true);
+    expect(cell("2026-03-12").classList.contains("pc-calendar__cell--range-end")).toBe(true);
+    expect(cell("2026-03-10").classList.contains("pc-calendar__cell--in-range")).toBe(true);
+  });
+
+  it("paints no day-level range classes the stylesheet does not define", () => {
+    const p = mountPicker({ mode: "range" });
+    p.day("2026-03-09").click();
+    p.day("2026-03-12").click();
+
+    expect(
+      p.el.querySelectorAll(
+        ".pc-calendar__day--range-start, .pc-calendar__day--range-end",
+      ),
+    ).toHaveLength(0);
   });
 
   it("range mode parses both sides of a typed range", () => {
@@ -534,11 +698,62 @@ describe("PetalDatePicker selection", () => {
     expect(p.hidden("to").value).toBe("2026-03-17");
   });
 
+  // The default format is ISO and the default separator is " - ", so splitting
+  // on a bare "-" tears the year off the first date. Split on the separator as
+  // configured, not on its trimmed remains.
+  it("range mode parses a typed range in the default ISO format", () => {
+    const p = mountPicker({ mode: "range" });
+    p.input.value = "2026-03-09 - 2026-03-17";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("from").value).toBe("2026-03-09");
+    expect(p.hidden("to").value).toBe("2026-03-17");
+  });
+
+  it("range mode tolerates missing padding around the separator", () => {
+    const p = mountPicker({ mode: "range", format: "%d %b %Y" });
+    p.input.value = "09 Mar 2026 -17 Mar 2026";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("from").value).toBe("2026-03-09");
+    expect(p.hidden("to").value).toBe("2026-03-17");
+  });
+
+  it("range mode keeps a half-typed range rather than clearing it", () => {
+    const p = mountPicker({ mode: "range" });
+    p.input.value = "2026-03-09 - ";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("from").value).toBe("2026-03-09");
+    expect(p.hidden("to").value).toBe("");
+  });
+
   it("the clear button empties both the hidden value and the display", () => {
     const p = mountPicker({ clearable: true, value: "2026-03-14", display: "2026-03-14" });
     p.el.querySelector("[data-pc-date-clear]").click();
     expect(p.hidden("value").value).toBe("");
     expect(p.input.value).toBe("");
+  });
+});
+
+// The client half formats the display itself when it owns the value, so it has
+// to render every directive the server-side Calendar.strftime/2 can - a literal
+// "%a" in the input is the tell that it does not.
+describe("PetalDatePicker display formatting", () => {
+  it("renders day names from the calendar's own labels", () => {
+    const p = mountPicker({ format: "%a %d %b %Y" });
+    p.day("2026-03-14").click();
+    expect(p.input.value).toBe("Sat 14 Mar 2026");
+  });
+
+  it("renders the long day name too", () => {
+    const p = mountPicker({ format: "%A, %-d %B %Y" });
+    p.day("2026-03-14").click();
+    expect(p.input.value).toBe("Saturday, 14 March 2026");
+  });
+
+  it("round-trips its own output back through the parser", () => {
+    const p = mountPicker({ format: "%a %d %b %Y" });
+    p.day("2026-03-14").click();
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("value").value).toBe("2026-03-14");
   });
 });
 

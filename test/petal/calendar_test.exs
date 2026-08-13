@@ -268,6 +268,24 @@ defmodule PetalComponents.CalendarTest do
       assert Enum.count(cells(html, ".pc-calendar__cell--in-range")) == 3
     end
 
+    # The band and its rounded ends live on the cell so it runs edge to edge.
+    # The ends of a range are also selected, so the day never needed its own
+    # range modifiers - and a class with no rule behind it is dead weight in
+    # every consumer's stylesheet.
+    test "range ends carry no day-level modifiers the stylesheet does not define" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar month={~D[2026-03-01]} mode="range" value={{~D[2026-03-10], ~D[2026-03-14]}} />
+        """)
+
+      assert Enum.empty?(cells(html, ".pc-calendar__day--range-start"))
+      assert Enum.empty?(cells(html, ".pc-calendar__day--range-end"))
+      assert Enum.count(cells(html, ".pc-calendar__day--selected")) == 5
+      assert Enum.count(cells(html, ".pc-calendar__day--in-range")) == 3
+    end
+
     test "range mode accepts a map and orders a backwards pair" do
       assigns = %{}
 
@@ -574,6 +592,37 @@ defmodule PetalComponents.CalendarTest do
       assert LazyHTML.attribute(root, "data-starts-on") == ["7"]
       assert LazyHTML.attribute(root, "data-select-event") == ["pick"]
       assert root |> LazyHTML.attribute("data-month-names") |> List.first() =~ "January,February"
+
+      assert root |> LazyHTML.attribute("data-day-names-long") |> List.first() =~
+               "Monday,Tuesday"
+    end
+
+    # The hook clamps keyboard paging to the same window the server disables
+    # days with, so it needs the window itself, not just the result of it.
+    test "the min and max window reaches the hook" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar id="cal" month={~D[2026-03-01]} min={~D[2026-03-05]} max={~D[2026-03-20]} />
+        """)
+
+      root = html |> parse_html() |> LazyHTML.query("#cal")
+      assert LazyHTML.attribute(root, "data-min") == ["2026-03-05"]
+      assert LazyHTML.attribute(root, "data-max") == ["2026-03-20"]
+    end
+
+    test "no window means no attributes to clamp against" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar id="cal" month={~D[2026-03-01]} min={false} />
+        """)
+
+      root = html |> parse_html() |> LazyHTML.query("#cal")
+      assert LazyHTML.attribute(root, "data-min") == []
+      assert LazyHTML.attribute(root, "data-max") == []
     end
   end
 

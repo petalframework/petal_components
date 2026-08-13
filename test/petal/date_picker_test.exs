@@ -294,6 +294,22 @@ defmodule PetalComponents.DatePickerTest do
       assert Enum.empty?(query(html, "#dp-calendar-2 [data-pc-nav]"))
     end
 
+    # Two panes are two grids, and roving tabindex is per composite widget, so
+    # each keeps its own single tab stop rather than the dialog having one
+    # between them. The cost is one extra Tab; the alternative is a right pane
+    # you can only reach with a mouse, since arrow keys never cross a pane.
+    test "each pane keeps its own single tab stop" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.date_picker id="dp" name="d" mode="range" two_months month={~D[2026-12-01]} />
+        """)
+
+      assert Enum.count(query(html, ~s(#dp-calendar [data-date][tabindex="0"]))) == 1
+      assert Enum.count(query(html, ~s(#dp-calendar-2 [data-date][tabindex="0"]))) == 1
+    end
+
     test "one pane by default" do
       assigns = %{}
 
@@ -339,6 +355,44 @@ defmodule PetalComponents.DatePickerTest do
       assert attr_of(html, "#dp-input", "aria-controls") == "dp-panel"
       assert attr_of(html, "#dp-panel", "aria-label") == "Choose a due date"
       assert attr_of(html, "#dp-toggle", "aria-label") == "Choose a due date"
+    end
+
+    # The icon button is the primary pointer target, so it has to report the
+    # panel's state too - popover.ex toggles aria-expanded on its trigger for
+    # the same reason.
+    test "the toggle button reports the panel's state as well as the input" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.date_picker id="dp" name="d" />
+        """)
+
+      assert attr_of(html, "#dp-toggle", "aria-expanded") == "false"
+
+      open = attr_of(html, "#dp-toggle", "phx-click")
+      assert open =~ "dp-toggle"
+      assert open =~ "aria-expanded"
+
+      close = attr_of(html, "#dp", "phx-click-away")
+      assert close =~ "dp-toggle"
+    end
+
+    test "the clear event reaches the hook so typing an empty box can clear" do
+      assigns = %{}
+
+      wired =
+        rendered_to_string(~H"""
+        <.date_picker id="dp" name="d" on_select="pick" on_clear="wipe" />
+        """)
+
+      bare =
+        rendered_to_string(~H"""
+        <.date_picker id="dp" name="d" on_select="pick" />
+        """)
+
+      assert attr_of(wired, "#dp", "data-clear-event") == "wipe"
+      assert attr_of(bare, "#dp", "data-clear-event") == nil
     end
 
     test "Escape closes and click-away dismisses" do

@@ -7609,8 +7609,10 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
-  .pc-calendar__nav-icon {
-    @apply w-4 h-4;
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). */
+  .pc-calendar__nav-icon.pc-calendar__nav-icon {
+    @apply w-4! h-4!;
   }
 
   /* Keeps the caption optically centred when one arrow is suppressed, which is
@@ -7732,12 +7734,18 @@
     @apply right-7 pr-2;
   }
 
-  .pc-date-picker__icon {
-    @apply w-5 h-5;
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). */
+  .pc-date-picker__icon.pc-date-picker__icon {
+    @apply w-5! h-5!;
   }
 
+  /* Clamped to the viewport the way pc-popover__panel is, just wider: two month
+     panes side by side are about 34rem, and an unclamped w-max panel anchored
+     at left-0 walks straight off a phone. */
   .pc-date-picker__panel {
     @apply absolute left-0 z-40 mt-2 p-3 bg-white border border-gray-200 shadow-lg w-max origin-top-left;
+    @apply max-w-[min(38rem,calc(100vw-1rem))] overflow-x-auto;
     @apply dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }

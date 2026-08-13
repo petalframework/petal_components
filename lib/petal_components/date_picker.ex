@@ -56,6 +56,15 @@ defmodule PetalComponents.DatePicker do
   date. On failure the input reverts to the last valid formatted value, so a
   half-typed date can never silently post as nothing.
 
+  With `on_select` set the server owns the value, so a parsed date is pushed to
+  you as that same event rather than written client-side - typing `12 Jun 1987`
+  and clicking 12 June 1987 arrive at `handle_event/3` identically. In range mode
+  a typed range arrives as two events in reading order, exactly as two clicks
+  would, so the handler you already have keeps working. Emptying the input pushes
+  `on_clear` when you have wired one; without one there is nothing the picker can
+  push, so the display reverts rather than sit there disagreeing with the value
+  that will actually post.
+
   ## LiveView and dead views
 
   With `on_select` set, clicking a day pushes that event with the ISO date and
@@ -164,6 +173,7 @@ defmodule PetalComponents.DatePicker do
       data-mode={@mode}
       data-format={@format}
       data-range-separator={@range_separator}
+      data-clear-event={@on_clear}
       phx-click-away={close(@id)}
       phx-keydown={close_and_refocus(@id)}
       phx-key="Escape"
@@ -207,6 +217,7 @@ defmodule PetalComponents.DatePicker do
             disabled={@disabled}
             aria-label={@open_label}
             aria-haspopup="dialog"
+            aria-expanded="false"
             aria-controls={"#{@id}-panel"}
             phx-click={open(@id)}
           >
@@ -290,11 +301,15 @@ defmodule PetalComponents.DatePicker do
     """
   end
 
+  # Both the input and the icon button open the panel, so both have to report
+  # its state - the icon is the primary pointer target, and a trigger stuck on
+  # aria-expanded="false" tells a screen reader nothing happened.
   @doc false
   def open(id) do
     %JS{}
     |> JS.show(to: "##{id}-panel", transition: @transition_in)
     |> JS.set_attribute({"aria-expanded", "true"}, to: "##{id}-input")
+    |> JS.set_attribute({"aria-expanded", "true"}, to: "##{id}-toggle")
     |> JS.dispatch("pc:date-picker:open", to: "##{id}")
   end
 
@@ -303,6 +318,7 @@ defmodule PetalComponents.DatePicker do
     %JS{}
     |> JS.hide(to: "##{id}-panel", transition: @transition_out)
     |> JS.set_attribute({"aria-expanded", "false"}, to: "##{id}-input")
+    |> JS.set_attribute({"aria-expanded", "false"}, to: "##{id}-toggle")
     |> JS.dispatch("pc:date-picker:close", to: "##{id}")
   end
 

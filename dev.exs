@@ -1958,6 +1958,15 @@ defmodule Dev.PlaygroundLive do
   defp date_text(%Date{} = date), do: Calendar.strftime(date, "%d %b %Y")
   defp date_text(_), do: "-"
 
+  # The deadline scenario is the FormField path the tests cover, so the page
+  # drives it through to_form/1 rather than hand-building a name and an errors
+  # list - errors, the required marker and the posted name all come off the
+  # field the way they would in a real changeset-backed form.
+  defp deadline_form(%Date{} = date), do: to_form(%{"due_on" => date}, as: :task)
+
+  defp deadline_form(_),
+    do: to_form(%{"due_on" => nil}, as: :task, errors: [due_on: {"can't be blank", []}])
+
   defp input_meta("text"), do: {"Full name", "Ada Lovelace"}
   defp input_meta("email"), do: {"Email address", "you@example.com"}
   defp input_meta("password"), do: {"Password", nil}
@@ -9465,10 +9474,10 @@ defmodule Dev.PlaygroundLive do
         hidden input posts ISO 8601 whatever the display format says.
       </p>
       <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <form class="max-w-sm">
+        <.form :let={f} for={deadline_form(@pick_deadline)} class="max-w-sm">
           <.date_picker
             id="pg-deadline"
-            name="task[due_on]"
+            field={f[:due_on]}
             label="Due date"
             required
             clearable
@@ -9476,15 +9485,13 @@ defmodule Dev.PlaygroundLive do
             format="%d/%m/%Y"
             min={Date.utc_today()}
             disabled_dates={&(Date.day_of_week(&1) in [6, 7])}
-            value={@pick_deadline}
-            errors={if @pick_deadline, do: [], else: ["can't be blank"]}
             on_select="deadline_pick"
             on_clear="deadline_clear"
           />
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Posts as <code>task[due_on]={date_text(@pick_deadline)}</code>
           </p>
-        </form>
+        </.form>
       </div>
 
       <div
