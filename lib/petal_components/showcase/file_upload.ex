@@ -97,7 +97,7 @@ defmodule PetalComponents.Showcase.FileUpload do
 
   example :errors, "Errors, config level and per entry",
     description:
-      "upload_errors/1 and upload_errors/2 are rendered as plain English. The config-level message sits above the list, the per-entry one inside its row, tied to it with aria-describedby so a screen reader reads the file and the problem together." do
+      "upload_errors/1 and upload_errors/2 are rendered as plain English. The config-level message sits above the list and is described from the wrapper; the per-entry one sits inside its row, described from that row's cancel button, so a screen reader reads the file and the problem together when you tab to it." do
     ~H"""
     <.file_upload
       upload={PetalComponents.Showcase.FileUpload.error_config()}

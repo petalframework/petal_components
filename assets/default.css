@@ -7628,8 +7628,12 @@
     @apply flex flex-col gap-0.5;
   }
 
-  .pc-file-upload__glyph {
-    @apply w-8 h-8 text-gray-400 dark:text-gray-500;
+  /* Icon geometry rides the doubled-selector + bang contract: these are bare
+     hero-* spans, and a consumer's heroicon CSS (utilities layer or unlayered)
+     beats a single-class rule of ours on order alone. The variant overrides
+     below gain a class each, so they still out-rank this base. */
+  .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-8! h-8! text-gray-400 dark:text-gray-500;
   }
 
   .pc-file-upload__label {
@@ -7640,8 +7644,9 @@
     @apply text-sm text-gray-500 dark:text-gray-400;
   }
 
-  /* The drag hint doubles as the polite live region, so it is faded rather
-     than removed - a live region has to stay in the accessibility tree. */
+  /* The drag hint is decorative (aria-hidden): its text is static and only the
+     opacity changes, so it is faded rather than removed purely so the fade can
+     be animated. */
   .pc-file-upload__live {
     @apply absolute inset-x-0 bottom-2 text-xs font-medium opacity-0 pointer-events-none;
     @apply text-primary-600 transition-opacity duration-150 dark:text-primary-400;
@@ -7681,8 +7686,8 @@
     @apply object-cover w-full h-full;
   }
 
-  .pc-file-upload__type-icon {
-    @apply w-5 h-5 text-gray-500 dark:text-gray-400;
+  .pc-file-upload__type-icon.pc-file-upload__type-icon {
+    @apply w-5! h-5! text-gray-500 dark:text-gray-400;
   }
 
   .pc-file-upload__entry-body {
@@ -7728,8 +7733,14 @@
     @apply mt-1.5 text-xs;
   }
 
-  .pc-file-upload__error-icon {
-    @apply w-4 h-4 shrink-0;
+  /* The config-level error is the only <p> in the family, so it is the only
+     one that can inherit a margin from a consumer's prose/typography styles. */
+  .pc-file-upload__error--config {
+    @apply m-0;
+  }
+
+  .pc-file-upload__error-icon.pc-file-upload__error-icon {
+    @apply w-4! h-4! shrink-0;
   }
 
   /* File upload - cancel */
@@ -7742,8 +7753,8 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
-  .pc-file-upload__cancel-icon {
-    @apply w-4 h-4;
+  .pc-file-upload__cancel-icon.pc-file-upload__cancel-icon {
+    @apply w-4! h-4!;
   }
 
   /* File upload - compact: a browse button, no zone */
@@ -7757,8 +7768,8 @@
     @apply text-sm font-medium text-gray-700 dark:text-gray-200;
   }
 
-  .pc-file-upload--compact .pc-file-upload__glyph {
-    @apply w-4 h-4;
+  .pc-file-upload--compact .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-4! h-4!;
   }
 
   /* File upload - avatar: one circular preview with a replace overlay */
@@ -7771,8 +7782,8 @@
     @apply object-cover w-full h-full;
   }
 
-  .pc-file-upload--avatar .pc-file-upload__glyph {
-    @apply w-10 h-10;
+  .pc-file-upload--avatar .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-10! h-10!;
   }
 
   .pc-file-upload__overlay {
@@ -7787,8 +7798,8 @@
     @apply opacity-100;
   }
 
-  .pc-file-upload__overlay-icon {
-    @apply w-6 h-6;
+  .pc-file-upload__overlay-icon.pc-file-upload__overlay-icon {
+    @apply w-6! h-6!;
   }
 
   /* File upload - gallery: preview tiles plus an add tile under max_entries */
@@ -7806,12 +7817,20 @@
     @apply flex flex-col items-center justify-center w-full h-full gap-1 px-2 py-2 text-center;
   }
 
+  /* The gallery's input is a sibling of the add tile, not a child of it - it
+     has to stay in the DOM at max_entries, where the tile does not - so the
+     :has() focus ring is scoped from the grid rather than from the zone. */
+  .pc-file-upload__grid:has(> .pc-file-upload__input:focus-visible)
+    .pc-file-upload__tile--add {
+    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
+  }
+
   .pc-file-upload__tile-label {
     @apply text-xs font-medium text-gray-500 dark:text-gray-400;
   }
 
-  .pc-file-upload--gallery .pc-file-upload__glyph {
-    @apply w-6 h-6;
+  .pc-file-upload--gallery .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-6! h-6!;
   }
 
   .pc-file-upload--gallery .pc-file-upload__entry-inner {

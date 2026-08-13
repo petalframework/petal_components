@@ -42,6 +42,29 @@ defmodule PetalComponents.FileUploadTest do
     html |> query(selector) |> LazyHTML.attribute(attribute) |> List.first()
   end
 
+  defp text_of(html, selector) do
+    html |> query(selector) |> LazyHTML.text()
+  end
+
+  # format_bytes/1 and derive_description/1 are private - `use PetalComponents`
+  # blanket-imports this module, so neither name may be public. Both are
+  # exercised through the markup they produce.
+  defp rendered_description(upload) do
+    assigns = %{upload: upload}
+
+    ~H"<.file_upload upload={@upload} />"
+    |> rendered_to_string()
+    |> text_of(".pc-file-upload__description")
+  end
+
+  defp rendered_size(bytes) do
+    assigns = %{upload: config(entries: [entry(client_size: bytes)])}
+
+    ~H"<.file_upload upload={@upload} />"
+    |> rendered_to_string()
+    |> text_of(".pc-file-upload__entry-meta")
+  end
+
   describe "variants" do
     test "dropzone is the default and renders the zone" do
       assigns = %{upload: config()}
@@ -82,6 +105,38 @@ defmodule PetalComponents.FileUploadTest do
 
       assert Enum.count(query(html, ".pc-file-upload__avatar-img")) == 1
       refute has_icon?(html, "hero-user-circle")
+    end
+
+    # live_img_preview on a PDF renders a broken image. A document pick is
+    # reachable from any avatar config whose accept list is not images-only.
+    test "avatar falls back to the placeholder glyph for a non-image entry" do
+      assigns = %{
+        upload: config(max_entries: 1, entries: [entry(client_type: "application/pdf")]),
+        variant: "avatar"
+      }
+
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert Enum.empty?(query(html, ".pc-file-upload__avatar-img"))
+      assert has_icon?(html, "hero-user-circle")
+      # the row underneath still names the file and its type
+      assert html =~ "report.pdf"
+      assert has_icon?(html, "hero-document-text")
+    end
+
+    test "avatar shows only the first entry when the config holds several" do
+      entries = [
+        entry(ref: "0", client_name: "first.png", client_type: "image/png"),
+        entry(ref: "1", client_name: "second.png", client_type: "image/png")
+      ]
+
+      assigns = %{upload: config(max_entries: 3, entries: entries), variant: "avatar"}
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert Enum.count(query(html, ".pc-file-upload__avatar-img")) == 1
+      assert Enum.count(query(html, ".pc-file-upload__entry")) == 1
+      assert attr_of(html, ".pc-file-upload__avatar-img", "alt") == "first.png"
+      refute html =~ "second.png"
     end
 
     test "gallery renders a tile per entry plus an add tile under max_entries" do
@@ -144,6 +199,53 @@ defmodule PetalComponents.FileUploadTest do
       html = rendered_to_string(~H"<.file_upload upload={@upload} />")
 
       assert attr_of(html, "label.pc-file-upload__zone", "for") == "phx-F123"
+    end
+
+    # LiveView keeps the picked File objects and the preview blob-URL lookups
+    # on the input element itself (live_uploader.js serializeUploads /
+    # getEntryDataURL). Drop it from the DOM at capacity and a manual-mode
+    # submit uploads nothing while re-rendered previews go blank.
+    test "every variant keeps exactly one file input at max_entries" do
+      entries = [entry(ref: "0"), entry(ref: "1", client_name: "b.pdf")]
+
+      for variant <- ~w(dropzone compact avatar gallery) do
+        assigns = %{upload: config(max_entries: 2, entries: entries), variant: variant}
+        html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+        inputs = query(html, "input[type=file]")
+
+        assert Enum.count(inputs) == 1,
+               "#{variant} rendered #{Enum.count(inputs)} file inputs at capacity, expected 1"
+
+        assert LazyHTML.attribute(inputs, "data-phx-upload-ref") == ["phx-ref-1"]
+      end
+    end
+
+    # Gallery is the one variant whose visible surface disappears at capacity,
+    # so its clipped input would otherwise be a focus ring with nothing to draw.
+    test "gallery takes the input out of the tab order once it is full, and only then" do
+      entries = [entry(ref: "0"), entry(ref: "1", client_name: "b.pdf")]
+      assigns = %{upload: config(max_entries: 2, entries: entries), variant: "gallery"}
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert attr_of(html, "input[type=file]", "tabindex") == "-1"
+
+      assigns = %{upload: config(max_entries: 4, entries: entries), variant: "gallery"}
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert LazyHTML.attribute(query(html, "input[type=file]"), "tabindex") == []
+    end
+
+    test "gallery keeps the input reachable from the add tile label" do
+      assigns = %{
+        upload: config(ref: "phx-F5", max_entries: 4, entries: [entry()]),
+        variant: "gallery"
+      }
+
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert attr_of(html, ".pc-file-upload__tile--add", "for") == "phx-F5"
+      assert attr_of(html, "input[type=file]", "id") == "phx-F5"
     end
 
     test "multiple is set by live_file_input when max_entries > 1" do
@@ -371,26 +473,38 @@ defmodule PetalComponents.FileUploadTest do
     end
 
     test "an empty accept string contributes nothing" do
-      assert derive_description(config(accept: "", max_entries: 1, max_file_size: 500)) ==
+      assert rendered_description(config(accept: "", max_entries: 1, max_file_size: 500)) ==
                "up to 500 B"
     end
 
     test "handles MIME wildcards and three-or-more accept lists" do
-      assert derive_description(config(accept: ~w(image/*), max_entries: 1, max_file_size: nil)) ==
+      assert rendered_description(config(accept: ~w(image/*), max_entries: 1, max_file_size: nil)) ==
                "images"
 
-      assert derive_description(
+      assert rendered_description(
                config(accept: ~w(.png .jpg .gif), max_entries: 1, max_file_size: nil)
              ) == "PNG, JPG or GIF"
 
-      assert derive_description(
+      assert rendered_description(
                config(accept: ~w(application/pdf), max_entries: 1, max_file_size: nil)
              ) == "PDF"
     end
 
     test "an :any accept contributes nothing" do
-      assert derive_description(config(accept: :any, max_entries: 1, max_file_size: 500)) ==
+      assert rendered_description(config(accept: :any, max_entries: 1, max_file_size: 500)) ==
                "up to 500 B"
+    end
+
+    test "the compact variant carries the derived line beside the browse button" do
+      assigns = %{
+        upload: config(accept: ~w(.pdf), max_file_size: 2_000_000, max_entries: 5),
+        variant: "compact"
+      }
+
+      html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
+
+      assert text_of(html, ".pc-file-upload__bar .pc-file-upload__description") ==
+               "PDF, up to 2 MB, max 5 files"
     end
 
     test "an explicit description overrides the derivation" do
@@ -411,23 +525,27 @@ defmodule PetalComponents.FileUploadTest do
     end
   end
 
-  describe "format_bytes/1" do
-    test "crosses the B / KB / MB / GB boundaries" do
-      assert format_bytes(0) == "0 B"
-      assert format_bytes(999) == "999 B"
-      assert format_bytes(1_000) == "1 KB"
-      assert format_bytes(1_500) == "1.5 KB"
-      assert format_bytes(999_999) == "1000 KB"
-      assert format_bytes(1_000_000) == "1 MB"
-      assert format_bytes(2_400_000) == "2.4 MB"
-      assert format_bytes(8_000_000) == "8 MB"
-      assert format_bytes(999_999_999) == "1000 MB"
-      assert format_bytes(1_000_000_000) == "1 GB"
-      assert format_bytes(2_500_000_000) == "2.5 GB"
+  describe "entry sizes" do
+    test "cross the B / KB / MB / GB boundaries" do
+      for {bytes, rendered} <- [
+            {0, "0 B"},
+            {999, "999 B"},
+            {1_000, "1 KB"},
+            {1_500, "1.5 KB"},
+            {999_999, "1000 KB"},
+            {1_000_000, "1 MB"},
+            {2_400_000, "2.4 MB"},
+            {8_000_000, "8 MB"},
+            {999_999_999, "1000 MB"},
+            {1_000_000_000, "1 GB"},
+            {2_500_000_000, "2.5 GB"}
+          ] do
+        assert rendered_size(bytes) == rendered, "#{bytes} did not render as #{rendered}"
+      end
     end
 
     test "a missing size renders nothing rather than crashing" do
-      assert format_bytes(nil) == ""
+      assert rendered_size(nil) == ""
     end
   end
 
@@ -498,14 +616,22 @@ defmodule PetalComponents.FileUploadTest do
       assert LazyHTML.attribute(query(html, ".pc-file-upload"), "aria-labelledby") == []
     end
 
-    test "a polite live region carries the drag hint" do
-      assigns = %{upload: config()}
-      html = rendered_to_string(~H"<.file_upload upload={@upload} />")
+    # The hint's text never changes - only its opacity does - so a live region
+    # here would be one that can never announce. It is decorative instead.
+    test "the drag hint is decorative, not a live region" do
+      for variant <- ~w(dropzone compact avatar gallery) do
+        assigns = %{upload: config(), variant: variant}
+        html = rendered_to_string(~H"<.file_upload upload={@upload} variant={@variant} />")
 
-      region = query(html, ".pc-file-upload__live")
-      assert Enum.count(region) == 1
-      assert LazyHTML.attribute(region, "aria-live") == ["polite"]
-      assert html =~ "Drop files to upload"
+        hint = query(html, ".pc-file-upload__live")
+        assert Enum.count(hint) == 1, "#{variant} did not render the hint"
+
+        assert LazyHTML.attribute(hint, "aria-live") == [],
+               "#{variant} still promises an announce"
+
+        assert LazyHTML.attribute(hint, "aria-hidden") == ["true"]
+        assert html =~ "Drop files to upload"
+      end
     end
 
     test "cancel buttons are named after their file" do
@@ -522,24 +648,54 @@ defmodule PetalComponents.FileUploadTest do
       assert attr_of(html, ".pc-file-upload__cancel", "aria-label") == "Remove q3.pdf"
     end
 
-    test "entry errors are associated with their row" do
+    # aria-describedby has to hang off something focusable to be read: a plain
+    # div with no role is not a widget, and the cancel button is the only
+    # focusable thing in the row.
+    test "entry errors are described from the row's cancel button" do
       assigns = %{
         upload: config(ref: "phx-F1", entries: [entry(ref: "9")], errors: [{"9", :too_large}])
       }
 
       html = rendered_to_string(~H"<.file_upload upload={@upload} />")
 
-      described = attr_of(html, ".pc-file-upload__entry-inner", "aria-describedby")
+      described = attr_of(html, ".pc-file-upload__cancel", "aria-describedby")
       assert described == "pc-file-upload-phx-F1-9-error"
       assert attr_of(html, ".pc-file-upload__error--entry", "id") == described
+
+      assert LazyHTML.attribute(query(html, ".pc-file-upload__entry-inner"), "aria-describedby") ==
+               []
     end
 
     test "a clean row carries no dangling aria-describedby" do
       assigns = %{upload: config(entries: [entry()])}
       html = rendered_to_string(~H"<.file_upload upload={@upload} />")
 
+      assert LazyHTML.attribute(query(html, ".pc-file-upload__cancel"), "aria-describedby") == []
+
       assert LazyHTML.attribute(query(html, ".pc-file-upload__entry-inner"), "aria-describedby") ==
                []
+    end
+
+    test "config errors are described from the wrapper, and their ids are not dead" do
+      assigns = %{
+        upload:
+          config(ref: "phx-F1", errors: [{"phx-F1", :too_many_files}, {"phx-F1", :too_large}])
+      }
+
+      html = rendered_to_string(~H"<.file_upload upload={@upload} />")
+
+      described = attr_of(html, ".pc-file-upload", "aria-describedby")
+      assert described == "pc-file-upload-phx-F1-error-0 pc-file-upload-phx-F1-error-1"
+
+      assert query(html, ".pc-file-upload__error--config") |> LazyHTML.attribute("id") ==
+               String.split(described, " ")
+    end
+
+    test "a clean config leaves no dangling aria-describedby on the wrapper" do
+      assigns = %{upload: config(entries: [entry()])}
+      html = rendered_to_string(~H"<.file_upload upload={@upload} />")
+
+      assert LazyHTML.attribute(query(html, ".pc-file-upload"), "aria-describedby") == []
     end
 
     test "decorative icons are hidden from assistive tech" do
