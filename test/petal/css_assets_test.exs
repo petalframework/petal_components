@@ -24,6 +24,35 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "slider thumb-anchor invariant" do
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "nothing positions itself at the raw fraction", %{css: css} do
+      # A native thumb's centre travels from thumb/2 to width - thumb/2, so a
+      # layer placed at the raw fraction is up to half a thumb adrift at the
+      # ends. Everything that has to line up with the thumb goes through
+      # --pc-slider-anchor*, which does that conversion once.
+      offenders =
+        Regex.scan(~r/^\s*(?:left|right|top|bottom):[^;]*--pc-slider-frac[^;]*;/m, css)
+
+      assert offenders == [],
+             "slider geometry positioned at the raw fraction: #{inspect(offenders)}"
+    end
+
+    test "every anchor compensates for the thumb", %{css: css} do
+      anchors = Regex.scan(~r/--pc-slider-anchor(?:-min|-max)?:\s*calc\(([^;]*)\);/, css)
+
+      assert length(anchors) == 3
+
+      for [_, body] <- anchors do
+        assert body =~ "100% - var(--pc-slider-thumb)"
+        assert body =~ "var(--pc-slider-thumb) / 2"
+      end
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).
