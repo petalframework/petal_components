@@ -5588,6 +5588,10 @@ export const PetalTree = {
   },
 
   onKeydown(event) {
+    // Modified keys belong to the browser and the OS (Cmd+ArrowDown is
+    // page-end, Ctrl+Home is document-start): the APG tree pattern maps
+    // unmodified keys only, so intercepting these would eat user shortcuts.
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
     const node = this.current();
     if (!node) return;
 

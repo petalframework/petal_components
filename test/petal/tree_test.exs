@@ -163,6 +163,21 @@ defmodule PetalComponents.TreeTest do
       end
     end
 
+    test "server mode accepts expanded={:all} too" do
+      # the :all shorthand must work on BOTH the server-controlled path and
+      # the default_expanded path - only the MapSet form was pinned before
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} expanded={:all} />
+        """)
+
+      for id <- ~w(lib petal components) do
+        assert at(node_by_id(html, id), "aria-expanded") == "true"
+      end
+    end
+
     test "default_expanded: [] leaves everything collapsed" do
       assigns = %{items: deep_items()}
 
@@ -279,6 +294,39 @@ defmodule PetalComponents.TreeTest do
       # the built-in highlight move rides along
       assert click =~ "aria-selected"
       assert click =~ "pc-tree__item--selected"
+    end
+
+    test "a purely navigational tree carries no selection contract at all" do
+      # APG: omit aria-selected entirely when selection is unsupported -
+      # announcing "not selected" on every node of a nav tree is noise. And
+      # with nothing wired, a label click must not flip a highlight the app
+      # never asked for and cannot read.
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} />
+        """)
+
+      refute html =~ "aria-selected"
+
+      label = html |> parse_html() |> LazyHTML.query("[data-pc-tree-select]") |> Enum.at(0)
+      assert at(label, "phx-click") == nil
+    end
+
+    test "integer node ids stringify across the id/value/selected surfaces" do
+      assigns = %{items: [%{id: 1, label: "One"}, %{id: 2, label: "Two"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} selected={1} select_event="pick" />
+        """)
+
+      assert at(node_by_id(html, "1"), "aria-selected") == "true"
+      assert at(node_by_id(html, "2"), "aria-selected") == "false"
+
+      label = html |> parse_html() |> LazyHTML.query("[data-pc-tree-select]") |> Enum.at(0)
+      assert at(label, "phx-value-id") == "1"
     end
   end
 

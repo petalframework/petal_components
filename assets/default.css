@@ -7659,7 +7659,16 @@
   }
 
   .pc-tree__chevron-icon {
-    @apply h-4 w-4 transition-transform duration-200;
+    @apply transition-transform duration-200;
+  }
+
+  /* Doubled selector + bang, the icon-sizing contract (see the pagination
+     chevron): these land on bare hero-* spans, and consumer heroicon CSS
+     (Tailwind v4 @plugin, every phx.new app) sizes them from the utilities
+     layer at w-6/1lh - which beats any single components-layer selector.
+     Without this, tree icons render 24px in real apps. */
+  .pc-tree__chevron-icon.pc-tree__chevron-icon {
+    @apply w-4! h-4!;
   }
 
   .pc-tree__item[data-expanded="true"] > .pc-tree__row .pc-tree__chevron-icon {
@@ -7675,7 +7684,12 @@
   }
 
   .pc-tree__icon {
-    @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
+    @apply shrink-0 text-gray-400 dark:text-gray-500;
+  }
+
+  /* Same icon-sizing contract as the chevron above. */
+  .pc-tree__icon.pc-tree__icon {
+    @apply w-4! h-4!;
   }
 
   .pc-tree__item--selected > .pc-tree__row .pc-tree__icon {

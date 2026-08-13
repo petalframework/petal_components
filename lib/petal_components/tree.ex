@@ -64,6 +64,11 @@ defmodule PetalComponents.Tree do
   selected class client-side on click, so the highlight lands immediately rather
   than a round-trip later. `:on_select` composes your own JS commands onto that.
 
+  Selection only exists when you wire it: with none of `:selected`,
+  `:select_event` or `:on_select` set, the tree is purely navigational -
+  nodes carry no `aria-selected` at all (per the APG, a tree that does not
+  support selection must not announce it) and label clicks do nothing.
+
   ## Keyboard
 
   The `PetalTree` hook implements the APG map over a roving tabindex: the tree
@@ -183,13 +188,24 @@ defmodule PetalComponents.Tree do
       id: assigns.id,
       expanded: expanded,
       server: not is_nil(assigns.expanded),
-      selected: assigns.selected,
+      # Node ids stringify everywhere else (DOM ids, phx-value-id, the
+      # expanded sets), so the selected comparison must too - an app passing
+      # selected={post.id} with integer PKs would otherwise never see its
+      # highlight.
+      selected: assigns.selected && to_string(assigns.selected),
+      # A purely navigational tree must not announce "not selected" on every
+      # node (APG: omit aria-selected when selection is unsupported) - so the
+      # selection contract only switches on when the app wires any of the
+      # three selection surfaces.
+      selectable?:
+        assigns.selected != nil or assigns.select_event != nil or assigns.on_select != %JS{},
       select_event: assigns.select_event,
       on_select: assigns.on_select,
       on_expand: assigns.on_expand,
       target: assigns.target,
       show_guides: assigns.show_guides,
-      focus_id: focus_id(assigns.items, expanded, assigns.selected),
+      focus_id:
+        focus_id(assigns.items, expanded, assigns.selected && to_string(assigns.selected)),
       item: assigns.item,
       loading: assigns.loading
     }
@@ -253,7 +269,7 @@ defmodule PetalComponents.Tree do
       aria-setsize={@setsize}
       aria-labelledby={label_dom_id(@ctx.id, @node_id)}
       aria-expanded={@branch && to_string(@expanded)}
-      aria-selected={to_string(@selected)}
+      aria-selected={@ctx.selectable? && to_string(@selected)}
       aria-disabled={@disabled && "true"}
       tabindex={if @ctx.focus_id == @node_id, do: "0", else: "-1"}
       data-pc-tree-node
@@ -344,6 +360,11 @@ defmodule PetalComponents.Tree do
 
   # User JS first, then the built-in highlight move, then the push (so the
   # server hears about a selection the user's own commands did not cancel).
+  # No selection wiring, no selection behaviour: the label click does
+  # nothing rather than flipping a client-side highlight the app never
+  # asked for and cannot read.
+  defp select_click(%{selectable?: false}, _node_id), do: nil
+
   defp select_click(ctx, node_id) do
     ctx.on_select
     |> compose_js(selection_js(ctx, node_id))

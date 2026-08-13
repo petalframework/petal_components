@@ -132,9 +132,14 @@ function mount() {
 
   const node = (id) => el.querySelector(`[data-node-id="${id}"]`);
   const focus = (id) => node(id).focus();
-  const key = (k) =>
+  const key = (k, props = {}) =>
     document.activeElement.dispatchEvent(
-      new window.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }),
+      new window.KeyboardEvent("keydown", {
+        key: k,
+        bubbles: true,
+        cancelable: true,
+        ...props,
+      }),
     );
   const activeId = () => document.activeElement.dataset.nodeId;
 
@@ -147,6 +152,24 @@ afterEach(() => {
 });
 
 describe("roving tabindex", () => {
+  it("leaves modified keys to the browser - Cmd+ArrowDown is page-end, not tree nav", () => {
+    // the APG maps unmodified keys only; intercepting Cmd/Ctrl/Alt combos
+    // would eat OS and browser shortcuts
+    const { focus, activeId } = mount();
+    focus("lib");
+
+    const ev = new window.KeyboardEvent("keydown", {
+      key: "ArrowDown",
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.activeElement.dispatchEvent(ev);
+
+    expect(ev.defaultPrevented).toBe(false);
+    expect(activeId()).toBe("lib");
+  });
+
   it("keeps exactly one node at tabindex=0", () => {
     const { el, focus } = mount();
     const stops = () => el.querySelectorAll('[data-pc-tree-node][tabindex="0"]');
