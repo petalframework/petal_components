@@ -5510,6 +5510,18 @@ export const PetalScrollspy = {
     window.addEventListener("hashchange", this.onHashChange);
     window.addEventListener("resize", this.onScroll, { passive: true });
 
+    // The OS preference can flip mid-session; follow it live rather than
+    // freezing whatever was true at mount.
+    this.motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    this.onMotionChange = () => {
+      if (this.reducedMotion()) {
+        this.restoreSmooth();
+      } else {
+        this.enableSmoothScroll();
+      }
+    };
+    this.motionQuery?.addEventListener?.("change", this.onMotionChange);
+
     // A deep link should be right from the first paint rather than after the
     // observer's first callback.
     if (!this.applyHash()) this.sync();
@@ -5526,6 +5538,7 @@ export const PetalScrollspy = {
     this.observer?.disconnect();
     window.removeEventListener("hashchange", this.onHashChange);
     window.removeEventListener("resize", this.onScroll);
+    this.motionQuery?.removeEventListener?.("change", this.onMotionChange);
     this.listenToScrollRoot(null);
     this.restoreScroll();
   },
@@ -5541,6 +5554,9 @@ export const PetalScrollspy = {
       .filter(Boolean);
 
     this.listenToScrollRoot(scrollspyScrollRoot(this.targets[0] || this.el));
+    // A patch can relocate the sections into a different scroller; smoothing
+    // follows the root (no-op when it hasn't moved).
+    if (this.smoothedEl) this.enableSmoothScroll();
     this.rootMargin = this.el.dataset.threshold || SCROLLSPY_ROOT_MARGIN;
 
     // scroll-margin-top is what keeps a fixed header off the heading you just
@@ -5583,24 +5599,52 @@ export const PetalScrollspy = {
 
   // Clicking a link is a native anchor jump; smooth is a property of the
   // scroller, not of the click. Under reduced motion, leave it instant.
+  // Idempotent for the same root, and migrates when a LiveView patch moves
+  // the sections into a different scroller (the old root gets its style
+  // back, the new one gets smoothed).
   enableSmoothScroll() {
     if (this.reducedMotion()) return;
+    if (!this.scrollRoot) return;
     const root =
       this.scrollRoot === document.scrollingElement ||
       this.scrollRoot === document.documentElement
         ? document.documentElement
         : this.scrollRoot;
+    if (!root.dataset) return;
+    if (this.smoothedEl === root) return;
+    this.restoreSmooth();
+
+    // Several rails can share one scroller. The FIRST smoother snapshots the
+    // page's own value onto the ELEMENT and a ref-count decides who turns
+    // the lights off - instance-local snapshots restored in mount order left
+    // smooth applied forever (A saved "", B saved "smooth"; A restored "",
+    // B re-restored "smooth").
+    const count = Number(root.dataset.pcSmoothCount || 0);
+    if (count === 0) {
+      root.dataset.pcSmoothPrior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "smooth";
+    }
+    root.dataset.pcSmoothCount = String(count + 1);
     this.smoothedEl = root;
-    this.priorScrollBehavior = root.style.scrollBehavior;
-    root.style.scrollBehavior = "smooth";
+  },
+
+  restoreSmooth() {
+    const root = this.smoothedEl;
+    if (!root) return;
+    this.smoothedEl = null;
+    const count = Math.max(0, Number(root.dataset.pcSmoothCount || 0) - 1);
+    if (count === 0) {
+      root.style.scrollBehavior = root.dataset.pcSmoothPrior || "";
+      delete root.dataset.pcSmoothPrior;
+      delete root.dataset.pcSmoothCount;
+    } else {
+      root.dataset.pcSmoothCount = String(count);
+    }
   },
 
   // The page is not ours: hand back every style we borrowed.
   restoreScroll() {
-    if (this.smoothedEl) {
-      this.smoothedEl.style.scrollBehavior = this.priorScrollBehavior || "";
-      this.smoothedEl = null;
-    }
+    this.restoreSmooth();
     this.targetStyles.forEach((prior, target) => {
       target.style.scrollMarginTop = prior || "";
     });

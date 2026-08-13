@@ -1858,10 +1858,6 @@ defmodule Dev.PlaygroundLive do
     end
   end
 
-  # A page's slice of a showcase module, in the page's order. Field is one
-  # component (so one registry module), but the playground splits its examples
-  # across the input / select / checkbox / radio / switch pages. Raises on a
-  # typo'd id so a page can't silently drop an example.
   # Flat mode lists the h2s only, which is what most docs rails do. Nested
   # mode folds the two h3s under the section they belong to.
   defp scrollspy_items(%{nested: nested}) do
@@ -1917,6 +1913,10 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  # A page's slice of a showcase module, in the page's order. Field is one
+  # component (so one registry module), but the playground splits its examples
+  # across the input / select / checkbox / radio / switch pages. Raises on a
+  # typo'd id so a page can't silently drop an example.
   defp examples_for(module, ids) do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))

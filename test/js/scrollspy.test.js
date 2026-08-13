@@ -322,6 +322,41 @@ describe("PetalScrollspy", () => {
     expect(document.documentElement.style.scrollBehavior).toBe("");
   });
 
+  it("two rails on one scroller hand smooth back only when the LAST one leaves", () => {
+    // instance-local snapshots restored in mount order used to leave
+    // smooth applied forever: A saved "", B saved "smooth"; A restored "",
+    // B re-restored "smooth"
+    const a = mount({ ids: ["a", "b"] });
+    const b = mount({ ids: ["a", "b"] });
+    expect(document.documentElement.style.scrollBehavior).toBe("smooth");
+
+    a.hook.destroyed();
+    expect(document.documentElement.style.scrollBehavior).toBe("smooth");
+
+    b.hook.destroyed();
+    expect(document.documentElement.style.scrollBehavior).toBe("");
+    expect(document.documentElement.dataset.pcSmoothCount).toBeUndefined();
+    mounted.pop();
+    mounted.pop();
+  });
+
+  it("updated() applies the offset to targets added by a patch", () => {
+    const { hook, wrap } = mount({ ids: ["a", "b"] });
+
+    // unique id: earlier mounts leave a/b/c sections in the document, and
+    // getElementById would resolve a stale twin instead of this one
+    const section = document.createElement("section");
+    section.id = "zz-patched-in";
+    wrap.querySelector(".sections").appendChild(section);
+    wrap.querySelector("nav ul").insertAdjacentHTML(
+      "beforeend",
+      `<li><a href="#zz-patched-in" class="pc-scrollspy-link" data-scrollspy-target="zz-patched-in">new</a></li>`,
+    );
+
+    hook.updated();
+    expect(section.style.scrollMarginTop).toBe("6rem");
+  });
+
   it("cleans up the observer, the listeners and the borrowed styles", () => {
     const { hook, wrap, observers } = mount();
     const removed = [];
