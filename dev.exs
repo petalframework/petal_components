@@ -1870,6 +1870,12 @@ defmodule Dev.PlaygroundLive do
   # component (so one registry module), but the playground splits its examples
   # across the input / select / checkbox / radio / switch pages. Raises on a
   # typo'd id so a page can't silently drop an example.
+  # The separator dial's "none" option is a real none: nil renders no
+  # separator span at all (a " " separator still rendered an aria-hidden
+  # whitespace span plus the group gap - double spacing, not none).
+  defp kbd_sep(" "), do: nil
+  defp kbd_sep(g), do: g
+
   defp examples_for(module, ids) do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))
@@ -8673,18 +8679,18 @@ defmodule Dev.PlaygroundLive do
         <div class="flex flex-col items-center justify-center gap-5 px-6 py-10">
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             Open the command palette
-            <.kbd keys={["cmd", "K"]} size={@kbd.size} separator={@kbd.separator} />
+            <.kbd keys={["cmd", "K"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
           </div>
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             Toggle the sidebar
             <.kbd
               keys={["ctrl", "shift", "B"]}
               size={@kbd.size}
-              separator={@kbd.separator}
+              separator={kbd_sep(@kbd.separator)}
             />
           </div>
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-            Assign to yourself <.kbd keys={["A", "I"]} size={@kbd.size} separator={@kbd.separator} />
+            Assign to yourself <.kbd keys={["A", "I"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
           </div>
         </div>
         <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">

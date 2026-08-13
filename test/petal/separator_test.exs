@@ -172,4 +172,48 @@ defmodule PetalComponents.SeparatorTest do
     assert_has_class(html, "pc-separator--vertical")
     refute html =~ "OR"
   end
+
+  test "a decorative labelled separator keeps its label readable" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.separator label="OR" />
+      """)
+
+    doc = LazyHTML.from_fragment(html)
+    # the container must NOT be aria-hidden - the label is real content;
+    # only the flank lines hide
+    root = doc |> LazyHTML.query(".pc-separator--labelled") |> Enum.at(0)
+    assert LazyHTML.attribute(root, "aria-hidden") == []
+    assert doc |> LazyHTML.query(".pc-separator__line[aria-hidden]") |> Enum.count() == 2
+  end
+
+  test "a semantic labelled separator carries the label in aria-label" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.separator label="Today" decorative={false} />
+      """)
+
+    doc = LazyHTML.from_fragment(html)
+    root = doc |> LazyHTML.query(".pc-separator--labelled") |> Enum.at(0)
+    # role="separator" has presentational children - without aria-label the
+    # inner text is swallowed
+    assert LazyHTML.attribute(root, "role") == ["separator"]
+    assert LazyHTML.attribute(root, "aria-label") == ["Today"]
+  end
+
+  test "slot-only content labels the separator without the label attr" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.separator>March 2026</.separator>
+      """)
+
+    assert_has_class(html, "pc-separator--labelled")
+    assert html =~ "March 2026"
+  end
 end

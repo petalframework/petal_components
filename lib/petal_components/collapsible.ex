@@ -58,7 +58,7 @@ defmodule PetalComponents.Collapsible do
     default: %JS{},
     doc: "additional JS commands composed onto the toggle, run before the component's own"
 
-  attr :rest, :global
+  attr :rest, :global, doc: "any extra HTML attributes for the root"
 
   slot :trigger, required: true, doc: "the always-visible row; rendered inside a button" do
     attr :class, :any

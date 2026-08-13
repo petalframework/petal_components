@@ -62,7 +62,7 @@ defmodule PetalComponents.Separator do
     doc:
       ~s|true renders aria-hidden (purely visual); false renders role="separator" with aria-orientation for semantically meaningful dividers|
 
-  attr :rest, :global
+  attr :rest, :global, doc: "any extra HTML attributes for the rendered div"
 
   slot :inner_block, required: false, doc: "rich label content; wins over the label attr"
 
@@ -76,6 +76,11 @@ defmodule PetalComponents.Separator do
     assigns = assign(assigns, :labelled?, labelled?(assigns))
 
     ~H"""
+    <%!-- The labelled branch's ARIA differs from the bare rule's: the label
+          is REAL content, so a decorative labelled separator must not hide
+          the whole container (the flank lines are already hidden) - and a
+          semantic one carries aria-label because role="separator" has
+          presentational children, swallowing the inner text. --%>
     <div
       :if={@labelled?}
       class={[
@@ -83,7 +88,7 @@ defmodule PetalComponents.Separator do
         "pc-separator--label-#{@label_position}",
         @class
       ]}
-      {aria(@decorative, "horizontal")}
+      {labelled_aria(@decorative, @label)}
       {@rest}
     >
       <span class="pc-separator__line" aria-hidden="true"></span>
@@ -112,4 +117,11 @@ defmodule PetalComponents.Separator do
   defp aria(true, _orientation), do: %{"aria-hidden": "true"}
   defp aria(false, "vertical"), do: %{role: "separator", "aria-orientation": "vertical"}
   defp aria(false, _horizontal), do: %{role: "separator"}
+
+  # Decorative + labelled: no aria at all - the lines are hidden, the label
+  # reads as plain text. Semantic + labelled: the aria-label carries the text
+  # role="separator" swallows; rich slot content should pass the label attr
+  # alongside for this reason.
+  defp labelled_aria(true, _label), do: %{}
+  defp labelled_aria(false, label), do: %{role: "separator", "aria-label": label}
 end

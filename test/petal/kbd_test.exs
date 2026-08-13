@@ -172,4 +172,35 @@ defmodule PetalComponents.KbdTest do
     assert doc |> LazyHTML.query(".pc-kbd-group") |> Enum.count() == 1
     assert doc |> LazyHTML.query("kbd") |> Enum.empty?()
   end
+
+  test "symbol-mapped keys speak their canonical names" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.kbd keys={["cmd", "shift", "K"]} />
+      """)
+
+    doc = LazyHTML.from_fragment(html)
+    kbds = doc |> LazyHTML.query("kbd") |> Enum.to_list()
+
+    # glyph screen-reader handling is inconsistent, so the map's names ride
+    # aria-label; a verbatim key needs none
+    assert LazyHTML.attribute(Enum.at(kbds, 0), "aria-label") == ["Command"]
+    assert LazyHTML.attribute(Enum.at(kbds, 1), "aria-label") == ["Shift"]
+    assert LazyHTML.attribute(Enum.at(kbds, 2), "aria-label") == []
+  end
+
+  test "separator={nil} renders the keys with no separator span at all" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.kbd keys={["cmd", "K"]} separator={nil} />
+      """)
+
+    doc = LazyHTML.from_fragment(html)
+    assert doc |> LazyHTML.query("kbd") |> Enum.count() == 2
+    assert doc |> LazyHTML.query(".pc-kbd-group__separator") |> Enum.empty?()
+  end
 end
