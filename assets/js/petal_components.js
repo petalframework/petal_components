@@ -1833,8 +1833,9 @@ export const PetalCommand = {
 };
 
 // The palette in a native <dialog>: global shortcut, open/close events,
-// autofocus, and query reset. The native element supplies the top layer,
-// focus trap, ::backdrop and Escape.
+// autofocus, query reset, and the background scroll lock. The native element
+// supplies the top layer, focus trap, ::backdrop and Escape - the scroll lock
+// is the one piece it does not, so the hook adds it.
 export const PetalCommandDialog = {
   mounted() {
     this.palette = this.el.querySelector(".pc-command");
@@ -1856,7 +1857,15 @@ export const PetalCommandDialog = {
       // click on the backdrop = click whose target is the dialog itself
       if (e.target === this.el) this.close();
     };
-    this.onClose = () => this.reset();
+    // The native close event is the one funnel every close path drains
+    // through - our close(), Escape's native cancel, and Chrome's close
+    // watcher, which can fire close without any cancel we could intercept.
+    // Releasing the scroll lock here rather than beside each close() call is
+    // what makes it run exactly once per open, whoever did the closing.
+    this.onClose = () => {
+      document.body.classList.remove("overflow-hidden");
+      this.reset();
+    };
     this.onItemClick = (e) => {
       const item = e.target.closest("[data-pc-command-item]");
       if (
@@ -1877,6 +1886,11 @@ export const PetalCommandDialog = {
   },
 
   destroyed() {
+    // A patch can remove an OPEN dialog, and a removed element fires no close
+    // event - never leave the page locked with nothing on screen. Guarded on
+    // `open` so tearing down a CLOSED palette can't strip a lock another
+    // overlay owns.
+    if (this.el.open) document.body.classList.remove("overflow-hidden");
     // Remove every listener mounted() registered - the document shortcut AND
     // the dialog-element handlers - so a reused dialog node can't keep stale
     // handlers that fire close/reset against a torn-down hook.
@@ -1890,6 +1904,12 @@ export const PetalCommandDialog = {
 
   open() {
     if (this.el.open) return;
+    // showModal() gives the top layer and the focus trap, but a native modal
+    // dialog does NOT stop the page behind it scrolling. Same body class the
+    // modal and slide_over use, so the treatment is one thing across the
+    // library. The `open` guard above is what keeps a second open from
+    // stacking a lock the single close would then under-release.
+    document.body.classList.add("overflow-hidden");
     this.el.showModal();
     const input = this.el.querySelector(".pc-command__input");
     if (input) input.focus();

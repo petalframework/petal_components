@@ -3986,6 +3986,97 @@
   .pc-slideover__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
+
+  /* THE PROPERTY MATTERS: these keyframes animate `translate`, not
+     `transform`, because Tailwind v4's translate-x-* utilities set the
+     `translate` property - and translate + transform COMPOSE. Keyframes on
+     transform ran alongside the utility's translate, so a coalesced
+     translate could teleport the panel partway while the transform
+     animation played on top (traced live: a +385px first-frame jump).
+     Same property = the animation overrides the utility outright while it
+     runs, and the end class takes over seamlessly at the boundary. */
+  /* Frame-coalescing guard. The show/hide JS animates via CSS transitions,
+     but a transition only fires if the browser style-recalcs the "before"
+     state - and LiveView can land the start and end classes inside ONE
+     style-recalc window (traced at 1ms apart on a 120Hz display), snapping
+     the panel with no slide. These keyframe classes ride ALONGSIDE the
+     transition classes in the JS tuples: an animation plays from keyframe
+     zero the moment its class lands, immune to coalescing; when the
+     transition does fire, the two agree frame-for-frame. Motion-gated so
+     reduced-motion users keep the instant treatment. */
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-slideover-anim-in-left {
+      animation: pc-slideover-in-left 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-right {
+      animation: pc-slideover-in-right 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-top {
+      animation: pc-slideover-in-top 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-bottom {
+      animation: pc-slideover-in-bottom 300ms ease-out both;
+    }
+    .pc-slideover-anim-out-left {
+      animation: pc-slideover-out-left 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-right {
+      animation: pc-slideover-out-right 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-top {
+      animation: pc-slideover-out-top 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-bottom {
+      animation: pc-slideover-out-bottom 200ms ease-in both;
+    }
+    .pc-slideover-anim-fade-in {
+      animation: pc-slideover-fade-in 300ms ease-out both;
+    }
+    .pc-slideover-anim-fade-out {
+      animation: pc-slideover-fade-out 200ms ease-in both;
+    }
+  }
+  @keyframes pc-slideover-in-left {
+    from { translate: -100% 0; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-right {
+    from { translate: 100% 0; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-top {
+    from { translate: 0 -100%; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-bottom {
+    from { translate: 0 100%; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-out-left {
+    from { translate: 0 0; }
+    to { translate: -100% 0; }
+  }
+  @keyframes pc-slideover-out-right {
+    from { translate: 0 0; }
+    to { translate: 100% 0; }
+  }
+  @keyframes pc-slideover-out-top {
+    from { translate: 0 0; }
+    to { translate: 0 -100%; }
+  }
+  @keyframes pc-slideover-out-bottom {
+    from { translate: 0 0; }
+    to { translate: 0 100%; }
+  }
+  @keyframes pc-slideover-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pc-slideover-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
   .pc-slideover__wrapper {
     @apply fixed inset-0 z-50 flex overflow-hidden;
   }
