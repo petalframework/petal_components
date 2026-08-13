@@ -126,6 +126,12 @@ defmodule PetalComponents.Sortable do
   Every transition is announced through a visually hidden `aria-live="polite"`
   region, and focus stays on the moved item after a drop.
 
+  A row can hold its own controls. A key pressed inside one belongs to that
+  control, never to the sortable: `Space` on a checkbox in a row toggles the
+  checkbox, and only the row itself (or its grip in handle mode) lifts.
+  Disabled items say so with `aria-disabled` and are not offered the lift
+  instructions.
+
   ## Touch
 
   A long press of roughly 250ms lifts an item. A tap or a scroll gesture does
@@ -188,9 +194,12 @@ defmodule PetalComponents.Sortable do
 
     attr :disabled, :boolean,
       doc:
-        "this item cannot be grabbed or lifted. It can still be displaced when its neighbours move"
+        "this item cannot be grabbed or lifted, and says so with aria-disabled. It can still be displaced when its neighbours move"
 
-    attr :label, :string, doc: "accessible name used in announcements and the handle label"
+    attr :label, :string,
+      doc:
+        ~s|accessible name used in announcements and as the grip's label. Effectively required with `handle`: without it every grip is named "Reorder item"|
+
     attr :class, :any, doc: "extra classes for this item"
   end
 
@@ -226,7 +235,8 @@ defmodule PetalComponents.Sortable do
         data-sortable-label={item[:label]}
         data-disabled={item_disabled?(@disabled, item) && "true"}
         aria-roledescription="sortable"
-        aria-describedby={"#{@id}-instructions"}
+        aria-disabled={item_disabled?(@disabled, item) && "true"}
+        aria-describedby={instructions_for(@disabled, @id, item)}
         tabindex={item_tabindex(@disabled, @handle, item)}
       >
         <button
@@ -234,8 +244,8 @@ defmodule PetalComponents.Sortable do
           type="button"
           class="pc-sortable__handle"
           tabindex={item_disabled?(@disabled, item) && "-1"}
-          aria-label={"Reorder #{item[:label] || item.id}"}
-          aria-describedby={"#{@id}-instructions"}
+          aria-label={"Reorder #{item[:label] || "item"}"}
+          aria-describedby={instructions_for(@disabled, @id, item)}
           aria-disabled={item_disabled?(@disabled, item) && "true"}
           data-sortable-handle
         >
@@ -277,6 +287,14 @@ defmodule PetalComponents.Sortable do
 
   defp item_disabled?(true, _item), do: true
   defp item_disabled?(_disabled, item), do: item[:disabled] == true
+
+  # A disabled row cannot be lifted, so it must not be told how to: pointing
+  # it at "press Space to lift this item" is an instruction that can only
+  # fail. It carries aria-disabled instead, which is the part a screen reader
+  # actually needs, and the instructions stay on the rows that can move.
+  defp instructions_for(container_disabled, id, item) do
+    if item_disabled?(container_disabled, item), do: nil, else: "#{id}-instructions"
+  end
 
   # In handle mode the grip is the tab stop, not the row, so the row itself
   # never takes focus. Disabled either way means out of the tab order.

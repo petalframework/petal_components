@@ -118,11 +118,33 @@ defmodule PetalComponents.SortableTest do
                "sortable"
              ]
 
+      # only the rows that can actually move are told how to move: the third
+      # is disabled, so it carries aria-disabled instead of instructions it
+      # cannot follow
       assert attrs(nodes, "aria-describedby") == [
-               "stages-instructions",
                "stages-instructions",
                "stages-instructions"
              ]
+
+      assert attrs(nodes, "aria-disabled") == ["true"]
+    end
+
+    test "a disabled item drops the lift instructions and says it is disabled" do
+      # AT that reads "press Space to lift this item" on a row that can never
+      # lift is worse than saying nothing, so the describedby goes and
+      # aria-disabled arrives
+      disabled = list() |> parse_html() |> LazyHTML.query(".pc-sortable__item--disabled")
+
+      assert attrs(disabled, "aria-disabled") == ["true"]
+      assert attrs(disabled, "aria-describedby") == []
+      assert attrs(disabled, "aria-roledescription") == ["sortable"]
+    end
+
+    test "a disabled container marks every row disabled" do
+      nodes = items(list(%{disabled: true}))
+
+      assert attrs(nodes, "aria-disabled") == ["true", "true", "true"]
+      assert attrs(nodes, "aria-describedby") == []
     end
 
     test "the element id defaults to the sortable id and dom_id overrides it" do
@@ -174,12 +196,32 @@ defmodule PetalComponents.SortableTest do
       assert attrs(handles, "data-sortable-handle") == ["", "", ""]
       assert attrs(handles, "type") == ["button", "button", "button"]
 
+      # the hook reads exactly this flag to decide that only the grip drags
+      assert html |> parse_html() |> LazyHTML.query("#stages") |> attrs("data-handle") == ["true"]
+
       # the grip is the tab stop now, so no row carries a tabindex
       assert attrs(items(html), "tabindex") == []
 
       # and the disabled row's grip leaves the tab order
       assert attrs(handles, "aria-disabled") == ["true"]
       assert attrs(handles, "tabindex") == ["-1"]
+    end
+
+    test "a grip without a label falls back to a generic name, never the raw id" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.sortable id="s" on_reorder="reorder" handle>
+          <:item id="42">Buy milk</:item>
+        </.sortable>
+        """)
+
+      # "Reorder 42" is not a sentence anyone wants read to them; label is
+      # what makes a grip nameable, and its absence degrades to something
+      # generic rather than to an internal id
+      assert html |> parse_html() |> LazyHTML.query(".pc-sortable__handle") |> attrs("aria-label") ==
+               ["Reorder item"]
     end
 
     test "no handle without the attr" do

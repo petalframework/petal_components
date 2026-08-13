@@ -7138,7 +7138,7 @@ defmodule Dev.PlaygroundLive do
               :for={photo <- @sortable.photos}
               id={photo.id}
               label={photo.title}
-              class="flex-col !items-stretch !gap-2 !p-2"
+              class="flex-col items-stretch gap-2 p-2"
             >
               <div class={["h-20 rounded-md bg-gradient-to-br", photo.tone]}></div>
               <span class="text-xs text-gray-600 dark:text-gray-300">{photo.title}</span>

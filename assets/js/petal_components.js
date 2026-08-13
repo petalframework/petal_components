@@ -4999,6 +4999,11 @@ export const SortableCore = {
     return y > rect.top + rect.height / 2;
   },
 
+  // The lift/drop key, in every spelling a browser still emits for it.
+  isLiftKey(key) {
+    return key === " " || key === "Spacebar" || key === "Space";
+  },
+
   // One arrow-key step, clamped to the list. Returns null for a key this
   // component does not own, so the hook leaves that event alone.
   nextKeyboardIndex({
@@ -5337,9 +5342,12 @@ export const PetalSortable = {
     if (!region) return;
 
     // Re-announcing an identical string (two moves into the same slot) needs
-    // the region to actually change, so clear it first.
-    region.textContent = "";
-    region.textContent = text;
+    // the region to actually change. Clearing and re-setting it in the same
+    // task does not: the DOM is diffed once the task ends, so the same text
+    // reads as no change at all and the announcement is skipped. Alternate
+    // an invisible zero-width space instead - a real mutation, no difference
+    // to what is spoken. Same trick as PetalComboBox.announceMax.
+    region.textContent = text === region.textContent ? `${text}\u200b` : text;
   },
 
   emit(id, from, to) {
@@ -5392,7 +5400,18 @@ export const PetalSortable = {
     };
   },
 
+  // The window listeners hear every pointer on the page, so a gesture only
+  // answers to the pointer that started it. Without this a second finger
+  // touching down anywhere drives - or, on lift-off, drops - a row it never
+  // grabbed.
+  ours(e) {
+    const gesture = this.drag || this.press;
+    return !!gesture && e.pointerId === gesture.pointerId;
+  },
+
   pointerMove(e) {
+    if (!this.ours(e)) return;
+
     if (this.press && !this.drag) {
       const dist = Math.hypot(e.clientX - this.press.x, e.clientY - this.press.y);
 
@@ -5431,9 +5450,10 @@ export const PetalSortable = {
     this.flip(before);
   },
 
-  pointerUp() {
+  pointerUp(e) {
+    if (!this.ours(e)) return;
     if (this.drag) return this.finishDrag();
-    if (this.press) this.abortPointer();
+    this.abortPointer();
   },
 
   lift() {
@@ -5551,6 +5571,22 @@ export const PetalSortable = {
     const el = e.target.closest(SORTABLE_ITEM);
     if (!el || el.parentElement !== this.el) return;
 
+    // A row is allowed to contain its own controls - the moduledoc's handle
+    // example puts a checkbox in one, and whole-item mode can too. Space and
+    // the arrows belong to whatever is focused, so only the row itself or
+    // its grip drives a lift; a key pressed inside a child control is that
+    // control's business and is neither acted on nor swallowed.
+    if (e.target !== el && !e.target.closest("[data-sortable-handle]")) return;
+
+    // Auto-repeat while the key is held would lift, drop, and lift again on
+    // one press. Swallow the repeat while something is lifted (the page must
+    // not scroll out from under it) but change nothing. Arrows deliberately
+    // keep repeating: holding one walks the item along the list.
+    if (e.repeat && SortableCore.isLiftKey(e.key)) {
+      if (this.kb) e.preventDefault();
+      return;
+    }
+
     const action = this.actionFor(e, el);
     if (!action) return;
 
@@ -5572,7 +5608,7 @@ export const PetalSortable = {
   },
 
   actionFor(e, el) {
-    if (e.key === " " || e.key === "Spacebar" || e.key === "Space") {
+    if (SortableCore.isLiftKey(e.key)) {
       return this.kb
         ? { type: "drop" }
         : {

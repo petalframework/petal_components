@@ -189,6 +189,19 @@ describe("SortableCore.nextKeyboardIndex", () => {
   });
 });
 
+describe("SortableCore.isLiftKey", () => {
+  it("accepts every spelling browsers still emit for the space bar", () => {
+    for (const k of [" ", "Spacebar", "Space"]) {
+      expect(SortableCore.isLiftKey(k)).toBe(true);
+    }
+  });
+
+  it("owns nothing else", () => {
+    expect(SortableCore.isLiftKey("Enter")).toBe(false);
+    expect(SortableCore.isLiftKey("ArrowDown")).toBe(false);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Pure: announcements
 // ---------------------------------------------------------------------------
@@ -403,8 +416,13 @@ function mount({ handle = false, disabled = false, orientation = "vertical" } = 
   };
 }
 
-function key(target, k) {
-  const ev = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true });
+function key(target, k, props = {}) {
+  const ev = new KeyboardEvent("keydown", {
+    key: k,
+    bubbles: true,
+    cancelable: true,
+    ...props,
+  });
   target.dispatchEvent(ev);
   return ev;
 }
@@ -549,6 +567,81 @@ describe("PetalSortable - keyboard", () => {
     expect(s.live.textContent).toBe("Moved Item a to position 2 of 3");
   });
 
+  it("a control inside a row keeps Space for itself", () => {
+    // The moduledoc's own handle-mode example puts a checkbox in every row.
+    // Space there belongs to the checkbox: lifting the row would both move
+    // something the user never grabbed and swallow the toggle.
+    const s = mount({ handle: true });
+    const a = s.item("a");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    a.appendChild(box);
+
+    const ev = key(box, " ");
+
+    expect(s.hook.kb).toBe(null);
+    expect(a.classList.contains("pc-sortable__item--lifted")).toBe(false);
+    expect(ev.defaultPrevented).toBe(false);
+    expect(s.live.textContent).toBe("");
+  });
+
+  it("whole-item mode also leaves a nested control's keys alone", () => {
+    const s = mount();
+    const a = s.item("a");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    a.appendChild(box);
+
+    key(a, " ");
+    // lifted from the row itself, so the arrows are the sortable's - but an
+    // arrow pressed inside the checkbox is not, even mid-lift
+    const ev = key(box, "ArrowDown");
+
+    expect(ev.defaultPrevented).toBe(false);
+    expect(s.ids()).toEqual(["a", "b", "c"]);
+  });
+
+  it("holding space does not lift and then drop again", () => {
+    const s = mount();
+    const a = s.item("a");
+
+    key(a, " ");
+    const held = key(a, " ", { repeat: true });
+
+    expect(s.hook.kb).not.toBe(null);
+    expect(s.live.textContent).toBe("Picked up Item a, position 1 of 3");
+    expect(s.hook.pushed).toEqual([]);
+    // still swallowed, or the page scrolls out from under the lifted item
+    expect(held.defaultPrevented).toBe(true);
+  });
+
+  it("holding an arrow key keeps walking the lifted item", () => {
+    const s = mount();
+    const a = s.item("a");
+
+    key(a, " ");
+    key(a, "ArrowDown");
+    key(a, "ArrowDown", { repeat: true });
+
+    expect(s.ids()).toEqual(["b", "c", "a"]);
+  });
+
+  it("re-announces a string identical to the one already in the region", () => {
+    // Clearing and re-setting textContent in one task is invisible to AT:
+    // the DOM is diffed at the end of the task, so an identical string is no
+    // change at all. The region has to actually differ.
+    const s = mount();
+
+    s.hook.say("Moved Item a to position 2 of 3");
+    const first = s.live.textContent;
+    s.hook.say("Moved Item a to position 2 of 3");
+
+    expect(s.live.textContent).not.toBe(first);
+    expect(s.live.textContent.replace(/\u200B/g, "")).toBe(
+      "Moved Item a to position 2 of 3",
+    );
+  });
+
   it("pushes to a live component when phx-target is set", () => {
     const s = mount();
     s.el.setAttribute("phx-target", "3");
@@ -663,6 +756,26 @@ describe("PetalSortable - the long-press threshold", () => {
     a.querySelector("[data-sortable-handle]")
       .dispatchEvent(pointer("pointerdown", { clientX: 0, clientY: 0 }));
     expect(s.hook.press).not.toBe(null);
+  });
+
+  it("a second finger neither drives nor ends the drag it does not own", () => {
+    const s = mount();
+    const a = s.item("a");
+
+    a.dispatchEvent(pointer("pointerdown", { pointerType: "touch", clientX: 0, clientY: 0 }));
+    vi.advanceTimersByTime(SortableCore.LONG_PRESS_MS);
+    expect(s.hook.drag).not.toBe(null);
+
+    // another finger touching down elsewhere and lifting off is not this
+    // gesture: on a phone that would otherwise drop the row mid-drag
+    window.dispatchEvent(
+      pointer("pointermove", { pointerType: "touch", pointerId: 2, clientX: 300, clientY: 900 }),
+    );
+    window.dispatchEvent(pointer("pointerup", { pointerType: "touch", pointerId: 2 }));
+    expect(s.hook.drag).not.toBe(null);
+
+    window.dispatchEvent(pointer("pointerup", { pointerType: "touch", pointerId: 1 }));
+    expect(s.hook.drag).toBe(null);
   });
 
   it("a right-click is not a drag", () => {
