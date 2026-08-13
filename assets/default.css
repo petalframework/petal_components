@@ -3987,6 +3987,14 @@
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
 
+  /* THE PROPERTY MATTERS: these keyframes animate `translate`, not
+     `transform`, because Tailwind v4's translate-x-* utilities set the
+     `translate` property - and translate + transform COMPOSE. Keyframes on
+     transform ran alongside the utility's translate, so a coalesced
+     translate could teleport the panel partway while the transform
+     animation played on top (traced live: a +385px first-frame jump).
+     Same property = the animation overrides the utility outright while it
+     runs, and the end class takes over seamlessly at the boundary. */
   /* Frame-coalescing guard. The show/hide JS animates via CSS transitions,
      but a transition only fires if the browser style-recalcs the "before"
      state - and LiveView can land the start and end classes inside ONE
@@ -4029,36 +4037,36 @@
     }
   }
   @keyframes pc-slideover-in-left {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from { translate: -100% 0; }
+    to { translate: 0 0; }
   }
   @keyframes pc-slideover-in-right {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
+    from { translate: 100% 0; }
+    to { translate: 0 0; }
   }
   @keyframes pc-slideover-in-top {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
+    from { translate: 0 -100%; }
+    to { translate: 0 0; }
   }
   @keyframes pc-slideover-in-bottom {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from { translate: 0 100%; }
+    to { translate: 0 0; }
   }
   @keyframes pc-slideover-out-left {
-    from { transform: translateX(0); }
-    to { transform: translateX(-100%); }
+    from { translate: 0 0; }
+    to { translate: -100% 0; }
   }
   @keyframes pc-slideover-out-right {
-    from { transform: translateX(0); }
-    to { transform: translateX(100%); }
+    from { translate: 0 0; }
+    to { translate: 100% 0; }
   }
   @keyframes pc-slideover-out-top {
-    from { transform: translateY(0); }
-    to { transform: translateY(-100%); }
+    from { translate: 0 0; }
+    to { translate: 0 -100%; }
   }
   @keyframes pc-slideover-out-bottom {
-    from { transform: translateY(0); }
-    to { transform: translateY(100%); }
+    from { translate: 0 0; }
+    to { translate: 0 100%; }
   }
   @keyframes pc-slideover-fade-in {
     from { opacity: 0; }
