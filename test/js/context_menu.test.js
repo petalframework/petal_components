@@ -224,6 +224,21 @@ describe("PetalContextMenu", () => {
       expect(px(panel.style.left)).toBe(140);
       expect(px(panel.style.top)).toBe(90);
     });
+
+    it("re-asserts the open state itself after a patch, not just position", () => {
+      // a patch strips data-pc-open and the display fallback too - in a
+      // non-popover browser an open menu would silently vanish
+      const { hook, panel, inner } = mount();
+      stubPanel(panel);
+
+      rightClick(inner, 140, 90);
+      panel.removeAttribute("data-pc-open");
+      panel.style.display = "";
+
+      hook.updated();
+      expect(panel.hasAttribute("data-pc-open")).toBe(true);
+      expect(panel.style.display).toBe("block");
+    });
   });
 
   describe("keyboard", () => {
@@ -330,6 +345,29 @@ describe("PetalContextMenu", () => {
       expect(clicked).toBe(1);
       // activation closes
       expect(hook.open).toBe(false);
+    });
+
+    it("Enter activates via the native click path, closing and restoring focus", () => {
+      // Enter on a focused link/button fires the browser's own click - the
+      // hook doesn't intercept the key, it reacts to the click. Pin the whole
+      // contract: activation runs, the menu closes, focus returns.
+      const { hook, panel, trigger, inner, items } = mount();
+      stubPanel(panel);
+      rightClick(inner);
+
+      let clicked = 0;
+      items.del.addEventListener("click", () => clicked++);
+
+      key(panel, "End");
+      const ev = key(items.del, "Enter");
+      // jsdom does not synthesize the native Enter->click, so drive the click
+      // the way the browser would; the key itself must ride through untouched
+      expect(ev.defaultPrevented).toBe(false);
+      items.del.click();
+
+      expect(clicked).toBe(1);
+      expect(hook.open).toBe(false);
+      expect(document.activeElement).toBe(trigger);
     });
 
     it("Escape closes and hands focus back to the trigger region", () => {

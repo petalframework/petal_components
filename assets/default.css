@@ -7613,6 +7613,9 @@
      the hook reads; margin:0 kills the UA's centring so the panel sits
      where it is told. */
   .pc-context-menu__panel {
+    /* min-w-40 (vs the dropdown surface's min-w-36) is deliberate: context
+       rows routinely carry trailing kbd hints, and the wider floor keeps
+       label + hint from crowding. */
     @apply fixed p-1 m-0 w-max min-w-40 max-w-72 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }

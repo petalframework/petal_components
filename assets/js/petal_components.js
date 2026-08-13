@@ -5570,10 +5570,16 @@ export const PetalContextMenu = {
     this.active?.clear();
   },
 
-  // A patch re-renders the panel from the server, which drops the inline
-  // coordinates this hook owns (the server never renders them).
+  // A patch re-renders the panel from the server, which drops EVERYTHING
+  // this hook owns and the server never renders: the inline coordinates,
+  // data-pc-open, and the display fallback. Re-assert the whole open state,
+  // not just position - otherwise an open menu silently vanishes after any
+  // patch in a non-popover browser.
   updated() {
-    if (this.open) this.position();
+    if (!this.open) return;
+    const panel = this.panel();
+    if (panel) this.showPanel(panel);
+    this.position();
   },
 
   panel() {

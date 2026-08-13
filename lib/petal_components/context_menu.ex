@@ -113,13 +113,16 @@ defmodule PetalComponents.ContextMenu do
       data-pc-context-menu-panel={@menu_id}
       {@rest}
     >
+      <%!-- Disabled drops the whole menu contract, not just the hook: a
+            tab stop advertising aria-haspopup for a menu that will never
+            show is a broken promise to a screen reader. --%>
       <div
         id={"#{@id}-trigger"}
         class={["pc-context-menu__trigger", @class]}
-        tabindex="0"
-        aria-haspopup="menu"
-        aria-expanded="false"
-        aria-controls={@menu_id}
+        tabindex={!@disabled && "0"}
+        aria-haspopup={!@disabled && "menu"}
+        aria-expanded={!@disabled && "false"}
+        aria-controls={!@disabled && @menu_id}
       >
         {render_slot(@trigger)}
       </div>

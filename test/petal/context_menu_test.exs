@@ -104,7 +104,14 @@ defmodule PetalComponents.ContextMenuTest do
 
       refute html =~ "PetalContextMenu"
       refute html =~ "phx-hook"
-      # the markup is otherwise unchanged, so toggling disabled is not a re-layout
+      # and the trigger drops the whole menu contract with it: a tab stop
+      # advertising aria-haspopup for a menu that never shows is a broken
+      # promise to assistive tech
+      refute html =~ ~s(tabindex="0")
+      refute html =~ "aria-haspopup"
+      refute html =~ "aria-expanded"
+      refute html =~ "aria-controls"
+      # the panel markup itself stays, so toggling disabled is not a re-layout
       assert html =~ ~s(id="cm-off-menu")
       assert html =~ ~s(role="menu")
     end

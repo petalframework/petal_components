@@ -6968,6 +6968,10 @@ defmodule Dev.PlaygroundLive do
             (or the Menu key), then arrow through the items and press Escape to get out.
           </p>
           <div class="grid gap-3 sm:grid-cols-3">
+            <%!-- disabled is baked into the id ON PURPOSE: flipping the dial
+                  changes the id, forcing a remount so the hook attaches or
+                  detaches. Simplify it to a stable id and the toggle stops
+                  working (LiveView patches never re-run phx-hook wiring). --%>
             <.context_menu
               :for={f <- @files}
               id={"pg-cm-#{f.id}-#{@context_menu.disabled}"}
