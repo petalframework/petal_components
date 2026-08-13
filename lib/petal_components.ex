@@ -59,6 +59,7 @@ defmodule PetalComponents do
         Popover,
         Progress,
         Rating,
+        Scrollspy,
         Skeleton,
         SlideOver,
         SocialButton,

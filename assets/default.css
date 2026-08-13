@@ -7586,3 +7586,67 @@
       transition-duration: 1ms;
     }
   }
+
+/* Scrollspy - the "on this page" rail.
+   Layered, unlike the tail above it: unlayered rules outrank every Tailwind
+   utility, which would stop a consumer overriding these with a class. */
+@layer components {
+  .pc-scrollspy {
+    @apply relative text-sm;
+  }
+
+  .pc-scrollspy__heading {
+    @apply block mb-3 text-xs font-semibold tracking-wide uppercase text-gray-900 dark:text-white;
+  }
+
+  .pc-scrollspy__list {
+    @apply flex flex-col;
+  }
+
+  /* The rail the bar slides along. Only the bar variant draws it - with
+     indicator="none" the active state is carried by the link alone. */
+  .pc-scrollspy--bar .pc-scrollspy__list {
+    @apply border-l border-gray-200 dark:border-gray-800;
+  }
+
+  .pc-scrollspy__sublist {
+    @apply flex flex-col;
+  }
+
+  .pc-scrollspy-link {
+    @apply block py-1.5 pl-4 pr-2 text-gray-500 transition-colors dark:text-gray-400;
+    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:rounded-sm;
+  }
+
+  .pc-scrollspy-link--nested {
+    @apply pl-8 text-[0.8125rem];
+  }
+
+  .pc-scrollspy-link--active {
+    @apply font-medium text-primary-600 dark:text-primary-300;
+  }
+
+  .pc-scrollspy-link--active:hover {
+    @apply text-primary-700 dark:text-primary-200;
+  }
+
+  /* Positioned by the hook (transform + height); the glide is CSS so the
+     hook never owns timing. Hidden until it has a link to sit against. */
+  .pc-scrollspy__indicator {
+    @apply absolute left-0 top-0 w-0.5 bg-primary-600 dark:bg-primary-300;
+    transition:
+      transform 200ms ease,
+      height 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-scrollspy__indicator {
+      transition: none;
+    }
+
+    .pc-scrollspy-link {
+      transition: none;
+    }
+  }
+}

@@ -274,6 +274,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "stepper", name: "Stepper", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
+        %{slug: "scrollspy", name: "Scrollspy", ready: true},
         %{slug: "user-menu", name: "User menu", ready: true},
         %{slug: "language-select", name: "Language select", ready: true}
       ]
@@ -851,6 +852,7 @@ defmodule Dev.PlaygroundLive do
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
+       scrollspy: %{offset: "6rem", nested: false, indicator: "bar"},
        chart: %{
          revenue: gen_wave(1100, 1),
          expenses: gen_wave(650, 4),
@@ -1437,6 +1439,17 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
     do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
 
+  def handle_event("ctl_scrollspy", %{"k" => "offset", "v" => v}, socket)
+      when v in ~w(2rem 6rem 12rem),
+      do: {:noreply, update(socket, :scrollspy, &%{&1 | offset: v})}
+
+  def handle_event("ctl_scrollspy", %{"k" => "indicator", "v" => v}, socket)
+      when v in ~w(bar none),
+      do: {:noreply, update(socket, :scrollspy, &%{&1 | indicator: v})}
+
+  def handle_event("ctl_scrollspy", %{"k" => "nested"}, socket),
+    do: {:noreply, update(socket, :scrollspy, &%{&1 | nested: !&1.nested})}
+
   def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
     do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
 
@@ -1843,6 +1856,61 @@ defmodule Dev.PlaygroundLive do
       [] -> "<.button>Get started</.button>"
       _ -> "<.button #{Enum.join(attrs, " ")}>Get started</.button>"
     end
+  end
+
+  # Flat mode lists the h2s only, which is what most docs rails do. Nested
+  # mode folds the two h3s under the section they belong to.
+  defp scrollspy_items(%{nested: nested}) do
+    wiring =
+      if nested do
+        %{
+          label: "Wiring it up",
+          target: "ss-wiring",
+          children: [
+            %{label: "The items list", target: "ss-items"},
+            %{label: "The targets", target: "ss-targets"}
+          ]
+        }
+      else
+        %{label: "Wiring it up", target: "ss-wiring"}
+      end
+
+    [
+      %{label: "Why a rail", target: "ss-why"},
+      wiring,
+      %{label: "Clearing a header", target: "ss-offset"},
+      %{label: "Motion", target: "ss-motion"},
+      %{label: "Accessibility", target: "ss-a11y"},
+      %{label: "Wrapping up", target: "ss-end"}
+    ]
+  end
+
+  defp scrollspy_snippet(ss) do
+    """
+    <.scrollspy
+      id="docs-toc"
+      heading="On this page"
+      offset="#{ss.offset}"#{if ss.indicator == "none", do: ~s|\n  indicator="none"|, else: ""}
+      items={[
+        %{label: "Why a rail", target: "ss-why"},#{if ss.nested, do: nested_snippet(), else: ~s|\n    %{label: "Wiring it up", target: "ss-wiring"},|}
+        %{label: "Wrapping up", target: "ss-end"}
+      ]}
+    />
+    """
+  end
+
+  defp nested_snippet do
+    """
+
+        %{
+          label: "Wiring it up",
+          target: "ss-wiring",
+          children: [
+            %{label: "The items list", target: "ss-items"},
+            %{label: "The targets", target: "ss-targets"}
+          ]
+        },\
+    """
   end
 
   # A page's slice of a showcase module, in the page's order. Field is one
@@ -9127,6 +9195,218 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Badge</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "scrollspy"} = assigns) do
+    assigns = assign(assigns, :ss_items, scrollspy_items(assigns.scrollspy))
+
+    ~H"""
+    <div class="max-w-5xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Scrollspy</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The "on this page" rail. A hook watches the sections with an
+        IntersectionObserver and moves the highlight to whichever one you're reading.
+        Scroll this page and watch it track.
+      </p>
+
+      <div class="flex flex-wrap items-end px-4 py-4 mt-8 border border-gray-200 gap-x-8 gap-y-4 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">offset</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Offset"
+            value={@scrollspy.offset}
+            on_change="ctl_scrollspy"
+          >
+            <:item
+              :for={v <- ~w(2rem 6rem 12rem)}
+              value={v}
+              phx-value-k="offset"
+              phx-value-v={v}
+            >
+              {v}
+            </:item>
+          </.toggle_group>
+        </div>
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicator</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Indicator"
+            value={@scrollspy.indicator}
+            on_change="ctl_scrollspy"
+          >
+            <:item :for={v <- ~w(bar none)} value={v} phx-value-k="indicator" phx-value-v={v}>
+              {v}
+            </:item>
+          </.toggle_group>
+        </div>
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">nesting</div>
+          <.toggle_group
+            multiple
+            variant="outline"
+            size="sm"
+            aria_label="Nesting"
+            value={for {k, on} <- [{"nested", @scrollspy.nested}], on, do: k}
+            on_change="ctl_scrollspy"
+          >
+            <:item value="nested" phx-value-k="nested">nested</:item>
+          </.toggle_group>
+        </div>
+      </div>
+
+      <div class="sticky top-0 z-10 px-4 py-3 mt-8 -mx-4 text-xs font-medium text-gray-500 border-b border-gray-200 sm:-mx-8 sm:px-8 bg-white/85 dark:bg-gray-950/85 backdrop-blur dark:border-gray-800 dark:text-gray-400">
+        Sticky page header - the offset dial is what keeps this bar off a heading you jump to.
+      </div>
+
+      <div class="flex gap-10 mt-8">
+        <article class="flex-1 min-w-0">
+          <section id="ss-why" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Why a rail</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Long pages lose people. A reader who scrolls past three headings has no
+              idea how much is left or where they are, and the browser's own scrollbar
+              is too coarse to answer either question. A rail down the side answers both
+              at a glance: here is the shape of the page, and here is you.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Every docs site rebuilds this by hand and most of them get the edge cases
+              wrong. Two sections visible at once, a closing section too short to ever
+              reach the activation line, a deep link that lands mid-page. Those are the
+              parts worth absorbing into a component.
+            </p>
+          </section>
+
+          <section id="ss-wiring" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Wiring it up</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              There are two moving parts and they meet at an id. The rail names the
+              sections it wants to track; the page gives those sections ids. Nothing
+              else connects them, which is why the hook works just as well on markup you
+              wrote yourself.
+            </p>
+          </section>
+
+          <section id="ss-items" class="pb-16">
+            <h3 class="text-base font-semibold">The items list</h3>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Each entry is a map with a label and a target. The target is the section
+              id without the hash. Add a children key and you get one level of nesting
+              for h3s underneath an h2, which is where the rail stops: past two levels
+              it is no longer something you can scan.
+            </p>
+          </section>
+
+          <section id="ss-targets" class="pb-16">
+            <h3 class="text-base font-semibold">The targets</h3>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Give the section elements those ids and you are done. Missing targets are
+              skipped rather than treated as an error, so a rail built from a CMS table
+              of contents degrades quietly when a section gets deleted.
+            </p>
+          </section>
+
+          <section id="ss-offset" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Clearing a fixed header</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Click a link and the browser scrolls the heading to the very top of the
+              viewport, which is exactly where a sticky site header already is. The
+              offset sets scroll-margin-top on every target so the heading parks below
+              the bar instead of behind it.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Try the dial above, then click a link in the rail. At 2rem the heading
+              tucks under the sticky bar on this page. At 12rem it lands well clear of it.
+            </p>
+          </section>
+
+          <section id="ss-motion" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Motion</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Smooth scrolling is a property of the scroll container, not of the click,
+              so the hook sets it there and puts it back the way it found it when the
+              component unmounts. The indicator bar is positioned by the hook and
+              animated by CSS, which keeps the timing in one place.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Turn on reduce motion in your OS and both go away. Jumps land instantly,
+              the bar moves without a transition, and nothing about the resting state
+              changes.
+            </p>
+          </section>
+
+          <section id="ss-a11y" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Accessibility</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              The rail is a nav landmark with a label, so it can be found and skipped.
+              The active link carries aria-current="location", which is the right token
+              for "you are here within this page" and means the highlight is not colour
+              alone.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Entries are plain anchors, so Tab and Enter already work and there is no
+              custom key handling to learn. Scrolling never moves focus: the hook only
+              touches classes and one attribute, so a keyboard user's place in the page
+              is theirs to lose.
+            </p>
+          </section>
+
+          <section id="ss-end" class="pb-4">
+            <h2 class="text-xl font-semibold tracking-tight">Wrapping up</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              This last section is deliberately short. Scroll to the very bottom and it
+              still highlights, because the last entry snaps active there.
+            </p>
+          </section>
+        </article>
+
+        <.scrollspy
+          id="pg-scrollspy"
+          heading="On this page"
+          items={@ss_items}
+          offset={@scrollspy.offset}
+          indicator={@scrollspy.indicator}
+          class="self-start flex-none hidden w-56 lg:block sticky top-16"
+        />
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-10 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{scrollspy_snippet(@scrollspy)}</code></pre>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Scrollspy, ~w(nested bare)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Scrollspy} function={:scrollspy} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Scrollspy</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
