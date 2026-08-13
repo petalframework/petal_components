@@ -68,6 +68,34 @@ defmodule PetalComponents.QrCodeTest do
       refute html =~ "aria-label"
     end
 
+    test "aria-hidden={false} means visible: role and label stay" do
+      # presence is not truth - a dynamic aria-hidden={@x} that resolves
+      # false must not silently strip the accessibility contract
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.qr_code value="https://petal.build" aria-hidden={false} />
+        """)
+
+      assert_attribute(html, "role", "img")
+      assert html =~ "aria-label"
+    end
+
+    test "hidden strips even a user-supplied aria-label from the globals" do
+      # keeps the moduledoc's "neither is emitted" claim true rather than
+      # depending on the caller not to contradict themselves
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.qr_code value="https://petal.build" aria-hidden="true" aria-label="Pay here" />
+        """)
+
+      refute html =~ "aria-label"
+      refute html =~ "Pay here"
+    end
+
     test "class and rest pass through" do
       assigns = %{}
 
@@ -389,6 +417,18 @@ defmodule PetalComponents.QrCodeTest do
       # It is present here (mix.exs declares it optional, so it is installed
       # for petal_components itself), which is what lets every test above run.
       assert Code.ensure_loaded?(EQRCode)
+    end
+
+    test "a missing encoder raises with the exact install instructions" do
+      # the raise path is what a user without the optional dep actually hits;
+      # the seam takes the encoder module so this is exercisable
+      err =
+        assert_raise RuntimeError, fn ->
+          PetalComponents.QrCode.ensure_encoder!(PetalComponents.NoSuchEncoder)
+        end
+
+      assert err.message =~ ~s|{:eqrcode, "~> 0.2"}|
+      assert err.message =~ "mix deps.get"
     end
   end
 end

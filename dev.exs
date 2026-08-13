@@ -1656,10 +1656,15 @@ defmodule Dev.PlaygroundLive do
   defp qr_value(""), do: "https://petal.build"
   defp qr_value(value), do: value
 
+  # The snippet shows EXACTLY what the hero renders - the same PC monogram
+  # slot content, and the label every hero render passes.
   defp qr_snippet(qr) do
     logo =
       if qr.logo do
-        "\n  <:logo>\n    <img src={~p\"/images/logo.svg\"} width=\"70\" height=\"70\" />\n  </:logo>\n</.qr_code>"
+        "\n  <:logo>\n" <>
+          ~s|    <div class="flex items-center justify-center w-full h-full text-5xl font-bold">\n| <>
+          ~s|      <span class="text-primary-600">PC</span>\n| <>
+          "    </div>\n  </:logo>\n</.qr_code>"
       else
         "\n/>"
       end
@@ -1672,6 +1677,7 @@ defmodule Dev.PlaygroundLive do
       ~s|\n  error_correction={:#{qr.ec}}| <>
       ~s|\n  rounded={#{qr.rounded}}| <>
       background <>
+      ~s|\n  label="QR code for the value shown below"| <>
       ~s|\n  class="#{qr_size_class(qr.size)} #{colour}"| <>
       logo
   end
@@ -4287,11 +4293,8 @@ defmodule Dev.PlaygroundLive do
               ]}
             >
               <:logo :if={@qr.logo}>
-                <div
-                  class="flex items-center justify-center w-full h-full"
-                  style="font:700 46px/1 ui-sans-serif,system-ui,sans-serif"
-                >
-                  <span style="color:#7c3aed">PC</span>
+                <div class="flex items-center justify-center w-full h-full text-5xl font-bold">
+                  <span class="text-primary-600">PC</span>
                 </div>
               </:logo>
             </.qr_code>
@@ -4423,77 +4426,17 @@ defmodule Dev.PlaygroundLive do
         class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
       ><code>{qr_snippet(@qr)}</code></pre>
 
-      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
-        Two-factor enrolment - the number one reason to reach for this
-      </div>
-      <div class="p-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="w-full max-w-sm p-6 mx-auto border border-gray-200 rounded-xl dark:border-gray-800">
-          <div class="text-base font-semibold text-gray-900 dark:text-white">
-            Scan with your authenticator
-          </div>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Open 1Password, Authy or Google Authenticator and point it at this code.
-          </p>
-          <div class="flex justify-center p-4 mt-5 bg-white rounded-lg">
-            <.qr_code
-              value="otpauth://totp/Petal:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Petal"
-              background="white"
-              label="QR code to enrol your authenticator app"
-              class="size-44 text-gray-900"
-            />
-          </div>
-          <div class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            Can't scan? Enter this key by hand:
-          </div>
-          <div class="px-3 py-2 mt-1 font-mono text-sm text-gray-900 bg-gray-100 rounded dark:bg-gray-800 dark:text-gray-100">
-            JBSW Y3DP EHPK 3PXP
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
-        Share this page
-      </div>
-      <div class="flex justify-center p-8 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex items-center w-full max-w-md gap-4 p-4 border border-gray-200 rounded-xl dark:border-gray-800">
-          <div class="p-2 bg-white rounded-lg shrink-0">
-            <.qr_code
-              value="https://petal.build/components"
-              background="white"
-              label="QR code linking to the component library"
-              class="text-gray-900 size-20"
-            />
-          </div>
-          <div class="min-w-0">
-            <div class="text-sm font-medium text-gray-900 dark:text-white">Open on your phone</div>
-            <div class="mt-1 text-xs text-gray-500 truncate dark:text-gray-400">
-              petal.build/components
-            </div>
-            <.button size="xs" variant="outline" label="Copy link" class="mt-3" />
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
-        The inversion rule on a dark surface
-      </div>
-      <div class="grid gap-6 p-8 bg-gray-900 border border-gray-200 sm:grid-cols-2 rounded-xl dark:border-gray-800">
-        <div class="text-center">
-          <div class="inline-flex p-4 bg-white rounded-xl">
-            <.qr_code value="https://petal.build" background="white" class="text-gray-900 size-32" />
-          </div>
-          <div class="mt-3 text-xs text-gray-400">
-            safe: dark modules on a light card, scans on anything
-          </div>
-        </div>
-        <div class="text-center">
-          <div class="inline-flex p-4">
-            <.qr_code value="https://petal.build" class="text-white size-32" />
-          </div>
-          <div class="mt-3 text-xs text-gray-400">
-            inverted: looks better, most modern phones cope, older scanners may not
-          </div>
-        </div>
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.QrCode, ~w(totp share dark_surface logo)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>

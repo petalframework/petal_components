@@ -151,14 +151,22 @@ defmodule PetalComponents.QrCode do
     n = length(grid)
     knockout = if assigns.logo != [], do: knockout_bounds(n), else: nil
 
+    # aria-hidden={false} must read as NOT hidden (a dynamic aria-hidden={@x}
+    # is normal HEEx), and when genuinely hidden, a user-supplied aria-label
+    # in the globals is stripped so the "neither is emitted" contract in the
+    # moduledoc stays true rather than depending on the caller.
+    hidden? = hidden_attr?(assigns.rest)
+    rest = if hidden?, do: drop_attr(assigns.rest, "aria-label"), else: assigns.rest
+
     assigns =
       assigns
+      |> assign(:rest, rest)
       |> assign(:d, path(grid, rounded, knockout))
       |> assign(:extent, n + @quiet_zone * 2)
       |> assign(:crisp, if(rounded == 0.0, do: "crispEdges"))
       |> assign(:logo_box, logo_box(knockout))
-      |> assign(:hidden?, given?(assigns.rest, "aria-hidden"))
-      |> assign(:labelled?, not given?(assigns.rest, "aria-label"))
+      |> assign(:hidden?, hidden?)
+      |> assign(:labelled?, not given?(rest, "aria-label"))
       |> assign(:paint_background?, assigns.background not in ["transparent", "none", nil])
 
     ~H"""
@@ -196,13 +204,25 @@ defmodule PetalComponents.QrCode do
   # written at the call site; treat both the same.
   defp given?(rest, key), do: Enum.any?(rest, fn {k, _} -> to_string(k) == key end)
 
+  # Presence is not truth: aria-hidden={false} and aria-hidden="false" mean
+  # visible, and HEEx renders a literal false attr value by omitting it.
+  defp hidden_attr?(rest) do
+    Enum.any?(rest, fn {k, v} ->
+      to_string(k) == "aria-hidden" and v not in [false, "false", nil]
+    end)
+  end
+
+  defp drop_attr(rest, key) do
+    rest |> Enum.reject(fn {k, _} -> to_string(k) == key end) |> Map.new()
+  end
+
   # -- encoding ---------------------------------------------------------------
 
   # The matrix comes from eqrcode; the rest of this module is ours. eqrcode
   # bakes in a 2-module border, which we strip so we can lay down the spec's
   # 4-module quiet zone ourselves.
   defp encode!(value, level) do
-    ensure_encoder!()
+    ensure_encoder!(EQRCode)
     check_capacity!(value, level)
 
     encoded = EQRCode.encode(value, level)
@@ -216,8 +236,12 @@ defmodule PetalComponents.QrCode do
     end
   end
 
-  defp ensure_encoder! do
-    if not Code.ensure_loaded?(EQRCode) do
+  # Public with the module as an argument so the raise path (the install
+  # instructions users actually hit) is testable; production always passes
+  # EQRCode.
+  @doc false
+  def ensure_encoder!(encoder) do
+    if not Code.ensure_loaded?(encoder) do
       raise """
       <.qr_code> needs the eqrcode package to build the QR matrix, and it is not available.
 

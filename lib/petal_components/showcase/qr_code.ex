@@ -98,7 +98,7 @@ defmodule PetalComponents.Showcase.QrCode do
           class="size-44 text-gray-900"
         >
           <:logo>
-            <div style="display:flex;align-items:center;justify-content:center;height:100%;font:600 46px/1 ui-sans-serif,system-ui,sans-serif;color:#7c3aed">
+            <div class="flex h-full items-center justify-center text-5xl font-semibold text-primary-600">
               PC
             </div>
           </:logo>
