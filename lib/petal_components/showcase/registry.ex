@@ -32,6 +32,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.LanguageSelect,
     PetalComponents.Showcase.SocialButton,
     PetalComponents.Showcase.Field,
+    PetalComponents.Showcase.FileUpload,
     PetalComponents.Showcase.InputGroup,
     PetalComponents.Showcase.InputOtp,
     PetalComponents.Showcase.Loading,

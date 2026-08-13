@@ -7586,3 +7586,286 @@
       transition-duration: 1ms;
     }
   }
+
+/* File upload - the dropzone family over Phoenix.LiveView uploads. Drag-over
+ * is LiveView's own `phx-drop-target-active` class, so the highlight is plain
+ * CSS and the component ships no hook. The native input stays in the tab
+ * order (clipped, never display:none), and because it is invisible the zone
+ * that labels it draws the focus ring on its behalf via :has(). */
+@layer components {
+  .pc-file-upload {
+    @apply flex flex-col w-full gap-3;
+  }
+
+  /* Clipped to nothing but still focusable: keyboard users tab to the input
+     and Enter/Space opens the native picker. `display: none` or `hidden`
+     would drop it out of the tab order and strand them. */
+  .pc-file-upload__input {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip-path: inset(50%);
+  }
+
+  /* The drop surface: a label, so clicking anywhere on it opens the picker
+     and LiveView's phx-drop-target lands on the same element. */
+  .pc-file-upload__zone {
+    @apply relative flex flex-col items-center justify-center w-full gap-1 px-6 py-10 text-center cursor-pointer;
+    @apply bg-transparent border border-dashed border-gray-300 shadow-xs;
+    @apply transition-[color,background-color,border-color,box-shadow] duration-200 ease-out;
+    @apply hover:border-gray-400 hover:bg-gray-50;
+    @apply dark:bg-gray-400/8 dark:border-gray-400/25 dark:hover:border-gray-400/40 dark:hover:bg-gray-400/12;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible) {
+    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
+  }
+
+  .pc-file-upload__zone.phx-drop-target-active {
+    @apply border-primary-500 bg-primary-500/8 dark:bg-primary-500/12;
+  }
+
+  .pc-file-upload__heading {
+    @apply flex flex-col gap-0.5;
+  }
+
+  /* Icon geometry rides the doubled-selector + bang contract: these are bare
+     hero-* spans, and a consumer's heroicon CSS (utilities layer or unlayered)
+     beats a single-class rule of ours on order alone. The variant overrides
+     below gain a class each, so they still out-rank this base. */
+  .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-8! h-8! text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-file-upload__label {
+    @apply text-sm font-medium text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-file-upload__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /* The drag hint is decorative (aria-hidden): its text is static and only the
+     opacity changes, so it is faded rather than removed purely so the fade can
+     be animated. */
+  .pc-file-upload__live {
+    @apply absolute inset-x-0 bottom-2 text-xs font-medium opacity-0 pointer-events-none;
+    @apply text-primary-600 transition-opacity duration-150 dark:text-primary-400;
+  }
+
+  .pc-file-upload__zone.phx-drop-target-active .pc-file-upload__live {
+    @apply opacity-100;
+  }
+
+  /* File upload - entries */
+
+  .pc-file-upload__entries {
+    @apply flex flex-col gap-2 p-0 m-0 list-none;
+  }
+
+  .pc-file-upload__entry {
+    @apply list-none;
+  }
+
+  .pc-file-upload__entry-inner {
+    @apply flex items-center w-full gap-3 px-3 py-2 bg-transparent border border-gray-200;
+    @apply dark:border-gray-400/20 dark:bg-gray-400/8;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__entry-inner--invalid {
+    @apply border-danger-500 dark:border-danger-500/70;
+  }
+
+  .pc-file-upload__media {
+    @apply flex items-center justify-center w-10 h-10 overflow-hidden shrink-0;
+    @apply bg-gray-100 dark:bg-gray-400/12;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__thumb {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-file-upload__type-icon.pc-file-upload__type-icon {
+    @apply w-5! h-5! text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-file-upload__entry-body {
+    @apply flex flex-col min-w-0 gap-1 grow;
+  }
+
+  .pc-file-upload__entry-name {
+    @apply block text-sm font-medium truncate text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-file-upload__entry-meta {
+    @apply block text-xs tabular-nums text-gray-500 dark:text-gray-400;
+  }
+
+  /* File upload - progress. Mirrors pc-progress: washed track, solid fill,
+     width driven inline from entry.progress. The width transition is
+     informative, so reduced motion leaves it alone. */
+
+  .pc-file-upload__progress {
+    @apply relative flex w-full h-1 overflow-hidden rounded-full bg-primary-500/15;
+  }
+
+  .pc-file-upload__progress-bar {
+    @apply relative z-[1] block h-full rounded-full bg-primary-600;
+    @apply transition-[width] duration-500 ease-out;
+  }
+
+  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress {
+    @apply bg-danger-500/15;
+  }
+
+  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress-bar {
+    @apply bg-danger-600;
+  }
+
+  /* File upload - errors, matching the pc-form-field-error treatment */
+
+  .pc-file-upload__error {
+    @apply flex items-center gap-1.5 text-sm text-danger-600 dark:text-danger-400;
+  }
+
+  .pc-file-upload__error--entry {
+    @apply mt-1.5 text-xs;
+  }
+
+  /* The config-level error is the only <p> in the family, so it is the only
+     one that can inherit a margin from a consumer's prose/typography styles. */
+  .pc-file-upload__error--config {
+    @apply m-0;
+  }
+
+  .pc-file-upload__error-icon.pc-file-upload__error-icon {
+    @apply w-4! h-4! shrink-0;
+  }
+
+  /* File upload - cancel */
+
+  .pc-file-upload__cancel {
+    @apply flex items-center justify-center w-7 h-7 shrink-0 cursor-pointer;
+    @apply text-gray-400 transition-colors duration-150 hover:text-gray-700;
+    @apply dark:text-gray-500 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__cancel-icon.pc-file-upload__cancel-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* File upload - compact: a browse button, no zone */
+
+  .pc-file-upload__bar {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .pc-file-upload--compact .pc-file-upload__zone {
+    @apply flex-row w-auto gap-2 px-4 py-2 border-solid;
+    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-file-upload--compact .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-4! h-4!;
+  }
+
+  /* File upload - avatar: one circular preview with a replace overlay */
+
+  .pc-file-upload--avatar .pc-file-upload__zone {
+    @apply relative w-24 h-24 p-0 overflow-hidden rounded-full shrink-0;
+  }
+
+  .pc-file-upload__avatar-img {
+    @apply object-cover w-full h-full;
+  }
+
+  .pc-file-upload--avatar .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-10! h-10!;
+  }
+
+  .pc-file-upload__overlay {
+    @apply absolute inset-0 flex items-center justify-center text-white opacity-0;
+    @apply bg-gray-900/60 transition-opacity duration-150;
+  }
+
+  .pc-file-upload--avatar .pc-file-upload__zone:hover .pc-file-upload__overlay,
+  .pc-file-upload--avatar
+    .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible)
+    .pc-file-upload__overlay {
+    @apply opacity-100;
+  }
+
+  .pc-file-upload__overlay-icon.pc-file-upload__overlay-icon {
+    @apply w-6! h-6!;
+  }
+
+  /* File upload - gallery: preview tiles plus an add tile under max_entries */
+
+  .pc-file-upload__grid {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4;
+  }
+
+  .pc-file-upload__tile {
+    @apply relative overflow-hidden aspect-square;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__tile--add {
+    @apply flex flex-col items-center justify-center w-full h-full gap-1 px-2 py-2 text-center;
+  }
+
+  /* The gallery's input is a sibling of the add tile, not a child of it - it
+     has to stay in the DOM at max_entries, where the tile does not - so the
+     :has() focus ring is scoped from the grid rather than from the zone. */
+  .pc-file-upload__grid:has(> .pc-file-upload__input:focus-visible)
+    .pc-file-upload__tile--add {
+    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
+  }
+
+  .pc-file-upload__tile-label {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-6! h-6!;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-inner {
+    @apply relative flex-col items-stretch h-full gap-0 p-0;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__media {
+    @apply w-full h-full rounded-none;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-body {
+    @apply absolute inset-x-0 bottom-0 gap-1 p-2 bg-gray-900/70;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-name {
+    @apply text-xs text-white;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-meta {
+    @apply text-[10px] text-gray-300;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__cancel {
+    @apply absolute w-6 h-6 text-white top-1 right-1 bg-gray-900/70;
+    @apply hover:text-white hover:bg-gray-900/90 dark:text-white dark:hover:text-white;
+  }
+
+  /* Decorative fades only; the progress width transition stays, matching
+     pc-progress - it reports state rather than decorating it. */
+  @media (prefers-reduced-motion: reduce) {
+    .pc-file-upload__zone,
+    .pc-file-upload__overlay,
+    .pc-file-upload__live,
+    .pc-file-upload__cancel {
+      transition-duration: 1ms;
+    }
+  }
+}
