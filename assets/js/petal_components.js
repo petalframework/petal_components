@@ -5424,6 +5424,481 @@ export const PetalDataTable = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Resizable
+//
+// The maths lives in pure functions below the hook so it can be unit-tested
+// without a DOM (test/js/resizable.test.js). Everything is percentages of the
+// group: sizes always sum to 100, a resize only ever moves the two panels
+// either side of one handle, and their pair total is conserved - which is why
+// no operation can ever drift the whole layout.
+// ---------------------------------------------------------------------------
+
+export const RESIZABLE_STEP = 2;
+export const RESIZABLE_SHIFT_STEP = 10;
+
+const clampPct = (n, lo, hi) => Math.min(Math.max(n, lo), hi);
+
+// Floating point drift is real when you add and subtract percentages a few
+// hundred times over a drag. Six places is far below anything a layout can
+// show and keeps the "sums to 100" invariant exact enough to assert on.
+const roundPct = (n) => Math.round(n * 1e6) / 1e6;
+
+/**
+ * Read one panel's constraints off its data-* attributes.
+ * @param {HTMLElement} el
+ */
+export function resizableConstraint(el) {
+  const num = (v, fallback) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  return {
+    min: num(el.dataset.min, 10),
+    max: num(el.dataset.max, 100),
+    default: el.dataset.default === undefined ? null : num(el.dataset.default, null),
+    collapsible: el.dataset.collapsible === "true",
+    collapsedSize: num(el.dataset.collapsedSize, 0),
+  };
+}
+
+/**
+ * Initial sizes: honour every default_size, split the remainder equally
+ * between the unsized panels, then normalise so the row sums to 100.
+ * @param {Array<object>} constraints
+ * @returns {number[]}
+ */
+export function distributeSizes(constraints) {
+  const n = constraints.length;
+  if (n === 0) return [];
+
+  const sizes = constraints.map((c) =>
+    typeof c.default === "number" && Number.isFinite(c.default) ? c.default : null,
+  );
+  const knownTotal = sizes.reduce((sum, s) => (s === null ? sum : sum + s), 0);
+  const unsized = sizes.filter((s) => s === null).length;
+
+  if (unsized > 0) {
+    const share = Math.max(0, 100 - knownTotal) / unsized;
+    for (let i = 0; i < n; i++) if (sizes[i] === null) sizes[i] = share;
+  }
+
+  // Clamp to the floor as well as the ceiling: a default_size below
+  // min_size must not paint below the floor on first render (a collapsible
+  // panel's floor is its collapsed size - starting collapsed is legal).
+  const clamped = sizes.map((s, i) => {
+    const c = constraints[i];
+    const floor = c.collapsible ? Math.min(c.collapsedSize, c.min) : c.min;
+    return clampPct(s, floor, c.max);
+  });
+  const total = clamped.reduce((a, b) => a + b, 0);
+  if (total <= 0) return clamped.map(() => roundPct(100 / n));
+
+  return clamped.map((s) => roundPct((s * 100) / total));
+}
+
+// Where a collapsible panel wants to land, or null to take the normal path.
+// The threshold sits halfway between collapsed and min, so the snap in and the
+// snap out happen at the same place - no hysteresis gap to get stuck in.
+function snapTarget(c, current, desired) {
+  if (!c.collapsible) return null;
+
+  const threshold = c.collapsedSize + (c.min - c.collapsedSize) / 2;
+  const wasCollapsed = current <= c.collapsedSize + 0.001;
+
+  if (desired < threshold) {
+    return { size: c.collapsedSize, collapsed: true, changed: !wasCollapsed };
+  }
+  if (wasCollapsed) {
+    return { size: Math.max(c.min, desired), collapsed: false, changed: true };
+  }
+  return null;
+}
+
+/**
+ * Move the separator at `index` by `deltaPct`, conserving the pair total and
+ * respecting BOTH adjacent panels' min/max (and collapse, when enabled).
+ *
+ * @returns {{sizes: number[], collapse: ?{index: number, collapsed: boolean}}}
+ */
+export function resolveDrag(sizes, index, deltaPct, constraints) {
+  const next = sizes.slice();
+  const a = index;
+  const b = index + 1;
+  if (a < 0 || b >= sizes.length) return { sizes: next, collapse: null };
+
+  const ca = constraints[a];
+  const cb = constraints[b];
+  const pairTotal = sizes[a] + sizes[b];
+  const desiredA = sizes[a] + deltaPct;
+
+  let targetA = desiredA;
+  let collapse = null;
+  let snapped = false;
+
+  const snapA = snapTarget(ca, sizes[a], desiredA);
+  if (snapA) {
+    targetA = snapA.size;
+    snapped = snapA.collapsed;
+    if (snapA.changed) collapse = { index: a, collapsed: snapA.collapsed };
+  } else {
+    const snapB = snapTarget(cb, sizes[b], pairTotal - desiredA);
+    if (snapB) {
+      targetA = pairTotal - snapB.size;
+      snapped = snapB.collapsed;
+      if (snapB.changed) collapse = { index: b, collapsed: snapB.collapsed };
+    }
+  }
+
+  // A collapsed panel is allowed to sit below its own min - that is the whole
+  // point of collapsing. Every other target gets clamped by both panels.
+  if (!snapped) {
+    const lo = Math.max(ca.min, pairTotal - cb.max);
+    const hi = Math.min(ca.max, pairTotal - cb.min);
+    targetA = clampPct(targetA, Math.min(lo, hi), hi);
+  }
+
+  next[a] = roundPct(targetA);
+  next[b] = roundPct(pairTotal - targetA);
+  return { sizes: next, collapse };
+}
+
+/**
+ * Home / End on a focused separator: drive the preceding panel to its floor
+ * ("min", collapsing it when it can collapse) or its ceiling ("max").
+ */
+export function resolveEdge(sizes, index, edge, constraints) {
+  const ca = constraints[index];
+  if (!ca) return { sizes: sizes.slice(), collapse: null };
+
+  const target =
+    edge === "min" ? (ca.collapsible ? ca.collapsedSize : ca.min) : ca.max;
+
+  return resolveDrag(sizes, index, target - sizes[index], constraints);
+}
+
+/** Enter on a focused separator: collapse or restore the preceding panel. */
+export function resolveToggle(sizes, index, constraints) {
+  const ca = constraints[index];
+  if (!ca || !ca.collapsible) return { sizes: sizes.slice(), collapse: null };
+
+  const isCollapsed = sizes[index] <= ca.collapsedSize + 0.001;
+  const restore = Math.max(ca.min, ca.default ?? ca.min);
+  const target = isCollapsed ? restore : ca.collapsedSize;
+
+  return resolveDrag(sizes, index, target - sizes[index], constraints);
+}
+
+/**
+ * Double-click a separator: put its two panels back on their default_size
+ * ratio, spending only the space those two already hold.
+ */
+export function resolveReset(sizes, index, constraints) {
+  const next = sizes.slice();
+  const a = index;
+  const b = index + 1;
+  if (a < 0 || b >= sizes.length) return { sizes: next, collapse: null };
+
+  const ca = constraints[a];
+  const cb = constraints[b];
+  const pairTotal = sizes[a] + sizes[b];
+  const da = ca.default;
+  const db = cb.default;
+
+  let targetA;
+  if (da != null && db != null && da + db > 0) targetA = (da / (da + db)) * pairTotal;
+  else if (da != null) targetA = da;
+  else if (db != null) targetA = pairTotal - db;
+  else targetA = pairTotal / 2;
+
+  const lo = Math.max(ca.min, pairTotal - cb.max);
+  const hi = Math.min(ca.max, pairTotal - cb.min);
+  targetA = clampPct(targetA, Math.min(lo, hi), hi);
+
+  next[a] = roundPct(targetA);
+  next[b] = roundPct(pairTotal - targetA);
+
+  // Resetting a collapsed panel back to its default expands it, and an expand
+  // is something listeners want to hear about.
+  const wasCollapsed = ca.collapsible && sizes[a] <= ca.collapsedSize + 0.001;
+  const stillCollapsed = ca.collapsible && next[a] <= ca.collapsedSize + 0.001;
+  const collapse =
+    wasCollapsed && !stillCollapsed ? { index: a, collapsed: false } : null;
+
+  return { sizes: next, collapse };
+}
+
+/**
+ * The arrow-key step for a separator, or null when the key is perpendicular to
+ * it (a no-op, per the WAI-ARIA window splitter pattern).
+ *
+ * @param {string} key KeyboardEvent.key
+ * @param {boolean} shiftKey
+ * @param {string} orientation the GROUP's orientation
+ */
+export function keyboardDelta(key, shiftKey, orientation) {
+  const step = shiftKey ? RESIZABLE_SHIFT_STEP : RESIZABLE_STEP;
+
+  if (orientation === "vertical") {
+    if (key === "ArrowUp") return -step;
+    if (key === "ArrowDown") return step;
+    return null;
+  }
+
+  if (key === "ArrowLeft") return -step;
+  if (key === "ArrowRight") return step;
+  return null;
+}
+
+export const PetalResizable = {
+  mounted() {
+    this.dragging = null;
+    this.collect();
+    this.sizes = distributeSizes(this.constraints);
+    this.apply();
+
+    this.onPointerDown = (e) => this.startDrag(e);
+    this.onPointerMove = (e) => this.moveDrag(e);
+    this.onPointerUp = (e) => this.endDrag(e);
+    this.onKeyDown = (e) => this.keydown(e);
+    this.onDblClick = (e) => this.dblclick(e);
+
+    // Delegated on the group. A nested group's handles bubble through here, so
+    // every handler resolves the handle back to THIS group's list and bails
+    // when it is not one of ours - that is what keeps nested hooks independent.
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    this.el.addEventListener("pointermove", this.onPointerMove);
+    this.el.addEventListener("pointerup", this.onPointerUp);
+    this.el.addEventListener("pointercancel", this.onPointerUp);
+    this.el.addEventListener("lostpointercapture", this.onPointerUp);
+    this.el.addEventListener("keydown", this.onKeyDown);
+    this.el.addEventListener("dblclick", this.onDblClick);
+  },
+
+  // A LiveView patch re-renders panels from the server, which restores the
+  // server's flex values and wipes the aria the hook stamped. Re-assert.
+  // Panel count can change too, so re-derive sizes when it does.
+  updated() {
+    const before = this.panels.length;
+    this.collect();
+    if (this.panels.length !== before) this.sizes = distributeSizes(this.constraints);
+    this.apply();
+  },
+
+  destroyed() {
+    this.releaseBody();
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("pointermove", this.onPointerMove);
+    this.el.removeEventListener("pointerup", this.onPointerUp);
+    this.el.removeEventListener("pointercancel", this.onPointerUp);
+    this.el.removeEventListener("lostpointercapture", this.onPointerUp);
+    this.el.removeEventListener("keydown", this.onKeyDown);
+    this.el.removeEventListener("dblclick", this.onDblClick);
+  },
+
+  // :scope > … is the whole nesting story: an inner group's panels are not
+  // direct children of the outer group, so they are invisible to it.
+  collect() {
+    this.orientation = this.el.dataset.orientation === "vertical" ? "vertical" : "horizontal";
+    this.panels = Array.from(this.el.querySelectorAll(":scope > [data-pc-resizable-panel]"));
+    this.handles = Array.from(this.el.querySelectorAll(":scope > [data-pc-resizable-handle]"));
+    this.constraints = this.panels.map(resizableConstraint);
+  },
+
+  handleIndex(target) {
+    if (!target || !target.closest) return -1;
+    const handle = target.closest("[data-pc-resizable-handle]");
+    return handle ? this.handles.indexOf(handle) : -1;
+  },
+
+  apply() {
+    this.panels.forEach((panel, i) => {
+      const size = this.sizes[i];
+      if (typeof size !== "number") return;
+      panel.style.flex = `${size} 1 0px`;
+    });
+
+    this.handles.forEach((handle, i) => {
+      const c = this.constraints[i];
+      if (!c) return;
+      const panel = this.panels[i];
+      handle.setAttribute("aria-valuenow", String(Math.round(this.sizes[i])));
+      handle.setAttribute("aria-valuemin", String(c.collapsible ? c.collapsedSize : c.min));
+      handle.setAttribute("aria-valuemax", String(c.max));
+      handle.setAttribute(
+        "aria-orientation",
+        this.orientation === "horizontal" ? "vertical" : "horizontal",
+      );
+      if (panel && panel.id) handle.setAttribute("aria-controls", panel.id);
+    });
+  },
+
+  groupExtent() {
+    const rect = this.el.getBoundingClientRect();
+    const extent = this.orientation === "vertical" ? rect.height : rect.width;
+    return extent > 0 ? extent : 0;
+  },
+
+  startDrag(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+    if (e.button !== undefined && e.button !== 0) return;
+
+    const handle = this.handles[index];
+    // Pointer capture is what stops a fast drag from losing the separator the
+    // moment the cursor outruns it.
+    if (handle.setPointerCapture && e.pointerId !== undefined) {
+      try {
+        handle.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is a nicety, not a requirement */
+      }
+    }
+
+    this.dragging = {
+      index,
+      start: this.orientation === "vertical" ? e.clientY : e.clientX,
+      startSizes: this.sizes.slice(),
+      extent: this.groupExtent(),
+      moved: false,
+    };
+
+    handle.classList.add("pc-resizable__handle--dragging");
+    this.el.classList.add("pc-resizable--dragging");
+    this.holdBody();
+    // preventDefault suppresses the browser's native focus-on-pointerdown,
+    // so hand focus over explicitly - a pointer user should be able to grab
+    // a divider and immediately fine-tune with the arrow keys.
+    handle.focus?.();
+    e.preventDefault();
+  },
+
+  moveDrag(e) {
+    if (!this.dragging) return;
+    const { index, start, startSizes, extent } = this.dragging;
+    if (extent <= 0) return;
+
+    const pos = this.orientation === "vertical" ? e.clientY : e.clientX;
+    const deltaPct = ((pos - start) / extent) * 100;
+    const target = startSizes[index] + deltaPct;
+
+    const { sizes, collapse } = resolveDrag(
+      this.sizes,
+      index,
+      target - this.sizes[index],
+      this.constraints,
+    );
+
+    this.dragging.moved = true;
+    this.sizes = sizes;
+    this.apply();
+    if (collapse) this.emitCollapse(collapse);
+  },
+
+  endDrag(e) {
+    if (!this.dragging) return;
+    const { index, moved } = this.dragging;
+    const handle = this.handles[index];
+
+    if (handle) {
+      handle.classList.remove("pc-resizable__handle--dragging");
+      if (handle.releasePointerCapture && e && e.pointerId !== undefined) {
+        try {
+          handle.releasePointerCapture(e.pointerId);
+        } catch {
+          /* already released */
+        }
+      }
+    }
+
+    this.el.classList.remove("pc-resizable--dragging");
+    this.releaseBody();
+    this.dragging = null;
+    if (moved) this.commit();
+  },
+
+  keydown(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+
+    let result = null;
+
+    if (e.key === "Home") result = resolveEdge(this.sizes, index, "min", this.constraints);
+    else if (e.key === "End") result = resolveEdge(this.sizes, index, "max", this.constraints);
+    else if (e.key === "Enter") result = resolveToggle(this.sizes, index, this.constraints);
+    else {
+      const delta = keyboardDelta(e.key, e.shiftKey, this.orientation);
+      if (delta === null) return;
+      result = resolveDrag(this.sizes, index, delta, this.constraints);
+    }
+
+    // A no-op stays a no-op: Enter on a non-collapsible separator (or an
+    // arrow at a hard bound) must not eat the key, fire
+    // petal:resizable-resize, or push on_resize with unchanged sizes.
+    const changed = result.sizes.some((s, i) => s !== this.sizes[i]);
+    if (!changed && !result.collapse) return;
+
+    e.preventDefault();
+    this.sizes = result.sizes;
+    this.apply();
+    if (result.collapse) this.emitCollapse(result.collapse);
+    this.commit();
+  },
+
+  dblclick(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+
+    const { sizes, collapse } = resolveReset(this.sizes, index, this.constraints);
+    this.sizes = sizes;
+    this.apply();
+    if (collapse) this.emitCollapse(collapse);
+    this.commit();
+  },
+
+  holdBody() {
+    const body = document.body;
+    if (!body) return;
+    this.bodyCursor = body.style.cursor;
+    this.bodySelect = body.style.userSelect;
+    body.style.cursor = this.orientation === "vertical" ? "row-resize" : "col-resize";
+    body.style.userSelect = "none";
+  },
+
+  releaseBody() {
+    const body = document.body;
+    if (!body || this.bodyCursor === undefined) return;
+    body.style.cursor = this.bodyCursor;
+    body.style.userSelect = this.bodySelect;
+    this.bodyCursor = undefined;
+    this.bodySelect = undefined;
+  },
+
+  emitCollapse({ index, collapsed }) {
+    const panel = this.panels[index];
+    this.el.dispatchEvent(
+      new CustomEvent("petal:resizable-collapse", {
+        bubbles: true,
+        detail: { panel_id: panel ? panel.id || null : null, collapsed },
+      }),
+    );
+  },
+
+  // The whole persistence story: an event on release, and the same payload
+  // pushed to the LiveView when on_resize is set. The library stores nothing.
+  commit() {
+    const sizes = this.sizes.map((s) => Math.round(s * 100) / 100);
+
+    this.el.dispatchEvent(
+      new CustomEvent("petal:resizable-resize", { bubbles: true, detail: { sizes } }),
+    );
+
+    const event = this.el.dataset.onResize;
+    if (event && this.pushEvent) this.pushEvent(event, { sizes });
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -5454,4 +5929,5 @@ export default {
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,
+  PetalResizable,
 };
