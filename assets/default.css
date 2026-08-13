@@ -7586,3 +7586,95 @@
       transition-duration: 1ms;
     }
   }
+
+  /* Filters: the standalone filter bar (chips + add-filter popover).
+     Shares the data table's editor form styling (pc-data-table__filter-*),
+     because the editor markup itself is shared - one home for the operator
+     select, the typed value inputs, and the JS-free :has rules that hide the
+     value for a valueless op and reveal the second bound for :between. */
+
+  .pc-filters {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .pc-filters__chips {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  /* wins over pc-popover's inline-block: a chip is a row of parts */
+  .pc-filters__chip {
+    @apply relative inline-flex max-w-full items-center border border-gray-300 bg-white text-sm dark:border-gray-400/25 dark:bg-gray-400/8;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+  .pc-filters__chip-body {
+    @apply flex min-w-0 items-center gap-1.5 py-1 pl-2.5 pr-1 text-left transition-colors duration-150 hover:bg-gray-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/10;
+    border-start-start-radius: inherit;
+    border-end-start-radius: inherit;
+  }
+  .pc-filters__chip-field {
+    @apply shrink-0 font-medium text-gray-900 dark:text-gray-100;
+  }
+  .pc-filters__chip-op {
+    @apply shrink-0 text-gray-500 dark:text-gray-400;
+  }
+  .pc-filters__chip-value {
+    @apply min-w-0 truncate font-medium text-primary-700 dark:text-primary-300;
+    max-width: 12rem;
+  }
+  .pc-filters__chip-remove {
+    @apply mr-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-filters__chip-remove-icon.pc-filters__chip-remove-icon {
+    @apply w-4! h-4!;
+  }
+  .pc-filters__add-icon.pc-filters__add-icon {
+    @apply w-4! h-4! -ml-0.5;
+  }
+  .pc-filters__panel,
+  .pc-filters__editor {
+    @apply w-60;
+  }
+  .pc-filters__form.pc-filters__form {
+    @apply w-full;
+  }
+  .pc-filters__fields {
+    @apply flex max-h-72 flex-col gap-0.5 overflow-y-auto;
+  }
+  .pc-filters__fields--closed {
+    @apply hidden;
+  }
+  .pc-filters__field {
+    @apply flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-200 dark:hover:bg-gray-400/10;
+  }
+  .pc-filters__none {
+    @apply px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400;
+  }
+  /* The add panel's second step. Display-only toggling, so there is a complete
+     rest state at both ends and nothing for reduced motion to sit through. */
+  .pc-filters__step {
+    @apply hidden;
+  }
+  .pc-filters__step--open {
+    @apply flex flex-col gap-2;
+  }
+  .pc-filters__back {
+    @apply -mt-1 inline-flex items-center gap-1 self-start text-xs text-gray-500 transition-colors duration-150 hover:text-gray-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:text-gray-200;
+  }
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-filters__back-icon.pc-filters__back-icon {
+    @apply w-3.5! h-3.5!;
+  }
+  .pc-filters__step-title {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+  .pc-filters__clear {
+    @apply rounded-md px-1 text-sm font-medium text-primary-600 hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-primary-400;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pc-filters__chip-body,
+    .pc-filters__chip-remove,
+    .pc-filters__field,
+    .pc-filters__back,
+    .pc-filters .pc-popover__panel[data-pc-menu] {
+      transition-duration: 1ms;
+    }
+  }
