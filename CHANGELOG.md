@@ -1,6 +1,34 @@
 # Changelog
 ### Unreleased
 
+#### Added
+
+- **New `scroll_area` component: one themed treatment for every overflow
+  region, in one div and zero JavaScript.** The library already had eight
+  hand-rolled scroll regions, each styling overflow slightly differently -
+  this is the canonical version they can all adopt. `scrollbar-width` and
+  `scrollbar-color` do the work on Chrome 121+ and Firefox, a
+  `::-webkit-scrollbar` block covers Safari and older Chromium, and the two
+  never fight because an engine that honours the modern properties ignores
+  the webkit pseudo-elements outright. The thumb rides the gray ramp in
+  light and dark and steps one shade toward the foreground on hover.
+  `orientation` picks the axis (vertical, horizontal or both, with the off
+  axis clipped rather than left scrollable by accident), `fade_edges` masks
+  the scrolling axis so content dissolves at the clip instead of being cut,
+  and `gutter_stable` reserves the scrollbar's space so content does not
+  shift the moment it appears. Sizing is deliberately class-driven, so
+  there is no second sizing vocabulary sitting next to Tailwind's. Unlike
+  the Radix-style approach we do not reimplement the scrollbar in JS: you
+  keep native momentum scrolling, native keyboard handling and native
+  assistive-tech behaviour for free, and the trade is that we theme what
+  the platform exposes rather than overriding it - `visibility="always"` is
+  a request WebKit honours and Firefox cannot, and `gutter_stable` is a
+  no-op wherever scrollbars are overlays. The moduledoc says so in plain
+  language. The container is focusable by default (`tabindex="0"`), which
+  is what makes arrow keys and Page Up/Down work at all, and it only takes
+  `role="region"` when you give it a name - an unnamed landmark is noise,
+  not a service.
+
 #### Fixed
 
 - **`command_dialog` now locks background scroll while the palette is
