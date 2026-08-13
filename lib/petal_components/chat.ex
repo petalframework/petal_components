@@ -10,6 +10,9 @@ defmodule PetalComponents.Chat do
     * `chat_message/1`  — a single message bubble (user or assistant)
     * `streaming_text/1` — token-by-token output via the `PetalChatStream` JS hook
     * `prompt_input/1`   — the composer (textarea + send)
+    * `chat_sources/1`   — the RAG sources row under an answer
+    * `citation/1`       — an inline numbered citation chip
+    * `message_attachments/1` — images and files inside a sent message
 
   ## Importing
 
@@ -39,6 +42,42 @@ defmodule PetalComponents.Chat do
 
       import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
       new LiveSocket("/live", Socket, { hooks: { ...PetalComponents }, ... })
+
+  ## Answer grounding (RAG citations)
+
+  Sources are plain maps — the host app supplies them, this library only renders
+  them. `url` is the only key that really matters; `title`, `snippet`,
+  `favicon_url` and `id` are optional and degrade gracefully:
+
+      sources = [
+        %{id: "1", url: "https://hexdocs.pm/phoenix_live_view", title: "Phoenix.LiveView",
+          snippet: "LiveView provides rich, real-time user experiences...",
+          favicon_url: "https://hexdocs.pm/favicon.ico"},
+        %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"}
+      ]
+
+  Prompt the model to cite with **`[^N]` footnote markers** ("cite your sources
+  inline as [^1], [^2] matching the numbered context"). Pass `sources` to
+  `markdown/1` and every complete marker becomes a chip; markers with no matching
+  source stay as plain text:
+
+      <Chat.chat_message role="assistant">
+        <Chat.markdown content={msg.text} sources={msg.sources} />
+        <Chat.chat_sources sources={msg.sources} />
+      </Chat.chat_message>
+
+  A marker resolves to the source whose `id` matches `N` and falls back to the
+  Nth source in the list, so an id-less list still works positionally.
+
+  The streaming path takes the same option — `to_html/2` renders the chips into
+  the HTML you push at a `format="markdown"` `streaming_text/1`. Half-arrived
+  markers (`[^` with no closing bracket yet) are left alone, so nothing flashes
+  broken mid-stream:
+
+      socket = push_event(socket, "pc-chat-token", %{
+        id: "answer",
+        html: PetalComponents.Chat.to_html(buffer, sources: sources)
+      })
 
   ## Styling
 
@@ -194,8 +233,22 @@ defmodule PetalComponents.Chat do
   `streaming_text/1`:
 
       socket = push_event(socket, "pc-chat-token", %{id: "answer", html: PetalComponents.Chat.to_html(buffer)})
+
+  Pass `:sources` to turn `[^N]` footnote markers into inline citation chips as
+  the answer streams (see the "Answer grounding" section in the moduledoc):
+
+      PetalComponents.Chat.to_html(buffer, sources: msg.sources)
+
+  ## Options
+
+    * `:sources` — list of source maps. `[^N]` markers matching a source render
+      as chips; unmatched and half-streamed markers are left untouched.
   """
-  def to_html(content), do: render_markdown(content)
+  def to_html(content, opts \\ []) do
+    content
+    |> render_markdown()
+    |> apply_citations(Keyword.get(opts, :sources))
+  end
 
   defp ensure_mdex! do
     if Code.ensure_loaded?(MDEx) do
@@ -275,10 +328,17 @@ defmodule PetalComponents.Chat do
   """
   attr :content, :string, required: true
   attr :id, :string, default: nil, doc: "pass a unique id to enable per-code-block copy buttons"
+
+  attr :sources, :list,
+    default: nil,
+    doc:
+      "when set, complete `[^N]` markers in the content render as inline citation chips for the matching source (by `id`, falling back to the Nth source). Unmatched markers stay as plain text"
+
   attr :class, :any, default: nil
 
   def markdown(assigns) do
-    assigns = assign(assigns, :html, render_markdown(assigns.content))
+    assigns =
+      assign(assigns, :html, apply_citations(render_markdown(assigns.content), assigns.sources))
 
     ~H"""
     <div id={@id} phx-hook={@id && "PetalCodeCopy"} class={["pc-chat__markdown", @class]}>
@@ -382,6 +442,43 @@ defmodule PetalComponents.Chat do
   While `loading`, the input stays editable (so you can draft your next message)
   and the send button becomes a stop button that pushes `on_stop` — wire it to
   cancel your generation task.
+
+  ## Attachments
+
+  Pass an `%Phoenix.LiveView.UploadConfig{}` from `allow_upload/3` and the
+  composer grows a paperclip trigger, a chip strip for the pending entries,
+  drag-onto-the-composer, paste-an-image, and inline upload errors. It is
+  ordinary LiveView uploads — this component only renders them:
+
+      def mount(_, _, socket) do
+        {:ok, allow_upload(socket, :attachments, accept: ~w(.png .jpg .jpeg .pdf),
+                           max_entries: 4, max_file_size: 5_000_000)}
+      end
+
+      def handle_event("validate", _params, socket), do: {:noreply, socket}
+
+      def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+        {:noreply, cancel_upload(socket, :attachments, ref)}
+      end
+
+      def handle_event("send", %{"prompt" => text}, socket) do
+        files = consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+          {:ok, store(path, entry)}
+        end)
+        {:noreply, send_message(socket, text, files)}
+      end
+
+      <Chat.prompt_input
+        phx-submit="send"
+        phx-change="validate"
+        upload={@uploads.attachments}
+        on_cancel_upload="cancel-upload"
+        accept_hint="Images and PDFs up to 5 MB"
+      />
+
+  `phx-change` is required for uploads to progress — LiveView needs a change
+  event on the form. With no `upload` the composer renders exactly as it always
+  has.
   """
   attr :id, :string, doc: "defaults to a generated id so multiple composers can coexist"
 
@@ -414,6 +511,21 @@ defmodule PetalComponents.Chat do
     default: nil,
     doc: "event pushed when the edit banner's cancel (X) is clicked"
 
+  attr :upload, :any,
+    default: nil,
+    doc:
+      "a %Phoenix.LiveView.UploadConfig{} from allow_upload/3. When set the composer renders a paperclip trigger wrapping a visually hidden live_file_input, attachment chips for @upload.entries, becomes a phx-drop-target, and accepts pasted images"
+
+  attr :on_cancel_upload, :string,
+    default: "cancel-upload",
+    doc:
+      "event pushed by a chip's remove button, with phx-value-ref set to the entry ref (wire it to cancel_upload/3)"
+
+  attr :accept_hint, :string,
+    default: nil,
+    doc:
+      ~s|human-readable hint of accepted types and size (e.g. "Images and PDFs up to 10 MB"), used as the paperclip button's title and accessible description|
+
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(phx-submit phx-change phx-target)
   slot :actions, doc: "extra controls left of the send button"
@@ -425,6 +537,7 @@ defmodule PetalComponents.Chat do
     <form
       id={@id}
       phx-hook="PetalChatComposer"
+      phx-drop-target={@upload && @upload.ref}
       class={["pc-chat__composer", @editing && "pc-chat__composer--editing", @class]}
       {@rest}
     >
@@ -443,7 +556,28 @@ defmodule PetalComponents.Chat do
           <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__composer-banner-icon" />
         </button>
       </div>
+      <ul
+        :if={@upload && @upload.entries != []}
+        role="list"
+        class="pc-chat__composer-attachments"
+      >
+        <.attachment_chip
+          :for={entry <- @upload.entries}
+          entry={entry}
+          upload={@upload}
+          on_cancel_upload={@on_cancel_upload}
+        />
+      </ul>
       <div class="pc-chat__composer-row">
+        <label :if={@upload} class="pc-chat__composer-attach" title={@accept_hint}>
+          <PetalComponents.Icon.icon name="hero-paper-clip" class="pc-chat__composer-attach-icon" />
+          <.live_file_input
+            upload={@upload}
+            class="sr-only"
+            aria-label="Attach files"
+            aria-description={@accept_hint}
+          />
+        </label>
         <textarea
           id={"#{@id}-input"}
           name={@name}
@@ -490,8 +624,190 @@ defmodule PetalComponents.Chat do
           <% end %>
         </button>
       </div>
+      <div :if={@upload && upload_error_messages(@upload) != []} class="pc-chat__composer-errors">
+        <p
+          :for={message <- upload_error_messages(@upload)}
+          role="alert"
+          class="pc-chat__composer-error"
+        >
+          <PetalComponents.Icon.icon
+            name="hero-exclamation-circle"
+            class="pc-chat__composer-error-icon"
+          />
+          {message}
+        </p>
+      </div>
     </form>
     """
+  end
+
+  attr :entry, :any, required: true
+  attr :upload, :any, required: true
+  attr :on_cancel_upload, :string, required: true
+
+  defp attachment_chip(assigns) do
+    assigns = assign(assigns, :image?, image_entry?(assigns.entry))
+
+    ~H"""
+    <li class={[
+      "pc-chat__attachment",
+      if(@image?, do: "pc-chat__attachment--image", else: "pc-chat__attachment--file")
+    ]}>
+      <.live_img_preview :if={@image?} entry={@entry} class="pc-chat__attachment-thumb" />
+      <PetalComponents.Icon.icon
+        :if={!@image?}
+        name="hero-document"
+        class="pc-chat__attachment-icon"
+      />
+      <span :if={!@image?} class="pc-chat__attachment-meta">
+        <span class="pc-chat__attachment-name">{@entry.client_name}</span>
+        <span class="pc-chat__attachment-size">{format_bytes(@entry.client_size)}</span>
+      </span>
+      <%!-- Only while an upload is actually running. Without auto_upload an entry
+      sits at 0 until submit, and a 0% ring would sit over every chip from the
+      moment it is attached. --%>
+      <span
+        :if={@entry.progress > 0 and @entry.progress < 100}
+        role="progressbar"
+        aria-valuenow={@entry.progress}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label={"Uploading #{@entry.client_name}"}
+        data-progress={@entry.progress}
+        style={"--pc-attachment-progress: #{@entry.progress}"}
+        class="pc-chat__attachment-progress"
+      ></span>
+      <button
+        type="button"
+        phx-click={@on_cancel_upload}
+        phx-value-ref={@entry.ref}
+        aria-label={"Remove #{@entry.client_name}"}
+        class="pc-chat__attachment-remove"
+      >
+        <PetalComponents.Icon.icon name="hero-x-mark" class="pc-chat__attachment-remove-icon" />
+      </button>
+    </li>
+    """
+  end
+
+  @doc """
+  Attachments rendered inside a sent message — the images and files that went
+  along with the text. Drop it in a `chat_message/1` body, before or after the
+  prose:
+
+      <Chat.chat_message role="user">
+        <Chat.message_attachments attachments={msg.attachments} />
+        {msg.text}
+      </Chat.chat_message>
+
+  Images render as a thumbnail grid (one image goes large, two or more tile),
+  files as compact download rows. A mixed list puts the images first.
+  """
+  attr :attachments, :list,
+    required: true,
+    doc:
+      "list of maps: %{kind: :image | :file, url, name, size}. :kind picks the rendering, :size is bytes and is formatted for display or omitted when nil. String or atom keys both accepted"
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def message_attachments(assigns) do
+    items = normalize_attachments(assigns.attachments)
+    {images, files} = Enum.split_with(items, &(&1.kind == :image))
+
+    assigns = assigns |> assign(:images, images) |> assign(:files, files)
+
+    ~H"""
+    <div :if={@images != [] or @files != []} class={["pc-chat__message-attachments", @class]} {@rest}>
+      <div
+        :if={@images != []}
+        class={[
+          "pc-chat__message-attachments-grid",
+          length(@images) > 1 && "pc-chat__message-attachments-grid--multi"
+        ]}
+      >
+        <a
+          :for={image <- @images}
+          href={image.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pc-chat__attachment-image"
+        >
+          <img src={image.url} alt={image.name} loading="lazy" />
+        </a>
+      </div>
+      <a
+        :for={file <- @files}
+        href={file.url}
+        download
+        class="pc-chat__attachment-row"
+      >
+        <PetalComponents.Icon.icon name="hero-document" class="pc-chat__attachment-icon" />
+        <span class="pc-chat__attachment-name">{file.name}</span>
+        <span :if={file.size} class="pc-chat__attachment-size">{format_bytes(file.size)}</span>
+      </a>
+    </div>
+    """
+  end
+
+  # -- attachment plumbing ---------------------------------------------------
+
+  defp image_entry?(%{client_type: "image/" <> _}), do: true
+  defp image_entry?(_), do: false
+
+  defp normalize_attachments(attachments) when is_list(attachments) do
+    Enum.map(attachments, fn attachment ->
+      %{
+        kind: if(source_key(attachment, :kind) in [:image, "image"], do: :image, else: :file),
+        url: source_key(attachment, :url),
+        name: source_key(attachment, :name),
+        size: source_key(attachment, :size)
+      }
+    end)
+  end
+
+  defp normalize_attachments(_), do: []
+
+  # Config-level errors first (too_many_files and friends), then per-entry ones
+  # named with the file they belong to, so "too large" says which file.
+  defp upload_error_messages(upload) do
+    config_errors = Enum.map(upload_errors(upload), &upload_error_copy/1)
+
+    entry_errors =
+      Enum.flat_map(upload.entries, fn entry ->
+        Enum.map(upload_errors(upload, entry), fn error ->
+          "#{entry.client_name}: #{upload_error_copy(error)}"
+        end)
+      end)
+
+    config_errors ++ entry_errors
+  end
+
+  defp upload_error_copy(:too_large), do: "This file is too large."
+  defp upload_error_copy(:not_accepted), do: "This file type isn't accepted."
+  defp upload_error_copy(:too_many_files), do: "Too many files selected."
+
+  defp upload_error_copy(:external_client_failure),
+    do: "Something went wrong uploading this file."
+
+  defp upload_error_copy(other), do: "Upload failed (#{inspect(other)})."
+
+  defp format_bytes(nil), do: nil
+  defp format_bytes(bytes) when bytes < 1_000, do: "#{bytes} B"
+  defp format_bytes(bytes) when bytes < 1_000_000, do: format_size(bytes / 1_000, "KB")
+  defp format_bytes(bytes) when bytes < 1_000_000_000, do: format_size(bytes / 1_000_000, "MB")
+  defp format_bytes(bytes), do: format_size(bytes / 1_000_000_000, "GB")
+
+  # One decimal, but never a bare ".0" — "340 KB" reads like a file manager,
+  # "340.0 KB" reads like a rounding artifact.
+  defp format_size(value, unit) do
+    number =
+      value
+      |> Float.round(1)
+      |> to_string()
+      |> String.replace_suffix(".0", "")
+
+    "#{number} #{unit}"
   end
 
   @doc """
@@ -701,6 +1017,288 @@ defmodule PetalComponents.Chat do
       </button>
     </div>
     """
+  end
+
+  @doc """
+  An inline numbered citation chip — the superscript marker that grounds a
+  sentence in a source. Hovering or focusing it reveals a small preview card
+  (title, domain, snippet); activating it opens the source in a new tab.
+
+  `markdown/1` and `to_html/2` mint these for you from `[^N]` markers, so you
+  rarely call it directly. Reach for it when you are assembling prose yourself:
+
+      Phoenix ships with LiveView <Chat.citation index={1} source={@source} />
+  """
+  attr :index, :integer, required: true, doc: "1-based citation number shown in the chip"
+
+  attr :source, :map,
+    required: true,
+    doc:
+      "the source map this chip points at: %{url, title, snippet, favicon_url}; every key but `url` is optional"
+
+  attr :class, :any, default: nil
+
+  def citation(assigns) do
+    assigns =
+      assign(assigns, :html, citation_html(assigns.index, normalize_source(assigns.source)))
+
+    ~H"""
+    <span class={@class && ["pc-chat__citation-outer", @class]}>{Phoenix.HTML.raw(@html)}</span>
+    """
+  end
+
+  @doc """
+  The sources row under a grounded answer. Collapsed it reads "4 sources" with a
+  stacked-favicon cluster; open it lists each source with its favicon, title,
+  domain and snippet. Native `<details>`, so no JS.
+
+      <Chat.chat_sources sources={@sources} />
+      <Chat.chat_sources sources={@sources} expanded max_visible={3} />
+
+  Sources are deduped by URL before render (the same page cited twice is one
+  row), and a nil or empty list renders nothing at all — no empty shell.
+  """
+  attr :sources, :list,
+    required: true,
+    doc:
+      "list of source maps: %{id, url, title, snippet, favicon_url}; snippet and favicon_url optional. Deduped by URL before render"
+
+  attr :expanded, :boolean,
+    default: false,
+    doc: "render the list open instead of the collapsed 'N sources' row"
+
+  attr :max_visible, :integer,
+    default: 5,
+    doc: "sources shown when expanded before a 'Show all (N)' control reveals the rest"
+
+  attr :label, :string,
+    default: nil,
+    doc: "override the collapsed row label; defaults to '{count} sources' / '1 source'"
+
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def chat_sources(assigns) do
+    items = assigns.sources |> normalize_sources() |> dedupe_sources()
+
+    assigns =
+      assigns
+      |> assign(:items, items)
+      |> assign(:visible, Enum.take(items, max(assigns.max_visible, 0)))
+      |> assign(:overflow, Enum.drop(items, max(assigns.max_visible, 0)))
+      |> assign(:count, length(items))
+
+    ~H"""
+    <details :if={@items != []} class={["pc-chat__sources", @class]} open={@expanded} {@rest}>
+      <summary class="pc-chat__sources-row">
+        <span class="pc-chat__sources-favicons" aria-hidden="true">
+          <.source_favicon :for={source <- Enum.take(@items, 3)} source={source} />
+        </span>
+        <span class="pc-chat__sources-label">
+          {@label || if(@count == 1, do: "1 source", else: "#{@count} sources")}
+        </span>
+        <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__sources-chevron" />
+      </summary>
+      <ul class="pc-chat__sources-list" role="list">
+        <.source_row :for={source <- @visible} source={source} />
+      </ul>
+      <details :if={@overflow != []} class="pc-chat__sources-more">
+        <summary class="pc-chat__sources-more-summary">Show all ({@count})</summary>
+        <ul class="pc-chat__sources-list" role="list">
+          <.source_row :for={source <- @overflow} source={source} />
+        </ul>
+      </details>
+    </details>
+    """
+  end
+
+  attr :source, :map, required: true
+
+  defp source_row(assigns) do
+    ~H"""
+    <li class="pc-chat__source">
+      <a
+        href={@source.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="pc-chat__source-link"
+      >
+        <.source_favicon source={@source} />
+        <span class="pc-chat__source-text">
+          <span class="pc-chat__source-title">{@source.title || @source.url}</span>
+          <span :if={source_domain(@source)} class="pc-chat__source-domain">
+            {source_domain(@source)}
+          </span>
+          <span :if={@source.snippet} class="pc-chat__source-snippet">{@source.snippet}</span>
+        </span>
+      </a>
+    </li>
+    """
+  end
+
+  attr :source, :map, required: true
+
+  defp source_favicon(assigns) do
+    ~H"""
+    <img
+      :if={@source.favicon_url}
+      src={@source.favicon_url}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      class="pc-chat__source-favicon"
+    />
+    <span
+      :if={!@source.favicon_url}
+      aria-hidden="true"
+      class="pc-chat__source-favicon pc-chat__source-favicon--letter"
+    >
+      {source_initial(@source)}
+    </span>
+    """
+  end
+
+  # -- citation plumbing -----------------------------------------------------
+
+  # Only complete markers match, so a half-streamed "[^" never flashes a broken
+  # chip; it simply stays as text until the closing bracket arrives.
+  @citation_marker ~r/\[\^(\d+)\]/
+  @html_tag ~r/<[^>]*>/
+
+  defp apply_citations(html, sources) when is_binary(html) do
+    case citation_lookup(sources) do
+      lookup when map_size(lookup) == 0 -> html
+      lookup -> splice_citations(html, lookup)
+    end
+  end
+
+  # Walk the sanitized HTML as a tag/text token stream and rewrite markers in
+  # text nodes only: never inside an attribute, never inside <pre>/<code>. The
+  # chip markup is minted here from the numeric index plus escaped source
+  # fields, so model-controlled text can never reach the page as live markup.
+  defp splice_citations(html, lookup) do
+    @html_tag
+    |> Regex.split(html, include_captures: true)
+    |> Enum.reduce({[], 0}, fn part, {acc, depth} ->
+      cond do
+        String.starts_with?(part, "<") -> {[part | acc], code_depth(part, depth)}
+        depth > 0 -> {[part | acc], depth}
+        true -> {[replace_markers(part, lookup) | acc], depth}
+      end
+    end)
+    |> elem(0)
+    |> Enum.reverse()
+    |> IO.iodata_to_binary()
+  end
+
+  defp code_depth(tag, depth) do
+    cond do
+      Regex.match?(~r{^</(?:pre|code)\s*>$}i, tag) -> max(depth - 1, 0)
+      Regex.match?(~r{^<(?:pre|code)(?:\s[^>]*)?>$}i, tag) -> depth + 1
+      true -> depth
+    end
+  end
+
+  defp replace_markers(text, lookup) do
+    Regex.replace(@citation_marker, text, fn marker, number ->
+      case Map.fetch(lookup, number) do
+        {:ok, source} -> citation_html(String.to_integer(number), source)
+        :error -> marker
+      end
+    end)
+  end
+
+  defp citation_lookup(sources) do
+    normalized = normalize_sources(sources)
+
+    by_position =
+      normalized
+      |> Enum.with_index(1)
+      |> Map.new(fn {source, index} -> {Integer.to_string(index), source} end)
+
+    by_id =
+      Enum.reduce(normalized, %{}, fn
+        %{id: nil}, acc -> acc
+        %{id: id} = source, acc -> Map.put_new(acc, to_string(id), source)
+      end)
+
+    Map.merge(by_position, by_id)
+  end
+
+  defp citation_html(index, source) do
+    title = source.title || source_domain(source) || "Source #{index}"
+    domain = source_domain(source)
+
+    ~s(<span class="pc-chat__citation-wrap"><a class="pc-chat__citation" href="#{esc(source.url)}") <>
+      ~s( target="_blank" rel="noopener noreferrer" aria-label="#{esc("Source #{index}: #{title}")}">) <>
+      ~s(<sup class="pc-chat__citation-num">#{index}</sup></a>) <>
+      ~s(<span class="pc-chat__citation-card" aria-hidden="true">) <>
+      citation_card_favicon(source) <>
+      ~s(<span class="pc-chat__citation-card-title">#{esc(title)}</span>) <>
+      if(domain,
+        do: ~s(<span class="pc-chat__citation-card-domain">#{esc(domain)}</span>),
+        else: ""
+      ) <>
+      if(source.snippet,
+        do: ~s(<span class="pc-chat__citation-card-snippet">#{esc(source.snippet)}</span>),
+        else: ""
+      ) <> ~s(</span></span>)
+  end
+
+  defp citation_card_favicon(%{favicon_url: nil} = source) do
+    ~s(<span class="pc-chat__source-favicon pc-chat__source-favicon--letter" aria-hidden="true">) <>
+      esc(source_initial(source)) <> ~s(</span>)
+  end
+
+  defp citation_card_favicon(source) do
+    ~s(<img class="pc-chat__source-favicon" src="#{esc(source.favicon_url)}" alt="") <>
+      ~s( aria-hidden="true" loading="lazy" />)
+  end
+
+  defp esc(nil), do: ""
+
+  defp esc(value),
+    do: value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+
+  defp normalize_sources(sources) when is_list(sources),
+    do: Enum.map(sources, &normalize_source/1)
+
+  defp normalize_sources(_), do: []
+
+  defp normalize_source(source) when is_map(source) do
+    %{
+      id: source_key(source, :id),
+      url: source_key(source, :url),
+      title: source_key(source, :title),
+      snippet: source_key(source, :snippet),
+      favicon_url: source_key(source, :favicon_url)
+    }
+  end
+
+  defp source_key(source, key) do
+    case Map.fetch(source, key) do
+      {:ok, value} -> value
+      :error -> Map.get(source, Atom.to_string(key))
+    end
+  end
+
+  defp dedupe_sources(sources), do: Enum.uniq_by(sources, & &1.url)
+
+  defp source_domain(%{url: url}) when is_binary(url) do
+    case URI.parse(url) do
+      %URI{host: host} when is_binary(host) -> String.replace_prefix(host, "www.", "")
+      _ -> nil
+    end
+  end
+
+  defp source_domain(_), do: nil
+
+  defp source_initial(source) do
+    (source.title || source_domain(source) || "?")
+    |> String.trim()
+    |> String.first()
+    |> Kernel.||("?")
+    |> String.upcase()
   end
 
   defp render_markdown(nil), do: ""

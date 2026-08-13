@@ -141,6 +141,325 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  describe "citations in markdown/1" do
+    setup do
+      %{
+        sources: [
+          %{
+            id: "1",
+            url: "https://hexdocs.pm/phoenix_live_view",
+            title: "Phoenix.LiveView",
+            snippet: "Rich, real-time user experiences.",
+            favicon_url: "https://hexdocs.pm/favicon.ico"
+          },
+          %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"}
+        ]
+      }
+    end
+
+    test "turns a [^N] marker into a citation chip wired to the matching source", %{
+      sources: sources
+    } do
+      assigns = %{md: "LiveView is great [^1] and so is Phoenix [^2].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert_has_class(html, "pc-chat__citation")
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix_live_view"}
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix"}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">1</sup>}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">2</sup>}
+      # the raw marker is gone
+      refute html =~ "[^1]"
+    end
+
+    test "without sources the marker passes through as plain text (today's behaviour)" do
+      assigns = %{md: "LiveView is great [^1]."}
+
+      html = rendered_to_string(~H|<.markdown content={@md} />|)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^1]"
+    end
+
+    test "an unmatched marker renders as plain text, not a broken chip", %{sources: sources} do
+      assigns = %{md: "Something unsourced [^9].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ "[^9]"
+      refute html =~ "pc-chat__citation-num\">9<"
+    end
+
+    test "chips carry an accessible name naming the source", %{sources: sources} do
+      assigns = %{md: "Grounded [^1].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{aria-label="Source 1: Phoenix.LiveView"}
+    end
+
+    test "chip links open in a new tab safely", %{sources: sources} do
+      assigns = %{md: "Grounded [^1].", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{target="_blank"}
+      assert html =~ ~s{rel="noopener noreferrer"}
+    end
+
+    test "model-controlled source fields are escaped in the chip and its card" do
+      assigns = %{
+        md: "Careful [^1].",
+        sources: [
+          %{
+            id: "1",
+            url: "https://example.com",
+            title: "<script>alert('x')</script>",
+            snippet: "<img src=x onerror=alert(1)>"
+          }
+        ]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      refute html =~ "<script>alert"
+      refute html =~ "<img src=x"
+      assert html =~ "&lt;script&gt;"
+      assert html =~ "&lt;img src=x"
+    end
+
+    test "markers inside code blocks are left alone", %{sources: sources} do
+      assigns = %{md: "```elixir\nfoo = \"[^1]\"\n```", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^1]"
+    end
+
+    test "a marker resolves positionally when sources have no ids" do
+      assigns = %{
+        md: "Positional [^2].",
+        sources: [%{url: "https://a.example"}, %{url: "https://b.example", title: "B"}]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{href="https://b.example"}
+      assert html =~ ~s{aria-label="Source 2: B"}
+    end
+  end
+
+  describe "to_html/2 with sources (the streaming path)" do
+    setup do
+      %{sources: [%{id: "1", url: "https://example.com/doc", title: "The Doc"}]}
+    end
+
+    test "renders chip markup for complete markers", %{sources: sources} do
+      html = PetalComponents.Chat.to_html("Grounded [^1].", sources: sources)
+
+      assert html =~ "pc-chat__citation"
+      assert html =~ ~s{href="https://example.com/doc"}
+    end
+
+    test "leaves a half-streamed marker untouched so nothing flashes broken", %{sources: sources} do
+      html = PetalComponents.Chat.to_html("Grounded [^", sources: sources)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^"
+    end
+
+    test "to_html/1 is unchanged" do
+      assert PetalComponents.Chat.to_html("Grounded [^1].") =~ "[^1]"
+    end
+  end
+
+  describe "citation/1" do
+    test "renders a standalone chip for a source map" do
+      assigns = %{source: %{url: "https://example.com", title: "Example"}}
+
+      html = rendered_to_string(~H|<.citation index={3} source={@source} />|)
+
+      assert_has_class(html, "pc-chat__citation")
+      assert html =~ ~s{aria-label="Source 3: Example"}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">3</sup>}
+    end
+
+    test "the preview card is decorative — the title lives in the accessible name" do
+      assigns = %{source: %{url: "https://example.com", title: "Example", snippet: "Snip"}}
+
+      html = rendered_to_string(~H|<.citation index={1} source={@source} />|)
+
+      assert_has_class(html, "pc-chat__citation-card")
+      assert html =~ ~s{class="pc-chat__citation-card" aria-hidden="true"}
+      assert html =~ "Snip"
+    end
+
+    test "class is appended last" do
+      assigns = %{source: %{url: "https://example.com"}}
+
+      html = rendered_to_string(~H|<.citation index={1} source={@source} class="custom-chip" />|)
+
+      assert html =~ "custom-chip"
+    end
+  end
+
+  describe "chat_sources/1" do
+    setup do
+      %{
+        sources: [
+          %{
+            id: "1",
+            url: "https://hexdocs.pm/phoenix_live_view",
+            title: "Phoenix.LiveView",
+            snippet: "Rich, real-time user experiences.",
+            favicon_url: "https://hexdocs.pm/favicon.ico"
+          },
+          %{id: "2", url: "https://hexdocs.pm/phoenix", title: "Phoenix"},
+          %{id: "3", url: "https://elixir-lang.org", title: "Elixir"}
+        ]
+      }
+    end
+
+    test "renders a collapsed details row labelled with the count", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} />|)
+
+      assert_has_class(html, "pc-chat__sources")
+      assert_has_class(html, "pc-chat__sources-row")
+      assert html =~ "<details"
+      assert html =~ "<summary"
+      assert html =~ "3 sources"
+      refute Regex.match?(~r/<details[^>]*\sopen[\s>]/, html)
+    end
+
+    test "one source reads in the singular" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Only"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} />|)
+
+      assert html =~ "1 source"
+      refute html =~ "1 sources"
+    end
+
+    test "a custom label overrides the count", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} label="Used 3 pages" />|)
+
+      assert html =~ "Used 3 pages"
+      refute html =~ "3 sources"
+    end
+
+    test "expanded opens the list by default", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert Regex.match?(~r/<details[^>]*\sopen[\s>]/, html)
+    end
+
+    test "each source is a safe external link with title, domain and snippet", %{
+      sources: sources
+    } do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ ~s{href="https://hexdocs.pm/phoenix_live_view"}
+      assert html =~ ~s{target="_blank"}
+      assert html =~ ~s{rel="noopener noreferrer"}
+      assert html =~ "Phoenix.LiveView"
+      assert html =~ "hexdocs.pm"
+      assert html =~ "Rich, real-time user experiences."
+      assert html =~ ~s{role="list"}
+    end
+
+    test "dedupes by url — the same page cited twice is one row" do
+      assigns = %{
+        sources: [
+          %{id: "1", url: "https://example.com/a", title: "A"},
+          %{id: "2", url: "https://example.com/a", title: "A again"}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ "1 source"
+      refute html =~ "A again"
+    end
+
+    test "nil and empty sources render nothing at all" do
+      assigns = %{}
+
+      refute rendered_to_string(~H|<.chat_sources sources={[]} />|) =~ "pc-chat__sources"
+      refute rendered_to_string(~H|<.chat_sources sources={nil} />|) =~ "pc-chat__sources"
+    end
+
+    test "max_visible overflows into a 'Show all' reveal", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded max_visible={2} />|)
+
+      assert_has_class(html, "pc-chat__sources-more")
+      assert html =~ "Show all (3)"
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded max_visible={5} />|)
+
+      refute html =~ "pc-chat__sources-more"
+    end
+
+    test "a source without favicon_url degrades to a letter avatar" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Example"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert_has_class(html, "pc-chat__source-favicon--letter")
+      assert html =~ ">E<" or html =~ "E\n"
+    end
+
+    test "favicons are decorative", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ ~s{alt=""}
+      assert html =~ ~s{loading="lazy"}
+    end
+
+    test "a source without a snippet renders a clean row" do
+      assigns = %{sources: [%{url: "https://example.com", title: "Example"}]}
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      refute html =~ "pc-chat__source-snippet"
+      assert html =~ "Example"
+    end
+
+    test "string-keyed source maps render identically to atom-keyed ones" do
+      assigns = %{
+        sources: [%{"id" => "1", "url" => "https://example.com", "title" => "Stringy"}]
+      }
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert html =~ "Stringy"
+      assert html =~ ~s{href="https://example.com"}
+    end
+
+    test "class is appended last and rest passes through", %{sources: sources} do
+      assigns = %{sources: sources}
+
+      html =
+        rendered_to_string(~H|<.chat_sources sources={@sources} class="mine" id="src-block" />|)
+
+      assert html =~ "mine"
+      assert html =~ ~s{id="src-block"}
+    end
+  end
+
   describe "tool_call/1" do
     test "renders the tool name and a completed check" do
       assigns = %{}
@@ -366,6 +685,357 @@ defmodule PetalComponents.ChatTest do
 
       assert html =~ "disabled"
       refute html =~ "pc-chat__composer-stop"
+    end
+  end
+
+  describe "prompt_input/1 attachments" do
+    # A minimal UploadConfig standing in for allow_upload/3's, so the composer
+    # can be rendered without a live socket.
+    defp upload_config(entries, opts \\ []) do
+      %Phoenix.LiveView.UploadConfig{
+        name: :attachments,
+        ref: Keyword.get(opts, :ref, "phx-upload-ref"),
+        entries: entries,
+        errors: Keyword.get(opts, :errors, []),
+        max_entries: 4,
+        max_file_size: 5_000_000,
+        accept: ".png,.pdf",
+        acceptable_types: MapSet.new(["image/png", "application/pdf"]),
+        acceptable_exts: MapSet.new([".png", ".pdf"])
+      }
+    end
+
+    defp upload_entry(opts \\ []) do
+      %Phoenix.LiveView.UploadEntry{
+        ref: Keyword.get(opts, :ref, "0"),
+        upload_ref: "phx-upload-ref",
+        client_name: Keyword.get(opts, :client_name, "shot.png"),
+        client_size: Keyword.get(opts, :client_size, 12_345),
+        client_type: Keyword.get(opts, :client_type, "image/png"),
+        progress: Keyword.get(opts, :progress, 0),
+        valid?: Keyword.get(opts, :valid?, true),
+        done?: false
+      }
+    end
+
+    test "without an upload the composer is unchanged: no paperclip, drop target or chips" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" />|)
+
+      refute html =~ "pc-chat__composer-attach"
+      refute html =~ "pc-chat__composer-attachments"
+      refute html =~ "phx-drop-target"
+      refute html =~ ~s{type="file"}
+      refute html =~ "pc-chat__composer-errors"
+      # the shape that was always there is still there
+      assert html =~ "pc-chat__composer-row"
+      assert html =~ ~s{name="prompt"}
+    end
+
+    test "with an upload it renders the paperclip trigger and a hidden file input" do
+      assigns = %{upload: upload_config([])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert_has_class(html, "pc-chat__composer-attach")
+      assert html =~ "hero-paper-clip"
+      assert html =~ ~s{type="file"}
+      assert html =~ "sr-only"
+      assert html =~ ~s{aria-label="Attach files"}
+      # no entries yet, so no chip strip
+      refute html =~ "pc-chat__composer-attachments"
+    end
+
+    test "the form becomes a drop target for the upload ref" do
+      assigns = %{upload: upload_config([], ref: "upload-123")}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ ~s{phx-drop-target="upload-123"}
+    end
+
+    test "an image entry renders a thumbnail chip" do
+      assigns = %{upload: upload_config([upload_entry(client_type: "image/png")])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert_has_class(html, "pc-chat__attachment--image")
+      assert_has_class(html, "pc-chat__attachment-thumb")
+      assert html =~ ~s{role="list"}
+    end
+
+    test "a non-image entry renders name and formatted size" do
+      assigns = %{
+        upload:
+          upload_config([
+            upload_entry(
+              client_type: "application/pdf",
+              client_name: "invoice.pdf",
+              client_size: 2_400_000
+            )
+          ])
+      }
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert_has_class(html, "pc-chat__attachment--file")
+      assert html =~ "invoice.pdf"
+      assert html =~ "2.4 MB"
+      refute html =~ "pc-chat__attachment-thumb"
+    end
+
+    test "the progress ring exposes the entry progress and progressbar semantics" do
+      assigns = %{upload: upload_config([upload_entry(progress: 42)])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ ~s{role="progressbar"}
+      assert html =~ ~s{aria-valuenow="42"}
+      assert html =~ ~s{aria-valuemin="0"}
+      assert html =~ ~s{aria-valuemax="100"}
+      assert html =~ ~s{aria-label="Uploading shot.png"}
+      assert html =~ ~s{data-progress="42"}
+      assert html =~ "--pc-attachment-progress: 42"
+    end
+
+    test "the progress ring disappears at 100" do
+      assigns = %{upload: upload_config([upload_entry(progress: 100)])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      refute html =~ ~s{role="progressbar"}
+    end
+
+    test "nothing is drawn at 0 — the resting state before an upload starts" do
+      assigns = %{upload: upload_config([upload_entry(progress: 0)])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "pc-chat__attachment"
+      refute html =~ ~s{role="progressbar"}
+      refute html =~ "pc-chat__attachment-progress"
+    end
+
+    test "the remove button pushes the cancel event with the entry ref" do
+      assigns = %{upload: upload_config([upload_entry(ref: "entry-7")])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ ~s{phx-click="cancel-upload"}
+      assert html =~ ~s{phx-value-ref="entry-7"}
+      assert html =~ ~s{aria-label="Remove shot.png"}
+    end
+
+    test "a custom on_cancel_upload name is respected" do
+      assigns = %{upload: upload_config([upload_entry()])}
+
+      html =
+        rendered_to_string(
+          ~H|<.prompt_input phx-submit="send" upload={@upload} on_cancel_upload="drop-it" />|
+        )
+
+      assert html =~ ~s{phx-click="drop-it"}
+      refute html =~ ~s{phx-click="cancel-upload"}
+    end
+
+    test "config-level errors render under the composer as alerts" do
+      # upload_errors/1 matches config-level errors by the config's own ref
+      assigns = %{upload: upload_config([], errors: [{"phx-upload-ref", :too_many_files}])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert_has_class(html, "pc-chat__composer-errors")
+      assert html =~ ~s{role="alert"}
+      assert html =~ "Too many files selected."
+    end
+
+    test "per-entry errors name the file they belong to" do
+      entry = upload_entry(ref: "e1", client_name: "huge.png")
+
+      assigns = %{upload: upload_config([entry], errors: [{"e1", :too_large}])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "huge.png: This file is too large."
+      assert html =~ ~s{role="alert"}
+    end
+
+    test "the not_accepted error gets its own copy" do
+      entry = upload_entry(ref: "e1", client_name: "clip.mov")
+
+      assigns = %{upload: upload_config([entry], errors: [{"e1", :not_accepted}])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "clip.mov: This file type isn&#39;t accepted."
+    end
+
+    test "an upload client failure and an unknown error atom both get readable copy" do
+      entry = upload_entry(ref: "e1", client_name: "clip.mov")
+
+      assigns = %{
+        upload: upload_config([entry], errors: [{"e1", :external_client_failure}])
+      }
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "clip.mov: Something went wrong uploading this file."
+
+      assigns = %{upload: upload_config([entry], errors: [{"e1", :something_new}])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "clip.mov: Upload failed (:something_new)."
+    end
+
+    test "accept_hint lands in the accessible description and the tooltip" do
+      assigns = %{upload: upload_config([])}
+
+      html =
+        rendered_to_string(
+          ~H|<.prompt_input phx-submit="send" upload={@upload} accept_hint="PNGs up to 5 MB" />|
+        )
+
+      assert html =~ ~s{aria-description="PNGs up to 5 MB"}
+      assert html =~ ~s{title="PNGs up to 5 MB"}
+    end
+
+    test "no accept_hint means no empty title or aria-description" do
+      assigns = %{upload: upload_config([])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      refute html =~ "title="
+      refute html =~ "aria-description="
+    end
+
+    test "chips coexist with the editing banner and the loading stop button" do
+      assigns = %{upload: upload_config([upload_entry()])}
+
+      html =
+        rendered_to_string(~H"""
+        <.prompt_input
+          phx-submit="send"
+          upload={@upload}
+          editing
+          on_cancel_edit="cancel"
+          loading={true}
+          on_stop="stop"
+        />
+        """)
+
+      assert html =~ "pc-chat__composer-banner"
+      assert html =~ "pc-chat__composer-stop"
+      assert html =~ "pc-chat__composer-attachments"
+    end
+  end
+
+  describe "message_attachments/1" do
+    test "a single image renders as a lazy thumbnail with the file name as alt text" do
+      assigns = %{
+        attachments: [%{kind: :image, url: "/uploads/shot.png", name: "shot.png", size: 1200}]
+      }
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      assert_has_class(html, "pc-chat__message-attachments")
+      assert_has_class(html, "pc-chat__message-attachments-grid")
+      assert html =~ ~s{alt="shot.png"}
+      assert html =~ ~s{loading="lazy"}
+      assert html =~ ~s{src="/uploads/shot.png"}
+      refute html =~ "pc-chat__message-attachments-grid--multi"
+    end
+
+    test "two or more images tile into a grid" do
+      assigns = %{
+        attachments: [
+          %{kind: :image, url: "/a.png", name: "a.png", size: nil},
+          %{kind: :image, url: "/b.png", name: "b.png", size: nil}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      assert_has_class(html, "pc-chat__message-attachments-grid--multi")
+    end
+
+    test "images are openable in a new tab" do
+      assigns = %{attachments: [%{kind: :image, url: "/a.png", name: "a.png", size: nil}]}
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      assert html =~ ~s{target="_blank"}
+      assert html =~ ~s{rel="noopener noreferrer"}
+    end
+
+    test "files render as download rows with formatted sizes" do
+      assigns = %{
+        attachments: [
+          %{kind: :file, url: "/uploads/invoice.pdf", name: "invoice.pdf", size: 340_000}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      assert_has_class(html, "pc-chat__attachment-row")
+      assert html =~ "download"
+      assert html =~ ~s{href="/uploads/invoice.pdf"}
+      assert html =~ "invoice.pdf"
+      assert html =~ "340 KB"
+    end
+
+    test "a nil size omits the size span" do
+      assigns = %{attachments: [%{kind: :file, url: "/a.pdf", name: "a.pdf", size: nil}]}
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      refute html =~ "pc-chat__attachment-size"
+      assert html =~ "a.pdf"
+    end
+
+    test "a mixed list renders the images before the files" do
+      assigns = %{
+        attachments: [
+          %{kind: :file, url: "/doc.pdf", name: "doc.pdf", size: nil},
+          %{kind: :image, url: "/pic.png", name: "pic.png", size: nil}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      image_at = :binary.match(html, "pic.png") |> elem(0)
+      file_at = :binary.match(html, "doc.pdf") |> elem(0)
+      assert image_at < file_at
+    end
+
+    test "string-keyed attachment maps render identically" do
+      assigns = %{
+        attachments: [%{"kind" => "image", "url" => "/x.png", "name" => "x.png", "size" => 100}]
+      }
+
+      html = rendered_to_string(~H|<.message_attachments attachments={@attachments} />|)
+
+      assert html =~ ~s{alt="x.png"}
+    end
+
+    test "an empty list renders nothing" do
+      assigns = %{}
+
+      refute rendered_to_string(~H|<.message_attachments attachments={[]} />|) =~
+               "pc-chat__message-attachments"
+    end
+
+    test "class is appended last and rest passes through" do
+      assigns = %{attachments: [%{kind: :file, url: "/a.pdf", name: "a.pdf", size: nil}]}
+
+      html =
+        rendered_to_string(
+          ~H|<.message_attachments attachments={@attachments} class="mine" id="att" />|
+        )
+
+      assert html =~ "mine"
+      assert html =~ ~s{id="att"}
     end
   end
 
