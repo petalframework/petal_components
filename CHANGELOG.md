@@ -1,4 +1,31 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **New `calendar` and `date_picker` components.** `<.calendar>` is a month
+  grid built on Elixir's own `Date` - no date dependency, no timezone
+  guessing, and no DateTime anywhere. It does single, range and multiple
+  selection, `min`/`max` windows, `disabled_dates` as a list or a function,
+  any of the seven week starts, outside days, and fixed six-row height.
+  Month navigation works two ways: push events in a LiveView, or plain
+  query-param patch links in a dead view. Day and month names are plain
+  attrs, so gettext wiring is a recipe rather than a dependency.
+- `<.date_picker>` puts that grid in a panel under a text input. The input
+  shows a strftime-formatted date you can type into; a hidden input posts
+  ISO 8601 regardless. Parse on blur tries ISO first, then the configured
+  format, and reverts rather than silently clearing. Range mode posts
+  `from`/`to` sub-fields and can show two months side by side. Form field,
+  errors, help text, required marker and clearable all match `<.field>`.
+- Both follow the WAI-ARIA grid pattern: `role="grid"` with column headers,
+  `aria-selected` on the selected cells, `aria-disabled` on blacked-out days
+  that stay focusable, a polite live region for month changes, and a roving
+  tabindex so exactly one day sits in the tab order. The `PetalCalendar`
+  hook adds the arrow-key map (day, week, month with PageUp/PageDown, year
+  with Shift, week bounds with Home/End); every day is a real `<button>`, so
+  Tab and Enter work with the hook deleted.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
