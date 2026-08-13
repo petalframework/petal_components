@@ -1,4 +1,47 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`<.kbd>` - the keyboard chip, promoted to a real component.** The
+  `.pc-kbd` class already existed, quietly powering the command palette
+  trigger and input group addons, but you had to hand-write the markup
+  and remember which glyph goes with which modifier. Now
+  `<.kbd keys={["cmd", "K"]} />` renders one semantic `<kbd>` per key
+  with the separator between them, folding known names (cmd, shift,
+  alt, ctrl, enter, esc, tab, backspace, the arrows) to their symbol
+  case-insensitively and passing anything else through verbatim. The
+  separator is `aria-hidden`, because the keys already say what the
+  shortcut is. Two sizes: `md` matches the existing chips, `sm` is for
+  table rows and menu items. The shared rule picked up a key cap
+  treatment at the same time - an inset border with a heavier bottom
+  edge - so the command trigger and input group chips read as
+  something you can press without either of them changing size.
+- **`<.separator>` - the divider for app UI.** A hairline with no
+  margin of its own, because app layouts already control their own
+  rhythm and a component that quietly adds `my-8` is a component you
+  spend the afternoon overriding. `label` (or the default slot for
+  rich content) gives you the OR divider and the date row in an
+  activity feed, positioned `start`, `center` or `end`. Vertical mode
+  is a `w-px` rule that stretches to its flex parent, for toolbars.
+  `decorative` defaults to true and matches Radix: `aria-hidden`, no
+  role, no announcement. Flip it to false and you get
+  `role="separator"` plus `aria-orientation` when it is vertical.
+  `Typography.hr/1` is untouched and stays the rule for prose.
+- **`<.collapsible>` - one disclosure region.** The accordion without
+  the group: nothing closes when it opens, and there is no entries
+  list. The trigger is a real `<button>`, so Enter and Space work and
+  focus stays put, and it carries `aria-expanded` plus `aria-controls`
+  pointing at a `role="region"` content panel that is `inert` while
+  collapsed rather than an invisible tab trap. Toggling is
+  `Phoenix.LiveView.JS`, so it costs no round trip, and the `open`
+  attr is the server-rendered state, so LiveView can drive it too.
+  `on_toggle` composes your own commands ahead of the component's.
+  The height animation is the `grid-template-rows: 0fr -> 1fr` trick,
+  which means content of any height animates with nothing measured in
+  JavaScript, and it drops out under `prefers-reduced-motion` with
+  both rest states fully legible.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
