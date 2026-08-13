@@ -2656,71 +2656,83 @@ defmodule Dev.PlaygroundLive do
             </div>
             <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
           </div>
-          <nav class="flex-1 px-6 py-6 overflow-y-auto">
-            <div :for={grp <- @nav} class="mb-10">
-              <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
-                {grp.group}
-              </div>
-              <div class="flex flex-col">
-                <button
-                  :for={it <- grp.items}
-                  phx-click="select"
-                  phx-value-slug={it.slug}
-                  class={[
-                    "flex items-center py-1.5 text-2xl font-medium text-left",
-                    (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
-                      "text-gray-600 dark:text-gray-400"
-                  ]}
-                >
-                  {it.name}
-                  <span
-                    :if={not it.ready}
-                    class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+          <%!-- tabindex="-1": every item in here is already a button, so the
+          scroll area's own tab stop would just be one more thing to tab past. --%>
+          <.scroll_area tabindex="-1" class="flex-1 px-6 py-6">
+            <nav>
+              <div :for={grp <- @nav} class="mb-10">
+                <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
+                  {grp.group}
+                </div>
+                <div class="flex flex-col">
+                  <button
+                    :for={it <- grp.items}
+                    phx-click="select"
+                    phx-value-slug={it.slug}
+                    class={[
+                      "flex items-center py-1.5 text-2xl font-medium text-left",
+                      (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
+                        "text-gray-600 dark:text-gray-400"
+                    ]}
                   >
-                    soon
-                  </span>
-                </button>
+                    {it.name}
+                    <span
+                      :if={not it.ready}
+                      class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                    >
+                      soon
+                    </span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </nav>
+            </nav>
+          </.scroll_area>
         </.focus_wrap>
       </div>
 
       <div inert={@nav_open} class="flex flex-1 min-h-0">
-        <nav class="hidden lg:block flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
-          <div :for={grp <- @nav}>
-            <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
-              {grp.group}
-            </div>
-            <button
-              :for={it <- grp.items}
-              phx-click="select"
-              phx-value-slug={it.slug}
-              class={[
-                "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
-                (@active == it.slug &&
-                   "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
-                  "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
-              ]}
-            >
-              {it.name}
-              <span
-                :if={not it.ready}
-                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+        <%!-- tabindex="-1": the list is all buttons, so it is reachable without
+        the scroll area's own tab stop. --%>
+        <.scroll_area
+          tabindex="-1"
+          class="hidden lg:block flex-none p-3 border-r w-52 border-gray-200 dark:border-gray-800"
+        >
+          <nav>
+            <div :for={grp <- @nav}>
+              <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
+                {grp.group}
+              </div>
+              <button
+                :for={it <- grp.items}
+                phx-click="select"
+                phx-value-slug={it.slug}
+                class={[
+                  "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
+                  (@active == it.slug &&
+                     "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
+                    "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
+                ]}
               >
-                soon
-              </span>
-            </button>
-          </div>
-        </nav>
+                {it.name}
+                <span
+                  :if={not it.ready}
+                  class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                >
+                  soon
+                </span>
+              </button>
+            </div>
+          </nav>
+        </.scroll_area>
 
-        <%!-- overflow-x-hidden: decorative bleed (the plasma halo's oversized
-        blur-headroom boxes reach ~116px past their panels) must clip at the
-        pane edge instead of growing phantom horizontal scroll on mobile.
-        The glow still paints to the edge; only the scroll range is fenced. --%>
-        <main class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+        <%!-- role="main" keeps the landmark that the <main> element carried.
+        The x-axis fence comes free now: pc-scroll-area--vertical clips
+        overflow-x, so the plasma halo's oversized blur-headroom boxes (up to
+        ~116px proud of their panels) still paint to the pane edge without
+        growing phantom horizontal scroll on mobile. --%>
+        <.scroll_area role="main" class="flex-1 min-w-0">
           {render_page(assigns)}
-        </main>
+        </.scroll_area>
       </div>
     </div>
     """
