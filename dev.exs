@@ -212,6 +212,152 @@ defmodule Dev.PlaygroundLive do
     """
   ]
 
+  # A mocked RAG answer: the model cites its context with [^N] footnote markers
+  # and the app hands the same source maps to markdown/1 + chat_sources/1.
+  @chat_rag_sources [
+    %{
+      id: "1",
+      url: "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html",
+      title: "Phoenix.LiveView — behaviour and lifecycle",
+      snippet:
+        "LiveView provides rich, real-time user experiences with server-rendered HTML over a persistent connection."
+    },
+    %{
+      id: "2",
+      url: "https://hexdocs.pm/phoenix_live_view/js-interop.html",
+      title: "JavaScript interoperability",
+      snippet:
+        "Client hooks let you run JavaScript when an element is added, updated or removed from the page."
+    },
+    %{
+      id: "3",
+      url: "https://hexdocs.pm/phoenix/Phoenix.Endpoint.html",
+      title: "Phoenix.Endpoint",
+      snippet: "The endpoint is the boundary where all requests to your application start."
+    },
+    %{
+      id: "4",
+      url: "https://elixir-lang.org/getting-started/processes.html",
+      title: "Processes"
+    }
+  ]
+
+  @chat_rag_answer """
+  LiveView holds a **persistent connection** and diffs the rendered tree on the
+  server, pushing only the parts that changed [^1]. Anything the server can't
+  own - focus, clipboard, a third-party widget - drops down to a client
+  hook [^2].
+
+  Requests still enter through the endpoint like any other Phoenix request [^3],
+  and each connected tab is just another cheap process [^4].
+  """
+
+  # Two-step mocked agent flow: the assistant asks which framework, then what
+  # to scaffold. Both round-trip through real handle_event callbacks.
+  @q_framework %{
+    id: "q-framework",
+    title: "Which framework are you targeting?",
+    description: "This picks the generators I'll reach for.",
+    fields: [
+      %{
+        id: "framework",
+        type: :single_select,
+        label: "Framework",
+        required: true,
+        options: [
+          %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView, server-rendered"},
+          %{value: "rails", label: "Rails", description: "Ruby, Hotwire, convention-first"},
+          %{value: "next", label: "Next.js", description: "React, app router, RSC"}
+        ]
+      }
+    ]
+  }
+
+  @q_scope %{
+    id: "q-scope",
+    title: "Before I scaffold, two things",
+    fields: [
+      %{
+        id: "features",
+        type: :multi_select,
+        label: "Which features do you need?",
+        options: [
+          %{value: "auth", label: "Auth"},
+          %{value: "billing", label: "Billing"},
+          %{value: "admin", label: "Admin panel"}
+        ]
+      },
+      %{id: "team", type: :text, label: "Team name", placeholder: "Platform"},
+      %{
+        id: "confidence",
+        type: :scale,
+        label: "How settled is this scope?",
+        min_label: "Still exploring",
+        max_label: "Locked",
+        required: true
+      }
+    ]
+  }
+
+  # Inline SVG so the attachments example renders with no static asset host.
+  @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
+
+  # The payloads the mocked agent run inspects. Both are JSON strings, exactly
+  # what you hold when a function call streams back - tool_call pretty-prints
+  # them server-side.
+  @tool_run_input ~s|{"query":"phoenix liveview server-driven tool calls","limit":3,"freshness":"month"}|
+
+  @tool_run_output ~s|{"results":[{"title":"Phoenix.LiveView","url":"https://hexdocs.pm/phoenix_live_view"},{"title":"Streams","url":"https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#stream/4"}],"count":2,"took_ms":842}|
+
+  # A burst mid-run: two done, one failed, one working, one still queued.
+  @tool_burst [
+    %{
+      name: "read_file",
+      state: :complete,
+      icon: "code",
+      duration: "0.1s",
+      input: ~s|{"path":"lib/app_web/router.ex"}|,
+      output: ~s|{"lines":184,"bytes":6120}|,
+      error: nil
+    },
+    %{
+      name: "grep",
+      state: :complete,
+      icon: "web_search",
+      duration: "0.2s",
+      input: ~s|{"pattern":"live_session","glob":"lib/**/*.ex"}|,
+      output: ~s|{"matches":6,"files":2}|,
+      error: nil
+    },
+    %{
+      name: "query_users",
+      state: :error,
+      icon: "database",
+      duration: "0.4s",
+      input: ~s|{"sql":"select * from users limit 5"}|,
+      output: nil,
+      error: "relation users does not exist"
+    },
+    %{
+      name: "run_migrations",
+      state: :running,
+      icon: "database",
+      duration: "2.1s",
+      input: nil,
+      output: nil,
+      error: nil
+    },
+    %{
+      name: "write_file",
+      state: :pending,
+      icon: "code",
+      duration: nil,
+      input: nil,
+      output: nil,
+      error: nil
+    }
+  ]
+
   @chat_history [
     %{id: "m-yesterday", role: :marker, text: "Yesterday"},
     %{id: "hist-q", role: :user, text: "Does it support dark mode?", stream_id: nil},
@@ -732,6 +878,36 @@ defmodule Dev.PlaygroundLive do
        tg_device: "desktop",
        tg_variant: "solid",
        tg_size: "md",
+       chat_rag_sources: @chat_rag_sources,
+       chat_shot_image: @chat_shot_image,
+       tool_run_input: @tool_run_input,
+       tool_run_output: @tool_run_output,
+       tool_burst: @tool_burst,
+       q_framework: @q_framework,
+       q_scope: @q_scope,
+       quiz: %{
+         # nil until answered; then the answer map or :skipped
+         framework: nil,
+         scope: nil,
+         asked_scope: false,
+         submitting: false,
+         # dial state for the standalone demo below the flow
+         field: "single_cards",
+         allow_skip: true,
+         state: "pending"
+       },
+       tool: %{
+         # dials for the single-card demo
+         state: :complete,
+         compact: false,
+         icon: "web_search",
+         # the mocked agent run: nil while idle, otherwise the live state
+         run_state: nil,
+         run_duration: nil,
+         run_outcome: :success,
+         # bumped per run so a finished card is a fresh DOM node
+         run_seq: 0
+       },
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -741,7 +917,20 @@ defmodule Dev.PlaygroundLive do
              text: "How do I install petal_components?",
              stream_id: nil
            },
-           %{id: "seed-a", role: :assistant, text: @chat_seed_answer, stream_id: nil}
+           %{id: "seed-a", role: :assistant, text: @chat_seed_answer, stream_id: nil},
+           %{
+             id: "seed-rag-q",
+             role: :user,
+             text: "How does LiveView keep the page in sync?",
+             stream_id: nil
+           },
+           %{
+             id: "seed-rag-a",
+             role: :assistant,
+             text: @chat_rag_answer,
+             stream_id: nil,
+             sources: @chat_rag_sources
+           }
          ],
          streaming: false,
          seq: 1,
@@ -749,7 +938,12 @@ defmodule Dev.PlaygroundLive do
          variant: "plain",
          actions: "always",
          editing: nil,
-         sent: false
+         sent: false,
+         sources_expanded: false,
+         sources_max: 5,
+         rag_streaming: false,
+         attach_hint: true,
+         attach_limit: "5mb"
        },
        alert: %{
          color: "gray",
@@ -862,6 +1056,11 @@ defmodule Dev.PlaygroundLive do
          gap: "cozy",
          points: 14
        }
+     )
+     |> allow_upload(:chat_attachments,
+       accept: ~w(.png .jpg .jpeg .pdf),
+       max_entries: 4,
+       max_file_size: 5_000_000
      )}
   end
 
@@ -1206,6 +1405,45 @@ defmodule Dev.PlaygroundLive do
 
   def handle_info(:pg_skeleton_loaded, socket),
     do: {:noreply, update(socket, :skeleton, &%{&1 | loading: false})}
+
+  def handle_info({:chat_rag_tick, buffer, []}, socket) do
+    {:noreply,
+     socket
+     |> assign(:chat, %{socket.assigns.chat | rag_streaming: false})
+     |> push_event("pc-chat-rag-token", %{
+       id: "pg-chat-rag-stream",
+       html: Chat.to_html(buffer, sources: @chat_rag_sources)
+     })}
+  end
+
+  def handle_info({:chat_rag_tick, buffer, [word | rest]}, socket) do
+    buffer = if buffer == "", do: word, else: buffer <> " " <> word
+    Process.send_after(self(), {:chat_rag_tick, buffer, rest}, 60)
+
+    {:noreply,
+     push_event(socket, "pc-chat-rag-token", %{
+       id: "pg-chat-rag-stream",
+       html: Chat.to_html(buffer, sources: @chat_rag_sources)
+     })}
+  end
+
+  # Each step is one assign patch. The card re-renders into the next state -
+  # that is the entire server-driven contract the component asks for.
+  def handle_info({:tool_step, :input_streaming}, socket) do
+    Process.send_after(self(), {:tool_step, :running}, 1100)
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: :input_streaming})}
+  end
+
+  def handle_info({:tool_step, :running}, socket) do
+    Process.send_after(self(), {:tool_step, :settled}, 1600)
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: :running})}
+  end
+
+  def handle_info({:tool_step, :settled}, socket) do
+    tool = socket.assigns.tool
+    final = if tool.run_outcome == :error, do: :error, else: :complete
+    {:noreply, assign(socket, :tool, %{tool | run_state: final, run_duration: "3.6s"})}
+  end
 
   def handle_info({:chat_tick, id, chunks}, socket) do
     chat = socket.assigns.chat
@@ -1713,6 +1951,142 @@ defmodule Dev.PlaygroundLive do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | variant: v})}
   end
 
+  # tool_call dials -----------------------------------------------------------
+
+  def handle_event("ctl_tool", %{"k" => "state", "v" => v}, socket)
+      when v in ~w(pending input_streaming running complete error) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | state: String.to_existing_atom(v)})}
+  end
+
+  def handle_event("ctl_tool", %{"k" => "compact", "v" => v}, socket) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | compact: v == "on"})}
+  end
+
+  def handle_event("ctl_tool", %{"k" => "icon", "v" => v}, socket)
+      when v in ~w(web_search code database none) do
+    icon = if v == "none", do: nil, else: v
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | icon: icon})}
+  end
+
+  # The mocked agent run. This is the whole contract in eight lines: a timer
+  # patches one assign and the card moves. No client state, no hook.
+  def handle_event("tool_run", %{"outcome" => outcome}, socket)
+      when outcome in ~w(success error) do
+    tool = socket.assigns.tool
+
+    if tool.run_state in [nil, :complete, :error] do
+      Process.send_after(self(), {:tool_step, :input_streaming}, 900)
+
+      {:noreply,
+       assign(socket, :tool, %{
+         tool
+         | run_state: :pending,
+           run_duration: nil,
+           run_outcome: String.to_existing_atom(outcome),
+           run_seq: tool.run_seq + 1
+       })}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("tool_reset", _params, socket) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: nil, run_duration: nil})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "sources_expanded", "v" => v}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | sources_expanded: v == "open"})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "sources_max", "v" => v}, socket) do
+    max = if v == "all", do: length(@chat_rag_sources), else: String.to_integer(v)
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | sources_max: max})}
+  end
+
+  def handle_event("ctl_chat", %{"k" => "attach_hint", "v" => v}, socket) do
+    {:noreply, assign(socket, :chat, %{socket.assigns.chat | attach_hint: v == "on"})}
+  end
+
+  # Re-allow the upload with a tiny cap so the "too large" error is one drop
+  # away. disallow_upload first - allow_upload raises on a name it already owns.
+  def handle_event("ctl_chat", %{"k" => "attach_limit", "v" => v}, socket) do
+    max = if v == "tiny", do: 20_000, else: 5_000_000
+
+    {:noreply,
+     socket
+     |> disallow_upload(:chat_attachments)
+     |> allow_upload(:chat_attachments,
+       accept: ~w(.png .jpg .jpeg .pdf),
+       max_entries: 4,
+       max_file_size: max
+     )
+     |> assign(:chat, %{socket.assigns.chat | attach_limit: v})}
+  end
+
+  # The whole point of the component: submit is a plain phx-submit, the parent
+  # updates assigns, and the card flips to its resolved state. No client state.
+  def handle_event("questionnaire_submit", %{"spec_id" => "q-framework"} = params, socket) do
+    quiz = %{socket.assigns.quiz | framework: params["answers"] || %{}, asked_scope: true}
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
+  def handle_event("questionnaire_submit", %{"spec_id" => "q-scope"} = params, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | scope: params["answers"] || %{}})}
+  end
+
+  def handle_event("questionnaire_submit", _params, socket), do: {:noreply, socket}
+
+  def handle_event("questionnaire_skip", %{"id" => "q-framework"}, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | framework: :skipped})}
+  end
+
+  def handle_event("questionnaire_skip", %{"id" => "q-scope"}, socket) do
+    {:noreply, assign(socket, :quiz, %{socket.assigns.quiz | scope: :skipped})}
+  end
+
+  def handle_event("questionnaire_skip", _params, socket), do: {:noreply, socket}
+
+  def handle_event("quiz_reset", _params, socket) do
+    quiz = %{socket.assigns.quiz | framework: nil, scope: nil, asked_scope: false}
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
+  def handle_event("ctl_quiz", %{"k" => k, "v" => v}, socket) do
+    quiz =
+      case k do
+        "field" -> %{socket.assigns.quiz | field: v}
+        "allow_skip" -> %{socket.assigns.quiz | allow_skip: v == "on"}
+        "state" -> %{socket.assigns.quiz | state: v}
+        _ -> socket.assigns.quiz
+      end
+
+    {:noreply, assign(socket, :quiz, quiz)}
+  end
+
+  # Uploads need a change event on the form to make progress.
+  def handle_event("chat_validate", _params, socket), do: {:noreply, socket}
+
+  def handle_event("chat_cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :chat_attachments, ref)}
+  end
+
+  # Streams the same grounded answer word by word. Each tick re-renders the
+  # buffer through to_html/2, so the [^N] chips appear as the markers complete
+  # and a half-arrived "[^" never flashes broken.
+  def handle_event("chat_rag_stream", _params, socket) do
+    if socket.assigns.chat.rag_streaming do
+      {:noreply, socket}
+    else
+      words = String.split(@chat_rag_answer, " ")
+      Process.send_after(self(), {:chat_rag_tick, "", words}, 150)
+
+      {:noreply,
+       socket
+       |> assign(:chat, %{socket.assigns.chat | rag_streaming: true})
+       |> push_event("pc-chat-rag-token", %{id: "pg-chat-rag-stream", html: ""})}
+    end
+  end
+
   def handle_event("ctl_chat", %{"k" => "actions", "v" => v}, socket)
       when v in ~w(always hover) do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | actions: v})}
@@ -1742,10 +2116,12 @@ defmodule Dev.PlaygroundLive do
 
   defp chat_start(socket, prompt) do
     prompt = String.trim(prompt)
+    pending? = socket.assigns.uploads.chat_attachments.entries != []
 
-    if prompt == "" || socket.assigns.chat.streaming do
+    if (prompt == "" && !pending?) || socket.assigns.chat.streaming do
       {:noreply, socket}
     else
+      attachments = consume_chat_attachments(socket)
       chat = socket.assigns.chat
       seq = chat.seq + 1
       id = "pg-chat-ans-#{seq}"
@@ -1760,7 +2136,13 @@ defmodule Dev.PlaygroundLive do
       turns =
         base ++
           [
-            %{id: "u#{seq}", role: :user, text: prompt, stream_id: nil},
+            %{
+              id: "u#{seq}",
+              role: :user,
+              text: prompt,
+              stream_id: nil,
+              attachments: attachments
+            },
             %{id: "a#{seq}", role: :assistant, text: reply, stream_id: id}
           ]
 
@@ -1780,6 +2162,87 @@ defmodule Dev.PlaygroundLive do
        |> push_event("pc-chat-set-input", %{id: "pg-chat-composer", value: ""})
        |> assign(:chat, chat)}
     end
+  end
+
+  # One field at a time, so each type can be looked at on its own. Every branch
+  # uses the "q-demo" id: the flow above renders @q_framework at the same time,
+  # and two live copies of one spec id would collide on input ids.
+  defp quiz_demo_spec("single_cards"), do: %{@q_framework | id: "q-demo"}
+
+  defp quiz_demo_spec("single_buttons") do
+    %{
+      id: "q-demo",
+      title: "Which framework are you targeting?",
+      fields: [
+        %{
+          id: "framework",
+          type: :single_select,
+          label: "Framework",
+          style: "buttons",
+          required: true,
+          options: [
+            %{value: "phoenix", label: "Phoenix"},
+            %{value: "rails", label: "Rails"},
+            %{value: "next", label: "Next.js"}
+          ]
+        }
+      ]
+    }
+  end
+
+  defp quiz_demo_spec("multi") do
+    %{
+      id: "q-demo",
+      title: "Which features do you need?",
+      fields: [Enum.at(@q_scope.fields, 0)]
+    }
+  end
+
+  defp quiz_demo_spec("text") do
+    %{id: "q-demo", title: "What should I call it?", fields: [Enum.at(@q_scope.fields, 1)]}
+  end
+
+  defp quiz_demo_spec(_scale) do
+    %{id: "q-demo", title: "How settled is this scope?", fields: [Enum.at(@q_scope.fields, 2)]}
+  end
+
+  defp quiz_demo_resolved(%{state: "skipped"}), do: :skipped
+
+  defp quiz_demo_resolved(%{state: "resolved", field: field}) do
+    case field do
+      "multi" -> %{"features" => ["auth", "billing"]}
+      "text" -> %{"team" => "Platform"}
+      "scale" -> %{"confidence" => "5"}
+      _ -> %{"framework" => "phoenix"}
+    end
+  end
+
+  defp quiz_demo_resolved(_quiz), do: nil
+
+  # A real app writes these somewhere it can serve from. The playground has no
+  # static host for a temp dir, so small images become data URIs (enough to
+  # prove message_attachments renders what was actually uploaded) and anything
+  # else becomes a file row.
+  defp consume_chat_attachments(socket) do
+    consume_uploaded_entries(socket, :chat_attachments, fn %{path: path}, entry ->
+      image? = String.starts_with?(entry.client_type, "image/")
+      inlineable? = image? && entry.client_size <= 1_000_000
+
+      url =
+        if inlineable? do
+          "data:#{entry.client_type};base64,#{Base.encode64(File.read!(path))}"
+        else
+          "#"
+        end
+
+      {:ok,
+       %{
+         kind: if(inlineable?, do: :image, else: :file),
+         url: url,
+         name: entry.client_name,
+         size: entry.client_size
+       }}
+    end)
   end
 
   defp patch_theme(socket, delta) do
@@ -8717,6 +9180,11 @@ defmodule Dev.PlaygroundLive do
               role="user"
               class={@chat.editing == i && "pc-chat__row--editing"}
             >
+              <Chat.message_attachments
+                :if={Map.get(turn, :attachments, []) != []}
+                attachments={Map.get(turn, :attachments)}
+                class="mb-2"
+              />
               {turn.text}
               <:actions>
                 <Chat.message_actions visible={@chat.actions}>
@@ -8739,7 +9207,17 @@ defmodule Dev.PlaygroundLive do
               <%= if turn.stream_id do %>
                 <Chat.streaming_text id={turn.stream_id} />
               <% else %>
-                <Chat.markdown content={turn.text} id={"pg-chat-md-#{turn.id}"} />
+                <Chat.markdown
+                  content={turn.text}
+                  id={"pg-chat-md-#{turn.id}"}
+                  sources={Map.get(turn, :sources)}
+                />
+                <Chat.chat_sources
+                  :if={Map.get(turn, :sources)}
+                  sources={Map.get(turn, :sources)}
+                  expanded={@chat.sources_expanded}
+                  max_visible={@chat.sources_max}
+                />
               <% end %>
               <:actions :if={turn.stream_id == nil}>
                 <Chat.message_actions visible={@chat.actions}>
@@ -8775,11 +9253,15 @@ defmodule Dev.PlaygroundLive do
             <Chat.prompt_input
               id="pg-chat-composer"
               phx-submit="chat_send"
+              phx-change="chat_validate"
+              upload={@uploads.chat_attachments}
+              on_cancel_upload="chat_cancel_upload"
+              accept_hint={@chat.attach_hint && "Images and PDFs up to 5 MB"}
               editing={@chat.editing != nil}
               on_cancel_edit="chat_cancel_edit"
               loading={@chat.streaming}
               on_stop="chat_stop"
-              placeholder="Ask the (canned) assistant..."
+              placeholder="Ask the (canned) assistant, or paste a screenshot..."
             />
           </:footer>
         </Chat.conversation>
@@ -8814,7 +9296,461 @@ defmodule Dev.PlaygroundLive do
               </:item>
             </.toggle_group>
           </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              sources expanded
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Sources expanded"
+              value={if @chat.sources_expanded, do: "open", else: "closed"}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(closed open)}
+                value={v}
+                phx-value-k="sources_expanded"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max_visible</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Max visible sources"
+              value={
+                if @chat.sources_max >= length(@chat_rag_sources),
+                  do: "all",
+                  else: to_string(@chat.sources_max)
+              }
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(2 5 all)} value={v} phx-value-k="sources_max" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">accept_hint</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Accept hint"
+              value={if @chat.attach_hint, do: "on", else: "off"}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="attach_hint" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size limit</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Upload size limit"
+              value={@chat.attach_limit}
+              on_change="ctl_chat"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(5mb tiny)}
+                value={v}
+                phx-value-k="attach_limit"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
         </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The composer above takes real uploads. Click the paperclip, drag a file
+        onto the composer, or paste a screenshot straight into the textarea -
+        each one lands as a chip with a progress ring and a remove button, and
+        sending renders them back into the message with <code>message_attachments</code>. It's ordinary <code>allow_upload/3</code>: the component only renders <code>@uploads.name</code>. Flip the size limit dial to
+        <code>tiny</code>
+        (20 KB) and drop a normal screenshot to see the inline error, and <code>accept_hint</code>
+        off/on to toggle the paperclip's description. Keyboard: Tab reaches the
+        paperclip, then each chip's remove button, then the textarea, then send.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A tool call, start to finish</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Press a button and watch one card walk the lifecycle: pending, then the
+        arguments streaming in, then running, then the result. The whole thing is
+        four <code>Process.send_after</code>
+        hops in this page's handle_info, each one patching a single assign. The
+        component holds no client state and ships no hook - the card moves because
+        the server said so.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.tool_call
+            :if={@tool.run_state}
+            id={"pg-tool-run-#{@tool.run_seq}"}
+            name="web_search"
+            state={@tool.run_state}
+            icon="web_search"
+            label={if @tool.run_state == :running, do: "Searching the web"}
+            duration={@tool.run_duration}
+            input={if @tool.run_state in [:complete, :error], do: @tool_run_input}
+            output={if @tool.run_state == :complete, do: @tool_run_output}
+            error={
+              if @tool.run_state == :error,
+                do: "The search backend returned 503 after three retries."
+            }
+          >
+            <:error_actions :if={@tool.run_state == :error}>
+              <button
+                type="button"
+                class="pc-chat__action"
+                phx-click="tool_run"
+                phx-value-outcome="success"
+              >
+                Retry
+              </button>
+            </:error_actions>
+          </Chat.tool_call>
+          <p :if={is_nil(@tool.run_state)} class="text-sm text-gray-500 dark:text-gray-400">
+            Nothing running yet. Start a call below.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <.button
+            size="sm"
+            phx-click="tool_run"
+            phx-value-outcome="success"
+            disabled={@tool.run_state in [:pending, :input_streaming, :running]}
+          >
+            Run a search
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            phx-click="tool_run"
+            phx-value-outcome="error"
+            disabled={@tool.run_state in [:pending, :input_streaming, :running]}
+          >
+            Run one that fails
+          </.button>
+          <.button size="sm" variant="ghost" phx-click="tool_reset">Clear</.button>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A compact burst</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Five calls from one agent turn. <code>compact</code>
+        drops the card chrome so consecutive rows read as a list; the two finished
+        ones and the failure are disclosures - click a row, or Tab to it and press
+        Enter, to open its input and output. The running and pending rows have
+        nothing to show yet, so they stay plain announced status lines.
+      </p>
+      <div class="p-3 border border-gray-200 rounded-xl dark:border-gray-800">
+        <Chat.tool_call
+          :for={call <- @tool_burst}
+          name={call.name}
+          compact
+          state={call.state}
+          icon={call.icon}
+          duration={call.duration}
+          input={call.input}
+          output={call.output}
+          error={call.error}
+        >
+          <:error_actions :if={call.error}>
+            <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+          </:error_actions>
+        </Chat.tool_call>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">States and icons</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        One card, every dial.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.tool_call
+            name="web_search"
+            state={@tool.state}
+            compact={@tool.compact}
+            icon={@tool.icon}
+            label={if @tool.state == :running, do: "Searching the web"}
+            duration="1.2s"
+            input={if @tool.state in [:complete, :error], do: @tool_run_input}
+            output={if @tool.state == :complete, do: @tool_run_output}
+            error={if @tool.state == :error, do: "The search backend returned 503."}
+          >
+            <:error_actions :if={@tool.state == :error}>
+              <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+            </:error_actions>
+          </Chat.tool_call>
+        </div>
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Tool call state"
+              value={to_string(@tool.state)}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(pending input_streaming running complete error)}
+                value={v}
+                phx-value-k="state"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">compact</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Compact"
+              value={if @tool.compact, do: "on", else: "off"}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="compact" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Tool icon"
+              value={@tool.icon || "none"}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(web_search code database none)}
+                value={v}
+                phx-value-k="icon"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        <code>state</code>
+        is the source of truth and it is all assigns - the older <code>status</code>
+        attr still works and maps onto running, complete and error. Pending and
+        input_streaming rest on a shimmer skeleton (it stands still under reduced
+        motion), running gets a spinner and an indeterminate hairline under the
+        header, complete settles into a summary row, and error rides the danger
+        ramp with the message inline and your retry button in the <code>error_actions</code>
+        slot. Input and output take the JSON string you already have; it is
+        pretty-printed server-side, and anything that isn't valid JSON is shown
+        verbatim rather than swallowed. The panels are native
+        &lt;details&gt; - the browser owns the disclosure semantics, so Tab reaches
+        a panel and Enter or Space opens it, with no JS and no aria-expanded to go
+        stale. The default slot is your rendered widget and stays visible; the
+        panels are for inspecting the payload, not for hiding your component.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Human in the loop</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        A live two-step flow. The assistant asks which framework, you answer, the
+        card flips to resolved chips and it asks the follow-up. Submit is a plain
+        phx-submit into this page's handle_event - the component holds no client
+        state at all. Keyboard-only works end to end: arrows move within a group,
+        Space toggles a checkbox, Enter submits.
+      </p>
+      <Chat.conversation id="pg-chat-quiz">
+        <Chat.chat_message role="user">Scaffold me a starter app.</Chat.chat_message>
+        <Chat.chat_message role="assistant">
+          <Chat.questionnaire
+            spec={@q_framework}
+            resolved={@quiz.framework}
+            allow_skip
+            submitting={@quiz.submitting}
+          />
+        </Chat.chat_message>
+        <Chat.chat_message :if={@quiz.asked_scope || @quiz.framework == :skipped} role="assistant">
+          <Chat.questionnaire
+            spec={@q_scope}
+            resolved={@quiz.scope}
+            allow_skip
+            submit_label="Send answers"
+          />
+        </Chat.chat_message>
+        <:footer>
+          <.button size="sm" variant="outline" phx-click="quiz_reset">Reset the flow</.button>
+        </:footer>
+      </Chat.conversation>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Field types and states</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        One field at a time, through every state.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.questionnaire
+            spec={quiz_demo_spec(@quiz.field)}
+            resolved={quiz_demo_resolved(@quiz)}
+            submitting={@quiz.state == "submitting"}
+            allow_skip={@quiz.allow_skip}
+          />
+        </div>
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">field type</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Field type"
+              value={@quiz.field}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(single_cards single_buttons multi text scale)}
+                value={v}
+                phx-value-k="field"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">allow_skip</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Allow skip"
+              value={if @quiz.allow_skip, do: "on", else: "off"}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="allow_skip" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Questionnaire state"
+              value={@quiz.state}
+              on_change="ctl_quiz"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(pending submitting resolved skipped)}
+                value={v}
+                phx-value-k="state"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The spec is a plain map the app (or the model) emits; the component is a
+        thin renderer over it. Single-select composes <code>field type="radio-card"</code>
+        when the options carry descriptions and <code>type="radio-group"</code>
+        when they don't; multi-select is a checkbox group, text is a text field.
+        Only the 1-to-5 scale is new markup - five real radios in a segmented
+        row, so arrows move between steps natively. Inputs are named <code>answers[field_id]</code>
+        so submit lands as a map with a "spec_id" key and an "answers" map.
+        Resolved replaces the form with chips - no disabled form left in the DOM
+        pretending to be interactive.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A support thread with attachments</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The received side. Images tile into a grid, files are download rows with
+        the size on the end, and a mixed list puts the images first.
+      </p>
+      <Chat.conversation id="pg-chat-attachments">
+        <Chat.chat_message role="user">
+          <Chat.message_attachments
+            attachments={[
+              %{kind: :image, url: @chat_shot_image, name: "checkout-error.png", size: 184_320},
+              %{kind: :file, url: "#", name: "invoice-4471.pdf", size: 96_400}
+            ]}
+            class="mb-2"
+          /> Checkout throws on submit. Screenshot and the invoice attached.
+        </Chat.chat_message>
+        <Chat.chat_message role="assistant">
+          That trace is a card token expiring before submit. I pulled the
+          gateway log for invoice 4471 - same window.
+          <Chat.message_attachments
+            attachments={[%{kind: :file, url: "#", name: "gateway-4471.log", size: 4_820}]}
+            class="mt-2"
+          />
+        </Chat.chat_message>
+      </Chat.conversation>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Citations while streaming</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The same grounded answer, streamed. Each tick re-renders the growing buffer
+        through <code>to_html(buffer, sources: sources)</code>
+        and pushes the HTML at a format="markdown" streaming_text, so chips light up
+        as their markers complete. A half-arrived "[^" is left alone until the closing
+        bracket lands, so nothing flashes broken.
+      </p>
+      <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <Chat.streaming_text id="pg-chat-rag-stream" event="pc-chat-rag-token" format="markdown" />
+        <div class="mt-3">
+          <Chat.chat_sources
+            sources={@chat_rag_sources}
+            expanded={@chat.sources_expanded}
+            max_visible={@chat.sources_max}
+          />
+        </div>
+        <.button
+          size="sm"
+          variant="outline"
+          class="mt-3"
+          phx-click="chat_rag_stream"
+          disabled={@chat.rag_streaming}
+        >
+          {if @chat.rag_streaming, do: "Streaming...", else: "Stream the grounded answer"}
+        </.button>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Answer grounding is two pieces. Prompt the model to cite as <code>[^N]</code>
+        and pass the same source maps to <code>markdown/1</code>: complete markers
+        become chips, unmatched ones stay as plain text. Chips are real links - Tab
+        reaches one, the preview card opens on focus, Enter opens the source in a new
+        tab. <code>chat_sources</code>
+        is the deduped list underneath, a native
+        &lt;details&gt; with no JS: the dials above flip <code>expanded</code>
+        and cap the list with <code>max_visible</code>, which tucks the rest behind a
+        "Show all" reveal.
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Streaming is real here: the LiveView pushes word-sized tokens with
@@ -8862,7 +9798,11 @@ defmodule Dev.PlaygroundLive do
           :message_actions,
           :copy_button,
           :suggestions,
-          :chat_error
+          :chat_error,
+          :chat_sources,
+          :citation,
+          :message_attachments,
+          :questionnaire
         ]}
       />
 

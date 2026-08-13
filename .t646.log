@@ -1,0 +1,61 @@
+warning: Looks like you're trying to run Wallaby with a mismatched version of Chrome: 151.0.7922 and chromedriver: 143.0.7499.
+Chrome and chromedriver must match to a major, minor, and build version.
+
+  (wallaby 0.30.12) lib/wallaby/chrome.ex:288: Wallaby.Chrome.version_compare/2
+  (wallaby 0.30.12) lib/wallaby.ex:31: Wallaby.start/2
+  (kernel 9.2) application_master.erl:293: :application_master.start_it_old/4
+
+Running ExUnit with seed: 444255, max_cases: 20
+
+....     warning: variable "f" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 335 \x{2502}           <.form :let={f} for={%{}} as={:user}>
+     \x{2502}           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/modal_test.exs:335: PetalComponents.ModalTest."test modal/1 - integration with other components modal with form content"/1
+
+     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 374 \x{2502}     test "handles very long title text", %{assigns: assigns} do
+     \x{2502}                                                     ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/modal_test.exs:374:53: PetalComponents.ModalTest."test modal/1 - edge cases handles very long title text"/1
+
+     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 386 \x{2502}     test "handles very long content", %{assigns: assigns} do
+     \x{2502}                                                  ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/modal_test.exs:386:50: PetalComponents.ModalTest."test modal/1 - edge cases handles very long content"/1
+
+......     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 295 \x{2502}     test "handles very long alert messages", %{assigns: assigns} do
+     \x{2502}                                                         ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/alert_test.exs:295:57: PetalComponents.AlertTest."test alert/1 - edge cases handles very long alert messages"/1
+
+     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 367 \x{2502}     test "handles dropdown with many items", %{assigns: assigns} do
+     \x{2502}                                                         ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/dropdown_test.exs:367:57: PetalComponents.DropdownTest."test dropdown/1 - edge cases handles dropdown with many items"/1
+
+     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 395 \x{2502}     test "handles very long label text", %{assigns: assigns} do
+     \x{2502}                                                     ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/dropdown_test.exs:395:53: PetalComponents.DropdownTest."test dropdown/1 - edge cases handles very long label text"/1
+
+*....................................................     warning: variable "assigns" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     \x{2502}
+ 228 \x{2502}     test "badge with very long text", %{assigns: assigns} do
+     \x{2502}                                                  ~~~~~~~
+     \x{2502}
+     \x{2514}\x{2500} test/petal/badge_test.exs:228:50: PetalComponents.BadgeTest."test badge/1 - edge cases badge with very long text"/1
+
+.................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+Finished in 1.7 seconds (1.3s async, 0.4s sync)
+992 tests, 0 failures, 1 skipped

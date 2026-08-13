@@ -1,4 +1,84 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **`Chat.tool_call/1` renders the whole lifecycle of a call, not one static
+  row.** The new `state` attr (`:pending`, `:input_streaming`, `:running`,
+  `:complete`, `:error`) is server-driven end to end: the parent LiveView
+  patches one assign as the model's response streams and the card moves. No
+  client state, no new hook. Pending and streaming-input rest on a shimmer
+  skeleton (still under `prefers-reduced-motion`), running gets a spinner and
+  an indeterminate hairline, complete settles into a summary row with the
+  arguments and the result behind expandable panels, and error rides the
+  danger ramp with the message inline and your retry button in the new
+  `:error_actions` slot. `input` and `output` take the JSON string you already
+  have when a function call streams back - pretty-printed server-side into a
+  code block, shown verbatim when it is not valid JSON, and overridable with
+  the `:input_panel` / `:output_panel` slots. `icon` takes a preset
+  (`"web_search"`, `"code"`, `"database"`) or any `hero-*` name, with the
+  `:tool_icon` slot for anything else. `compact` collapses a multi-tool burst
+  into one dense line per call, stacked as a list, each finished row a native
+  `<details>` disclosure. `duration` prints a time you format. In-progress
+  cards carry `role="status"` and every state is spelled out in a
+  visually-hidden word, so the state never lands as colour alone. The older
+  `status` attr still works unchanged and drives the same three treatments.
+
+- **`Chat.questionnaire/1`: structured human-in-the-loop input in the
+  transcript.** When the model needs a decision rather than a sentence, it
+  emits a question spec and this renders it as a form inside the thread -
+  single-select, multi-select, short text and a 1-to-5 scale. Submit is a
+  plain `phx-submit` your LiveView forwards to the model; there is no
+  client form engine and no client state. Pass the answers back as
+  `resolved` and the form is replaced by quiet chips so the transcript
+  stays honest about what was asked and answered, with nothing focusable
+  left behind; `:skipped` renders the skipped line. It composes the
+  existing `field/1` primitives - radio-cards when the options carry
+  descriptions, plain radios when they don't, checkbox groups for
+  multi-select - so required markers, labels and error scaffolding come
+  for free. Only the scale is new markup: five real radios in a segmented
+  row, so arrow keys move between steps natively. Every question is a
+  `<fieldset>` with a `<legend>`, the form is `aria-labelledby` the title,
+  and the scale's end captions are tied in with `aria-describedby`.
+
+- **Composer attachments: `prompt_input` takes an upload, and
+  `message_attachments` renders what was sent.** Hand `prompt_input` an
+  `%UploadConfig{}` from `allow_upload/3` and it grows a paperclip trigger
+  (a `<label>` around a visually hidden `live_file_input`, so the keyboard
+  still works), a chip strip for the pending entries, `phx-drop-target` on
+  the composer with a drag-over tint, and paste-a-screenshot support in the
+  existing `PetalChatComposer` hook. Image entries get a `live_img_preview`
+  thumbnail, everything else gets an icon with the name and a formatted
+  size; each chip carries a `role="progressbar"` ring driven by
+  `entry.progress` and a remove button wired to `on_cancel_upload` with the
+  entry ref. Upload errors render inline under the composer with
+  `role="alert"`, per-entry ones named with the file they belong to.
+  `message_attachments/1` is the received side: images tile into a grid
+  (one goes large, two or more tile), files are download rows, and a mixed
+  list puts the images first. With no `upload` the composer renders exactly
+  as it always has - no extra markup, no behaviour change.
+
+- **Answer grounding for the chat family: inline citation chips and a
+  `chat_sources` row.** RAG answers are only trustworthy if you can see
+  where they came from, and until now the chat kit rendered the prose but
+  not the receipts. Prompt the model to cite as `[^N]` and hand the same
+  source maps to `markdown/1`: every complete marker turns into a numbered
+  chip that opens the source in a new tab, with a preview card (title,
+  domain, snippet) on hover or focus. `chat_sources/1` renders the deduped
+  list underneath - a native `<details>`, no JS, with `expanded` to open it
+  on render and `max_visible` to cap the list behind a "Show all" reveal.
+  `citation/1` is the chip on its own for prose you assemble yourself.
+  The streaming path takes the same option: `to_html/2` accepts
+  `sources:`, so chips light up as their markers complete and a
+  half-arrived `[^` never flashes broken output. Sources are plain maps
+  (`%{id, url, title, snippet, favicon_url}`) with string or atom keys;
+  everything but `url` is optional and degrades - no favicon means a letter
+  avatar, no snippet means a shorter row. Chip markup is minted server-side
+  from the numeric index plus escaped source fields and spliced into the
+  already-sanitized HTML outside code blocks, so model text can never reach
+  the page as live markup.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
