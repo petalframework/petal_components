@@ -7636,7 +7636,9 @@
   }
 
   .dark .pc-alert-dialog__icon {
-    background: color-mix(in srgb, white 8%, transparent);
+    /* rides the gray ramp (not a white mix) so a re-themed gray dial
+       carries the wash with it - the house ghost recipe */
+    background: color-mix(in srgb, var(--color-gray-400) 12%, transparent);
   }
 
   .pc-alert-dialog--destructive .pc-alert-dialog__icon {
@@ -7644,8 +7646,19 @@
     background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
   }
 
-  .pc-alert-dialog__icon-svg {
-    @apply w-5 h-5;
+  /* Doubled selector + bang, the icon-sizing contract (see the pagination
+     chevron): this lands on a bare hero-* span, which consumer heroicon CSS
+     sizes from the utilities layer - beating any single components-layer
+     selector. */
+  .pc-alert-dialog__icon-svg.pc-alert-dialog__icon-svg {
+    @apply w-5! h-5!;
+  }
+
+  /* The trigger wrapper must not impose block layout - alert-dialog
+     triggers live in toolbars and button rows. display:contents keeps the
+     hook's click listener working via bubbling. */
+  .pc-alert-dialog__trigger {
+    display: contents;
   }
 
   .pc-alert-dialog__title {
@@ -7672,6 +7685,13 @@
   .pc-alert-dialog__actions .pc-alert-dialog__cancel,
   .pc-alert-dialog__actions .pc-alert-dialog__confirm {
     @apply justify-center sm:w-auto w-full;
+  }
+
+  /* Nested-child radius: the action buttons derive from the PANEL's clamped
+     radius, not the raw token - at large user radii a raw-token button
+     out-rounds its own dialog (same recipe as the modal/slideover actions). */
+  .pc-alert-dialog__actions .pc-button {
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
   @media (prefers-reduced-motion: no-preference) {

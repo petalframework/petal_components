@@ -1924,6 +1924,7 @@ export const PetalCommandDialog = {
 // element, not from here.
 export const PetalAlertDialog = {
   mounted() {
+    this.closedByUs = false;
     this.onOpen = () => this.open();
     // Escape. Swallow the native close and route through the cancel button so
     // Escape and a Cancel click run the exact same on_cancel JS - one path.
@@ -1936,16 +1937,30 @@ export const PetalAlertDialog = {
     this.onAction = (e) => {
       if (e.target.closest("[data-pc-alert-dialog-close]")) this.close();
     };
+    // The native close event is the one funnel every close path drains
+    // through, so the scroll unlock lives here. And Chrome's close watcher
+    // lets a second rapid Escape bypass the cancelable `cancel` event - a
+    // close we didn't initiate still runs the cancel path, so on_cancel
+    // never silently skips.
+    this.onClose = () => {
+      document.body.classList.remove("overflow-hidden");
+      if (!this.closedByUs) this.cancelButton()?.click();
+      this.closedByUs = false;
+    };
 
     this.el.addEventListener("pc:alert-dialog-open", this.onOpen);
     this.el.addEventListener("cancel", this.onCancel);
     this.el.addEventListener("click", this.onAction);
+    this.el.addEventListener("close", this.onClose);
   },
 
   destroyed() {
+    // A patch can remove an OPEN dialog - never leave the page locked.
+    if (this.el.open) document.body.classList.remove("overflow-hidden");
     this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
     this.el.removeEventListener("cancel", this.onCancel);
     this.el.removeEventListener("click", this.onAction);
+    this.el.removeEventListener("close", this.onClose);
   },
 
   cancelButton() {
@@ -1954,6 +1969,10 @@ export const PetalAlertDialog = {
 
   open() {
     if (this.el.open) return;
+    this.closedByUs = false;
+    // The brief's "page behind does not scroll" - locked on open, unlocked
+    // in onClose so every close path releases it.
+    document.body.classList.add("overflow-hidden");
     this.el.showModal();
     // showModal() focuses the first focusable (or [autofocus]); pin it to
     // cancel explicitly so the least destructive action is always the default,
@@ -1963,7 +1982,10 @@ export const PetalAlertDialog = {
   },
 
   close() {
-    if (this.el.open) this.el.close();
+    if (this.el.open) {
+      this.closedByUs = true;
+      this.el.close();
+    }
   },
 };
 

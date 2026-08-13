@@ -736,6 +736,7 @@ defmodule Dev.PlaygroundLive do
        tg_size: "md",
        alert_dialog: %{variant: "destructive", description: "with", length: "short"},
        alert_dialog_result: nil,
+       alert_dialog_rows: [1, 3],
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -1069,6 +1070,15 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("alert_dialog_answer", %{"answer" => answer}, socket),
     do: {:noreply, assign(socket, :alert_dialog_result, answer)}
+
+  def handle_event("alert_dialog_toggle_row", %{"row" => row}, socket) do
+    row = String.to_integer(row)
+
+    {:noreply,
+     update(socket, :alert_dialog_rows, fn rows ->
+       if row in rows, do: rows -- [row], else: Enum.sort([row | rows])
+     end)}
+  end
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -3148,6 +3158,50 @@ defmodule Dev.PlaygroundLive do
           {ex.description}
         </p>
         <.showcase_example example={ex} />
+      </div>
+
+      <%!-- the brief's live-assign proof: the showcase macro rightly forbids
+            interpolation, so THIS example lives only here - the count in the
+            body reads a socket assign, changing as you pick rows --%>
+      <div class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">A body that reads live state</h2>
+        <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          The inner block is ordinary HEEx, so the confirmation can carry whatever the
+          socket knows - here, how many rows are ticked right now.
+        </p>
+        <div class="p-8 border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="flex flex-wrap items-center gap-4">
+            <label
+              :for={n <- 1..4}
+              class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+            >
+              <.field
+                type="checkbox"
+                name={"bulk-row-#{n}"}
+                checked={n in @alert_dialog_rows}
+                phx-click="alert_dialog_toggle_row"
+                phx-value-row={n}
+                wrapper_class="mb-0"
+              /> Invoice {n}
+            </label>
+            <.alert_dialog
+              id="pg-alert-bulk"
+              variant="destructive"
+              title="Delete selected invoices?"
+              confirm_label="Delete"
+              on_confirm={Phoenix.LiveView.JS.push("alert_dialog_answer", value: %{answer: "bulk delete"})}
+            >
+              <:trigger>
+                <.button color="danger" variant="outline" size="sm" disabled={@alert_dialog_rows == []}>
+                  Delete selected
+                </.button>
+              </:trigger>
+              This permanently removes
+              <span class="font-semibold">{length(@alert_dialog_rows)} selected invoices</span>
+              and their payment history.
+            </.alert_dialog>
+          </div>
+        </div>
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>

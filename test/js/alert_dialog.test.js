@@ -21,6 +21,8 @@ function stubDialog(el) {
   el.close = () => {
     el.open = false;
     el.closeCalls = (el.closeCalls || 0) + 1;
+    // real dialogs fire the close event; the hook's unlock path drains it
+    el.dispatchEvent(new Event("close"));
   };
   el.open = false;
   el.showModalCalls = 0;
@@ -87,6 +89,42 @@ describe("PetalAlertDialog", () => {
       hooks.forEach((h) => h.destroyed());
       wrap.remove();
     });
+  });
+
+  it("locks background scroll on open and unlocks on every close path", () => {
+    const { el, cancel } = mount();
+
+    el.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+    expect(document.body.classList.contains("overflow-hidden")).toBe(true);
+
+    click(cancel);
+    expect(document.body.classList.contains("overflow-hidden")).toBe(false);
+  });
+
+  it("a close that bypassed the hook still runs the cancel path", () => {
+    // Chrome's close watcher lets a second rapid Escape skip the cancelable
+    // `cancel` event entirely - the dialog closes natively without our code
+    const { el, cancel } = mount();
+    let cancelClicks = 0;
+    cancel.addEventListener("click", () => cancelClicks++);
+
+    el.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+    // native bypass: the browser closed it, not us
+    el.open = false;
+    el.dispatchEvent(new Event("close"));
+
+    expect(cancelClicks).toBe(1);
+    expect(document.body.classList.contains("overflow-hidden")).toBe(false);
+  });
+
+  it("a patch removing an OPEN dialog never leaves the page locked", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+    expect(document.body.classList.contains("overflow-hidden")).toBe(true);
+
+    hook.destroyed();
+    expect(document.body.classList.contains("overflow-hidden")).toBe(false);
+    // afterEach will call destroyed() again; it is idempotent
   });
 
   it("opens as a modal on the open event", () => {
