@@ -7586,3 +7586,134 @@
       transition-duration: 1ms;
     }
   }
+
+/* Alert dialog - the two-answer decision before something destructive.
+   Built on the native <dialog>, so the top layer, focus containment and
+   ::backdrop come from the element. Deliberately narrower than the modal:
+   one question, one accent icon, one action row that stays put while a long
+   body scrolls under it. */
+
+@layer components {
+  .pc-alert-dialog {
+    /* The panel needs a DEFINITE height to bound its scrolling body: a
+       percentage max-height on the panel would resolve against the dialog's
+       auto height and be ignored, so the panel would overflow and clip its
+       own header. Both carry the same explicit cap instead. */
+    --pc-alert-dialog-max-h: min(32rem, calc(100dvh - 4rem));
+    @apply fixed p-0 overflow-hidden shadow-lg;
+    inset: 0;
+    margin: auto;
+    width: min(30rem, calc(100vw - 2rem));
+    max-height: var(--pc-alert-dialog-max-h);
+    color: inherit;
+    border: 1px solid var(--color-gray-200);
+    background: var(--color-white, #fff);
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
+  .dark .pc-alert-dialog {
+    border-color: color-mix(in srgb, white 15%, transparent);
+    background: var(--color-gray-900);
+  }
+
+  .pc-alert-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+
+  .pc-alert-dialog__panel {
+    @apply flex flex-col;
+    max-height: var(--pc-alert-dialog-max-h);
+  }
+
+  .pc-alert-dialog__header {
+    @apply flex items-start gap-3 shrink-0 px-6 pt-6;
+  }
+
+  .pc-alert-dialog__icon {
+    @apply flex items-center justify-center shrink-0 w-9 h-9 text-gray-500 dark:text-gray-400;
+    background: var(--color-gray-100);
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 0.8), 0.625rem);
+  }
+
+  .dark .pc-alert-dialog__icon {
+    /* rides the gray ramp (not a white mix) so a re-themed gray dial
+       carries the wash with it - the house ghost recipe */
+    background: color-mix(in srgb, var(--color-gray-400) 12%, transparent);
+  }
+
+  .pc-alert-dialog--destructive .pc-alert-dialog__icon {
+    @apply text-danger-600 dark:text-danger-400;
+    background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
+  }
+
+  /* Doubled selector + bang, the icon-sizing contract (see the pagination
+     chevron): this lands on a bare hero-* span, which consumer heroicon CSS
+     sizes from the utilities layer - beating any single components-layer
+     selector. */
+  .pc-alert-dialog__icon-svg.pc-alert-dialog__icon-svg {
+    @apply w-5! h-5!;
+  }
+
+  /* The trigger wrapper must not impose block layout - alert-dialog
+     triggers live in toolbars and button rows. display:contents keeps the
+     hook's click listener working via bubbling. */
+  .pc-alert-dialog__trigger {
+    display: contents;
+  }
+
+  .pc-alert-dialog__title {
+    @apply self-center text-base font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-alert-dialog__body {
+    @apply flex-1 min-h-0 overflow-y-auto px-6 pt-2;
+  }
+
+  .pc-alert-dialog__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-alert-dialog__content {
+    @apply mt-3 text-sm text-gray-600 dark:text-gray-300;
+  }
+
+  .pc-alert-dialog__actions {
+    @apply flex flex-col-reverse gap-2 shrink-0 px-6 pt-5 pb-6;
+    @apply sm:flex-row sm:justify-end;
+  }
+
+  .pc-alert-dialog__actions .pc-alert-dialog__cancel,
+  .pc-alert-dialog__actions .pc-alert-dialog__confirm {
+    @apply justify-center sm:w-auto w-full;
+  }
+
+  /* Nested-child radius: the action buttons derive from the PANEL's clamped
+     radius, not the raw token - at large user radii a raw-token button
+     out-rounds its own dialog (same recipe as the modal/slideover actions). */
+  .pc-alert-dialog__actions .pc-button {
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-alert-dialog[open] {
+      animation: pc-alert-dialog-in 0.15s ease-out;
+    }
+
+    .pc-alert-dialog[open]::backdrop {
+      animation: pc-alert-dialog-backdrop-in 0.15s ease-out;
+    }
+  }
+
+  @keyframes pc-alert-dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  @keyframes pc-alert-dialog-backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+}

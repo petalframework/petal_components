@@ -1909,6 +1909,103 @@ export const PetalCommandDialog = {
   },
 };
 
+// The alertdialog: a native <dialog> asking one question with two answers.
+//
+// The hook exists for the three things CSS and Phoenix.LiveView.JS cannot do:
+// showModal()/close() are DOM methods with no JS-command equivalent; initial
+// focus has to land on cancel (the least destructive action) rather than the
+// first focusable; and Escape's native `cancel` event must be intercepted so
+// it runs the component's on_cancel JS instead of quietly closing.
+//
+// Note what is deliberately absent: there is NO backdrop click handler. A
+// native modal dialog ignores backdrop clicks, so click-away does nothing -
+// which is the behaviour the WAI-ARIA alertdialog pattern asks for. Focus
+// containment and focus restoration to the opener also come from the native
+// element, not from here.
+export const PetalAlertDialog = {
+  mounted() {
+    this.closedByUs = false;
+    this.onOpen = () => this.open();
+    // Escape. Swallow the native close and route through the cancel button so
+    // Escape and a Cancel click run the exact same on_cancel JS - one path.
+    this.onCancel = (e) => {
+      e.preventDefault();
+      const cancel = this.cancelButton();
+      cancel ? cancel.click() : this.close();
+    };
+    // Both actions close the dialog after their phx-click JS has run.
+    this.onAction = (e) => {
+      if (e.target.closest("[data-pc-alert-dialog-close]")) this.close();
+    };
+    // The native close event is the one funnel every close path drains
+    // through, so the scroll unlock lives here. And Chrome's close watcher
+    // lets a second rapid Escape bypass the cancelable `cancel` event - a
+    // close we didn't initiate still runs the cancel path, so on_cancel
+    // never silently skips.
+    this.onClose = () => {
+      document.body.classList.remove("overflow-hidden");
+      if (!this.closedByUs) this.cancelButton()?.click();
+      this.closedByUs = false;
+    };
+
+    this.el.addEventListener("pc:alert-dialog-open", this.onOpen);
+    this.el.addEventListener("cancel", this.onCancel);
+    this.el.addEventListener("click", this.onAction);
+    this.el.addEventListener("close", this.onClose);
+  },
+
+  destroyed() {
+    // A patch can remove an OPEN dialog - never leave the page locked.
+    if (this.el.open) document.body.classList.remove("overflow-hidden");
+    this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
+    this.el.removeEventListener("cancel", this.onCancel);
+    this.el.removeEventListener("click", this.onAction);
+    this.el.removeEventListener("close", this.onClose);
+  },
+
+  cancelButton() {
+    return this.el.querySelector("[data-pc-alert-dialog-cancel]");
+  },
+
+  open() {
+    if (this.el.open) return;
+    this.closedByUs = false;
+    // The brief's "page behind does not scroll" - locked on open, unlocked
+    // in onClose so every close path releases it.
+    document.body.classList.add("overflow-hidden");
+    this.el.showModal();
+    // showModal() focuses the first focusable (or [autofocus]); pin it to
+    // cancel explicitly so the least destructive action is always the default,
+    // whatever a consumer's body content puts above it.
+    const cancel = this.cancelButton();
+    if (cancel) cancel.focus();
+  },
+
+  close() {
+    if (this.el.open) {
+      this.closedByUs = true;
+      this.el.close();
+    }
+  },
+};
+
+// Opens the alert dialog named in data-dialog. A hook rather than a phx-click
+// JS command for the same reason as PetalCommandTrigger: hooks mount on dead
+// views, phx-click JS commands only run inside a LiveView.
+export const PetalAlertDialogTrigger = {
+  mounted() {
+    this.onClick = () => {
+      const dialog = document.getElementById(this.el.dataset.dialog);
+      if (dialog) dialog.dispatchEvent(new CustomEvent("pc:alert-dialog-open"));
+    };
+    this.el.addEventListener("click", this.onClick);
+  },
+
+  destroyed() {
+    this.el.removeEventListener("click", this.onClick);
+  },
+};
+
 // Opens the command dialog named in data-dialog. A hook rather than a
 // phx-click JS command: hooks mount on dead views (LiveView 1.1+), phx-click
 // JS commands only execute inside a LiveView - so the trigger works on
@@ -5452,6 +5549,8 @@ export default {
   PetalAurora,
   PetalNavMenu,
   PetalCommandDialog,
+  PetalAlertDialog,
+  PetalAlertDialogTrigger,
   PetalComboBox,
   PetalDataTable,
 };

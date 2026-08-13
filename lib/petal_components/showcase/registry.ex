@@ -11,6 +11,7 @@ defmodule PetalComponents.Showcase.Registry do
   @modules [
     PetalComponents.Showcase.Accordion,
     PetalComponents.Showcase.Alert,
+    PetalComponents.Showcase.AlertDialog,
     PetalComponents.Showcase.Aurora,
     PetalComponents.Showcase.Avatar,
     PetalComponents.Showcase.Badge,
