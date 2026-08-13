@@ -8996,8 +8996,12 @@ defmodule Dev.PlaygroundLive do
         Answer grounding is two pieces. Prompt the model to cite as <code>[^N]</code>
         and pass the same source maps to <code>markdown/1</code>: complete markers
         become chips, unmatched ones stay as plain text. Chips are real links - Tab
-        reaches one, the preview card opens on focus, Enter opens the source in a new
-        tab. <code>chat_sources</code>
+        reaches one, the preview card opens on focus (and on hover, where it stays
+        hoverable so you can read a long snippet), Enter opens the source in a new
+        tab. The card is pure CSS with no hook, so it dismisses by moving focus or
+        the pointer off the chip rather than with Escape. Only http(s) urls become
+        links: a source url with any other scheme renders its chip without an href.
+        <code>chat_sources</code>
         is the deduped list underneath, a native
         &lt;details&gt; with no JS: the dials above flip <code>expanded</code>
         and cap the list with <code>max_visible</code>, which tucks the rest behind a

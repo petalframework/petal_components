@@ -7608,19 +7608,34 @@
   }
 
   .pc-chat__citation:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   /* The chip's own <sup> would double-raise it — the chip is already
      align-super, so keep the number on the chip's baseline. */
   .pc-chat__citation-num {
     @apply align-baseline;
-    top: 0;
   }
 
+  /* Centred over the chip and clamped to the viewport, so a chip near the right
+     edge of a narrow bubble spills at most half a card instead of a whole one.
+     `visibility: hidden` already keeps the closed card out of hit-testing, so no
+     pointer-events reset is needed: the open card is hoverable (WCAG 1.4.13). */
   .pc-chat__citation-card {
-    @apply pointer-events-none invisible absolute bottom-full left-0 z-20 mb-1 flex w-56 flex-col gap-1 border border-gray-200 bg-white p-2 text-xs leading-snug text-gray-600 opacity-0 shadow-lg transition-opacity duration-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300;
+    @apply invisible absolute bottom-full left-1/2 z-20 mb-1 flex w-max flex-col gap-1 border border-gray-200 bg-white p-2 text-xs leading-snug text-gray-600 opacity-0 shadow-lg transition-opacity duration-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300;
     border-radius: var(--pc-radius, 0.625rem);
+    max-width: min(14rem, calc(100vw - 2rem));
+    transform: translateX(-50%);
+  }
+
+  /* Bridges the 0.25rem gap between chip and card so the pointer can travel
+     into the card without the hover dropping. */
+  .pc-chat__citation-card::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 0.25rem;
   }
 
   .pc-chat__citation-wrap:hover .pc-chat__citation-card,
@@ -7660,7 +7675,7 @@
   }
 
   .pc-chat__sources-row:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-chat__sources-favicons {
@@ -7700,7 +7715,7 @@
   }
 
   .pc-chat__source-link:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-chat__source-favicon {
@@ -7736,7 +7751,7 @@
   }
 
   .pc-chat__sources-more-summary:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   @media (prefers-reduced-motion: reduce) {

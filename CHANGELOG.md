@@ -22,7 +22,8 @@
   avatar, no snippet means a shorter row. Chip markup is minted server-side
   from the numeric index plus escaped source fields and spliced into the
   already-sanitized HTML outside code blocks, so model text can never reach
-  the page as live markup.
+  the page as live markup, and only `http`/`https` urls become links - a
+  source url with any other scheme renders without an `href`.
 
 ### 4.14.0 - 2026-08-11
 

@@ -238,6 +238,49 @@ defmodule PetalComponents.ChatTest do
       assert html =~ "[^1]"
     end
 
+    test "markers inside inline code are left alone", %{sources: sources} do
+      assigns = %{md: "Write the marker as `[^1]` in the prompt.", sources: sources}
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      refute html =~ "pc-chat__citation"
+      assert html =~ "[^1]"
+    end
+
+    test "two markers on the same url keep their own numbers" do
+      assigns = %{
+        md: "First [^1] and again [^2].",
+        sources: [
+          %{id: "1", url: "https://example.com/a", title: "A"},
+          %{id: "2", url: "https://example.com/a", title: "A"}
+        ]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert html =~ ~s{<sup class="pc-chat__citation-num">1</sup>}
+      assert html =~ ~s{<sup class="pc-chat__citation-num">2</sup>}
+
+      sources_html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert sources_html =~ "1 source"
+      assert length(Regex.scan(~r/pc-chat__source-link/, sources_html)) == 1
+    end
+
+    test "a non-http source url never reaches the chip's href" do
+      assigns = %{
+        md: "Careful [^1].",
+        sources: [%{id: "1", url: "javascript:alert(1)", title: "Nope"}]
+      }
+
+      html = rendered_to_string(~H|<.markdown content={@md} sources={@sources} />|)
+
+      assert_has_class(html, "pc-chat__citation")
+      refute html =~ "href="
+      refute html =~ "javascript:"
+      assert html =~ ~s{aria-label="Source 1: Nope"}
+    end
+
     test "a marker resolves positionally when sources have no ids" do
       assigns = %{
         md: "Positional [^2].",
@@ -389,6 +432,19 @@ defmodule PetalComponents.ChatTest do
 
       assert html =~ "1 source"
       refute html =~ "A again"
+    end
+
+    test "a non-http source url never reaches the row's href" do
+      assigns = %{
+        sources: [%{url: "javascript:alert(1)", title: "Nope"}]
+      }
+
+      html = rendered_to_string(~H|<.chat_sources sources={@sources} expanded />|)
+
+      assert_has_class(html, "pc-chat__source-link")
+      refute html =~ "href="
+      refute html =~ "javascript:alert"
+      assert html =~ "Nope"
     end
 
     test "nil and empty sources render nothing at all" do
