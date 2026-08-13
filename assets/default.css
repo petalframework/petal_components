@@ -7586,3 +7586,102 @@
       transition-duration: 1ms;
     }
   }
+
+@layer components {
+  /* Slideover - bottom-sheet drawer mode (origin="bottom").
+     Everything here is scoped to .pc-slideover__box--drawer, a class only the
+     bottom origin gets, so left/right/top sheets are untouched. */
+
+  /* The large-panel radius rule: token x 1.2, capped, and top corners only -
+     the sheet is anchored to the bottom edge, so its bottom corners sit
+     off-screen and rounding them would just expose a sliver of overlay. */
+  .pc-slideover__box--drawer {
+    border-top-left-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    border-top-right-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    max-height: 92dvh;
+    /* the sheet is the drag surface and its body is the scroller; letting the
+       sheet itself scroll would put a second scroller under the finger */
+    overflow: hidden;
+    will-change: transform;
+  }
+
+  /* A scroll that reaches the page under an open sheet is never wanted, and on
+     iOS chaining to the document is what triggers pull-to-refresh mid-drag. */
+  .pc-slideover__box--drawer .pc-slideover__content {
+    overscroll-behavior: contain;
+  }
+
+  /* The two data attributes are rendered exactly when the hook is attached and
+     the sheet is really draggable. A plain drag_to_dismiss={false} sheet with
+     no snaps gets no grab cursor and does not decline browser gestures -
+     advertising a drag that does nothing is worse than no affordance.
+
+     touch-action stays on the pill rather than the whole sheet on purpose: on
+     the sheet it would also be consulted for the body's own scroll chain, so
+     `none` there costs the drawer its inner scrolling. Body drags are claimed
+     by the hook's non-passive touchmove instead, which can weigh up direction. */
+  .pc-slideover__box--drawer:is([data-drag-dismiss], [data-snap-points])
+    .pc-slideover__handle {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  /* The pill is decorative (aria-hidden) - the drag is the interaction, not
+     this element. The hook captures pointerdown across the whole sheet head,
+     so the real drag target is far larger than the 40x4 pill. */
+  .pc-slideover__handle {
+    @apply flex flex-none items-center justify-center pt-3 pb-2;
+    min-height: 1.75rem;
+  }
+
+  .pc-slideover__handle__pill {
+    @apply block w-10 rounded-full bg-gray-300 dark:bg-gray-600;
+    height: 0.25rem;
+  }
+
+  .pc-slideover__box--dragging {
+    @apply select-none;
+  }
+
+  .pc-slideover__box--dragging .pc-slideover__handle {
+    cursor: grabbing;
+  }
+
+  /* Home-indicator clearance on phones. env() resolves to 0 everywhere else,
+     so this costs nothing on desktop. */
+  .pc-slideover__box--drawer .pc-slideover__content {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pc-slideover__box--drawer .pc-slideover__footer {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* A drawer with a footer already clears the home indicator there; doubling
+     it on the body would leave a dead gap above the action row. */
+  .pc-slideover__box--drawer:has(.pc-slideover__footer) .pc-slideover__content {
+    padding-bottom: 1.25rem;
+  }
+
+  /* scale_background: the hook toggles .pc-drawer-scaled on the consumer's
+     [data-pc-drawer-wrapper] while the drawer is open. Opt-in only - see the
+     moduledoc for why a transformed ancestor re-parents fixed descendants. */
+  [data-pc-drawer-wrapper] {
+    transition:
+      transform 300ms cubic-bezier(0.32, 0.72, 0, 1),
+      border-radius 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .pc-drawer-scaled {
+    transform: scale(0.96);
+    transform-origin: top center;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-pc-drawer-wrapper] {
+      transition-duration: 1ms;
+    }
+  }
+}

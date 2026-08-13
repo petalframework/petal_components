@@ -1,4 +1,38 @@
 # Changelog
+### Unreleased
+
+#### Added
+
+- **`slide_over` gains a bottom-sheet drawer mode.** `origin="bottom"`
+  already existed, but it slid a plain full-width panel up with the same
+  chrome as a side sheet. It is now a proper mobile drawer: rounded top
+  corners on the large-panel radius rule, a grab-handle pill, a border,
+  `env(safe-area-inset-bottom)` padding under the body and footer, and
+  drag-to-dismiss. Pull the sheet down past about a quarter of its height,
+  or flick it, and it closes - through the same `hide_slide_over` path and
+  the same single `"close_slide_over"` event as escape, click-away and the
+  close button, `close_slide_over_target` included.
+
+  Five new attrs, all on the existing `slide_over/1`: `handle` (defaults to
+  `nil`, which resolves to on for bottom sheets and off everywhere else, so
+  `<.slide_over origin="bottom">` gets the pill for free), `drag_to_dismiss`,
+  `snap_points` (viewport-height fractions the drawer can rest at, e.g.
+  `[0.4, 0.9]`), `initial_snap`, and `scale_background` (off by default -
+  it transforms the page wrapper, which re-parents `position: fixed`
+  descendants; see the moduledoc).
+
+  The drag is a pointer-only enhancement layered on the dialog. Keyboard and
+  screen-reader users get exactly what they had: `role="dialog"`,
+  `aria-modal`, focus into the panel, escape to close. The handle is
+  `aria-hidden` because it is decorative, snap changes are not announced, and
+  under `prefers-reduced-motion` the sheet settles instantly instead of
+  springing. The new `PetalDrawer` hook only attaches to bottom sheets that
+  are actually draggable, snapped or scaling their background - a plain
+  bottom sheet stays CSS and `LiveView.JS` only.
+
+  Left, right and top sheets are unchanged: no handle, no hook, no new
+  markup, and every existing attr default is the same.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
