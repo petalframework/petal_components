@@ -224,7 +224,6 @@ defmodule Dev.PlaygroundLive do
     }
   ]
 
-
   @nav [
     %{
       group: "Foundations",
