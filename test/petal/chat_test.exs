@@ -492,6 +492,450 @@ defmodule PetalComponents.ChatTest do
     end
   end
 
+  describe "tool_call/1 lifecycle states" do
+    # `pc-chat__tool-error` (the badge) is a substring of the error row's
+    # classes, so the glyph assertions go through the DOM, not =~.
+    defp tool_glyph?(html, class) do
+      html |> parse_html() |> LazyHTML.query("span.#{class}") |> Enum.any?()
+    end
+
+    test "pending shows the tool name over an animated args skeleton" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="web_search" state={:pending} />|)
+
+      assert_has_class(html, "pc-chat__tool--pending")
+      assert_has_class(html, "pc-chat__tool-typing")
+      assert_has_class(html, "pc-chat__tool-skeleton")
+      assert_has_class(html, "pc-skeleton--anim-shimmer")
+      assert html =~ "web_search"
+      refute tool_glyph?(html, "pc-chat__tool-check")
+      refute tool_glyph?(html, "pc-chat__tool-spinner")
+      # nothing to inspect yet
+      refute html =~ "pc-chat__tool-panels"
+    end
+
+    test "input_streaming keeps the skeleton and labels it as the incoming input" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="web_search" state={:input_streaming} />|)
+
+      assert_has_class(html, "pc-chat__tool--input-streaming")
+      assert_has_class(html, "pc-chat__tool-typing")
+      assert_has_class(html, "pc-chat__tool-args-label")
+      assert html =~ ">Input<"
+      refute html =~ "pc-chat__tool-panels"
+    end
+
+    test "pending renders no args label (only input_streaming names the input)" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="web_search" state={:pending} />|)
+
+      refute html =~ "pc-chat__tool-args-label"
+    end
+
+    test "running spins and carries the live activity label" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(
+          ~H|<.tool_call name="web_search" state={:running} label="Searching the web" />|
+        )
+
+      assert_has_class(html, "pc-chat__tool--running")
+      assert tool_glyph?(html, "pc-chat__tool-spinner")
+      assert html =~ "Searching the web"
+      refute html =~ "pc-chat__tool-skeleton"
+      refute html =~ "pc-chat__tool-panels"
+    end
+
+    test "complete checks, and the payload panels are expandable disclosures" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call
+          name="web_search"
+          state={:complete}
+          input={~s|{"query":"phoenix"}|}
+          output={~s|{"hits":2}|}
+        />
+        """)
+
+      assert_has_class(html, "pc-chat__tool--complete")
+      assert tool_glyph?(html, "pc-chat__tool-check")
+      assert_has_class(html, "pc-chat__tool-panels")
+
+      panels = html |> parse_html() |> LazyHTML.query("details.pc-chat__tool-panel")
+      assert Enum.count(panels) == 2
+
+      labels =
+        html
+        |> parse_html()
+        |> LazyHTML.query("details.pc-chat__tool-panel > summary")
+        |> LazyHTML.text()
+        |> String.split()
+
+      assert labels == ["Input", "Output"]
+    end
+
+    test "error rides the danger modifier, shows the message and the retry actions" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="charge_card" state={:error} error="Card token expired before submit.">
+          <:error_actions>
+            <button type="button" phx-click="retry_tool">Retry</button>
+          </:error_actions>
+        </.tool_call>
+        """)
+
+      assert_has_class(html, "pc-chat__tool--error")
+      assert tool_glyph?(html, "pc-chat__tool-error")
+      assert_has_class(html, "pc-chat__tool-error-row")
+      assert html =~ "Card token expired before submit."
+      assert html =~ ~s{phx-click="retry_tool"}
+      assert html =~ ">Retry<"
+    end
+
+    test "error keeps the input panel expandable - the args that failed are the useful part" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="charge_card" state={:error} error="Declined." input={~s|{"amount":42}|} />
+        """)
+
+      assert_has_class(html, "pc-chat__tool-panels")
+      assert html =~ "&quot;amount&quot;: 42"
+    end
+
+    test "state wins over status, and status alone still drives the card" do
+      assigns = %{}
+
+      # state set: status is ignored entirely
+      html = rendered_to_string(~H|<.tool_call name="t" status={:complete} state={:running} />|)
+      assert_has_class(html, "pc-chat__tool--running")
+      refute html =~ "pc-chat__tool--complete"
+
+      # state unset: the legacy attr still decides
+      legacy = rendered_to_string(~H|<.tool_call name="t" status={:error} />|)
+      assert_has_class(legacy, "pc-chat__tool--error")
+
+      # neither: the pre-state default, a completed call
+      bare = rendered_to_string(~H|<.tool_call name="t" />|)
+      assert_has_class(bare, "pc-chat__tool--complete")
+      assert tool_glyph?(bare, "pc-chat__tool-check")
+    end
+  end
+
+  describe "tool_call/1 payload panels" do
+    test "JSON input and output are pretty-printed into code blocks" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call
+          name="web_search"
+          state={:complete}
+          input={~s|{"query":"phoenix","limit":3}|}
+          output={~s|{"hits":[1,2]}|}
+        />
+        """)
+
+      assert_has_class(html, "pc-chat__tool-code")
+      # pretty-printed: two-space indent, one key per line
+      assert html =~ "{\n  &quot;query&quot;: &quot;phoenix&quot;,\n  &quot;limit&quot;: 3\n}"
+      assert html =~ "&quot;hits&quot;: [\n    1,\n    2\n  ]"
+    end
+
+    test "input that is not valid JSON is shown verbatim rather than swallowed" do
+      assigns = %{partial: ~s|{"query": "pho|}
+
+      html =
+        rendered_to_string(
+          ~H|<.tool_call name="web_search" state={:complete} input={@partial} />|
+        )
+
+      assert_has_class(html, "pc-chat__tool-code")
+      assert html =~ "{&quot;query&quot;: &quot;pho"
+    end
+
+    test "the input_panel and output_panel slots override the attrs" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="web_search" state={:complete} input={~s|{"a":1}|} output={~s|{"b":2}|}>
+          <:input_panel><span class="custom-in">my args table</span></:input_panel>
+          <:output_panel><span class="custom-out">my result grid</span></:output_panel>
+        </.tool_call>
+        """)
+
+      assert html =~ "my args table"
+      assert html =~ "my result grid"
+      refute html =~ "&quot;a&quot;"
+      refute html =~ "&quot;b&quot;"
+      refute html =~ "pc-chat__tool-code"
+    end
+
+    test "an empty or nil payload renders no panel at all" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H|<.tool_call name="t" state={:complete} input="" output={nil} />|)
+
+      refute html =~ "pc-chat__tool-panels"
+      refute html =~ "pc-chat__tool-panel"
+    end
+
+    test "the default slot widget is always visible, never behind a panel" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="get_weather" state={:complete} output={~s|{"temp":21}|}>
+          <div class="weather-widget">21C</div>
+        </.tool_call>
+        """)
+
+      body = html |> parse_html() |> LazyHTML.query("div.pc-chat__tool-body .weather-widget")
+      assert Enum.any?(body)
+      # and it is not inside a disclosure
+      nested = html |> parse_html() |> LazyHTML.query("details .weather-widget")
+      assert Enum.empty?(nested)
+    end
+  end
+
+  describe "tool_call/1 icons" do
+    test "the named presets map onto heroicons" do
+      for {preset, icon} <- [
+            {"web_search", "hero-magnifying-glass"},
+            {"code", "hero-code-bracket"},
+            {"database", "hero-circle-stack"}
+          ] do
+        assigns = %{preset: preset}
+        html = rendered_to_string(~H|<.tool_call name="t" state={:complete} icon={@preset} />|)
+        assert has_icon?(html, "pc-chat__tool-icon")
+        assert html =~ icon
+      end
+    end
+
+    test "any hero-* name passes straight through" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="t" state={:complete} icon="hero-beaker" />|)
+
+      assert html =~ "hero-beaker"
+      assert has_icon?(html, "pc-chat__tool-icon")
+    end
+
+    test "an unrecognised icon name renders no icon rather than raising" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="t" state={:complete} icon="not-an-icon" />|)
+
+      refute html =~ "pc-chat__tool-icon"
+      refute html =~ "not-an-icon"
+    end
+
+    test "no icon attr means the state glyph only" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="t" state={:complete} />|)
+
+      refute html =~ "pc-chat__tool-icon"
+      assert tool_glyph?(html, "pc-chat__tool-check")
+    end
+
+    test "the tool_icon slot overrides the icon attr" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="t" state={:complete} icon="web_search">
+          <:tool_icon><img src="/logo.svg" alt="" /></:tool_icon>
+        </.tool_call>
+        """)
+
+      assert_has_class(html, "pc-chat__tool-glyph")
+      assert html =~ ~s{src="/logo.svg"}
+      refute html =~ "hero-magnifying-glass"
+    end
+  end
+
+  describe "tool_call/1 compact bursts" do
+    test "a compact in-progress call is a plain announced row, not a disclosure" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="db_query" compact state={:running} />|)
+
+      assert_has_class(html, "pc-chat__tool--compact")
+      assert html =~ ~s{role="status"}
+      refute html =~ "<details"
+      refute html =~ "pc-chat__tool-panels"
+    end
+
+    test "a compact settled call is a summary row that expands to the panels" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="web_search" compact state={:complete} input={~s|{"q":"x"}|} />
+        """)
+
+      assert_has_class(html, "pc-chat__tool--compact")
+      assert_has_class(html, "pc-chat__tool-summary")
+
+      summary =
+        html |> parse_html() |> LazyHTML.query("details.pc-chat__tool--compact > summary")
+
+      assert Enum.count(summary) == 1
+      # collapsed by default - the panels sit behind the row
+      assert html |> parse_html() |> LazyHTML.query("details[open]") |> Enum.empty?()
+    end
+
+    test "consecutive compact calls stack as sibling rows" do
+      assigns = %{
+        calls: [
+          %{name: "web_search", state: :complete, duration: "1.2s"},
+          %{name: "read_file", state: :complete, duration: "0.1s"},
+          %{name: "db_query", state: :running, duration: nil}
+        ]
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <div>
+          <.tool_call
+            :for={call <- @calls}
+            compact
+            name={call.name}
+            state={call.state}
+            duration={call.duration}
+            input={~s|{"a":1}|}
+          />
+        </div>
+        """)
+
+      rows = html |> parse_html() |> LazyHTML.query("div > .pc-chat__tool--compact")
+      assert Enum.count(rows) == 3
+
+      # the running one stays a plain row, the settled ones are disclosures
+      assert html
+             |> parse_html()
+             |> LazyHTML.query("details.pc-chat__tool--compact")
+             |> Enum.count() ==
+               2
+    end
+
+    test "a compact error keeps the message in the row so it reads without expanding" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="charge_card" compact state={:error} error="Declined.">
+          <:error_actions><button type="button">Retry</button></:error_actions>
+        </.tool_call>
+        """)
+
+      assert_has_class(html, "pc-chat__tool-error-inline")
+      inline = html |> parse_html() |> LazyHTML.query("summary .pc-chat__tool-error-inline")
+      assert Enum.any?(inline)
+      # the actions live in the reveal, never nested inside the summary
+      assert html |> parse_html() |> LazyHTML.query("summary button") |> Enum.empty?()
+      assert html =~ ">Retry<"
+    end
+
+    test "a non-compact call never renders the compact row chrome" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.tool_call name="t" state={:complete} input={~s|{"a":1}|} />
+        """)
+
+      refute html =~ "pc-chat__tool--compact"
+      refute html =~ "pc-chat__tool-summary"
+    end
+  end
+
+  describe "tool_call/1 accessibility and duration" do
+    test "in-progress states announce as a status region" do
+      for state <- [:pending, :input_streaming, :running] do
+        assigns = %{state: state}
+        html = rendered_to_string(~H|<.tool_call name="t" state={@state} />|)
+        assert html =~ ~s{role="status"}, "expected role=status for #{state}"
+      end
+    end
+
+    test "settled states drop the status role" do
+      for state <- [:complete, :error] do
+        assigns = %{state: state}
+        html = rendered_to_string(~H|<.tool_call name="t" state={@state} />|)
+        refute html =~ ~s{role="status"}, "expected no role=status for #{state}"
+      end
+    end
+
+    test "every state spells itself out for screen readers, never colour alone" do
+      for {state, word} <- [
+            {:pending, "Pending"},
+            {:input_streaming, "Receiving input"},
+            {:running, "Running"},
+            {:complete, "Complete"},
+            {:error, "Failed"}
+          ] do
+        assigns = %{state: state}
+        html = rendered_to_string(~H|<.tool_call name="t" state={@state} />|)
+        assert html =~ ~s{<span class="sr-only">#{word}</span>}
+      end
+    end
+
+    test "state glyphs and the skeleton are hidden from assistive tech" do
+      for state <- [:pending, :input_streaming, :running, :complete, :error] do
+        assigns = %{state: state}
+        html = rendered_to_string(~H|<.tool_call name="t" state={@state} />|)
+
+        decorative =
+          html
+          |> parse_html()
+          |> LazyHTML.query(".pc-chat__tool-header > span:not(.sr-only):not(.pc-chat__tool-name)")
+
+        assert Enum.any?(decorative)
+
+        for node <- decorative do
+          assert LazyHTML.attribute(node, "aria-hidden") == ["true"]
+        end
+      end
+    end
+
+    test "duration renders in the header, and is absent when nil" do
+      assigns = %{}
+
+      html = rendered_to_string(~H|<.tool_call name="t" state={:complete} duration="1.2s" />|)
+      assert_has_class(html, "pc-chat__tool-duration")
+      assert html =~ "1.2s"
+
+      without = rendered_to_string(~H|<.tool_call name="t" state={:complete} />|)
+      refute without =~ "pc-chat__tool-duration"
+    end
+
+    test "the class attr is appended last and the global rest passes through" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(
+          ~H|<.tool_call name="t" state={:complete} class="my-tool" id="call-1" data-x="y" />|
+        )
+
+      assert html =~ ~s{id="call-1"}
+      assert html =~ ~s{data-x="y"}
+      assert html =~ ~s{pc-chat__tool--complete my-tool"}
+    end
+  end
+
   describe "markdown/1" do
     test "renders markdown as html (headings, bold, code)" do
       assigns = %{md: "# Title\n\nsome **bold** and `code`"}

@@ -194,11 +194,11 @@ defmodule PetalComponents.Showcase.Chat do
 
   example :tool_call, "Tool calls",
     description:
-      "Generative UI. The model emits data, you map the tool name to a real Phoenix component. status drives the header: running spins, complete checks, error warns." do
+      "Generative UI. The model emits data, you map the tool name to a real Phoenix component and render it in the card - the widget stays visible, it never hides behind a disclosure. state drives the header; the older status attr still works and maps onto the same three values." do
     ~H"""
     <div class="w-full max-w-xl mx-auto space-y-3">
-      <.tool_call name="search_web" status={:running} label="Searching the web" />
-      <.tool_call name="get_weather" status={:complete}>
+      <.tool_call name="search_web" state={:running} label="Searching the web" />
+      <.tool_call name="get_weather" state={:complete}>
         <div class="flex items-center justify-between px-4 py-3 text-white rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600">
           <div>
             <div class="text-sm font-medium opacity-90">Tokyo</div>
@@ -207,7 +207,103 @@ defmodule PetalComponents.Showcase.Chat do
           <div class="text-4xl">☀️</div>
         </div>
       </.tool_call>
-      <.tool_call name="charge_card" status={:error} label="Payment failed" />
+      <.tool_call name="charge_card" state={:error} label="Payment failed" />
+    </div>
+    """
+  end
+
+  example :tool_call_lifecycle, "Tool call lifecycle",
+    description:
+      "The five states a streaming call moves through, stacked so you can read the progression. state is a plain assign - your LiveView patches it as the model's response arrives, and the card follows. Pending and input_streaming rest on a skeleton, running gets the activity line, complete and error settle." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto space-y-3">
+      <.tool_call name="web_search" state={:pending} icon="web_search" />
+      <.tool_call name="web_search" state={:input_streaming} icon="web_search" />
+      <.tool_call
+        name="web_search"
+        state={:running}
+        icon="web_search"
+        label="Searching the web"
+        duration="0.8s"
+      />
+      <.tool_call
+        name="web_search"
+        state={:complete}
+        icon="web_search"
+        duration="1.2s"
+        input={"{\"query\": \"phoenix liveview streams\", \"limit\": 3}"}
+        output={"{\"results\": [{\"title\": \"Phoenix.LiveView\", \"url\": \"https://hexdocs.pm/phoenix_live_view\"}], \"count\": 1}"}
+      />
+      <.tool_call
+        name="charge_card"
+        state={:error}
+        icon="hero-credit-card"
+        duration="0.3s"
+        error="Card token expired before submit."
+        input={"{\"invoice\": \"4471\", \"amount_cents\": 9900}"}
+      >
+        <:error_actions>
+          <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+        </:error_actions>
+      </.tool_call>
+    </div>
+    """
+  end
+
+  example :tool_call_burst, "Compact tool burst",
+    description:
+      "An agent that fires six tools in a row shouldn't produce six cards. compact renders one dense line per call and consecutive rows stack into a list. Settled rows are the disclosure themselves - click or press Enter on a focused row to open the panels." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto">
+      <.tool_call
+        name="read_file"
+        compact
+        state={:complete}
+        icon="code"
+        duration="0.1s"
+        input={"{\"path\": \"lib/app_web/router.ex\"}"}
+        output={"{\"lines\": 184}"}
+      />
+      <.tool_call
+        name="grep"
+        compact
+        state={:complete}
+        icon="web_search"
+        duration="0.2s"
+        input={"{\"pattern\": \"live_session\"}"}
+        output={"{\"matches\": 6}"}
+      />
+      <.tool_call
+        name="query_users"
+        compact
+        state={:error}
+        icon="database"
+        duration="0.4s"
+        error="relation users does not exist"
+        input={"{\"sql\": \"select * from users limit 5\"}"}
+      >
+        <:error_actions>
+          <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+        </:error_actions>
+      </.tool_call>
+      <.tool_call name="run_migrations" compact state={:running} icon="database" duration="2.1s" />
+      <.tool_call name="write_file" compact state={:pending} icon="code" />
+    </div>
+    """
+  end
+
+  example :tool_call_icons, "Tool icons",
+    description:
+      "icon takes one of the presets (web_search, code, database) or any hero-* name. For a vendor logo or anything that isn't a heroicon, the tool_icon slot takes over." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto space-y-3">
+      <.tool_call name="web_search" state={:complete} icon="web_search" duration="1.2s" />
+      <.tool_call name="read_file" state={:complete} icon="code" duration="0.1s" />
+      <.tool_call name="query_users" state={:complete} icon="database" duration="0.4s" />
+      <.tool_call name="send_invoice" state={:complete} icon="hero-envelope" duration="0.6s" />
+      <.tool_call name="stripe_refund" state={:complete} duration="0.9s">
+        <:tool_icon>💳</:tool_icon>
+      </.tool_call>
     </div>
     """
   end

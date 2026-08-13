@@ -302,6 +302,62 @@ defmodule Dev.PlaygroundLive do
   # Inline SVG so the attachments example renders with no static asset host.
   @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
 
+  # The payloads the mocked agent run inspects. Both are JSON strings, exactly
+  # what you hold when a function call streams back - tool_call pretty-prints
+  # them server-side.
+  @tool_run_input ~s|{"query":"phoenix liveview server-driven tool calls","limit":3,"freshness":"month"}|
+
+  @tool_run_output ~s|{"results":[{"title":"Phoenix.LiveView","url":"https://hexdocs.pm/phoenix_live_view"},{"title":"Streams","url":"https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#stream/4"}],"count":2,"took_ms":842}|
+
+  # A burst mid-run: two done, one failed, one working, one still queued.
+  @tool_burst [
+    %{
+      name: "read_file",
+      state: :complete,
+      icon: "code",
+      duration: "0.1s",
+      input: ~s|{"path":"lib/app_web/router.ex"}|,
+      output: ~s|{"lines":184,"bytes":6120}|,
+      error: nil
+    },
+    %{
+      name: "grep",
+      state: :complete,
+      icon: "web_search",
+      duration: "0.2s",
+      input: ~s|{"pattern":"live_session","glob":"lib/**/*.ex"}|,
+      output: ~s|{"matches":6,"files":2}|,
+      error: nil
+    },
+    %{
+      name: "query_users",
+      state: :error,
+      icon: "database",
+      duration: "0.4s",
+      input: ~s|{"sql":"select * from users limit 5"}|,
+      output: nil,
+      error: "relation users does not exist"
+    },
+    %{
+      name: "run_migrations",
+      state: :running,
+      icon: "database",
+      duration: "2.1s",
+      input: nil,
+      output: nil,
+      error: nil
+    },
+    %{
+      name: "write_file",
+      state: :pending,
+      icon: "code",
+      duration: nil,
+      input: nil,
+      output: nil,
+      error: nil
+    }
+  ]
+
   @chat_history [
     %{id: "m-yesterday", role: :marker, text: "Yesterday"},
     %{id: "hist-q", role: :user, text: "Does it support dark mode?", stream_id: nil},
@@ -825,6 +881,9 @@ defmodule Dev.PlaygroundLive do
        tg_size: "md",
        chat_rag_sources: @chat_rag_sources,
        chat_shot_image: @chat_shot_image,
+       tool_run_input: @tool_run_input,
+       tool_run_output: @tool_run_output,
+       tool_burst: @tool_burst,
        q_framework: @q_framework,
        q_scope: @q_scope,
        quiz: %{
@@ -837,6 +896,18 @@ defmodule Dev.PlaygroundLive do
          field: "single_cards",
          allow_skip: true,
          state: "pending"
+       },
+       tool: %{
+         # dials for the single-card demo
+         state: :complete,
+         compact: false,
+         icon: "web_search",
+         # the mocked agent run: nil while idle, otherwise the live state
+         run_state: nil,
+         run_duration: nil,
+         run_outcome: :success,
+         # bumped per run so a finished card is a fresh DOM node
+         run_seq: 0
        },
        chat: %{
          turns: [
@@ -1352,6 +1423,24 @@ defmodule Dev.PlaygroundLive do
      })}
   end
 
+  # Each step is one assign patch. The card re-renders into the next state -
+  # that is the entire server-driven contract the component asks for.
+  def handle_info({:tool_step, :input_streaming}, socket) do
+    Process.send_after(self(), {:tool_step, :running}, 1100)
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: :input_streaming})}
+  end
+
+  def handle_info({:tool_step, :running}, socket) do
+    Process.send_after(self(), {:tool_step, :settled}, 1600)
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: :running})}
+  end
+
+  def handle_info({:tool_step, :settled}, socket) do
+    tool = socket.assigns.tool
+    final = if tool.run_outcome == :error, do: :error, else: :complete
+    {:noreply, assign(socket, :tool, %{tool | run_state: final, run_duration: "3.6s"})}
+  end
+
   def handle_info({:chat_tick, id, chunks}, socket) do
     chat = socket.assigns.chat
 
@@ -1856,6 +1945,49 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_chat", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(plain bubbles) do
     {:noreply, assign(socket, :chat, %{socket.assigns.chat | variant: v})}
+  end
+
+  # tool_call dials -----------------------------------------------------------
+
+  def handle_event("ctl_tool", %{"k" => "state", "v" => v}, socket)
+      when v in ~w(pending input_streaming running complete error) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | state: String.to_existing_atom(v)})}
+  end
+
+  def handle_event("ctl_tool", %{"k" => "compact", "v" => v}, socket) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | compact: v == "on"})}
+  end
+
+  def handle_event("ctl_tool", %{"k" => "icon", "v" => v}, socket)
+      when v in ~w(web_search code database none) do
+    icon = if v == "none", do: nil, else: v
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | icon: icon})}
+  end
+
+  # The mocked agent run. This is the whole contract in eight lines: a timer
+  # patches one assign and the card moves. No client state, no hook.
+  def handle_event("tool_run", %{"outcome" => outcome}, socket)
+      when outcome in ~w(success error) do
+    tool = socket.assigns.tool
+
+    if tool.run_state in [nil, :complete, :error] do
+      Process.send_after(self(), {:tool_step, :input_streaming}, 900)
+
+      {:noreply,
+       assign(socket, :tool, %{
+         tool
+         | run_state: :pending,
+           run_duration: nil,
+           run_outcome: String.to_existing_atom(outcome),
+           run_seq: tool.run_seq + 1
+       })}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("tool_reset", _params, socket) do
+    {:noreply, assign(socket, :tool, %{socket.assigns.tool | run_state: nil, run_duration: nil})}
   end
 
   def handle_event("ctl_chat", %{"k" => "sources_expanded", "v" => v}, socket) do
@@ -9244,6 +9376,193 @@ defmodule Dev.PlaygroundLive do
         (20 KB) and drop a normal screenshot to see the inline error, and <code>accept_hint</code>
         off/on to toggle the paperclip's description. Keyboard: Tab reaches the
         paperclip, then each chip's remove button, then the textarea, then send.
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A tool call, start to finish</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Press a button and watch one card walk the lifecycle: pending, then the
+        arguments streaming in, then running, then the result. The whole thing is
+        four <code>Process.send_after</code>
+        hops in this page's handle_info, each one patching a single assign. The
+        component holds no client state and ships no hook - the card moves because
+        the server said so.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.tool_call
+            :if={@tool.run_state}
+            id={"pg-tool-run-#{@tool.run_seq}"}
+            name="web_search"
+            state={@tool.run_state}
+            icon="web_search"
+            label={if @tool.run_state == :running, do: "Searching the web"}
+            duration={@tool.run_duration}
+            input={if @tool.run_state in [:complete, :error], do: @tool_run_input}
+            output={if @tool.run_state == :complete, do: @tool_run_output}
+            error={
+              if @tool.run_state == :error,
+                do: "The search backend returned 503 after three retries."
+            }
+          >
+            <:error_actions :if={@tool.run_state == :error}>
+              <button
+                type="button"
+                class="pc-chat__action"
+                phx-click="tool_run"
+                phx-value-outcome="success"
+              >
+                Retry
+              </button>
+            </:error_actions>
+          </Chat.tool_call>
+          <p :if={is_nil(@tool.run_state)} class="text-sm text-gray-500 dark:text-gray-400">
+            Nothing running yet. Start a call below.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <.button
+            size="sm"
+            phx-click="tool_run"
+            phx-value-outcome="success"
+            disabled={@tool.run_state in [:pending, :input_streaming, :running]}
+          >
+            Run a search
+          </.button>
+          <.button
+            size="sm"
+            variant="outline"
+            phx-click="tool_run"
+            phx-value-outcome="error"
+            disabled={@tool.run_state in [:pending, :input_streaming, :running]}
+          >
+            Run one that fails
+          </.button>
+          <.button size="sm" variant="ghost" phx-click="tool_reset">Clear</.button>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">A compact burst</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Five calls from one agent turn. <code>compact</code>
+        drops the card chrome so consecutive rows read as a list; the two finished
+        ones and the failure are disclosures - click a row, or Tab to it and press
+        Enter, to open its input and output. The running and pending rows have
+        nothing to show yet, so they stay plain announced status lines.
+      </p>
+      <div class="p-3 border border-gray-200 rounded-xl dark:border-gray-800">
+        <Chat.tool_call
+          :for={call <- @tool_burst}
+          name={call.name}
+          compact
+          state={call.state}
+          icon={call.icon}
+          duration={call.duration}
+          input={call.input}
+          output={call.output}
+          error={call.error}
+        >
+          <:error_actions :if={call.error}>
+            <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+          </:error_actions>
+        </Chat.tool_call>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">States and icons</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        One card, every dial.
+      </p>
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <Chat.tool_call
+            name="web_search"
+            state={@tool.state}
+            compact={@tool.compact}
+            icon={@tool.icon}
+            label={if @tool.state == :running, do: "Searching the web"}
+            duration="1.2s"
+            input={if @tool.state in [:complete, :error], do: @tool_run_input}
+            output={if @tool.state == :complete, do: @tool_run_output}
+            error={if @tool.state == :error, do: "The search backend returned 503."}
+          >
+            <:error_actions :if={@tool.state == :error}>
+              <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+            </:error_actions>
+          </Chat.tool_call>
+        </div>
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Tool call state"
+              value={to_string(@tool.state)}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(pending input_streaming running complete error)}
+                value={v}
+                phx-value-k="state"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">compact</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Compact"
+              value={if @tool.compact, do: "on", else: "off"}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(off on)} value={v} phx-value-k="compact" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">icon</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Tool icon"
+              value={@tool.icon || "none"}
+              on_change="ctl_tool"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(web_search code database none)}
+                value={v}
+                phx-value-k="icon"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        <code>state</code>
+        is the source of truth and it is all assigns - the older <code>status</code>
+        attr still works and maps onto running, complete and error. Pending and
+        input_streaming rest on a shimmer skeleton (it stands still under reduced
+        motion), running gets a spinner and an indeterminate hairline under the
+        header, complete settles into a summary row, and error rides the danger
+        ramp with the message inline and your retry button in the <code>error_actions</code>
+        slot. Input and output take the JSON string you already have; it is
+        pretty-printed server-side, and anything that isn't valid JSON is shown
+        verbatim rather than swallowed. The panels are native
+        &lt;details&gt; - the browser owns the disclosure semantics, so Tab reaches
+        a panel and Enter or Space opens it, with no JS and no aria-expanded to go
+        stale. The default slot is your rendered widget and stays visible; the
+        panels are for inspecting the payload, not for hiding your component.
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">Human in the loop</h2>

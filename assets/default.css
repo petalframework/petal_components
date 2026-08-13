@@ -8050,3 +8050,255 @@
     }
   }
 }
+
+/* Chat tool_call — the lifecycle chrome on top of the base card above:
+   progressive states, icon presets, expandable payload panels and the
+   compact burst row. The base .pc-chat__tool rules are left alone so cards
+   written against the pre-state API render exactly as they did. */
+@layer components {
+  /* Not settled yet: a quiet wash so a run of cards reads as "these three are
+     still cooking" without shouting. */
+  .pc-chat__tool--pending,
+  .pc-chat__tool--input-streaming {
+    @apply bg-gray-50 dark:bg-gray-400/8;
+  }
+
+  /* The typing dots stand in for the state glyph while the arguments arrive -
+     the thread's own waiting idiom, not a second one. */
+  .pc-chat__tool-typing {
+    @apply w-3.5 shrink-0 justify-center;
+  }
+
+  .pc-chat__tool-args {
+    @apply flex flex-col gap-2 px-3 pb-3;
+  }
+
+  .pc-chat__tool-args-label {
+    @apply text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-chat__tool-skeleton {
+    @apply flex flex-col gap-1.5;
+  }
+
+  /* Running: an indeterminate hairline under the header. The colour lives in a
+     custom property on the card because dark: variants don't compile inside
+     pseudo-element selectors - they'd silently drop. */
+  .pc-chat__tool--running {
+    --pc-chat-tool-activity: var(--color-gray-400, #9ca3af);
+  }
+
+  .pc-chat__tool--running .pc-chat__tool-header {
+    @apply relative;
+  }
+
+  .pc-chat__tool--running .pc-chat__tool-header::after {
+    content: "";
+    @apply absolute inset-x-0 bottom-0 h-px;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--pc-chat-tool-activity),
+      transparent
+    );
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    animation: pc-chat-tool-activity 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pc-chat-tool-activity {
+    0% {
+      background-position: -40% 0;
+    }
+    100% {
+      background-position: 140% 0;
+    }
+  }
+
+  /* Error rides the danger ramp end to end - border, header text and the
+     badge - so the card never signals failure by one stray accent. */
+  .pc-chat__tool--error {
+    @apply border-danger-200 dark:border-danger-500/40;
+  }
+
+  .pc-chat__tool--error .pc-chat__tool-header {
+    @apply text-danger-700 dark:text-danger-300;
+  }
+
+  .pc-chat__tool--error .pc-chat__tool-error {
+    @apply bg-danger-600;
+  }
+
+  .pc-chat__tool-error-row {
+    @apply flex flex-wrap items-center gap-2 border-t border-danger-200 bg-danger-50 px-3 py-2 text-xs text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-300;
+  }
+
+  .pc-chat__tool-error-message {
+    @apply m-0 min-w-0 flex-1;
+  }
+
+  .pc-chat__tool-error-actions {
+    @apply flex shrink-0 items-center gap-1;
+  }
+
+  /* On a collapsed compact row the message rides in the row itself, so a
+     failure is readable without opening anything. */
+  .pc-chat__tool-error-inline {
+    @apply min-w-0 flex-1 truncate font-normal text-danger-600 dark:text-danger-400;
+  }
+
+  .pc-chat__tool-duration {
+    @apply ms-auto shrink-0 font-normal tabular-nums text-gray-400 dark:text-gray-500;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-chat__tool-icon.pc-chat__tool-icon {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+
+  .pc-chat__tool-glyph {
+    @apply inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center overflow-hidden text-[0.875rem] leading-none;
+  }
+
+  .pc-chat__tool-glyph :is(img, svg) {
+    @apply h-full w-full object-contain;
+  }
+
+  .pc-chat__tool-chevron {
+    @apply shrink-0 transition-transform duration-150;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-chat__tool-chevron.pc-chat__tool-chevron {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+
+  /* Payload panels ---------------------------------------------------------
+
+     Native <details>, matching reasoning/1 and chat_sources/1: the browser
+     owns the disclosure semantics and the keyboard, so there is no JS and no
+     hand-written aria-expanded to go stale. */
+  .pc-chat__tool-panels {
+    @apply flex flex-col gap-1.5 px-3 pb-3;
+  }
+
+  .pc-chat__tool-panel {
+    --pc-chat-panel-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    @apply border border-gray-200 dark:border-gray-700;
+    border-radius: var(--pc-chat-panel-radius);
+  }
+
+  /* Nested interactive children clamp off the panel's own radius. */
+  .pc-chat__tool-panel-summary {
+    @apply flex cursor-pointer list-none items-center gap-1 px-2 py-1.5 text-[11px] font-medium text-gray-500 select-none dark:text-gray-400;
+    border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+  }
+
+  .pc-chat__tool-panel-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__tool-panel-summary:hover {
+    @apply text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-chat__tool-panel-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__tool-panel[open] > .pc-chat__tool-panel-summary .pc-chat__tool-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__tool-panel-body {
+    @apply px-2 pb-2;
+  }
+
+  /* Pretty-printed JSON. Same geometry as the markdown code block, but with an
+     explicit ground: there is no highlighter theme painting behind this one. */
+  .pc-chat__tool-code {
+    @apply m-0 overflow-x-auto bg-gray-50 p-2 font-mono text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
+    border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+  }
+
+  .pc-chat__tool-code code {
+    @apply font-mono;
+  }
+
+  /* Compact bursts ---------------------------------------------------------
+
+     One dense line per call, no box, hairlines between consecutive rows so a
+     six-tool agent run reads as a list instead of six cards. */
+  .pc-chat__tool--compact {
+    @apply my-0 rounded-none border-0 bg-transparent;
+  }
+
+  .pc-chat__tool--compact + .pc-chat__tool--compact {
+    @apply border-t border-gray-100 dark:border-t-gray-400/17;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-header {
+    @apply px-2 py-1.5;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-name {
+    @apply truncate;
+  }
+
+  .pc-chat__tool-summary {
+    @apply cursor-pointer list-none select-none;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__tool-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__tool-summary:hover {
+    @apply bg-gray-50 dark:bg-gray-400/8;
+  }
+
+  .pc-chat__tool-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__tool--compact[open] > .pc-chat__tool-summary .pc-chat__tool-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__tool-reveal {
+    @apply pb-1;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-body,
+  .pc-chat__tool--compact .pc-chat__tool-error-row {
+    @apply border-t-0;
+  }
+
+  /* HEEx hands any component written with an explicit closing tag a default
+     slot, even when the caller only passed named slots - so reaching for
+     <:error_actions> or <:tool_icon> alone leaves a body holding nothing but
+     whitespace, which would draw a separator and 12px of nothing. Drop the
+     separator and the block padding when the body has no element in it:
+     whitespace collapses to zero height, and the rare text-only body still
+     reads, just tight to the header. */
+  .pc-chat__tool-body:not(:has(*)) {
+    @apply border-t-0 py-0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* The activity line rests as a full-width hairline: still reads as "this
+       one is working", just without the sweep. */
+    .pc-chat__tool--running .pc-chat__tool-header::after {
+      animation: none;
+      background-size: 100% 100%;
+      opacity: 0.4;
+    }
+
+    .pc-chat__tool-chevron {
+      transition-duration: 1ms;
+    }
+  }
+}

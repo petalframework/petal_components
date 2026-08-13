@@ -4,6 +4,27 @@
 
 #### Added
 
+- **`Chat.tool_call/1` renders the whole lifecycle of a call, not one static
+  row.** The new `state` attr (`:pending`, `:input_streaming`, `:running`,
+  `:complete`, `:error`) is server-driven end to end: the parent LiveView
+  patches one assign as the model's response streams and the card moves. No
+  client state, no new hook. Pending and streaming-input rest on a shimmer
+  skeleton (still under `prefers-reduced-motion`), running gets a spinner and
+  an indeterminate hairline, complete settles into a summary row with the
+  arguments and the result behind expandable panels, and error rides the
+  danger ramp with the message inline and your retry button in the new
+  `:error_actions` slot. `input` and `output` take the JSON string you already
+  have when a function call streams back - pretty-printed server-side into a
+  code block, shown verbatim when it is not valid JSON, and overridable with
+  the `:input_panel` / `:output_panel` slots. `icon` takes a preset
+  (`"web_search"`, `"code"`, `"database"`) or any `hero-*` name, with the
+  `:tool_icon` slot for anything else. `compact` collapses a multi-tool burst
+  into one dense line per call, stacked as a list, each finished row a native
+  `<details>` disclosure. `duration` prints a time you format. In-progress
+  cards carry `role="status"` and every state is spelled out in a
+  visually-hidden word, so the state never lands as colour alone. The older
+  `status` attr still works unchanged and drives the same three treatments.
+
 - **`Chat.questionnaire/1`: structured human-in-the-loop input in the
   transcript.** When the model needs a decision rather than a sentence, it
   emits a question spec and this renders it as a form inside the thread -

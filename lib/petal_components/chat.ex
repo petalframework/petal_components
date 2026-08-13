@@ -10,6 +10,7 @@ defmodule PetalComponents.Chat do
     * `chat_message/1`  — a single message bubble (user or assistant)
     * `streaming_text/1` — token-by-token output via the `PetalChatStream` JS hook
     * `prompt_input/1`   — the composer (textarea + send)
+    * `tool_call/1`      — the tool-call card, from pending through to its result
     * `chat_sources/1`   — the RAG sources row under an answer
     * `citation/1`       — an inline numbered citation chip
     * `message_attachments/1` — images and files inside a sent message
@@ -79,6 +80,33 @@ defmodule PetalComponents.Chat do
         id: "answer",
         html: PetalComponents.Chat.to_html(buffer, sources: sources)
       })
+
+  ## Tool calls
+
+  `tool_call/1` renders the whole lifecycle a streaming model emits, and the
+  state machine is your assigns — there is no client state and no hook. Move
+  the card by patching one value as the stream progresses:
+
+      # the model announced the call but the arguments are still arriving
+      assign(socket, :call, %{state: :input_streaming, name: "web_search"})
+
+      # arguments complete, the tool is off doing the work
+      assign(socket, :call, %{state: :running, name: "web_search", input: args_json})
+
+      # it came back
+      assign(socket, :call, %{state: :complete, name: "web_search",
+                              input: args_json, output: result_json, duration: "1.2s"})
+
+      <Chat.tool_call
+        name={@call.name}
+        state={@call.state}
+        icon="web_search"
+        input={@call[:input]}
+        output={@call[:output]}
+        duration={@call[:duration]}
+      />
+
+  See `tool_call/1` for the compact burst variant and the error/retry shape.
 
   ## Styling
 
@@ -266,48 +294,397 @@ defmodule PetalComponents.Chat do
   end
 
   @doc """
-  A tool-call card — the chrome around a generative-UI widget.
+  A tool-call card — the chrome around a generative-UI widget, and the whole
+  lifecycle of the call that produced it.
 
   This is the "AI Elements" pattern done LiveView-native: the model emits a
   structured tool call (function calling), you map the tool name to one of your
   registered Phoenix components, and render it inside this card. The widget is a
   real LiveView component — it can have its own `phx-click`, forms, streams.
 
-      <Chat.tool_call name="get_weather" status={:complete}>
+      <Chat.tool_call name="get_weather" state={:complete}>
         <.weather_card city={@args["city"]} temp={@result.temp} />
       </Chat.tool_call>
 
-  `status` drives the header affordance: `:running` shows a spinner, `:complete`
-  a check, `:error` a warning.
+  ## The lifecycle
+
+  `state` is the source of truth and it is entirely server-driven: your
+  LiveView patches the assign as the model's response streams, and each patch
+  moves the card. No client state, no hook, no JS.
+
+    * `:pending` — the call is announced, the arguments have not arrived. Tool
+      name plus an animated placeholder.
+    * `:input_streaming` — the arguments are arriving token by token. Same
+      placeholder, now labelled as the incoming input.
+    * `:running` — arguments complete, the tool is working. Spinner plus an
+      activity line, and `label` carries the live status ("Searching the web").
+    * `:complete` — a summary row (check, name, `duration`) with the input and
+      output below in expandable panels.
+    * `:error` — danger accent, the message inline, and whatever you put in
+      `:error_actions` (a retry button) beside it. The input panel stays
+      expandable, because the arguments that failed are the useful part.
+
+  The three in-progress states carry `role="status"`, so a screen reader
+  announces the card moving through them; the state itself is also spelled out
+  in a visually-hidden word next to the tool name, never by colour alone.
+
+      <Chat.tool_call name="web_search" state={:running} icon="web_search" label="Searching the web" />
+
+      <Chat.tool_call
+        name="web_search"
+        state={:complete}
+        icon="web_search"
+        duration="1.2s"
+        input={~s|{"query":"phoenix liveview streams"}|}
+        output={~s|{"results":3}|}
+      />
+
+      <Chat.tool_call name="charge_card" state={:error} error="Card token expired before submit.">
+        <:error_actions>
+          <button type="button" class="pc-chat__action" phx-click="retry_tool">Retry</button>
+        </:error_actions>
+      </Chat.tool_call>
+
+  `input` and `output` take the JSON string you actually have when streaming
+  function calls. It is pretty-printed server-side and rendered as a code
+  block; anything that is not valid JSON is shown verbatim rather than
+  swallowed. For a rendered result — a chart, a map, a form — keep using the
+  default slot, which is always visible; the panels are for inspecting the
+  payload, not for hiding your widget.
+
+  ## Compact bursts
+
+  An agent that fires six tools in a row should not produce six cards. `compact`
+  renders one dense line per call — state glyph, name, duration — and
+  consecutive rows stack into a tight list. Finished rows are the disclosure
+  themselves: click (or Enter/Space on the focused row) to reveal the panels.
+
+      <Chat.tool_call :for={call <- @calls} compact
+        name={call.name} state={call.state} icon={call.icon}
+        duration={call.duration} input={call.input} output={call.output} />
+
+  ## Duration
+
+  `duration` is a string you format — the component never ticks a clock. For a
+  live elapsed time while `:running`, compose `PetalComponents.LocalTime` into
+  the `label`, or recompute the string on the same timer that drives the state.
+
+  ## Icons
+
+  `icon` takes one of the presets — `"web_search"`, `"code"`, `"database"` — or
+  any `"hero-*"` name, which passes straight through to
+  `PetalComponents.Icon.icon/1`. For a vendor logo or anything that is not a
+  heroicon, use the `:tool_icon` slot. An unrecognised string renders no icon
+  rather than raising.
   """
   attr :name, :string, required: true
-  attr :status, :atom, default: :complete, values: [:running, :complete, :error]
+
+  attr :state, :atom,
+    default: nil,
+    values: [nil, :pending, :input_streaming, :running, :complete, :error],
+    doc:
+      "lifecycle state, server-driven. Defaults to nil, which falls back to the legacy `status` attr — so a card given neither renders exactly as it always has (a completed call). Set this on new code"
+
+  attr :status, :atom,
+    default: :complete,
+    values: [:running, :complete, :error],
+    doc:
+      "DEPRECATED, use `state`. Kept so existing call sites render unchanged; consulted only while `state` is nil, and its three values map onto the states of the same name"
+
   attr :label, :string, default: nil, doc: "human label; defaults to the tool name"
+
+  attr :icon, :string,
+    default: nil,
+    doc:
+      ~s|a preset ("web_search", "code", "database") or any heroicon name ("hero-*"), shown before the tool name. nil shows the state glyph only, and an unrecognised value renders no icon|
+
+  attr :compact, :boolean,
+    default: false,
+    doc:
+      "one dense line per call for multi-tool bursts: state glyph, name, duration. Finished rows expand on click to reveal the panels; consecutive compact calls stack as a list"
+
+  attr :duration, :string,
+    default: nil,
+    doc:
+      ~s|elapsed or total time shown in the header, e.g. "1.2s". You format it — the component never ticks a clock. For a live elapsed while :running, compose `PetalComponents.LocalTime` into the label|
+
+  attr :input, :string,
+    default: nil,
+    doc:
+      "tool arguments as a JSON string; pretty-printed into the expandable Input panel, or shown verbatim if it is not valid JSON. Only rendered once the call has settled (:complete or :error)"
+
+  attr :output, :string,
+    default: nil,
+    doc:
+      "tool result as a JSON string; pretty-printed into the expandable Output panel, or shown verbatim if it is not valid JSON. For a rendered widget use the default slot instead"
+
+  attr :error, :string,
+    default: nil,
+    doc: "error message rendered inline when the state is :error"
+
   attr :class, :any, default: nil
-  slot :inner_block, doc: "the rendered widget / tool result"
+  attr :rest, :global
+
+  slot :inner_block, doc: "the rendered widget / tool result. Always visible, never collapsed"
+
+  slot :tool_icon,
+    doc:
+      "custom icon markup (a vendor logo, an emoji), overriding the `icon` attr. Named `tool_icon` rather than `icon` because a slot cannot share a name with an attr"
+
+  slot :input_panel, doc: "custom Input panel content, overriding the `input` attr"
+  slot :output_panel, doc: "custom Output panel content, overriding the `output` attr"
+
+  slot :error_actions,
+    doc: "actions rendered beside the error message, e.g. a retry button with phx-click"
 
   def tool_call(assigns) do
+    state = tool_state(assigns)
+    input = tool_panel_content(assigns.input_panel, assigns.input)
+    output = tool_panel_content(assigns.output_panel, assigns.output)
+    settled? = state in [:complete, :error]
+
+    assigns =
+      assigns
+      |> assign(:state, state)
+      |> assign(:input_text, input)
+      |> assign(:output_text, output)
+      |> assign(:in_progress?, state in [:pending, :input_streaming, :running])
+      |> assign(:panels?, settled? and (input != nil or output != nil))
+      |> assign(:icon_name, tool_icon_name(assigns.icon))
+
+    # Only a settled row is worth collapsing behind a disclosure: an
+    # in-progress compact row stays a plain announced status line.
+    assigns =
+      assign(
+        assigns,
+        :revealable?,
+        settled? and
+          (assigns.panels? or assigns.inner_block != [] or assigns.error_actions != [])
+      )
+
     ~H"""
-    <div class={["pc-chat__tool", "pc-chat__tool--#{@status}", @class]}>
-      <div class="pc-chat__tool-header">
-        <.tool_status_icon status={@status} />
-        <span class="pc-chat__tool-name">{@label || @name}</span>
+    <%= if @compact and @revealable? do %>
+      <details
+        class={["pc-chat__tool", tool_modifier(@state), "pc-chat__tool--compact", @class]}
+        {@rest}
+      >
+        <summary class="pc-chat__tool-header pc-chat__tool-summary">
+          <.tool_call_header
+            state={@state}
+            name={@name}
+            label={@label}
+            error={@error}
+            compact={@compact}
+            duration={@duration}
+            icon_name={@icon_name}
+            tool_icon={@tool_icon}
+          />
+          <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__tool-chevron" />
+        </summary>
+        <div class="pc-chat__tool-reveal">
+          <.tool_call_body
+            state={@state}
+            error={@error}
+            panels?={@panels?}
+            input_text={@input_text}
+            output_text={@output_text}
+            widget={@inner_block}
+            error_actions={@error_actions}
+          />
+        </div>
+      </details>
+    <% else %>
+      <div
+        class={[
+          "pc-chat__tool",
+          tool_modifier(@state),
+          @compact && "pc-chat__tool--compact",
+          @class
+        ]}
+        role={if @in_progress?, do: "status"}
+        {@rest}
+      >
+        <div class="pc-chat__tool-header">
+          <.tool_call_header
+            state={@state}
+            name={@name}
+            label={@label}
+            error={@error}
+            compact={@compact}
+            duration={@duration}
+            icon_name={@icon_name}
+            tool_icon={@tool_icon}
+          />
+        </div>
+        <%!-- Arguments are still arriving: a resting skeleton stands in for
+        them, so the card has its final height before the text lands. --%>
+        <div :if={@state in [:pending, :input_streaming] and not @compact} class="pc-chat__tool-args">
+          <span :if={@state == :input_streaming} class="pc-chat__tool-args-label">Input</span>
+          <div class="pc-chat__tool-skeleton" aria-hidden="true">
+            <PetalComponents.Skeleton.skeleton
+              variant="text"
+              animation="shimmer"
+              class="h-2.5 w-2/3"
+            />
+            <PetalComponents.Skeleton.skeleton
+              variant="text"
+              animation="shimmer"
+              class="h-2.5 w-2/5"
+            />
+          </div>
+        </div>
+        <.tool_call_body
+          state={@state}
+          error={@error}
+          panels?={@panels?}
+          input_text={@input_text}
+          output_text={@output_text}
+          widget={@inner_block}
+          error_actions={@error_actions}
+        />
       </div>
-      <div :if={@inner_block != []} class="pc-chat__tool-body">{render_slot(@inner_block)}</div>
+    <% end %>
+    """
+  end
+
+  attr :state, :atom, required: true
+  attr :name, :string, required: true
+  attr :label, :any, required: true
+  attr :error, :any, required: true
+  attr :compact, :boolean, required: true
+  attr :duration, :any, required: true
+  attr :icon_name, :any, required: true
+  attr :tool_icon, :any, required: true
+
+  defp tool_call_header(assigns) do
+    ~H"""
+    <.tool_state_glyph state={@state} />
+    <span :if={@tool_icon != []} class="pc-chat__tool-glyph" aria-hidden="true">
+      {render_slot(@tool_icon)}
+    </span>
+    <PetalComponents.Icon.icon
+      :if={@tool_icon == [] and @icon_name}
+      name={@icon_name}
+      class="pc-chat__tool-icon"
+    />
+    <span class="pc-chat__tool-name">{@label || @name}</span>
+    <%!-- Never colour alone: the state is spelled out for screen readers, and
+    on a compact error row the message rides along in the row itself so the
+    failure is readable without opening anything. --%>
+    <span class="sr-only">{tool_state_word(@state)}</span>
+    <span :if={@compact and @state == :error and @error} class="pc-chat__tool-error-inline">
+      {@error}
+    </span>
+    <span :if={@duration} class="pc-chat__tool-duration">{@duration}</span>
+    """
+  end
+
+  attr :state, :atom, required: true
+  attr :error, :any, required: true
+  attr :panels?, :boolean, required: true
+  attr :input_text, :any, required: true
+  attr :output_text, :any, required: true
+  attr :widget, :any, required: true
+  attr :error_actions, :any, required: true
+
+  defp tool_call_body(assigns) do
+    ~H"""
+    <div :if={@widget != []} class="pc-chat__tool-body">{render_slot(@widget)}</div>
+    <div
+      :if={@state == :error and (@error || @error_actions != [])}
+      class="pc-chat__tool-error-row"
+    >
+      <p :if={@error} class="pc-chat__tool-error-message">{@error}</p>
+      <div :if={@error_actions != []} class="pc-chat__tool-error-actions">
+        {render_slot(@error_actions)}
+      </div>
+    </div>
+    <%!-- Payload panels only once the call has settled: there is nothing
+    honest to show while the arguments are still arriving. --%>
+    <div :if={@panels?} class="pc-chat__tool-panels">
+      <.tool_panel :if={@input_text} label="Input" content={@input_text} />
+      <.tool_panel :if={@output_text} label="Output" content={@output_text} />
     </div>
     """
   end
 
-  attr :status, :atom, required: true
+  attr :label, :string, required: true
+  attr :content, :any, required: true
 
-  defp tool_status_icon(%{status: :running} = assigns),
+  defp tool_panel(assigns) do
+    ~H"""
+    <details class="pc-chat__tool-panel">
+      <summary class="pc-chat__tool-panel-summary">
+        <PetalComponents.Icon.icon name="hero-chevron-right" class="pc-chat__tool-chevron" />
+        {@label}
+      </summary>
+      <div class="pc-chat__tool-panel-body">
+        <%= if is_binary(@content) do %>
+          <pre class="pc-chat__tool-code"><code>{@content}</code></pre>
+        <% else %>
+          {render_slot(@content)}
+        <% end %>
+      </div>
+    </details>
+    """
+  end
+
+  attr :state, :atom, required: true
+
+  defp tool_state_glyph(%{state: :running} = assigns),
     do: ~H|<span class="pc-chat__tool-spinner" aria-hidden="true"></span>|
 
-  defp tool_status_icon(%{status: :error} = assigns),
+  defp tool_state_glyph(%{state: :error} = assigns),
     do: ~H|<span class="pc-chat__tool-error" aria-hidden="true">!</span>|
 
-  defp tool_status_icon(assigns),
+  # Pending and streaming-input reuse the thread's own typing dots rather than
+  # inventing a second waiting idiom.
+  defp tool_state_glyph(%{state: state} = assigns) when state in [:pending, :input_streaming],
+    do:
+      ~H|<span class="pc-chat__typing pc-chat__tool-typing" aria-hidden="true"><span></span><span></span><span></span></span>|
+
+  defp tool_state_glyph(assigns),
     do: ~H|<span class="pc-chat__tool-check" aria-hidden="true">✓</span>|
+
+  # `state` wins; `status` is only consulted while it is nil, which keeps the
+  # pre-state call sites (and their default `status={:complete}`) rendering
+  # exactly what they always did.
+  defp tool_state(%{state: nil, status: status}), do: status
+  defp tool_state(%{state: state}), do: state
+
+  defp tool_modifier(state), do: "pc-chat__tool--" <> String.replace(to_string(state), "_", "-")
+
+  defp tool_state_word(:pending), do: "Pending"
+  defp tool_state_word(:input_streaming), do: "Receiving input"
+  defp tool_state_word(:running), do: "Running"
+  defp tool_state_word(:error), do: "Failed"
+  defp tool_state_word(_), do: "Complete"
+
+  # A slot beats the attr; the attr is JSON we pretty-print for reading.
+  defp tool_panel_content([_ | _] = slot, _json), do: slot
+  defp tool_panel_content(_slot, json), do: pretty_json(json)
+
+  defp pretty_json(nil), do: nil
+  defp pretty_json(""), do: nil
+
+  defp pretty_json(json) when is_binary(json) do
+    case Jason.decode(json) do
+      {:ok, _} -> Jason.Formatter.pretty_print(json)
+      {:error, _} -> json
+    end
+  end
+
+  defp pretty_json(other), do: other
+
+  # Kept in one place so adding a preset is a one-line change. Anything already
+  # namespaced as a heroicon passes through untouched; anything else is dropped
+  # rather than handed to icon/1, which would raise on an unknown name.
+  defp tool_icon_name(nil), do: nil
+  defp tool_icon_name("web_search"), do: "hero-magnifying-glass"
+  defp tool_icon_name("code"), do: "hero-code-bracket"
+  defp tool_icon_name("database"), do: "hero-circle-stack"
+  defp tool_icon_name("hero-" <> _ = name), do: name
+  defp tool_icon_name(_), do: nil
 
   @doc """
   Renders markdown as sanitized, syntax-highlighted HTML (via MDEx). Use it for
