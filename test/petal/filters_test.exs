@@ -288,6 +288,28 @@ defmodule PetalComponents.FiltersTest do
                State.handle_op(%State{}, params, fields: @fields)
     end
 
+    test "a boolean apply round-trips through its hidden eq operator" do
+      # the boolean editor renders filter_op as a HIDDEN input - this is the
+      # only proof that input actually produces a valid filter
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.filters id="f" state={%State{}} on_change="table">
+          <:field field={:in_stock} type="boolean" />
+        </.filters>
+        """)
+
+      # the payload helper reads attribute values only, so supply the select's
+      # choice the way a browser would - the point of this test is the HIDDEN
+      # filter_op=eq input, which must come from the DOM
+      params = form_payload(html, "f-form-in_stock", %{"value" => "true"})
+      assert params["filter_op"] == "eq"
+
+      assert %State{filters: [%{field: :in_stock, op: :eq, value: "true"}]} =
+               State.handle_op(%State{}, params, fields: @fields)
+    end
+
     test "chip removal pushes a filter op with no operator, which handle_op reads as removal" do
       state = %State{filters: [%{field: :category, op: :eq, value: "hand"}], page: 4}
       html = bar(%{on_change: "table", state: state})
@@ -416,6 +438,20 @@ defmodule PetalComponents.FiltersTest do
       assert html =~ ~s(aria-controls="f-add")
     end
 
+    test "the panels keep the trigger's dialog promise: role + accessible name" do
+      state = %State{filters: [%{field: :category, op: :eq, value: "hand"}]}
+      html = bar(%{on_change: "table", state: state})
+      doc = parse_html(html)
+
+      add = doc |> LazyHTML.query("#f-add") |> Enum.at(0)
+      assert LazyHTML.attribute(add, "role") == ["dialog"]
+      assert LazyHTML.attribute(add, "aria-label") == ["Add filter"]
+
+      editor = doc |> LazyHTML.query("[id^='f-editor']") |> Enum.at(0)
+      assert LazyHTML.attribute(editor, "role") == ["dialog"]
+      assert LazyHTML.attribute(editor, "aria-label") == ["Category"]
+    end
+
     test "the chip list is announced as a labelled group" do
       state = %State{filters: [%{field: :category, op: :eq, value: "hand"}]}
       html = bar(%{on_change: "table", state: state})
@@ -522,6 +558,49 @@ defmodule PetalComponents.FiltersTest do
       assert html =~ "Appliquer"
       assert html =~ ~s(aria-label="Retirer: Nom is x")
       assert html =~ ~s(aria-label="Filtres actifs")
+    end
+
+    test "the three remaining strings are overridable too: empty status, exhausted list, multi placeholder" do
+      assigns = %{}
+
+      # no filters -> the status line; every field filtered -> the exhausted
+      # panel; a multi field -> the search placeholder
+      empty =
+        rendered_to_string(~H"""
+        <.filters id="f" state={%State{}} on_change="table" no_filters_label="Aucun filtre">
+          <:field field={:name} type="text" />
+        </.filters>
+        """)
+
+      assert empty =~ "Aucun filtre"
+
+      exhausted =
+        rendered_to_string(~H"""
+        <.filters
+          id="f"
+          state={%State{filters: [%{field: :name, op: :eq, value: "x"}]}}
+          on_change="table"
+          all_fields_used_label="Tout est filtre"
+        >
+          <:field field={:name} type="text" />
+        </.filters>
+        """)
+
+      assert exhausted =~ "Tout est filtre"
+
+      multi =
+        rendered_to_string(~H"""
+        <.filters
+          id="f"
+          state={%State{}}
+          on_change="table"
+          filter_options_placeholder="Chercher..."
+        >
+          <:field field={:category} type="multi" options={~w(a b c d e f g h)} />
+        </.filters>
+        """)
+
+      assert multi =~ "Chercher..."
     end
 
     test "a field with no label humanizes its atom" do

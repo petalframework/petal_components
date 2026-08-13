@@ -274,9 +274,13 @@ defmodule PetalComponents.Filters do
           >
             <.icon name="hero-x-mark" class="pc-filters__chip-remove-icon" aria-hidden="true" />
           </button>
+          <%!-- the trigger promises aria-haspopup="dialog"; the panel must
+                keep that promise with role + an accessible name --%>
           <div
             id={chip.editor_id}
             hidden
+            role="dialog"
+            aria-label={chip.label}
             data-pc-menu
             class="pc-popover__panel pc-popover__panel--bottom-start pc-filters__editor"
           >
@@ -310,6 +314,8 @@ defmodule PetalComponents.Filters do
         <div
           id={"#{@id}-add"}
           hidden
+          role="dialog"
+          aria-label={@add_filter_label}
           data-pc-menu
           class="pc-popover__panel pc-popover__panel--bottom-start pc-filters__panel"
         >
@@ -424,7 +430,19 @@ defmodule PetalComponents.Filters do
     field = slot.field
     field_str = to_string(field)
     type = slot[:type] || "text"
-    {shape, ops, default_op} = Map.fetch!(@types, type)
+
+    # Slot attr values are only compile-checked for literals; a dynamic bad
+    # type should die naming the contract, not with a bare KeyError.
+    {shape, ops, default_op} =
+      case Map.fetch(@types, type) do
+        {:ok, spec} ->
+          spec
+
+        :error ->
+          raise ArgumentError,
+                "unknown filter field type #{inspect(type)} for #{inspect(field)} - " <>
+                  "expected one of: #{Enum.map_join(Map.keys(@types), ", ", &inspect/1)}"
+      end
 
     %{
       field: field,

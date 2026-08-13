@@ -7629,9 +7629,7 @@
   .pc-filters__add-icon.pc-filters__add-icon {
     @apply w-4! h-4! -ml-0.5;
   }
-  .pc-filters__panel {
-    @apply w-60;
-  }
+  .pc-filters__panel,
   .pc-filters__editor {
     @apply w-60;
   }

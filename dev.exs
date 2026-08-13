@@ -778,7 +778,7 @@ defmodule Dev.PlaygroundLive do
        dt_refunded: [],
        # the filter bar demo: one State shared with a data table (event mode),
        # plus the registered field types the dials switch on and off
-       filters_state: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_filters(),
+       filters_state: run_filters(%PetalComponents.DataTable.State{page_size: 5}),
        filters_types: ~w(text select number_range boolean date_range),
        radio: %{
          style: "cards",
