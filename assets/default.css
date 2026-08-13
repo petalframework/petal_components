@@ -7605,15 +7605,33 @@
     will-change: transform;
   }
 
+  /* A scroll that reaches the page under an open sheet is never wanted, and on
+     iOS chaining to the document is what triggers pull-to-refresh mid-drag. */
+  .pc-slideover__box--drawer .pc-slideover__content {
+    overscroll-behavior: contain;
+  }
+
+  /* The two data attributes are rendered exactly when the hook is attached and
+     the sheet is really draggable. A plain drag_to_dismiss={false} sheet with
+     no snaps gets no grab cursor and does not decline browser gestures -
+     advertising a drag that does nothing is worse than no affordance.
+
+     touch-action stays on the pill rather than the whole sheet on purpose: on
+     the sheet it would also be consulted for the body's own scroll chain, so
+     `none` there costs the drawer its inner scrolling. Body drags are claimed
+     by the hook's non-passive touchmove instead, which can weigh up direction. */
+  .pc-slideover__box--drawer:is([data-drag-dismiss], [data-snap-points])
+    .pc-slideover__handle {
+    cursor: grab;
+    touch-action: none;
+  }
+
   /* The pill is decorative (aria-hidden) - the drag is the interaction, not
      this element. The hook captures pointerdown across the whole sheet head,
-     so the real drag target is far larger than the 40x4 pill. touch-action
-     stops the browser claiming the gesture as a page scroll. */
+     so the real drag target is far larger than the 40x4 pill. */
   .pc-slideover__handle {
     @apply flex flex-none items-center justify-center pt-3 pb-2;
     min-height: 1.75rem;
-    touch-action: none;
-    cursor: grab;
   }
 
   .pc-slideover__handle__pill {

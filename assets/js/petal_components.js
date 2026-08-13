@@ -5506,48 +5506,58 @@ export const PetalDrawer = {
     this.samples = [];
     this.offset = 0;
     this.height = 0;
+    this.wrapper = null;
+    this.scaled = null;
 
     this.readConfig();
 
     this.onPointerDown = this.onPointerDown.bind(this);
     this.onPointerMove = this.onPointerMove.bind(this);
     this.onPointerUp = this.onPointerUp.bind(this);
+    this.onPointerCancel = this.onPointerCancel.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
     this.onResize = this.onResize.bind(this);
 
     this.el.addEventListener("pointerdown", this.onPointerDown);
+    // Non-passive, and on the sheet rather than the window: a touch sequence
+    // keeps targeting the element it began on, so the sheet sees every move of
+    // its own gesture, and only this sheet pays the scroll-blocking cost.
+    this.el.addEventListener("touchmove", this.onTouchMove, { passive: false });
     // move/up on the window, not the sheet: a fast flick outruns the element
     // and we still need the release that happens past its edge
     window.addEventListener("pointermove", this.onPointerMove);
     window.addEventListener("pointerup", this.onPointerUp);
-    window.addEventListener("pointercancel", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerCancel);
     window.addEventListener("resize", this.onResize);
 
     // scale_background has to track the panel opening and closing, which the
-    // JS commands drive by writing inline display on this element.
-    if (this.wrapper) {
-      this.observer = new MutationObserver(() => this.syncBackground());
-      this.observer.observe(this.el, {
-        attributes: true,
-        attributeFilter: ["style"],
-      });
-      this.syncBackground();
-    }
+    // JS commands drive by writing inline display on this element. The observer
+    // is unconditional so that flipping scale_background on in a later render
+    // starts working without a remount.
+    this.observer = new MutationObserver(() => this.syncBackground());
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    this.syncBackground();
 
     this.reset();
   },
 
   updated() {
-    const previous = this.el.dataset.snapPoints + this.el.dataset.initialSnap;
+    const previous = this.configKey;
     this.readConfig();
     // a re-render mid-drag must not yank the sheet out from under the finger
     if (!this.dragging && previous !== this.configKey) this.reset();
+    this.syncBackground();
   },
 
   destroyed() {
     this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("touchmove", this.onTouchMove);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);
-    window.removeEventListener("pointercancel", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerCancel);
     window.removeEventListener("resize", this.onResize);
     if (this.observer) this.observer.disconnect();
     if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
@@ -5564,18 +5574,35 @@ export const PetalDrawer = {
     this.dismissible = this.el.dataset.dragDismiss === "true";
     this.configKey = this.el.dataset.snapPoints + this.el.dataset.initialSnap;
     this.scroller = this.el.querySelector(".pc-slideover__content");
-    this.wrapper =
+
+    const wrapper =
       this.el.dataset.scaleBackground === "true"
         ? document.querySelector("[data-pc-drawer-wrapper]")
         : null;
+
+    // Turning scale_background off has to hand the old wrapper back untouched.
+    if (wrapper !== this.wrapper) {
+      if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
+      this.wrapper = wrapper;
+      this.scaled = null;
+    }
   },
 
-  // The sheet is sized to its tallest snap, so a point p rests (max - p) of a
-  // viewport down from the top. No snaps means one rest position at 0.
+  // The sheet is sized to its tallest snap, so a point p rests (max - p)/max of
+  // the sheet's own height down from the top. Measuring the sheet rather than
+  // the viewport keeps the offsets true to the dvh-based CSS height, which
+  // drifts from innerHeight while a mobile URL bar is collapsing. Before the
+  // sheet is displayed it has no height, so fall back to the viewport.
+  sheetHeight() {
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    return this.el.offsetHeight || max * window.innerHeight;
+  },
+
   snapOffsets() {
     if (!this.snapPoints.length) return [0];
     const max = this.snapPoints[this.snapPoints.length - 1];
-    return this.snapPoints.map((p) => (max - p) * window.innerHeight);
+    const height = this.sheetHeight();
+    return this.snapPoints.map((p) => ((max - p) / max) * height);
   },
 
   reset() {
@@ -5583,7 +5610,7 @@ export const PetalDrawer = {
     const max = this.snapPoints[this.snapPoints.length - 1];
     this.offset =
       this.snapPoints.length && !Number.isNaN(this.initialSnap)
-        ? (max - this.initialSnap) * window.innerHeight
+        ? ((max - this.initialSnap) / max) * this.sheetHeight()
         : offsets[0];
     this.el.style.transition = "";
     this.apply(this.offset);
@@ -5601,12 +5628,26 @@ export const PetalDrawer = {
 
   isOpen() {
     const display = this.el.style.display;
-    return display !== "" && display !== "none";
+    if (display === "none") return false;
+    if (display !== "") return true;
+    // No inline display at all: JS.show skips writing one when the element is
+    // already visible, which is exactly the case for a slide_over rendered
+    // without `hide`. Fall back to measuring, the way LiveView itself does.
+    return !!(
+      this.el.offsetWidth ||
+      this.el.offsetHeight ||
+      this.el.getClientRects().length
+    );
   },
 
   syncBackground() {
     if (!this.wrapper) return;
-    this.wrapper.classList.toggle("pc-drawer-scaled", this.isOpen());
+    // The observer fires on every [style] write, and a drag rewrites transform
+    // each pointermove, so without this the wrapper is reclassed per frame.
+    const open = this.isOpen();
+    if (open === this.scaled) return;
+    this.scaled = open;
+    this.wrapper.classList.toggle("pc-drawer-scaled", open);
   },
 
   reducedMotion() {
@@ -5652,11 +5693,29 @@ export const PetalDrawer = {
     this.apply(this.offset);
   },
 
-  onPointerUp(e) {
-    if (!this.dragging || e.pointerId !== this.pointerId) return;
+  // preventDefault inside a pointermove handler does nothing to touch
+  // scrolling - only a non-passive touchmove can decline the gesture, and only
+  // before the browser has committed to a scroll. Direction decides: pulling
+  // the sheet down (or moving it at all when it is already displaced) is a
+  // drag, while a swipe up from a body that is at scroll-top is the user
+  // reading the content, and stealing that would break inner scrolling.
+  onTouchMove(e) {
+    if (!this.dragging || !e.cancelable) return;
+    const touch = e.touches && e.touches[0];
+    if (this.offset > 0 || (touch && touch.clientY > this.startY)) {
+      e.preventDefault();
+    }
+  },
+
+  endDrag() {
     this.dragging = false;
     this.pointerId = null;
     this.el.classList.remove("pc-slideover__box--dragging");
+  },
+
+  onPointerUp(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
 
     const result = drawerSettle({
       offset: this.offset,
@@ -5669,6 +5728,25 @@ export const PetalDrawer = {
 
     if (result.type === "dismiss") this.dismiss();
     else this.settle(result.offset);
+  },
+
+  // A cancel is the browser taking the gesture away (it decided the touch was
+  // a scroll, or the pointer was captured elsewhere) - not the user letting go.
+  // Running release physics on it would let the browser close the drawer, so a
+  // cancel always springs back to the nearest snap with no velocity.
+  onPointerCancel(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
+
+    const { offset } = drawerSettle({
+      offset: this.offset,
+      velocity: 0,
+      height: this.height,
+      snapOffsets: this.snapOffsets(),
+      dismissible: false,
+    });
+    this.samples = [];
+    this.settle(offset);
   },
 
   settle(offset) {

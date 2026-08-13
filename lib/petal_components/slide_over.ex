@@ -347,7 +347,20 @@ defmodule PetalComponents.SlideOver do
     |> assign(:drawer_hook, drawer_hook(assigns, drawer?, snaps))
     |> assign(:snap_points_attr, snaps && Enum.map_join(snaps, ",", &to_string/1))
     |> assign(:initial_snap_attr, snaps && to_string(resolve_initial_snap(assigns, snaps)))
-    |> assign(:drawer_height, snaps && "height: #{Enum.max(snaps) * 100}dvh")
+    |> assign(:drawer_height, snaps && "height: #{format_dvh(Enum.max(snaps))}dvh")
+  end
+
+  # A fraction of 0.9 is 90.0 in Elixir, and "height: 90.0dvh" is not markup
+  # anyone wants to read in devtools. Whole numbers print whole; the rest keep
+  # their decimals, rounded to kill float-multiplication noise (0.29 * 100).
+  defp format_dvh(fraction) do
+    value = Float.round(fraction * 100.0, 4)
+
+    if value == Float.floor(value) do
+      value |> trunc() |> Integer.to_string()
+    else
+      :erlang.float_to_binary(value, [:short])
+    end
   end
 
   # nil means "whatever suits this origin"; an explicit boolean always wins.

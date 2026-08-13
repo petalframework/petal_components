@@ -358,9 +358,20 @@ defmodule PetalComponents.SlideOverTest do
       assert LazyHTML.attribute(content, "data-snap-points") == ["0.4,0.9"]
       assert LazyHTML.attribute(content, "data-initial-snap") == ["0.4"]
       # the sheet is sized to its tallest snap so the hook only ever translates
-      assert [style] = LazyHTML.attribute(content, "style")
-      assert style =~ "90"
-      assert style =~ "dvh"
+      assert LazyHTML.attribute(content, "style") == ["height: 90dvh"]
+    end
+
+    test "a fractional tallest snap keeps its decimals in the height" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" snap_points={[0.25, 0.755]}>Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "style") == ["height: 75.5dvh"]
     end
 
     test "snap points are sorted and initial_snap defaults to the lowest" do

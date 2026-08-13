@@ -228,6 +228,18 @@ const move = (hook, y, time) =>
 
 const up = (hook) => hook.onPointerUp({ pointerId: 1 });
 
+const cancel = (hook) => hook.onPointerCancel({ pointerId: 1 });
+
+const touchMove = (hook, y) => {
+  const e = {
+    cancelable: true,
+    touches: [{ clientY: y }],
+    preventDefault: vi.fn(),
+  };
+  hook.onTouchMove(e);
+  return e;
+};
+
 describe("PetalDrawer", () => {
   afterEach(() => {
     mounted.splice(0).forEach(({ hook, wrap }) => {
@@ -318,6 +330,100 @@ describe("PetalDrawer", () => {
     expect(hook.dragging).toBe(true);
   });
 
+  it("declines the browser's scroll while the sheet is being pulled down", () => {
+    const { hook, el } = mount();
+    down(hook, el.querySelector("[data-pc-drawer-handle]"), 500);
+
+    expect(touchMove(hook, 560).preventDefault).toHaveBeenCalled();
+  });
+
+  it("leaves an upward swipe from the top of the body to the scroller", () => {
+    const { hook, el } = mount();
+    down(hook, el.querySelector(".pc-slideover__content"), 500);
+
+    expect(touchMove(hook, 440).preventDefault).not.toHaveBeenCalled();
+  });
+
+  it("claims an upward swipe once the sheet is off its top rest", () => {
+    const { hook } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.4" });
+    down(hook, hook.el.querySelector("[data-pc-drawer-handle]"), 500);
+
+    expect(touchMove(hook, 440).preventDefault).toHaveBeenCalled();
+  });
+
+  it("does not interfere with touch scrolling when no drag is running", () => {
+    const { hook } = mount();
+
+    expect(touchMove(hook, 440).preventDefault).not.toHaveBeenCalled();
+  });
+
+  it("springs back to the nearest snap when the browser cancels the gesture", () => {
+    // A touch drag the browser reclaims as a scroll arrives as pointercancel.
+    // Settling that with full release physics would let the browser close the
+    // drawer, so a cancel is always a spring-back with no velocity.
+    const { hook, el, executed } = mount();
+    const handle = el.querySelector("[data-pc-drawer-handle]");
+
+    down(hook, handle, 100);
+    // far enough and fast enough that a real release would dismiss
+    move(hook, 300, 20);
+    move(hook, 500, 60);
+    cancel(hook);
+
+    expect(executed).toHaveLength(0);
+    expect(hook.offset).toBe(0);
+    expect(hook.dragging).toBe(false);
+    expect(el.classList.contains("pc-slideover__box--dragging")).toBe(false);
+  });
+
+  it("cancelling a snapped drag returns to the nearest point, not the top", () => {
+    const { hook } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.9" });
+    const peek = 0.5 * window.innerHeight;
+
+    down(hook, hook.el.querySelector("[data-pc-drawer-handle]"), 100);
+    move(hook, 100 + peek - 20, 200);
+    cancel(hook);
+
+    expect(hook.offset).toBeCloseTo(peek);
+  });
+
+  it("re-seats the drawer when the rendered snap config changes", () => {
+    const { hook, el } = mount();
+    expect(hook.offset).toBe(0);
+
+    el.dataset.snapPoints = "0.4,0.9";
+    el.dataset.initialSnap = "0.4";
+    hook.updated();
+
+    expect(hook.offset).toBeCloseTo(0.5 * window.innerHeight);
+    expect(el.style.transform).toContain("translate3d");
+  });
+
+  it("leaves a drag alone when a re-render arrives mid-gesture", () => {
+    const { hook, el } = mount();
+    const handle = el.querySelector("[data-pc-drawer-handle]");
+
+    down(hook, handle, 500);
+    move(hook, 560, 300);
+
+    el.dataset.snapPoints = "0.4,0.9";
+    el.dataset.initialSnap = "0.4";
+    hook.updated();
+
+    expect(hook.offset).toBeCloseTo(60);
+  });
+
+  it("re-seats a snapped drawer when the viewport resizes", () => {
+    const { hook } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.4" });
+    const original = window.innerHeight;
+
+    window.innerHeight = 500;
+    hook.onResize();
+    expect(hook.offset).toBeCloseTo(250);
+
+    window.innerHeight = original;
+  });
+
   it("scales the page wrapper only while the drawer is open", () => {
     const { hook, el, wrap } = mount({ scaleBackground: "true" });
     const page = wrap.querySelector("[data-pc-drawer-wrapper]");
@@ -331,6 +437,55 @@ describe("PetalDrawer", () => {
     el.style.display = "none";
     hook.syncBackground();
     expect(page.classList.contains("pc-drawer-scaled")).toBe(false);
+  });
+
+  it("does not touch the wrapper's classes when nothing changed", () => {
+    // The observer watches [style], and a drag rewrites transform every
+    // pointermove - without a cached state that is a classList write per frame.
+    const { hook, el, wrap } = mount({ scaleBackground: "true" });
+    const page = wrap.querySelector("[data-pc-drawer-wrapper]");
+    el.style.display = "flex";
+    hook.syncBackground();
+
+    const toggle = vi.spyOn(page.classList, "toggle");
+    hook.syncBackground();
+    hook.syncBackground();
+
+    expect(toggle).not.toHaveBeenCalled();
+  });
+
+  it("starts scaling when scale_background is switched on by a re-render", () => {
+    const { hook, el, wrap } = mount();
+    const page = wrap.querySelector("[data-pc-drawer-wrapper]");
+    el.style.display = "flex";
+
+    el.dataset.scaleBackground = "true";
+    hook.updated();
+
+    expect(page.classList.contains("pc-drawer-scaled")).toBe(true);
+  });
+
+  it("unscales the wrapper when scale_background is switched off", () => {
+    const { hook, el, wrap } = mount({ scaleBackground: "true" });
+    const page = wrap.querySelector("[data-pc-drawer-wrapper]");
+    el.style.display = "flex";
+    hook.syncBackground();
+    expect(page.classList.contains("pc-drawer-scaled")).toBe(true);
+
+    el.dataset.scaleBackground = "false";
+    hook.updated();
+
+    expect(page.classList.contains("pc-drawer-scaled")).toBe(false);
+  });
+
+  it("treats a sheet with no inline display as open", () => {
+    // JS.show skips writing an inline display when the element is already
+    // visible, which is what happens for a slide_over rendered without `hide`.
+    const { hook, el } = mount({ scaleBackground: "true" });
+    expect(hook.isOpen()).toBe(false);
+
+    vi.spyOn(el, "getClientRects").mockReturnValue([{}]);
+    expect(hook.isOpen()).toBe(true);
   });
 
   it("settles instantly under prefers-reduced-motion", () => {
