@@ -7586,3 +7586,173 @@
       transition-duration: 1ms;
     }
   }
+
+@layer components {
+  /* Tree (WAI-ARIA TreeView)
+
+     Indentation is a single custom property per row (--pc-tree-depth) times a
+     fixed step, so a node at any depth costs one inline style and nothing else.
+     The guide lines ride an absolutely positioned decorative layer over that
+     same step, which is why they line up under the parent chevron without any
+     per-level rules. */
+  .pc-tree {
+    --pc-tree-step: 1.25rem;
+    @apply m-0 list-none p-0 text-sm text-gray-700 select-none dark:text-gray-300;
+  }
+
+  .pc-tree__item {
+    @apply list-none;
+  }
+
+  .pc-tree__row {
+    @apply relative flex min-w-0 items-center gap-1 py-1 pe-2 transition-colors;
+    padding-inline-start: calc(var(--pc-tree-depth, 0) * var(--pc-tree-step));
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
+  }
+
+  .pc-tree__row:hover {
+    @apply bg-gray-100 dark:bg-gray-400/10;
+  }
+
+  .pc-tree__item--selected > .pc-tree__row,
+  .pc-tree__item--selected > .pc-tree__row:hover {
+    @apply bg-primary-100 text-primary-800 dark:bg-primary-500/15 dark:text-primary-300;
+  }
+
+  /* Focus is the tree item (the li), but the ring belongs on the row - the li
+     also wraps the whole collapsed subtree and would draw a box around it. */
+  .pc-tree__item:focus {
+    @apply outline-hidden;
+  }
+
+  .pc-tree__item:focus-visible > .pc-tree__row {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-tree__item--disabled > .pc-tree__row {
+    @apply opacity-50;
+  }
+
+  .pc-tree__item--disabled > .pc-tree__row:hover {
+    @apply bg-transparent;
+  }
+
+  .pc-tree__chevron {
+    @apply flex shrink-0 cursor-pointer items-center justify-center text-gray-400 dark:text-gray-500;
+    width: var(--pc-tree-step);
+    height: var(--pc-tree-step);
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.375rem), 0px);
+  }
+
+  .pc-tree__chevron:hover {
+    @apply bg-gray-200 text-gray-600 dark:bg-gray-400/17 dark:text-gray-300;
+  }
+
+  /* The leaf chevron is empty on purpose: it reserves the same column so leaf
+     labels line up with their sibling branches. */
+  .pc-tree__chevron--leaf {
+    @apply cursor-default;
+  }
+
+  .pc-tree__chevron--leaf:hover {
+    @apply bg-transparent;
+  }
+
+  .pc-tree__chevron-icon {
+    @apply transition-transform duration-200;
+  }
+
+  /* Doubled selector + bang, the icon-sizing contract (see the pagination
+     chevron): these land on bare hero-* spans, and consumer heroicon CSS
+     (Tailwind v4 @plugin, every phx.new app) sizes them from the utilities
+     layer at w-6/1lh - which beats any single components-layer selector.
+     Without this, tree icons render 24px in real apps. */
+  .pc-tree__chevron-icon.pc-tree__chevron-icon {
+    @apply w-4! h-4!;
+  }
+
+  .pc-tree__item[data-expanded="true"] > .pc-tree__row .pc-tree__chevron-icon {
+    @apply rotate-90;
+  }
+
+  .pc-tree__content {
+    @apply flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 py-0.5;
+  }
+
+  .pc-tree__item--disabled .pc-tree__content {
+    @apply cursor-not-allowed;
+  }
+
+  .pc-tree__icon {
+    @apply shrink-0 text-gray-400 dark:text-gray-500;
+  }
+
+  /* Same icon-sizing contract as the chevron above. */
+  .pc-tree__icon.pc-tree__icon {
+    @apply w-4! h-4!;
+  }
+
+  .pc-tree__item--selected > .pc-tree__row .pc-tree__icon {
+    @apply text-primary-600 dark:text-primary-300;
+  }
+
+  .pc-tree__label {
+    @apply truncate;
+  }
+
+  /* Decorative only - one 1px column per ancestor level, offset half a step so
+     each line falls through the middle of its parent's chevron. */
+  .pc-tree__guides {
+    @apply pointer-events-none absolute inset-y-0 start-0 flex;
+    padding-inline-start: calc(var(--pc-tree-step) / 2);
+  }
+
+  .pc-tree__guide {
+    @apply border-s border-gray-200 dark:border-gray-400/17;
+    width: var(--pc-tree-step);
+  }
+
+  /* The 0fr -> 1fr grid trick animates to the children's natural height with no
+     measured pixel value. visibility rides along so a collapsed branch leaves
+     the accessibility tree instead of sitting there clipped but exposed. */
+  .pc-tree__group-wrap {
+    @apply grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows 200ms ease,
+      visibility 200ms;
+  }
+
+  .pc-tree__item[data-expanded="true"] > .pc-tree__group-wrap {
+    grid-template-rows: 1fr;
+    visibility: visible;
+  }
+
+  .pc-tree__group {
+    @apply m-0 min-h-0 list-none overflow-hidden p-0;
+  }
+
+  .pc-tree__empty {
+    @apply px-2 py-3 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-tree__loading {
+    @apply flex list-none items-center gap-2 py-1 pe-2 text-xs text-gray-500 dark:text-gray-400;
+    padding-inline-start: calc(
+      var(--pc-tree-depth, 0) * var(--pc-tree-step) + var(--pc-tree-step)
+    );
+  }
+
+  .pc-tree__spinner {
+    @apply h-3.5 w-3.5 text-gray-400 dark:text-gray-500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-tree__group-wrap,
+    .pc-tree__chevron-icon,
+    .pc-tree__row {
+      transition-duration: 1ms;
+    }
+  }
+}
