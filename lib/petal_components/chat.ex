@@ -663,8 +663,11 @@ defmodule PetalComponents.Chat do
         <span class="pc-chat__attachment-name">{@entry.client_name}</span>
         <span class="pc-chat__attachment-size">{format_bytes(@entry.client_size)}</span>
       </span>
+      <%!-- Only while an upload is actually running. Without auto_upload an entry
+      sits at 0 until submit, and a 0% ring would sit over every chip from the
+      moment it is attached. --%>
       <span
-        :if={@entry.progress < 100}
+        :if={@entry.progress > 0 and @entry.progress < 100}
         role="progressbar"
         aria-valuenow={@entry.progress}
         aria-valuemin="0"
@@ -791,12 +794,21 @@ defmodule PetalComponents.Chat do
 
   defp format_bytes(nil), do: nil
   defp format_bytes(bytes) when bytes < 1_000, do: "#{bytes} B"
-  defp format_bytes(bytes) when bytes < 1_000_000, do: "#{Float.round(bytes / 1_000, 1)} KB"
+  defp format_bytes(bytes) when bytes < 1_000_000, do: format_size(bytes / 1_000, "KB")
+  defp format_bytes(bytes) when bytes < 1_000_000_000, do: format_size(bytes / 1_000_000, "MB")
+  defp format_bytes(bytes), do: format_size(bytes / 1_000_000_000, "GB")
 
-  defp format_bytes(bytes) when bytes < 1_000_000_000,
-    do: "#{Float.round(bytes / 1_000_000, 1)} MB"
+  # One decimal, but never a bare ".0" — "340 KB" reads like a file manager,
+  # "340.0 KB" reads like a rounding artifact.
+  defp format_size(value, unit) do
+    number =
+      value
+      |> Float.round(1)
+      |> to_string()
+      |> String.replace_suffix(".0", "")
 
-  defp format_bytes(bytes), do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
+    "#{number} #{unit}"
+  end
 
   @doc """
   A collapsible "thinking" / reasoning block for reasoning-model output. Native

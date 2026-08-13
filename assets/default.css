@@ -4569,6 +4569,11 @@
 
   /* Chat / AI (New) */
 
+  /* Heads up: the chat family's newer pieces (citations and the sources row,
+     composer attachments) each appended their own `@layer components` block at
+     the tail of this file rather than reflowing this section. Search for
+     "Chat —" to find them; they are all `pc-chat__*` and belong here. */
+
   .pc-chat {
     /* Theme tokens — override these to reskin without touching markup. */
     --pc-chat-radius: 1rem;
@@ -7761,7 +7766,7 @@
   }
 
   .pc-chat__composer-attach:has(input:focus-visible) {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-chat__composer-attach-icon.pc-chat__composer-attach-icon {
@@ -7814,17 +7819,44 @@
     @apply text-[0.9em] text-gray-500 dark:text-gray-400;
   }
 
-  /* Progress ring: a conic sweep driven by --pc-attachment-progress (0-100),
-     so the server-rendered value is the only source of truth. */
+  /* Progress: driven by --pc-attachment-progress (0-100), so the
+     server-rendered value is the only source of truth. Only rendered while an
+     upload is in flight (1-99). */
   .pc-chat__attachment-progress {
     @apply pointer-events-none absolute inset-0 flex items-center justify-center;
+    --pc-attachment-fill: color-mix(in oklab, var(--color-primary-500, #3b82f6) 55%, transparent);
+    --pc-attachment-track: color-mix(in oklab, var(--color-gray-900, #111827) 45%, transparent);
     border-radius: inherit;
-    background: conic-gradient(
-      color-mix(in oklab, var(--color-primary-500, #3b82f6) 55%, transparent)
-        calc(var(--pc-attachment-progress, 0) * 1%),
-      color-mix(in oklab, var(--color-gray-900, #111827) 45%, transparent) 0
-    );
     transition: background 0.2s linear;
+  }
+
+  /* A gray-900 wash is invisible on a dark chip, which is already gray-900. */
+  .dark .pc-chat__attachment-progress {
+    --pc-attachment-track: color-mix(in oklab, var(--color-gray-100, #f3f4f6) 30%, transparent);
+  }
+
+  /* Image chips have no text to obscure, so the conic sweep fills the
+     thumbnail - the clearest read of "this much is uploaded". */
+  .pc-chat__attachment--image .pc-chat__attachment-progress {
+    background: conic-gradient(
+      var(--pc-attachment-fill) calc(var(--pc-attachment-progress, 0) * 1%),
+      var(--pc-attachment-track) 0
+    );
+  }
+
+  /* File chips carry the name and the size, and a full-chip wash dims both
+     below the contrast the rest of the library holds. The same value rides a
+     bar along the bottom edge instead, leaving the text alone. */
+  .pc-chat__attachment--file .pc-chat__attachment-progress {
+    @apply top-auto;
+    height: 0.1875rem;
+    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem)
+      max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    background: linear-gradient(
+      to right,
+      var(--pc-attachment-fill) calc(var(--pc-attachment-progress, 0) * 1%),
+      var(--pc-attachment-track) 0
+    );
   }
 
   .pc-chat__attachment-remove {
@@ -7832,7 +7864,7 @@
   }
 
   .pc-chat__attachment-remove:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-chat__attachment-remove-icon.pc-chat__attachment-remove-icon {
@@ -7876,7 +7908,7 @@
   }
 
   .pc-chat__attachment-image:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   /* A single image goes large but still has to sit in a bubble, so cap the
@@ -7896,7 +7928,7 @@
   }
 
   .pc-chat__attachment-row:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-chat__attachment-row .pc-chat__attachment-size {

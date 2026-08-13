@@ -116,7 +116,11 @@ export const PetalChatComposer = {
   },
 
   handlePaste(e) {
-    const fileInput = this.el.querySelector("input[type=file]");
+    // Scoped to the paperclip: the :actions slot can hold a consumer's own
+    // file input, and only the upload's live_file_input is wired to LiveView.
+    const fileInput = this.el.querySelector(
+      ".pc-chat__composer-attach input[type=file]",
+    );
     if (!fileInput || !e.clipboardData) return;
 
     const files = Array.from(e.clipboardData.files || []);

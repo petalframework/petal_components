@@ -253,7 +253,7 @@ defmodule Dev.PlaygroundLive do
   """
 
   # Inline SVG so the attachments example renders with no static asset host.
-  @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%' height='100%' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
+  @chat_shot_image "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='300'><rect width='100%25' height='100%25' fill='%23e2e8f0'/><rect x='24' y='24' width='432' height='40' rx='6' fill='%23cbd5e1'/><rect x='24' y='88' width='300' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='120' width='240' height='16' rx='4' fill='%23cbd5e1'/><rect x='24' y='176' width='432' height='96' rx='6' fill='%23fecaca'/><text x='40' y='232' font-family='monospace' font-size='18' fill='%23991b1b'>CardTokenExpired</text></svg>"
 
   @chat_history [
     %{id: "m-yesterday", role: :marker, text: "Yesterday"},
@@ -9083,12 +9083,14 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The composer above takes real uploads. Click the paperclip, drag a file
         onto the composer, or paste a screenshot straight into the textarea -
-        each one lands as a chip with a progress ring and a remove button, and
-        sending renders them back into the message with <code>message_attachments</code>. It's ordinary <code>allow_upload/3</code>: the component only renders <code>@uploads.name</code>. Flip the size limit dial to
+        each one lands as a chip with a remove button - the progress fills while
+        the bytes actually move, which without <code>auto_upload</code>
+        is on send - and sending renders them back into the message with <code>message_attachments</code>. It's ordinary <code>allow_upload/3</code>: the component only renders <code>@uploads.name</code>. Flip the size limit dial to
         <code>tiny</code>
         (20 KB) and drop a normal screenshot to see the inline error, and <code>accept_hint</code>
-        off/on to toggle the paperclip's description. Keyboard: Tab reaches the
-        paperclip, then each chip's remove button, then the textarea, then send.
+        off/on to toggle the paperclip's description. Keyboard: the chip strip
+        renders above the composer row, so Tab reaches each chip's remove button
+        first, then the paperclip, then the textarea, then send.
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">A support thread with attachments</h2>

@@ -36,7 +36,10 @@ function makeFilesWritable(input) {
   });
 }
 
-function mountComposer({ withFileInput = true } = {}) {
+function mountComposer({
+  withFileInput = true,
+  withForeignFileInput = false,
+} = {}) {
   document.body.innerHTML = "";
 
   const form = document.createElement("form");
@@ -44,12 +47,25 @@ function mountComposer({ withFileInput = true } = {}) {
   const textarea = document.createElement("textarea");
   form.appendChild(textarea);
 
+  // A consumer's own file input in the :actions slot, rendered before the
+  // paperclip. The hook must not mistake it for the upload's input.
+  let foreignInput = null;
+  if (withForeignFileInput) {
+    foreignInput = document.createElement("input");
+    foreignInput.type = "file";
+    makeFilesWritable(foreignInput);
+    form.appendChild(foreignInput);
+  }
+
   if (withFileInput) {
+    const label = document.createElement("label");
+    label.className = "pc-chat__composer-attach";
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.multiple = true;
     makeFilesWritable(fileInput);
-    form.appendChild(fileInput);
+    label.appendChild(fileInput);
+    form.appendChild(label);
   }
 
   document.body.appendChild(form);
@@ -59,7 +75,13 @@ function mountComposer({ withFileInput = true } = {}) {
   hook.handleEvent = () => {};
   hook.mounted();
 
-  return { hook, form, textarea, fileInput: form.querySelector("input[type=file]") };
+  return {
+    hook,
+    form,
+    textarea,
+    foreignInput,
+    fileInput: form.querySelector(".pc-chat__composer-attach input[type=file]"),
+  };
 }
 
 // jsdom's ClipboardEvent doesn't carry a settable clipboardData, so build the
@@ -119,6 +141,17 @@ describe("PetalChatComposer paste handler", () => {
     expect(fired).toBe(0);
     expect(event.defaultPrevented).toBe(false);
     expect(fileInput.files).toHaveLength(0);
+  });
+
+  it("ignores a consumer's own file input and uses the paperclip's", () => {
+    const { textarea, fileInput, foreignInput } = mountComposer({
+      withForeignFileInput: true,
+    });
+
+    textarea.dispatchEvent(pasteEvent([pngFile()]));
+
+    expect(foreignInput.files).toHaveLength(0);
+    expect(fileInput.files).toHaveLength(1);
   });
 
   it("does nothing when the composer has no upload input", () => {

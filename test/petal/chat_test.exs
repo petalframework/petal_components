@@ -807,6 +807,16 @@ defmodule PetalComponents.ChatTest do
       refute html =~ ~s{role="progressbar"}
     end
 
+    test "nothing is drawn at 0 — the resting state before an upload starts" do
+      assigns = %{upload: upload_config([upload_entry(progress: 0)])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "pc-chat__attachment"
+      refute html =~ ~s{role="progressbar"}
+      refute html =~ "pc-chat__attachment-progress"
+    end
+
     test "the remove button pushes the cancel event with the entry ref" do
       assigns = %{upload: upload_config([upload_entry(ref: "entry-7")])}
 
@@ -861,6 +871,24 @@ defmodule PetalComponents.ChatTest do
       assert html =~ "clip.mov: This file type isn&#39;t accepted."
     end
 
+    test "an upload client failure and an unknown error atom both get readable copy" do
+      entry = upload_entry(ref: "e1", client_name: "clip.mov")
+
+      assigns = %{
+        upload: upload_config([entry], errors: [{"e1", :external_client_failure}])
+      }
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "clip.mov: Something went wrong uploading this file."
+
+      assigns = %{upload: upload_config([entry], errors: [{"e1", :something_new}])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      assert html =~ "clip.mov: Upload failed (:something_new)."
+    end
+
     test "accept_hint lands in the accessible description and the tooltip" do
       assigns = %{upload: upload_config([])}
 
@@ -871,6 +899,15 @@ defmodule PetalComponents.ChatTest do
 
       assert html =~ ~s{aria-description="PNGs up to 5 MB"}
       assert html =~ ~s{title="PNGs up to 5 MB"}
+    end
+
+    test "no accept_hint means no empty title or aria-description" do
+      assigns = %{upload: upload_config([])}
+
+      html = rendered_to_string(~H|<.prompt_input phx-submit="send" upload={@upload} />|)
+
+      refute html =~ "title="
+      refute html =~ "aria-description="
     end
 
     test "chips coexist with the editing banner and the loading stop button" do
@@ -945,7 +982,7 @@ defmodule PetalComponents.ChatTest do
       assert html =~ "download"
       assert html =~ ~s{href="/uploads/invoice.pdf"}
       assert html =~ "invoice.pdf"
-      assert html =~ "340.0 KB"
+      assert html =~ "340 KB"
     end
 
     test "a nil size omits the size span" do
