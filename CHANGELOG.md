@@ -1,4 +1,30 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **Answer grounding for the chat family: inline citation chips and a
+  `chat_sources` row.** RAG answers are only trustworthy if you can see
+  where they came from, and until now the chat kit rendered the prose but
+  not the receipts. Prompt the model to cite as `[^N]` and hand the same
+  source maps to `markdown/1`: every complete marker turns into a numbered
+  chip that opens the source in a new tab, with a preview card (title,
+  domain, snippet) on hover or focus. `chat_sources/1` renders the deduped
+  list underneath - a native `<details>`, no JS, with `expanded` to open it
+  on render and `max_visible` to cap the list behind a "Show all" reveal.
+  `citation/1` is the chip on its own for prose you assemble yourself.
+  The streaming path takes the same option: `to_html/2` accepts
+  `sources:`, so chips light up as their markers complete and a
+  half-arrived `[^` never flashes broken output. Sources are plain maps
+  (`%{id, url, title, snippet, favicon_url}`) with string or atom keys;
+  everything but `url` is optional and degrades - no favicon means a letter
+  avatar, no snippet means a shorter row. Chip markup is minted server-side
+  from the numeric index plus escaped source fields and spliced into the
+  already-sanitized HTML outside code blocks, so model text can never reach
+  the page as live markup, and only `http`/`https` urls become links - a
+  source url with any other scheme renders without an `href`.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added

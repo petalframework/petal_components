@@ -7586,3 +7586,180 @@
       transition-duration: 1ms;
     }
   }
+
+/* Chat — answer grounding: inline citation chips + the RAG sources row. */
+@layer components {
+  /* Inline citation chip -------------------------------------------------- */
+
+  /* Positioning context for the hover/focus preview card. */
+  .pc-chat__citation-wrap {
+    @apply relative inline-block align-baseline;
+  }
+
+  .pc-chat__citation {
+    @apply inline-flex min-w-4 items-center justify-center px-1 align-super text-[0.65em] font-semibold leading-none text-gray-600 no-underline transition-colors dark:text-gray-300;
+    @apply bg-gray-100 dark:bg-gray-400/17;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.125rem);
+    padding-block: 0.15em;
+  }
+
+  .pc-chat__citation:hover {
+    @apply bg-gray-200 text-gray-900 dark:bg-gray-400/25 dark:text-gray-100;
+  }
+
+  .pc-chat__citation:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  /* The chip's own <sup> would double-raise it — the chip is already
+     align-super, so keep the number on the chip's baseline. */
+  .pc-chat__citation-num {
+    @apply align-baseline;
+  }
+
+  /* Centred over the chip and clamped to the viewport, so a chip near the right
+     edge of a narrow bubble spills at most half a card instead of a whole one.
+     `visibility: hidden` already keeps the closed card out of hit-testing, so no
+     pointer-events reset is needed: the open card is hoverable (WCAG 1.4.13). */
+  .pc-chat__citation-card {
+    @apply invisible absolute bottom-full left-1/2 z-20 mb-1 flex w-max flex-col gap-1 border border-gray-200 bg-white p-2 text-xs leading-snug text-gray-600 opacity-0 shadow-lg transition-opacity duration-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300;
+    border-radius: var(--pc-radius, 0.625rem);
+    max-width: min(14rem, calc(100vw - 2rem));
+    transform: translateX(-50%);
+  }
+
+  /* Bridges the 0.25rem gap between chip and card so the pointer can travel
+     into the card without the hover dropping. */
+  .pc-chat__citation-card::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 0.25rem;
+  }
+
+  .pc-chat__citation-wrap:hover .pc-chat__citation-card,
+  .pc-chat__citation-wrap:focus-within .pc-chat__citation-card {
+    @apply visible opacity-100;
+  }
+
+  .pc-chat__citation-card-title {
+    @apply font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-chat__citation-card-domain {
+    @apply text-[0.9em] text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__citation-card-snippet {
+    @apply line-clamp-3 text-gray-500 dark:text-gray-400;
+  }
+
+  /* Sources row ----------------------------------------------------------- */
+
+  .pc-chat__sources {
+    @apply mt-2 text-xs;
+  }
+
+  .pc-chat__sources-row {
+    @apply inline-flex cursor-pointer list-none items-center gap-1.5 border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-chat__sources-row::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__sources-row:hover {
+    @apply bg-gray-50 text-gray-700 dark:bg-gray-400/10 dark:text-gray-200;
+  }
+
+  .pc-chat__sources-row:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__sources-favicons {
+    @apply flex items-center;
+  }
+
+  /* Stacked favicon cluster — each one overlaps the last. */
+  .pc-chat__sources-favicons > * + * {
+    @apply -ml-1.5;
+  }
+
+  .pc-chat__sources-chevron {
+    @apply shrink-0 transition-transform duration-150;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see reasoning). */
+  .pc-chat__sources-chevron.pc-chat__sources-chevron {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+
+  .pc-chat__sources[open] > .pc-chat__sources-row .pc-chat__sources-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__sources-list {
+    @apply mt-2 flex list-none flex-col gap-1 p-0;
+  }
+
+  .pc-chat__source-link {
+    @apply flex items-start gap-2 border border-transparent p-2 no-underline transition-colors;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__source-link:hover {
+    @apply border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-400/10;
+  }
+
+  .pc-chat__source-link:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__source-favicon {
+    @apply mt-0.5 h-4 w-4 shrink-0 rounded-sm bg-gray-100 object-cover dark:bg-gray-400/17;
+  }
+
+  .pc-chat__source-favicon--letter {
+    @apply flex items-center justify-center text-[0.6rem] font-semibold text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__source-text {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .pc-chat__source-title {
+    @apply truncate font-medium text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-chat__source-domain {
+    @apply truncate text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__source-snippet {
+    @apply line-clamp-2 text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__sources-more-summary {
+    @apply mt-1 inline-flex cursor-pointer list-none items-center px-2 py-1 font-medium text-gray-500 select-none hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200;
+  }
+
+  .pc-chat__sources-more-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__sources-more-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-chat__citation,
+    .pc-chat__citation-card,
+    .pc-chat__sources-chevron,
+    .pc-chat__source-link {
+      transition-duration: 1ms;
+    }
+  }
+}
