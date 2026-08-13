@@ -448,7 +448,7 @@ export const PetalDualRangeSlider = {
 // sync while you drag, and in dual mode enforces the ordering invariant the
 // two overlaid native inputs cannot enforce themselves.
 //
-// The server renders --pc-slider-pct* inline, so the control is already
+// The server renders --pc-slider-frac* inline, so the control is already
 // correct before this hook connects and stays correct with JS off; everything
 // here is the live update. Positioning stays pure CSS (fill, tooltip and every
 // tick read the same properties), so nothing is measured.
@@ -465,9 +465,33 @@ export const PetalDualRangeSlider = {
 //   [data-pc-slider-display]      — inline readout / single tooltip
 //   [data-pc-slider-display-min]  — dual lower tooltip
 //   [data-pc-slider-display-max]  — dual upper tooltip
-//   [data-pc-slider-mark]         — a tick, its percentage as the value
+//   [data-pc-slider-mark]         — a tick, its 0..1 fraction as the value
 export const PetalSlider = {
   mounted() {
+    this.onInput = (event) => this.handleInput(event);
+    this.bind();
+    this.sync();
+  },
+
+  updated() {
+    // Re-read the DOM rather than trusting what the last bind() cached. A
+    // re-render can change the slider's whole shape under a constant id -
+    // single becomes dual, the bounds move, the prefix changes - and single
+    // and dual do not even share input elements (_input vs _min/_max). Keeping
+    // the old references would leave the listeners on detached nodes, so the
+    // fill would stop following the thumb and the dual ordering clamp would
+    // never run again.
+    this.bind();
+    this.sync({ emit: false });
+  },
+
+  destroyed() {
+    this.unbind();
+  },
+
+  bind() {
+    this.unbind();
+
     this.dual = this.el.dataset.pcSliderMode === "dual";
     this.lo = parseFloat(this.el.dataset.pcSliderMin);
     this.hi = parseFloat(this.el.dataset.pcSliderMax);
@@ -478,30 +502,25 @@ export const PetalSlider = {
     this.marks = Array.from(this.el.querySelectorAll("[data-pc-slider-mark]"));
 
     if (this.dual) {
+      this.input = null;
       this.minInput = this.el.querySelector("[data-pc-slider-input-min]");
       this.maxInput = this.el.querySelector("[data-pc-slider-input-max]");
       this.inputs = [this.minInput, this.maxInput].filter(Boolean);
     } else {
+      this.minInput = null;
+      this.maxInput = null;
       this.input = this.el.querySelector("[data-pc-slider-input]");
       this.inputs = this.input ? [this.input] : [];
     }
 
-    this.onInput = (event) => this.handleInput(event);
     this.inputs.forEach((el) => el.addEventListener("input", this.onInput));
-    this.sync();
   },
 
-  updated() {
-    // The server re-rendered: its --pc-slider-pct* are authoritative again,
-    // but the marks and readout still need reconciling against the new values.
-    this.marks = Array.from(this.el.querySelectorAll("[data-pc-slider-mark]"));
-    this.sync({ emit: false });
-  },
-
-  destroyed() {
+  unbind() {
     (this.inputs || []).forEach((el) =>
       el.removeEventListener("input", this.onInput),
     );
+    this.inputs = [];
   },
 
   handleInput(event) {
@@ -552,10 +571,16 @@ export const PetalSlider = {
     return Number.isNaN(n) ? fallback : n;
   },
 
-  pct(value) {
+  // 0..1, matching the server's frac/3 - the CSS turns it into a thumb-centre
+  // offset, so a unitless fraction is what both ends have to agree on. Rounded
+  // to the same 4dp the server uses, so an awkward denominator (0..3, marks on
+  // every step) cannot leave a tick the server painted as filled failing the
+  // client's own >= comparison the moment the hook connects.
+  frac(value) {
     const span = this.hi - this.lo;
     if (span === 0) return 0;
-    return Math.max(0, Math.min(100, ((value - this.lo) / span) * 100));
+    const f = Math.max(0, Math.min(1, (value - this.lo) / span));
+    return Math.round(f * 10000) / 10000;
   },
 
   sync({ emit = true } = {}) {
@@ -563,27 +588,27 @@ export const PetalSlider = {
 
     if (this.dual) {
       const [min, max] = values;
-      this.el.style.setProperty("--pc-slider-pct-min", `${this.pct(min)}%`);
-      this.el.style.setProperty("--pc-slider-pct-max", `${this.pct(max)}%`);
+      this.el.style.setProperty("--pc-slider-frac-min", `${this.frac(min)}`);
+      this.el.style.setProperty("--pc-slider-frac-max", `${this.frac(max)}`);
       this.setText("[data-pc-slider-display]", `${this.fmt(min)} – ${this.fmt(max)}`);
       this.setText("[data-pc-slider-display-min]", this.fmt(min));
       this.setText("[data-pc-slider-display-max]", this.fmt(max));
-      this.syncMarks((p) => p >= this.pct(min) && p <= this.pct(max));
+      this.syncMarks((f) => f >= this.frac(min) && f <= this.frac(max));
       if (emit) this.emit({ values: [min, max] });
     } else {
       const [value] = values;
-      this.el.style.setProperty("--pc-slider-pct", `${this.pct(value)}%`);
+      this.el.style.setProperty("--pc-slider-frac", `${this.frac(value)}`);
       this.setText("[data-pc-slider-display]", this.fmt(value));
-      this.syncMarks((p) => p <= this.pct(value));
+      this.syncMarks((f) => f <= this.frac(value));
       if (emit) this.emit({ value });
     }
   },
 
   syncMarks(filled) {
     this.marks.forEach((mark) => {
-      const p = parseFloat(mark.dataset.pcSliderMark);
-      if (Number.isNaN(p)) return;
-      mark.classList.toggle("pc-slider__mark--filled", filled(p));
+      const f = parseFloat(mark.dataset.pcSliderMark);
+      if (Number.isNaN(f)) return;
+      mark.classList.toggle("pc-slider__mark--filled", filled(f));
     });
   },
 

@@ -2197,8 +2197,7 @@ defmodule Dev.PlaygroundLive do
     end
   end
 
-  defp slider_volume_icon(v) when v == 0, do: "hero-speaker-x-mark"
-  defp slider_volume_icon(v) when v < 50, do: "hero-speaker-wave"
+  defp slider_volume_icon(0), do: "hero-speaker-x-mark"
   defp slider_volume_icon(_), do: "hero-speaker-wave"
 
   defp slider_snippet(%{mode: "dual"} = s) do

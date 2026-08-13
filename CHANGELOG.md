@@ -24,8 +24,8 @@
   Geometry rides CSS custom properties that the server renders inline, so the
   control paints correctly before the `PetalSlider` hook connects and with JS
   off entirely. The hook only does what the client alone can know: keeping
-  those percentages live while you drag, enforcing the thumb ordering two
-  native inputs cannot enforce themselves, and emitting a bubbling
+  those fractions live while you drag, enforcing the thumb ordering two native
+  inputs cannot enforce themselves, and emitting a bubbling
   `petal:slider-change` event for apps that want the value without a form.
 
 #### Deprecated

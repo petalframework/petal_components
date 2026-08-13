@@ -951,46 +951,9 @@ defmodule PetalComponents.Field do
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
 
-  defp translate_error({msg, opts}) do
-    config_translator = get_translator_from_config()
-
-    if config_translator do
-      config_translator.({msg, opts})
-    else
-      fallback_translate_error(msg, opts)
-    end
-  end
-
-  defp fallback_translate_error(msg, opts) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      try do
-        String.replace(acc, "%{#{key}}", to_string(value))
-      rescue
-        e ->
-          IO.warn(
-            """
-            the fallback message translator for the form_field_error function cannot handle the given value.
-
-            Hint: you can set up the `error_translator_function` to route all errors to your application helpers:
-
-              config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
-
-            Given value: #{inspect(value)}
-
-            Exception: #{Exception.message(e)}
-            """,
-            __STACKTRACE__
-          )
-
-          "invalid value"
-      end
-    end)
-  end
-
-  defp get_translator_from_config do
-    case Application.get_env(:petal_components, :error_translator_function) do
-      {module, function} -> &apply(module, function, [&1])
-      nil -> nil
-    end
-  end
+  # One translator for the whole library, in PetalComponents.Helpers - see the
+  # note there on why it does not live in a blanket-imported module (this one
+  # stays private: `use PetalComponents` imports Field wholesale, and almost
+  # every Phoenix app defines its own translate_error/1).
+  defp translate_error(error), do: PetalComponents.Helpers.translate_error(error)
 end

@@ -75,36 +75,36 @@ afterEach(() => {
 });
 
 describe("PetalSlider single", () => {
-  it("sets --pc-slider-pct from the value on mount", () => {
+  it("sets --pc-slider-frac from the value on mount", () => {
     const { el } = mount({ value: 25 });
-    expect(el.style.getPropertyValue("--pc-slider-pct")).toBe("25%");
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("0.25");
   });
 
-  it("computes the percentage against the declared bounds", () => {
+  it("computes the fraction against the declared bounds", () => {
     const { el } = mount({ min: 1990, max: 2030, value: 2010 });
-    expect(el.style.getPropertyValue("--pc-slider-pct")).toBe("50%");
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("0.5");
   });
 
-  it("re-syncs the percentage as the thumb moves", () => {
+  it("re-syncs the fraction as the thumb moves", () => {
     const { el } = mount({ value: 10 });
     const input = el.querySelector("[data-pc-slider-input]");
     input.value = "90";
     fire(input);
-    expect(el.style.getPropertyValue("--pc-slider-pct")).toBe("90%");
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("0.9");
   });
 
-  it("clamps the painted percentage when a value escapes the bounds", () => {
+  it("clamps the painted fraction when a value escapes the bounds", () => {
     const { el } = mount({ value: 50 });
     const input = el.querySelector("[data-pc-slider-input]");
     // jsdom does not clamp input.value the way a browser does.
     input.value = "500";
     fire(input);
-    expect(el.style.getPropertyValue("--pc-slider-pct")).toBe("100%");
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("1");
   });
 
-  it("paints 0% rather than dividing by zero on a collapsed range", () => {
+  it("paints at the start rather than dividing by zero on a collapsed range", () => {
     const { el } = mount({ min: 5, max: 5, value: 5 });
-    expect(el.style.getPropertyValue("--pc-slider-pct")).toBe("0%");
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("0");
   });
 
   it("writes the formatted readout with prefix and suffix", () => {
@@ -132,7 +132,7 @@ describe("PetalSlider single", () => {
   });
 
   it("toggles the filled treatment on marks the fill has swallowed", () => {
-    const { el } = mount({ value: 50, marks: [25, 75] });
+    const { el } = mount({ value: 50, marks: [0.25, 0.75] });
     const [low, high] = el.querySelectorAll(".pc-slider__mark");
     expect(low.classList.contains("pc-slider__mark--filled")).toBe(true);
     expect(high.classList.contains("pc-slider__mark--filled")).toBe(false);
@@ -141,6 +141,15 @@ describe("PetalSlider single", () => {
     input.value = "80";
     fire(input);
     expect(high.classList.contains("pc-slider__mark--filled")).toBe(true);
+  });
+
+  it("agrees with the server's rounding on an awkward denominator", () => {
+    // 2/3 is 0.6667 on the server and 0.66666... here, so without matching the
+    // rounding a tick the server rendered as filled would flip off the instant
+    // the hook connected.
+    const { el } = mount({ min: 0, max: 3, value: 2, marks: [0.6667] });
+    const [mark] = el.querySelectorAll(".pc-slider__mark");
+    expect(mark.classList.contains("pc-slider__mark--filled")).toBe(true);
   });
 
   it("stops listening once destroyed", () => {
@@ -156,10 +165,10 @@ describe("PetalSlider single", () => {
 });
 
 describe("PetalSlider dual", () => {
-  it("sets both percentage properties on mount", () => {
+  it("sets both fraction properties on mount", () => {
     const { el } = mount({ mode: "dual", values: [20, 80] });
-    expect(el.style.getPropertyValue("--pc-slider-pct-min")).toBe("20%");
-    expect(el.style.getPropertyValue("--pc-slider-pct-max")).toBe("80%");
+    expect(el.style.getPropertyValue("--pc-slider-frac-min")).toBe("0.2");
+    expect(el.style.getPropertyValue("--pc-slider-frac-max")).toBe("0.8");
   });
 
   it("clamps the lower thumb to the upper one when dragged past it", () => {
@@ -169,7 +178,7 @@ describe("PetalSlider dual", () => {
     fire(minInput);
 
     expect(minInput.value).toBe("60");
-    expect(el.style.getPropertyValue("--pc-slider-pct-min")).toBe("60%");
+    expect(el.style.getPropertyValue("--pc-slider-frac-min")).toBe("0.6");
   });
 
   it("clamps the upper thumb to the lower one when dragged past it", () => {
@@ -179,7 +188,7 @@ describe("PetalSlider dual", () => {
     fire(maxInput);
 
     expect(maxInput.value).toBe("40");
-    expect(el.style.getPropertyValue("--pc-slider-pct-max")).toBe("40%");
+    expect(el.style.getPropertyValue("--pc-slider-frac-max")).toBe("0.4");
   });
 
   it("lifts the dragged thumb when the two meet, so it can be dragged back out", () => {
@@ -228,10 +237,101 @@ describe("PetalSlider dual", () => {
   });
 
   it("marks between the thumbs are filled, marks outside are not", () => {
-    const { el } = mount({ mode: "dual", values: [30, 70], marks: [10, 50, 90] });
+    const { el } = mount({ mode: "dual", values: [30, 70], marks: [0.1, 0.5, 0.9] });
     const [a, b, c] = el.querySelectorAll(".pc-slider__mark");
     expect(a.classList.contains("pc-slider__mark--filled")).toBe(false);
     expect(b.classList.contains("pc-slider__mark--filled")).toBe(true);
     expect(c.classList.contains("pc-slider__mark--filled")).toBe(false);
+  });
+});
+
+// A <.slider> can change shape without changing id - the playground's own mode
+// dial does exactly that on #pg-slider-preview - and single and dual do not
+// share input elements (_input vs _min/_max). If updated() keeps what mounted()
+// cached, the listeners stay on nodes that are no longer in the document.
+describe("PetalSlider re-render", () => {
+  function swapTo(el, { mode, min, max, values, value }) {
+    el.dataset.pcSliderMode = mode;
+    el.dataset.pcSliderMin = String(min);
+    el.dataset.pcSliderMax = String(max);
+    el.innerHTML =
+      mode === "dual"
+        ? `<input type="range" data-pc-slider-input-min min="${min}" max="${max}" value="${values[0]}" />
+           <input type="range" data-pc-slider-input-max min="${min}" max="${max}" value="${values[1]}" />`
+        : `<input type="range" data-pc-slider-input min="${min}" max="${max}" value="${value}" />`;
+  }
+
+  it("follows the new inputs when single is re-rendered as dual", () => {
+    const { hook, el } = mount({ value: 50 });
+
+    swapTo(el, { mode: "dual", min: 0, max: 100, values: [20, 80] });
+    hook.updated();
+
+    expect(el.style.getPropertyValue("--pc-slider-frac-min")).toBe("0.2");
+    expect(el.style.getPropertyValue("--pc-slider-frac-max")).toBe("0.8");
+
+    const maxInput = el.querySelector("[data-pc-slider-input-max]");
+    maxInput.value = "60";
+    fire(maxInput);
+    expect(el.style.getPropertyValue("--pc-slider-frac-max")).toBe("0.6");
+  });
+
+  it("enforces the ordering clamp on inputs that arrived after mount", () => {
+    const { hook, el } = mount({ value: 50 });
+
+    swapTo(el, { mode: "dual", min: 0, max: 100, values: [20, 80] });
+    hook.updated();
+
+    const minInput = el.querySelector("[data-pc-slider-input-min]");
+    minInput.value = "95";
+    fire(minInput);
+
+    expect(minInput.value).toBe("80");
+    expect(minInput.style.zIndex).toBe("20");
+  });
+
+  it("re-reads the bounds and the readout formatting on re-render", () => {
+    const { hook, el } = mount({ value: 50, display: true, suffix: "%" });
+
+    el.dataset.valuePrefix = "$";
+    el.dataset.valueSuffix = "";
+    swapTo(el, { mode: "single", min: 1990, max: 2030, value: 2010 });
+    hook.updated();
+
+    expect(el.style.getPropertyValue("--pc-slider-frac")).toBe("0.5");
+
+    const display = document.createElement("span");
+    display.setAttribute("data-pc-slider-display", "");
+    el.appendChild(display);
+    const input = el.querySelector("[data-pc-slider-input]");
+    input.value = "2030";
+    fire(input);
+    expect(display.textContent).toBe("$2030");
+  });
+
+  it("does not double-fire after a re-render that keeps the same input", () => {
+    const { hook, el, events } = mount({ value: 10 });
+
+    hook.updated();
+    const before = events.length;
+
+    const input = el.querySelector("[data-pc-slider-input]");
+    input.value = "70";
+    fire(input);
+
+    expect(events.length - before).toBe(1);
+  });
+
+  it("stops listening to inputs that a re-render replaced", () => {
+    const { hook, el, events } = mount({ value: 10 });
+    const original = el.querySelector("[data-pc-slider-input]");
+
+    swapTo(el, { mode: "single", min: 0, max: 100, value: 40 });
+    hook.updated();
+
+    const before = events.length;
+    original.value = "90";
+    fire(original);
+    expect(events.length).toBe(before);
   });
 });

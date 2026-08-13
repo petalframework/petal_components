@@ -53,9 +53,20 @@ defmodule PetalComponents.Slider do
 
   ## Listening for changes without a form
 
-  The `PetalSlider` hook emits a bubbling `petal:slider-change` CustomEvent on
-  the wrapper, with `detail: %{value: v}` (single) or `detail: %{values: [min, max]}`
-  (dual), so a plain `JS.dispatch`-free listener can pick it up.
+  Wrapping the slider in a `<.form phx-change="...">` is the usual route, and
+  the one the playground's price filter takes. When there is no form to hang it
+  on, the `PetalSlider` hook also emits a bubbling `petal:slider-change`
+  CustomEvent on the wrapper, carrying `detail: {value}` for a single thumb and
+  `detail: {values: [min, max]}` for a dual one:
+
+      // app.js
+      window.addEventListener("petal:slider-change", (event) => {
+        if (event.target.id !== "volume") return
+        document.querySelector("audio").volume = event.detail.value / 100
+      })
+
+  It bubbles to `window`, so one listener can serve every slider on the page and
+  survives LiveView re-rendering the slider itself.
 
   ## Relationship to the `range` field types
 
@@ -155,8 +166,7 @@ defmodule PetalComponents.Slider do
     dual? = dual?(assigns)
     validate!(assigns, dual?)
 
-    lo = to_number(assigns.min, 0)
-    hi = to_number(assigns.max, 100)
+    {lo, hi} = ordered_bounds(to_number(assigns.min, 0), to_number(assigns.max, 100))
 
     assigns
     |> assign(:dual, dual?)
@@ -171,6 +181,14 @@ defmodule PetalComponents.Slider do
 
   defp dual?(%{min_field: mf, max_field: xf, values: v}),
     do: not is_nil(mf) or not is_nil(xf) or not is_nil(v)
+
+  # A reversed pair is normalised here rather than only where values are
+  # clamped, because `min`/`max` are also written straight onto the native
+  # inputs: per the HTML range spec a `max` below `min` collapses the control
+  # (max becomes min), so a reversed pair used to paint a sensible fill on the
+  # server and then pin the browser's thumb at the top.
+  defp ordered_bounds(lo, hi) when lo > hi, do: {hi, lo}
+  defp ordered_bounds(lo, hi), do: {lo, hi}
 
   defp validate!(assigns, true) do
     if assigns.field do
@@ -229,8 +247,8 @@ defmodule PetalComponents.Slider do
     assigns
     |> assign(:min_value, min_value)
     |> assign(:max_value, max_value)
-    |> assign(:min_pct, pct(min_value, lo, hi))
-    |> assign(:max_pct, pct(max_value, lo, hi))
+    |> assign(:min_frac, frac(min_value, lo, hi))
+    |> assign(:max_frac, frac(max_value, lo, hi))
     |> assign(:min_input_name, dual_name(assigns, :min))
     |> assign(:max_input_name, dual_name(assigns, :max))
   end
@@ -241,7 +259,7 @@ defmodule PetalComponents.Slider do
 
     assigns
     |> assign(:single_value, value)
-    |> assign(:single_pct, pct(value, lo, hi))
+    |> assign(:single_frac, frac(value, lo, hi))
     |> assign(:single_name, assigns.name || (assigns.field && assigns.field.name))
   end
 
@@ -283,19 +301,16 @@ defmodule PetalComponents.Slider do
 
   defp errors_for(_), do: []
 
-  defp translate_error({msg, opts}) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
-    end)
-  end
-
-  defp translate_error(msg) when is_binary(msg), do: msg
+  # Same translator `<.field>` uses, so an app that has wired
+  # `config :petal_components, :error_translator_function` to its gettext
+  # helper gets translated slider errors too.
+  defp translate_error(error), do: PetalComponents.Helpers.translate_error(error)
 
   defp assign_marks(assigns, lo, hi) do
     marks =
       Enum.map(assigns.marks, fn mark ->
         value = to_number(Map.get(mark, :value), lo)
-        %{value: value, label: Map.get(mark, :label) || "", pct: pct(value, lo, hi)}
+        %{value: value, label: Map.get(mark, :label) || "", frac: frac(value, lo, hi)}
       end)
 
     assigns
@@ -318,6 +333,7 @@ defmodule PetalComponents.Slider do
         @dual && "pc-slider--dual",
         @disabled && "pc-slider--disabled",
         @marks != [] && "pc-slider--marked",
+        @has_mark_labels && "pc-slider--mark-labels",
         @class
       ]}
       phx-hook="PetalSlider"
@@ -337,6 +353,7 @@ defmodule PetalComponents.Slider do
           :if={@show_value == "inline"}
           class="pc-slider__value"
           data-pc-slider-display
+          aria-hidden="true"
         >
           {display_text(assigns)}
         </span>
@@ -350,8 +367,8 @@ defmodule PetalComponents.Slider do
           <span
             :for={mark <- @marks}
             class={["pc-slider__mark", mark_filled?(assigns, mark) && "pc-slider__mark--filled"]}
-            style={"--pc-slider-mark: #{mark.pct}%"}
-            data-pc-slider-mark={mark.pct}
+            style={"--pc-slider-at: #{mark.frac}"}
+            data-pc-slider-mark={mark.frac}
           ></span>
         </div>
 
@@ -360,7 +377,7 @@ defmodule PetalComponents.Slider do
         <div
           :if={@show_value == "tooltip" and not @dual}
           class="pc-slider__tooltip"
-          style="--pc-slider-at: var(--pc-slider-pct)"
+          style="--pc-slider-at: var(--pc-slider-frac)"
           data-pc-slider-display
           aria-hidden="true"
         >
@@ -369,7 +386,7 @@ defmodule PetalComponents.Slider do
         <div
           :if={@show_value == "tooltip" and @dual}
           class="pc-slider__tooltip pc-slider__tooltip--min"
-          style="--pc-slider-at: var(--pc-slider-pct-min)"
+          style="--pc-slider-at: var(--pc-slider-frac-min)"
           data-pc-slider-display-min
           aria-hidden="true"
         >
@@ -378,23 +395,28 @@ defmodule PetalComponents.Slider do
         <div
           :if={@show_value == "tooltip" and @dual}
           class="pc-slider__tooltip pc-slider__tooltip--max"
-          style="--pc-slider-at: var(--pc-slider-pct-max)"
+          style="--pc-slider-at: var(--pc-slider-frac-max)"
           data-pc-slider-display-max
           aria-hidden="true"
         >
           {format_value(assigns, @max_value)}
         </div>
-      </div>
 
-      <div :if={@has_mark_labels} class="pc-slider__mark-labels" aria-hidden="true">
-        <span
-          :for={mark <- @marks}
-          :if={mark.label != ""}
-          class="pc-slider__mark-label"
-          style={"--pc-slider-mark: #{mark.pct}%"}
-        >
-          {mark.label}
-        </span>
+        <%!-- Inside the track wrapper, not beside it: the labels are positioned
+          against the track's box, and the outer wrapper's box also contains the
+          header row and stretches to the widest label. Anchored there, every
+          vertical label came out offset by the header height and off the track
+          centre horizontally. --%>
+        <div :if={@has_mark_labels} class="pc-slider__mark-labels" aria-hidden="true">
+          <span
+            :for={mark <- @marks}
+            :if={mark.label != ""}
+            class="pc-slider__mark-label"
+            style={"--pc-slider-at: #{mark.frac}"}
+          >
+            {mark.label}
+          </span>
+        </div>
       </div>
 
       <Field.field_error :for={msg <- @errors}>{msg}</Field.field_error>
@@ -461,11 +483,11 @@ defmodule PetalComponents.Slider do
   # correctly before the hook connects (and with JS off entirely); the hook
   # keeps them in sync while dragging.
   defp wrapper_style(%{dual: true} = assigns) do
-    "--pc-slider-pct-min: #{assigns.min_pct}%; --pc-slider-pct-max: #{assigns.max_pct}%"
+    "--pc-slider-frac-min: #{assigns.min_frac}; --pc-slider-frac-max: #{assigns.max_frac}"
   end
 
   defp wrapper_style(assigns) do
-    "--pc-slider-pct: #{assigns.single_pct}%"
+    "--pc-slider-frac: #{assigns.single_frac}"
   end
 
   defp mark_filled?(%{dual: true} = assigns, mark),
@@ -512,13 +534,19 @@ defmodule PetalComponents.Slider do
 
   defp to_number(_, default), do: default
 
-  defp clamp(value, lo, hi) when lo > hi, do: clamp(value, hi, lo)
   defp clamp(value, lo, _hi) when value < lo, do: lo
   defp clamp(value, _lo, hi) when value > hi, do: hi
   defp clamp(value, _lo, _hi), do: value
 
-  # Percentage position of `value` within [lo, hi], to 2dp so marks at awkward
-  # steps (1990..2030 by 5) land exactly rather than drifting off the tick.
-  defp pct(_value, lo, hi) when lo == hi, do: 0
-  defp pct(value, lo, hi), do: Float.round((value - lo) / (hi - lo) * 100, 2)
+  # Fractional position of `value` within [lo, hi], 0..1 and unitless.
+  #
+  # Unitless rather than a percentage because the CSS has to convert it into a
+  # thumb-aware offset: a native thumb's centre travels from thumb/2 to
+  # width - thumb/2, so anchoring the fill, the tooltip and the ticks at the
+  # raw percentage leaves them up to half a thumb adrift at the extremes (a
+  # mark at the minimum sits at the very edge of the track while the thumb
+  # parked on it sits a radius in). Rounded to 4dp so marks at awkward steps
+  # (1990..2030 by 5) land exactly on the tick rather than drifting.
+  defp frac(_value, lo, hi) when lo == hi, do: 0
+  defp frac(value, lo, hi), do: Float.round((value - lo) / (hi - lo), 4)
 end
