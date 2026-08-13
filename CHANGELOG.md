@@ -1,4 +1,38 @@
 # Changelog
+
+### Unreleased
+
+#### Added
+
+- **New `sortable` component: drag-to-reorder lists and grids, with a
+  keyboard path that is not an afterthought.** Drag a row (or only its
+  grip, with `handle`) and the list reorders under your finger with the
+  gaps animating into place; on drop it pushes ONE `on_reorder` event
+  carrying `%{"id", "from", "to"}` so your `handle_event` can persist the
+  order. LiveView stays the source of truth: the DOM has already moved,
+  so the patch is a visual no-op, and a server that says no snaps the
+  items back. `orientation="grid"` wraps items into a grid and teaches
+  the arrow keys to move in two dimensions, reading the column count off
+  the live layout so a responsive grid steps correctly at every
+  breakpoint. Works with LiveView streams - pass `phx-update="stream"`
+  through and give items a `dom_id`; reconciliation is by
+  `data-sortable-id`, never by index.
+
+  Keyboard reorder is a first-class path, not a fallback: Space lifts,
+  the arrows move, Space drops, Escape cancels, and every transition is
+  announced through a visually hidden `aria-live` region ("Picked up
+  Discovery call, position 1 of 5"). Focus follows the item it moved.
+  On touch a long press lifts, so a tap or a scroll still does what it
+  always did.
+
+  One `PetalSortable` hook, zero npm dependencies - pointer events,
+  `setPointerCapture` and hand-rolled FLIP transforms. All the order
+  maths and the whole lift state machine are pure functions, so they are
+  unit-tested without a DOM. There is no cloned drag overlay: the real
+  element moves through the list, which keeps the accessible order equal
+  to the DOM order at every instant and keeps form state and media
+  inside a row intact.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added

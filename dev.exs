@@ -294,6 +294,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "sortable", name: "Sortable", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
     },
@@ -784,6 +785,29 @@ defmodule Dev.PlaygroundLive do
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       sortable: %{
+         handle: true,
+         orientation: "vertical",
+         disabled: false,
+         # the server IS the order: the hook reorders optimistically, this
+         # list is what the next render paints from
+         todos: [
+           %{id: "release", title: "Cut the 4.1 release build", locked: false},
+           %{id: "changelog", title: "Write the changelog", locked: false},
+           %{id: "docs", title: "Update the docs site", locked: false},
+           %{id: "invoices", title: "Send the March invoices", locked: true},
+           %{id: "standup", title: "Prep Monday standup", locked: false}
+         ],
+         photos: [
+           %{id: "harbour", title: "Harbour at dawn", tone: "from-sky-400 to-indigo-500"},
+           %{id: "ridge", title: "Ridge line", tone: "from-emerald-400 to-teal-600"},
+           %{id: "salt", title: "Salt flats", tone: "from-amber-300 to-orange-500"},
+           %{id: "pines", title: "Pines in fog", tone: "from-slate-400 to-slate-700"},
+           %{id: "dunes", title: "Dunes", tone: "from-rose-400 to-pink-600"},
+           %{id: "estuary", title: "Estuary", tone: "from-violet-400 to-purple-600"}
+         ],
+         log: []
+       },
        progress: %{
          value: 0,
          color: "primary",
@@ -1452,6 +1476,41 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_sortable", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical grid),
+      do: {:noreply, update(socket, :sortable, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_sortable", %{"k" => k}, socket) when k in ~w(handle disabled),
+    do:
+      {:noreply,
+       update(socket, :sortable, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # The whole server-truth story in one handler. The hook already moved the
+  # DOM optimistically and pushed this; we move the list the same way, so the
+  # next render agrees with what is on screen and the patch is a visual no-op.
+  # Place by id, not by index - `from` is only a sanity check, because under
+  # concurrency it can be stale while the id never is.
+  def handle_event("pg_sortable", %{"id" => id, "from" => from, "to" => to}, socket)
+      when is_integer(from) and is_integer(to) do
+    {:noreply,
+     update(socket, :sortable, fn s ->
+       key = if s.orientation == "grid", do: :photos, else: :todos
+       items = Map.fetch!(s, key)
+
+       case Enum.find_index(items, &(&1.id == id)) do
+         nil ->
+           s
+
+         index ->
+           item = Enum.at(items, index)
+           moved = items |> List.delete_at(index) |> List.insert_at(to, item)
+           entry = "#{item.title}: #{index + 1} -> #{to + 1}"
+
+           s |> Map.put(key, moved) |> Map.put(:log, Enum.take([entry | s.log], 5))
+       end
+     end)}
+  end
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
@@ -7036,6 +7095,133 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "sortable"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Sortable</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Drag a row to reorder it. Or don't touch the mouse at all: Tab to a row (or its grip),
+        press Space to lift it, arrow keys to move it, Space to drop, Escape to change your
+        mind. Every step is announced to a screen reader.
+      </p>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        This demo is live. The drop pushes one event, this LiveView reorders its own list, and
+        the running log underneath is the SERVER's order, not the browser's. Reload the page
+        and the order you left it in is still there.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-4 py-8 sm:px-6">
+          <.sortable
+            :if={@sortable.orientation == "vertical"}
+            id="pg-sortable-todos"
+            on_reorder="pg_sortable"
+            handle={@sortable.handle}
+            disabled={@sortable.disabled}
+          >
+            <:item
+              :for={todo <- @sortable.todos}
+              id={todo.id}
+              label={todo.title}
+              disabled={todo.locked}
+            >
+              <span class="grow">{todo.title}</span>
+              <.badge :if={todo.locked} size="sm" color="gray" label="locked" />
+            </:item>
+          </.sortable>
+
+          <.sortable
+            :if={@sortable.orientation == "grid"}
+            id="pg-sortable-photos"
+            on_reorder="pg_sortable"
+            orientation="grid"
+            handle={@sortable.handle}
+            disabled={@sortable.disabled}
+          >
+            <:item
+              :for={photo <- @sortable.photos}
+              id={photo.id}
+              label={photo.title}
+              class="flex-col items-stretch gap-2 p-2"
+            >
+              <div class={["h-20 rounded-md bg-gradient-to-br", photo.tone]}></div>
+              <span class="text-xs text-gray-600 dark:text-gray-300">{photo.title}</span>
+            </:item>
+          </.sortable>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 py-4 border-t border-gray-200 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@sortable.orientation}
+              on_change="ctl_sortable"
+            >
+              <:item :for={o <- ~w(vertical grid)} value={o} phx-value-k="orientation" phx-value-v={o}>
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Extras"
+              value={
+                for {k, on} <- [{"handle", @sortable.handle}, {"disabled", @sortable.disabled}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_sortable"
+            >
+              <:item value="handle" phx-value-k="handle">grip handle</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="text-[11px] font-medium tracking-wide text-gray-400">
+          server order (persisted in the LiveView, newest move first)
+        </div>
+        <ol class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <li :for={entry <- @sortable.log} class="font-mono text-xs">{entry}</li>
+          <li :if={@sortable.log == []} class="text-gray-400 dark:text-gray-500">
+            nothing moved yet
+          </li>
+        </ol>
+        <div class="mt-3 font-mono text-xs text-gray-500 break-all dark:text-gray-400">
+          {Enum.map_join(
+            if(@sortable.orientation == "grid", do: @sortable.photos, else: @sortable.todos),
+            ", ",
+            & &1.id
+          )}
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Sortable, ~w(handle grid disabled)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Sortable} function={:sortable} />
     </div>
     """
   end
