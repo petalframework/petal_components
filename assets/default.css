@@ -7963,12 +7963,16 @@
     @apply flex flex-1 cursor-pointer items-center justify-center border-e border-gray-200 py-2 text-sm font-medium text-gray-600 transition-colors last:border-e-0 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-400/10;
   }
 
+  /* primary-600 is the house solid fill (pc-button primary, the user bubble,
+     a checked pc-checkbox) and it holds white text at AA. */
   .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:checked) {
-    @apply bg-primary-500 text-white dark:text-white;
+    @apply bg-primary-600 text-white dark:text-white;
   }
 
+  /* The step is flush against its neighbours inside a clipped row, so the
+     house ring goes inset rather than being cut off by the overflow. */
   .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:focus-visible) {
-    @apply outline-2 -outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50 ring-inset;
   }
 
   .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:disabled) {
@@ -7995,7 +7999,7 @@
 
   .pc-questionnaire__submit:focus-visible,
   .pc-questionnaire__skip:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply ring-2 ring-primary-500/50;
   }
 
   .pc-questionnaire__spinner-wrap {

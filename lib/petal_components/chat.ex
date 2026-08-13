@@ -800,7 +800,10 @@ defmodule PetalComponents.Chat do
       end
 
   Required fields use the native `required` attribute — server-side validation
-  stays in your app.
+  stays in your app. The exception is `:multi_select`: a native `required`
+  checkbox demands *that* box specifically, so a required multi-select carries
+  the asterisk and the "(required)" in its legend but is not browser-enforced.
+  Validate it server-side.
 
   ## Resolving it
 
@@ -811,7 +814,7 @@ defmodule PetalComponents.Chat do
   attr :spec, :map,
     required: true,
     doc:
-      "the question spec: %{id, title, description, fields: [...]}. Each field is %{id, type, label, required, options, placeholder, min_label, max_label, style}, where type is :single_select | :multi_select | :text | :scale. String or atom keys both accepted"
+      "the question spec: %{id, title, description, fields: [...]}. `id` namespaces the ids inside, so give two questionnaires on one page two ids; `title` labels the form and should be set. Each field is %{id, type, label, required, options, placeholder, min_label, max_label, style}, where type is :single_select | :multi_select | :text | :scale. `required` is browser-enforced everywhere except :multi_select, where it is advisory (marker plus announcement, your server validates). String or atom keys both accepted"
 
   attr :resolved, :any,
     default: nil,
@@ -858,8 +861,10 @@ defmodule PetalComponents.Chat do
       ]}
       {@rest}
     >
-      <div class="pc-questionnaire__header">
-        <h3 id={@title_id} class="pc-questionnaire__title">{@spec.title}</h3>
+      <%!-- A spec with no title gets no empty heading, and nothing points
+      aria-labelledby at it. --%>
+      <div :if={@spec.title || @spec.description} class="pc-questionnaire__header">
+        <h3 :if={@spec.title} id={@title_id} class="pc-questionnaire__title">{@spec.title}</h3>
         <p :if={@spec.description} class="pc-questionnaire__description">{@spec.description}</p>
       </div>
 
@@ -878,7 +883,7 @@ defmodule PetalComponents.Chat do
         <% true -> %>
           <form
             phx-submit={@on_submit}
-            aria-labelledby={@title_id}
+            aria-labelledby={@spec.title && @title_id}
             class="pc-questionnaire__form"
           >
             <input type="hidden" name="spec_id" value={@spec.id} />
@@ -925,6 +930,10 @@ defmodule PetalComponents.Chat do
     assigns =
       assigns
       |> assign(:name, "answers[#{assigns.field.id}]")
+      # Namespaced by the spec, so the same question rendered twice on a page
+      # (a flow card and a demo of it, say) doesn't collide on input ids and
+      # send a label's click to the other instance.
+      |> assign(:field_id, "#{assigns.spec_id}-#{assigns.field.id}")
       |> assign(:legend, questionnaire_legend(assigns.field))
 
     ~H"""
@@ -935,6 +944,7 @@ defmodule PetalComponents.Chat do
           <PetalComponents.Field.field
             :if={questionnaire_style(@field) == "cards"}
             type="radio-card"
+            id={@field_id}
             name={@name}
             label={@field.label}
             options={@field.options}
@@ -946,6 +956,7 @@ defmodule PetalComponents.Chat do
           <PetalComponents.Field.field
             :if={questionnaire_style(@field) != "cards"}
             type="radio-group"
+            id={@field_id}
             name={@name}
             label={@field.label}
             options={option_tuples(@field.options)}
@@ -957,6 +968,7 @@ defmodule PetalComponents.Chat do
         <% :multi_select -> %>
           <PetalComponents.Field.field
             type="checkbox-group"
+            id={@field_id}
             name={@name}
             label={@field.label}
             options={option_tuples(@field.options)}
@@ -968,6 +980,7 @@ defmodule PetalComponents.Chat do
         <% :text -> %>
           <PetalComponents.Field.field
             type="text"
+            id={@field_id}
             name={@name}
             label={@field.label}
             placeholder={@field.placeholder}
@@ -1084,10 +1097,19 @@ defmodule PetalComponents.Chat do
     |> Enum.reject(fn {_field, chips} -> chips == [] end)
   end
 
+  # Field ids come off a model-emitted spec, so String.to_atom/1 here would be
+  # an atom-table leak by design. Scan the map instead - answer maps are a
+  # handful of keys, and this reads atom and string keys the same way.
   defp answer_for(resolved, id) do
     case Map.fetch(resolved, id) do
-      {:ok, value} -> value
-      :error -> Map.get(resolved, String.to_atom(id))
+      {:ok, value} ->
+        value
+
+      :error ->
+        case Enum.find(resolved, fn {key, _} -> is_atom(key) and Atom.to_string(key) == id end) do
+          {_key, value} -> value
+          nil -> nil
+        end
     end
   end
 

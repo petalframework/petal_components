@@ -112,6 +112,12 @@ defmodule PetalComponents.Showcase.Chat do
   defp framework_spec, do: @framework_spec
   defp scoping_spec, do: @scoping_spec
 
+  # Every example on the page renders at once, and ids inside a questionnaire
+  # derive from the spec id (title, radio-card inputs), so a spec rendered more
+  # than once needs a distinct id per copy.
+  defp framework_spec(id), do: %{@framework_spec | id: id}
+  defp scoping_spec(id), do: %{@scoping_spec | id: id}
+
   example :flagship, "A complete chat",
     description:
       "The pieces below, assembled - a thread, a tool call, a markdown answer with a highlighted code block, an action bar, starter chips and the composer." do
@@ -362,11 +368,14 @@ defmodule PetalComponents.Showcase.Chat do
     ~H"""
     <.conversation id="showcase-chat-questionnaire-resolved" class="w-full max-w-xl mx-auto">
       <.chat_message role="assistant">
-        <.questionnaire spec={framework_spec()} resolved={%{"framework" => "phoenix"}} />
+        <.questionnaire
+          spec={framework_spec("showcase-q-framework-resolved")}
+          resolved={%{"framework" => "phoenix"}}
+        />
       </.chat_message>
       <.chat_message role="assistant">
         <.questionnaire
-          spec={scoping_spec()}
+          spec={scoping_spec("showcase-q-scope-resolved")}
           resolved={
             %{
               "features" => ["auth", "billing"],
@@ -377,7 +386,7 @@ defmodule PetalComponents.Showcase.Chat do
         />
       </.chat_message>
       <.chat_message role="assistant">
-        <.questionnaire spec={framework_spec()} resolved={:skipped} />
+        <.questionnaire spec={framework_spec("showcase-q-framework-skipped")} resolved={:skipped} />
       </.chat_message>
     </.conversation>
     """

@@ -2028,8 +2028,10 @@ defmodule Dev.PlaygroundLive do
     end
   end
 
-  # One field at a time, so each type can be looked at on its own.
-  defp quiz_demo_spec("single_cards"), do: @q_framework
+  # One field at a time, so each type can be looked at on its own. Every branch
+  # uses the "q-demo" id: the flow above renders @q_framework at the same time,
+  # and two live copies of one spec id would collide on input ids.
+  defp quiz_demo_spec("single_cards"), do: %{@q_framework | id: "q-demo"}
 
   defp quiz_demo_spec("single_buttons") do
     %{

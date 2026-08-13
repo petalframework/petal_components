@@ -1182,8 +1182,110 @@ defmodule PetalComponents.ChatTest do
 
       html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
 
-      assert html =~ "required"
       assert html =~ "pc-label--required"
+
+      # The marker class alone would satisfy `html =~ "required"`, so pin the
+      # real attribute: a required single-select must be enforceable by the
+      # browser, not just decorated.
+      doc = LazyHTML.from_fragment(html)
+
+      assert doc |> LazyHTML.query(~s{input[type="radio"][required]}) |> Enum.any?()
+      assert doc |> LazyHTML.query(~s{input[type="text"][required]}) |> Enum.empty?()
+    end
+
+    test "a required single-select renders required on every radio in the group" do
+      assigns = %{
+        spec: %{
+          id: "q",
+          title: "T",
+          fields: [
+            %{
+              id: "framework",
+              type: :single_select,
+              label: "Framework",
+              required: true,
+              options: [%{value: "phoenix", label: "Phoenix"}, %{value: "rails", label: "Rails"}]
+            }
+          ]
+        }
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      radios = html |> LazyHTML.from_fragment() |> LazyHTML.query(~s{input[type="radio"]})
+
+      required =
+        html |> LazyHTML.from_fragment() |> LazyHTML.query(~s{input[type="radio"][required]})
+
+      assert Enum.count(radios) == 2
+      assert Enum.count(required) == 2
+    end
+
+    test "an optional single-select leaves the radios unconstrained" do
+      assigns = %{
+        spec: %{
+          id: "q",
+          title: "T",
+          fields: [
+            %{
+              id: "framework",
+              type: :single_select,
+              label: "Framework",
+              options: [%{value: "phoenix", label: "Phoenix", description: "Elixir"}]
+            }
+          ]
+        }
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query("input[required]")
+             |> Enum.empty?()
+    end
+
+    test "field ids are namespaced per questionnaire so one spec can render twice" do
+      assigns = %{spec: full_spec()}
+
+      html =
+        rendered_to_string(~H"""
+        <div>
+          <.questionnaire spec={@spec} />
+        </div>
+        """)
+
+      ids =
+        html
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("[id]")
+        |> Enum.map(&(&1 |> LazyHTML.attribute("id") |> List.first()))
+
+      assert ids != []
+      assert Enum.uniq(ids) == ids
+      assert Enum.any?(ids, &String.starts_with?(&1, "q-framework-framework"))
+    end
+
+    test "a resolved map keyed by atoms is read without minting atoms from the spec" do
+      assigns = %{spec: full_spec(), resolved: %{framework: "phoenix"}}
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} resolved={@resolved} />|)
+
+      assert html =~ "Phoenix"
+
+      # An id that has never been an atom must not become one just by rendering.
+      assigns = %{
+        spec: %{
+          id: "q",
+          title: "T",
+          fields: [%{id: "never_seen_field_id_xyz", type: :text, label: "X"}]
+        },
+        resolved: %{"other" => "value"}
+      }
+
+      rendered_to_string(~H|<.questionnaire spec={@spec} resolved={@resolved} />|)
+
+      assert_raise ArgumentError, fn -> String.to_existing_atom("never_seen_field_id_xyz") end
     end
 
     test "an optional-only spec has no required attribute" do
@@ -1214,6 +1316,31 @@ defmodule PetalComponents.ChatTest do
 
       assert html =~ ~s{id="q-framework-title"}
       assert html =~ ~s{aria-labelledby="q-framework-title"}
+    end
+
+    test "a spec with no title renders no empty heading and no dangling label" do
+      assigns = %{
+        spec: %{id: "q", fields: [%{id: "team", type: :text, label: "Team"}]}
+      }
+
+      html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
+
+      refute html =~ "pc-questionnaire__title"
+      refute html =~ "aria-labelledby"
+      assert html =~ "Team"
+    end
+
+    test "the showcase's questionnaire examples don't collide on DOM ids" do
+      ids =
+        PetalComponents.Showcase.Chat.examples()
+        |> Enum.flat_map(fn ex ->
+          ex.render.(%{__changed__: nil})
+          |> rendered_to_string()
+          |> then(&Regex.scan(~r/(?<![\w-])id="([^"]+)"/, &1, capture: :all_but_first))
+        end)
+        |> List.flatten()
+
+      assert ids == Enum.uniq(ids)
     end
 
     test "allow_skip renders a skip button carrying the spec id; absent by default" do
