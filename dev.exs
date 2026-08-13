@@ -224,17 +224,6 @@ defmodule Dev.PlaygroundLive do
     }
   ]
 
-  @scroll_log """
-  09:14:01.118 [info]  release v4.15.0 building on builder-04 (elixir 1.19.1 / otp 28)
-  09:14:04.902 [info]  ==> deps compiled in 3.7s, 214 modules
-  09:14:11.470 [info]  ==> assets: tailwind 4.1.3 wrote priv/static/assets/app.css in 812ms
-  09:14:12.006 [info]  ==> digest: 46 files, 1.9MB total, gzip 412KB
-  09:14:19.331 [info]  image pushed: registry.fly.io/acme-prod:deployment-01K2 (sha256:9f21c4ab)
-  09:14:26.884 [info]  machine 5683d9 updating in syd, waiting for health checks
-  09:14:38.019 [info]  machine 5683d9 healthy after 11.1s, 1 of 2 machines updated
-  09:14:51.744 [info]  machine 90e8ff healthy after 9.4s, 2 of 2 machines updated
-  09:14:52.100 [info]  deployment complete, 0 failed, rollback not required\
-  """
 
   @nav [
     %{
@@ -823,7 +812,6 @@ defmodule Dev.PlaygroundLive do
          palette: "rainbow"
        },
        scroll: %{orientation: "vertical", fade: "off", gutter: "auto", visibility: "auto"},
-       scroll_log: @scroll_log,
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -8798,81 +8786,14 @@ defmodule Dev.PlaygroundLive do
         </p>
       </div>
 
-      <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
-        Three places it earns its keep
-      </div>
-
-      <div class="grid gap-6 p-6 border border-gray-200 rounded-xl dark:border-gray-800">
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
-            A tag rail - horizontal, faded edges
-          </div>
-          <div class="max-w-sm p-4 border border-gray-200 rounded-lg dark:border-gray-800">
-            <div class="mb-3 text-sm font-medium text-gray-900 dark:text-gray-100">Topics</div>
-            <.scroll_area orientation="horizontal" fade_edges class="w-full pb-2">
-              <div class="flex gap-2 w-max">
-                <.badge
-                  :for={
-                    tag <-
-                      ~w(elixir phoenix liveview heex tailwind oban ecto postgres fly accessibility)
-                  }
-                  label={tag}
-                  variant="soft"
-                />
-              </div>
-            </.scroll_area>
-          </div>
-        </div>
-
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
-            A chat transcript - vertical, faded edges, named for screen readers
-          </div>
-          <div class="max-w-md p-4 border border-gray-200 rounded-lg dark:border-gray-800">
-            <.scroll_area fade_edges aria-label="Chat messages" class="max-h-56">
-              <div class="space-y-3">
-                <div
-                  :for={
-                    {role, text} <- [
-                      {:user, "Can I theme the scrollbar without shipping a JS scrollbar?"},
-                      {:assistant,
-                       "Yes. scrollbar-width and scrollbar-color cover Chrome 121+ and Firefox, and ::-webkit-scrollbar covers Safari and older Chromium."},
-                      {:user, "What about macOS overlay scrollbars?"},
-                      {:assistant,
-                       "Those are the OS's call. We theme what the platform exposes and leave the behaviour alone - you keep native momentum, keyboard and AT support for free."},
-                      {:user, "And the fade at the edges?"},
-                      {:assistant,
-                       "A mask-image gradient on the scrolling axis. No extra DOM, so there is nothing for a screen reader to trip over."}
-                    ]
-                  }
-                  class={[
-                    "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                    role == :user &&
-                      "ml-auto bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900",
-                    role == :assistant &&
-                      "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                  ]}
-                >
-                  {text}
-                </div>
-              </div>
-            </.scroll_area>
-          </div>
-        </div>
-
-        <div>
-          <div class="mb-3 text-xs text-gray-400 dark:text-gray-500">
-            A deploy log - both axes, gutter reserved
-          </div>
-          <.scroll_area
-            orientation="both"
-            gutter_stable
-            aria-label="Deploy log"
-            class="max-h-48 max-w-md p-4 rounded-lg bg-gray-900 dark:border dark:border-gray-800"
-          >
-            <pre class="font-mono text-xs leading-6 text-gray-100 w-max">{@scroll_log}</pre>
-          </.scroll_area>
-        </div>
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div :for={ex <- PetalComponents.Showcase.ScrollArea.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>

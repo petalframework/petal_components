@@ -7649,7 +7649,18 @@
   }
 
   /* An explicit track size is the WebKit opt-out from overlay scrollbars.
-     Firefox has no equivalent, so there this is a no-op - documented. */
+     But Chromium 121+ honours scrollbar-color/width and then IGNORES every
+     ::-webkit-scrollbar rule - the base's modern pair would make this a
+     dead path there. So always-mode resets the modern properties to auto,
+     dropping Chromium back onto the webkit path below, which is non-overlay
+     (genuinely always visible). The trade, documented in the moduledoc:
+     Firefox has no always-visible mechanism at all, and the reset also
+     costs it the thin themed treatment on always-mode areas. */
+  .pc-scroll-area--always {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+
   .pc-scroll-area--always::-webkit-scrollbar {
     width: var(--pc-scroll-area-size);
     height: var(--pc-scroll-area-size);
@@ -7724,5 +7735,14 @@
       );
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
+  }
+
+  /* The fade mask's painting area includes the focus ring (an outset
+     box-shadow on this same box), so the mask would erase the ring the
+     moment a keyboard user lands here. While focused, the fade yields -
+     the ring wins. Must sit AFTER the fade rules (equal specificity). */
+  .pc-scroll-area--fade:focus-visible {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }

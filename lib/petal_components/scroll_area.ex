@@ -44,10 +44,15 @@ defmodule PetalComponents.ScrollArea do
   So `<.scroll_area>` themes what the platform exposes. It does not fight
   the OS, and it will not make a Mac look like a PC:
 
-    * `visibility="always"` is a *request*. WebKit honours it, because
-      giving `::-webkit-scrollbar` an explicit size opts that element out
-      of overlay rendering. Firefox has no force-visible mechanism, so
-      there it is silently ignored.
+    * `visibility="always"` is a *request*. WebKit and Chromium honour it:
+      always-mode resets `scrollbar-width`/`scrollbar-color` to `auto`,
+      which drops those engines onto the `::-webkit-scrollbar` path, and an
+      explicit size there opts the element out of overlay rendering.
+      Firefox has no force-visible mechanism at all, so there the request
+      is silently ignored - and because of the reset, an always-mode area
+      on Firefox also renders the platform-default scrollbar rather than
+      the thin themed one. Always-visible where possible beats
+      thin-but-vanishing; that is the trade.
     * `gutter_stable` is a no-op wherever scrollbars are overlays, because
       an overlay has no gutter to reserve. It is not broken; there is
       simply nothing to reserve.
@@ -74,6 +79,12 @@ defmodule PetalComponents.ScrollArea do
       <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
         <.scroll_area fade_edges class="max-h-56">...</.scroll_area>
       </div>
+
+  One exception is built in: while the area holds keyboard focus
+  (`:focus-visible`), the fade lifts entirely - the mask's painting area
+  includes the focus ring, and a mask that erased the ring would leave
+  keyboard users navigating blind. The fade returns the moment focus moves
+  on.
 
   ## Accessibility
 

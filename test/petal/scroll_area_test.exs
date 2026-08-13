@@ -24,20 +24,40 @@ defmodule PetalComponents.ScrollAreaTest do
   # never runs in this suite - it runs in the consumer's module. Compile a
   # caller the way a consumer project does and read stderr.
   defp warn_for(attrs) do
-    ExUnit.CaptureIO.capture_io(:stderr, fn ->
-      Code.compile_string("""
-      defmodule ScrollAreaProbe#{:erlang.unique_integer([:positive])} do
-        use Phoenix.Component
-        import PetalComponents.ScrollArea
+    # Each compile leaks a probe module into the VM; purge it so repeated
+    # runs (and watch mode) don't accumulate modules.
+    modules = []
 
-        def render(assigns) do
-          ~H\"\"\"
-          <.scroll_area #{attrs}>x</.scroll_area>
-          \"\"\"
-        end
-      end
-      """)
-    end)
+    output =
+      ExUnit.CaptureIO.capture_io(:stderr, fn ->
+        compiled =
+          Code.compile_string("""
+          defmodule ScrollAreaProbe#{:erlang.unique_integer([:positive])} do
+            use Phoenix.Component
+            import PetalComponents.ScrollArea
+
+            def render(assigns) do
+              ~H\"\"\"
+              <.scroll_area #{attrs}>x</.scroll_area>
+              \"\"\"
+            end
+          end
+          """)
+
+        send(self(), {:probe_modules, Enum.map(compiled, &elem(&1, 0))})
+      end)
+
+    receive do
+      {:probe_modules, mods} ->
+        Enum.each(mods, fn mod ->
+          :code.purge(mod)
+          :code.delete(mod)
+        end)
+    after
+      0 -> modules
+    end
+
+    output
   end
 
   describe "scroll_area/1" do
