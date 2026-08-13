@@ -1,4 +1,23 @@
 # Changelog
+### Unreleased
+
+#### Fixed
+
+- **`command_dialog` now locks background scroll while the palette is
+  open.** A native modal `<dialog>` hands you the top layer, the focus
+  trap and Escape, but it does not stop the page underneath from
+  scrolling, so a trackpad flick while the palette was up slid the whole
+  page behind it. The hook adds the same `overflow-hidden` body class
+  `modal` and `slide_over` already use, so the treatment is one thing
+  across the library. The release hangs off the dialog's native `close`
+  event rather than each call site, because that is the single funnel
+  every close path drains through: the hook's own close, a backdrop
+  click, an item running, and Escape, including the case where the
+  browser's close watcher fires `close` with no cancel to intercept. A
+  patch that removes an open dialog fires no close event at all, so
+  `destroyed()` releases it too, guarded on `open` so tearing down a
+  closed palette cannot strip a lock another overlay owns.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
