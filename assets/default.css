@@ -7644,11 +7644,28 @@
     @apply bg-transparent;
   }
 
+  /* The chevron is a control nested inside a row that lights up on hover too,
+     so its own wash has to read as a chip sitting *in* that hover rather than
+     a notch cut out of its edge. A step-wide pill is flush with the row on the
+     left at depth 0 and the two washes fuse, so the painted box is one icon
+     square instead, centred in the column with the leftover step split into
+     inline margins - the column still measures exactly one step, so labels,
+     guide lines and row height do not move. */
   .pc-tree__chevron {
-    @apply flex shrink-0 cursor-pointer items-center justify-center text-gray-400 dark:text-gray-500;
-    width: var(--pc-tree-step);
-    height: var(--pc-tree-step);
+    @apply relative flex shrink-0 cursor-pointer items-center justify-center text-gray-400 dark:text-gray-500;
+    width: 1rem;
+    height: 1rem;
+    margin-inline: calc((var(--pc-tree-step) - 1rem) / 2);
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.375rem), 0px);
+  }
+
+  /* Shrinking the wash must not shrink the target. Same invisible extension
+     the house close buttons use: it takes the hit area out to 24x24, past the
+     old flush box on every side, and never touches layout. Leaves skip it -
+     they are spacers, not controls. */
+  .pc-tree__chevron:not(.pc-tree__chevron--leaf)::before {
+    content: "";
+    @apply absolute -inset-1;
   }
 
   .pc-tree__chevron:hover {
