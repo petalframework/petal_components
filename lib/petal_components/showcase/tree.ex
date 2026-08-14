@@ -6,7 +6,7 @@ defmodule PetalComponents.Showcase.Tree do
 
   example :basic, "A project tree",
     description:
-      "Nested maps in, arbitrary depth out. Branches get a chevron and folder icons, leaves get a document icon and the reserved chevron column so labels stay aligned. default_expanded seeds which branches open at first render; the chevron toggles the rest client-side, no round-trip." do
+      "Nested maps in, arbitrary depth out. Branches get a chevron and folder icons, leaves get a document icon and the reserved chevron column so labels stay aligned. default_expanded seeds which branches open at first render; after that a click anywhere on a folder row toggles it, chevron included, client-side and with no round-trip." do
     ~H"""
     <.tree
       id="sx-tree-basic"
@@ -75,12 +75,13 @@ defmodule PetalComponents.Showcase.Tree do
 
   example :icons, "Custom icons and a lazy branch",
     description:
-      "Any node can name its own heroicon with :icon. A node marked :lazy is a branch before its children exist: expand it and the tree shows the loading row until the server hands over the children. Lazy branches need the server-controlled expansion model, so this one passes :expanded and an :on_expand event." do
+      "Any node can name its own heroicon with :icon. A node marked :lazy is a branch before its children exist: expand it and the tree shows the loading row until the server hands over the children. Lazy branches need the server-controlled expansion model, so this one passes :expanded and an :on_expand event. It also turns expand_on_click off: this is a settings nav where clicking a row opens that page, so expansion belongs to the chevron alone rather than riding along with every pick." do
     ~H"""
     <.tree
       id="sx-tree-icons"
       label="Settings"
       show_guides
+      expand_on_click={false}
       expanded={["workspace", "integrations"]}
       on_expand="toggle_branch"
       select_event="open_setting"

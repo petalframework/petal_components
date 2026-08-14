@@ -18,6 +18,13 @@
   the height, zero round-trips), or server-controlled by passing
   `expanded` plus an `on_expand` event - which is what `:lazy` branches
   need, since their children only exist once the server has been asked.
+  Clicking anywhere on a branch row toggles it - and selects it in the
+  same click when selection is wired, the way a folder behaves in a
+  file explorer. That is `expand_on_click` and it defaults to true;
+  rows whose click already has a job, a link tree that has to navigate
+  say, set `expand_on_click={false}` and expansion goes back to the
+  chevron alone. The chevron never selects and the keyboard map is the
+  same either way.
   A `:loading` row covers the wait, an `:empty` slot covers no data, and
   an `:item` slot takes over the row content while the component keeps
   the chevron, the indent and every ARIA attribute.

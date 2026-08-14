@@ -366,6 +366,38 @@ describe("Enter and Space", () => {
     expect(selectClicks).toEqual(["mix", "petalex"]);
   });
 
+  it("run the select-only command on an expand-on-click row, never the row's own", () => {
+    const { node, focus, key } = mount();
+    const row = node("assets").querySelector(":scope > .pc-tree__row");
+    const label = row.querySelector("[data-pc-tree-select]");
+
+    // what expand_on_click renders: the row carries toggle-and-select, the
+    // label carries nothing, and the select-only command moves to a hidden
+    // trigger - so Enter and Space still select without expanding
+    label.removeAttribute("data-pc-tree-select");
+    row.setAttribute("phx-click", "row-toggle-and-select");
+    const trigger = document.createElement("span");
+    trigger.hidden = true;
+    trigger.setAttribute("data-pc-tree-select", "");
+    trigger.setAttribute("phx-click", "select-only");
+    row.appendChild(trigger);
+
+    // LiveView dispatches a click to the closest element carrying phx-click and
+    // stops there, which is what keeps the row's handler off this click
+    const fired = [];
+    const dispatch = (e) => {
+      const bound = e.target.closest("[phx-click]");
+      if (bound) fired.push(bound.getAttribute("phx-click"));
+    };
+    document.addEventListener("click", dispatch);
+
+    focus("assets");
+    key("Enter");
+    document.removeEventListener("click", dispatch);
+
+    expect(fired).toEqual(["select-only"]);
+  });
+
   it("do not select a disabled node", () => {
     const { focus, key, selectClicks } = mount();
 

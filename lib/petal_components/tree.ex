@@ -56,6 +56,19 @@ defmodule PetalComponents.Tree do
         {:noreply, update(socket, :expanded, &toggle(&1, id))}
       end
 
+  ## Clicking a row
+
+  Either model, clicking anywhere on a branch row toggles that branch, and
+  when selection is wired the same click also selects it - one click, both
+  outcomes, the way a folder behaves in VS Code or Finder. That is what
+  `:expand_on_click` turns on and it defaults to `true`, because a row-sized
+  hit target is what people expect from a file tree and hunting a 16px chevron
+  is the worse default. Set `expand_on_click={false}` for rows whose click
+  already has a job - a link tree that must navigate, a row with its own
+  controls - and expansion goes back to the chevron alone. The chevron toggles
+  and never selects in both modes, leaves are untouched by either, and the
+  keyboard map does not move: `Enter`/`Space` still selects without expanding.
+
   ## Selection
 
   Selection is single-select and always server-owned: pass the chosen id as
@@ -135,6 +148,11 @@ defmodule PetalComponents.Tree do
     doc:
       "ids of branches expanded at first render, or `:all` to expand everything. Client-side model only"
 
+  attr :expand_on_click, :boolean,
+    default: true,
+    doc:
+      "whether clicking anywhere on a branch row toggles it, selecting it too when selection is wired. Set false to leave expansion to the chevron alone, for rows whose click has another job. Leaves and the keyboard map behave the same either way"
+
   attr :target, :any,
     default: nil,
     doc: "phx-target for the select and expand events, for trees inside a LiveComponent"
@@ -202,6 +220,7 @@ defmodule PetalComponents.Tree do
       select_event: assigns.select_event,
       on_select: assigns.on_select,
       on_expand: assigns.on_expand,
+      expand_on_click: assigns.expand_on_click,
       target: assigns.target,
       show_guides: assigns.show_guides,
       focus_id:
@@ -247,6 +266,14 @@ defmodule PetalComponents.Tree do
     branch? = children != [] or lazy?
     node_id = to_string(node.id)
     expanded? = branch? and MapSet.member?(assigns.ctx.expanded, node_id)
+    disabled? = Map.get(node, :disabled) == true
+
+    # The row only takes expansion over when there is an expansion to take
+    # over: a branch, the attr on, and something behind the chevron (the
+    # server-controlled model with no :on_expand has nothing to push).
+    row_expand? =
+      branch? and assigns.ctx.expand_on_click and
+        (not assigns.ctx.server or assigns.ctx.on_expand != nil)
 
     assigns =
       assigns
@@ -254,11 +281,13 @@ defmodule PetalComponents.Tree do
       |> assign(:branch, branch?)
       |> assign(:node_id, node_id)
       |> assign(:expanded, expanded?)
-      |> assign(:disabled, Map.get(node, :disabled) == true)
+      |> assign(:disabled, disabled?)
       |> assign(:selected, assigns.ctx.selected == node_id)
       |> assign(:pending, lazy? and children == [])
       |> assign(:icon, node_icon(node, branch?, expanded?))
       |> assign(:guide_count, assigns.level - 1)
+      |> assign(:row_expand, row_expand?)
+      |> assign(:key_select, row_expand? and assigns.ctx.selectable? and not disabled?)
 
     ~H"""
     <li
@@ -282,11 +311,21 @@ defmodule PetalComponents.Tree do
         @disabled && "pc-tree__item--disabled"
       ]}
     >
-      <div class="pc-tree__row" style={"--pc-tree-depth: #{@level - 1};"}>
+      <div
+        class={["pc-tree__row", @row_expand && "pc-tree__row--clickable"]}
+        style={"--pc-tree-depth: #{@level - 1};"}
+        phx-click={@row_expand && row_click(@ctx, @node_id, @disabled)}
+        phx-value-id={@row_expand && @node_id}
+        phx-target={@row_expand && @ctx.target}
+      >
         <span :if={@ctx.show_guides && @guide_count > 0} class="pc-tree__guides" aria-hidden="true">
           <span :for={_ <- 1..@guide_count//1} class="pc-tree__guide"></span>
         </span>
 
+        <%!-- The chevron sits inside the row that may also carry a click, and
+        that is safe: LiveView dispatches a click to the *closest* element with
+        a phx-click and stops there, so a chevron click runs the chevron's
+        toggle and never the row's toggle-and-select underneath it. --%>
         <span
           :if={@branch}
           class="pc-tree__chevron"
@@ -303,10 +342,10 @@ defmodule PetalComponents.Tree do
         <span
           id={label_dom_id(@ctx.id, @node_id)}
           class="pc-tree__content"
-          data-pc-tree-select
-          phx-click={!@disabled && select_click(@ctx, @node_id)}
+          data-pc-tree-select={!@key_select}
+          phx-click={!@row_expand && !@disabled && select_click(@ctx, @node_id)}
           phx-value-id={@node_id}
-          phx-target={!@disabled && @ctx.select_event && @ctx.target}
+          phx-target={!@row_expand && !@disabled && @ctx.select_event && @ctx.target}
         >
           <%= if @ctx.item == [] do %>
             <.icon :if={@icon} name={@icon} class="pc-tree__icon" aria-hidden="true" />
@@ -315,6 +354,20 @@ defmodule PetalComponents.Tree do
             {render_slot(@ctx.item, @node)}
           <% end %>
         </span>
+
+        <%!-- Enter/Space must select without expanding, but the hook selects by
+        clicking whatever carries data-pc-tree-select - and on an expand-on-click
+        row every visible element is a row click. So the select-only command
+        moves to a hidden trigger the pointer can never reach and the hook
+        always can. Exactly one element per row wears the marker. --%>
+        <span
+          :if={@key_select}
+          hidden
+          data-pc-tree-select
+          phx-click={select_click(@ctx, @node_id)}
+          phx-value-id={@node_id}
+          phx-target={@ctx.select_event && @ctx.target}
+        ></span>
       </div>
 
       <div :if={@branch} class="pc-tree__group-wrap">
@@ -350,7 +403,9 @@ defmodule PetalComponents.Tree do
   # and the hook both read, entirely client-side.
   defp chevron_click(%{server: true} = ctx, _node_id), do: ctx.on_expand
 
-  defp chevron_click(ctx, node_id) do
+  defp chevron_click(ctx, node_id), do: toggle_js(ctx, node_id)
+
+  defp toggle_js(ctx, node_id) do
     selector = "#" <> node_dom_id(ctx.id, node_id)
 
     %JS{}
@@ -358,11 +413,33 @@ defmodule PetalComponents.Tree do
     |> JS.toggle_attribute({"data-expanded", "true", "false"}, to: selector)
   end
 
+  # A row click is selection and expansion in that order: the highlight lands
+  # first, then the branch opens, so the node the user clicked is the one that
+  # stays lit. A disabled node still expands - expansion is not selection, and
+  # its chevron already opens it today.
+  defp row_click(ctx, node_id, disabled?) do
+    ctx
+    |> row_select_js(node_id, disabled?)
+    |> compose_js(row_expand_js(ctx, node_id))
+  end
+
+  defp row_select_js(_ctx, _node_id, true), do: %JS{}
+  defp row_select_js(ctx, node_id, _disabled?), do: select_click(ctx, node_id) || %JS{}
+
+  # The row has to chain expansion behind selection, so it needs the toggle as
+  # JS commands in both models. The chevron gets away with a bare event name in
+  # the server-controlled model only because it is the whole handler there; the
+  # row pushes :on_expand itself, picking the id up from its own phx-value-id.
+  defp row_expand_js(%{server: true} = ctx, _node_id),
+    do: JS.push(%JS{}, ctx.on_expand, target: ctx.target)
+
+  defp row_expand_js(ctx, node_id), do: toggle_js(ctx, node_id)
+
   # User JS first, then the built-in highlight move, then the push (so the
   # server hears about a selection the user's own commands did not cancel).
-  # No selection wiring, no selection behaviour: the label click does
-  # nothing rather than flipping a client-side highlight the app never
-  # asked for and cannot read.
+  # No selection wiring, no selection behaviour: a click does nothing rather
+  # than flipping a client-side highlight the app never asked for and cannot
+  # read.
   defp select_click(%{selectable?: false}, _node_id), do: nil
 
   defp select_click(ctx, node_id) do

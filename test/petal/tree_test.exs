@@ -245,6 +245,218 @@ defmodule PetalComponents.TreeTest do
     end
   end
 
+  describe "expand_on_click" do
+    defp row(html, id) do
+      html
+      |> parse_html()
+      |> LazyHTML.query(~s|[data-node-id="#{id}"] > .pc-tree__row|)
+      |> Enum.at(0)
+    end
+
+    defp chevron(html, id) do
+      html
+      |> parse_html()
+      |> LazyHTML.query(~s|[data-node-id="#{id}"] > .pc-tree__row [data-pc-tree-chevron]|)
+      |> Enum.at(0)
+    end
+
+    defp select_target(html, id) do
+      html
+      |> parse_html()
+      |> LazyHTML.query(~s|[data-node-id="#{id}"] > .pc-tree__row [data-pc-tree-select]|)
+      |> Enum.at(0)
+    end
+
+    test "defaults to on: a branch row click toggles and selects in one go" do
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} select_event="pick" />
+        """)
+
+      click = at(row(html, "lib"), "phx-click")
+
+      # expansion
+      assert click =~ "toggle_attr"
+      assert click =~ "aria-expanded"
+      assert click =~ "data-expanded"
+      assert click =~ "#t-node-lib"
+      # and selection, off the same click
+      assert click =~ "aria-selected"
+      assert click =~ "pc-tree__item--selected"
+      assert click =~ "pick"
+      assert at(row(html, "lib"), "phx-value-id") == "lib"
+      assert at(row(html, "lib"), "class") =~ "pc-tree__row--clickable"
+
+      # the label no longer holds a click of its own - it would swallow the
+      # row's, since LiveView only runs the closest phx-click
+      label = html |> parse_html() |> LazyHTML.query("#t-label-lib") |> Enum.at(0)
+      assert at(label, "phx-click") == nil
+    end
+
+    test "expand_on_click={false} is exactly the old behaviour: chevron expands, row selects" do
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} select_event="pick" expand_on_click={false} />
+        """)
+
+      assert at(row(html, "lib"), "phx-click") == nil
+      refute at(row(html, "lib"), "class") =~ "pc-tree__row--clickable"
+
+      click = at(select_target(html, "lib"), "phx-click")
+      assert click =~ "pick"
+      assert click =~ "aria-selected"
+      refute click =~ "toggle_attr"
+    end
+
+    test "the chevron toggles without selecting in both modes" do
+      for expand_on_click <- [true, false] do
+        assigns = %{items: deep_items(), expand_on_click: expand_on_click}
+
+        html =
+          rendered_to_string(~H"""
+          <.tree
+            id="t"
+            items={@items}
+            select_event="pick"
+            expand_on_click={@expand_on_click}
+          />
+          """)
+
+        click = at(chevron(html, "lib"), "phx-click")
+
+        assert click =~ "toggle_attr"
+        assert click =~ "#t-node-lib"
+        refute click =~ "aria-selected"
+        refute click =~ "pick"
+      end
+    end
+
+    test "Enter/Space stays select-only: the hook's target never expands" do
+      # the hook selects by clicking [data-pc-tree-select]; on an expand-on-click
+      # row that marker moves off the label (which is now a row click) onto a
+      # hidden trigger, so the keyboard map is unchanged in both modes
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} select_event="pick" target="#panel" />
+        """)
+
+      target = select_target(html, "lib")
+      click = at(target, "phx-click")
+
+      assert click =~ "pick"
+      assert click =~ "aria-selected"
+      refute click =~ "toggle_attr"
+      refute click =~ "data-expanded"
+      assert at(target, "phx-value-id") == "lib"
+      assert at(target, "phx-target") == "#panel"
+
+      # exactly one select target per row, or the hook would pick the wrong one
+      targets =
+        html
+        |> parse_html()
+        |> LazyHTML.query(~s|[data-node-id="lib"] > .pc-tree__row [data-pc-tree-select]|)
+
+      assert Enum.count(targets) == 1
+    end
+
+    test "leaves are untouched in both modes" do
+      for expand_on_click <- [true, false] do
+        assigns = %{items: deep_items(), expand_on_click: expand_on_click}
+
+        html =
+          rendered_to_string(~H"""
+          <.tree
+            id="t"
+            items={@items}
+            select_event="pick"
+            expand_on_click={@expand_on_click}
+          />
+          """)
+
+        assert at(row(html, "mix.exs"), "phx-click") == nil
+        assert at(select_target(html, "mix.exs"), "phx-click") =~ "pick"
+        assert at(select_target(html, "mix.exs"), "id") == "t-label-mix.exs"
+      end
+    end
+
+    test "server-controlled mode pushes both events off one row click" do
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree
+          id="t"
+          items={@items}
+          expanded={["lib"]}
+          on_expand="toggle"
+          select_event="pick"
+          target="#panel"
+        />
+        """)
+
+      click = at(row(html, "lib"), "phx-click")
+
+      assert click =~ "pick"
+      assert click =~ "toggle"
+      assert at(row(html, "lib"), "phx-value-id") == "lib"
+      assert at(row(html, "lib"), "phx-target") == "#panel"
+    end
+
+    test "server-controlled mode with no on_expand leaves the row alone" do
+      # nothing to push, so there is no row expansion to offer
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} expanded={["lib"]} select_event="pick" />
+        """)
+
+      assert at(row(html, "lib"), "phx-click") == nil
+      assert at(select_target(html, "lib"), "phx-click") =~ "pick"
+    end
+
+    test "a navigational tree expands on row click and still announces no selection" do
+      assigns = %{items: deep_items()}
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} />
+        """)
+
+      click = at(row(html, "lib"), "phx-click")
+
+      assert click =~ "toggle_attr"
+      refute click =~ "aria-selected"
+      refute html =~ "aria-selected"
+      # with no hidden trigger to render, the marker stays on the label
+      assert at(select_target(html, "lib"), "id") == "t-label-lib"
+    end
+
+    test "a disabled branch expands on row click but never selects" do
+      assigns = %{
+        items: [%{id: "a", label: "A", disabled: true, children: [%{id: "b", label: "B"}]}]
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.tree id="t" items={@items} select_event="pick" />
+        """)
+
+      click = at(row(html, "a"), "phx-click")
+
+      assert click =~ "toggle_attr"
+      refute click =~ "pick"
+      refute click =~ "pc-tree__item--selected"
+      assert at(select_target(html, "a"), "phx-click") == nil
+    end
+  end
+
   describe "selection" do
     test "the selected id gets aria-selected=true and the class, others false" do
       assigns = %{items: deep_items()}

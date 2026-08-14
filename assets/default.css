@@ -7614,6 +7614,13 @@
     @apply bg-gray-100 dark:bg-gray-400/10;
   }
 
+  /* expand_on_click puts the click on the whole row, indent and trailing
+     padding included, so the cursor has to say so out there too - the label
+     carries its own pointer. */
+  .pc-tree__row--clickable {
+    @apply cursor-pointer;
+  }
+
   .pc-tree__item--selected > .pc-tree__row,
   .pc-tree__item--selected > .pc-tree__row:hover {
     @apply bg-primary-100 text-primary-800 dark:bg-primary-500/15 dark:text-primary-300;

@@ -5430,9 +5430,9 @@ export const PetalDataTable = {
 // single tab stop with exactly one treeitem carrying tabindex="0", and moving
 // DOM focus between arbitrary nodes on an arrow key is not something CSS or
 // LiveView.JS can do. Expansion and selection are deliberately NOT implemented
-// here - the hook clicks the chevron and the label the component already wired,
-// so both expansion models work identically and a pointer user still gets a
-// working tree if the hook never mounts.
+// here - the hook clicks the chevron and the select trigger the component
+// already wired, so both expansion models work identically and a pointer user
+// still gets a working tree if the hook never mounts.
 export const PetalTree = {
   mounted() {
     this.onKeydown = this.onKeydown.bind(this);
@@ -5531,10 +5531,13 @@ export const PetalTree = {
     if (chevron) chevron.click();
   },
 
+  // data-pc-tree-select marks whichever element carries the select-ONLY
+  // command: the label row normally, a hidden trigger when the row itself
+  // expands on click. Either way Enter and Space select without expanding.
   select(node) {
     if (node.getAttribute("aria-disabled") === "true") return;
-    const label = this.own(node, "[data-pc-tree-select]");
-    if (label) label.click();
+    const target = this.own(node, "[data-pc-tree-select]");
+    if (target) target.click();
   },
 
   step(node, delta) {

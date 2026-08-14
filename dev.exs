@@ -836,6 +836,7 @@ defmodule Dev.PlaygroundLive do
        accordion: %{variant: "default", multiple: false, size: "md"},
        tree: %{
          guides: true,
+         row_expand: true,
          expand: "first",
          picked: nil,
          # the file explorer scenario runs the server-controlled model
@@ -1263,6 +1264,9 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_tree", %{"k" => "guides"}, socket),
     do: {:noreply, update(socket, :tree, &%{&1 | guides: !&1.guides})}
+
+  def handle_event("ctl_tree", %{"k" => "row_expand"}, socket),
+    do: {:noreply, update(socket, :tree, &%{&1 | row_expand: !&1.row_expand})}
 
   def handle_event("ctl_tree", %{"k" => "expand", "v" => v}, socket) when v in ~w(none first all),
     do: {:noreply, update(socket, :tree, &%{&1 | expand: v})}
@@ -9358,9 +9362,10 @@ defmodule Dev.PlaygroundLive do
         <div class="px-6 py-8">
           <div class="max-w-md mx-auto">
             <.tree
-              id={"pg-tree-#{@tree.expand}-#{@tree.guides}"}
+              id={"pg-tree-#{@tree.expand}-#{@tree.guides}-#{@tree.row_expand}"}
               label="Project files"
               show_guides={@tree.guides}
+              expand_on_click={@tree.row_expand}
               default_expanded={@hero_expanded}
               selected={@tree.picked}
               select_event="tree_pick"
@@ -9394,11 +9399,16 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Extras"
-              value={for {k, on} <- [{"guides", @tree.guides}], on, do: k}
+              value={
+                for {k, on} <- [{"guides", @tree.guides}, {"row_expand", @tree.row_expand}],
+                    on,
+                    do: k
+              }
               on_change="ctl_tree"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item value="guides" phx-value-k="guides">show_guides</:item>
+              <:item value="row_expand" phx-value-k="row_expand">expand_on_click</:item>
             </.toggle_group>
           </div>
           <div>
@@ -9415,7 +9425,10 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         This tree runs the client-side expansion model: the chevron toggles two attributes
         with LiveView.JS and CSS animates the height, so opening a folder costs no round
-        trip. The trade is that the open branches live only in the DOM - flip a dial above
+        trip. With <code>expand_on_click</code>
+        on - the default, and the dial above - the whole folder row runs that same toggle
+        and selects the node in the one click; turn it off and expansion is the chevron's
+        job alone. The trade is that the open branches live only in the DOM - flip a dial above
         and the tree re-renders back to default_expanded. Trees that must survive a patch,
         or that load children on demand, want the server-controlled model instead (the
         file explorer below).
