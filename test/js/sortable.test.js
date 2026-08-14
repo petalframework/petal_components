@@ -124,6 +124,25 @@ describe("SortableCore.indexFromPoint - grid", () => {
     })).toBe(3);
   });
 
+  it("never answers with the dragged item's own rect", () => {
+    // Mid-drag the rects are not the tidy grid the cases above model: the
+    // dragged item carries a pointer-tracking transform, so its rect sits
+    // under the pointer wherever the pointer is. Search it and it shadows
+    // every cell after it in DOM order, and the grid only reorders one way.
+    const dragging = rects.slice();
+    dragging[0] = { top: 20, left: 120, width: 100, height: 100 };
+
+    expect(
+      SortableCore.indexFromPoint({
+        rects: dragging,
+        x: 150,
+        y: 50,
+        orientation: "grid",
+        activeIndex: 0,
+      }),
+    ).toBe(1);
+  });
+
   it("falls back to reading order in the gutters and past the end", () => {
     // below every cell: the whole grid is behind the pointer
     expect(at(50, 500)).toBe(3);
@@ -364,7 +383,12 @@ describe("SortableCore.keyboardReduce", () => {
 
 const mounted = [];
 
-function mount({ handle = false, disabled = false, orientation = "vertical" } = {}) {
+function mount({
+  handle = false,
+  disabled = false,
+  orientation = "vertical",
+  ids = ["a", "b", "c"],
+} = {}) {
   const el = document.createElement("div");
   el.id = "sortable";
   el.className = "pc-sortable";
@@ -373,7 +397,7 @@ function mount({ handle = false, disabled = false, orientation = "vertical" } = 
   if (handle) el.dataset.handle = "true";
   if (disabled) el.dataset.disabled = "true";
 
-  el.innerHTML = ["a", "b", "c"]
+  el.innerHTML = ids
     .map(
       (id) => `
       <div class="pc-sortable__item" id="${id}" data-sortable-id="${id}"
@@ -436,6 +460,47 @@ function pointer(type, props = {}) {
   Object.defineProperty(ev, "pointerId", { value: pointerId });
   return ev;
 }
+
+// jsdom does no layout, so a drag has to be handed one. Every item measures
+// at the slot its CURRENT DOM index maps to, plus whatever translate3d the
+// hook has written on it. That second half is the half that matters: it is
+// what puts the dragged item's own rect under the pointer, which is what a
+// browser does and what a static list of rects cannot show.
+const CELL = 100;
+const ROW = 40;
+
+function layout(el, columns = 1) {
+  const shift = (node) => {
+    const m = /translate3d\((-?[\d.]+)px,\s*(-?[\d.]+)px/.exec(
+      node.style.transform || "",
+    );
+    return m ? [parseFloat(m[1]), parseFloat(m[2])] : [0, 0];
+  };
+
+  Array.from(el.children).forEach((item) => {
+    item.getBoundingClientRect = () => {
+      const i = Array.prototype.indexOf.call(el.children, item);
+      const [dx, dy] = shift(item);
+
+      if (columns === 1) {
+        return { left: dx, top: i * ROW + dy, width: 200, height: ROW };
+      }
+
+      return {
+        left: (i % columns) * CELL + dx,
+        top: Math.floor(i / columns) * CELL + dy,
+        width: CELL,
+        height: CELL,
+      };
+    };
+  });
+}
+
+// The centre of grid slot `index`, in the geometry `layout` lays out.
+const cell = (index, columns) => ({
+  clientX: (index % columns) * CELL + CELL / 2,
+  clientY: Math.floor(index / columns) * CELL + CELL / 2,
+});
 
 afterEach(() => {
   mounted.splice(0).forEach((hook) => hook.destroyed());
@@ -782,6 +847,73 @@ describe("PetalSortable - the long-press threshold", () => {
     const s = mount();
     s.item("a").dispatchEvent(pointer("pointerdown", { button: 2, clientX: 0, clientY: 0 }));
     expect(s.hook.press).toBe(null);
+  });
+});
+
+describe("PetalSortable - a pointer drag down a list", () => {
+  it("reorders as the pointer crosses each midpoint, and pushes on the drop", () => {
+    const s = mount();
+    layout(s.el);
+
+    s.item("a").dispatchEvent(pointer("pointerdown", { clientX: 100, clientY: 20 }));
+    // past row b's midpoint (60) and row c's (100), so a lands last
+    window.dispatchEvent(pointer("pointermove", { clientX: 100, clientY: 110 }));
+    expect(s.ids()).toEqual(["b", "c", "a"]);
+
+    window.dispatchEvent(pointer("pointerup"));
+    expect(s.hook.pushed).toEqual([["reorder", { id: "a", from: 0, to: 2 }]]);
+  });
+});
+
+describe("PetalSortable - a pointer drag across a grid", () => {
+  const PHOTOS = ["harbour", "ridge", "salt", "pines", "dunes", "estuary"];
+  const COLUMNS = 3;
+
+  // the playground's own grid: 6 cells, 3 across
+  function grid() {
+    const s = mount({ orientation: "grid", ids: PHOTOS });
+    layout(s.el, COLUMNS);
+    return s;
+  }
+
+  const grab = (s, id, index) =>
+    s.item(id).dispatchEvent(pointer("pointerdown", cell(index, COLUMNS)));
+
+  const over = (index) =>
+    window.dispatchEvent(pointer("pointermove", cell(index, COLUMNS)));
+
+  it("dragging the first cell displaces the others", () => {
+    const s = grid();
+
+    grab(s, "harbour", 0);
+    over(1);
+    expect(s.ids()).toEqual(["ridge", "harbour", "salt", "pines", "dunes", "estuary"]);
+
+    over(4);
+    expect(s.ids()).toEqual(["ridge", "salt", "pines", "dunes", "harbour", "estuary"]);
+
+    window.dispatchEvent(pointer("pointerup"));
+    expect(s.hook.pushed).toEqual([["reorder", { id: "harbour", from: 0, to: 4 }]]);
+  });
+
+  it("a cell walks forwards again inside one drag, back to where it started", () => {
+    const s = grid();
+
+    grab(s, "pines", 3);
+    over(0);
+    expect(s.ids()).toEqual(["pines", "harbour", "ridge", "salt", "dunes", "estuary"]);
+
+    // still held: forwards has to work as well as backwards, all the way
+    // home, or the drag is one-way and the drop is forced
+    over(2);
+    expect(s.ids()).toEqual(["harbour", "ridge", "pines", "salt", "dunes", "estuary"]);
+
+    over(3);
+    expect(s.ids()).toEqual(PHOTOS);
+
+    window.dispatchEvent(pointer("pointerup"));
+    expect(s.live.textContent).toBe("Dropped Item pines at position 4 of 6");
+    expect(s.hook.pushed).toEqual([]);
   });
 });
 

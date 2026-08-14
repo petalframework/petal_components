@@ -4964,16 +4964,26 @@ export const SortableCore = {
   // cell under the pointer directly. That works because the list is reordered
   // live as you drag: the rects ARE the current arrangement, so the cell you
   // are over is exactly the slot you are asking for, and once the item lands
-  // there the pointer is still inside it - stable, not oscillating.
+  // there the pointer is over the empty slot it now owns, which no other cell
+  // claims - stable, not oscillating.
   indexFromPoint({ rects, x, y, orientation = "vertical", activeIndex = -1 }) {
     if (orientation === "grid") {
+      // The dragged item's own rect is not part of the arrangement: it
+      // carries a pointer-tracking transform, so it sits under the pointer
+      // wherever the pointer goes. Search it and it shadows every cell after
+      // it in DOM order, and the grid only ever reorders backwards.
       const over = rects.findIndex(
-        (r) =>
-          x >= r.left && x <= r.left + r.width && y >= r.top && y <= r.top + r.height,
+        (r, i) =>
+          i !== activeIndex &&
+          x >= r.left &&
+          x <= r.left + r.width &&
+          y >= r.top &&
+          y <= r.top + r.height,
       );
 
-      // Only fall through to counting when the pointer is in a gutter or off
-      // the end of the grid, where no cell can answer.
+      // Only fall through to counting when the pointer is in a gutter, over
+      // the gap the dragged item left behind, or off the end of the grid -
+      // places where no cell can answer.
       if (over !== -1) return over;
     }
 
