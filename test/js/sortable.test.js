@@ -502,6 +502,99 @@ const cell = (index, columns) => ({
   clientY: Math.floor(index / columns) * CELL + CELL / 2,
 });
 
+// The same geometry, but with a running transition modelled - which is the
+// state `layout` above cannot show and where the reorder used to come apart.
+//
+// A browser reports the rect an item is PAINTING at: mid-FLIP that is
+// somewhere between two slots, and it keeps moving after the hook has
+// cleared the transform. So a transform written with the transition off is
+// painted at once, one written with the transition live is animated towards
+// - and `tick()` is a frame passing, because time is what moves a
+// transition along, not the act of measuring it.
+function animatedLayout(el, columns = 1) {
+  const painted = new Map();
+
+  const wanted = (node) => {
+    const m = /translate3d\((-?[\d.]+)px,\s*(-?[\d.]+)px/.exec(node.style.transform || "");
+    return m ? [parseFloat(m[1]), parseFloat(m[2])] : [0, 0];
+  };
+
+  const offsetOf = (item) => painted.get(item) || [0, 0];
+
+  const slot = (item, [dx, dy]) => {
+    const i = Array.prototype.indexOf.call(el.children, item);
+
+    if (columns === 1) {
+      return { left: dx, top: i * ROW + dy, width: 200, height: ROW };
+    }
+
+    return {
+      left: (i % columns) * CELL + dx,
+      top: Math.floor(i / columns) * CELL + dy,
+      width: CELL,
+      height: CELL,
+    };
+  };
+
+  const items = Array.from(el.children);
+  items.forEach((item) => {
+    // A transform written with the transition off paints immediately; one
+    // written with it live is only a destination. Latching on the write,
+    // not on the read, is what makes an in-flight FLIP survive being
+    // cleared - which is the state the hit test has to cope with.
+    const style = item.style;
+    const inherited =
+      Object.getOwnPropertyDescriptor(style, "transform") ||
+      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(style), "transform");
+
+    Object.defineProperty(style, "transform", {
+      configurable: true,
+      get: () => inherited.get.call(style),
+      set: (value) => {
+        inherited.set.call(style, value);
+        if (style.transition === "none") painted.set(item, wanted(item));
+      },
+    });
+
+    item.getBoundingClientRect = () => slot(item, offsetOf(item));
+  });
+
+  return {
+    // one frame of the transition: half the remaining distance home
+    tick: () =>
+      items.forEach((item) => {
+        const [dx, dy] = offsetOf(item);
+        if (item.style.transition !== "none") painted.set(item, [dx / 2, dy / 2]);
+      }),
+    // where an item is painting right now
+    at: (item) => slot(item, offsetOf(item)),
+  };
+}
+
+// Every write to an item's inline transform, with the rect it produced.
+// The FLIP is one synchronous burst - invert, reflow, release - so nothing
+// survives to the end of the call for a spec to read afterwards.
+function recordTransforms(item) {
+  const writes = [];
+  const style = item.style;
+  const proto = Object.getPrototypeOf(style);
+  const inherited =
+    Object.getOwnPropertyDescriptor(style, "transform") ||
+    Object.getOwnPropertyDescriptor(proto, "transform");
+
+  Object.defineProperty(style, "transform", {
+    configurable: true,
+    get: () => inherited.get.call(style),
+    set: (value) => {
+      inherited.set.call(style, value);
+      const rect = item.getBoundingClientRect();
+      writes.push({ value, left: rect.left, top: rect.top });
+    },
+  });
+
+  return writes;
+}
+
 afterEach(() => {
   mounted.splice(0).forEach((hook) => hook.destroyed());
   document.body.innerHTML = "";
@@ -914,6 +1007,115 @@ describe("PetalSortable - a pointer drag across a grid", () => {
     window.dispatchEvent(pointer("pointerup"));
     expect(s.live.textContent).toBe("Dropped Item pines at position 4 of 6");
     expect(s.hook.pushed).toEqual([]);
+  });
+});
+
+describe("PetalSortable - smooth reorders", () => {
+  const PHOTOS = ["harbour", "ridge", "salt", "pines", "dunes", "estuary"];
+  const COLUMNS = 3;
+
+  it("a held pointer reorders once and then stays put", () => {
+    // The bug this pins: the hit test used to read live rects, which mid-FLIP
+    // are between two slots and can cover the pointer several at a time. Held
+    // dead still over one cell, the grid answered with a different index
+    // almost every frame and shook itself apart. Slots do not move until the
+    // order does, so a still pointer is a still grid.
+    const s = mount({ orientation: "grid", ids: PHOTOS });
+    const flight = animatedLayout(s.el, COLUMNS);
+
+    s.item("harbour").dispatchEvent(pointer("pointerdown", cell(0, COLUMNS)));
+
+    const orders = [];
+    for (let i = 0; i < 12; i++) {
+      window.dispatchEvent(pointer("pointermove", cell(4, COLUMNS)));
+      flight.tick();
+      orders.push(s.ids().join(","));
+    }
+
+    expect(new Set(orders).size).toBe(1);
+    expect(orders[0]).toBe("ridge,salt,pines,dunes,harbour,estuary");
+  });
+
+  it("a displaced item is inverted back to where it was, then released", () => {
+    const s = mount();
+    layout(s.el);
+    const writes = recordTransforms(s.item("b"));
+
+    s.item("a").dispatchEvent(pointer("pointerdown", { clientX: 100, clientY: 20 }));
+    window.dispatchEvent(pointer("pointermove", { clientX: 100, clientY: 70 }));
+
+    expect(s.ids()).toEqual(["b", "a", "c"]);
+    // b's slot moved up a row, so it is pushed a row back down and let go
+    expect(writes.map((w) => w.value)).toEqual([
+      "none",
+      "translate3d(0px, 40px, 0)",
+      "",
+    ]);
+    // inverted, it is exactly where it was painting before the reorder
+    expect(writes[1].top).toBe(40);
+  });
+
+  it("the dragged item is never given a FLIP transform", () => {
+    const s = mount();
+    layout(s.el);
+    const writes = recordTransforms(s.item("a"));
+
+    s.item("a").dispatchEvent(pointer("pointerdown", { clientX: 100, clientY: 20 }));
+    window.dispatchEvent(pointer("pointermove", { clientX: 100, clientY: 70 }));
+
+    // the FLIP's release (an empty transform) would drop the item back into
+    // its slot mid-gesture; only pointer tracking may write here
+    expect(writes.map((w) => w.value)).not.toContain("");
+    expect(writes.at(-1).value).toBe("translate3d(0px, 10px, 0)");
+    expect(s.item("a").style.transform).toBe("translate3d(0px, 10px, 0)");
+  });
+
+  it("reduced motion lands the item in its slot without animating it", () => {
+    const real = window.matchMedia;
+    window.matchMedia = () => ({ matches: true });
+
+    try {
+      const s = mount();
+      layout(s.el);
+      const writes = recordTransforms(s.item("b"));
+
+      s.item("a").dispatchEvent(pointer("pointerdown", { clientX: 100, clientY: 20 }));
+      window.dispatchEvent(pointer("pointermove", { clientX: 100, clientY: 70 }));
+
+      // the reorder still happens - it is the travel that is dropped
+      expect(s.ids()).toEqual(["b", "a", "c"]);
+      expect(writes.map((w) => w.value)).toEqual(["none", ""]);
+    } finally {
+      window.matchMedia = real;
+    }
+  });
+
+  it("a reorder mid-animation picks the item up from where it is painting", () => {
+    // FLIP interruption: the second reorder's invert has to be measured
+    // against the slot the item really holds, not against a rect that still
+    // carries the in-flight transform - otherwise it jumps by that much the
+    // moment the new transform replaces the old one.
+    const s = mount({ orientation: "grid", ids: PHOTOS });
+    const flight = animatedLayout(s.el, COLUMNS);
+
+    const ridge = s.item("ridge");
+    const writes = recordTransforms(ridge);
+
+    s.item("harbour").dispatchEvent(pointer("pointerdown", cell(0, COLUMNS)));
+    window.dispatchEvent(pointer("pointermove", cell(1, COLUMNS)));
+
+    // one frame later ridge is in flight towards the slot harbour left behind
+    flight.tick();
+    const painting = flight.at(ridge);
+    expect(painting.left).toBeGreaterThan(0); // genuinely between two slots
+
+    const mark = writes.length;
+    window.dispatchEvent(pointer("pointermove", cell(2, COLUMNS)));
+
+    const invert = writes.slice(mark).find((w) => w.value.startsWith("translate3d"));
+    expect(invert).toBeDefined();
+    expect(invert.left).toBeCloseTo(painting.left, 5);
+    expect(invert.top).toBeCloseTo(painting.top, 5);
   });
 });
 

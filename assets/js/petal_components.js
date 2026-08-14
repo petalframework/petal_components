@@ -4962,10 +4962,11 @@ export const SortableCore = {
   // item somewhere it was never dragged (hover the bottom-left cell from the
   // left and reading-order counting lands you top-right). So a grid uses the
   // cell under the pointer directly. That works because the list is reordered
-  // live as you drag: the rects ARE the current arrangement, so the cell you
-  // are over is exactly the slot you are asking for, and once the item lands
-  // there the pointer is over the empty slot it now owns, which no other cell
-  // claims - stable, not oscillating.
+  // live as you drag and these rects are SLOTS - where the items lay out, not
+  // where they happen to be painting mid-animation (see the hook's
+  // captureSlots). The cell you are over is then exactly the slot you are
+  // asking for, and once the item lands there the pointer is over the empty
+  // slot it now owns, which no other cell claims - stable, not oscillating.
   indexFromPoint({ rects, x, y, orientation = "vertical", activeIndex = -1 }) {
     if (orientation === "grid") {
       // The dragged item's own rect is not part of the arrangement: it
@@ -5173,6 +5174,7 @@ export const PetalSortable = {
     this.kb = null; // keyboard lift state, owned by SortableCore.keyboardReduce
     this.drag = null; // an in-flight pointer drag
     this.press = null; // a press that has not earned a lift yet
+    this.slots = null; // slot geometry for the current drag, see captureSlots
 
     this.onPointerDown = (e) => this.pointerDown(e);
     this.onPointerMove = (e) => this.pointerMove(e);
@@ -5282,38 +5284,116 @@ export const PetalSortable = {
 
   // --- moving the DOM ------------------------------------------------------
 
+  // Where every item is PAINTING right now, mid-transition included. That is
+  // deliberately not the same question as "which slot does it own": it is
+  // where a FLIP has to start from if it is to look continuous.
   measure() {
     const map = new Map();
     this.items().forEach((el) => map.set(el, el.getBoundingClientRect()));
     return map;
   },
 
+  // Where the pointer hit test reads its geometry from - and the reason it
+  // is not just `getBoundingClientRect` on every move.
+  //
+  // Mid-drag the siblings are part-way through their FLIP, so a live rect
+  // sits between two slots and several of them can cover the pointer at
+  // once. Hit-testing those answers with a different index almost every
+  // frame: the order flaps between two arrangements, each flap starts
+  // another animation, and the grid shakes for as long as the pointer is
+  // held there - even a perfectly still one.
+  //
+  // A slot is a LAYOUT position, and the layout only changes when the order
+  // does. So slots are measured at the lift and again at every reorder,
+  // both times with the transforms off, and cached for the rest of the drag.
+  // Cached relative to the container, because the page can still scroll
+  // under a drag and re-anchoring one rect per move is cheaper than
+  // re-reading every item's.
+  captureSlots(rects) {
+    const origin = this.el.getBoundingClientRect();
+
+    this.slots = this.items().map((el) => {
+      // The dragged item's own entry is a placeholder: its rect is wherever
+      // the pointer has taken it, never its slot. Both hit-test paths skip
+      // the active index, so nothing reads it.
+      const rect = rects.get(el) || el.getBoundingClientRect();
+
+      return {
+        left: rect.left - origin.left,
+        top: rect.top - origin.top,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+  },
+
+  // No preference expressed - including a host with no matchMedia at all,
+  // which is every jsdom-based test suite - means animate.
+  reducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  },
+
+  slotRects() {
+    const origin = this.el.getBoundingClientRect();
+
+    return this.slots.map((slot) => ({
+      left: slot.left + origin.left,
+      top: slot.top + origin.top,
+      width: slot.width,
+      height: slot.height,
+    }));
+  },
+
   // FLIP: every sibling is snapped back to where it was, then released to
-  // transition home. The transition itself lives in CSS, which is what makes
-  // prefers-reduced-motion a one-line media query rather than a JS branch.
+  // transition home. Transform only - the transition itself lives in CSS.
   flip(before) {
-    const items = this.items();
     const active = this.drag && this.drag.el;
+    const moving = this.items().filter((el) => el !== active);
 
-    items.forEach((el) => {
-      const first = before.get(el);
-      if (!first || el === active) return;
-
-      const last = el.getBoundingClientRect();
-      const dx = first.left - last.left;
-      const dy = first.top - last.top;
-      if (dx === 0 && dy === 0) return;
-
+    // Invert. Any transform still in flight from an earlier reorder comes
+    // off FIRST, before anything is measured: `before` is where the item was
+    // painting, so the delta has to be measured against the slot it really
+    // holds. Measure with the old transform still on and the item snaps by
+    // that much the moment the new one replaces it - which is what an
+    // interrupted animation used to do, hardest exactly when reorders come
+    // fastest.
+    moving.forEach((el) => {
       el.style.transition = "none";
-      el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      el.style.transform = "none";
     });
 
-    // One forced reflow so the inverted positions are the browser's current
-    // truth; without it the clear below is coalesced and nothing animates.
-    void this.el.offsetHeight;
+    const last = new Map();
+    moving.forEach((el) => last.set(el, el.getBoundingClientRect()));
 
-    items.forEach((el) => {
-      if (el === active) return;
+    // Nothing is mid-flight at this exact point, which makes it the one
+    // honest moment in a drag to read the new slots.
+    if (this.drag) this.captureSlots(last);
+
+    // Reduced motion keeps the reorder and drops the travel: items still
+    // land in their new slots, they just arrive instead of gliding. The
+    // stylesheet gates the transition too; this skips the work as well.
+    if (!this.reducedMotion()) {
+      moving.forEach((el) => {
+        const first = before.get(el);
+        if (!first) return;
+
+        const dx = first.left - last.get(el).left;
+        const dy = first.top - last.get(el).top;
+        if (dx === 0 && dy === 0) return;
+
+        el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      });
+
+      // One forced reflow so the inverted positions are the browser's
+      // current truth; without it the clear below is coalesced and nothing
+      // animates.
+      void this.el.offsetHeight;
+    }
+
+    // Play: back to the stylesheet's transition, home to the new slot. An
+    // item interrupted here starts from where it is on screen, because that
+    // is what the invert above was measured from.
+    moving.forEach((el) => {
       el.style.transition = "";
       el.style.transform = "";
     });
@@ -5444,7 +5524,7 @@ export const PetalSortable = {
     if (activeIndex === -1) return this.abortPointer();
 
     const to = SortableCore.indexFromPoint({
-      rects: items.map((el) => el.getBoundingClientRect()),
+      rects: this.slotRects(),
       x: e.clientX,
       y: e.clientY,
       orientation: this.orientation(),
@@ -5486,6 +5566,10 @@ export const PetalSortable = {
       offsetY: rect.top - press.y,
       home: { left: rect.left, top: rect.top },
     };
+
+    // The slots as they are before anything has moved: nothing carries a
+    // transform yet, so this is a clean read.
+    this.captureSlots(this.measure());
 
     press.el.classList.add("pc-sortable__item--dragging");
     this.el.classList.add("pc-sortable--dragging");
@@ -5561,6 +5645,8 @@ export const PetalSortable = {
   },
 
   clearDragStyles(drag) {
+    // The slot cache belongs to the drag: the next one measures its own.
+    this.slots = null;
     drag.el.style.transform = "";
     drag.el.style.transition = "";
     drag.el.classList.remove("pc-sortable__item--dragging");

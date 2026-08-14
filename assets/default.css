@@ -7591,8 +7591,9 @@
  * The dragged element IS the overlay: it is really moved through the list as
  * you drag, so there is no clone and the accessible order is always the DOM
  * order. Siblings FLIP into the gap; the transform transition below is the
- * whole animation, which is why reduced motion is one media query at the
- * bottom rather than a branch in the hook. */
+ * whole animation, so reduced motion is the media query at the bottom (the
+ * hook checks the same preference, to skip inverting a transform that would
+ * never travel). */
 @layer components {
   .pc-sortable {
     @apply flex flex-col gap-2;
