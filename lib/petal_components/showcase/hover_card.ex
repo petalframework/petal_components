@@ -70,12 +70,15 @@ defmodule PetalComponents.Showcase.HoverCard do
     description:
       "Twelve placements, the same geometry the popover panel uses. open_delay and close_delay are milliseconds; 0 opens on contact, which is worth trying before you decide the default is too slow." do
     ~H"""
-    <div class="flex items-center justify-center gap-10 py-8">
+    <%!-- justify-between and a narrower card below sm: these placements are
+          static, and on a phone a right-start card hung off a mid-row trigger
+          runs off the side of the pane --%>
+    <div class="flex w-full sm:w-auto items-center justify-between sm:justify-center gap-6 sm:gap-10 py-8">
       <.hover_card placement="right-start" open_delay={0} close_delay={500}>
         <:trigger>
           <a href="#" class="text-sm font-medium underline">opens instantly</a>
         </:trigger>
-        <div class="w-56 text-sm">
+        <div class="w-44 sm:w-56 text-sm">
           Zero open delay and a 500ms close - forgiving of a wandering pointer.
         </div>
       </.hover_card>
@@ -83,7 +86,7 @@ defmodule PetalComponents.Showcase.HoverCard do
         <:trigger>
           <a href="#" class="text-sm font-medium underline">waits 700ms</a>
         </:trigger>
-        <div class="w-56 text-sm">
+        <div class="w-44 sm:w-56 text-sm">
           A 700ms open delay - deliberate rest only, nothing fires in passing.
         </div>
       </.hover_card>

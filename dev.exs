@@ -2152,6 +2152,22 @@ defmodule Dev.PlaygroundLive do
       ">\n  <:trigger>\n    <.link navigate={~p\"/users/jane\"}>@jane</.link>\n  </:trigger>\n  <%!-- avatar, bio, stats, a follow button --%>\n</.hover_card>"
   end
 
+  # Where to park the demo trigger inside the preview frame while the frame is
+  # too narrow to centre it (below md). The card is statically placed, so it
+  # grows in one direction only - put the trigger against the opposite side and
+  # the whole card lands inside the frame. `md:justify-center` overrides this
+  # once the frame can hold a card on both sides of a centred trigger.
+  defp hover_card_demo_justify("left" <> _), do: "justify-end"
+  defp hover_card_demo_justify("right" <> _), do: "justify-start"
+
+  defp hover_card_demo_justify(placement) do
+    cond do
+      String.ends_with?(placement, "-start") -> "justify-start"
+      String.ends_with?(placement, "-end") -> "justify-end"
+      true -> "justify-center"
+    end
+  end
+
   defp otp_snippet(o) do
     attrs =
       [
@@ -6963,9 +6979,19 @@ defmodule Dev.PlaygroundLive do
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
-        <%!-- tall enough that the card clears the preview frame at every
-              placement, so the dial never reads as a clipping bug --%>
-        <div class="flex items-center justify-center px-6 py-16 min-h-[28rem]">
+        <%!-- The frame clips (overflow-hidden), so the preview itself has to
+              hold the open card at every placement or the dial reads as a
+              component bug. Vertically: the card runs ~220px, so a centred
+              trigger needs two of those plus the two 8px gaps and its own
+              line - min-h-[34rem] clears that with room to spare.
+              Horizontally: below md the frame is narrower than trigger + gap +
+              two card widths, so a centred trigger would push the -start/-end
+              and side placements out through the edge. Park the trigger on the
+              side the card grows AWAY from until md, where centring fits. --%>
+        <div class={[
+          "flex items-center px-4 sm:px-6 py-16 min-h-[34rem] md:justify-center",
+          hover_card_demo_justify(@hover_card.placement)
+        ]}>
           <%!-- stable id: dial changes patch this subtree, and without it
                 LiveView re-mints the generated id attribute every render --%>
           <.hover_card
@@ -6979,7 +7005,9 @@ defmodule Dev.PlaygroundLive do
                 @jane
               </a>
             </:trigger>
-            <div class="w-64">
+            <%!-- narrower on phones: a full-width card plus the trigger and
+                  the gap is wider than the frame at 375px --%>
+            <div class="w-56 sm:w-64">
               <div class="flex items-start gap-3">
                 <.avatar name="Jane Doe" size="md" />
                 <div class="min-w-0">

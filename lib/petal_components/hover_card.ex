@@ -27,6 +27,10 @@ defmodule PetalComponents.HoverCard do
         ...
       </.hover_card>
 
+  Placement is static: nothing flips or shifts the card to dodge an edge, so
+  pick a side with room or a trigger near the viewport edge gets its card
+  clipped.
+
   ## Tooltip, popover or hover card?
 
     * `tooltip/1` - a short text hint. Opens on hover or focus, is not
