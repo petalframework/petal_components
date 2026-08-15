@@ -14,9 +14,15 @@ defmodule PetalComponents.UserDropdownMenu do
     default: true,
     doc: "hide for the chevron-less avatar trigger - the leaner app-shell look"
 
+  attr :placement, :string,
+    default: "left",
+    values: ["left", "right"],
+    doc:
+      ~s|which way the menu extends from the trigger, passed through to the dropdown. The default "left" hangs the panel leftward (right edges aligned) - use "right" when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
+
   def user_dropdown_menu(assigns) do
     ~H"""
-    <.dropdown :if={@user_menu_items != []}>
+    <.dropdown :if={@user_menu_items != []} placement={@placement}>
       <:trigger_element>
         <div class="inline-flex items-center justify-center w-full gap-1 align-middle focus:outline-hidden">
           <%= if assigns[:current_user_name] || assigns[:avatar_src] do %>

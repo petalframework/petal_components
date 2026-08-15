@@ -127,4 +127,25 @@ defmodule PetalComponents.UserDropdownMenuTest do
 
     refute html =~ "hero-chevron-down-mini"
   end
+
+  test "placement passes through to the dropdown, defaulting left" do
+    assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+    html =
+      rendered_to_string(~H"""
+      <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items} />
+      """)
+
+    assert html =~ "pc-dropdown__menu-items-wrapper-placement--left"
+
+    # the sidebar-bottom avatar: against the left viewport edge the panel must
+    # grow rightward into the viewport, not leftward off it
+    html =
+      rendered_to_string(~H"""
+      <.user_dropdown_menu current_user_name="Sarah Chen" placement="right" user_menu_items={@items} />
+      """)
+
+    assert html =~ "pc-dropdown__menu-items-wrapper-placement--right"
+    refute html =~ "pc-dropdown__menu-items-wrapper-placement--left"
+  end
 end
