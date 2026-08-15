@@ -70,6 +70,7 @@ defmodule PetalComponents.Dropdown do
           ]}
           {js_attributes("button", @options_container_id)}
           aria-haspopup="true"
+          data-pc-dropdown-trigger
         >
           <span class="sr-only">Open options</span>
 
@@ -205,7 +206,13 @@ defmodule PetalComponents.Dropdown do
 
   defp js_attributes("options_container", _options_container_id, _on_close) do
     %{
-      style: "display: none;"
+      style: "display: none;",
+      # PetalDropdown measures on open and marks the panel `data-flip` when
+      # the viewport leaves no room below the trigger - a user menu at the
+      # bottom of a sidebar opens upward instead of off-screen. Register the
+      # bundled hooks (see README) to get it; without them the panel keeps
+      # its old always-downward behaviour rather than breaking.
+      "phx-hook": "PetalDropdown"
     }
   end
 

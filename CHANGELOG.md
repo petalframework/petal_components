@@ -3,6 +3,25 @@
 
 #### Fixed
 
+- **The dropdown family flips its panel upward when the viewport leaves
+  no room below.** The canonical break was the user menu every app shell
+  ends up with: an avatar pinned to the bottom of a sidebar dropped its
+  menu clean off the bottom of the screen, with nothing to scroll to and
+  no way to reach Sign out. The panel opened downward unconditionally
+  because nothing measured it - the dropdown is LiveView.JS and CSS with
+  no JS in the open path at all. A new `PetalDropdown` hook rides the
+  panel (it already carries the id `JS.toggle` targets) and marks
+  `data-flip` when there is no room below and more above, which is the
+  same rule and the same attribute the combobox has used since 4.10;
+  both now call one shared `flipDecision`, so the rule can't drift
+  between them. The transform origin swaps with the flip, so a flipped
+  panel still scales out of the trigger rather than unfolding away from
+  it, and the side is re-measured on scroll and resize while the menu is
+  open. Applies to everything built on `dropdown`: `user_dropdown_menu`,
+  `language_select` and the `color_scheme_switch` dropdown variant.
+  Register the bundled hooks (see the README) to get it - without them
+  the panel keeps its previous always-downward behaviour.
+
 - **`command_dialog` now locks background scroll while the palette is
   open.** A native modal `<dialog>` hands you the top layer, the focus
   trap and Escape, but it does not stop the page underneath from

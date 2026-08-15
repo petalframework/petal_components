@@ -9,6 +9,7 @@ defmodule PetalComponents.DropdownTest do
   use ComponentCase
   import PetalComponents.Dropdown
   import PetalComponents.Icon
+  import PetalComponents.UserDropdownMenu
 
   describe "dropdown/1 - basic rendering" do
     setup do
@@ -141,6 +142,54 @@ defmodule PetalComponents.DropdownTest do
 
         assert_has_class(html, "pc-dropdown__menu-items-wrapper-placement--#{placement}")
       end)
+    end
+  end
+
+  describe "dropdown/1 - vertical flip anatomy" do
+    # The flip itself is measured in the browser (test/js/dropdown.test.js
+    # pins the rule and the hook). These pin the two bits of markup the hook
+    # needs to exist at all: without them a user menu at the bottom of a
+    # sidebar goes back to opening off the bottom of the screen.
+
+    test "the panel carries the hook that measures the flip" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.dropdown label="Dropdown">
+          <.dropdown_menu_item label="Option" />
+        </.dropdown>
+        """)
+
+      assert html =~ ~s(phx-hook="PetalDropdown")
+    end
+
+    test "the trigger is findable from the panel" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.dropdown label="Dropdown">
+          <.dropdown_menu_item link_type="button" label="A button item" />
+        </.dropdown>
+        """)
+
+      # The marker, not "the first button": menu items can be buttons too,
+      # and the hook measures the trigger's box, not a menu item's.
+      assert html =~ "data-pc-dropdown-trigger"
+      assert Regex.scan(~r/data-pc-dropdown-trigger/, html) |> length() == 1
+    end
+
+    test "the user menu inherits the flip through the dropdown" do
+      assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items} />
+        """)
+
+      assert html =~ ~s(phx-hook="PetalDropdown")
+      assert html =~ "data-pc-dropdown-trigger"
     end
   end
 
