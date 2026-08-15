@@ -2127,19 +2127,28 @@ export const PetalDropdown = {
     this.gap = 8; // matches the panel's mt-2 / flipped mb-2
 
     this.reposition = () => this.position();
+    // Live tracking, matching the combobox - plus the visual viewport,
+    // matching the data table: the mobile keyboard and pinch-zoom shrink
+    // and offset the VISIBLE region without firing window scroll or
+    // resize, so a menu measured on layout-viewport numbers alone can
+    // still open behind the keyboard.
+    this.listen = (method) => {
+      window[method]("scroll", this.reposition, true);
+      window[method]("resize", this.reposition);
+      if (window.visualViewport) {
+        window.visualViewport[method]("resize", this.reposition);
+        window.visualViewport[method]("scroll", this.reposition);
+      }
+    };
     this.syncOpen = () => {
       const open = this.isOpen();
       if (open === this.open) return;
       this.open = open;
       if (open) {
-        // Live tracking, matching the combobox: a page that scrolls under
-        // an open menu changes the answer, so the answer is re-asked.
-        window.addEventListener("scroll", this.reposition, true);
-        window.addEventListener("resize", this.reposition);
+        this.listen("addEventListener");
         this.position();
       } else {
-        window.removeEventListener("scroll", this.reposition, true);
-        window.removeEventListener("resize", this.reposition);
+        this.listen("removeEventListener");
         // data-flip deliberately survives the close. The out transition
         // scales the panel back into the trigger, and dropping it to the
         // other side mid-fade is the jump this hook exists to prevent.
@@ -2158,8 +2167,7 @@ export const PetalDropdown = {
 
   destroyed() {
     this.observer?.disconnect();
-    window.removeEventListener("scroll", this.reposition, true);
-    window.removeEventListener("resize", this.reposition);
+    this.listen?.("removeEventListener");
   },
 
   // The panel ships `display: none` inline and JS.toggle rewrites it. An
@@ -2185,11 +2193,17 @@ export const PetalDropdown = {
     // wrongly deciding it fits below.
     const panelH = this.el.offsetHeight;
     if (!panelH || (!t.top && !t.bottom)) return; // jsdom / unrendered
+    // The visible region, not the layout one: with the keyboard up or a
+    // pinch-zoom active only the visual viewport's band is reachable, and
+    // rects are client coordinates, which is the same space offsetTop and
+    // height describe (the data table's positioner set this precedent).
+    const vv = window.visualViewport;
     const { flip } = flipDecision({
       triggerTop: t.top,
       triggerBottom: t.bottom,
       panelHeight: panelH,
-      viewportHeight: window.innerHeight,
+      viewportTop: vv ? vv.offsetTop : 0,
+      viewportHeight: vv ? vv.height : window.innerHeight,
       gap: this.gap,
     });
     if (flip) this.el.setAttribute("data-flip", "");

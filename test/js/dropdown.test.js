@@ -302,3 +302,113 @@ describe("PetalDropdown", () => {
     expect(d.flipped()).toBe(false);
   });
 });
+
+// The mobile trap: the on-screen keyboard and pinch-zoom shrink and offset
+// the VISUAL viewport without touching window.innerHeight or firing window
+// events. The hook must measure the band the user can actually see, and
+// re-ask when that band changes - the same contract the data table's
+// positioner honours.
+describe("PetalDropdown and the visual viewport", () => {
+  function mockVisualViewport({ offsetTop = 0, height }) {
+    const listeners = [];
+    window.visualViewport = {
+      offsetTop,
+      height,
+      addEventListener: (type, fn) => listeners.push([type, fn]),
+      removeEventListener: (type, fn) => {
+        const i = listeners.findIndex(([t, f]) => t === type && f === fn);
+        if (i !== -1) listeners.splice(i, 1);
+      },
+      fire: (type) =>
+        listeners.filter(([t]) => t === type).forEach(([, fn]) => fn()),
+      listeners,
+    };
+    return window.visualViewport;
+  }
+
+  afterEach(() => {
+    delete window.visualViewport;
+  });
+
+  it("measures the visible band, not the layout viewport", async () => {
+    const d = mountDropdown();
+    // Layout viewport says 252px of room below - plenty. The keyboard has
+    // eaten the bottom half: the visible band ends at 300, so the panel
+    // must flip up into the 492px above instead of opening behind the keys.
+    withGeometry(d, {
+      triggerTop: 500,
+      triggerBottom: 540,
+      panelHeight: 200,
+      viewport: 800,
+    });
+    mockVisualViewport({ height: 300 });
+
+    show(d);
+    await settle();
+    expect(d.flipped()).toBe(true);
+  });
+
+  it("honours the band's offset when the page is pinch-panned", async () => {
+    const d = mountDropdown();
+    // The visual viewport sits 400px down the layout viewport. The trigger
+    // at 450 is near the band's TOP, so below (350) has the room and above
+    // (42) does not - layout numbers alone would agree here, but offsetTop
+    // is what keeps the maths honest either way.
+    withGeometry(d, {
+      triggerTop: 450,
+      triggerBottom: 490,
+      panelHeight: 200,
+      viewport: 800,
+    });
+    mockVisualViewport({ offsetTop: 400, height: 400 });
+
+    show(d);
+    await settle();
+    expect(d.flipped()).toBe(false);
+  });
+
+  it("re-asks when the visual viewport changes while open", async () => {
+    const d = mountDropdown();
+    withGeometry(d, {
+      triggerTop: 500,
+      triggerBottom: 540,
+      panelHeight: 200,
+      viewport: 800,
+    });
+    const vv = mockVisualViewport({ height: 800 });
+
+    show(d);
+    await settle();
+    expect(d.flipped()).toBe(false);
+
+    // The keyboard opens: no window event fires, only the vv's own resize.
+    vv.height = 300;
+    vv.fire("resize");
+    expect(d.flipped()).toBe(true);
+  });
+
+  it("stops listening to the visual viewport on close and teardown", async () => {
+    const d = mountDropdown();
+    withGeometry(d, {
+      triggerTop: 100,
+      triggerBottom: 140,
+      panelHeight: 200,
+      viewport: 800,
+    });
+    const vv = mockVisualViewport({ height: 800 });
+
+    show(d);
+    await settle();
+    expect(vv.listeners.length).toBe(2);
+
+    hide(d);
+    await settle();
+    expect(vv.listeners.length).toBe(0);
+
+    show(d);
+    await settle();
+    expect(vv.listeners.length).toBe(2);
+    d.hook.destroyed();
+    expect(vv.listeners.length).toBe(0);
+  });
+});
