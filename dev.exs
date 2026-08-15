@@ -845,6 +845,7 @@ defmodule Dev.PlaygroundLive do
          thumbnails: false
        },
        nav_trigger: "hover",
+       user_menu_placement: "right",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -1381,6 +1382,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_navmenu", %{"k" => "trigger", "v" => v}, socket)
       when v in ~w(hover click),
       do: {:noreply, assign(socket, :nav_trigger, v)}
+
+  def handle_event("ctl_usermenu", %{"k" => "placement", "v" => v}, socket)
+      when v in ~w(left right),
+      do: {:noreply, assign(socket, :user_menu_placement, v)}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -7203,6 +7208,77 @@ defmodule Dev.PlaygroundLive do
             ]}
           />
         </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        The corner it actually lives in - pinned to the bottom of a sidebar
+      </div>
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex h-[400px]">
+          <div class="flex flex-col flex-none p-3 border-r w-52 border-gray-200 dark:border-gray-800">
+            <div class="px-2 py-1 text-sm font-semibold">Acme Inc</div>
+            <div class="mt-3 space-y-0.5">
+              <div
+                :for={
+                  {icon, label} <- [
+                    {"hero-home", "Dashboard"},
+                    {"hero-users", "Customers"},
+                    {"hero-banknotes", "Billing"},
+                    {"hero-cog-6-tooth", "Settings"}
+                  ]
+                }
+                class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-500 rounded-lg dark:text-gray-400"
+              >
+                <.icon name={icon} class="w-4 h-4 text-gray-400 dark:text-gray-500" />{label}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-3 mt-auto border-t border-gray-100 dark:border-gray-800/80">
+              <.user_dropdown_menu
+                current_user_name="Sarah Chen"
+                avatar_src="/dev-static/avatars/p32.jpg"
+                placement={@user_menu_placement}
+                user_menu_items={[
+                  %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
+                  %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
+                  %{
+                    path: "/?c=user-menu",
+                    icon: "hero-arrow-right-start-on-rectangle",
+                    label: "Sign out"
+                  }
+                ]}
+              />
+              <span class="text-sm text-gray-600 truncate dark:text-gray-300">Sarah Chen</span>
+            </div>
+          </div>
+          <div class="flex-1 p-4 space-y-3">
+            <div class="w-32 h-3 rounded bg-gray-100 dark:bg-gray-900"></div>
+            <div class="w-full h-24 rounded-lg bg-gray-50 dark:bg-gray-900/50"></div>
+            <div class="w-full h-24 rounded-lg bg-gray-50 dark:bg-gray-900/50"></div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Placement"
+            value={@user_menu_placement}
+            on_change="ctl_usermenu"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item :for={p <- ~w(left right)} value={p} phx-value-k="placement" phx-value-v={p}>
+              {p}
+            </:item>
+          </.toggle_group>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        placement="right" grows the panel into the app. The default "left" hangs it
+        leftward off the sidebar, which at the real left edge of a screen means
+        off-screen. The upward flip keys off the window, not this pane: scroll until
+        the shell's bottom edge sits near the bottom of your browser, then open the
+        menu. It opens up instead of down and the panel picks up a data-flip
+        attribute. Leave it open and keep scrolling - it re-measures every time.
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
