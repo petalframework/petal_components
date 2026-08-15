@@ -260,8 +260,8 @@ defmodule PetalComponents.Calendar do
               class={[
                 "pc-calendar__cell",
                 day.range_middle && "pc-calendar__cell--in-range",
-                day.range_start && "pc-calendar__cell--range-start",
-                day.range_end && "pc-calendar__cell--range-end"
+                day.band_start && "pc-calendar__cell--range-start",
+                day.band_end && "pc-calendar__cell--range-end"
               ]}
             >
               <.day
@@ -354,14 +354,23 @@ defmodule PetalComponents.Calendar do
   defp day_type(%{on_select: nil, name: name}) when name not in [nil, false], do: "submit"
   defp day_type(_assigns), do: "button"
 
-  # The range band and its rounded ends are on the cell, so it can run edge to
-  # edge between days. The two ends are also selected, which is what paints
-  # them - there is deliberately no day-level range-start/end class, because a
-  # class with no rule behind it is dead weight in every consumer's stylesheet.
+  # The band is on the cell, so it runs edge to edge between days; the chip is on
+  # the button. They are different jobs and get different classes: the two ends
+  # of a range wear the chip, the days between them wear the band and nothing
+  # else. A range-middle day is still `aria-selected`, but it deliberately does
+  # not get `--selected` - painting a chip and then painting it out again put the
+  # two rules in a specificity fight that `dark:` won, which is how every day in
+  # a dark-mode range ended up as its own rounded box.
+  #
+  # `band_start` / `band_end` are the ends of a band that actually spans, so a
+  # half-open range (or a one-day one) stays a plain chip with nothing to merge
+  # into, and only a real band asks its ends to square off on the inward side.
   @day_flags [
     {:outside, "pc-calendar__day--outside"},
     {:today, "pc-calendar__day--today"},
-    {:selected, "pc-calendar__day--selected"},
+    {:chip, "pc-calendar__day--selected"},
+    {:band_start, "pc-calendar__day--range-start"},
+    {:band_end, "pc-calendar__day--range-end"},
     {:disabled, "pc-calendar__day--disabled"},
     {:range_middle, "pc-calendar__day--in-range"}
   ]
@@ -468,6 +477,8 @@ defmodule PetalComponents.Calendar do
   defp build_day(date, month_start, selection, assigns) do
     outside = date.month != month_start.month or date.year != month_start.year
     {range_start, range_middle, range_end} = range_position(date, selection)
+    banded = banded?(selection)
+    selected = selected?(date, selection)
 
     %{
       date: date,
@@ -476,14 +487,22 @@ defmodule PetalComponents.Calendar do
       hidden: outside and not assigns.show_outside_days,
       today: Date.compare(date, assigns.today) == :eq,
       disabled: disabled?(date, assigns),
-      selected: selected?(date, selection),
+      selected: selected,
+      chip: selected and not range_middle,
       range_start: range_start,
       range_middle: range_middle,
       range_end: range_end,
+      band_start: banded and range_start,
+      band_end: banded and range_end,
       aria_label: aria_label(date, assigns.month_names),
       tabindex: "-1"
     }
   end
+
+  # A band only exists once both ends are in and they are different days. Until
+  # then the anchor is just a selected day, so it keeps all four corners.
+  defp banded?({:range, %Date{} = from, %Date{} = to}), do: Date.compare(from, to) != :eq
+  defp banded?(_selection), do: false
 
   defp selected?(date, {:single, %Date{} = selected}), do: Date.compare(date, selected) == :eq
   defp selected?(_date, {:single, nil}), do: false

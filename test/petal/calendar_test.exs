@@ -269,10 +269,10 @@ defmodule PetalComponents.CalendarTest do
     end
 
     # The band and its rounded ends live on the cell so it runs edge to edge.
-    # The ends of a range are also selected, so the day never needed its own
-    # range modifiers - and a class with no rule behind it is dead weight in
-    # every consumer's stylesheet.
-    test "range ends carry no day-level modifiers the stylesheet does not define" do
+    # The chip lives on the button, and only the two ends of the range wear it:
+    # a day in the middle is aria-selected but carries no chip class, so the
+    # band's continuity is never a specificity argument with dark mode.
+    test "only the ends of a range wear the chip; the middle wears the band" do
       assigns = %{}
 
       html =
@@ -280,10 +280,48 @@ defmodule PetalComponents.CalendarTest do
         <.calendar month={~D[2026-03-01]} mode="range" value={{~D[2026-03-10], ~D[2026-03-14]}} />
         """)
 
-      assert Enum.empty?(cells(html, ".pc-calendar__day--range-start"))
-      assert Enum.empty?(cells(html, ".pc-calendar__day--range-end"))
-      assert Enum.count(cells(html, ".pc-calendar__day--selected")) == 5
+      assert Enum.count(cells(html, ".pc-calendar__day--selected")) == 2
+      assert Enum.count(cells(html, ".pc-calendar__day--range-start")) == 1
+      assert Enum.count(cells(html, ".pc-calendar__day--range-end")) == 1
       assert Enum.count(cells(html, ".pc-calendar__day--in-range")) == 3
+
+      for iso <- ~w(2026-03-11 2026-03-12 2026-03-13) do
+        classes = html |> cells(~s([data-date="#{iso}"])) |> LazyHTML.attribute("class")
+        refute List.first(classes) =~ "pc-calendar__day--selected"
+      end
+
+      assert html
+             |> cells(".pc-calendar__day--range-start")
+             |> LazyHTML.attribute("data-date") == ["2026-03-10"]
+
+      assert html
+             |> cells(".pc-calendar__day--range-end")
+             |> LazyHTML.attribute("data-date") == ["2026-03-14"]
+    end
+
+    # Nothing to merge into means nothing to square off against: an anchor with
+    # no other end, and a range that starts and finishes on the same day, are
+    # both a plain chip on a plain cell.
+    test "a range with no span carries no band classes on either the cell or the day" do
+      for value <- [
+            {~D[2026-03-10], nil},
+            {nil, ~D[2026-03-10]},
+            {~D[2026-03-10], ~D[2026-03-10]}
+          ] do
+        assigns = %{value: value}
+
+        html =
+          rendered_to_string(~H"""
+          <.calendar month={~D[2026-03-01]} mode="range" value={@value} />
+          """)
+
+        assert Enum.count(cells(html, ".pc-calendar__day--selected")) == 1
+        assert Enum.empty?(cells(html, ".pc-calendar__cell--in-range"))
+        assert Enum.empty?(cells(html, ".pc-calendar__cell--range-start"))
+        assert Enum.empty?(cells(html, ".pc-calendar__cell--range-end"))
+        assert Enum.empty?(cells(html, ".pc-calendar__day--range-start"))
+        assert Enum.empty?(cells(html, ".pc-calendar__day--range-end"))
+      end
     end
 
     test "range mode accepts a map and orders a backwards pair" do
