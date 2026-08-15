@@ -5549,6 +5549,7 @@ export const PetalDrawer = {
     this.readConfig();
     // a re-render mid-drag must not yank the sheet out from under the finger
     if (!this.dragging && previous !== this.configKey) this.reset();
+    else this.restore();
     this.syncBackground();
   },
 
@@ -5562,6 +5563,30 @@ export const PetalDrawer = {
     if (this.observer) this.observer.disconnect();
     if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
     clearTimeout(this.timer);
+  },
+
+  // A patch syncs the style attribute back to what the server rendered - the
+  // sheet's `height: Ndvh` and nothing else - and the only inline styles
+  // LiveView carries across a patch are its own sticky ones, which is display
+  // and not transform. So every re-render while the drawer is open drops the
+  // drag offset out of the DOM: the sheet jumps to its top rest position while
+  // this.offset still reads the old value, and the next pointermove teleports
+  // it back down to a baseline the user can no longer see. Put it back.
+  restore() {
+    if (this.dragging) this.el.style.transition = "none";
+    this.apply(this.offset);
+  },
+
+  // The offset the sheet is actually rendered at. Inline transform is written
+  // by this hook and nobody else - the open/close commands animate the
+  // translate utility, a separate property, which is why the two compose - so
+  // reading it back gives the sheet's real position, or 0 once a patch has
+  // dropped it.
+  renderedOffset() {
+    const match = /translate3d\([^,]*,\s*(-?[\d.]+)px/.exec(
+      this.el.style.transform || "",
+    );
+    return match ? parseFloat(match[1]) : 0;
   },
 
   readConfig() {
@@ -5673,6 +5698,12 @@ export const PetalDrawer = {
     this.dragging = true;
     this.pointerId = e.pointerId;
     this.startY = e.clientY;
+    // Baseline the drag on where the sheet is rendered rather than on what the
+    // hook last wrote. The two only disagree when something moved the sheet
+    // behind the hook's back - a patch that landed without an updated(), a
+    // consumer clearing the style - and in that case the DOM is the truth. A
+    // drag has to start from the position the finger is touching.
+    this.offset = this.renderedOffset();
     this.startOffset = this.offset;
     this.height = this.el.offsetHeight || window.innerHeight;
     this.samples = [{ y: e.clientY, time: e.timeStamp }];

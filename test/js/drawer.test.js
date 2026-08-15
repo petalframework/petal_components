@@ -230,6 +230,15 @@ const up = (hook) => hook.onPointerUp({ pointerId: 1 });
 
 const cancel = (hook) => hook.onPointerCancel({ pointerId: 1 });
 
+// the offset the sheet is rendered at, read off the DOM rather than asked of
+// the hook - these specs are about the two agreeing
+const renderedOffset = (el) => {
+  const match = /translate3d\([^,]*,\s*(-?[\d.]+)px/.exec(
+    el.style.transform || "",
+  );
+  return match ? parseFloat(match[1]) : 0;
+};
+
 const touchMove = (hook, y) => {
   const e = {
     cancelable: true,
@@ -411,6 +420,79 @@ describe("PetalDrawer", () => {
     hook.updated();
 
     expect(hook.offset).toBeCloseTo(60);
+  });
+
+  // A LiveView patch syncs the style attribute back to the server's markup and
+  // carries only its own sticky inline styles (display) across, so the drag
+  // transform is dropped by any re-render of an open drawer.
+  const patchDropsInlineStyle = (el) => {
+    el.style.transform = "";
+    el.style.transition = "";
+  };
+
+  it("puts the drag offset back after a re-render drops the transform", () => {
+    const { hook, el } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.4" });
+    const peek = 0.5 * window.innerHeight;
+    expect(renderedOffset(el)).toBeCloseTo(peek);
+
+    // a re-render that changes nothing the hook configures - a handle toggled
+    // on, a label edited - still rewrites the style attribute
+    patchDropsInlineStyle(el);
+    hook.updated();
+
+    expect(hook.offset).toBeCloseTo(peek);
+    expect(renderedOffset(el)).toBeCloseTo(peek);
+  });
+
+  it("drags from where the sheet is rendered, not from a stale offset", () => {
+    const { hook, el } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.4" });
+    const handle = el.querySelector("[data-pc-drawer-handle]");
+
+    // the harshest version: the sheet moved and the hook never got an updated()
+    patchDropsInlineStyle(el);
+
+    down(hook, handle, 500);
+    move(hook, 510, 100);
+
+    // 10px of finger is 10px of sheet, not a leap back to the old baseline
+    expect(hook.offset).toBeCloseTo(10);
+    expect(renderedOffset(el)).toBeCloseTo(10);
+  });
+
+  it("tracks the drag after the handle appears in a re-render mid-open", () => {
+    // The repro: open a snapped drawer with handle={false}, flip the handle on,
+    // then grab it. The patch that adds the handle drops the transform, and
+    // before this the first move snapped the sheet down to the stale offset.
+    const { hook, el } = mount({ snapPoints: "0.4,0.9", initialSnap: "0.4" });
+    const peek = 0.5 * window.innerHeight;
+
+    el.querySelector("[data-pc-drawer-handle]").remove();
+    patchDropsInlineStyle(el);
+    const handle = document.createElement("div");
+    handle.setAttribute("data-pc-drawer-handle", "");
+    el.prepend(handle);
+    hook.updated();
+
+    expect(renderedOffset(el)).toBeCloseTo(peek);
+
+    down(hook, handle, 500);
+    move(hook, 540, 200);
+
+    expect(hook.offset).toBeCloseTo(peek + 40);
+  });
+
+  it("keeps the sheet under the finger when a re-render lands mid-drag", () => {
+    const { hook, el } = mount();
+    const handle = el.querySelector("[data-pc-drawer-handle]");
+
+    down(hook, handle, 500);
+    move(hook, 560, 300);
+    patchDropsInlineStyle(el);
+    hook.updated();
+
+    expect(renderedOffset(el)).toBeCloseTo(60);
+    // and the drag still owns the transition, so the next move does not animate
+    expect(el.style.transition).toBe("none");
   });
 
   it("re-seats a snapped drawer when the viewport resizes", () => {
