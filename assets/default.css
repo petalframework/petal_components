@@ -7644,13 +7644,12 @@
     @apply bg-transparent;
   }
 
-  /* The chevron is a control nested inside a row that lights up on hover too,
-     so its own wash has to read as a chip sitting *in* that hover rather than
-     a notch cut out of its edge. A step-wide pill is flush with the row on the
-     left at depth 0 and the two washes fuse, so the painted box is one icon
-     square instead, centred in the column with the leftover step split into
-     inline margins - the column still measures exactly one step, so labels,
-     guide lines and row height do not move. */
+  /* No hover box on the chevron, on purpose: file trees (VS Code, Finder,
+     GitHub) highlight the row and sharpen the twisty glyph, and any painted
+     chip in a 20px column inside a 32px row reads cramped against the row
+     wash no matter how it is inset. Hover feedback is the icon colour
+     deepening; the geometry below keeps the icon centred in its one-step
+     column so labels, guide lines and row height do not move. */
   .pc-tree__chevron {
     @apply relative flex shrink-0 cursor-pointer items-center justify-center text-gray-400 dark:text-gray-500;
     width: 1rem;
@@ -7669,7 +7668,7 @@
   }
 
   .pc-tree__chevron:hover {
-    @apply bg-gray-200 text-gray-600 dark:bg-gray-400/17 dark:text-gray-300;
+    @apply text-gray-700 dark:text-gray-200;
   }
 
   /* The leaf chevron is empty on purpose: it reserves the same column so leaf
@@ -7679,7 +7678,7 @@
   }
 
   .pc-tree__chevron--leaf:hover {
-    @apply bg-transparent;
+    @apply text-gray-400 dark:text-gray-500;
   }
 
   .pc-tree__chevron-icon {
