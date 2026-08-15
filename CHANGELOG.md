@@ -1,6 +1,16 @@
 # Changelog
 ### Unreleased
 
+#### Added
+
+- **`user_dropdown_menu` takes a `placement`.** It always rendered its
+  dropdown at the default `"left"` placement (panel hangs leftward, right
+  edges aligned), which is exactly wrong for the component's most common
+  home: an avatar at the bottom-left of a sidebar, where the menu must grow
+  rightward into the viewport. `placement` now passes straight through to
+  the dropdown, and together with the viewport flip that means a
+  sidebar-bottom user menu opens up and to the right instead of off-screen.
+
 #### Fixed
 
 - **The dropdown family flips its panel upward when the viewport leaves
