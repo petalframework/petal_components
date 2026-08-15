@@ -1435,6 +1435,32 @@ export const PetalInputOTP = {
   },
 };
 
+// The one vertical-flip rule for a panel anchored under its trigger, so a
+// fix to the rule lands on every panel that shares it. It owns the DECISION
+// only - which side the panel opens on, and how much room that side has.
+// What each component does with the answer stays local, because that part
+// genuinely differs: the combobox marks `data-flip` and caps an inner
+// scroller, the dropdown marks `data-flip` and lets CSS do the rest.
+//
+// The rule: stay below unless the panel does not fit below AND above is
+// roomier. Ties go to below, so a panel that fits either way never moves,
+// and a viewport too cramped for both sides still picks the bigger one.
+// `gap` is the visual space between trigger and panel; it comes out of both
+// sides so the comparison is like for like.
+export const flipDecision = ({
+  triggerTop,
+  triggerBottom,
+  panelHeight,
+  viewportTop = 0,
+  viewportHeight,
+  gap = 0,
+}) => {
+  const below = viewportTop + viewportHeight - triggerBottom - gap;
+  const above = triggerTop - viewportTop - gap;
+  const flip = panelHeight > below && above > below;
+  return { flip, above, below, room: flip ? above : below };
+};
+
 // Positions a top-layer popover (<div popover>) next to its trigger.
 // The browser handles open/close and light-dismiss via the popover attribute;
 // this hook only computes fixed coordinates, flipping to the opposite side
@@ -2076,6 +2102,97 @@ export const PetalNavMenu = {
     } else if (rect.left < margin) {
       panel.style.transform = `translateX(${margin - rect.left}px)`;
     }
+  },
+};
+
+// The dropdown family - the dropdown itself, the user menu, the language
+// select, the colour-scheme menu - opens a plain absolutely-positioned
+// sibling panel through LiveView.JS alone. No JS in the open path at all,
+// which is exactly why the panel always went downward: an avatar pinned to
+// the bottom of a sidebar dropped its menu clean off the bottom of the
+// screen with nothing to scroll to.
+//
+// The hook rides the PANEL, not the container: the panel already carries
+// the id `JS.toggle` targets, so nothing new has to be minted and a
+// consumer id can't collide with it. All it does is mark `data-flip` when
+// the shared rule says up - CSS moves the panel and swaps the transform
+// origin so the open transition still scales out of the trigger.
+//
+// Opening is detected by watching the inline `style` JS.toggle writes,
+// rather than by listening on the trigger. That catches every opener,
+// including a consumer driving their own JS.toggle at the same id, and it
+// can never observe itself into a loop: this hook only writes attributes.
+export const PetalDropdown = {
+  mounted() {
+    this.gap = 8; // matches the panel's mt-2 / flipped mb-2
+
+    this.reposition = () => this.position();
+    this.syncOpen = () => {
+      const open = this.isOpen();
+      if (open === this.open) return;
+      this.open = open;
+      if (open) {
+        // Live tracking, matching the combobox: a page that scrolls under
+        // an open menu changes the answer, so the answer is re-asked.
+        window.addEventListener("scroll", this.reposition, true);
+        window.addEventListener("resize", this.reposition);
+        this.position();
+      } else {
+        window.removeEventListener("scroll", this.reposition, true);
+        window.removeEventListener("resize", this.reposition);
+        // data-flip deliberately survives the close. The out transition
+        // scales the panel back into the trigger, and dropping it to the
+        // other side mid-fade is the jump this hook exists to prevent.
+        // Every open measures fresh anyway.
+      }
+    };
+
+    this.open = this.isOpen();
+    this.observer = new MutationObserver(this.syncOpen);
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    if (this.open) this.position();
+  },
+
+  destroyed() {
+    this.observer?.disconnect();
+    window.removeEventListener("scroll", this.reposition, true);
+    window.removeEventListener("resize", this.reposition);
+  },
+
+  // The panel ships `display: none` inline and JS.toggle rewrites it. An
+  // empty display means a stylesheet is in charge and the panel is showing.
+  isOpen() {
+    return this.el.style.display !== "none";
+  },
+
+  trigger() {
+    return this.el.parentElement?.querySelector("[data-pc-dropdown-trigger]");
+  },
+
+  position() {
+    const trigger = this.trigger();
+    if (!trigger) return;
+    // Measure with the flip cleared so natural geometry decides, the same
+    // order the combobox uses. Margins don't reach offsetHeight, so this
+    // costs nothing visually - it never paints between the two writes.
+    this.el.removeAttribute("data-flip");
+    const t = trigger.getBoundingClientRect();
+    // offsetHeight, never the rect: the open transition scales the panel
+    // to 95%, and a rect read mid-transition under-measures it into
+    // wrongly deciding it fits below.
+    const panelH = this.el.offsetHeight;
+    if (!panelH || (!t.top && !t.bottom)) return; // jsdom / unrendered
+    const { flip } = flipDecision({
+      triggerTop: t.top,
+      triggerBottom: t.bottom,
+      panelHeight: panelH,
+      viewportHeight: window.innerHeight,
+      gap: this.gap,
+    });
+    if (flip) this.el.setAttribute("data-flip", "");
   },
 };
 
@@ -4250,10 +4367,11 @@ export const PetalComboBox = {
 
   // Open downward by default; flip above when the viewport has no room
   // below AND more room above (the bottom-of-form combobox that used to
-  // open 200px off-screen). When NEITHER side fits the whole panel, the
-  // winning side's space caps the scroll area instead - the list scrolls
-  // within what fits, so no option ever sits outside the viewport.
-  // Measured with flip and cap cleared so natural height decides.
+  // open 200px off-screen). The side is `flipDecision`'s call - shared with
+  // the dropdown family so the two can't drift. When NEITHER side fits the
+  // whole panel, the winning side's space caps the scroll area instead -
+  // the list scrolls within what fits, so no option ever sits outside the
+  // viewport. Measured with flip and cap cleared so natural height decides.
   positionPanel() {
     if (this.panel.hidden) return;
     this.panel.removeAttribute("data-flip");
@@ -4263,12 +4381,14 @@ export const PetalComboBox = {
     const control = anchor.getBoundingClientRect();
     const panelH = this.panel.offsetHeight;
     if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
-    const gap = 8;
-    const below = window.innerHeight - control.bottom - gap;
-    const above = control.top - gap;
-    const flip = panelH > below && above > below;
+    const { flip, room } = flipDecision({
+      triggerTop: control.top,
+      triggerBottom: control.bottom,
+      panelHeight: panelH,
+      viewportHeight: window.innerHeight,
+      gap: 8,
+    });
     if (flip) this.panel.setAttribute("data-flip", "");
-    const room = flip ? above : below;
     if (panelH > room) {
       // no floor: in a viewport too cramped for even one row, a sliver of
       // scrollable list still beats options rendered outside the viewport
@@ -5471,6 +5591,7 @@ export default {
   PetalCommandTrigger,
   PetalAurora,
   PetalNavMenu,
+  PetalDropdown,
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,

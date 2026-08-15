@@ -1973,6 +1973,21 @@
   .pc-dropdown__menu-items-wrapper-placement--right {
     @apply left-0 origin-top-left;
   }
+  /* Flipped: PetalDropdown measured no room below the trigger and more room
+     above, so the panel hangs off the top edge instead (the user menu at the
+     bottom of a sidebar). Same shape as the combobox's [data-flip] rule.
+     The origin has to swap with it - the open transition scales from 95%,
+     and leaving it at the top corner makes a flipped panel unfold downward,
+     away from the trigger it belongs to. */
+  .pc-dropdown__menu-items-wrapper[data-flip] {
+    @apply top-auto bottom-full mt-0 mb-2;
+  }
+  .pc-dropdown__menu-items-wrapper-placement--left[data-flip] {
+    @apply origin-bottom-right;
+  }
+  .pc-dropdown__menu-items-wrapper-placement--right[data-flip] {
+    @apply origin-bottom-left;
+  }
   /* The one trigger chevron for the dropdown family - user menu,
      language select and friends share this so the colour can't drift. */
   /* THE decorative-chevron rule for the dropdown family (dropdown,
