@@ -7596,7 +7596,7 @@
        band's outer ends, the nav buttons. A single token means a lone
        selected day and a range endpoint are the SAME shape, so completing
        a range never visibly re-rounds the date you already picked. */
-    --pc-calendar-day-radius: var(--pc-calendar-day-radius);
+    --pc-calendar-day-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
   }
 
   .pc-calendar__header {

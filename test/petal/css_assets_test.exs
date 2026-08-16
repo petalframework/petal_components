@@ -24,6 +24,28 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  for path <- @css_assets do
+    test "#{path} has no self-referential custom properties" do
+      css = File.read!(Path.join(@app_root, unquote(path)))
+
+      # `--x: ... var(--x) ...` is a dependency cycle: the property computes
+      # to guaranteed-invalid and every var(--x) consumer falls back to its
+      # initial value - a radius token silently becoming 0 shipped this way
+      # (a search-and-replace over the file matched the definition line too).
+      offenders =
+        ~r/(--[\w-]+)\s*:\s*([^;{}]*);/
+        |> Regex.scan(css)
+        |> Enum.filter(fn [_, name, value] ->
+          value =~ "var(#{name})" or value =~ "var(#{name},"
+        end)
+        |> Enum.map(fn [decl, _, _] -> String.trim(decl) end)
+
+      assert offenders == [],
+             "#{unquote(path)} declares custom properties that reference themselves: " <>
+               inspect(offenders)
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).
