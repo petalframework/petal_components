@@ -787,7 +787,7 @@ defmodule Dev.PlaygroundLive do
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
-       cal: %{mode: "single", starts_on: 1, outside: true, window: false},
+       cal: %{mode: "single", starts_on: 1, outside: true, window: false, size: "2.25rem"},
        cal_month: Date.beginning_of_month(Date.utc_today()),
        cal_single: Date.utc_today(),
        cal_range: {nil, nil},
@@ -1466,6 +1466,13 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_cal", %{"k" => "starts_on", "v" => v}, socket) when v in ~w(1 7),
     do: {:noreply, update(socket, :cal, &%{&1 | starts_on: String.to_integer(v)})}
+
+  # The dial writes the token as an inline style rather than an arbitrary
+  # utility class: `[--pc-calendar-cell-size:#{v}]` built at runtime is a class
+  # name Tailwind's scanner never sees, so it would compile to nothing.
+  def handle_event("ctl_cal", %{"k" => "size", "v" => v}, socket)
+      when v in ~w(2rem 2.25rem 3rem 4rem),
+      do: {:noreply, update(socket, :cal, &%{&1 | size: v})}
 
   def handle_event("ctl_cal", %{"k" => k}, socket) when k in ~w(outside window),
     do:
@@ -9252,6 +9259,11 @@ defmodule Dev.PlaygroundLive do
         guessing. Tab into the grid and drive it with the arrow keys: PageUp and PageDown
         page the month, Home and End jump to the ends of the week.
       </p>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The cell size dial below is not an attr. It writes <code>--pc-calendar-cell-size</code>, the one CSS token that sizes days, weekday
+        headers and nav arrows together - set it in a class or a style, anywhere above the
+        calendar.
+      </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center gap-4 px-6 py-10">
@@ -9266,6 +9278,7 @@ defmodule Dev.PlaygroundLive do
             max={@cal.window && Date.add(Date.utc_today(), 30)}
             on_select="cal_pick"
             on_month_change="cal_month"
+            style={"--pc-calendar-cell-size: #{@cal.size}"}
           />
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Selected:
@@ -9310,6 +9323,26 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
           <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">cell size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Cell size"
+              value={@cal.size}
+              on_change="ctl_cal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={s <- ~w(2rem 2.25rem 3rem 4rem)}
+                value={s}
+                phx-value-k="size"
+                phx-value-v={s}
+              >
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <.toggle_group
               multiple
@@ -9337,7 +9370,11 @@ defmodule Dev.PlaygroundLive do
 
       <div
         :for={
-          ex <- examples_for(PetalComponents.Showcase.Calendar, ~w(range multiple limits week_start)a)
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.Calendar,
+              ~w(range multiple limits booking in_card week_start)a
+            )
         }
         class="mt-10"
       >

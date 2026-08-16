@@ -86,6 +86,54 @@ defmodule PetalComponents.Calendar do
 
   `day_names` is always ordered Monday-first; the component rotates it to match
   `starts_on`.
+
+  ## Cell size
+
+  Day cells are square, and one CSS custom property sizes them:
+  `--pc-calendar-cell-size`, default `2.25rem`. Set it on the calendar or on
+  anything above it and the days, the weekday headers and the month-nav arrows
+  all move together, so the grid stays in register:
+
+      <.calendar class="[--pc-calendar-cell-size:3rem]" />
+
+      <div style="--pc-calendar-cell-size: 4rem">
+        <.calendar />
+      </div>
+
+  There is deliberately no `size` attr. The token is the API, the way
+  `--pc-radius` is for corners: one dial, set wherever you already set classes,
+  with no new attr values to learn or version.
+
+  ## Custom day content
+
+  The `:day` slot replaces the content of every day button. The classic case is
+  a booking grid with a price under each date, which is a cell size and a slot
+  together:
+
+      <.calendar mode="range" value={@stay} class="[--pc-calendar-cell-size:3.5rem]">
+        <:day :let={day}>
+          <span class="flex flex-col items-center gap-0.5 leading-none">
+            <span>{day.date.day}</span>
+            <span :if={!day.outside} class={["text-xs", !day.selected && "text-gray-500"]}>
+              {price_for(day.date)}
+            </span>
+          </span>
+        </:day>
+      </.calendar>
+
+  The slot owns the whole content of the button, so **you render the number**.
+  It receives the day the component already built:
+
+    * `:date` - the `%Date{}`
+    * `:iso` - that date as an ISO 8601 string
+    * `:today`, `:outside`, `:disabled`, `:selected` - booleans
+    * `:range_start`, `:range_middle`, `:range_end` - booleans, range mode
+
+  The button itself is untouched: the selection chip, the range band, the today
+  dot and the disabled treatment are still the component's job, and the
+  `aria-label` is still the full date. The slot is what a sighted user sees
+  inside the button, not what a screen reader is told it is. Use `:selected`
+  to keep a muted second line readable once the inverse chip lands under it.
   """
 
   @doc """
@@ -186,6 +234,10 @@ defmodule PetalComponents.Calendar do
   attr :class, :any, default: nil, doc: "extra classes for the calendar wrapper"
   attr :rest, :global
 
+  slot :day,
+    doc:
+      "content for every day button, in place of the bare number - render the number yourself. Receives the day: :date (a Date), :iso, and the :today, :outside, :disabled, :selected, :range_start, :range_middle and :range_end flags. Pair it with a bigger --pc-calendar-cell-size when the content needs a second line"
+
   def calendar(assigns) do
     assigns =
       assigns
@@ -267,6 +319,7 @@ defmodule PetalComponents.Calendar do
               <.day
                 :if={!day.hidden}
                 day={day}
+                day_slot={@day}
                 on_select={@on_select}
                 target={@target}
                 name={@name}
@@ -315,7 +368,18 @@ defmodule PetalComponents.Calendar do
     """
   end
 
+  # The :day slot changes the button's CONTENT and nothing else. Every state
+  # class (chip, band, today, disabled), the wiring and the aria-label are
+  # still decided here, so a custom cell cannot accidentally opt out of them -
+  # and an empty slot renders exactly the bare number it always did.
+  #
+  # What it receives is the day map the grid already built. It carries the
+  # flags a custom cell actually needs (:selected to survive the inverse chip,
+  # :outside to stay quiet, :disabled to grey out) and building a second,
+  # narrower struct per day would cost 42 allocations a render to hide keys
+  # nobody is hurt by seeing.
   attr :day, :map, required: true
+  attr :day_slot, :any, required: true
   attr :on_select, :any, required: true
   attr :target, :any, required: true
   attr :name, :any, required: true
@@ -344,7 +408,7 @@ defmodule PetalComponents.Calendar do
       phx-target={@on_select && @target}
       phx-value-date={@on_select && @day.iso}
     >
-      {@day.date.day}
+      {if @day_slot == [], do: @day.date.day, else: render_slot(@day_slot, @day)}
     </button>
     """
   end

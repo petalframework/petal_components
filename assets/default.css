@@ -7597,6 +7597,12 @@
        selected day and a range endpoint are the SAME shape, so completing
        a range never visibly re-rounds the date you already picked. */
     --pc-calendar-day-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    /* Derived from the public --pc-calendar-cell-size, never declared here:
+       read with a fallback instead, so a value set on ANY ancestor (a
+       wrapping style attribute, a class on the calendar itself) reaches the
+       grid. Declaring the default on this element would shadow a wrapper's
+       value, which is the whole point of the dial. */
+    --pc-calendar-nav-size: max(calc(var(--pc-calendar-cell-size, 2.25rem) - 0.25rem), 1.5rem);
   }
 
   .pc-calendar__header {
@@ -7607,10 +7613,16 @@
     @apply flex-1 text-sm font-semibold text-center;
   }
 
+  /* Nav buttons are chrome, deliberately one step smaller than a day so the
+     header never out-weighs the grid. That one step is the whole formula, so
+     the arrows keep their proportion when the cell dial moves: 2rem against
+     the default 2.25rem day, and never below a 1.5rem tap-ish minimum. */
   .pc-calendar__nav {
-    @apply inline-flex items-center justify-center w-8 h-8 shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
+    @apply inline-flex items-center justify-center shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
     @apply hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/12 dark:hover:text-gray-100;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
     border-radius: var(--pc-calendar-day-radius);
   }
 
@@ -7623,7 +7635,9 @@
   /* Keeps the caption optically centred when one arrow is suppressed, which is
      what a two-pane range picker does to the second month. */
   .pc-calendar__nav-spacer {
-    @apply w-8 h-8 shrink-0;
+    @apply shrink-0;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
   }
 
   /* The caption is already in the DOM above the grid; this region exists only
@@ -7642,8 +7656,12 @@
     border-spacing: 0 0.25rem;
   }
 
+  /* The header columns ride the same width as the days, so the grid stays in
+     register at any cell size. The height does not: this is a label row, not
+     a cell, and it has no business growing to 4rem because the days did. */
   .pc-calendar__weekday {
-    @apply w-9 h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
+    @apply h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
+    width: var(--pc-calendar-cell-size, 2.25rem);
   }
 
   /* Cells carry the range band so it runs edge to edge between days; the day
@@ -7680,14 +7698,22 @@
     border-end-end-radius: var(--pc-calendar-day-radius);
   }
 
-  /* The dot colour rides a variable set on the day button - a real element, so
+  /* A day is a square whose side is --pc-calendar-cell-size (2.25rem unless
+     you say otherwise). It is the only size dial the calendar has, and it is
+     a CSS custom property rather than an attr on purpose - same contract as
+     --pc-radius, so a taller booking grid is a class on the wrapper and not a
+     new API to version.
+
+     The dot colour rides a variable set on the day button - a real element, so
      the dark override resolves. A `dark:` variant applied straight to the
      ::after compiles to a trailing `:where(.dark, .dark *)` that can never
      match, which is the same trap the range input track documents. */
   .pc-calendar__day {
-    @apply relative flex items-center justify-center w-9 h-9 mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
     @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-cell-size, 2.25rem);
+    height: var(--pc-calendar-cell-size, 2.25rem);
     border-radius: var(--pc-calendar-day-radius);
     --pc-calendar-dot: var(--color-primary-500);
   }

@@ -702,6 +702,170 @@ defmodule PetalComponents.CalendarTest do
     end
   end
 
+  describe "the :day slot" do
+    # The whole promise of the slot is that not using it costs nothing. This
+    # renders every shape the grid can take, with and without an empty slot
+    # list in play, and demands the markup match to the byte.
+    test "no slot renders exactly what the component rendered before it existed" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar
+          id="cal"
+          mode="range"
+          month={~D[2026-03-01]}
+          value={{~D[2026-03-09], ~D[2026-03-17]}}
+          today={~D[2026-03-14]}
+          min={~D[2026-03-04]}
+          on_select="pick"
+        />
+        """)
+
+      # The bare number, its surrounding whitespace and the closing tag: the
+      # exact text an added conditional around the content would disturb.
+      assert html =~ ~s(phx-value-date="2026-03-14">\n  14\n</button>)
+      assert html =~ ~s(phx-value-date="2026-03-01">\n  1\n</button>)
+      assert Enum.empty?(cells(html, ".pc-calendar__day *"))
+      assert Enum.count(days(html)) == 42
+    end
+
+    test "the slot replaces the number, and the day it receives carries the flags" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar id="cal" month={~D[2026-03-01]} value={~D[2026-03-14]} today={~D[2026-03-20]}>
+          <:day :let={day}>
+            <span class="num">{day.date.day}</span>
+            <span class="iso">{day.iso}</span>
+            <span :if={day.selected} class="flag">selected</span>
+            <span :if={day.today} class="flag">today</span>
+            <span :if={day.outside} class="flag">outside</span>
+          </:day>
+        </.calendar>
+        """)
+
+      selected = cells(html, ~s([data-date="2026-03-14"]))
+      assert LazyHTML.text(selected) =~ "14"
+      assert LazyHTML.text(selected) =~ "2026-03-14"
+      assert selected |> LazyHTML.query(".flag") |> LazyHTML.text() == "selected"
+
+      assert html |> cells(~s([data-date="2026-03-20"] .flag)) |> LazyHTML.text() == "today"
+      assert html |> cells(~s([data-date="2026-02-23"] .flag)) |> LazyHTML.text() == "outside"
+
+      # Every rendered day went through the slot, the number included.
+      assert Enum.count(cells(html, ".num")) == Enum.count(days(html))
+    end
+
+    test "the slot changes the content and nothing else about the button" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar
+          id="cal"
+          mode="range"
+          month={~D[2026-03-01]}
+          value={{~D[2026-03-10], ~D[2026-03-14]}}
+          today={~D[2026-03-10]}
+          min={~D[2026-03-04]}
+          on_select="pick"
+        >
+          <:day :let={day}>
+            <span class="price">${day.date.day}0</span>
+          </:day>
+        </.calendar>
+        """)
+
+      # State classes, wiring and the roving tabindex are still the
+      # component's; the slot only ever filled the button in.
+      assert Enum.count(cells(html, ".pc-calendar__day--selected")) == 2
+      assert Enum.count(cells(html, ".pc-calendar__day--in-range")) == 3
+      assert Enum.count(cells(html, ".pc-calendar__cell--in-range")) == 3
+      assert Enum.count(cells(html, ".pc-calendar__day--today")) == 1
+      assert Enum.count(cells(html, ~s([data-date][tabindex="0"]))) == 1
+
+      day = cells(html, ~s([data-date="2026-03-14"]))
+      assert LazyHTML.attribute(day, "phx-click") == ["pick"]
+      assert LazyHTML.attribute(day, "phx-value-date") == ["2026-03-14"]
+
+      disabled = cells(html, ~s([data-date="2026-03-02"]))
+      assert LazyHTML.attribute(disabled, "aria-disabled") == ["true"]
+      assert disabled |> LazyHTML.query(".price") |> LazyHTML.text() == "$20"
+    end
+
+    # The visual layer is the slot's; the accessible name is not. A screen
+    # reader still hears the date, never the price under it.
+    test "aria-label stays the full date whatever the slot renders" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar id="cal" month={~D[2026-03-01]} show_outside_days={false}>
+          <:day :let={day}>
+            <span>{day.date.day}</span>
+            <span>$240</span>
+          </:day>
+        </.calendar>
+        """)
+
+      day = cells(html, ~s([data-date="2026-03-14"]))
+      assert LazyHTML.attribute(day, "aria-label") == ["14 March 2026"]
+      assert LazyHTML.text(day) =~ "$240"
+    end
+  end
+
+  describe "cell size token" do
+    @css File.read!(Path.expand("../../assets/default.css", __DIR__))
+
+    test "the day, the weekday header and the nav all size off one token" do
+      # The grid only stays in register at a custom cell size if the day
+      # button and the column header read the SAME property. A hardcoded w-9
+      # left behind on either one is a header that no longer lines up with the
+      # days under it.
+      assert @css =~
+               ~r/\.pc-calendar__day \{[^}]*width: var\(--pc-calendar-cell-size, 2\.25rem\)/s
+
+      assert @css =~
+               ~r/\.pc-calendar__day \{[^}]*height: var\(--pc-calendar-cell-size, 2\.25rem\)/s
+
+      assert @css =~
+               ~r/\.pc-calendar__weekday \{[^}]*width: var\(--pc-calendar-cell-size, 2\.25rem\)/s
+
+      for selector <- ~w(.pc-calendar__nav .pc-calendar__nav-spacer) do
+        assert @css =~ ~r/#{Regex.escape(selector)} \{[^}]*width: var\(--pc-calendar-nav-size\)/s
+      end
+
+      # Nothing sizes a day the old hardcoded way any more.
+      refute @css =~ ~r/\.pc-calendar__(day|weekday|nav|nav-spacer) \{[^}]*@apply[^;]*\bw-\d/s
+    end
+
+    test "the token is read with a fallback, never declared on the calendar root" do
+      # Declaring the default on .pc-calendar would shadow a value set on a
+      # wrapper, which is one of the two documented ways to set it.
+      root = Regex.run(~r/\.pc-calendar \{(.*?)\}/s, @css) |> Enum.at(1)
+
+      refute root =~ ~r/--pc-calendar-cell-size\s*:/
+      assert root =~ "--pc-calendar-nav-size:"
+      assert root =~ "var(--pc-calendar-cell-size, 2.25rem)"
+    end
+
+    test "a consumer's arbitrary-property class rides through to the wrapper" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.calendar id="cal" month={~D[2026-03-01]} class="[--pc-calendar-cell-size:3.5rem]" />
+        """)
+
+      root = html |> parse_html() |> LazyHTML.query("#cal")
+      classes = root |> LazyHTML.attribute("class") |> List.first()
+      assert classes =~ "pc-calendar"
+      assert classes =~ "[--pc-calendar-cell-size:3.5rem]"
+    end
+  end
+
   describe "labels" do
     test "day and month names are plain attrs" do
       assigns = %{}

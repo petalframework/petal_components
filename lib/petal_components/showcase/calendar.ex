@@ -50,6 +50,56 @@ defmodule PetalComponents.Showcase.Calendar do
     """
   end
 
+  example :booking, "Booking calendar, prices in the cells",
+    description:
+      "Two dials, one grid. --pc-calendar-cell-size makes room for a second line and the :day slot fills it. The slot owns the button's content, so the number is yours to render, and the day it hands you carries the flags the content needs: selected softens the price against the inverse chip instead of fighting it, outside keeps the neighbouring month quiet." do
+    ~H"""
+    <.calendar
+      id="showcase-calendar-booking"
+      mode="range"
+      value={{~D[2026-03-09], ~D[2026-03-13]}}
+      month={~D[2026-03-01]}
+      class="[--pc-calendar-cell-size:3.5rem]"
+    >
+      <:day :let={day}>
+        <span class="flex flex-col items-center gap-0.5 leading-none">
+          <span>{day.date.day}</span>
+          <span
+            :if={!day.outside}
+            class={[
+              "text-xs",
+              if(day.selected, do: "opacity-70", else: "text-gray-500 dark:text-gray-400")
+            ]}
+          >
+            {if Date.day_of_week(day.date) in [5, 6], do: "$320", else: "$240"}
+          </span>
+        </span>
+      </:day>
+    </.calendar>
+    """
+  end
+
+  example :in_card, "Composed into a card",
+    description:
+      "The calendar paints no background and no padding of its own, so it drops straight into another component's surface. Here it is the body of a card, between the card's own header and footer - no calendar variant required." do
+    ~H"""
+    <.card class="max-w-max">
+      <.card_header title="Book a consultation" description="Weekdays only, 45 minutes." />
+      <.card_content>
+        <.calendar
+          id="showcase-calendar-card"
+          month={~D[2026-03-01]}
+          value={~D[2026-03-18]}
+          disabled_dates={&(Date.day_of_week(&1) in [6, 7])}
+        />
+      </.card_content>
+      <.card_footer>
+        <.button size="sm" label="Confirm 18 March" />
+      </.card_footer>
+    </.card>
+    """
+  end
+
   example :week_start, "Sunday-first, fixed height",
     description:
       "starts_on takes ISO day numbers, so 7 is Sunday. fixed_weeks always draws six rows, which stops the grid jumping height as you page through the year." do
