@@ -156,7 +156,16 @@ defmodule PetalComponents.Showcase.Calendar do
           <.button color="gray" variant="outline" size="sm" label="09:00" />
           <.button color="gray" variant="outline" size="sm" label="09:30" />
           <.button color="gray" variant="outline" size="sm" label="10:00" />
-          <.button color="gray" size="sm" label="10:30" />
+          <%!-- The picked slot wears the calendar chip's exact inverse - the
+          card holds two selections, a date and a time, and they speak one
+          state language. Utilities beat the button's components-layer
+          styling, so these ride a plain class. --%>
+          <.button
+            color="gray"
+            size="sm"
+            label="10:30"
+            class="bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+          />
           <.button color="gray" variant="outline" size="sm" label="11:00" />
           <.button color="gray" variant="outline" size="sm" label="13:30" />
           <.button color="gray" variant="outline" size="sm" label="14:00" />
