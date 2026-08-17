@@ -596,6 +596,202 @@ defmodule PetalComponents.FileUploadTest do
     end
   end
 
+  describe "the :existing slot" do
+    test "renders a plain img on the given URL, with no upload hook on it" do
+      assigns = %{upload: config()}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload}>
+          <:existing src="/uploads/kitchen.jpg" name="kitchen.jpg" />
+        </.file_upload>
+        """)
+
+      img = query(html, "img.pc-file-upload__thumb")
+      assert Enum.count(img) == 1
+      assert LazyHTML.attribute(img, "src") == ["/uploads/kitchen.jpg"]
+      assert LazyHTML.attribute(img, "alt") == ["kitchen.jpg"]
+      # a stored file has nothing to hydrate from the client
+      assert LazyHTML.attribute(img, "data-phx-hook") == []
+      assert LazyHTML.attribute(img, "data-phx-entry-ref") == []
+      assert html =~ "kitchen.jpg"
+    end
+
+    # The whole point of the slot: an entry rides live_img_preview exactly as
+    # before, so its img still ships with no src for the hook to fill in.
+    test "entries keep their live preview, untouched, alongside saved items" do
+      assigns = %{upload: config(entries: [entry(client_type: "image/png", ref: "3")])}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload}>
+          <:existing src="/uploads/kitchen.jpg" name="kitchen.jpg" />
+        </.file_upload>
+        """)
+
+      thumbs = query(html, "img.pc-file-upload__thumb")
+      assert Enum.count(thumbs) == 2
+
+      preview = query(html, "img[data-phx-hook]")
+      assert LazyHTML.attribute(preview, "data-phx-hook") == ["Phoenix.LiveImgPreview"]
+      assert LazyHTML.attribute(preview, "data-phx-entry-ref") == ["3"]
+      # never a src we made up: the hook owns it, and a nil here would render
+      # as the string "null" the moment it hit the DOM
+      assert LazyHTML.attribute(preview, "src") == []
+    end
+
+    test "saved items render before the entries, in both the list and the grid" do
+      entries = [entry(client_name: "new.png", client_type: "image/png")]
+      assigns = %{upload: config(entries: entries, max_entries: 4)}
+
+      for variant <- ~w(dropzone compact gallery) do
+        assigns = Map.put(assigns, :variant, variant)
+
+        html =
+          rendered_to_string(~H"""
+          <.file_upload upload={@upload} variant={@variant}>
+            <:existing src="/uploads/saved.jpg" name="saved.jpg" />
+          </.file_upload>
+          """)
+
+        names = html |> query(".pc-file-upload__entry-name") |> Enum.map(&LazyHTML.text/1)
+
+        assert names == ["saved.jpg", "new.png"], "#{variant} ordered them #{inspect(names)}"
+      end
+    end
+
+    test "a saved item has no progress bar - nothing is in flight" do
+      assigns = %{upload: config(entries: [entry(progress: 40)])}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload}>
+          <:existing src="/uploads/saved.jpg" name="saved.jpg" />
+        </.file_upload>
+        """)
+
+      # one bar, and it belongs to the entry
+      bars = query(html, "[role=progressbar]")
+      assert Enum.count(bars) == 1
+      assert LazyHTML.attribute(bars, "aria-label") == ["Upload progress for report.pdf"]
+    end
+
+    test "the remove button carries the event, the value and the target" do
+      assigns = %{upload: config()}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload}>
+          <:existing
+            src="/uploads/saved.jpg"
+            name="saved.jpg"
+            remove_event="delete-photo"
+            remove_value="42"
+            remove_target="#me"
+          />
+        </.file_upload>
+        """)
+
+      assert attr_of(html, ".pc-file-upload__cancel", "phx-click") == "delete-photo"
+      assert attr_of(html, ".pc-file-upload__cancel", "phx-value-id") == "42"
+      assert attr_of(html, ".pc-file-upload__cancel", "phx-target") == "#me"
+      assert attr_of(html, ".pc-file-upload__cancel", "type") == "button"
+      assert attr_of(html, ".pc-file-upload__cancel", "aria-label") == "Remove saved.jpg"
+    end
+
+    test "no remove_event, no remove button" do
+      assigns = %{upload: config()}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload}>
+          <:existing src="/uploads/saved.jpg" name="saved.jpg" />
+        </.file_upload>
+        """)
+
+      assert Enum.empty?(query(html, ".pc-file-upload__cancel"))
+    end
+
+    test "remove_label customises the accessible name prefix" do
+      assigns = %{upload: config()}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload} remove_label="Delete">
+          <:existing src="/uploads/saved.jpg" name="saved.jpg" remove_event="delete-photo" />
+        </.file_upload>
+        """)
+
+      assert attr_of(html, ".pc-file-upload__cancel", "aria-label") == "Delete saved.jpg"
+    end
+
+    test "saved items do not count towards max_entries, so the add tile stays" do
+      assigns = %{upload: config(max_entries: 1, entries: [])}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload} variant="gallery">
+          <:existing src="/uploads/a.jpg" name="a.jpg" />
+          <:existing src="/uploads/b.jpg" name="b.jpg" />
+        </.file_upload>
+        """)
+
+      assert Enum.count(query(html, ".pc-file-upload__tile--add")) == 1
+      assert Enum.count(query(html, "img.pc-file-upload__thumb")) == 2
+    end
+
+    test "avatar shows the saved photo in the circle while nothing is picked" do
+      assigns = %{upload: config(max_entries: 1)}
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload} variant="avatar">
+          <:existing src="/uploads/me.jpg" name="Current photo" />
+        </.file_upload>
+        """)
+
+      img = query(html, "img.pc-file-upload__avatar-img")
+      assert LazyHTML.attribute(img, "src") == ["/uploads/me.jpg"]
+      assert LazyHTML.attribute(img, "alt") == ["Current photo"]
+      assert LazyHTML.attribute(img, "data-phx-hook") == []
+      refute has_icon?(html, "hero-user-circle")
+      # the circle is the whole surface: no row underneath for a saved photo
+      assert Enum.empty?(query(html, ".pc-file-upload__entries"))
+    end
+
+    test "a picked image supersedes the saved photo in the avatar circle" do
+      assigns = %{
+        upload: config(max_entries: 1, entries: [entry(client_type: "image/png")])
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload} variant="avatar">
+          <:existing src="/uploads/me.jpg" name="Current photo" />
+        </.file_upload>
+        """)
+
+      img = query(html, "img.pc-file-upload__avatar-img")
+      assert Enum.count(img) == 1
+      assert LazyHTML.attribute(img, "data-phx-hook") == ["Phoenix.LiveImgPreview"]
+      refute html =~ "/uploads/me.jpg"
+    end
+
+    test "an unused slot changes nothing" do
+      assigns = %{upload: config()}
+      plain = rendered_to_string(~H"<.file_upload upload={@upload} variant=\"gallery\" />")
+
+      with_slot =
+        rendered_to_string(~H"""
+        <.file_upload upload={@upload} variant="gallery"></.file_upload>
+        """)
+
+      assert Enum.empty?(query(with_slot, "img"))
+      assert Enum.empty?(query(with_slot, ".pc-file-upload__entries"))
+      assert query(plain, ".pc-file-upload__grid") |> Enum.count() == 1
+    end
+  end
+
   describe "accessibility" do
     test "the wrapper is a group labelled by the label element" do
       assigns = %{upload: config(ref: "phx-F1")}

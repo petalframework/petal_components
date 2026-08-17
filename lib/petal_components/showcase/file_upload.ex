@@ -60,6 +60,9 @@ defmodule PetalComponents.Showcase.FileUpload do
     )
   end
 
+  # Two photos already on the listing and one still going up - the shape every
+  # edit form has. The saved pair come back as :existing items in the example
+  # below; only the third is an upload entry.
   @doc false
   def gallery_config do
     config("sxfu4",
@@ -67,8 +70,7 @@ defmodule PetalComponents.Showcase.FileUpload do
       accept: ~w(.png .jpg),
       max_entries: 6,
       entries: [
-        entry("sxfu4", "0", "kitchen.jpg", 1_800_000, "image/jpeg", 100),
-        entry("sxfu4", "1", "balcony.jpg", 2_100_000, "image/jpeg", 63)
+        entry("sxfu4", "0", "terrace.jpg", 2_100_000, "image/jpeg", 63)
       ]
     )
   end
@@ -118,34 +120,66 @@ defmodule PetalComponents.Showcase.FileUpload do
     """
   end
 
-  example :gallery, "Gallery",
+  example :gallery, "Gallery, the edit form",
     description:
-      "A grid of preview tiles with the cancel button and progress on the tile itself, plus an add tile that disappears once the config hits max_entries. Thumbnails come from live_img_preview, which needs a running LiveView, so they fill in on the playground rather than here." do
+      "A grid of tiles with the cancel button and progress on the tile itself, plus an add tile that bows out at max_entries. The first two photos are already saved: they come from your database through the :existing slot as plain images, with your own remove event rather than cancel_upload. The third is an upload in flight, and its thumbnail is drawn from the browser's copy of the file by live_img_preview, so on this static page it stays a quiet placeholder with its progress bar until a real LiveView fills it in. The URLs here are inline SVG stand-ins; swap in real photos and nothing else changes." do
     ~H"""
     <.file_upload
       upload={PetalComponents.Showcase.FileUpload.gallery_config()}
       variant="gallery"
       label="Listing photos"
-    />
+    >
+      <:existing
+        src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'><defs><linearGradient id='k' x1='0' y1='0' x2='0.6' y2='1'><stop offset='0' stop-color='%23fde8cd'/><stop offset='1' stop-color='%23a16207'/></linearGradient></defs><rect width='4' height='3' fill='url(%23k)'/></svg>"
+        name="kitchen.jpg"
+        remove_event="remove-photo"
+        remove_value="kitchen"
+      />
+      <:existing
+        src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'><defs><linearGradient id='b' x1='0' y1='0' x2='0.4' y2='1'><stop offset='0' stop-color='%23bae6fd'/><stop offset='1' stop-color='%230e7490'/></linearGradient></defs><rect width='4' height='3' fill='url(%23b)'/></svg>"
+        name="balcony.jpg"
+        remove_event="remove-photo"
+        remove_value="balcony"
+      />
+    </.file_upload>
     """
   end
 
   example :avatar, "Avatar",
     description:
-      "One circular target with a replace overlay on hover and on keyboard focus. Empty here; pick a file and the preview takes over the circle." do
+      "One circular target with a replace overlay on hover and on keyboard focus. Empty on the left; on the right the photo already on the account, handed over as a URL through the :existing slot. Either way, picking a file takes over the circle." do
     ~H"""
-    <.file_upload
-      upload={
-        PetalComponents.Showcase.FileUpload.config("sxfu5",
-          name: :avatar,
-          accept: ~w(.png .jpg),
-          max_entries: 1,
-          max_file_size: 2_000_000
-        )
-      }
-      variant="avatar"
-      label="Profile photo"
-    />
+    <div class="flex flex-wrap items-start gap-8">
+      <.file_upload
+        upload={
+          PetalComponents.Showcase.FileUpload.config("sxfu5",
+            name: :avatar,
+            accept: ~w(.png .jpg),
+            max_entries: 1,
+            max_file_size: 2_000_000
+          )
+        }
+        variant="avatar"
+        label="Profile photo"
+      />
+      <.file_upload
+        upload={
+          PetalComponents.Showcase.FileUpload.config("sxfu6",
+            name: :avatar,
+            accept: ~w(.png .jpg),
+            max_entries: 1,
+            max_file_size: 2_000_000
+          )
+        }
+        variant="avatar"
+        label="Profile photo"
+      >
+        <:existing
+          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><defs><linearGradient id='a' x1='0' y1='0' x2='0.7' y2='1'><stop offset='0' stop-color='%23c7d2fe'/><stop offset='1' stop-color='%234338ca'/></linearGradient></defs><rect width='1' height='1' fill='url(%23a)'/></svg>"
+          name="Current photo"
+        />
+      </.file_upload>
+    </div>
     """
   end
 

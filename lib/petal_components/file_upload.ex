@@ -82,6 +82,43 @@ defmodule PetalComponents.FileUpload do
     * `gallery` - a responsive grid of preview tiles with an "add more" tile
       while the config is under `max_entries`.
 
+  ## Files already on the server
+
+  On an edit form the photos are usually already uploaded: they live in your
+  database with a URL, not in the browser. The `:existing` slot renders those
+  as plain `<img>` tags in the same grid as the in-flight entries, so "edit
+  your listing" shows the photos already saved and the ones being dragged in
+  right now as one set.
+
+      <.file_upload upload={@uploads.photos} variant="gallery" label="Listing photos">
+        <:existing
+          :for={photo <- @listing.photos}
+          src={photo.url}
+          name={photo.filename}
+          remove_event="delete-photo"
+          remove_value={photo.id}
+        />
+      </.file_upload>
+
+      def handle_event("delete-photo", %{"id" => id}, socket) do
+        # your own delete - a saved photo is a row in your database, not an
+        # upload entry, so cancel_upload/3 has nothing to do with it
+      end
+
+  Saved items render first, then the entries. They carry no progress bar,
+  nothing is in flight, and their remove button is yours rather than
+  `cancel_upload/3`. `max_entries` counts entries only - it is LiveView's cap
+  on what the browser may still add - so if six saved plus six new is too
+  many, lower the cap yourself.
+
+  The `avatar` variant takes the same slot and shows the first item in the
+  circle while nothing has been picked, which is the whole "here is your
+  current photo, click to replace it" case:
+
+      <.file_upload upload={@uploads.avatar} variant="avatar" label="Profile photo">
+        <:existing :if={@user.avatar_url} src={@user.avatar_url} name="Current photo" />
+      </.file_upload>
+
   ## Drag and drop
 
   Drag and drop is LiveView's, not ours: the drop surface carries
@@ -176,6 +213,12 @@ defmodule PetalComponents.FileUpload do
     default: nil,
     doc: "phx-target for the cancel event when used inside a LiveComponent"
 
+  attr :remove_label, :string,
+    default: "Remove",
+    doc:
+      "prefix for the accessible name of each `:existing` item's remove button, " <>
+        "joined with that item's name"
+
   attr :class, :any, default: nil, doc: "CSS class for the outer wrapper"
   attr :rest, :global
 
@@ -183,6 +226,23 @@ defmodule PetalComponents.FileUpload do
     doc:
       "optional custom rendering for each entry; receives the " <>
         "`%Phoenix.LiveView.UploadEntry{}` and replaces the default entry row"
+
+  slot :existing,
+    doc:
+      "files already uploaded and stored, shown by URL before the in-flight " <>
+        "entries. Nothing here touches the upload config - see the module docs" do
+    attr :src, :string, required: true, doc: "URL of the stored image"
+
+    attr :name, :string,
+      required: true,
+      doc: "file name or caption; the visible label and the image's alt text"
+
+    attr :remove_event, :any,
+      doc: "phx-click for this item's remove button. Without it no button renders."
+
+    attr :remove_value, :any, doc: "sent with the remove event as `phx-value-id`"
+    attr :remove_target, :any, doc: "phx-target for the remove event"
+  end
 
   def file_upload(assigns) do
     assigns = normalize(assigns)
@@ -237,8 +297,16 @@ defmodule PetalComponents.FileUpload do
         class="pc-file-upload__avatar-img"
         alt={@avatar_preview.client_name}
       />
+      <%!-- The photo already on file, when nothing has been picked yet. A
+      pick supersedes it - the preview above is what the user just chose. --%>
+      <img
+        :if={@avatar_existing}
+        src={@avatar_existing.src}
+        class="pc-file-upload__avatar-img"
+        alt={@avatar_existing.name}
+      />
       <.icon
-        :if={is_nil(@avatar_preview)}
+        :if={is_nil(@avatar_preview) and is_nil(@avatar_existing)}
         name="hero-user-circle"
         class="pc-file-upload__glyph"
         aria-hidden="true"
@@ -305,6 +373,9 @@ defmodule PetalComponents.FileUpload do
 
     ~H"""
     <div class="pc-file-upload__grid">
+      <div :for={item <- @existing} class="pc-file-upload__tile">
+        <.existing_cell item={item} remove_label={@remove_label} />
+      </div>
       <div :for={entry <- @upload.entries} class="pc-file-upload__tile">
         <.entry_cell
           e={entry}
@@ -363,7 +434,10 @@ defmodule PetalComponents.FileUpload do
 
   defp entry_list(assigns) do
     ~H"""
-    <ul :if={@upload.entries != []} class="pc-file-upload__entries">
+    <ul :if={@upload.entries != [] or @existing != []} class="pc-file-upload__entries">
+      <li :for={item <- @existing} class="pc-file-upload__entry">
+        <.existing_cell item={item} remove_label={@remove_label} />
+      </li>
       <li :for={entry <- @upload.entries} class="pc-file-upload__entry">
         <.entry_cell
           e={entry}
@@ -473,6 +547,38 @@ defmodule PetalComponents.FileUpload do
     """
   end
 
+  attr :item, :map, required: true
+  attr :remove_label, :string, required: true
+
+  # A file already uploaded and stored: its image comes straight off the URL
+  # you hand us, so it needs no hook and no LiveView upload. No progress bar
+  # either - it is not in flight, it is done and saved.
+  defp existing_cell(assigns) do
+    ~H"""
+    <div class="pc-file-upload__entry-inner">
+      <span class="pc-file-upload__media">
+        <img src={@item.src} class="pc-file-upload__thumb" alt={@item.name} />
+      </span>
+
+      <span class="pc-file-upload__entry-body">
+        <span class="pc-file-upload__entry-name" title={@item.name}>{@item.name}</span>
+      </span>
+
+      <button
+        :if={@item[:remove_event]}
+        type="button"
+        class="pc-file-upload__cancel"
+        phx-click={@item[:remove_event]}
+        phx-value-id={@item[:remove_value]}
+        phx-target={@item[:remove_target]}
+        aria-label={"#{@remove_label} #{@item.name}"}
+      >
+        <.icon name="hero-x-mark" class="pc-file-upload__cancel-icon" aria-hidden="true" />
+      </button>
+    </div>
+    """
+  end
+
   # -- assigns ---------------------------------------------------------------
 
   defp normalize(assigns) do
@@ -486,6 +592,9 @@ defmodule PetalComponents.FileUpload do
     |> assign(:description, assigns.description || derive_description(upload))
     |> assign(:avatar_entry, avatar_entry)
     |> assign(:avatar_preview, if(avatar_entry && image?(avatar_entry), do: avatar_entry))
+    # The stored photo only holds the circle until a file is picked; from then
+    # on the circle belongs to the pick, preview or placeholder glyph.
+    |> assign(:avatar_existing, if(is_nil(avatar_entry), do: List.first(assigns.existing)))
     |> assign(:config_errors, config_errors)
     |> assign(:config_error_ids, error_ids(id, config_errors))
     |> assign(:drop_hint, "Drop files to upload")

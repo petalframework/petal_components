@@ -7684,6 +7684,26 @@
 
   .pc-file-upload__thumb {
     @apply object-cover w-full h-full;
+    @apply transition-opacity duration-150 ease-out;
+  }
+
+  /* live_img_preview ships an <img> with no src at all and lets its hook fill
+     one in from the File the browser is holding. Two moments have no usable
+     src: every first paint, before the hook has run, and any render where the
+     File cannot be found - a preview restored without its input, a static page
+     with no LiveView behind it. LiveView's own hook assigns the null that
+     getEntryDataURL returns in that second case, and `img.src = null` becomes
+     the literal string "null", a relative URL that 404s into a broken-image
+     glyph. Hide the image in all three states and let the media placeholder
+     show through: a quiet grey square that fills in, rather than a broken one
+     that never does. */
+  .pc-file-upload__thumb:not([src]),
+  .pc-file-upload__thumb[src=""],
+  .pc-file-upload__thumb[src="null"],
+  .pc-file-upload__avatar-img:not([src]),
+  .pc-file-upload__avatar-img[src=""],
+  .pc-file-upload__avatar-img[src="null"] {
+    @apply opacity-0;
   }
 
   .pc-file-upload__type-icon.pc-file-upload__type-icon {
@@ -7780,6 +7800,7 @@
 
   .pc-file-upload__avatar-img {
     @apply object-cover w-full h-full;
+    @apply transition-opacity duration-150 ease-out;
   }
 
   .pc-file-upload--avatar .pc-file-upload__glyph.pc-file-upload__glyph {
@@ -7864,7 +7885,9 @@
     .pc-file-upload__zone,
     .pc-file-upload__overlay,
     .pc-file-upload__live,
-    .pc-file-upload__cancel {
+    .pc-file-upload__cancel,
+    .pc-file-upload__thumb,
+    .pc-file-upload__avatar-img {
       transition-duration: 1ms;
     }
   }

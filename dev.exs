@@ -865,7 +865,17 @@ defmodule Dev.PlaygroundLive do
          gap: "cozy",
          points: 14
        },
-       file_upload: %{variant: "dropzone", max_entries: 4, saved: []}
+       file_upload: %{
+         variant: "dropzone",
+         max_entries: 4,
+         saved: [],
+         # Stand-ins for photos already on the listing: rows in a database with
+         # a URL each, which is what an edit form actually starts from.
+         photos: [
+           %{id: "forest", name: "forest.jpg", url: "/dev-static/carousel/forest.jpg"},
+           %{id: "code", name: "workspace.jpg", url: "/dev-static/carousel/code.jpg"}
+         ]
+       }
      )
      |> allow_pg_uploads(4)}
   end
@@ -1063,6 +1073,15 @@ defmodule Dev.PlaygroundLive do
   def handle_event("pg_upload_cancel_" <> which, %{"ref" => ref}, socket)
       when which in ~w(files auto manual avatar gallery small),
       do: {:noreply, cancel_upload(socket, String.to_existing_atom("pg_" <> which), ref)}
+
+  # A saved photo is a record, not an upload entry, so removing one is the
+  # page's own event and cancel_upload/3 never enters into it.
+  def handle_event("pg_photo_remove", %{"id" => id}, socket) do
+    {:noreply,
+     update(socket, :file_upload, fn fu ->
+       %{fu | photos: Enum.reject(fu.photos, &(&1.id == id))}
+     end)}
+  end
 
   def handle_event("pg_upload_save", _params, socket) do
     names =
@@ -5060,7 +5079,10 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-1 text-lg font-semibold">Listing photos</h2>
       <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
         The gallery grid, six photos deep. Each tile carries its own progress
-        and cancel; the add tile bows out once the config is full.
+        and cancel; the add tile bows out once the config is full. The two
+        photos already on this listing come through the :existing slot as
+        plain URLs, so an edit form shows what is saved next to what is being
+        dragged in. Their X is this page's own remove event, not a cancel.
       </p>
       <div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <form id="pg-upload-gallery" phx-change="pg_upload_validate">
@@ -5069,7 +5091,15 @@ defmodule Dev.PlaygroundLive do
             variant="gallery"
             label="Listing photos"
             cancel_event="pg_upload_cancel_gallery"
-          />
+          >
+            <:existing
+              :for={photo <- @file_upload.photos}
+              src={photo.url}
+              name={photo.name}
+              remove_event="pg_photo_remove"
+              remove_value={photo.id}
+            />
+          </.file_upload>
         </form>
       </div>
 

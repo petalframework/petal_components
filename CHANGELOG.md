@@ -13,7 +13,10 @@
   drop is `phx-drop-target`, previews are `live_img_preview`, progress
   is `entry.progress`. No hook, no JS, no new dependencies.
   Four variants - `dropzone`, `compact`, `avatar` and `gallery` - plus
-  an `:entry` slot when you want to render the rows yourself. The hint
+  an `:entry` slot when you want to render the rows yourself. An
+  `:existing` slot covers the edit form: photos already saved come in
+  by URL and render as plain images beside the ones still uploading,
+  with your own remove event rather than `cancel_upload/3`. The hint
   line ("PNG or JPG, up to 8 MB, max 4 files") is derived from the
   config, so it cannot drift from what the server will actually accept.
   Requires a LiveView; `<.field type="file">` is still the static
