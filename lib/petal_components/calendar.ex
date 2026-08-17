@@ -102,7 +102,11 @@ defmodule PetalComponents.Calendar do
 
   There is deliberately no `size` attr. The token is the API, the way
   `--pc-radius` is for corners: one dial, set wherever you already set classes,
-  with no new attr values to learn or version.
+  with no new attr values to learn or version. Being a class, it takes
+  breakpoint variants like any other - big cells cannot fit seven columns on a
+  phone, so a booking grid steps its size:
+
+      <.calendar class="[--pc-calendar-cell-size:2.75rem] sm:[--pc-calendar-cell-size:3.5rem]" />
 
   ## Custom day content
 

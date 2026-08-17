@@ -86,7 +86,7 @@ defmodule PetalComponents.Showcase.Calendar do
       mode="range"
       value={{~D[2026-03-09], ~D[2026-03-13]}}
       month={~D[2026-03-01]}
-      class="[--pc-calendar-cell-size:3.5rem]"
+      class="[--pc-calendar-cell-size:2.75rem] sm:[--pc-calendar-cell-size:3.5rem]"
     >
       <:day :let={day}>
         <span class="flex flex-col items-center gap-0.5 leading-none">
