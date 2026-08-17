@@ -148,7 +148,11 @@ defmodule PetalComponents.Showcase.Calendar do
           value={~D[2026-03-18]}
           disabled_dates={&(Date.day_of_week(&1) in [6, 7])}
         />
-        <div class="flex flex-col gap-2 pr-1 overflow-y-auto max-h-56 sm:w-24">
+        <%!-- sm:h-0 sm:min-h-full: the rail contributes nothing to the row's
+        height (the calendar alone sets it) and then stretches to exactly that
+        height, scrolling the excess - so the two columns always end together,
+        whatever the month's row count. Stacked mobile keeps a plain cap. --%>
+        <div class="flex flex-col gap-2 pr-1 overflow-y-auto max-h-56 sm:h-0 sm:max-h-none sm:min-h-full sm:w-24">
           <.button color="gray" variant="outline" size="sm" label="09:00" />
           <.button color="gray" variant="outline" size="sm" label="09:30" />
           <.button color="gray" variant="outline" size="sm" label="10:00" />
