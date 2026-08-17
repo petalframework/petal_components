@@ -9373,7 +9373,7 @@ defmodule Dev.PlaygroundLive do
           ex <-
             examples_for(
               PetalComponents.Showcase.Calendar,
-              ~w(range multiple limits booking in_card week_start)a
+              ~w(range multiple limits availability booking in_card appointments week_start)a
             )
         }
         class="mt-10"
