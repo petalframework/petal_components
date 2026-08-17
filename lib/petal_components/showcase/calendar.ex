@@ -93,14 +93,18 @@ defmodule PetalComponents.Showcase.Calendar do
           <span>{day.date.day}</span>
           <span
             :if={!day.outside}
-            class={[
-              "text-xs",
-              cond do
-                day.selected -> "opacity-70"
-                Date.day_of_week(day.date) in [5, 6] -> "text-gray-500 dark:text-gray-400"
-                true -> "text-success-600 dark:text-success-400"
-              end
-            ]}
+            class={
+              [
+                "text-xs",
+                cond do
+                  day.selected -> "opacity-70"
+                  Date.day_of_week(day.date) in [5, 6] -> "text-gray-500 dark:text-gray-400"
+                  # success-700 in light, not the house's usual 600: at text-xs the
+                  # 600 stop probes 3.22:1 on white, under the AA 4.5:1 line.
+                  true -> "text-success-700 dark:text-success-400"
+                end
+              ]
+            }
           >
             {if Date.day_of_week(day.date) in [5, 6], do: "$320", else: "$240"}
           </span>
