@@ -9205,7 +9205,7 @@ defmodule Dev.PlaygroundLive do
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item
-                :for={v <- ~w(light soft dark outline callout)}
+                :for={v <- ~w(light soft dark outline)}
                 value={v}
                 phx-value-k="variant"
                 phx-value-v={v}
