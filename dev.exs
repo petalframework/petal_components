@@ -785,6 +785,7 @@ defmodule Dev.PlaygroundLive do
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
        progress: %{
+         shape: "bar",
          value: 0,
          color: "primary",
          size: "xs",
@@ -1013,6 +1014,22 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # Swapping shape keeps the value/colour/size dials where they are, which is
+  # the point: the ring is the same component wearing a different outline.
+  # The bar's xs is a hairline, so the ring borrows a size you can see.
+  def handle_event("ctl_progress", %{"k" => "shape", "v" => v}, socket) when v in ~w(bar ring),
+    do:
+      {:noreply,
+       update(
+         socket,
+         :progress,
+         &%{
+           &1
+           | shape: v,
+             size: if(v == "ring" and &1.size in ~w(xs sm), do: "xl", else: &1.size)
+         }
+       )}
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
@@ -1899,6 +1916,19 @@ defmodule Dev.PlaygroundLive do
   defp progress_status(v) when v < 85, do: "Extracting files..."
   defp progress_status(v) when v < 100, do: "Finishing up..."
   defp progress_status(_v), do: "Done!"
+
+  defp progress_snippet(%{shape: "ring"} = pr) do
+    attrs =
+      [
+        ~s(value={#{pr.value}}),
+        pr.color != "primary" && ~s(color="#{pr.color}"),
+        pr.size != "md" && ~s(size="#{pr.size}"),
+        pr.label != "none" && "show_value"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.progress_ring #{Enum.join(attrs, " ")} />"
+  end
 
   defp progress_snippet(pr) do
     attrs =
@@ -4869,14 +4899,24 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Determinate progress on a washed track. The flagship simulates a
-        live upload - or take the wheel with the value control (which
-        pauses the simulation).
+        Determinate progress on a washed track, bar or ring. The flagship
+        simulates a live upload - or take the wheel with the value control
+        (which pauses the simulation). Flip shape and the same dials drive
+        the circular version.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <div class="w-full max-w-md">
+          <div :if={@progress.shape == "ring"}>
+            <.progress_ring
+              value={@progress.value}
+              color={@progress.color}
+              size={@progress.size}
+              show_value={@progress.label != "none"}
+              label="Download progress"
+            />
+          </div>
+          <div :if={@progress.shape == "bar"} class="w-full max-w-md">
             <.progress
               value={@progress.value}
               color={@progress.color}
@@ -4894,6 +4934,21 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Shape"
+              value={@progress.shape}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(bar ring)} value={s} phx-value-k="shape" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <.toggle_group
@@ -5001,7 +5056,7 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
-      <.showcase_props component={PetalComponents.Progress} function={:progress} />
+      <.showcase_props component={PetalComponents.Progress} functions={[:progress, :progress_ring]} />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Progress</code>

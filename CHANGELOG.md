@@ -17,7 +17,19 @@
   `variant="sidebar"` with `placement="right"` at the bottom of a left-hand
   sidebar opens up and to the right. `variant` defaults to `"icon"`, which
   renders byte for byte what it always did.
-
+- **`progress_ring` draws determinate progress as a circle.** Every other
+  library in this space ships one and we didn't, so a quota meter in a
+  table cell had to be a bar squeezed into a column where five stacked
+  bars read as a barcode. It lives in `PetalComponents.Progress` next to
+  the bar and takes the same `value`, `max`, `size` (xs to xl, 16px up to
+  96px) and `color` attrs, so the two shapes agree wherever a page uses
+  both. Server-rendered SVG, no JavaScript: a track circle plus an arc
+  drawn with `stroke-dasharray`, starting at 12 o'clock with round caps,
+  and the value change animates unless the reader asked for less motion.
+  The arc is `currentColor`, so a `text-*` class recolours it the way it
+  does a sparkline. `show_value` puts the percentage in the middle, or
+  pass a slot and put a count or an icon there instead. Same ARIA
+  contract as the bar, down to `aria-valuetext`.
 - **`user_dropdown_menu` takes a `placement`.** It always rendered its
   dropdown at the default `"left"` placement (panel hangs leftward, right
   edges aligned), which is exactly wrong for the component's most common
@@ -27,6 +39,12 @@
   sidebar-bottom user menu opens up and to the right instead of off-screen.
 
 #### Fixed
+
+- **`<.progress />` with no `value` no longer raises.** `value` has always
+  defaulted to `nil` and the percentage maths divided by it anyway, so the
+  documented default blew up with an arithmetic error. It now renders an
+  empty bar and leaves `aria-valuenow` off, which is how ARIA spells
+  "indeterminate".
 
 - **The dropdown family flips its panel upward when the viewport leaves
   no room below.** The canonical break was the user menu every app shell
