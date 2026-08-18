@@ -2966,6 +2966,103 @@
     @apply bg-gray-600;
   }
 
+  /* Progress - ring
+     The circular shape of the same component. The box is sized here (the SVG
+     fills it), so a width or height utility from the caller overrides the
+     size attr and the stroke scales with the viewBox. */
+
+  .pc-progress-ring {
+    @apply relative inline-flex items-center justify-center shrink-0;
+  }
+  .pc-progress-ring__svg {
+    @apply block w-full h-full;
+  }
+
+  /* Track and arc are both stroke: currentColor, so the colour classes below
+     - and a caller's own text-* class, the sparkline convention - drive the
+     whole ring from one place. The track is that colour washed back to the
+     same 15% the linear track sits at, which is what keeps a bar and a ring
+     side by side looking like one component. */
+  .pc-progress-ring__track {
+    stroke-opacity: 0.15;
+  }
+  /* A ring stroke lays down a fraction of the ink a full-width bar track
+     does, so the same 15% reads fainter on a dark surface. Measured against
+     the linear track on gray-950, 0.2 puts the two back in the same band. */
+  .dark .pc-progress-ring__track {
+    stroke-opacity: 0.2;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-progress-ring__arc {
+      @apply transition-[stroke-dashoffset] duration-500 ease-out;
+    }
+  }
+
+  /* Readout sits in the hole, neutral rather than accent-coloured so it
+     stays legible on a warning ring. */
+  .pc-progress-ring__label {
+    @apply absolute inset-0 flex items-center justify-center font-medium leading-none text-gray-900 tabular-nums pointer-events-none dark:text-gray-100;
+  }
+
+  /* Progress ring - sizes */
+
+  .pc-progress-ring--xs {
+    @apply w-4 h-4;
+  }
+  .pc-progress-ring--sm {
+    @apply w-6 h-6;
+  }
+  .pc-progress-ring--md {
+    @apply w-10 h-10;
+  }
+  .pc-progress-ring--lg {
+    @apply w-16 h-16;
+  }
+  .pc-progress-ring--xl {
+    @apply w-24 h-24;
+  }
+
+  .pc-progress-ring__label--xs {
+    @apply text-[0.5rem];
+  }
+  .pc-progress-ring__label--sm {
+    @apply text-[0.625rem];
+  }
+  .pc-progress-ring__label--md {
+    @apply text-xs;
+  }
+  .pc-progress-ring__label--lg {
+    @apply text-sm;
+  }
+  .pc-progress-ring__label--xl {
+    @apply text-base;
+  }
+
+  /* Progress ring - colors (the bar's fill stop, so both shapes land on the
+     same hue at the same strength) */
+
+  .pc-progress-ring--primary {
+    @apply text-primary-600;
+  }
+  .pc-progress-ring--secondary {
+    @apply text-secondary-600;
+  }
+  .pc-progress-ring--info {
+    @apply text-info-600;
+  }
+  .pc-progress-ring--success {
+    @apply text-success-600;
+  }
+  .pc-progress-ring--warning {
+    @apply text-warning-600;
+  }
+  .pc-progress-ring--danger {
+    @apply text-danger-600;
+  }
+  .pc-progress-ring--gray {
+    @apply text-gray-600;
+  }
+
   /* Pagination */
 
   .pc-pagination {
