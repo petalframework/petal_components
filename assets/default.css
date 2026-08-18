@@ -2026,6 +2026,12 @@
   .pc-dropdown__label {
     @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
   }
+  /* dropdown_menu_row: a control parked in the panel (a theme switcher, a
+     plan badge). Menu-item padding and type so it lines up with the commands
+     above it, but no hover wash - nothing here is clickable as a whole. */
+  .pc-dropdown__row {
+    @apply flex items-center w-full gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300;
+  }
 
 
   /* User menu */

@@ -847,6 +847,7 @@ defmodule Dev.PlaygroundLive do
        },
        nav_trigger: "hover",
        user_menu_placement: "right",
+       user_menu_direction: "auto",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -1423,6 +1424,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_usermenu", %{"k" => "placement", "v" => v}, socket)
       when v in ~w(left right),
       do: {:noreply, assign(socket, :user_menu_placement, v)}
+
+  def handle_event("ctl_usermenu", %{"k" => "direction", "v" => v}, socket)
+      when v in ~w(auto up down),
+      do: {:noreply, assign(socket, :user_menu_direction, v)}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -4783,7 +4788,13 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props
         component={PetalComponents.Dropdown}
-        functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
+        functions={[
+          :dropdown,
+          :dropdown_menu_item,
+          :dropdown_menu_label,
+          :dropdown_menu_row,
+          :dropdown_menu_separator
+        ]}
       />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -7340,6 +7351,7 @@ defmodule Dev.PlaygroundLive do
                 current_user_email="sarah@acme.com"
                 avatar_src="/dev-static/avatars/p32.jpg"
                 placement={@user_menu_placement}
+                direction={@user_menu_direction}
                 user_menu_items={[
                   %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
                   %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
@@ -7372,18 +7384,35 @@ defmodule Dev.PlaygroundLive do
               {p}
             </:item>
           </.toggle_group>
+          <div class="mt-4 mb-2 text-[11px] font-medium tracking-wide text-gray-400">direction</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Direction"
+            value={@user_menu_direction}
+            on_change="ctl_usermenu"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item :for={d <- ~w(auto up down)} value={d} phx-value-k="direction" phx-value-v={d}>
+              {d}
+            </:item>
+          </.toggle_group>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The row takes the full sidebar width and carries the name and email itself, so
         there is no avatar-plus-label pairing to hand-roll. Both lines truncate, which
         is what you want the first time someone signs in with a long address.
-        placement="right" grows the panel into the app. The default "left" hangs it
+        placement names which way the panel GROWS, not which side it sits on:
+        "right" grows it rightward, into the app, and the default "left" grows it
         leftward off the sidebar, which at the real left edge of a screen means
-        off-screen. The upward flip keys off the window, not this pane: scroll until
-        the shell's bottom edge sits near the bottom of your browser, then open the
-        menu. It opens up instead of down and the panel picks up a data-flip
-        attribute. Leave it open and keep scrolling - it re-measures every time.
+        off-screen. direction is the vertical axis. On "auto" the flip keys off the
+        window, not this pane: scroll until the shell's bottom edge sits near the
+        bottom of your browser, then open the menu. It opens up instead of down and
+        the panel picks up a data-flip attribute. Leave it open and keep scrolling -
+        it re-measures every time. "up" and "down" skip all of that. Down there you
+        already know the answer, so "up" just renders the panel flipped from the
+        start: no hook, no listeners, nothing to re-measure.
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>

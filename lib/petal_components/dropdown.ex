@@ -29,7 +29,18 @@ defmodule PetalComponents.Dropdown do
     default: %JS{},
     doc: "additional JS commands to run when the dropdown closes (LiveView.JS only)"
 
-  attr :placement, :string, default: "left", values: ["left", "right"]
+  attr :placement, :string,
+    default: "left",
+    values: ["left", "right"],
+    doc:
+      ~s|which way the panel GROWS from the trigger, not which side it sits on: "left" grows it leftward, right edges aligned, the way a menu in the right-hand corner of a navbar wants; "right" grows it rightward from the trigger's left edge|
+
+  attr :direction, :string,
+    default: "auto",
+    values: ["auto", "up", "down"],
+    doc:
+      ~s|which way the panel opens vertically. "auto" measures on every open and flips upward when the viewport leaves no room below (needs the PetalDropdown hook). "up" and "down" are the answer when you already know - a menu pinned to the bottom of a sidebar opens up, full stop - and they skip the hook entirely: no measuring, no listeners, no first-frame correction|
+
   attr :rest, :global
 
   slot :trigger_element,
@@ -89,7 +100,7 @@ defmodule PetalComponents.Dropdown do
         </button>
       </div>
       <div
-        {js_attributes("options_container", @options_container_id)}
+        {js_attributes("options_container", @options_container_id, @direction)}
         class={[
           placement_class(@placement),
           @menu_items_wrapper_class,
@@ -153,6 +164,48 @@ defmodule PetalComponents.Dropdown do
   end
 
   @doc """
+  A row of panel content that is a control rather than a command - a theme
+  switcher, a plan badge, a storage meter. Same padding and type scale as a
+  menu item, but it never behaves like one.
+
+      <.dropdown_menu_row>
+        <span>Theme</span>
+        <.color_scheme_switch id="menu-scheme" variant="segmented" class="ml-auto" />
+      </.dropdown_menu_row>
+
+  ## The ARIA call
+
+  `role="none"` is deliberate. The panel is a `role="menu"`, whose only valid
+  children are menu items, groups and separators, so a widget parked straight
+  underneath it is out of spec whichever way you slice it. The two ways round
+  that both cost something: re-express the control as `menuitemradio` items
+  (conformant, but then it is a list of commands, not a switch), or wrap it in
+  a `menuitem` and cancel the activation (what a lot of React menus do, and a
+  `menuitem` containing focusable controls is its own violation). This row
+  takes the third road: it opts *out* of the menu with `role="none"` - the
+  same marker the panel already puts on its own inner wrapper - and lets
+  whatever you put inside keep its native semantics. A radio group stays a
+  radio group, reachable by Tab and announced as one.
+
+  The honest caveat: a screen reader driving the panel in menu mode may skip
+  the row, because as far as the menu is concerned it isn't there. Put nothing
+  in it that has no other home in your UI. If the choice really belongs in the
+  menu, express it as menu items instead - `color_scheme_switch`'s "dropdown"
+  variant is exactly that shape.
+  """
+  attr :class, :any, default: nil, doc: "any additional CSS classes"
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def dropdown_menu_row(assigns) do
+    ~H"""
+    <div class={["pc-dropdown__row", @class]} role="none" {@rest}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
   A thin divider between groups of menu items.
   """
   attr :class, :any, default: nil, doc: "any additional CSS classes"
@@ -173,7 +226,9 @@ defmodule PetalComponents.Dropdown do
   defp trigger_button_classes(_label, _trigger_element),
     do: "pc-dropdown__trigger-button--with-label-and-trigger-element"
 
-  defp js_attributes(type, options_container_id, on_close \\ %JS{})
+  # The third argument is per-clause: "container" takes the caller's on_close
+  # JS, "options_container" takes the resolved direction.
+  defp js_attributes(type, options_container_id, opt \\ %JS{})
 
   defp js_attributes("container", options_container_id, on_close) do
     hide =
@@ -204,17 +259,29 @@ defmodule PetalComponents.Dropdown do
     }
   end
 
-  defp js_attributes("options_container", _options_container_id, _on_close) do
-    %{
-      style: "display: none;",
-      # PetalDropdown measures on open and marks the panel `data-flip` when
-      # the viewport leaves no room below the trigger - a user menu at the
-      # bottom of a sidebar opens upward instead of off-screen. Register the
-      # bundled hooks (see README) to get it; without them the panel keeps
-      # its old always-downward behaviour rather than breaking.
-      "phx-hook": "PetalDropdown"
-    }
+  # One merged map, not a second `{...}` interpolation on the panel: attribute
+  # order inside one map is at least a single decision, where two adjacent
+  # interpolations pin phx-hook after style whatever the map does. (Erlang's
+  # small-map iteration order is not something to lean on either way - a clean
+  # rebuild of an untouched tree reorders these attributes on its own.)
+  defp js_attributes("options_container", _options_container_id, direction) do
+    Map.merge(%{style: "display: none;"}, direction_attributes(direction))
   end
+
+  # PetalDropdown measures on open and marks the panel `data-flip` when
+  # the viewport leaves no room below the trigger - a user menu at the
+  # bottom of a sidebar opens upward instead of off-screen. Register the
+  # bundled hooks (see README) to get it; without them the panel keeps
+  # its old always-downward behaviour rather than breaking.
+  defp direction_attributes("auto"), do: %{"phx-hook": "PetalDropdown"}
+
+  # An explicit direction is already the answer, so there is nothing to
+  # measure. The hook never attaches: no scroll/resize listeners, no
+  # MutationObserver, and for "up" no first frame rendered downward before
+  # the measurement lands. "up" is simply the flipped state, held open - the
+  # same `data-flip` the hook would have written, only it never comes off.
+  defp direction_attributes("up"), do: %{"data-flip": ""}
+  defp direction_attributes("down"), do: %{}
 
   defp placement_class("left"), do: "pc-dropdown__menu-items-wrapper-placement--left"
   defp placement_class("right"), do: "pc-dropdown__menu-items-wrapper-placement--right"

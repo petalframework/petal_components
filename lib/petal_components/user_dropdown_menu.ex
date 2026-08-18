@@ -5,7 +5,9 @@ defmodule PetalComponents.UserDropdownMenu do
   import PetalComponents.Icon
 
   attr :user_menu_items, :list,
-    doc: "list of maps with keys :path, :icon (atom), :label, :method (atom - optional)"
+    default: [],
+    doc:
+      "list of maps with keys :path, :icon (atom), :label, :method (atom - optional). Leave it out when you pass your own panel through the inner block"
 
   attr :current_user_name, :string, doc: "the current signed in user's name"
 
@@ -30,7 +32,22 @@ defmodule PetalComponents.UserDropdownMenu do
     default: "left",
     values: ["left", "right"],
     doc:
-      ~s|which way the menu extends from the trigger, passed through to the dropdown. The default "left" hangs the panel leftward (right edges aligned) - use "right" when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
+      ~s|which way the panel GROWS from the trigger, not which side it sits on: "left" grows it leftward, right edges aligned, the way a menu in the right-hand corner of a navbar wants; "right" grows it rightward from the trigger's left edge. Passed through to the dropdown. Reach for "right" when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
+
+  attr :direction, :string,
+    default: "auto",
+    values: ["auto", "up", "down"],
+    doc:
+      ~s|which way the panel opens vertically, passed through to the dropdown. "auto" measures and flips when the viewport leaves no room below. At the bottom of a sidebar you already know the answer, so say it: direction="up" renders the panel in the flipped state from the start and skips the measuring hook altogether|
+
+  attr :menu_items_wrapper_class, :any,
+    default: nil,
+    doc:
+      ~s|extra classes for the panel itself, passed through to the dropdown. The panel is content-width by default; this is where you pin it, e.g. "w-60" for an account panel that should not breathe as its rows change|
+
+  slot :inner_block,
+    doc:
+      "your own panel content, in place of the user_menu_items list. Use it when the menu is more than a list of links - an org switcher, a theme row, a group label or two - and compose it from dropdown_menu_item, dropdown_menu_label, dropdown_menu_row and dropdown_menu_separator. The trigger stays exactly the same"
 
   def user_dropdown_menu(assigns) do
     # current_user_name is declared without a default, so the assign is simply
@@ -41,8 +58,10 @@ defmodule PetalComponents.UserDropdownMenu do
 
     ~H"""
     <.dropdown
-      :if={@user_menu_items != []}
+      :if={@user_menu_items != [] or @inner_block != []}
       placement={@placement}
+      direction={@direction}
+      menu_items_wrapper_class={@menu_items_wrapper_class}
       class={sidebar_container_class(@variant)}
       trigger_class={sidebar_trigger_class(@variant)}
     >
@@ -77,7 +96,8 @@ defmodule PetalComponents.UserDropdownMenu do
           />
         </div>
       </:trigger_element>
-      <%= for menu_item <- @user_menu_items do %>
+      {render_slot(@inner_block)}
+      <%= for menu_item <- menu_items(@inner_block, @user_menu_items) do %>
         <.dropdown_menu_item
           link_type={if menu_item[:method], do: "a", else: "live_redirect"}
           method={if menu_item[:method], do: menu_item[:method], else: nil}
@@ -102,6 +122,12 @@ defmodule PetalComponents.UserDropdownMenu do
     </.dropdown>
     """
   end
+
+  # A panel passed in wholesale REPLACES the generated list rather than stacking
+  # on top of it: the two are alternatives, and rendering both would only ever
+  # be somebody's mistake.
+  defp menu_items([], user_menu_items), do: user_menu_items
+  defp menu_items(_inner_block, _user_menu_items), do: []
 
   # The sidebar row needs the width dialled up on the dropdown container (which
   # is inline-block) as well as on the trigger button it wraps. Both stay nil
