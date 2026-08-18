@@ -1021,15 +1021,19 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_progress", %{"k" => "shape", "v" => v}, socket) when v in ~w(bar ring),
     do:
       {:noreply,
-       update(
-         socket,
-         :progress,
-         &%{
-           &1
-           | shape: v,
-             size: if(v == "ring" and &1.size in ~w(xs sm), do: "xl", else: &1.size)
-         }
-       )}
+       update(socket, :progress, fn p ->
+         # Same normalisation as the size dial: a ring only draws its readout
+         # in the hole at lg and xl, so arriving at a smaller ring via the
+         # SHAPE dial must also stop the label dial claiming "inside".
+         size = if(v == "ring" and p.size in ~w(xs sm), do: "xl", else: p.size)
+
+         label =
+           if v == "ring" and p.label == "inside" and size not in ~w(lg xl),
+             do: "top",
+             else: p.label
+
+         %{p | shape: v, size: size, label: label}
+       end)}
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
