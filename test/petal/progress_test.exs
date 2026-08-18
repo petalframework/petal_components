@@ -328,6 +328,54 @@ defmodule PetalComponents.ProgressTest do
       assert with_value =~ "67%"
     end
 
+    test "show_value is size-gated: nothing drawn below lg" do
+      for size <- ~w(xs sm md) do
+        assigns = %{size: size}
+
+        html =
+          rendered_to_string(~H"""
+          <.progress_ring value={53} size={@size} show_value />
+          """)
+
+        refute html =~ "pc-progress-ring__label",
+               "show_value drew a readout at #{size}, where the hole is too small to read it"
+
+        refute html =~ ">53%<"
+        # the percentage still reaches assistive tech, it just isn't drawn
+        assert html =~ ~s(aria-valuetext="53%")
+      end
+
+      for size <- ~w(lg xl) do
+        assigns = %{size: size}
+
+        html =
+          rendered_to_string(~H"""
+          <.progress_ring value={53} size={@size} show_value />
+          """)
+
+        assert html =~ "pc-progress-ring__label--#{size}"
+        assert html =~ "53%"
+      end
+    end
+
+    test "the slot is not size-gated - custom middles are the consumer's call" do
+      for size <- ~w(xs sm md lg xl) do
+        assigns = %{size: size}
+
+        html =
+          rendered_to_string(~H"""
+          <.progress_ring value={12} max={30} size={@size}>
+            <span>12/30</span>
+          </.progress_ring>
+          """)
+
+        assert html =~ "pc-progress-ring__label--#{size}",
+               "the slot stopped rendering at #{size}"
+
+        assert html =~ "12/30"
+      end
+    end
+
     test "the slot takes over the middle from show_value" do
       assigns = %{}
 

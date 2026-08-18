@@ -5,11 +5,14 @@ defmodule PetalComponents.Progress do
     * `progress/1` - the linear bar. Page-top loading strips, upload rows,
       quota meters.
     * `progress_ring/1` - the circular version. Reads at sizes a bar can't
-      (a 16px ring in a table cell still shows its proportion), and the
-      middle is free real estate for a percentage readout.
+      (a 16px ring in a table cell still shows its proportion), and at lg and
+      up the middle is free real estate for a percentage readout.
 
   Both take the same `value`/`max`, the same `size` scale (xs to xl) and the
   same `color` vocabulary, so a bar and a ring on the same page agree.
+
+  Below lg the readout belongs beside the ring, not inside it - see the
+  showcase for the pairing.
 
   ## What this is not
 
@@ -141,14 +144,16 @@ defmodule PetalComponents.Progress do
 
   attr(:show_value, :boolean,
     default: false,
-    doc: "draws the rounded percentage in the middle. md and up have room for it; xs and sm don't"
+    doc:
+      "draws the rounded percentage in the middle. lg and xl only - below that the hole is too small to read a number in, so it draws nothing and the readout goes beside the ring"
   )
 
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
 
   slot(:inner_block,
-    doc: "custom middle content (\"12/30\", an icon) - takes over from show_value"
+    doc:
+      "custom middle content (\"12/30\", an icon) - takes over from show_value, and unlike show_value it renders at every size, so below lg keep it to something that survives a 40px hole"
   )
 
   @doc """
@@ -189,6 +194,10 @@ defmodule PetalComponents.Progress do
       |> assign(:radius, radius)
       |> assign(:circumference, Float.round(circumference, 2))
       |> assign(:dash_offset, Float.round(circumference * (1 - drawn / 100), 2))
+      |> assign(
+        :show_readout,
+        assigns.show_value && assigns.value != nil && assigns.size in ["lg", "xl"]
+      )
 
     ~H"""
     <div
@@ -242,8 +251,13 @@ defmodule PetalComponents.Progress do
             and the auto readout stays blank rather than presenting "0%" as a
             fact. A slot still renders: its content is the consumer's own, not
             a percentage claim. --%>
+      <%!-- Same reason show_value is size-gated to lg and xl: below that the
+            hole is 40px or less and a number shrunk into it reads as grit, so
+            the auto readout draws nothing and the percentage goes beside the
+            ring instead. The slot is deliberately ungated - what fits in a
+            small middle is the consumer's judgement, not ours. --%>
       <div
-        :if={(@show_value && @value) || @inner_block != []}
+        :if={@show_readout || @inner_block != []}
         class={["pc-progress-ring__label", "pc-progress-ring__label--#{@size}"]}
         aria-hidden="true"
       >

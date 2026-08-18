@@ -1039,9 +1039,25 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(primary secondary info success warning danger gray),
       do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
 
+  # The ring only draws its readout in the hole at lg and xl, so shrinking past
+  # that moves the label outside - and the dial should stop claiming "inside".
   def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket)
       when v in ~w(xs sm md lg xl),
-      do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
+      do:
+        {:noreply,
+         update(
+           socket,
+           :progress,
+           &%{
+             &1
+             | size: v,
+               label:
+                 if(&1.shape == "ring" and &1.label == "inside" and v not in ~w(lg xl),
+                   do: "top",
+                   else: &1.label
+                 )
+           }
+         )}
 
   def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
       when v in ~w(none inside top),
@@ -1918,16 +1934,31 @@ defmodule Dev.PlaygroundLive do
   defp progress_status(_v), do: "Done!"
 
   defp progress_snippet(%{shape: "ring"} = pr) do
+    inside? = pr.label != "none" and pr.size in ~w(lg xl)
+
     attrs =
       [
         ~s(value={#{pr.value}}),
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
-        pr.label != "none" && "show_value"
+        inside? && "show_value"
       ]
       |> Enum.filter(& &1)
 
-    "<.progress_ring #{Enum.join(attrs, " ")} />"
+    ring = "<.progress_ring #{Enum.join(attrs, " ")} />"
+
+    # Below lg the readout is composition, not an attr - so the snippet has to
+    # show the row, or it stops matching what the preview is doing.
+    if pr.label != "none" and not inside? do
+      """
+      <div class="flex items-center gap-2 text-sm tabular-nums">
+        #{ring}
+        #{pr.value}%
+      </div>\
+      """
+    else
+      ring
+    end
   end
 
   defp progress_snippet(pr) do
@@ -4902,19 +4933,29 @@ defmodule Dev.PlaygroundLive do
         Determinate progress on a washed track, bar or ring. The flagship
         simulates a live upload - or take the wheel with the value control
         (which pauses the simulation). Flip shape and the same dials drive
-        the circular version.
+        the circular version, with the readout moving outside the ring below
+        lg, where the hole is too small to read a number in.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <div :if={@progress.shape == "ring"}>
+          <%!-- The label dial keeps meaning something at every ring size: the
+                readout is drawn in the hole at lg and xl, and beside the ring
+                below that, which is the pattern the component's docs point at. --%>
+          <div :if={@progress.shape == "ring"} class="flex items-center gap-2">
             <.progress_ring
               value={@progress.value}
               color={@progress.color}
               size={@progress.size}
-              show_value={@progress.label != "none"}
+              show_value={@progress.label != "none" and @progress.size in ~w(lg xl)}
               label="Download progress"
             />
+            <span
+              :if={@progress.label != "none" and @progress.size not in ~w(lg xl)}
+              class="text-sm text-gray-500 tabular-nums dark:text-gray-400"
+            >
+              {@progress.value}%
+            </span>
           </div>
           <div :if={@progress.shape == "bar"} class="w-full max-w-md">
             <.progress
