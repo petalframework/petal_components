@@ -2028,6 +2028,39 @@
   }
 
 
+  /* User menu */
+
+  /* user_dropdown_menu variant="sidebar": the full-width row that lives at
+     the bottom of a sidebar. .pc-dropdown is inline-block, so the row has to
+     dial the width up on the container as well as on the trigger button
+     inside it. This rule MUST stay below .pc-dropdown in source order - both
+     are single-class selectors, so only source order wins the display swap. */
+  .pc-user-menu--sidebar {
+    @apply block w-full;
+  }
+  /* The row IS the dropdown's own trigger button (passed through as
+     trigger_class), so every bit of button chrome lives here: the house
+     hover wash (gray-100 light, gray-400 alpha dark, same pair the dropdown
+     items and the ghost button use), the day-to-day radius, the focus ring.
+     text-left because a button centres its text and this one is a row. */
+  .pc-user-menu__row {
+    @apply flex items-center w-full gap-2 px-2 py-1.5 text-left bg-transparent transition-colors duration-200 ease-out hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/17;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  /* min-w-0 is what lets the two lines truncate: a flex item's floor is its
+     content width, so without it a long name shoves the chevron out of the
+     row instead of clipping. */
+  .pc-user-menu__identity {
+    @apply flex-1 min-w-0;
+  }
+  .pc-user-menu__name {
+    @apply block text-sm font-medium text-gray-700 truncate dark:text-gray-200;
+  }
+  .pc-user-menu__email {
+    @apply block text-xs text-gray-500 truncate dark:text-gray-400;
+  }
+
+
   /* Command palette */
 
   /* The visible openers. The pill reads as a search input at rest; the icon
