@@ -27,9 +27,12 @@
   drawn with `stroke-dasharray`, starting at 12 o'clock with round caps,
   and the value change animates unless the reader asked for less motion.
   The arc is `currentColor`, so a `text-*` class recolours it the way it
-  does a sparkline. `show_value` puts the percentage in the middle, or
-  pass a slot and put a count or an icon there instead. Same ARIA
-  contract as the bar, down to `aria-valuetext`.
+  does a sparkline. `show_value` puts the percentage in the middle at lg
+  and xl, the two sizes with a hole big enough to read a number in; below
+  that it draws nothing and the readout goes beside the ring, which the
+  showcase demonstrates. Pass a slot and the middle takes a count or an
+  icon instead, at any size. Same ARIA contract as the bar, down to
+  `aria-valuetext`.
 - **`user_dropdown_menu` takes a `placement`.** It always rendered its
   dropdown at the default `"left"` placement (panel hangs leftward, right
   edges aligned), which is exactly wrong for the component's most common
