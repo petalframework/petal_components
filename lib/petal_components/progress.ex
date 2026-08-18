@@ -203,7 +203,7 @@ defmodule PetalComponents.Progress do
       aria-valuemin="0"
       aria-valuemax={@max}
       aria-valuenow={@value}
-      aria-valuetext={"#{round(@percentage)}%"}
+      aria-valuetext={@value && "#{round(@percentage)}%"}
       aria-label={@label || "Progress"}
     >
       <svg
@@ -237,8 +237,13 @@ defmodule PetalComponents.Progress do
       </svg>
       <%!-- aria-hidden: role="progressbar" already announces aria-valuetext,
             so an announced readout would just say the number twice. --%>
+      <%!-- No value means indeterminate, and indeterminate has no percentage
+            to draw or announce - valuenow and valuetext are both absent above,
+            and the auto readout stays blank rather than presenting "0%" as a
+            fact. A slot still renders: its content is the consumer's own, not
+            a percentage claim. --%>
       <div
-        :if={@show_value || @inner_block != []}
+        :if={(@show_value && @value) || @inner_block != []}
         class={["pc-progress-ring__label", "pc-progress-ring__label--#{@size}"]}
         aria-hidden="true"
       >
@@ -268,7 +273,7 @@ defmodule PetalComponents.Progress do
       aria-valuemin="0"
       aria-valuemax={@max}
       aria-valuenow={@value}
-      aria-valuetext={"#{round(@percentage)}%"}
+      aria-valuetext={@value && "#{round(@percentage)}%"}
       aria-label={@aria_label}
     >
       <%!-- Two-layer label wipe (xl): base reads on the empty track; the fill

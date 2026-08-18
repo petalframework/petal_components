@@ -357,4 +357,25 @@ defmodule PetalComponents.ProgressTest do
       assert html =~ ~s{custom-attrs="123"}
     end
   end
+
+  test "a value-less ring is indeterminate: no valuetext, no 0% readout" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.progress_ring show_value />
+      """)
+
+    refute html =~ "aria-valuenow"
+    refute html =~ "aria-valuetext"
+    refute html =~ "0%"
+
+    # the bar's shared renderer had the same leak
+    html =
+      rendered_to_string(~H"""
+      <.progress />
+      """)
+
+    refute html =~ "aria-valuetext"
+  end
 end
