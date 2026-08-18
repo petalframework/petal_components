@@ -7177,7 +7177,8 @@ defmodule Dev.PlaygroundLive do
       <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The avatar-with-chevron every app shell ends up needing - an avatar
-        trigger, a dropdown, and a list of menu items from plain maps.
+        trigger, a dropdown, and a list of menu items from plain maps. Or, with
+        variant="sidebar", the full-width name-and-email row a sidebar wants.
       </p>
 
       <div :for={ex <- PetalComponents.Showcase.UserDropdownMenu.examples()} class="mt-10">
@@ -7211,11 +7212,11 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        The corner it actually lives in - pinned to the bottom of a sidebar
+        The corner it actually lives in - variant="sidebar" pinned to the bottom of a sidebar
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex h-[400px]">
-          <div class="flex flex-col flex-none p-3 border-r w-52 border-gray-200 dark:border-gray-800">
+          <div class="flex flex-col flex-none p-3 border-r w-64 border-gray-200 dark:border-gray-800">
             <div class="px-2 py-1 text-sm font-semibold">Acme Inc</div>
             <div class="mt-3 space-y-0.5">
               <div
@@ -7232,9 +7233,11 @@ defmodule Dev.PlaygroundLive do
                 <.icon name={icon} class="w-4 h-4 text-gray-400 dark:text-gray-500" />{label}
               </div>
             </div>
-            <div class="flex items-center gap-2 pt-3 mt-auto border-t border-gray-100 dark:border-gray-800/80">
+            <div class="pt-3 mt-auto border-t border-gray-100 dark:border-gray-800/80">
               <.user_dropdown_menu
+                variant="sidebar"
                 current_user_name="Sarah Chen"
+                current_user_email="sarah@acme.com"
                 avatar_src="/dev-static/avatars/p32.jpg"
                 placement={@user_menu_placement}
                 user_menu_items={[
@@ -7247,7 +7250,6 @@ defmodule Dev.PlaygroundLive do
                   }
                 ]}
               />
-              <span class="text-sm text-gray-600 truncate dark:text-gray-300">Sarah Chen</span>
             </div>
           </div>
           <div class="flex-1 p-4 space-y-3">
@@ -7273,6 +7275,9 @@ defmodule Dev.PlaygroundLive do
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The row takes the full sidebar width and carries the name and email itself, so
+        there is no avatar-plus-label pairing to hand-roll. Both lines truncate, which
+        is what you want the first time someone signs in with a long address.
         placement="right" grows the panel into the app. The default "left" hangs it
         leftward off the sidebar, which at the real left edge of a screen means
         off-screen. The upward flip keys off the window, not this pane: scroll until

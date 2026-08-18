@@ -48,4 +48,26 @@ defmodule PetalComponents.Showcase.UserDropdownMenu do
     </div>
     """
   end
+
+  example :sidebar, "The sidebar block",
+    description:
+      "variant=\"sidebar\" trades the compact trigger for the full-width row every sidebar ends up with: avatar, name over email, and a chevron-up-down on the right that admits the panel can open either way. Reach for it when the menu has a whole sidebar width to itself and the name is worth showing at rest. Stay on the default \"icon\" variant in a top bar, where horizontal room is the scarce thing and the avatar alone says enough. current_user_email is optional - leave it out and the row is a single line. placement=\"right\" because a sidebar sits against the left edge of the screen, and the row is as wide as its container, so give it a real one." do
+    ~H"""
+    <div class="flex justify-center py-4">
+      <div class="w-64 p-2 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.user_dropdown_menu
+          variant="sidebar"
+          current_user_name="Sarah Chen"
+          current_user_email="sarah@acme.com"
+          placement="right"
+          user_menu_items={[
+            %{path: "#", icon: "hero-user", label: "Profile"},
+            %{path: "#", icon: "hero-cog-6-tooth", label: "Settings"},
+            %{path: "#", icon: "hero-arrow-right-start-on-rectangle", label: "Sign out"}
+          ]}
+        />
+      </div>
+    </div>
+    """
+  end
 end

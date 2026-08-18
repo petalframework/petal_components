@@ -3,6 +3,21 @@
 
 #### Added
 
+- **`user_dropdown_menu` has a sidebar presentation.** The component only
+  ever rendered the compact navbar trigger - avatar plus chevron - so
+  anyone building the app-shell sidebar it is named after had to hand-roll
+  the rest of the row beside it: a name span, an email span, the truncation,
+  the hover wash. `variant="sidebar"` renders that row itself. Avatar, name
+  over email in muted text, `hero-chevron-up-down` on the right (up-down
+  because from the bottom of a sidebar the panel really can go either way),
+  the house hover wash and the `--pc-radius` corner. Both text lines
+  truncate. The new `current_user_email` is optional, and without it the row
+  is a single line. It all still rides the same `<button>` the dropdown
+  already owned, so `placement` and the upward flip work exactly as before:
+  `variant="sidebar"` with `placement="right"` at the bottom of a left-hand
+  sidebar opens up and to the right. `variant` defaults to `"icon"`, which
+  renders byte for byte what it always did.
+
 - **`user_dropdown_menu` takes a `placement`.** It always rendered its
   dropdown at the default `"left"` placement (panel hangs leftward, right
   edges aligned), which is exactly wrong for the component's most common
