@@ -390,4 +390,24 @@ defmodule PetalComponents.BadgeTest do
       assert html =~ "Inner Block Text"
     end
   end
+
+  test "the dot is layout-neutral: it never changes a badge's whitespace policy" do
+    assigns = %{}
+
+    # a plain badge wraps; adding a dot must not stop it
+    html =
+      rendered_to_string(~H"""
+      <.badge dot label="A status label long enough to wrap" />
+      """)
+
+    refute html =~ "whitespace-nowrap"
+    refute html =~ "whitespace-normal"
+
+    # an icon badge nowraps by the --with-icon rule's own long-standing call;
+    # the dot must not override that either - so the dot modifier itself
+    # carries no whitespace utility in the stylesheet
+    css = File.read!(Path.expand("../../assets/default.css", __DIR__))
+    [rule] = Regex.run(~r/\.pc-badge--with-dot \{[^}]*\}/, css)
+    refute rule =~ "whitespace"
+  end
 end
