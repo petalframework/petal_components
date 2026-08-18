@@ -904,6 +904,101 @@
     @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
   }
 
+  /* Badges - status dot
+
+     A filled circle leading the label, the status-badge convention. It is
+     decorative (aria-hidden) - the colour repeats what the label already
+     says - so it only has to read as "the" colour of the badge it sits in,
+     which is the 600 stop on every ramp.
+
+     Three surfaces, three answers. `light` keeps a pale surface in BOTH
+     colour schemes (bg-100 going to bg-200 in the dark), so its dot is
+     scheme-invariant at 600. `soft` and `outline` follow their own text
+     down the ramp, so their dot rides up to 400 against a dark surface.
+     `dark` is a saturated 600 fill already, where no stop of its own ramp
+     would read, so the dot falls through to the base rule's currentColor -
+     which for primary is the --pc-button-solid-fg token that variant sets,
+     not a hardcoded white.
+
+     The gap lives on the parent and MUST stay after --with-icon's: both
+     are one class deep, so source order is the only thing that gives a
+     dot-plus-icon badge the roomier 6px. */
+
+  .pc-badge--with-dot {
+    @apply gap-1.5 whitespace-nowrap;
+  }
+  .pc-badge--xs.pc-badge--with-dot,
+  .pc-badge--sm.pc-badge--with-dot {
+    @apply gap-1;
+  }
+
+  .pc-badge__dot {
+    @apply w-1.5 h-1.5 shrink-0 rounded-full bg-current;
+  }
+  .pc-badge--xs .pc-badge__dot,
+  .pc-badge--sm .pc-badge__dot {
+    @apply w-1 h-1;
+  }
+  .pc-badge--xl .pc-badge__dot {
+    @apply w-2 h-2;
+  }
+
+  .pc-badge--primary-light .pc-badge__dot {
+    @apply bg-primary-600;
+  }
+  .pc-badge--primary-soft .pc-badge__dot,
+  .pc-badge--primary-outline .pc-badge__dot {
+    @apply bg-primary-600 dark:bg-primary-400;
+  }
+
+  .pc-badge--secondary-light .pc-badge__dot {
+    @apply bg-secondary-600;
+  }
+  .pc-badge--secondary-soft .pc-badge__dot,
+  .pc-badge--secondary-outline .pc-badge__dot {
+    @apply bg-secondary-600 dark:bg-secondary-400;
+  }
+
+  .pc-badge--info-light .pc-badge__dot {
+    @apply bg-info-600;
+  }
+  .pc-badge--info-soft .pc-badge__dot,
+  .pc-badge--info-outline .pc-badge__dot {
+    @apply bg-info-600 dark:bg-info-400;
+  }
+
+  .pc-badge--success-light .pc-badge__dot {
+    @apply bg-success-600;
+  }
+  .pc-badge--success-soft .pc-badge__dot,
+  .pc-badge--success-outline .pc-badge__dot {
+    @apply bg-success-600 dark:bg-success-400;
+  }
+
+  .pc-badge--warning-light .pc-badge__dot {
+    @apply bg-warning-600;
+  }
+  .pc-badge--warning-soft .pc-badge__dot,
+  .pc-badge--warning-outline .pc-badge__dot {
+    @apply bg-warning-600 dark:bg-warning-400;
+  }
+
+  .pc-badge--danger-light .pc-badge__dot {
+    @apply bg-danger-600;
+  }
+  .pc-badge--danger-soft .pc-badge__dot,
+  .pc-badge--danger-outline .pc-badge__dot {
+    @apply bg-danger-600 dark:bg-danger-400;
+  }
+
+  .pc-badge--gray-light .pc-badge__dot {
+    @apply bg-gray-600;
+  }
+  .pc-badge--gray-soft .pc-badge__dot,
+  .pc-badge--gray-outline .pc-badge__dot {
+    @apply bg-gray-600 dark:bg-gray-400;
+  }
+
   /* Alerts */
 
   .pc-alert {

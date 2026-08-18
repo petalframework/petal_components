@@ -134,6 +134,133 @@ defmodule PetalComponents.BadgeTest do
     end
   end
 
+  describe "badge/1 - status dot" do
+    # The badge's own variants, not TestConstants.variants/0 (which carries
+    # the button's "shadow" too).
+    @badge_variants ~w(light dark soft outline)
+
+    setup do
+      %{assigns: default_assigns()}
+    end
+
+    test "no dot by default", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge label="Active" />
+        """)
+
+      refute_has_class(html, "pc-badge__dot")
+      refute_has_class(html, "pc-badge--with-dot")
+    end
+
+    test "dot={false} renders byte for byte what it always did", %{assigns: assigns} do
+      # The whole promise of a new opt-in attr: nobody's existing badge moves
+      # by a single character. Pinned as an exact string, not a class list, so
+      # a stray space or an always-emitted empty span fails here.
+      html =
+        rendered_to_string(~H"""
+        <.badge label="Active" />
+        """)
+
+      assert html ==
+               ~s(<span role="note" class="pc-badge pc-badge--md pc-badge--primary-light">\n  Active\n</span>)
+    end
+
+    test "renders a decorative dot before the label", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot label="Active" />
+        """)
+
+      assert html =~ ~s(<span class="pc-badge__dot" aria-hidden="true"></span>Active)
+      assert_has_class(html, "pc-badge--with-dot")
+    end
+
+    test "the dot is empty and hidden from assistive tech", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot label="Active" />
+        """)
+
+      dot = html |> parse_html() |> LazyHTML.query("span.pc-badge__dot")
+
+      assert Enum.count(dot) == 1
+      assert LazyHTML.attribute(dot, "aria-hidden") == ["true"]
+      assert dot |> LazyHTML.text() |> String.trim() == ""
+    end
+
+    test "the dot carries no colour of its own - the badge's variant class does" do
+      # Markup stays identical across the matrix; assets/default.css maps
+      # .pc-badge--<color>-<variant> .pc-badge__dot to the right ramp stop
+      # (see the badge dot guards in css_assets_test.exs).
+      for color <- colors(), variant <- @badge_variants do
+        assigns = %{color: color, variant: variant}
+
+        html =
+          rendered_to_string(~H"""
+          <.badge dot color={@color} variant={@variant} label="Active" />
+          """)
+
+        assert_has_class(html, badge_class(color, variant))
+        assert_has_class(html, "pc-badge--with-dot")
+        assert html =~ ~s(<span class="pc-badge__dot" aria-hidden="true"></span>)
+      end
+    end
+
+    test "every size keeps the dot" do
+      for size <- sizes() do
+        assigns = %{size: size}
+
+        html =
+          rendered_to_string(~H"""
+          <.badge dot size={@size} label="Active" />
+          """)
+
+        assert_has_class(html, "pc-badge--#{size}")
+        assert_has_class(html, "pc-badge__dot")
+      end
+    end
+
+    test "dot leads an inner block too", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot>Deploying</.badge>
+        """)
+
+      assert html =~ ~s(<span class="pc-badge__dot" aria-hidden="true"></span>)
+      assert html =~ "Deploying"
+    end
+
+    test "dot and with_icon compose, dot first", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot with_icon color="success" variant="soft">
+          <.icon name="hero-check" /> Passing
+        </.badge>
+        """)
+
+      assert_has_class(html, "pc-badge--with-icon")
+      assert_has_class(html, "pc-badge--with-dot")
+      assert has_icon?(html, "hero-check")
+
+      {dot_at, _} = :binary.match(html, "pc-badge__dot")
+      {icon_at, _} = :binary.match(html, "hero-check")
+      assert dot_at < icon_at
+    end
+
+    test "dot survives a custom class and pass-through attrs", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot role="status" class="custom-class" data-test="value" label="Active" />
+        """)
+
+      assert_has_class(html, "pc-badge--with-dot")
+      assert_has_class(html, "custom-class")
+      assert_attribute(html, "role", "status")
+      assert_attribute(html, "data-test", "value")
+    end
+  end
+
   describe "badge/1 - sizes" do
     setup do
       %{assigns: default_assigns()}

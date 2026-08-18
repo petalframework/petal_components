@@ -30,6 +30,19 @@ defmodule PetalComponents.Showcase.Badge do
     """
   end
 
+  example :status_dots, "Status dots",
+    description:
+      "dot puts a filled circle in front of the label, the convention every status table already uses. It takes the badge's own colour, so the row scans on colour alone from across the desk. The dot is decorative - screen readers get the word, not the circle - so keep the label carrying the meaning." do
+    ~H"""
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <.badge dot color="success" variant="soft" label="Active" />
+      <.badge dot color="warning" variant="soft" label="Pending" />
+      <.badge dot color="danger" variant="soft" label="Failed" />
+      <.badge dot color="gray" variant="outline" label="Archived" />
+    </div>
+    """
+  end
+
   example :sizes, "Sizes",
     description:
       "Five sizes on the shared scale; with_icon tightens the padding for a leading glyph." do

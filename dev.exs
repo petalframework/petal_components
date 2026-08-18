@@ -760,7 +760,7 @@ defmodule Dev.PlaygroundLive do
          actions: false,
          rev: 0
        },
-       badge: %{color: "primary", variant: "outline", size: "md", icon: false},
+       badge: %{color: "primary", variant: "outline", size: "md", icon: false, dot: false},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
@@ -1717,6 +1717,9 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "icon"}, socket),
     do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
 
+  def handle_event("ctl_badge", %{"k" => "dot"}, socket),
+    do: {:noreply, update(socket, :badge, &%{&1 | dot: !&1.dot})}
+
   def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
 
   def handle_event("chat_suggest", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
@@ -2339,7 +2342,8 @@ defmodule Dev.PlaygroundLive do
         b.color != "primary" && ~s(color="#{b.color}"),
         b.variant != "light" && ~s(variant="#{b.variant}"),
         b.size != "md" && ~s(size="#{b.size}"),
-        b.icon && "with_icon"
+        b.icon && "with_icon",
+        b.dot && "dot"
       ]
       |> Enum.filter(& &1)
 
@@ -9164,6 +9168,7 @@ defmodule Dev.PlaygroundLive do
             variant={@badge.variant}
             size={@badge.size}
             with_icon={@badge.icon}
+            dot={@badge.dot}
           >
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
@@ -9231,11 +9236,12 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Extras"
-              value={for {k, on} <- [{"icon", @badge.icon}], on, do: k}
+              value={for {k, on} <- [{"icon", @badge.icon}, {"dot", @badge.dot}], on, do: k}
               on_change="ctl_badge"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item value="icon" phx-value-k="icon">icon</:item>
+              <:item value="dot" phx-value-k="dot">dot</:item>
             </.toggle_group>
           </div>
         </div>
