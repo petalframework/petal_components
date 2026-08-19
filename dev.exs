@@ -760,7 +760,14 @@ defmodule Dev.PlaygroundLive do
          actions: false,
          rev: 0
        },
-       badge: %{color: "primary", variant: "outline", size: "md", icon: false, dot: false},
+       badge: %{
+         color: "primary",
+         variant: "outline",
+         size: "md",
+         icon: false,
+         dot: false,
+         dot_color: nil
+       },
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
@@ -1744,6 +1751,15 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "dot"}, socket),
     do: {:noreply, update(socket, :badge, &%{&1 | dot: !&1.dot, icon: false})}
 
+  # The dot colour survives toggling the dot off and on - it is the dial's
+  # own state, not a consequence of the dot's.
+  def handle_event("ctl_badge", %{"k" => "dot_color", "v" => "inherit"}, socket),
+    do: {:noreply, update(socket, :badge, &%{&1 | dot_color: nil})}
+
+  def handle_event("ctl_badge", %{"k" => "dot_color", "v" => v}, socket)
+      when v in @badge_colors,
+      do: {:noreply, update(socket, :badge, &%{&1 | dot_color: v})}
+
   def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
 
   def handle_event("chat_suggest", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
@@ -2382,7 +2398,8 @@ defmodule Dev.PlaygroundLive do
         b.variant != "light" && ~s(variant="#{b.variant}"),
         b.size != "md" && ~s(size="#{b.size}"),
         b.icon && "with_icon",
-        b.dot && "dot"
+        b.dot && "dot",
+        b.dot && b.dot_color && ~s(dot_color="#{b.dot_color}")
       ]
       |> Enum.filter(& &1)
 
@@ -9275,6 +9292,7 @@ defmodule Dev.PlaygroundLive do
             size={@badge.size}
             with_icon={@badge.icon}
             dot={@badge.dot}
+            dot_color={@badge.dot_color}
           >
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
@@ -9349,6 +9367,31 @@ defmodule Dev.PlaygroundLive do
               <:item value="icon" phx-value-k="icon">icon</:item>
               <:item value="dot" phx-value-k="dot">dot</:item>
             </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dot colour</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Dot color"
+              value={@badge.dot_color || "inherit"}
+              on_change="ctl_badge"
+              disabled={!@badge.dot}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="inherit" phx-value-k="dot_color" phx-value-v="inherit">inherit</:item>
+              <:item
+                :for={c <- ~w(primary secondary info success warning danger gray)}
+                value={c}
+                phx-value-k="dot_color"
+                phx-value-v={c}
+              >
+                {c}
+              </:item>
+            </.toggle_group>
+            <div :if={!@badge.dot} class="mt-1.5 text-[10px] text-gray-400">
+              dot only
+            </div>
           </div>
         </div>
       </div>

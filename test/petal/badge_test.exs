@@ -261,6 +261,138 @@ defmodule PetalComponents.BadgeTest do
     end
   end
 
+  describe "badge/1 - dot colour override" do
+    setup do
+      %{assigns: default_assigns()}
+    end
+
+    test "dot_color is nil by default - a dotted badge doesn't move a byte", %{assigns: assigns} do
+      # The pin for the whole attr. Everything an existing dotted badge
+      # renders is here as an exact string: had the dot's class stayed a
+      # class list, the unset override would have left `class="pc-badge__dot "`
+      # and every consumer snapshot with it.
+      html =
+        rendered_to_string(~H"""
+        <.badge dot label="Active" />
+        """)
+
+      assert html ==
+               ~s(<span role="note" class="pc-badge pc-badge--md pc-badge--with-dot pc-badge--primary-light">\n  <span class="pc-badge__dot" aria-hidden="true"></span>Active\n</span>)
+    end
+
+    test "the neutral chip: gray chrome, semantic dot", %{assigns: assigns} do
+      # The shape the attr exists for - the badge stays quiet, the dot
+      # carries the state.
+      html =
+        rendered_to_string(~H"""
+        <.badge color="gray" variant="outline" dot dot_color="success">Production</.badge>
+        """)
+
+      assert_has_class(html, badge_class("gray", "outline"))
+
+      assert html =~
+               ~s(<span class="pc-badge__dot pc-badge__dot--success-outline" aria-hidden="true"></span>Production)
+    end
+
+    test "the badge keeps its own colour when the dot diverges", %{assigns: assigns} do
+      # dot_color must not leak into the chip's chrome - if it did, the
+      # neutral chip stops being neutral.
+      html =
+        rendered_to_string(~H"""
+        <.badge color="gray" variant="outline" dot dot_color="danger" label="Preview" />
+        """)
+
+      assert_has_class(html, badge_class("gray", "outline"))
+      refute html =~ "pc-badge--danger"
+    end
+
+    test "the override carries the variant, because the stop depends on it" do
+      # assets/default.css gives each colour a different stop per variant
+      # (600 on light, 600/400 on soft and outline, 400 on dark), so the
+      # variant has to be in the class for the override to land on the same
+      # stop an inherited dot of that colour would.
+      for variant <- @badge_variants do
+        assigns = %{variant: variant}
+
+        html =
+          rendered_to_string(~H"""
+          <.badge dot color="gray" variant={@variant} dot_color="success" label="Active" />
+          """)
+
+        assert_has_class(html, "pc-badge__dot")
+        assert_has_class(html, "pc-badge__dot--success-#{variant}")
+        assert_has_class(html, badge_class("gray", variant))
+      end
+    end
+
+    test "every colour overrides on every variant" do
+      for color <- colors(), variant <- @badge_variants do
+        assigns = %{color: color, variant: variant}
+
+        html =
+          rendered_to_string(~H"""
+          <.badge dot color="primary" variant={@variant} dot_color={@color} label="Active" />
+          """)
+
+        assert_has_class(html, "pc-badge__dot--#{color}-#{variant}")
+      end
+    end
+
+    test "dot_color on its own renders nothing - there is no dot to colour", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge dot_color="success" label="Active" />
+        """)
+
+      refute_has_class(html, "pc-badge__dot")
+
+      assert html ==
+               ~s(<span role="note" class="pc-badge pc-badge--md pc-badge--primary-light">\n  Active\n</span>)
+    end
+
+    test "an overridden dot is still decorative and still empty", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge color="gray" variant="outline" dot dot_color="warning" label="Degraded" />
+        """)
+
+      dot = html |> parse_html() |> LazyHTML.query("span.pc-badge__dot")
+
+      assert Enum.count(dot) == 1
+      assert LazyHTML.attribute(dot, "aria-hidden") == ["true"]
+      assert dot |> LazyHTML.text() |> String.trim() == ""
+    end
+
+    test "the override composes with size, icon and pass-through attrs", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.badge
+          dot
+          dot_color="success"
+          with_icon
+          size="lg"
+          color="gray"
+          variant="outline"
+          role="status"
+          class="custom-class"
+        >
+          <.icon name="hero-check" /> Passing
+        </.badge>
+        """)
+
+      assert_has_class(html, "pc-badge__dot--success-outline")
+      assert_has_class(html, "pc-badge--with-dot")
+      assert_has_class(html, "pc-badge--with-icon")
+      assert_has_class(html, "pc-badge--lg")
+      assert_has_class(html, "custom-class")
+      assert_attribute(html, "role", "status")
+
+      {dot_at, _} = :binary.match(html, "pc-badge__dot")
+      {icon_at, _} = :binary.match(html, "hero-check")
+      assert dot_at < icon_at
+    end
+  end
+
   describe "badge/1 - sizes" do
     setup do
       %{assigns: default_assigns()}

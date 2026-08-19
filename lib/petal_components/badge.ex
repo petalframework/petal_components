@@ -20,6 +20,20 @@ defmodule PetalComponents.Badge do
         "label has to carry the meaning on its own. Renders before an icon when both are set."
   )
 
+  attr(:dot_color, :string,
+    default: nil,
+    values: [nil, "primary", "secondary", "info", "success", "warning", "danger", "gray"],
+    doc:
+      "colours the dot independently of the badge. nil, the default, inherits the badge's " <>
+        "colour exactly as before. Set it for the neutral chip - quiet chrome, one semantic " <>
+        "dot: `<.badge color=\"gray\" variant=\"outline\" dot dot_color=\"success\">" <>
+        "Production</.badge>`. The stop matches what an inherited dot of that colour shows " <>
+        "on the same variant, so the override moves the hue and nothing else. The `dark` " <>
+        "variant is the exception - its inherited dot is currentColor, which no ramp can " <>
+        "match - so an override there takes the 400 stop, and is a visible change even when " <>
+        "it names the badge's own colour."
+  )
+
   attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:label, :string, default: nil, doc: "label your badge")
   attr(:rest, :global)
@@ -39,9 +53,19 @@ defmodule PetalComponents.Badge do
         @class
       ]}
     >
-      <span :if={@dot} class="pc-badge__dot" aria-hidden="true"></span>{render_slot(@inner_block) ||
-        @label}
+      <span :if={@dot} class={dot_class(@dot_color, @variant)} aria-hidden="true"></span>{render_slot(
+        @inner_block
+      ) || @label}
     </span>
     """
   end
+
+  # One string, not a class list: HEEx compiles `class={["pc-badge__dot", nil]}`
+  # to `class="pc-badge__dot "`, and a dot with no override has to be byte for
+  # byte the markup it was before dot_color existed.
+  #
+  # The variant rides in the class because the stop depends on it - see the dot
+  # colour override block in assets/default.css.
+  defp dot_class(nil, _variant), do: "pc-badge__dot"
+  defp dot_class(color, variant), do: "pc-badge__dot pc-badge__dot--#{color}-#{variant}"
 end

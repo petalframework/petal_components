@@ -1009,6 +1009,112 @@
     @apply bg-gray-600 dark:bg-gray-400;
   }
 
+  /* Badges - dot colour override
+
+     dot_color unpins the dot from the badge. The shape it exists for is
+     the neutral chip - quiet chrome, one semantic dot, the state read off
+     the circle alone:
+
+       <.badge color="gray" variant="outline" dot dot_color="success">Production</.badge>
+
+     Every stop below MATCHES what an inherited dot of that colour shows
+     on that variant, so an override moves the hue and nothing else: the
+     green on an outline badge is the same green a success outline badge's
+     own dot is.
+
+     `dark` is the one honest divergence. Its inherited dot is currentColor
+     (see above) and no stop of another ramp can match that, so an override
+     there takes 400 - the same stop this file already reaches for whenever
+     a dot has to read against a dark surface. Two consequences worth
+     saying out loud: on `dark`, naming the badge's own colour is a visible
+     change rather than a no-op, and same-hue (a 400 dot on a 600 fill) is
+     the one combination with little to show. On `dark`, diverge the hue or
+     leave dot_color off.
+
+     Specificity is (0,2,0) - the dot class doubled - matching the
+     inherited mapping above, so ONLY source order puts the override on
+     top. This block has to stay below that one.
+
+     No `--with-dot` sibling and no geometry here on purpose: the override
+     is a colour and nothing else, so size, gap and whitespace keep the one
+     answer the rules above already gave them. */
+  .pc-badge__dot.pc-badge__dot--primary-light {
+    @apply bg-primary-600;
+  }
+  .pc-badge__dot.pc-badge__dot--primary-soft,
+  .pc-badge__dot.pc-badge__dot--primary-outline {
+    @apply bg-primary-600 dark:bg-primary-400;
+  }
+  .pc-badge__dot.pc-badge__dot--primary-dark {
+    @apply bg-primary-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--secondary-light {
+    @apply bg-secondary-600;
+  }
+  .pc-badge__dot.pc-badge__dot--secondary-soft,
+  .pc-badge__dot.pc-badge__dot--secondary-outline {
+    @apply bg-secondary-600 dark:bg-secondary-400;
+  }
+  .pc-badge__dot.pc-badge__dot--secondary-dark {
+    @apply bg-secondary-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--info-light {
+    @apply bg-info-600;
+  }
+  .pc-badge__dot.pc-badge__dot--info-soft,
+  .pc-badge__dot.pc-badge__dot--info-outline {
+    @apply bg-info-600 dark:bg-info-400;
+  }
+  .pc-badge__dot.pc-badge__dot--info-dark {
+    @apply bg-info-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--success-light {
+    @apply bg-success-600;
+  }
+  .pc-badge__dot.pc-badge__dot--success-soft,
+  .pc-badge__dot.pc-badge__dot--success-outline {
+    @apply bg-success-600 dark:bg-success-400;
+  }
+  .pc-badge__dot.pc-badge__dot--success-dark {
+    @apply bg-success-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--warning-light {
+    @apply bg-warning-600;
+  }
+  .pc-badge__dot.pc-badge__dot--warning-soft,
+  .pc-badge__dot.pc-badge__dot--warning-outline {
+    @apply bg-warning-600 dark:bg-warning-400;
+  }
+  .pc-badge__dot.pc-badge__dot--warning-dark {
+    @apply bg-warning-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--danger-light {
+    @apply bg-danger-600;
+  }
+  .pc-badge__dot.pc-badge__dot--danger-soft,
+  .pc-badge__dot.pc-badge__dot--danger-outline {
+    @apply bg-danger-600 dark:bg-danger-400;
+  }
+  .pc-badge__dot.pc-badge__dot--danger-dark {
+    @apply bg-danger-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--gray-light {
+    @apply bg-gray-600;
+  }
+  .pc-badge__dot.pc-badge__dot--gray-soft,
+  .pc-badge__dot.pc-badge__dot--gray-outline {
+    @apply bg-gray-600 dark:bg-gray-400;
+  }
+  .pc-badge__dot.pc-badge__dot--gray-dark {
+    @apply bg-gray-400;
+  }
+
   /* Alerts */
 
   .pc-alert {
