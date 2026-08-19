@@ -5123,6 +5123,10 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Label"
+              aria-describedby={
+                progress_inside_disabled?(@progress.shape, @progress.size) &&
+                  "pg-progress-inside-hint"
+              }
               value={@progress.label}
               on_change="ctl_progress"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -5139,8 +5143,11 @@ defmodule Dev.PlaygroundLive do
                 {progress_label_name(@progress.shape, l)}
               </:item>
             </.toggle_group>
+            <%!-- aria-describedby on the group ties the hint to the radios, so
+            assistive tech hears WHY inside is disabled, not just that it is. --%>
             <div
               :if={progress_inside_disabled?(@progress.shape, @progress.size)}
+              id="pg-progress-inside-hint"
               class="mt-1.5 text-[10px] text-gray-400"
             >
               inside needs lg or xl
