@@ -20,7 +20,32 @@
   circle. It composes with `with_icon` (dot, then icon, then text), and
   `dot` defaults to false, where the badge renders byte for byte what it
   always did.
-- **`user_dropdown_menu` has a sidebar presentation.** The component only
+- **The dropdown takes an explicit open direction.** The panel learned to
+  flip upward when the viewport left no room below it, which is the right
+  behaviour when nobody knows in advance. At the bottom of a sidebar
+  somebody does: it opens up, every time, and measuring to rediscover that
+  on each open buys a MutationObserver, two sets of scroll and resize
+  listeners and a frame's worth of risk that the panel paints downward
+  first. `direction` says it outright. `"auto"` is the default and is
+  exactly what shipped before - the hook attaches and measures. `"up"`
+  renders the panel already flipped and never attaches the hook at all.
+  `"down"` pins it downward and skips the hook too. `user_dropdown_menu`
+  passes `direction` through, alongside the new `menu_items_wrapper_class`,
+  so a sidebar account menu can be `direction="up"` with the panel pinned
+  to the sidebar's width.
+- **`user_dropdown_menu` accepts its own panel.** The component built the
+  menu from a `user_menu_items` list of maps, which is right up until the
+  menu wants an org switcher, a group label or a theme row - none of which
+  fit in a `%{path:, icon:, label:}`. Pass content in the inner block
+  instead and it replaces the generated list; the trigger, including
+  `variant="sidebar"`, is untouched. `user_menu_items` is now optional.
+- **`dropdown_menu_row` parks a control in the panel.** A theme switcher or
+  a plan badge is not a command, so it should not be a menu item pretending
+  to be one. The row carries menu-item padding and type with no hover wash,
+  and marks itself `role="none"` so it opts out of the surrounding
+  `role="menu"` and whatever you put inside keeps its own semantics. The
+  new "The account panel" example on the user menu shows the whole thing:
+  orgs with avatars, keyboard hints, a colour-scheme switch inline.- **`user_dropdown_menu` has a sidebar presentation.** The component only
   ever rendered the compact navbar trigger - avatar plus chevron - so
   anyone building the app-shell sidebar it is named after had to hand-roll
   the rest of the row beside it: a name span, an email span, the truncation,
@@ -44,9 +69,12 @@
   drawn with `stroke-dasharray`, starting at 12 o'clock with round caps,
   and the value change animates unless the reader asked for less motion.
   The arc is `currentColor`, so a `text-*` class recolours it the way it
-  does a sparkline. `show_value` puts the percentage in the middle, or
-  pass a slot and put a count or an icon there instead. Same ARIA
-  contract as the bar, down to `aria-valuetext`.
+  does a sparkline. `show_value` puts the percentage in the middle at lg
+  and xl, the two sizes with a hole big enough to read a number in; below
+  that it draws nothing and the readout goes beside the ring, which the
+  showcase demonstrates. Pass a slot and the middle takes a count or an
+  icon instead, at any size. Same ARIA contract as the bar, down to
+  `aria-valuetext`.
 - **`user_dropdown_menu` takes a `placement`.** It always rendered its
   dropdown at the default `"left"` placement (panel hangs leftward, right
   edges aligned), which is exactly wrong for the component's most common

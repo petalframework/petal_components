@@ -3,7 +3,13 @@ defmodule PetalComponents.Showcase.Dropdown do
   use PetalComponents.Showcase,
     component: PetalComponents.Dropdown,
     title: "Dropdown",
-    functions: [:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]
+    functions: [
+      :dropdown,
+      :dropdown_menu_item,
+      :dropdown_menu_label,
+      :dropdown_menu_row,
+      :dropdown_menu_separator
+    ]
 
   example :account_menu, "Account menu",
     description:
@@ -41,7 +47,7 @@ defmodule PetalComponents.Showcase.Dropdown do
 
   example :row_actions, "Row actions and a custom trigger",
     description:
-      "No label renders the ghost ellipsis - the table-row actions trigger. For a branded trigger, :trigger_element is your own button (style it with trigger_class); this one goes solid and follows your colour dials. placement drops the panel left or right of the trigger." do
+      "No label renders the ghost ellipsis - the table-row actions trigger. For a branded trigger, :trigger_element is your own button (style it with trigger_class); this one goes solid and follows your colour dials. placement names which way the panel GROWS, not which side it sits on: the default \"left\" grows it leftward with the right edges aligned, which is what a menu in a right-hand corner wants; \"right\" grows it rightward from the trigger's left edge, as the second trigger here does. direction is the same idea vertically - it defaults to \"auto\", which measures and flips upward when the viewport leaves no room below, and takes \"up\" or \"down\" when you already know the answer." do
     ~H"""
     <div class="flex items-start justify-center gap-16">
       <.dropdown>

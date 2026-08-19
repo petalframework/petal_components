@@ -1,5 +1,6 @@
 defmodule PetalComponents.UserDropdownMenuTest do
   use ComponentCase
+  import PetalComponents.Dropdown
   import PetalComponents.UserDropdownMenu
 
   test "renders correctly" do
@@ -355,6 +356,59 @@ defmodule PetalComponents.UserDropdownMenuTest do
       # and the flip hook is still on the panel, so the same row at the bottom
       # of a real sidebar opens up as well as right
       assert html =~ ~s|phx-hook="PetalDropdown"|
+    end
+  end
+
+  describe "a panel of your own" do
+    test "the inner block renders in place of the generated items" do
+      assigns = %{items: [%{path: "/profile", icon: "hero-user", label: "Profile"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items}>
+          <.dropdown_menu_label>Organizations</.dropdown_menu_label>
+          <.dropdown_menu_item link_type="button">Acme Inc</.dropdown_menu_item>
+        </.user_dropdown_menu>
+        """)
+
+      assert html =~ "Organizations"
+      assert html =~ "Acme Inc"
+      # The two are alternatives, not layers: a panel passed in wholesale
+      # replaces the list rather than stacking on top of it.
+      refute html =~ "/profile"
+    end
+
+    test "the trigger is untouched by it - the sidebar row still renders" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          variant="sidebar"
+          current_user_name="Sarah Chen"
+          current_user_email="sarah@acme.com"
+          direction="up"
+        >
+          <.dropdown_menu_item link_type="button">Acme Inc</.dropdown_menu_item>
+        </.user_dropdown_menu>
+        """)
+
+      assert html =~ "pc-user-menu__row"
+      assert html =~ "Sarah Chen"
+      assert html =~ "sarah@acme.com"
+      assert has_icon?(html, "hero-chevron-up-down")
+      assert html =~ "data-flip"
+    end
+
+    test "no items and no inner block renders nothing at all" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu current_user_name="Sarah Chen" />
+        """)
+
+      refute html =~ "pc-dropdown"
     end
   end
 end

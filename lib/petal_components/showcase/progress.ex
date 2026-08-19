@@ -48,7 +48,7 @@ defmodule PetalComponents.Showcase.Progress do
 
   example :ring, "Ring",
     description:
-      "The same component, drawn round. Same value, max, size and color attrs as the bar, so the two shapes stay in step on a page that uses both. The arc starts at 12 o'clock and rides currentColor, so a text class recolours it. show_value drops the percentage in the hole - md and up have room to read it." do
+      "The same component, drawn round. Same value, max, size and color attrs as the bar, so the two shapes stay in step on a page that uses both. The arc starts at 12 o'clock and rides currentColor, so a text class recolours it. show_value drops the percentage in the hole at lg and xl - below that the hole is too small to read a number in, so it draws nothing." do
     ~H"""
     <div class="flex flex-col items-center gap-8">
       <div class="flex flex-wrap items-center justify-center gap-6">
@@ -59,6 +59,33 @@ defmodule PetalComponents.Showcase.Progress do
         <.progress_ring value={64} size="lg" color="info" show_value />
         <.progress_ring value={38} size="lg" color="warning" show_value />
         <.progress_ring value={11} size="lg" color="danger" show_value />
+      </div>
+    </div>
+    """
+  end
+
+  example :ring_side_label, "Labels beside the ring",
+    description:
+      "Where the readout goes when the ring is small. No attr for this one - it's a flex row, tabular-nums so the numbers hold their column, and the ring shrunk to sit on the text's line. Outside text also buys you room for words: a lg ring can keep its own percentage and still carry a title and a line of detail next to it." do
+    ~H"""
+    <div class="w-full max-w-md space-y-8">
+      <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
+        <span
+          :for={{value, color} <- [{62, "primary"}, {38, "warning"}, {94, "success"}]}
+          class="flex items-center gap-2 text-sm text-gray-700 tabular-nums dark:text-gray-300"
+        >
+          <.progress_ring value={value} size="sm" color={color} label="Completion" />
+          {value}%
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <.progress_ring value={68} size="lg" color="info" show_value label="Storage used" />
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Storage used</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            6.8 GB of 10 GB. Two more exports and you're buying space.
+          </div>
+        </div>
       </div>
     </div>
     """

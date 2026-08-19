@@ -847,6 +847,7 @@ defmodule Dev.PlaygroundLive do
        },
        nav_trigger: "hover",
        user_menu_placement: "right",
+       user_menu_direction: "auto",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -1021,15 +1022,19 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_progress", %{"k" => "shape", "v" => v}, socket) when v in ~w(bar ring),
     do:
       {:noreply,
-       update(
-         socket,
-         :progress,
-         &%{
-           &1
-           | shape: v,
-             size: if(v == "ring" and &1.size in ~w(xs sm), do: "xl", else: &1.size)
-         }
-       )}
+       update(socket, :progress, fn p ->
+         # Same normalisation as the size dial: a ring only draws its readout
+         # in the hole at lg and xl, so arriving at a smaller ring via the
+         # SHAPE dial must also stop the label dial claiming "inside".
+         size = if(v == "ring" and p.size in ~w(xs sm), do: "xl", else: p.size)
+
+         label =
+           if v == "ring" and p.label == "inside" and size not in ~w(lg xl),
+             do: "top",
+             else: p.label
+
+         %{p | shape: v, size: size, label: label}
+       end)}
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
@@ -1039,9 +1044,25 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(primary secondary info success warning danger gray),
       do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
 
+  # The ring only draws its readout in the hole at lg and xl, so shrinking past
+  # that moves the label outside - and the dial should stop claiming "inside".
   def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket)
       when v in ~w(xs sm md lg xl),
-      do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
+      do:
+        {:noreply,
+         update(
+           socket,
+           :progress,
+           &%{
+             &1
+             | size: v,
+               label:
+                 if(&1.shape == "ring" and &1.label == "inside" and v not in ~w(lg xl),
+                   do: "top",
+                   else: &1.label
+                 )
+           }
+         )}
 
   def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
       when v in ~w(none inside top),
@@ -1403,6 +1424,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_usermenu", %{"k" => "placement", "v" => v}, socket)
       when v in ~w(left right),
       do: {:noreply, assign(socket, :user_menu_placement, v)}
+
+  def handle_event("ctl_usermenu", %{"k" => "direction", "v" => v}, socket)
+      when v in ~w(auto up down),
+      do: {:noreply, assign(socket, :user_menu_direction, v)}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -1921,16 +1946,31 @@ defmodule Dev.PlaygroundLive do
   defp progress_status(_v), do: "Done!"
 
   defp progress_snippet(%{shape: "ring"} = pr) do
+    inside? = pr.label != "none" and pr.size in ~w(lg xl)
+
     attrs =
       [
         ~s(value={#{pr.value}}),
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
-        pr.label != "none" && "show_value"
+        inside? && "show_value"
       ]
       |> Enum.filter(& &1)
 
-    "<.progress_ring #{Enum.join(attrs, " ")} />"
+    ring = "<.progress_ring #{Enum.join(attrs, " ")} />"
+
+    # Below lg the readout is composition, not an attr - so the snippet has to
+    # show the row, or it stops matching what the preview is doing.
+    if pr.label != "none" and not inside? do
+      """
+      <div class="flex items-center gap-2 text-sm tabular-nums">
+        #{ring}
+        #{pr.value}%
+      </div>\
+      """
+    else
+      ring
+    end
   end
 
   defp progress_snippet(pr) do
@@ -4752,7 +4792,13 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props
         component={PetalComponents.Dropdown}
-        functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
+        functions={[
+          :dropdown,
+          :dropdown_menu_item,
+          :dropdown_menu_label,
+          :dropdown_menu_row,
+          :dropdown_menu_separator
+        ]}
       />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -4906,19 +4952,29 @@ defmodule Dev.PlaygroundLive do
         Determinate progress on a washed track, bar or ring. The flagship
         simulates a live upload - or take the wheel with the value control
         (which pauses the simulation). Flip shape and the same dials drive
-        the circular version.
+        the circular version, with the readout moving outside the ring below
+        lg, where the hole is too small to read a number in.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <div :if={@progress.shape == "ring"}>
+          <%!-- The label dial keeps meaning something at every ring size: the
+                readout is drawn in the hole at lg and xl, and beside the ring
+                below that, which is the pattern the component's docs point at. --%>
+          <div :if={@progress.shape == "ring"} class="flex items-center gap-2">
             <.progress_ring
               value={@progress.value}
               color={@progress.color}
               size={@progress.size}
-              show_value={@progress.label != "none"}
+              show_value={@progress.label != "none" and @progress.size in ~w(lg xl)}
               label="Download progress"
             />
+            <span
+              :if={@progress.label != "none" and @progress.size not in ~w(lg xl)}
+              class="text-sm text-gray-500 tabular-nums dark:text-gray-400"
+            >
+              {@progress.value}%
+            </span>
           </div>
           <div :if={@progress.shape == "bar"} class="w-full max-w-md">
             <.progress
@@ -7299,6 +7355,7 @@ defmodule Dev.PlaygroundLive do
                 current_user_email="sarah@acme.com"
                 avatar_src="/dev-static/avatars/p32.jpg"
                 placement={@user_menu_placement}
+                direction={@user_menu_direction}
                 user_menu_items={[
                   %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
                   %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
@@ -7331,18 +7388,35 @@ defmodule Dev.PlaygroundLive do
               {p}
             </:item>
           </.toggle_group>
+          <div class="mt-4 mb-2 text-[11px] font-medium tracking-wide text-gray-400">direction</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Direction"
+            value={@user_menu_direction}
+            on_change="ctl_usermenu"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item :for={d <- ~w(auto up down)} value={d} phx-value-k="direction" phx-value-v={d}>
+              {d}
+            </:item>
+          </.toggle_group>
         </div>
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The row takes the full sidebar width and carries the name and email itself, so
         there is no avatar-plus-label pairing to hand-roll. Both lines truncate, which
         is what you want the first time someone signs in with a long address.
-        placement="right" grows the panel into the app. The default "left" hangs it
+        placement names which way the panel GROWS, not which side it sits on:
+        "right" grows it rightward, into the app, and the default "left" grows it
         leftward off the sidebar, which at the real left edge of a screen means
-        off-screen. The upward flip keys off the window, not this pane: scroll until
-        the shell's bottom edge sits near the bottom of your browser, then open the
-        menu. It opens up instead of down and the panel picks up a data-flip
-        attribute. Leave it open and keep scrolling - it re-measures every time.
+        off-screen. direction is the vertical axis. On "auto" the flip keys off the
+        window, not this pane: scroll until the shell's bottom edge sits near the
+        bottom of your browser, then open the menu. It opens up instead of down and
+        the panel picks up a data-flip attribute. Leave it open and keep scrolling -
+        it re-measures every time. "up" and "down" skip all of that. Down there you
+        already know the answer, so "up" just renders the panel flipped from the
+        start: no hook, no listeners, nothing to re-measure.
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>

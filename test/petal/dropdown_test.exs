@@ -193,6 +193,175 @@ defmodule PetalComponents.DropdownTest do
     end
   end
 
+  describe "dropdown/1 - direction" do
+    # direction is the vertical axis: "auto" measures (the hook decides),
+    # "up" and "down" are told. The whole point of the explicit values is
+    # that they cost nothing at runtime, so what these pin is the ABSENCE
+    # of the hook as much as the presence of the flip.
+
+    defp direction_html(direction) do
+      # A pinned id: the default is a fresh UUID per render, and these
+      # compare whole panels.
+      assigns = %{direction: direction}
+
+      rendered_to_string(~H"""
+      <.dropdown label="Dropdown" options_container_id="pinned" direction={@direction}>
+        <.dropdown_menu_item label="Option" />
+      </.dropdown>
+      """)
+    end
+
+    test ~s|the default is "auto", and "auto" renders exactly what no direction renders| do
+      assigns = %{}
+
+      default =
+        rendered_to_string(~H"""
+        <.dropdown label="Dropdown" options_container_id="pinned">
+          <.dropdown_menu_item label="Option" />
+        </.dropdown>
+        """)
+
+      explicit =
+        rendered_to_string(~H"""
+        <.dropdown label="Dropdown" options_container_id="pinned" direction="auto">
+          <.dropdown_menu_item label="Option" />
+        </.dropdown>
+        """)
+
+      assert default == explicit
+      assert default =~ ~s(phx-hook="PetalDropdown")
+      refute default =~ "data-flip"
+    end
+
+    test ~s|"up" renders the flipped state statically, with no hook to measure it| do
+      html = direction_html("up")
+
+      assert html =~ ~s(data-flip)
+      refute html =~ "PetalDropdown"
+    end
+
+    test ~s|"down" never flips and never attaches the hook| do
+      html = direction_html("down")
+
+      refute html =~ "data-flip"
+      refute html =~ "PetalDropdown"
+    end
+
+    test "the panel is otherwise identical whichever direction it is given" do
+      # Strip the two direction attributes and every variant must collapse
+      # onto the same markup - direction changes what the panel is told,
+      # never what it is.
+      strip = fn html ->
+        html
+        |> String.replace(~s( phx-hook="PetalDropdown"), "")
+        |> String.replace(~s( data-flip=""), "")
+      end
+
+      [auto, up, down] = Enum.map(~w(auto up down), &strip.(direction_html(&1)))
+
+      assert auto == up
+      assert auto == down
+    end
+
+    test "the user menu passes direction through" do
+      assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+      up =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          current_user_name="Sarah Chen"
+          direction="up"
+          user_menu_items={@items}
+        />
+        """)
+
+      assert up =~ "data-flip"
+      refute up =~ "PetalDropdown"
+
+      default =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items} />
+        """)
+
+      assert default =~ ~s(phx-hook="PetalDropdown")
+      refute default =~ "data-flip"
+    end
+  end
+
+  describe "dropdown/1 - menu_items_wrapper_class" do
+    test "a width passed through the user menu lands on the panel" do
+      assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          current_user_name="Sarah Chen"
+          menu_items_wrapper_class="w-60"
+          user_menu_items={@items}
+        />
+        """)
+
+      assert_has_class(html, "w-60")
+      assert_has_class(html, "pc-dropdown__menu-items-wrapper")
+    end
+
+    test "unset, it adds nothing to the panel" do
+      assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+      with_nil =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          current_user_name="Sarah Chen"
+          menu_items_wrapper_class={nil}
+          user_menu_items={@items}
+        />
+        """)
+
+      without =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu current_user_name="Sarah Chen" user_menu_items={@items} />
+        """)
+
+      # The ids are UUIDs, so compare the panels with those normalised away.
+      normalise = &String.replace(&1, ~r/dropdown_[0-9a-f-]{36}/, "ID")
+      assert normalise.(with_nil) == normalise.(without)
+    end
+  end
+
+  describe "dropdown_menu_row/1" do
+    test "renders its content in a row that opts out of the menu" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.dropdown_menu_row>
+          Theme
+        </.dropdown_menu_row>
+        """)
+
+      assert html =~ "Theme"
+      assert_has_class(html, "pc-dropdown__row")
+      # role="none", not "menuitem": the row hosts a control, and a menuitem
+      # wrapping focusable controls is its own ARIA violation.
+      assert html =~ ~s(role="none")
+      refute html =~ ~s(role="menuitem")
+    end
+
+    test "takes extra classes and global attributes" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.dropdown_menu_row class="justify-between" data-testid="theme-row">
+          Theme
+        </.dropdown_menu_row>
+        """)
+
+      assert_has_class(html, "justify-between")
+      assert html =~ ~s(data-testid="theme-row")
+    end
+  end
+
   describe "dropdown/1 - custom trigger element" do
     setup do
       %{assigns: default_assigns()}
