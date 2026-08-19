@@ -2093,6 +2093,40 @@
   .pc-dropdown__menu-items-wrapper-placement--right[data-flip] {
     @apply origin-bottom-left;
   }
+  /* side="left" / side="right": the panel opens BESIDE the trigger instead of
+     under it, over whatever sits next to it - the account panel a sidebar
+     pushes out into the content area rather than laying over its own nav.
+     Same absolutely-positioned box as every other panel; only the anchor edge
+     moves. mt-0 clears the base rule's mt-2, because the gap is horizontal
+     now, and these MUST stay below the base rule in source order - both are
+     single-class selectors, so nothing but order decides the margin.
+
+     There is no [data-flip] pairing here on purpose: flipping is the vertical
+     question, and a side-out panel is not on that axis.
+
+     The transform origin is split across the two axes: the side rule owns the
+     horizontal half and hands it over in a custom property, the align rules
+     below spend it. Four corners out of two classes, no compound selectors,
+     and a consumer's own origin-* utility still outranks all of it. */
+  .pc-dropdown__menu-items-wrapper-side--left {
+    @apply right-full mt-0 mr-2;
+    --pc-dropdown-origin-x: right;
+  }
+  .pc-dropdown__menu-items-wrapper-side--right {
+    @apply left-full mt-0 ml-2;
+    --pc-dropdown-origin-x: left;
+  }
+  /* Beside the trigger, align is the VERTICAL question: tops flush or bottoms
+     flush. Bottoms is the sidebar one - the panel's last row lands level with
+     the row that opened it, which is why the corner reads as one block. */
+  .pc-dropdown__menu-items-wrapper-align--start {
+    @apply top-0;
+    transform-origin: top var(--pc-dropdown-origin-x, left);
+  }
+  .pc-dropdown__menu-items-wrapper-align--end {
+    @apply bottom-0;
+    transform-origin: bottom var(--pc-dropdown-origin-x, left);
+  }
   /* The one trigger chevron for the dropdown family - user menu,
      language select and friends share this so the colour can't drift. */
   /* THE decorative-chevron rule for the dropdown family (dropdown,

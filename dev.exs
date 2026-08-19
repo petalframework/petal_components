@@ -846,8 +846,7 @@ defmodule Dev.PlaygroundLive do
          thumbnails: false
        },
        nav_trigger: "hover",
-       user_menu_placement: "right",
-       user_menu_direction: "auto",
+       user_menu_opens: "up",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
@@ -1421,13 +1420,9 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(hover click),
       do: {:noreply, assign(socket, :nav_trigger, v)}
 
-  def handle_event("ctl_usermenu", %{"k" => "placement", "v" => v}, socket)
-      when v in ~w(left right),
-      do: {:noreply, assign(socket, :user_menu_placement, v)}
-
-  def handle_event("ctl_usermenu", %{"k" => "direction", "v" => v}, socket)
-      when v in ~w(auto up down),
-      do: {:noreply, assign(socket, :user_menu_direction, v)}
+  def handle_event("ctl_usermenu", %{"k" => "opens", "v" => v}, socket)
+      when v in ~w(up beside),
+      do: {:noreply, assign(socket, :user_menu_opens, v)}
 
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
@@ -7291,6 +7286,16 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp render_page(%{active: "user-menu"} = assigns) do
+    # The corner dial is one question with two answers, and each answer
+    # settles both attrs: there is no alignment for "up" other than lining
+    # the panel's left edge up with the row it grew out of, and none for
+    # "beside" other than levelling their bottoms.
+    assigns =
+      case assigns.user_menu_opens do
+        "up" -> assign(assigns, um_side: "top", um_align: "start")
+        "beside" -> assign(assigns, um_side: "right", um_align: "end")
+      end
+
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
@@ -7334,8 +7339,11 @@ defmodule Dev.PlaygroundLive do
         The corner it actually lives in - variant="sidebar" pinned to the bottom of a sidebar
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
-        <div class="flex h-[400px]">
-          <div class="flex flex-col flex-none p-3 border-r w-64 border-gray-200 dark:border-gray-800">
+        <div class="flex h-[500px]">
+          <%!-- p-2 rather than p-3 so the sidebar's own padding matches the
+          panel's 8px side gap: in "beside" mode the panel then clears the
+          sidebar's edge exactly instead of landing 4px inside it. --%>
+          <div class="flex flex-col flex-none p-2 border-r w-64 border-gray-200 dark:border-gray-800">
             <div class="px-2 py-1 text-sm font-semibold">Acme Inc</div>
             <div class="mt-3 space-y-0.5">
               <div
@@ -7358,18 +7366,46 @@ defmodule Dev.PlaygroundLive do
                 current_user_name="Sarah Chen"
                 current_user_email="sarah@acme.com"
                 avatar_src="/dev-static/avatars/p32.jpg"
-                placement={@user_menu_placement}
-                direction={@user_menu_direction}
-                user_menu_items={[
-                  %{path: "/?c=user-menu", icon: "hero-user", label: "Profile"},
-                  %{path: "/?c=user-menu", icon: "hero-cog-6-tooth", label: "Settings"},
-                  %{
-                    path: "/?c=user-menu",
-                    icon: "hero-arrow-right-start-on-rectangle",
-                    label: "Sign out"
-                  }
-                ]}
-              />
+                side={@um_side}
+                align={@um_align}
+                menu_items_wrapper_class="w-60"
+              >
+                <.dropdown_menu_label>Organizations</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Acme Inc" size="2xs" random_color /> Acme Inc
+                  <.icon name="hero-check" class="w-4 h-4 ml-auto" />
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Northwind" size="2xs" random_color /> Northwind
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Petal Labs" size="2xs" random_color /> Petal Labs
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-plus" class="w-4 h-4" /> New organization
+                </.dropdown_menu_item>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_label>Account</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-user" class="w-4 h-4" /> Profile
+                  <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>P</kbd>
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-adjustments-horizontal" class="w-4 h-4" /> Preferences
+                </.dropdown_menu_item>
+                <.dropdown_menu_row>
+                  <.icon name="hero-paint-brush" class="w-4 h-4" /> Theme
+                  <.color_scheme_switch id="pg-corner-scheme" variant="segmented" class="ml-auto" />
+                </.dropdown_menu_row>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_item
+                  link_type="button"
+                  class="text-danger-600 dark:text-danger-400"
+                >
+                  <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
+                  <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>Q</kbd>
+                </.dropdown_menu_item>
+              </.user_dropdown_menu>
             </div>
           </div>
           <div class="flex-1 p-4 space-y-3">
@@ -7379,30 +7415,17 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
-          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">opens</div>
           <.toggle_group
             variant="outline"
             size="sm"
-            aria_label="Placement"
-            value={@user_menu_placement}
+            aria_label="Opens"
+            value={@user_menu_opens}
             on_change="ctl_usermenu"
             class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <:item :for={p <- ~w(left right)} value={p} phx-value-k="placement" phx-value-v={p}>
-              {p}
-            </:item>
-          </.toggle_group>
-          <div class="mt-4 mb-2 text-[11px] font-medium tracking-wide text-gray-400">direction</div>
-          <.toggle_group
-            variant="outline"
-            size="sm"
-            aria_label="Direction"
-            value={@user_menu_direction}
-            on_change="ctl_usermenu"
-            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            <:item :for={d <- ~w(auto up down)} value={d} phx-value-k="direction" phx-value-v={d}>
-              {d}
+            <:item :for={o <- ~w(up beside)} value={o} phx-value-k="opens" phx-value-v={o}>
+              {o}
             </:item>
           </.toggle_group>
         </div>
@@ -7410,17 +7433,22 @@ defmodule Dev.PlaygroundLive do
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The row takes the full sidebar width and carries the name and email itself, so
         there is no avatar-plus-label pairing to hand-roll. Both lines truncate, which
-        is what you want the first time someone signs in with a long address.
-        placement names which way the panel GROWS, not which side it sits on:
-        "right" grows it rightward, into the app, and the default "left" grows it
-        leftward off the sidebar, which at the real left edge of a screen means
-        off-screen. direction is the vertical axis. On "auto" the flip keys off the
-        window, not this pane: scroll until the shell's bottom edge sits near the
-        bottom of your browser, then open the menu. It opens up instead of down and
-        the panel picks up a data-flip attribute. Leave it open and keep scrolling -
-        it re-measures every time. "up" and "down" skip all of that. Down there you
-        already know the answer, so "up" just renders the panel flipped from the
-        start: no hook, no listeners, nothing to re-measure.
+        is what you want the first time someone signs in with a long address. And a
+        menu down here is usually not a list of links at all - it is the account
+        panel: an org switcher, a labelled account group with shortcuts, a theme row. <br /><br />
+        side is which side of the trigger the panel opens on and align is which edges
+        line up on the other axis, so this corner is either <code>side="top" align="start"</code>
+        - above the row, left edges flush, growing into the app - or
+        <code>side="right" align="end"</code>
+        - out past the sidebar with its bottom edge level with the row that opened it.
+        There is no third setting and no dial for align, because a sidebar-bottom menu
+        opens up or out, never down, and each side leaves exactly one alignment that
+        reads as part of the same corner. Neither one measures anything: an explicit
+        side is a decision already made, so the hook never attaches and no first frame
+        points the wrong way. What differs is what gets covered - up buries the nav
+        you just came from, out lays over the content area instead. (placement and
+        direction are the older spelling of these same two questions and still work
+        exactly as they did.)
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
