@@ -88,6 +88,76 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "badge dot colour override" do
+    # dot_color's whole promise is that it moves the dot's hue and nothing
+    # else. Both halves of that - the stops, and the source order that lets
+    # them win - live in CSS, so this is the only place to hold them.
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "each override matches the stop an inherited dot of that colour shows", %{css: css} do
+      # Compared declaration for declaration, not by eye: a dot_color="success"
+      # dot on an outline badge has to be the same green a success outline
+      # badge's own dot is, in both schemes.
+      for color <- @badge_colors do
+        assert rule_body(css, ".pc-badge__dot.pc-badge__dot--#{color}-light") ==
+                 rule_body(css, ".pc-badge--#{color}-light .pc-badge__dot"),
+               "#{color} override on light diverges from the inherited stop"
+
+        assert rule_body(
+                 css,
+                 ".pc-badge__dot.pc-badge__dot--#{color}-soft,\n  .pc-badge__dot.pc-badge__dot--#{color}-outline"
+               ) ==
+                 rule_body(
+                   css,
+                   ".pc-badge--#{color}-soft .pc-badge__dot,\n  .pc-badge--#{color}-outline .pc-badge__dot"
+                 ),
+               "#{color} override on soft/outline diverges from the inherited stop"
+      end
+    end
+
+    test "the dark variant override takes the 400 stop", %{css: css} do
+      # `dark` is the one variant with no inherited stop to match - its dot
+      # is currentColor - so an override there picks the stop this file
+      # already uses for a dot against a dark surface, and does so in both
+      # schemes because the fill is dark in both.
+      for color <- @badge_colors do
+        body = rule_body(css, ".pc-badge__dot.pc-badge__dot--#{color}-dark")
+
+        assert body =~ "bg-#{color}-400"
+        refute body =~ "dark:", "a dark-variant badge is a dark surface in either scheme"
+      end
+    end
+
+    test "an override sets a colour and nothing else", %{css: css} do
+      # Size, gap and whitespace are settled once, above. A stop rule that
+      # grew geometry would change a dot's shape when it changed its hue.
+      for color <- @badge_colors,
+          selector <- [
+            ".pc-badge__dot.pc-badge__dot--#{color}-light",
+            ".pc-badge__dot.pc-badge__dot--#{color}-soft,\n  .pc-badge__dot.pc-badge__dot--#{color}-outline",
+            ".pc-badge__dot.pc-badge__dot--#{color}-dark"
+          ] do
+        body = css |> rule_body(selector) |> String.trim()
+
+        assert Regex.match?(~r/^@apply bg-#{color}-\d00( dark:bg-#{color}-\d00)?;$/, body),
+               "#{selector} must set a background colour and nothing else, got: #{body}"
+      end
+    end
+
+    test "the override outranks the inherited mapping by source order", %{css: css} do
+      # Both sides are (0,2,0) - a descendant pair one way, the dot class
+      # doubled the other - so ONLY source order lets dot_color win. Move
+      # this block above the inherited one and dot_color silently does
+      # nothing on every variant but `dark`.
+      {inherited, _} = :binary.match(css, ".pc-badge--gray-outline .pc-badge__dot {")
+      {override, _} = :binary.match(css, ".pc-badge__dot.pc-badge__dot--gray-outline {")
+      assert override > inherited
+    end
+  end
+
   describe "dropdown side-out anatomy" do
     # side="left"/"right" put the panel BESIDE the trigger. The Elixir side
     # only emits two class names; everything about where the panel actually
