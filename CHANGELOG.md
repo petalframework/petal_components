@@ -3,6 +3,23 @@
 
 #### Added
 
+- **`badge` takes a status dot.** Every app that shows state ends up
+  writing the same span by hand - a 6px filled circle in front of the
+  label - because that is how a status reads at a glance in a table of
+  forty rows. `dot` renders it. The dot takes the badge's own colour at
+  the strength that ramp reads as "the" colour, so a success badge gets a
+  green dot and a danger badge a red one with nothing else to pass: the
+  600 stop on `light`, `soft` and `outline`, rising to 400 in the dark
+  where soft and outline go translucent, and `currentColor` on `dark`,
+  where a saturated fill leaves no stop of its own ramp visible (that also
+  means it picks up the `--pc-button-solid-fg` token rather than a
+  hardcoded white). It scales with `size`, from 4px at `xs` to 8px at
+  `xl`, and sits `shrink-0` so it stays a circle next to a long label. The
+  dot is `aria-hidden` on purpose - the colour only repeats what the label
+  already says, so a screen reader gets "Failed", not "Failed" and a
+  circle. It composes with `with_icon` (dot, then icon, then text), and
+  `dot` defaults to false, where the badge renders byte for byte what it
+  always did.
 - **The dropdown takes an explicit open direction.** The panel learned to
   flip upward when the viewport left no room below it, which is the right
   behaviour when nobody knows in advance. At the bottom of a sidebar
@@ -28,8 +45,7 @@
   and marks itself `role="none"` so it opts out of the surrounding
   `role="menu"` and whatever you put inside keeps its own semantics. The
   new "The account panel" example on the user menu shows the whole thing:
-  orgs with avatars, keyboard hints, a colour-scheme switch inline.
-- **`user_dropdown_menu` has a sidebar presentation.** The component only
+  orgs with avatars, keyboard hints, a colour-scheme switch inline.- **`user_dropdown_menu` has a sidebar presentation.** The component only
   ever rendered the compact navbar trigger - avatar plus chevron - so
   anyone building the app-shell sidebar it is named after had to hand-roll
   the rest of the row beside it: a name span, an email span, the truncation,

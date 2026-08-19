@@ -24,6 +24,70 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "badge status dot" do
+    # The dot's colour lives entirely in CSS - the markup is one class on
+    # every colour x variant combination - so this is the only place the
+    # mapping can be checked at all.
+
+    @badge_colors ~w(primary secondary info success warning danger gray)
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the base dot is a currentColor circle", %{css: css} do
+      body = rule_body(css, ".pc-badge__dot")
+
+      # currentColor is what makes the `dark` variant work without a rule of
+      # its own: on a saturated 600 fill no stop of the same ramp reads, and
+      # inheriting the text colour picks up primary-dark's
+      # --pc-button-solid-fg token instead of hardcoding white.
+      assert body =~ "bg-current"
+      assert body =~ "rounded-full"
+      assert body =~ "shrink-0", "the dot must not squash when the label is long"
+    end
+
+    test "every colour maps its dot onto the ramp", %{css: css} do
+      for color <- @badge_colors do
+        # light keeps a pale surface in both schemes (bg-100 / dark:bg-200),
+        # so its dot is scheme-invariant.
+        light = rule_body(css, ".pc-badge--#{color}-light .pc-badge__dot")
+        assert light =~ "bg-#{color}-600"
+        refute light =~ "dark:", "#{color}-light's surface doesn't change with the scheme"
+
+        # soft and outline follow their own text down the ramp in the dark.
+        tinted =
+          rule_body(
+            css,
+            ".pc-badge--#{color}-soft .pc-badge__dot,\n  .pc-badge--#{color}-outline .pc-badge__dot"
+          )
+
+        assert tinted =~ "bg-#{color}-600"
+        assert tinted =~ "dark:bg-#{color}-400"
+      end
+    end
+
+    test "the dark variant takes no dot colour of its own", %{css: css} do
+      # A `bg-<color>-600` dot on a `bg-<color>-600` badge is an invisible
+      # dot. dark must fall through to the base rule's currentColor.
+      for color <- @badge_colors do
+        refute css =~ ".pc-badge--#{color}-dark .pc-badge__dot",
+               "#{color}-dark overrides the dot colour; it must inherit currentColor"
+      end
+    end
+
+    test "the dot gap outranks the icon gap by source order", %{css: css} do
+      # Both selectors are one class deep (0,1,0), so ONLY source order
+      # gives a dot-plus-icon badge the roomier gap. If --with-dot moves
+      # above --with-icon the dot crowds the label whenever both are set.
+      {icon_pos, _} = :binary.match(css, ".pc-badge--with-icon {")
+      {dot_pos, _} = :binary.match(css, ".pc-badge--with-dot {")
+      assert dot_pos > icon_pos
+
+      assert rule_body(css, ".pc-badge--with-dot") =~ "gap-"
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).
