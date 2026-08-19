@@ -31,7 +31,9 @@ defmodule PetalComponents.Badge do
         "on the same variant, so the override moves the hue and nothing else. The `dark` " <>
         "variant is the exception - its inherited dot is currentColor, which no ramp can " <>
         "match - so an override there takes the 400 stop, and is a visible change even when " <>
-        "it names the badge's own colour."
+        "it names the badge's own colour. Keep it to that shape: when the badge already " <>
+        "carries a semantic colour of its own, leave the dot inherited rather than putting " <>
+        "two meanings in one chip - a success badge with a danger dot reads as neither."
   )
 
   attr(:class, :any, default: nil, doc: "CSS class for parent div")
