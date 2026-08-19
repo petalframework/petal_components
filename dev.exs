@@ -1739,11 +1739,15 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :badge, &%{&1 | size: v})}
 
+  # dot and icon are mutually exclusive on the flagship. They compose fine -
+  # the showcase examples below the dials still demonstrate the pairing - but
+  # as the one badge at the top of the page, a dot and an icon in front of a
+  # two-word label is more furniture than label.
   def handle_event("ctl_badge", %{"k" => "icon"}, socket),
-    do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
+    do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon, dot: false})}
 
   def handle_event("ctl_badge", %{"k" => "dot"}, socket),
-    do: {:noreply, update(socket, :badge, &%{&1 | dot: !&1.dot})}
+    do: {:noreply, update(socket, :badge, &%{&1 | dot: !&1.dot, icon: false})}
 
   def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
 
@@ -6003,11 +6007,11 @@ defmodule Dev.PlaygroundLive do
         Images, initials fallbacks, presence dots, and stacked groups.
       </p>
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Sizes - xs to xl
+        Sizes - 2xs to xl
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-end justify-center gap-4 px-6 py-12">
-          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
+          <div :for={sz <- ~w(2xs xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
             <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
             <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
