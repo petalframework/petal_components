@@ -1029,13 +1029,13 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :progress, fn p ->
-         # Same normalisation as the size dial: a ring only draws its readout
-         # in the hole at lg and xl, so arriving at a smaller ring via the
-         # SHAPE dial must also stop the label dial claiming "inside".
+         # Same normalisation as the size dial, in both directions: inside only
+         # draws where the shape has room for it, so arriving at a shape that
+         # can't show it must stop the label dial claiming "inside".
          size = if(v == "ring" and p.size in ~w(xs sm), do: "xl", else: p.size)
 
          label =
-           if v == "ring" and p.label == "inside" and size not in ~w(lg xl),
+           if p.label == "inside" and not progress_inside_fits?(v, size),
              do: "top",
              else: p.label
 
@@ -1051,7 +1051,8 @@ defmodule Dev.PlaygroundLive do
       do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
 
   # The ring only draws its readout in the hole at lg and xl, so shrinking past
-  # that moves the label outside - and the dial should stop claiming "inside".
+  # that moves the readout beside the ring - and the dial follows, dropping
+  # from "inside" to the option the ring labels "beside".
   def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket)
       when v in ~w(xs sm md lg xl),
       do:
@@ -1070,15 +1071,21 @@ defmodule Dev.PlaygroundLive do
            }
          )}
 
+  # Picking "inside" at a size with no room for it moves the size rather than
+  # break the promise - xl is the only bar tall enough to carry a label in the
+  # track. A ring already at lg keeps its lg: the hole is big enough there.
   def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
       when v in ~w(none inside top),
       do:
         {:noreply,
-         update(
-           socket,
-           :progress,
-           &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)}
-         )}
+         update(socket, :progress, fn p ->
+           size =
+             if v == "inside" and not progress_inside_fits?(p.shape, p.size),
+               do: "xl",
+               else: p.size
+
+           %{p | label: v, size: size}
+         end)}
 
   def handle_event("ctl_plasma", %{"k" => "mode", "v" => v}, socket) when v in ~w(pulse rotate),
     do: {:noreply, update(socket, :plasma, &%{&1 | mode: v})}
@@ -1960,23 +1967,40 @@ defmodule Dev.PlaygroundLive do
   defp progress_status(v) when v < 100, do: "Finishing up..."
   defp progress_status(_v), do: "Done!"
 
-  defp progress_snippet(%{shape: "ring"} = pr) do
-    inside? = pr.label != "none" and pr.size in ~w(lg xl)
+  # Where an inside label actually draws: the ring paints its readout in the
+  # hole from lg up, the bar carries a label in the track at xl only.
+  defp progress_inside_fits?("ring", size), do: size in ~w(lg xl)
+  defp progress_inside_fits?(_bar, size), do: size == "xl"
 
+  # Only the ring greys the option out, because only the ring can sit at a size
+  # where "inside" would be a no-op: the bar's own dial moves the size to xl for
+  # you, the way it always has.
+  defp progress_inside_disabled?("ring" = shape, size), do: not progress_inside_fits?(shape, size)
+  defp progress_inside_disabled?(_bar, _size), do: false
+
+  # One state, two truthful names. The third position means "the readout lives
+  # outside the indicator": the bar says that with the component's own
+  # label_position="top", the ring by composing the readout beside itself (the
+  # "Labels beside the ring" example further down the page). Renaming the state
+  # value would only move the lie to the bar.
+  defp progress_label_name("ring", "top"), do: "beside"
+  defp progress_label_name(_shape, label), do: label
+
+  defp progress_snippet(%{shape: "ring"} = pr) do
     attrs =
       [
         ~s(value={#{pr.value}}),
         pr.color != "primary" && ~s(color="#{pr.color}"),
         pr.size != "md" && ~s(size="#{pr.size}"),
-        inside? && "show_value"
+        pr.label == "inside" && "show_value"
       ]
       |> Enum.filter(& &1)
 
     ring = "<.progress_ring #{Enum.join(attrs, " ")} />"
 
-    # Below lg the readout is composition, not an attr - so the snippet has to
-    # show the row, or it stops matching what the preview is doing.
-    if pr.label != "none" and not inside? do
+    # Beside the ring is composition, not an attr - so the snippet has to show
+    # the row, or it stops matching what the preview is doing.
+    if pr.label == "top" do
       """
       <div class="flex items-center gap-2 text-sm tabular-nums">
         #{ring}
@@ -4968,25 +4992,26 @@ defmodule Dev.PlaygroundLive do
         Determinate progress on a washed track, bar or ring. The flagship
         simulates a live upload - or take the wheel with the value control
         (which pauses the simulation). Flip shape and the same dials drive
-        the circular version, with the readout moving outside the ring below
-        lg, where the hole is too small to read a number in.
+        the circular version, where the readout either sits in the hole (lg
+        and up, where there's room to read a number) or beside the ring.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <%!-- The label dial keeps meaning something at every ring size: the
-                readout is drawn in the hole at lg and xl, and beside the ring
-                below that, which is the pattern the component's docs point at. --%>
+          <%!-- The label dial drives the ring's readout rather than guessing at
+                it: "inside" is show_value in the hole (offered from lg up, where
+                it draws), "beside" is the composed row the component's docs point
+                at, and it stays available at every size. --%>
           <div :if={@progress.shape == "ring"} class="flex items-center gap-2">
             <.progress_ring
               value={@progress.value}
               color={@progress.color}
               size={@progress.size}
-              show_value={@progress.label != "none" and @progress.size in ~w(lg xl)}
+              show_value={@progress.label == "inside"}
               label="Download progress"
             />
             <span
-              :if={@progress.label != "none" and @progress.size not in ~w(lg xl)}
+              :if={@progress.label == "top"}
               class="text-sm text-gray-500 tabular-nums dark:text-gray-400"
             >
               {@progress.value}%
@@ -5102,10 +5127,24 @@ defmodule Dev.PlaygroundLive do
               on_change="ctl_progress"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={l <- ~w(none inside top)} value={l} phx-value-k="label" phx-value-v={l}>
-                {l}
+              <:item
+                :for={l <- ~w(none inside top)}
+                value={l}
+                disabled={
+                  l == "inside" and progress_inside_disabled?(@progress.shape, @progress.size)
+                }
+                phx-value-k="label"
+                phx-value-v={l}
+              >
+                {progress_label_name(@progress.shape, l)}
               </:item>
             </.toggle_group>
+            <div
+              :if={progress_inside_disabled?(@progress.shape, @progress.size)}
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              inside needs lg or xl
+            </div>
           </div>
         </div>
       </div>
