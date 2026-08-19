@@ -57,7 +57,9 @@
   match is `dark`, where the inherited dot is `currentColor` and no ramp
   can match that: an override there takes the 400 stop, which means naming
   the badge's own colour on `dark` is a visible change rather than a
-  no-op, and same-hue on `dark` is the one combination with little to show.- **The dropdown takes an explicit open direction.** The panel learned to
+  no-op, and same-hue on `dark` is the one combination with little to show.
+
+- **The dropdown takes an explicit open direction.** The panel learned to
   flip upward when the viewport left no room below it, which is the right
   behaviour when nobody knows in advance. At the bottom of a sidebar
   somebody does: it opens up, every time, and measuring to rediscover that
