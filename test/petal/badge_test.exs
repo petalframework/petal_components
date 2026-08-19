@@ -394,7 +394,8 @@ defmodule PetalComponents.BadgeTest do
   test "the dot is layout-neutral: it never changes a badge's whitespace policy" do
     assigns = %{}
 
-    # a plain badge wraps; adding a dot must not stop it
+    # the markup carries no whitespace utility of its own, with or without
+    # a dot - the policy is the stylesheet's to state, in one place
     html =
       rendered_to_string(~H"""
       <.badge dot label="A status label long enough to wrap" />
@@ -403,11 +404,18 @@ defmodule PetalComponents.BadgeTest do
     refute html =~ "whitespace-nowrap"
     refute html =~ "whitespace-normal"
 
-    # an icon badge nowraps by the --with-icon rule's own long-standing call;
-    # the dot must not override that either - so the dot modifier itself
-    # carries no whitespace utility in the stylesheet
     css = File.read!(Path.expand("../../assets/default.css", __DIR__))
-    [rule] = Regex.run(~r/\.pc-badge--with-dot \{[^}]*\}/, css)
-    refute rule =~ "whitespace"
+
+    # that one place is the base rule: a badge is a label and never wraps,
+    # so every badge gets the same answer whatever modifiers it carries
+    [base] = Regex.run(~r/\.pc-badge \{[^}]*\}/, css)
+    assert base =~ "whitespace-nowrap"
+
+    # and no modifier restates or contradicts it - not the dot, and not
+    # the icon, which used to carry a nowrap of its own
+    for modifier <- ~w(with-dot with-icon) do
+      [rule] = Regex.run(~r/\.pc-badge--#{modifier} \{[^}]*\}/, css)
+      refute rule =~ "whitespace", "--#{modifier} must leave whitespace to the base rule"
+    end
   end
 end

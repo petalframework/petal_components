@@ -781,15 +781,21 @@
 
   /* Badges */
 
+  /* A badge is a label, and a label does not wrap: two lines of 10px
+     semibold inside a pill reads as a rendering bug, not a paragraph.
+     `whitespace-nowrap` therefore belongs here, on the base rule, so every
+     badge answers the question the same way whatever modifiers it carries.
+     A long label overflowing is the container's problem to solve - with a
+     min-w-0 track, a truncate, or a shorter label. */
   .pc-badge {
-    @apply inline-flex items-center justify-center border focus:outline-hidden;
+    @apply inline-flex items-center justify-center whitespace-nowrap border focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Badges - with icon */
 
   .pc-badge--with-icon {
-    @apply flex items-center gap-1 whitespace-nowrap;
+    @apply flex items-center gap-1;
   }
 
   /* Badges - sizes */
@@ -924,11 +930,10 @@
      are one class deep, so source order is the only thing that gives a
      dot-plus-icon badge the roomier 6px. */
 
-  /* The dot is layout-neutral on purpose: a plain badge wraps long labels
-     and keeps wrapping with a dot; an icon badge nowraps (the --with-icon
-     rule's long-standing call) and keeps nowrapping with a dot. The dot
-     never overrides another modifier's whitespace policy - it only needs
-     its own geometry, and shrink-0 already guards that. */
+  /* The dot is layout-neutral on purpose: whitespace is the base rule's
+     call - a badge never wraps - and no modifier restates or contradicts
+     it. The dot only needs its own geometry, and shrink-0 already guards
+     that. */
   .pc-badge--with-dot {
     @apply gap-1.5;
   }
