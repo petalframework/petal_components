@@ -83,6 +83,21 @@
   the dropdown, and together with the viewport flip that means a
   sidebar-bottom user menu opens up and to the right instead of off-screen.
 
+#### Changed
+
+- **`badge` never wraps.** Behaviour change: a plain badge used to wrap a
+  long label onto a second line, while a `with_icon` badge did not, so the
+  same string in the same column laid out two different ways depending on
+  whether an icon happened to be there. A badge is a label - two lines of
+  10px semibold inside a pill reads as a rendering bug - so
+  `whitespace-nowrap` moved onto the base `.pc-badge` rule and came off
+  `--with-icon`, where it would only have said the same thing twice. Every
+  badge answers the question identically. A label too long for its column now
+  overflows instead of wrapping, which is the container's problem to fix
+  the way it fixes it for anything else: a `min-w-0` track, a `truncate`,
+  or a shorter label. If you were relying on the old wrapping, put
+  `class="whitespace-normal"` on the badge.
+
 #### Fixed
 
 - **`<.progress />` with no `value` no longer raises.** `value` has always
