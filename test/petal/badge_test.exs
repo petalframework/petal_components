@@ -408,13 +408,13 @@ defmodule PetalComponents.BadgeTest do
 
     # that one place is the base rule: a badge is a label and never wraps,
     # so every badge gets the same answer whatever modifiers it carries
-    [base] = Regex.run(~r/\.pc-badge \{[^}]*\}/, css)
+    [base] = Regex.run(~r/\.pc-badge\s*\{[^}]*\}/, css)
     assert base =~ "whitespace-nowrap"
 
     # and no modifier restates or contradicts it - not the dot, and not
     # the icon, which used to carry a nowrap of its own
     for modifier <- ~w(with-dot with-icon) do
-      [rule] = Regex.run(~r/\.pc-badge--#{modifier} \{[^}]*\}/, css)
+      [rule] = Regex.run(~r/\.pc-badge--#{modifier}\s*\{[^}]*\}/, css)
       refute rule =~ "whitespace", "--#{modifier} must leave whitespace to the base rule"
     end
   end
