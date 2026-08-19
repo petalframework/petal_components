@@ -47,7 +47,7 @@ defmodule PetalComponents.Showcase.Dropdown do
 
   example :row_actions, "Row actions and a custom trigger",
     description:
-      "No label renders the ghost ellipsis - the table-row actions trigger. For a branded trigger, :trigger_element is your own button (style it with trigger_class); this one goes solid and follows your colour dials. placement names which way the panel GROWS, not which side it sits on: the default \"left\" grows it leftward with the right edges aligned, which is what a menu in a right-hand corner wants; \"right\" grows it rightward from the trigger's left edge, as the second trigger here does. direction is the same idea vertically - it defaults to \"auto\", which measures and flips upward when the viewport leaves no room below, and takes \"up\" or \"down\" when you already know the answer." do
+      "No label renders the ghost ellipsis - the table-row actions trigger. For a branded trigger, :trigger_element is your own button (style it with trigger_class); this one goes solid and follows your colour dials. side and align place the panel: side is which side of the trigger it opens on (\"bottom\", \"top\", or \"left\"/\"right\" to open it beside the trigger instead), and align is which edges line up on the other axis. Below the trigger that reads horizontally, and the default \"end\" aligns the right edges so the panel grows leftward, which is what a menu in a right-hand corner wants; \"start\" aligns the left edges and grows it rightward, as the second trigger here does. Leave side out and the panel measures on every open, flipping upward when the viewport leaves no room below. placement and direction are the older spelling of the same two questions and still work." do
     ~H"""
     <div class="flex items-start justify-center gap-16">
       <.dropdown>
@@ -68,7 +68,7 @@ defmodule PetalComponents.Showcase.Dropdown do
           <kbd class="pc-kbd ml-auto"><span>⌘</span>⌫</kbd>
         </.dropdown_menu_item>
       </.dropdown>
-      <.dropdown placement="right" trigger_class="pc-button pc-button--primary pc-button--md">
+      <.dropdown align="start" trigger_class="pc-button pc-button--primary pc-button--md">
         <:trigger_element>
           Move to project <.icon name="hero-chevron-down" class="w-4 h-4 ml-1" />
         </:trigger_element>

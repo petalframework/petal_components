@@ -88,6 +88,74 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "dropdown side-out anatomy" do
+    # side="left"/"right" put the panel BESIDE the trigger. The Elixir side
+    # only emits two class names; everything about where the panel actually
+    # lands is here, so this is the only place the geometry can be checked.
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "each side anchors on the trigger's far edge with a horizontal gap", %{css: css} do
+      left = rule_body(css, ".pc-dropdown__menu-items-wrapper-side--left")
+      assert left =~ "right-full", "a left-side panel hangs off the trigger's left edge"
+      assert left =~ "mr-2"
+
+      right = rule_body(css, ".pc-dropdown__menu-items-wrapper-side--right")
+      assert right =~ "left-full", "a right-side panel hangs off the trigger's right edge"
+      assert right =~ "ml-2"
+    end
+
+    test "the vertical margin is cleared, and only source order does it", %{css: css} do
+      # The base rule's mt-2 is the gap for a panel that opens downward.
+      # Beside the trigger the gap is horizontal, so the top margin has to
+      # go - and both selectors are one class deep (0,1,0), so nothing but
+      # order decides it. Move these above the base rule and every side-out
+      # panel picks up 8px of drop it should not have.
+      {base_pos, _} = :binary.match(css, ".pc-dropdown__menu-items-wrapper {")
+
+      for side <- ~w(left right) do
+        selector = ".pc-dropdown__menu-items-wrapper-side--#{side}"
+        assert rule_body(css, selector) =~ "mt-0"
+        {side_pos, _} = :binary.match(css, selector <> " {")
+        assert side_pos > base_pos
+      end
+    end
+
+    test "align anchors the panel vertically when it is beside the trigger", %{css: css} do
+      # start = tops flush, end = bottoms flush (the sidebar-bottom one).
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--start") =~ "top-0"
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--end") =~ "bottom-0"
+    end
+
+    test "the transform origin is split across the two rules", %{css: css} do
+      # Four corners out of two classes: the side rule hands its horizontal
+      # half over in a custom property and the align rule spends it. If a
+      # side rule stops publishing the property the align rules silently
+      # fall back to the left column and a left-side panel unfolds from the
+      # wrong corner.
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-side--left") =~
+               "--pc-dropdown-origin-x: right"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-side--right") =~
+               "--pc-dropdown-origin-x: left"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--start") =~
+               "transform-origin: top var(--pc-dropdown-origin-x"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--end") =~
+               "transform-origin: bottom var(--pc-dropdown-origin-x"
+    end
+
+    test "no side rule pairs itself with the vertical flip", %{css: css} do
+      # data-flip is the vertical question. A side-out panel is not on that
+      # axis, the hook never attaches to it, and a [data-flip] rule aimed at
+      # a side class would only ever fire by accident.
+      refute css =~ ~r/\.pc-dropdown__menu-items-wrapper-side--\w+\[data-flip\]/
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).

@@ -20,6 +20,29 @@
   circle. It composes with `with_icon` (dot, then icon, then text), and
   `dot` defaults to false, where the badge renders byte for byte what it
   always did.
+- **The dropdown places its panel with `side` and `align`.** Two attrs
+  that were three answers to two questions. `side` is which side of the
+  trigger the panel opens on: `"bottom"`, `"top"`, or `"left"` / `"right"`
+  for a panel that opens BESIDE the trigger, over whatever sits next to it
+  rather than over the thing it belongs to - the sidebar account panel
+  that pushes out into the content area instead of burying the nav it grew
+  from. `align` is which edges line up on the other axis, `"start"` or
+  `"end"`, and it reads horizontally for a panel above or below (start
+  grows it rightward, end grows it leftward) and vertically for one beside
+  (start aligns the tops, end aligns the bottoms - the sidebar-bottom
+  one). Leave `side` out and nothing changes: the panel opens downward and
+  the hook measures on every open. Name a side and there is nothing left
+  to measure, so the hook never attaches - including for `"left"` and
+  `"right"`, which are not on the flip's axis at all. That last one is a
+  deliberate limit rather than an oversight: a side-out panel that would
+  run off a short viewport stays where you put it, because you put it
+  there. `placement` and `direction` are the older spelling of the same
+  two questions, they keep working unchanged, and they map straight on -
+  `placement="left"` is `align="end"`, `placement="right"` is
+  `align="start"`, `direction="up"` is `side="top"`, `direction="down"` is
+  `side="bottom"`, `direction="auto"` is naming no side at all. Pass both
+  spellings and the new one wins. `user_dropdown_menu` passes `side` and
+  `align` through like the rest.
 - **The dropdown takes an explicit open direction.** The panel learned to
   flip upward when the viewport left no room below it, which is the right
   behaviour when nobody knows in advance. At the bottom of a sidebar

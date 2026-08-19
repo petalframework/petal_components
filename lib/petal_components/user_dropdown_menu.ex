@@ -22,23 +22,35 @@ defmodule PetalComponents.UserDropdownMenu do
     default: "icon",
     values: ["icon", "sidebar"],
     doc:
-      ~s|"icon" is the compact navbar trigger - avatar plus chevron, no wider than it needs to be, which is what a top bar wants. "sidebar" is the full-width row that belongs at the bottom of a sidebar: avatar, name over email, and a chevron-up-down on the right, because from down there the panel genuinely can open either way. Reach for it when the menu has a whole sidebar width to itself and the name is worth showing at rest; pair it with placement="right" when that sidebar sits against the left edge of the screen|
+      ~s|"icon" is the compact navbar trigger - avatar plus chevron, no wider than it needs to be, which is what a top bar wants. "sidebar" is the full-width row that belongs at the bottom of a sidebar: avatar, name over email, and a chevron-up-down on the right, because from down there the panel genuinely can open either way. Reach for it when the menu has a whole sidebar width to itself and the name is worth showing at rest; pair it with side="top" align="start" when that sidebar sits against the left edge of the screen, or side="right" align="end" to push the panel out over the content area instead|
 
   attr :show_chevron, :boolean,
     default: true,
     doc: "hide for the chevron-less avatar trigger - the leaner app-shell look"
 
+  attr :side, :string,
+    default: nil,
+    values: [nil, "bottom", "top", "left", "right"],
+    doc:
+      ~s|which side of the trigger the panel opens on, passed through to the dropdown. At the bottom of a sidebar the answer is known, so say it: side="top" renders the panel above the row from the first frame and skips the measuring hook altogether. side="right" is the other sidebar answer - the panel beside the sidebar, out over the content area, instead of on top of the nav it came from|
+
+  attr :align, :string,
+    default: nil,
+    values: [nil, "start", "end"],
+    doc:
+      ~s|how the panel lines up along the other axis, passed through to the dropdown. Above or below that is horizontal ("start" grows it rightward, "end" leftward); beside, it is vertical, and "end" is the one a sidebar-bottom menu wants - the panel's bottom edge flush with the row that opened it|
+
   attr :placement, :string,
     default: "left",
     values: ["left", "right"],
     doc:
-      ~s|which way the panel GROWS from the trigger, not which side it sits on: "left" grows it leftward, right edges aligned, the way a menu in the right-hand corner of a navbar wants; "right" grows it rightward from the trigger's left edge. Passed through to the dropdown. Reach for "right" when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
+      ~s|the legacy spelling of align, kept working: "left" is align="end" (the panel grows leftward, right edges aligned) and "right" is align="start" (it grows rightward from the trigger's left edge). Prefer align in new code. Either way, reach for the rightward one when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
 
   attr :direction, :string,
     default: "auto",
     values: ["auto", "up", "down"],
     doc:
-      ~s|which way the panel opens vertically, passed through to the dropdown. "auto" measures and flips when the viewport leaves no room below. At the bottom of a sidebar you already know the answer, so say it: direction="up" renders the panel in the flipped state from the start and skips the measuring hook altogether|
+      ~s|the legacy spelling of side on the vertical axis, kept working: "up" is side="top", "down" is side="bottom", "auto" the measured default. Prefer side in new code|
 
   attr :menu_items_wrapper_class, :any,
     default: nil,
@@ -59,6 +71,8 @@ defmodule PetalComponents.UserDropdownMenu do
     ~H"""
     <.dropdown
       :if={@user_menu_items != [] or @inner_block != []}
+      side={@side}
+      align={@align}
       placement={@placement}
       direction={@direction}
       menu_items_wrapper_class={@menu_items_wrapper_class}

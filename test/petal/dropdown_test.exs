@@ -288,6 +288,156 @@ defmodule PetalComponents.DropdownTest do
     end
   end
 
+  describe "dropdown/1 - side and align" do
+    # side + align is the vocabulary; placement + direction is the older
+    # spelling of the same two questions. What these pin is that the two
+    # spellings are the SAME markup, not merely similar - a legacy caller
+    # who never touches the new attrs must keep getting the bytes they
+    # already have, and a caller who switches must get nothing new.
+
+    defp panel_html(attrs) do
+      # A pinned id (the default is a fresh UUID per render) and the whole
+      # panel tag, because equivalence here means every attribute.
+      assigns = %{
+        side: attrs[:side],
+        align: attrs[:align],
+        placement: attrs[:placement] || "left",
+        direction: attrs[:direction] || "auto"
+      }
+
+      rendered_to_string(~H"""
+      <.dropdown
+        label="Dropdown"
+        options_container_id="pinned"
+        side={@side}
+        align={@align}
+        placement={@placement}
+        direction={@direction}
+      >
+        <.dropdown_menu_item label="Option" />
+      </.dropdown>
+      """)
+    end
+
+    test "the legacy default renders what it always rendered" do
+      # The pin. Everything else in this file can move; this line is the
+      # promise that adding a vocabulary changed nothing for the people who
+      # never asked for one.
+      html = panel_html([])
+
+      assert html =~
+               ~s(<div style="display: none;" phx-hook="PetalDropdown" class="pc-dropdown__menu-items-wrapper-placement--left pc-dropdown__menu-items-wrapper" role="menu" id="pinned")
+    end
+
+    test ~s|placement="left" is align="end", and "right" is align="start"| do
+      assert panel_html(placement: "left") == panel_html(align: "end")
+      assert panel_html(placement: "right") == panel_html(align: "start")
+
+      # And they are genuinely different from each other, so the equality
+      # above is saying something.
+      refute panel_html(align: "end") == panel_html(align: "start")
+    end
+
+    test ~s|direction="up" is side="top", and "down" is side="bottom"| do
+      assert panel_html(direction: "up") == panel_html(side: "top")
+      assert panel_html(direction: "down") == panel_html(side: "bottom")
+
+      # "top" is the held-open flip with no hook; "bottom" is neither.
+      assert panel_html(side: "top") =~ ~s(data-flip)
+      refute panel_html(side: "top") =~ "PetalDropdown"
+      refute panel_html(side: "bottom") =~ "data-flip"
+      refute panel_html(side: "bottom") =~ "PetalDropdown"
+    end
+
+    test ~s|leaving side out is direction="auto" - the measured default| do
+      assert panel_html([]) == panel_html(direction: "auto")
+      assert panel_html([]) =~ ~s(phx-hook="PetalDropdown")
+    end
+
+    test "side wins over direction, and align wins over placement" do
+      # Both spellings on one call is somebody mid-migration. The new one
+      # is the one they meant.
+      assert panel_html(side: "top", direction: "down") == panel_html(side: "top")
+      assert panel_html(side: "bottom", direction: "up") == panel_html(side: "bottom")
+      assert panel_html(align: "start", placement: "left") == panel_html(align: "start")
+      assert panel_html(align: "end", placement: "right") == panel_html(align: "end")
+    end
+
+    test "a side-out panel anchors on the named side and on align's edge" do
+      for {side, side_class} <- [
+            {"left", "pc-dropdown__menu-items-wrapper-side--left"},
+            {"right", "pc-dropdown__menu-items-wrapper-side--right"}
+          ],
+          {align, align_class} <- [
+            {"start", "pc-dropdown__menu-items-wrapper-align--start"},
+            {"end", "pc-dropdown__menu-items-wrapper-align--end"}
+          ] do
+        html = panel_html(side: side, align: align)
+
+        assert_has_class(html, side_class)
+        assert_has_class(html, align_class)
+
+        # The placement classes are the vertical-axis pair - a side-out
+        # panel is anchored by its own two and must not pick one up.
+        refute html =~ "pc-dropdown__menu-items-wrapper-placement--"
+      end
+    end
+
+    test "a side-out panel never attaches the measuring hook" do
+      # There is no vertical flip to measure when the panel isn't on the
+      # vertical axis. Attaching the hook would flip it onto data-flip
+      # rules that don't apply to it.
+      for side <- ~w(left right), align <- [nil, "start", "end"] do
+        html = panel_html(side: side, align: align)
+
+        refute html =~ "PetalDropdown"
+        refute html =~ "data-flip"
+      end
+    end
+
+    test "a side-out panel aligns tops unless told otherwise" do
+      # placement is a horizontal idea and has nothing to say about the
+      # vertical alignment of a panel beside the trigger, so its default
+      # must not leak in as align="end".
+      assert panel_html(side: "right") == panel_html(side: "right", align: "start")
+
+      assert panel_html(side: "left", placement: "left") ==
+               panel_html(side: "left", align: "start")
+    end
+
+    test "the user menu passes side and align through" do
+      assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          current_user_name="Sarah Chen"
+          side="right"
+          align="end"
+          user_menu_items={@items}
+        />
+        """)
+
+      assert_has_class(html, "pc-dropdown__menu-items-wrapper-side--right")
+      assert_has_class(html, "pc-dropdown__menu-items-wrapper-align--end")
+      refute html =~ "PetalDropdown"
+
+      # And the legacy pair still lands, untouched, on the same component.
+      legacy =
+        rendered_to_string(~H"""
+        <.user_dropdown_menu
+          current_user_name="Sarah Chen"
+          placement="right"
+          direction="up"
+          user_menu_items={@items}
+        />
+        """)
+
+      assert_has_class(legacy, "pc-dropdown__menu-items-wrapper-placement--right")
+      assert legacy =~ "data-flip"
+    end
+  end
+
   describe "dropdown/1 - menu_items_wrapper_class" do
     test "a width passed through the user menu lands on the panel" do
       assigns = %{items: [%{path: "/", icon: "hero-user", label: "Profile"}]}
