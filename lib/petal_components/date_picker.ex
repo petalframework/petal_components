@@ -207,7 +207,7 @@ defmodule PetalComponents.DatePicker do
             phx-click={@on_clear}
             phx-target={@on_clear && @target}
           >
-            <.icon name="hero-x-mark-solid" class="pc-date-picker__icon" />
+            <.icon name="hero-x-mark-mini" class="pc-date-picker__clear-icon" />
           </button>
           <button
             type="button"
@@ -221,7 +221,7 @@ defmodule PetalComponents.DatePicker do
             aria-controls={"#{@id}-panel"}
             phx-click={open(@id)}
           >
-            <.icon name="hero-calendar" class="pc-date-picker__icon" />
+            <.icon name="hero-calendar" class="pc-date-picker__toggle-icon" />
           </button>
         </div>
 

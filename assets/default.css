@@ -7823,27 +7823,63 @@
     @apply pr-10;
   }
 
+  /* Trailing adornment contract - an input carrying a clear PLUS a second
+     control. The combo box is the precedent (.pc-combo-box__clear,
+     .pc-combo-box__clear-icon, .pc-combo-box__chevron); the components stay
+     separate, what travels is the measurements and the vocabulary:
+       - both glyphs come from the mini/outline weight family and share ONE
+         16px box (w-4, the combobox's clear-icon size). No solid glyph
+         beside an outline one - matched boxes at matched stroke weight is
+         what keeps their optical centres together
+       - the clear sits leftmost of the trailing group, one gap-1.5 (6px)
+         from the control to its right, which is the combobox control's gap
+       - each button keeps a 24px tap box (h-6 w-6, the combobox's clear)
+         around its 16px glyph, and the house invisible ::before extension
+         (see .pc-alert__dismiss-button) carries that box to the field's
+         full height rather than growing anything that paints
+       - at rest both read gray-400 / dark gray-500, and hover is the
+         combobox's wash plus a darker glyph */
   .pc-date-picker__toggle,
   .pc-date-picker__clear {
-    @apply absolute inset-y-0 flex items-center text-gray-400 transition-colors duration-150 cursor-pointer;
-    @apply hover:text-gray-600 dark:hover:text-gray-200;
+    @apply absolute top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md;
+    @apply text-gray-400 transition-colors duration-150 cursor-pointer dark:text-gray-500;
+    @apply hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
     @apply disabled:cursor-not-allowed disabled:opacity-50;
-    border-radius: var(--pc-calendar-day-radius);
+  }
+
+  .pc-date-picker__toggle::before,
+  .pc-date-picker__clear::before {
+    content: "";
+    @apply absolute -inset-y-2 inset-x-0;
+  }
+
+  /* the toggle is the primary target, so its strip runs out to the field's
+     right edge too - the 8px inset would otherwise be dead pixels */
+  .pc-date-picker__toggle::before {
+    @apply -right-2;
   }
 
   .pc-date-picker__toggle {
-    @apply right-0 pr-3;
+    @apply right-2;
   }
 
+  /* 8px inset + the toggle's 24px box + the 6px gap */
   .pc-date-picker__clear {
-    @apply right-7 pr-2;
+    @apply right-9.5;
+  }
+
+  /* two 24px boxes and a gap sit in the rail, so a value long enough to
+     fill the input stops short of the clear instead of running under it */
+  .pc-date-picker__control:has(.pc-date-picker__clear) .pc-date-picker__input {
+    @apply pr-16;
   }
 
   /* Doubled selector + !important: icon sizing contract (see pagination
-     previous chevron). */
-  .pc-date-picker__icon.pc-date-picker__icon {
-    @apply w-5! h-5!;
+     previous chevron). One box for both glyphs - the contract above. */
+  .pc-date-picker__clear-icon.pc-date-picker__clear-icon,
+  .pc-date-picker__toggle-icon.pc-date-picker__toggle-icon {
+    @apply w-4! h-4!;
   }
 
   /* Clamped to the viewport the way pc-popover__panel is, just wider: two month
