@@ -7,10 +7,22 @@
 //
 // The contracts these specs exist to hold: exactly one tabbable day at a time,
 // the full APG arrow map including the month rollovers the server has to render
-// for, and a parse-on-blur that reverts rather than silently clearing a value.
+// for, a parse-on-blur that reverts rather than silently clearing a value, and
+// - see "the parity lock" at the bottom - a client-painted selection that is
+// class-for-class what the server would have rendered for the same dates.
+import { readFileSync } from "node:fs";
+
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import hooks from "../../assets/js/petal_components.js";
+
+// The class matrix, shared with test/petal/calendar_test.exs. Read off disk by
+// the same project-root-relative path the Elixir twin uses (vitest and mix both
+// run from the project root), so the two specs are provably reading one file
+// rather than two copies that can drift.
+const fixture = JSON.parse(
+  readFileSync("test/fixtures/calendar_selection_classes.json", "utf8"),
+);
 
 const mounted = [];
 
@@ -200,6 +212,8 @@ function pickerMarkup({
   value = "",
   display = "",
   clearable = false,
+  month = "2026-03-01",
+  startsOn = 1,
 } = {}) {
   const hiddens =
     mode === "range"
@@ -218,7 +232,7 @@ function pickerMarkup({
       </div>
       ${hiddens}
       <div id="dp-panel" class="pc-date-picker__panel">
-        ${calendarMarkup({ selectEvent, selectTarget, id: "dp-calendar" })}
+        ${calendarMarkup({ selectEvent, selectTarget, month, startsOn, id: "dp-calendar" })}
       </div>
     </div>
   `;
@@ -661,8 +675,8 @@ describe("PetalDatePicker selection", () => {
     expect(p.hidden("to").value).toBe("");
   });
 
-  // The band lives on the cell so it runs edge to edge; the day only ever gets
-  // the classes the server would have rendered for the same selection.
+  // A smoke test for the shape of it; the exhaustive per-cell matrix is the
+  // parity lock at the bottom of this file.
   it("range mode paints the band between the ends", () => {
     const p = mountPicker({ mode: "range" });
     p.day("2026-03-09").click();
@@ -676,18 +690,6 @@ describe("PetalDatePicker selection", () => {
     expect(cell("2026-03-09").classList.contains("pc-calendar__cell--range-start")).toBe(true);
     expect(cell("2026-03-12").classList.contains("pc-calendar__cell--range-end")).toBe(true);
     expect(cell("2026-03-10").classList.contains("pc-calendar__cell--in-range")).toBe(true);
-  });
-
-  it("paints no day-level range classes the stylesheet does not define", () => {
-    const p = mountPicker({ mode: "range" });
-    p.day("2026-03-09").click();
-    p.day("2026-03-12").click();
-
-    expect(
-      p.el.querySelectorAll(
-        ".pc-calendar__day--range-start, .pc-calendar__day--range-end",
-      ),
-    ).toHaveLength(0);
   });
 
   it("range mode parses both sides of a typed range", () => {
@@ -754,6 +756,149 @@ describe("PetalDatePicker display formatting", () => {
     p.day("2026-03-14").click();
     p.input.dispatchEvent(new Event("blur"));
     expect(p.hidden("value").value).toBe("2026-03-14");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The parity lock.
+//
+// The picker has two selection paths. With a select event wired the server owns
+// it and every click re-renders through Calendar.build_day/4. Without one this
+// hook paints the classes itself, in the browser, with no round trip - and for
+// a while it painted a vocabulary the server had stopped speaking: a chip on
+// every day of a range, no band on the cells, no outward-only rounding. Same
+// component, same dates, two different pictures.
+//
+// So both painters are now held to one file. The matrix below comes from
+// test/fixtures/calendar_selection_classes.json, and its twin in
+// test/petal/calendar_test.exs ("the class matrix the client hook is held to")
+// renders the server against the same JSON. Change the range styling and both
+// specs go red together.
+// ---------------------------------------------------------------------------
+describe("PetalDatePicker parity with the server's range anatomy", () => {
+  const present = (el, vocabulary) =>
+    vocabulary.filter((name) => el.classList.contains(name)).sort();
+
+  const blank = { aria_selected: false, cell: [], day: [] };
+
+  // Every day in the grid is checked, not just the ones the fixture names: a
+  // class left behind on day 20 is exactly the bug this lock exists to catch.
+  const assertMatrix = (p, days) => {
+    for (const iso of Object.keys(days)) {
+      expect(p.day(iso), `fixture names ${iso}, grid does not render it`).not.toBeNull();
+    }
+
+    for (const day of p.el.querySelectorAll("[data-date]")) {
+      const iso = day.dataset.date;
+      const cell = day.closest('[role="gridcell"]');
+      const want = days[iso] || blank;
+
+      expect({
+        iso,
+        ariaSelected: cell.getAttribute("aria-selected") === "true",
+        cell: present(cell, fixture.cell_vocabulary),
+        day: present(day, fixture.day_vocabulary),
+      }).toEqual({
+        iso,
+        ariaSelected: want.aria_selected === true,
+        cell: [...want.cell].sort(),
+        day: [...want.day].sort(),
+      });
+    }
+  };
+
+  const pick = (scenario) => {
+    const p = mountPicker({
+      mode: scenario.mode,
+      month: fixture.month,
+      startsOn: fixture.starts_on,
+      clearable: true,
+    });
+    for (const iso of scenario.clicks) p.day(iso).click();
+    return p;
+  };
+
+  for (const scenario of fixture.scenarios) {
+    it(`paints ${scenario.name}`, () => {
+      assertMatrix(pick(scenario), scenario.days);
+    });
+  }
+
+  const spanning = fixture.scenarios.find(
+    (s) => s.from === "2026-03-09" && s.to === "2026-03-17",
+  );
+
+  // range_position/2 sorts the pair, so a backwards typed range is the same
+  // picture as a forwards one. Only typing can produce it - two clicks are
+  // ordered on the way in.
+  it("sorts a backwards typed range the way the server does", () => {
+    const p = mountPicker({ mode: "range", clearable: true });
+    p.input.value = `${spanning.to} - ${spanning.from}`;
+    p.input.dispatchEvent(new Event("blur"));
+
+    assertMatrix(p, spanning.days);
+  });
+
+  it("leaves nothing behind when the range restarts", () => {
+    const p = pick(spanning);
+    p.day("2026-03-25").click();
+
+    assertMatrix(p, {
+      "2026-03-25": {
+        aria_selected: true,
+        cell: [],
+        day: ["pc-calendar__day--selected"],
+      },
+    });
+  });
+
+  it("leaves nothing behind when the clear button empties the value", () => {
+    const p = pick(spanning);
+    p.el.querySelector("[data-pc-date-clear]").click();
+
+    assertMatrix(p, {});
+  });
+
+  // Month nav is a patch link when nothing is wired to change the month, so the
+  // grid that comes back is painted from the server's assigns - the selection
+  // as it was on page load, over the one the user just made client-side.
+  it("repaints from the hidden inputs when a patch replaces the panel", () => {
+    const p = pick(spanning);
+
+    const panel = document.createElement("div");
+    panel.innerHTML = pickerMarkup({ mode: "range" });
+    const patched = panel.querySelector(".pc-date-picker__panel");
+
+    // The stale selection the server would have rendered for its own assigns.
+    const anchor = patched.querySelector('[data-date="2026-03-02"]');
+    anchor.classList.add("pc-calendar__day--selected");
+    anchor.closest("td").setAttribute("aria-selected", "true");
+
+    p.el.querySelector(".pc-date-picker__panel").replaceWith(patched);
+    p.hook.updated();
+
+    assertMatrix(p, spanning.days);
+
+    // and the new panel is wired, so the next click still lands
+    p.day("2026-03-25").click();
+    expect(p.hidden("from").value).toBe("2026-03-25");
+  });
+
+  it("leaves a server-owned grid alone on update", () => {
+    const p = mountPicker({ mode: "range", selectEvent: "pick" });
+    const day = p.day("2026-03-11");
+    day.classList.add("pc-calendar__day--selected");
+    day.closest("td").setAttribute("aria-selected", "true");
+
+    p.hook.updated();
+
+    assertMatrix(p, {
+      "2026-03-11": {
+        aria_selected: true,
+        cell: [],
+        day: ["pc-calendar__day--selected"],
+      },
+    });
   });
 });
 

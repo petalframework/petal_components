@@ -390,6 +390,99 @@ defmodule PetalComponents.CalendarTest do
     end
   end
 
+  # ---------------------------------------------------------------------------
+  # The parity lock, Elixir half.
+  #
+  # The date picker has a second painter. With a select event wired the server
+  # renders every click through build_day/4 below; without one the
+  # PetalDatePicker hook paints the same selection in the browser, and for a
+  # while it painted the pre-restyle vocabulary - a chip on every day of a
+  # range, no band on the cells. Same component, same dates, two pictures.
+  #
+  # So both halves are held to one file. This test renders the server against
+  # test/fixtures/calendar_selection_classes.json; its twin,
+  # "PetalDatePicker parity with the server's range anatomy" in
+  # test/js/calendar.test.js, runs the hook's painter over the same JSON. A
+  # restyle turns both red, which is the point: update the matrix in the fixture
+  # first, then make each painter agree with it again.
+  # ---------------------------------------------------------------------------
+  describe "the class matrix the client hook is held to" do
+    @fixture "test/fixtures/calendar_selection_classes.json"
+
+    test "the server renders every scenario in the shared fixture" do
+      fixture = @fixture |> File.read!() |> Jason.decode!()
+
+      for scenario <- fixture["scenarios"] do
+        matrix = scenario |> render_scenario(fixture) |> selection_matrix(fixture)
+
+        for iso <- Map.keys(scenario["days"]) do
+          assert Map.has_key?(matrix, iso),
+                 "#{scenario["name"]}: the fixture names #{iso}, the grid does not render it"
+        end
+
+        assert matrix == expected_matrix(scenario, Map.keys(matrix)), scenario["name"]
+      end
+    end
+  end
+
+  defp render_scenario(scenario, fixture) do
+    assigns = %{
+      mode: scenario["mode"],
+      month: Date.from_iso8601!(fixture["month"]),
+      starts_on: fixture["starts_on"],
+      value: scenario_value(scenario)
+    }
+
+    rendered_to_string(~H"""
+    <.calendar mode={@mode} month={@month} starts_on={@starts_on} value={@value} />
+    """)
+  end
+
+  defp scenario_value(%{"mode" => "range"} = scenario),
+    do: {as_date(scenario["from"]), as_date(scenario["to"])}
+
+  defp scenario_value(scenario), do: as_date(scenario["from"])
+
+  defp as_date(nil), do: nil
+  defp as_date(iso), do: Date.from_iso8601!(iso)
+
+  # Every cell in the grid, not just the ones the fixture names: a class left
+  # behind on a day outside the range is exactly what this lock is watching for.
+  defp selection_matrix(html, fixture) do
+    html
+    |> parse_html()
+    |> LazyHTML.query(~s(td[role="gridcell"]))
+    |> Map.new(fn cell ->
+      day = LazyHTML.query(cell, "[data-date]")
+
+      {day |> LazyHTML.attribute("data-date") |> List.first(),
+       %{
+         aria_selected: LazyHTML.attribute(cell, "aria-selected") == ["true"],
+         cell: vocabulary_on(cell, fixture["cell_vocabulary"]),
+         day: vocabulary_on(day, fixture["day_vocabulary"])
+       }}
+    end)
+  end
+
+  defp vocabulary_on(node, vocabulary) do
+    classes = node |> LazyHTML.attribute("class") |> List.first() |> to_string() |> String.split()
+
+    vocabulary |> Enum.filter(&(&1 in classes)) |> Enum.sort()
+  end
+
+  defp expected_matrix(scenario, isos) do
+    Map.new(isos, fn iso ->
+      day = Map.get(scenario["days"], iso, %{"aria_selected" => false, "cell" => [], "day" => []})
+
+      {iso,
+       %{
+         aria_selected: day["aria_selected"] == true,
+         cell: Enum.sort(day["cell"]),
+         day: Enum.sort(day["day"])
+       }}
+    end)
+  end
+
   describe "min, max and disabled dates" do
     test "min and max disable everything outside the window, inclusively" do
       assigns = %{}

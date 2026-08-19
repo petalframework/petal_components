@@ -5734,6 +5734,13 @@ export const PetalDatePicker = {
     this.onPanelClick = (e) => this.panelClick(e);
     this.onClearClick = (e) => this.clearClick(e);
 
+    this.bind();
+  },
+
+  // Listeners live on nodes, and a LiveView patch is free to replace any node
+  // that is not the hook root. Re-attaching the same handler to a node that did
+  // survive is a documented no-op, so this is safe to call on every update.
+  bind() {
     this.el.addEventListener("pc:date-picker:open", this.onOpen);
     this.input.addEventListener("blur", this.onBlur);
     this.input.addEventListener("keydown", this.onInputKeydown);
@@ -5743,6 +5750,40 @@ export const PetalDatePicker = {
     if (this.clearButton) {
       this.clearButton.addEventListener("click", this.onClearClick);
     }
+  },
+
+  // A patch hands back a grid the server painted from ITS assigns, which in a
+  // client-owned picker are whatever they were when the page first rendered -
+  // and month nav here is a patch link, so paging is exactly the case where a
+  // stale selection comes back over a live one. Repaint from the hidden inputs
+  // rather than from anything the hook remembers: they are what actually posts,
+  // so the grid can never end up saying one thing and the form another.
+  updated() {
+    const input = this.el.querySelector("[data-pc-date-input]");
+    const panel = this.el.querySelector(".pc-date-picker__panel");
+    // Nothing was bound on mount, so there is nothing to rebind now.
+    if (!input || !panel || !this.onPanelClick) return;
+
+    this.input = input;
+    this.panel = panel;
+    this.bind();
+
+    if (this.serverOwned()) return;
+    const [from, to] = this.committed();
+    this.paint(from, to);
+  },
+
+  // The pair the hidden inputs currently hold; single mode has one input and
+  // no far end.
+  committed() {
+    const at = (role) => {
+      const el = this.hidden(role);
+      return (el && el.value) || null;
+    };
+
+    return this.el.dataset.mode === "range"
+      ? [at("from"), at("to")]
+      : [at("value"), null];
   },
 
   destroyed() {
@@ -6021,29 +6062,57 @@ export const PetalDatePicker = {
   },
 
   // Client-owned selection has no server re-render to repaint the grid, so the
-  // hook keeps the visual state in step itself.
+  // hook keeps the visual state in step itself - which means it has to speak
+  // exactly the vocabulary Calendar.build_day/4 does. Anything else and the
+  // same range renders one way in a wired picker and another way in this one.
+  //
+  // The whole anatomy, in the order the Elixir side decides it:
+  //
+  //   band      a range with both ends in, on two different days (banded?/1)
+  //   cell      the band rides the td, so it runs edge to edge between days
+  //   chip      --selected, maximal contrast, TRUE ENDPOINTS ONLY
+  //   ends      day-level --range-start/--range-end round outward only
+  //   middles   --in-range, subordinate text, no chip of their own
+  //
+  // The class matrix both halves are held to lives in
+  // test/fixtures/calendar_selection_classes.json - test/js/calendar.test.js
+  // runs this painter against it and test/petal/calendar_test.exs renders the
+  // server against the same file, so a restyle cannot move one without the
+  // other going red.
   paint(from, to) {
     const range = this.el.dataset.mode === "range";
+
+    // range_position/2 sorts the pair before it compares, so a typed
+    // "17th - 9th" bands exactly the way the server would render it.
+    const [first, last] =
+      range && from && to && to < from ? [to, from] : [from, range ? to : null];
+
+    // banded?/1: a band exists only once both ends are in and they are
+    // different days. Until then the anchor is a plain chip with nothing to
+    // merge into, so it keeps all four corners.
+    const banded = !!first && !!last && first !== last;
+
     for (const day of this.panel.querySelectorAll("[data-date]")) {
       const iso = day.dataset.date;
-      const isFrom = !!from && iso === from;
-      const isTo = !!to && iso === to;
-      const between = range && !!from && !!to && iso > from && iso < to;
-      const selected = isFrom || isTo || between;
+      const isStart = !!first && iso === first;
+      const isEnd = !!last && iso === last;
+      const between = !!first && !!last && iso > first && iso < last;
+      const selected = isStart || isEnd || between;
 
-      // Day-level range-start/end deliberately do not exist: the band and its
-      // rounded ends are cell classes, and the two ends read as selected. Keep
-      // this list identical to Calendar's @day_flags.
-      day.classList.toggle("pc-calendar__day--selected", selected);
+      day.classList.toggle("pc-calendar__day--selected", selected && !between);
+      day.classList.toggle("pc-calendar__day--range-start", banded && isStart);
+      day.classList.toggle("pc-calendar__day--range-end", banded && isEnd);
       day.classList.toggle("pc-calendar__day--in-range", between);
 
       const cell = day.closest('[role="gridcell"]');
       if (!cell) continue;
+      // A middle day is still aria-selected - it is in the selection, it just
+      // does not wear the chip.
       if (selected) cell.setAttribute("aria-selected", "true");
       else cell.removeAttribute("aria-selected");
       cell.classList.toggle("pc-calendar__cell--in-range", between);
-      cell.classList.toggle("pc-calendar__cell--range-start", isFrom);
-      cell.classList.toggle("pc-calendar__cell--range-end", isTo);
+      cell.classList.toggle("pc-calendar__cell--range-start", banded && isStart);
+      cell.classList.toggle("pc-calendar__cell--range-end", banded && isEnd);
     }
   },
 };
