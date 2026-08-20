@@ -1503,16 +1503,22 @@
        implementation - colours and hover wash are copied from it verbatim.
 
      INDICATOR - the combobox chevron, the marks on native date / month /
-       week inputs. The same 16px glyph in the same 24x24 box, muted and
-       bare: no chip, no wash, no button element, nothing in the tab order,
-       pointer-events:none. On the native date inputs the browser's own
-       ::-webkit-calendar-picker-indicator is the real click target and it
-       covers the whole right rail invisibly, so the mark is decoration.
+       week inputs. Muted and bare: no chip, no wash, no button element,
+       nothing in the tab order, pointer-events:none. On the native date
+       inputs the browser's own ::-webkit-calendar-picker-indicator is the
+       real click target and it covers the whole right rail invisibly, so
+       the mark is decoration.
 
-     ONE glyph size (16, mini) across both species. The chip - or its
-     absence - is what carries the meaning, never the size. A wash on an
-     indicator makes it look clickable when it isn't, and a bare action
-     hides a target: don't "fix" a bare glyph by giving it a chip.
+     Glyph size: 16 (mini) is the default for both species - the chip, or
+     its absence, is what carries the meaning, never the size. ONE
+     exception, ruled by the maintainer's eye: a glyph whose artwork
+     carries little ink at 16 may run 20 for optical parity. The
+     hero-chevron-up-down is that case - its two small arrows fill a
+     fraction of the box (unlike, say, a calendar glyph, or shadcn's
+     single lucide chevron which is all ink at 16), so at 16 it reads
+     mini-fied. Judge new indicators by rendered ink, not box size. A wash
+     on an indicator makes it look clickable when it isn't, and a bare
+     action hides a target: don't "fix" a bare glyph by giving it a chip.
      ═══════════════════════════════════════════════════════════════════ */
 
   /* Password Field Styles */
@@ -2504,13 +2510,15 @@
      chevron says "this opens a list". It is never its own target - the
      control or the trigger around it is - so it stays BARE: no chip, no
      hover wash, no button. Giving it one would promise a click it does not
-     own. Same 16px glyph as the clear chip sitting beside it. */
+     own. 20px, the contract's optical-parity exception: the
+     hero-chevron-up-down artwork carries so little ink that at the
+     default 16 it reads mini-fied next to the clear chip's solid x. */
   .pc-combo-box__chevron {
     @apply shrink-0 pointer-events-none text-gray-400 dark:text-gray-500;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
   .pc-combo-box__chevron.pc-combo-box__chevron {
-    @apply w-4! h-4!;
+    @apply w-5! h-5!;
   }
 
   /* trigger variant: a select-like button; the search input lives in the
