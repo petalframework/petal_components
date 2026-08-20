@@ -734,7 +734,7 @@ defmodule Dev.PlaygroundLive do
        tg_device: "desktop",
        tg_variant: "solid",
        tg_size: "md",
-       alert_dialog: %{variant: "destructive", description: "with", length: "short"},
+       alert_dialog: %{variant: "default", media: "none", description: "with", length: "short"},
        alert_dialog_result: nil,
        alert_dialog_rows: [1, 3],
        chat: %{
@@ -1059,6 +1059,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_alert_dialog", %{"k" => "variant", "v" => v}, socket)
       when v in ~w(default destructive),
       do: {:noreply, update(socket, :alert_dialog, &%{&1 | variant: v})}
+
+  def handle_event("ctl_alert_dialog", %{"k" => "media", "v" => v}, socket)
+      when v in ~w(none icon image),
+      do: {:noreply, update(socket, :alert_dialog, &%{&1 | media: v})}
 
   def handle_event("ctl_alert_dialog", %{"k" => "description", "v" => v}, socket)
       when v in ~w(with without),
@@ -3019,10 +3023,12 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Alert dialog</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        The two-answer question you ask before something irreversible. Unlike
+        One question, two answers, and no way out without picking one. Unlike
         the modal, focus opens on Cancel, Escape cancels, and clicking the
         backdrop does nothing - the friction is deliberate. Built on the native
         &lt;dialog&gt;, so the top layer and the focus trap come from the browser.
+        The default treatment is calm; <code>variant="destructive"</code>
+        is the explicit opt-in to the danger wash.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
@@ -3061,6 +3067,19 @@ defmodule Dev.PlaygroundLive do
             on_confirm={JS.push("alert_dialog_answer", value: %{answer: "confirm"})}
             on_cancel={JS.push("alert_dialog_answer", value: %{answer: "cancel"})}
           >
+            <:media :if={@alert_dialog.media == "icon"}>
+              <.icon
+                name={
+                  if @alert_dialog.variant == "destructive",
+                    do: "hero-trash",
+                    else: "hero-rocket-launch"
+                }
+                class="pc-alert-dialog__media-icon"
+              />
+            </:media>
+            <:media :if={@alert_dialog.media == "image"}>
+              <img src="/dev-static/avatars/p32.jpg" alt="" />
+            </:media>
             <div :if={@alert_dialog.length == "long"} class="space-y-3">
               <p>Deleting this workspace also removes:</p>
               <ul class="pl-4 space-y-1 list-disc marker:text-gray-400">
@@ -3091,6 +3110,20 @@ defmodule Dev.PlaygroundLive do
                 phx-value-v={v}
               >
                 {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">media</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Media"
+              value={@alert_dialog.media}
+              on_change="ctl_alert_dialog"
+            >
+              <:item :for={m <- ~w(none icon image)} value={m} phx-value-k="media" phx-value-v={m}>
+                {m}
               </:item>
             </.toggle_group>
           </div>
@@ -3149,6 +3182,11 @@ defmodule Dev.PlaygroundLive do
             cancels, running the same on_cancel as the Cancel button.
           </li>
           <li>Clicking the backdrop does nothing at all.</li>
+          <li>
+            However you leave - Escape, either button, <code>close_alert_dialog/2</code>
+            - the exit runs through one funnel, so the dialog fades and scales out
+            instead of snapping. Turn on reduce-motion and it goes instantly.
+          </li>
         </ul>
       </div>
 
@@ -3189,10 +3227,17 @@ defmodule Dev.PlaygroundLive do
               variant="destructive"
               title="Delete selected invoices?"
               confirm_label="Delete"
-              on_confirm={Phoenix.LiveView.JS.push("alert_dialog_answer", value: %{answer: "bulk delete"})}
+              on_confirm={
+                Phoenix.LiveView.JS.push("alert_dialog_answer", value: %{answer: "bulk delete"})
+              }
             >
               <:trigger>
-                <.button color="danger" variant="outline" size="sm" disabled={@alert_dialog_rows == []}>
+                <.button
+                  color="danger"
+                  variant="outline"
+                  size="sm"
+                  disabled={@alert_dialog_rows == []}
+                >
                   Delete selected
                 </.button>
               </:trigger>

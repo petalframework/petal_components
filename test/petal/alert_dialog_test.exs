@@ -73,7 +73,7 @@ defmodule PetalComponents.AlertDialogTest do
       assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__description") |> Enum.empty?()
     end
 
-    test "the decorative icon accent is hidden from assistive tech" do
+    test "the decorative media chip is hidden from assistive tech" do
       assigns = %{}
 
       html =
@@ -81,7 +81,7 @@ defmodule PetalComponents.AlertDialogTest do
         <.alert_dialog id="confirm" variant="destructive" title="Delete?" />
         """)
 
-      assert attr_of(html, ".pc-alert-dialog__icon", "aria-hidden") == "true"
+      assert attr_of(html, ".pc-alert-dialog__media", "aria-hidden") == "true"
     end
   end
 
@@ -110,7 +110,7 @@ defmodule PetalComponents.AlertDialogTest do
       assert attr_of(html, ".pc-alert-dialog__confirm", "class") =~ "pc-button--danger"
     end
 
-    test "destructive variant supplies a default danger icon" do
+    test "destructive variant supplies a default danger glyph in the media chip" do
       assigns = %{}
 
       html =
@@ -119,10 +119,10 @@ defmodule PetalComponents.AlertDialogTest do
         """)
 
       assert has_icon?(html, "hero-exclamation-triangle")
-      assert attr_of(html, ".pc-alert-dialog__icon-svg", "class") =~ "hero-exclamation-triangle"
+      assert attr_of(html, ".pc-alert-dialog__media-icon", "class") =~ "hero-exclamation-triangle"
     end
 
-    test "default variant renders no icon without the icon slot" do
+    test "default variant renders no media chip without the media slot" do
       assigns = %{}
 
       html =
@@ -130,8 +130,26 @@ defmodule PetalComponents.AlertDialogTest do
         <.alert_dialog id="confirm" title="Continue?" />
         """)
 
-      assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__icon") |> Enum.empty?()
+      assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__media") |> Enum.empty?()
       refute has_icon?(html)
+    end
+
+    test "the calm default: nothing on the danger ramp unless destructive is asked for" do
+      # The pin for "destructive is an explicit variant, never the ambient
+      # default". If a future edit leans the base treatment towards danger -
+      # the confirm button, the modifier class, the media chip's wash - this
+      # is the test that says no.
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog id="confirm" title="Publish these changes?" confirm_label="Publish" />
+        """)
+
+      refute html =~ "danger"
+      refute html =~ "destructive"
+      assert attr_of(html, ".pc-alert-dialog__confirm", "class") =~ "pc-button--primary"
+      assert html |> doc() |> LazyHTML.query(".pc-alert-dialog__media") |> Enum.empty?()
     end
 
     test "the cancel button always rides the neutral ramp, in both variants" do
@@ -152,15 +170,15 @@ defmodule PetalComponents.AlertDialogTest do
   end
 
   describe "alert_dialog/1 - slots" do
-    test "the icon slot overrides the destructive variant's default icon" do
+    test "the media slot overrides the destructive variant's default glyph" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
         <.alert_dialog id="confirm" variant="destructive" title="Delete?">
-          <:icon>
-            <.icon name="hero-fire" class="pc-alert-dialog__icon-svg" />
-          </:icon>
+          <:media>
+            <.icon name="hero-fire" class="pc-alert-dialog__media-icon" />
+          </:media>
         </.alert_dialog>
         """)
 
@@ -168,20 +186,56 @@ defmodule PetalComponents.AlertDialogTest do
       refute has_icon?(html, "hero-exclamation-triangle")
     end
 
-    test "the icon slot renders an icon on the default variant too" do
+    test "the media slot renders a chip on the default variant too" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
         <.alert_dialog id="confirm" title="Sign out?">
-          <:icon>
-            <.icon name="hero-key" class="pc-alert-dialog__icon-svg" />
-          </:icon>
+          <:media>
+            <.icon name="hero-key" class="pc-alert-dialog__media-icon" />
+          </:media>
         </.alert_dialog>
         """)
 
       assert has_icon?(html, "hero-key")
-      refute html |> doc() |> LazyHTML.query(".pc-alert-dialog__icon") |> Enum.empty?()
+      refute html |> doc() |> LazyHTML.query(".pc-alert-dialog__media") |> Enum.empty?()
+    end
+
+    test "the media slot takes an image, not only an icon" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog id="confirm" title="Remove this member?">
+          <:media>
+            <img src="/images/ada.jpg" alt="" />
+          </:media>
+        </.alert_dialog>
+        """)
+
+      img = html |> doc() |> LazyHTML.query(".pc-alert-dialog__media > img")
+      assert Enum.count(img) == 1
+      assert img |> LazyHTML.attribute("src") == ["/images/ada.jpg"]
+    end
+
+    test "the media chip sits beside the title, in the header, above the body" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog id="confirm" title="Sign out?">
+          <:media>
+            <.icon name="hero-key" class="pc-alert-dialog__media-icon" />
+          </:media>
+        </.alert_dialog>
+        """)
+
+      header = html |> doc() |> LazyHTML.query(".pc-alert-dialog__header")
+
+      assert header
+             |> LazyHTML.query(".pc-alert-dialog__media + .pc-alert-dialog__title")
+             |> Enum.count() == 1
     end
 
     test "inner_block content renders inside the body, below the description" do
@@ -402,6 +456,22 @@ defmodule PetalComponents.AlertDialogTest do
       assert opts.event == "pc:alert-dialog-open"
       assert opts.to == "#delete-account"
     end
+
+    test "close_alert_dialog/2 dispatches the close event at the dialog" do
+      # A programmatic close is an event the hook handles, not a direct
+      # .close() - that is what keeps it inside the exit-animation funnel.
+      assert [["dispatch", opts]] = close_alert_dialog("delete-account").ops
+      assert opts.event == "pc:alert-dialog-close"
+      assert opts.to == "#delete-account"
+    end
+
+    test "close_alert_dialog/2 composes onto an existing JS chain" do
+      js = JS.push("track") |> close_alert_dialog("delete-account")
+
+      assert [["push", %{event: "track"}], ["dispatch", opts]] = js.ops
+      assert opts.event == "pc:alert-dialog-close"
+      assert opts.to == "#delete-account"
+    end
   end
 
   describe "alert_dialog/1 - pass-through" do
@@ -448,7 +518,7 @@ defmodule PetalComponents.AlertDialogTest do
   end
 
   describe "alert_dialog/1 - structure" do
-    test "the panel keeps the header and action row outside the scrolling body" do
+    test "the panel keeps the header and footer band outside the scrolling body" do
       assigns = %{}
 
       html =
@@ -469,11 +539,11 @@ defmodule PetalComponents.AlertDialogTest do
                1
 
       assert d
-             |> LazyHTML.query(".pc-alert-dialog__panel > .pc-alert-dialog__actions")
+             |> LazyHTML.query(".pc-alert-dialog__panel > .pc-alert-dialog__footer")
              |> Enum.count() == 1
 
       assert d
-             |> LazyHTML.query(".pc-alert-dialog__header > .pc-alert-dialog__icon")
+             |> LazyHTML.query(".pc-alert-dialog__header > .pc-alert-dialog__media")
              |> Enum.count() == 1
 
       assert d
@@ -492,12 +562,28 @@ defmodule PetalComponents.AlertDialogTest do
       classes =
         html
         |> doc()
-        |> LazyHTML.query(".pc-alert-dialog__actions button")
+        |> LazyHTML.query(".pc-alert-dialog__footer button")
         |> LazyHTML.attribute("class")
 
       assert [cancel, confirm] = classes
       assert cancel =~ "pc-alert-dialog__cancel"
       assert confirm =~ "pc-alert-dialog__confirm"
+    end
+
+    test "the footer band is the last child of the panel, after the scrolling body" do
+      # The band's border-t and wash only read as a footer if it sits at the
+      # bottom edge of the panel with nothing after it.
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.alert_dialog id="confirm" title="Delete?" description="Careful." />
+        """)
+
+      assert html
+             |> doc()
+             |> LazyHTML.query(".pc-alert-dialog__body + .pc-alert-dialog__footer:last-child")
+             |> Enum.count() == 1
     end
 
     test "both actions are type=button so they never submit a surrounding form" do
@@ -511,7 +597,7 @@ defmodule PetalComponents.AlertDialogTest do
       types =
         html
         |> doc()
-        |> LazyHTML.query(".pc-alert-dialog__actions button")
+        |> LazyHTML.query(".pc-alert-dialog__footer button")
         |> LazyHTML.attribute("type")
 
       assert types == ["button", "button"]

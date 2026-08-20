@@ -1909,13 +1909,37 @@ export const PetalCommandDialog = {
   },
 };
 
+// Mirrors the 0.15s exit in default.css. animationend is the real signal;
+// this only sizes the watchdog that finishes the close when no animation
+// runs (display:none tab, a consumer overriding the keyframes away, a
+// dropped frame at the boundary). Slightly longer than the CSS so the
+// watchdog never beats the animation it is insuring.
+const ALERT_DIALOG_EXIT_MS = 150;
+const ALERT_DIALOG_EXIT_GRACE_MS = 60;
+
 // The alertdialog: a native <dialog> asking one question with two answers.
 //
-// The hook exists for the three things CSS and Phoenix.LiveView.JS cannot do:
+// The hook exists for the four things CSS and Phoenix.LiveView.JS cannot do:
 // showModal()/close() are DOM methods with no JS-command equivalent; initial
 // focus has to land on cancel (the least destructive action) rather than the
-// first focusable; and Escape's native `cancel` event must be intercepted so
-// it runs the component's on_cancel JS instead of quietly closing.
+// first focusable; Escape's native `cancel` event must be intercepted so it
+// runs the component's on_cancel JS instead of quietly closing; and the exit
+// animation needs a close-intent step, because dialog.close() is INSTANT -
+// the element leaves the top layer in the same frame, so there is no state
+// left for CSS to animate out of.
+//
+// THE CLOSE FUNNEL. Every way out - Escape/cancel, either action button, a
+// programmatic pc:alert-dialog-close - lands on requestClose(), which:
+//
+//   1. marks the dialog closing (a guard against a second close intent),
+//   2. adds .pc-alert-dialog--closing so the CSS plays the mirror of the
+//      entrance on the box AND, separately, on the ::backdrop,
+//   3. waits for animationend, with a timer as the watchdog,
+//   4. calls the real close() exactly once, in finishClose().
+//
+// Under prefers-reduced-motion: reduce the CSS never starts an animation, so
+// animationend would never arrive - the hook checks the query itself and
+// goes straight to step 4. Same gate as the CSS, read from the other side.
 //
 // Note what is deliberately absent: there is NO backdrop click handler. A
 // native modal dialog ignores backdrop clicks, so click-away does nothing -
@@ -1925,49 +1949,120 @@ export const PetalCommandDialog = {
 export const PetalAlertDialog = {
   mounted() {
     this.closedByUs = false;
+    this.closing = false;
+    this.exitTimer = null;
+    this.wasOpen = false;
+    this.wasClosing = false;
+    this.refocus = null;
     this.onOpen = () => this.open();
+    this.onCloseEvent = () => this.requestClose();
     // Escape. Swallow the native close and route through the cancel button so
     // Escape and a Cancel click run the exact same on_cancel JS - one path.
     this.onCancel = (e) => {
       e.preventDefault();
       const cancel = this.cancelButton();
-      cancel ? cancel.click() : this.close();
+      cancel ? cancel.click() : this.requestClose();
     };
     // Both actions close the dialog after their phx-click JS has run.
     this.onAction = (e) => {
-      if (e.target.closest("[data-pc-alert-dialog-close]")) this.close();
+      if (e.target.closest("[data-pc-alert-dialog-close]")) this.requestClose();
     };
-    // The native close event is the one funnel every close path drains
-    // through, so the scroll unlock lives here. And Chrome's close watcher
-    // lets a second rapid Escape bypass the cancelable `cancel` event - a
-    // close we didn't initiate still runs the cancel path, so on_cancel
-    // never silently skips.
+    // The native close event is where the dialog is really gone, so the
+    // scroll unlock lives here - it drains every path, including the ones
+    // that never reached requestClose(). Chrome's close watcher lets a second
+    // rapid Escape bypass the cancelable `cancel` event, and a close we
+    // didn't initiate still runs the cancel path, so on_cancel never
+    // silently skips.
     this.onClose = () => {
+      // A native close can land mid-exit; drop the closing state so the class
+      // never outlives the dialog it was animating.
+      this.clearExit();
       document.body.classList.remove("overflow-hidden");
       if (!this.closedByUs) this.cancelButton()?.click();
       this.closedByUs = false;
     };
+    // The exit finishes on the BOX's own animation. Three things this must
+    // NOT react to: the entrance animation (same element, same event - the
+    // closing guard is what tells them apart, and without it opening the
+    // dialog would immediately close it), the ::backdrop's animation (fires
+    // on the same element with e.pseudoElement set, and whichever finished
+    // first would cut the other short), and animations bubbling up from
+    // content inside the panel.
+    this.onExitEnd = (e) => {
+      if (!this.closing) return;
+      if (e.target !== this.el || e.pseudoElement) return;
+      this.finishClose();
+    };
 
     this.el.addEventListener("pc:alert-dialog-open", this.onOpen);
+    this.el.addEventListener("pc:alert-dialog-close", this.onCloseEvent);
     this.el.addEventListener("cancel", this.onCancel);
     this.el.addEventListener("click", this.onAction);
     this.el.addEventListener("close", this.onClose);
+    this.el.addEventListener("animationend", this.onExitEnd);
+  },
+
+  // LiveView merges this element's attributes against the SERVER's render on
+  // every patch, and the server renders neither `open` (showModal() opens it
+  // client-side) nor the closing class. So any patch that reaches the dialog
+  // - including the on_confirm/on_cancel pushes the action buttons make -
+  // strips `open`, yanking an open dialog shut with no `close` event: the
+  // exit never plays and the scroll lock never releases. Remember the
+  // client-owned state before the patch, put it back after.
+  beforeUpdate() {
+    this.wasOpen = this.el.open;
+    this.wasClosing = this.closing;
+    this.refocus = this.el.contains(document.activeElement)
+      ? document.activeElement
+      : null;
+  },
+
+  updated() {
+    // Closing class first: if we are mid-exit, showModal() below must find it
+    // already there so the out animation resumes rather than the entrance.
+    if (this.wasClosing) this.el.classList.add("pc-alert-dialog--closing");
+    if (this.wasOpen && !this.el.open) {
+      this.el.showModal();
+      if (this.refocus?.isConnected) this.refocus.focus();
+      else this.focusCancel();
+    }
+    this.refocus = null;
   },
 
   destroyed() {
-    // A patch can remove an OPEN dialog - never leave the page locked.
+    // A patch can remove an OPEN dialog - never leave the page locked, and
+    // never leave a watchdog pointed at a torn-down hook.
+    this.clearExit();
     if (this.el.open) document.body.classList.remove("overflow-hidden");
     this.el.removeEventListener("pc:alert-dialog-open", this.onOpen);
+    this.el.removeEventListener("pc:alert-dialog-close", this.onCloseEvent);
     this.el.removeEventListener("cancel", this.onCancel);
     this.el.removeEventListener("click", this.onAction);
     this.el.removeEventListener("close", this.onClose);
+    this.el.removeEventListener("animationend", this.onExitEnd);
   },
 
   cancelButton() {
     return this.el.querySelector("[data-pc-alert-dialog-cancel]");
   },
 
+  reducedMotion() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  },
+
   open() {
+    // Reopened mid-exit. The dialog is still open and still on the top layer,
+    // so the recovery is to abandon the exit rather than close and reopen -
+    // that would drop and re-take focus and restart the entrance from a
+    // half-faded box. Drop the closing class, re-pin focus, done.
+    if (this.closing) {
+      this.clearExit();
+      this.focusCancel();
+      return;
+    }
     if (this.el.open) return;
     this.closedByUs = false;
     // The brief's "page behind does not scroll" - locked on open, unlocked
@@ -1977,14 +2072,43 @@ export const PetalAlertDialog = {
     // showModal() focuses the first focusable (or [autofocus]); pin it to
     // cancel explicitly so the least destructive action is always the default,
     // whatever a consumer's body content puts above it.
+    this.focusCancel();
+  },
+
+  focusCancel() {
     const cancel = this.cancelButton();
     if (cancel) cancel.focus();
   },
 
-  close() {
+  // Close INTENT. The single door every close path walks through.
+  requestClose() {
+    if (!this.el.open || this.closing) return;
+    if (this.reducedMotion()) return this.finishClose();
+
+    this.closing = true;
+    this.el.classList.add("pc-alert-dialog--closing");
+    this.exitTimer = window.setTimeout(
+      () => this.finishClose(),
+      ALERT_DIALOG_EXIT_MS + ALERT_DIALOG_EXIT_GRACE_MS,
+    );
+  },
+
+  // The real close. Reached from animationend, from the watchdog, or
+  // straight from requestClose() under reduced motion.
+  finishClose() {
+    this.clearExit();
     if (this.el.open) {
       this.closedByUs = true;
       this.el.close();
+    }
+  },
+
+  clearExit() {
+    this.closing = false;
+    this.el.classList.remove("pc-alert-dialog--closing");
+    if (this.exitTimer) {
+      window.clearTimeout(this.exitTimer);
+      this.exitTimer = null;
     }
   },
 };

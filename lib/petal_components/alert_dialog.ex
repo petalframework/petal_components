@@ -1,16 +1,22 @@
 defmodule PetalComponents.AlertDialog do
   @moduledoc """
-  The confirm/cancel decision dialog you reach for before a destructive or
-  irreversible action: "Delete this account?", "Discard unsaved changes?".
+  The confirm/cancel decision dialog: one question, two answers, no way out
+  without picking one. "Publish these changes?", "Discard unsaved edits?",
+  "Delete this account?".
 
   ## alert_dialog vs modal
 
-  `PetalComponents.Modal` is the general-purpose overlay - it holds forms,
-  detail panes, anything. It has a close button, and clicking away closes it,
-  because getting out cheaply is the right behaviour for a container.
+  `PetalComponents.Modal.modal/1` is the light-dismissible general dialog
+  (shadcn calls it "Dialog") - close button, click away, Escape, all of them
+  cheap; `alert_dialog/1` forces an explicit choice, so backdrop clicks do
+  nothing. **Reach for `modal/1` unless abandoning the choice would be
+  ambiguous** - unless walking away leaves the user unsure what just happened
+  to their data.
 
-  `alert_dialog/1` is the opposite. It asks one question with two answers, and
-  it will not let you leave without answering:
+  The long version: `modal/1` holds forms, detail panes, anything, and getting
+  out of it cheaply is the right behaviour for a container. `alert_dialog/1`
+  is the opposite. It asks one question with two answers, and it will not let
+  you leave without answering:
 
     * `role="alertdialog"` rather than `role="dialog"`, so assistive tech
       announces it as an interruption that needs a decision.
@@ -25,23 +31,12 @@ defmodule PetalComponents.AlertDialog do
   ## Usage
 
   Render the dialog anywhere in the template and open it from any element with
-  `open_alert_dialog/2`:
+  `open_alert_dialog/2`. The default is the calm confirm - primary button, no
+  media chip, nothing shouting:
 
-      <.button color="danger" phx-click={PetalComponents.AlertDialog.open_alert_dialog("delete-account")}>
-        Delete account
+      <.button phx-click={PetalComponents.AlertDialog.open_alert_dialog("discard-changes")}>
+        Back to posts
       </.button>
-
-      <.alert_dialog
-        id="delete-account"
-        variant="destructive"
-        title="Delete your account?"
-        description="This permanently removes your account and every project in it. This cannot be undone."
-        confirm_label="Delete account"
-        on_confirm={JS.push("delete_account")}
-      />
-
-  The default variant is the neutral confirm - same shape, primary button, no
-  danger icon:
 
       <.alert_dialog
         id="discard-changes"
@@ -50,6 +45,18 @@ defmodule PetalComponents.AlertDialog do
         confirm_label="Discard"
         cancel_label="Keep editing"
         on_confirm={JS.push("discard")}
+      />
+
+  `variant="destructive"` is the explicit opt-in to the danger treatment -
+  danger confirm button, danger media chip. Ask for it; never assume it:
+
+      <.alert_dialog
+        id="delete-account"
+        variant="destructive"
+        title="Delete your account?"
+        description="This permanently removes your account and every project in it. This cannot be undone."
+        confirm_label="Delete account"
+        on_confirm={JS.push("delete_account")}
       />
 
   The `:trigger` slot renders the opener next to the dialog and wires it up for
@@ -67,6 +74,16 @@ defmodule PetalComponents.AlertDialog do
         <p>You are about to delete <strong>{@selected_count} invoices</strong>.</p>
       </.alert_dialog>
 
+  The `:media` slot puts an icon or an image in a chip beside the title. Icons
+  want the `pc-alert-dialog__media-icon` class so they inherit the chip's
+  sizing contract; an `<img>` just fills the chip:
+
+      <.alert_dialog id="sign-out" title="Sign out of every device?">
+        <:media>
+          <.icon name="hero-arrow-right-start-on-rectangle" class="pc-alert-dialog__media-icon" />
+        </:media>
+      </.alert_dialog>
+
   ## Implementation
 
   Built on the native `<dialog>` element (same approach as
@@ -79,8 +96,25 @@ defmodule PetalComponents.AlertDialog do
   Two small hooks carry the parts `Phoenix.LiveView.JS` cannot reach:
   `showModal()`/`close()` are DOM methods with no JS-command equivalent, and
   Escape's native `cancel` event has to be intercepted so it runs `on_cancel`
-  instead of silently closing. Everything else - the surface, the transitions,
-  reduced motion - is CSS.
+  instead of silently closing.
+
+  The third thing the hook owns is the **exit**. `dialog.close()` is instant -
+  the element leaves the top layer in the same frame, so an out animation is
+  impossible to express in CSS alone. Every way out (Escape, the cancel
+  button, the confirm button, `close_alert_dialog/2`) therefore funnels
+  through one close-intent step: the hook adds a closing class, the CSS plays
+  the mirror of the entrance, and only when the animation ends - or a
+  watchdog timer fires - does the real `close()` run. Under
+  `prefers-reduced-motion: reduce` the hook skips straight to `close()`,
+  because no animation would ever fire the event it waits on. Everything else
+  - the surface, the animations themselves - is CSS.
+
+  One LiveView detail worth knowing: `showModal()` sets the `open` attribute
+  client-side, and the server never renders it. A patch reaching this element
+  would therefore merge `open` away and shut the dialog with no `close`
+  event. The hook restores its own state across patches, so an open dialog
+  stays open (and an in-flight exit keeps playing) no matter what the server
+  pushes while it is up.
   """
   use Phoenix.Component
 
@@ -104,7 +138,7 @@ defmodule PetalComponents.AlertDialog do
     default: "default",
     values: ["default", "destructive"],
     doc:
-      "destructive styles the confirm button on the danger ramp and adds a danger icon accent; default uses the primary button treatment and no icon"
+      "default is the calm confirm - primary button, no media chip unless you pass one. destructive is the explicit opt-in: danger confirm button, and a danger-washed media chip carrying a warning glyph"
 
   attr :confirm_label, :string, default: "Continue", doc: "confirm button text"
   attr :cancel_label, :string, default: "Cancel", doc: "cancel button text"
@@ -126,10 +160,10 @@ defmodule PetalComponents.AlertDialog do
     required: false,
     doc: "custom body content rendered below the description"
 
-  slot :icon,
+  slot :media,
     required: false,
     doc:
-      "icon rendered in the accent slot. The destructive variant supplies a danger icon when this is empty; the default variant renders no icon unless you pass one"
+      "an icon or image rendered in a chip beside the title. Give icons the pc-alert-dialog__media-icon class; an img fills the chip. The destructive variant supplies a warning glyph when this is empty; the default variant renders no chip unless you pass one"
 
   slot :trigger,
     required: false,
@@ -140,7 +174,8 @@ defmodule PetalComponents.AlertDialog do
   `PetalComponents.Modal.modal/1`.
   """
   def alert_dialog(assigns) do
-    assigns = assign(assigns, :show_icon?, assigns.icon != [] or assigns.variant == "destructive")
+    assigns =
+      assign(assigns, :show_media?, assigns.media != [] or assigns.variant == "destructive")
 
     ~H"""
     <div
@@ -168,11 +203,11 @@ defmodule PetalComponents.AlertDialog do
     >
       <div class="pc-alert-dialog__panel">
         <div class="pc-alert-dialog__header">
-          <div :if={@show_icon?} class="pc-alert-dialog__icon" aria-hidden="true">
-            <%= if @icon != [] do %>
-              {render_slot(@icon)}
+          <div :if={@show_media?} class="pc-alert-dialog__media" aria-hidden="true">
+            <%= if @media != [] do %>
+              {render_slot(@media)}
             <% else %>
-              <.icon name="hero-exclamation-triangle" class="pc-alert-dialog__icon-svg" />
+              <.icon name="hero-exclamation-triangle" class="pc-alert-dialog__media-icon" />
             <% end %>
           </div>
           <h2 id={"#{@id}-title"} class="pc-alert-dialog__title">{@title}</h2>
@@ -187,7 +222,7 @@ defmodule PetalComponents.AlertDialog do
           </div>
         </div>
 
-        <div class="pc-alert-dialog__actions">
+        <div class="pc-alert-dialog__footer">
           <.button
             type="button"
             color="gray"
@@ -225,5 +260,18 @@ defmodule PetalComponents.AlertDialog do
   """
   def open_alert_dialog(js \\ %JS{}, id) when is_binary(id) do
     JS.dispatch(js, "pc:alert-dialog-open", to: "##{id}")
+  end
+
+  @doc """
+  Returns a `JS` command that closes the alert dialog with the given id.
+
+  You rarely need this - both actions close the dialog themselves. It exists
+  so a programmatic close (a `push_event` from the server, a parent component
+  tidying up) drains through the same close-intent funnel as Escape and the
+  buttons, and therefore plays the same exit animation instead of snapping
+  the dialog out from under the user.
+  """
+  def close_alert_dialog(js \\ %JS{}, id) when is_binary(id) do
+    JS.dispatch(js, "pc:alert-dialog-close", to: "##{id}")
   end
 end

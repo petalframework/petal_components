@@ -7587,11 +7587,12 @@
     }
   }
 
-/* Alert dialog - the two-answer decision before something destructive.
+/* Alert dialog - the two-answer decision that will not let you walk away.
    Built on the native <dialog>, so the top layer, focus containment and
    ::backdrop come from the element. Deliberately narrower than the modal:
-   one question, one accent icon, one action row that stays put while a long
-   body scrolls under it. */
+   one question, one media chip, one footer band that stays put while a long
+   body scrolls under it. The default is CALM - the danger wash is what
+   variant="destructive" opts into, never the ambient state. */
 
 @layer components {
   .pc-alert-dialog {
@@ -7629,29 +7630,38 @@
     @apply flex items-start gap-3 shrink-0 px-6 pt-6;
   }
 
-  .pc-alert-dialog__icon {
-    @apply flex items-center justify-center shrink-0 w-9 h-9 text-gray-500 dark:text-gray-400;
+  /* The media chip: 40px square beside the title, holding an icon or an
+     image. Muted by default - a neutral wash that says "here is the subject
+     of the question", not "danger". */
+  .pc-alert-dialog__media {
+    @apply flex items-center justify-center shrink-0 overflow-hidden w-10 h-10 text-gray-500 dark:text-gray-400;
     background: var(--color-gray-100);
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 0.8), 0.625rem);
   }
 
-  .dark .pc-alert-dialog__icon {
+  .dark .pc-alert-dialog__media {
     /* rides the gray ramp (not a white mix) so a re-themed gray dial
        carries the wash with it - the house ghost recipe */
     background: color-mix(in srgb, var(--color-gray-400) 12%, transparent);
   }
 
-  .pc-alert-dialog--destructive .pc-alert-dialog__icon {
+  .pc-alert-dialog--destructive .pc-alert-dialog__media {
     @apply text-danger-600 dark:text-danger-400;
     background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
+  }
+
+  /* An image slotted into the chip fills it; the chip's own overflow and
+     radius do the cropping, so consumers pass a bare <img>. */
+  .pc-alert-dialog__media > img {
+    @apply w-full h-full object-cover;
   }
 
   /* Doubled selector + bang, the icon-sizing contract (see the pagination
      chevron): this lands on a bare hero-* span, which consumer heroicon CSS
      sizes from the utilities layer - beating any single components-layer
      selector. */
-  .pc-alert-dialog__icon-svg.pc-alert-dialog__icon-svg {
-    @apply w-5! h-5!;
+  .pc-alert-dialog__media-icon.pc-alert-dialog__media-icon {
+    @apply w-6! h-6!;
   }
 
   /* The trigger wrapper must not impose block layout - alert-dialog
@@ -7666,7 +7676,7 @@
   }
 
   .pc-alert-dialog__body {
-    @apply flex-1 min-h-0 overflow-y-auto px-6 pt-2;
+    @apply flex-1 min-h-0 overflow-y-auto px-6 pt-2 pb-5;
   }
 
   .pc-alert-dialog__description {
@@ -7677,23 +7687,51 @@
     @apply mt-3 text-sm text-gray-600 dark:text-gray-300;
   }
 
-  .pc-alert-dialog__actions {
-    @apply flex flex-col-reverse gap-2 shrink-0 px-6 pt-5 pb-6;
+  /* The footer band. Same idiom as the table's tfoot: border-t, muted wash,
+     full-bleed. No negative margins here - this dialog puts its padding on
+     each section rather than on the panel, so the band is already edge to
+     edge and reaching for -mx-6 would double-count. The wash pair is the
+     house convention: gray-50 in light, a gray-400 alpha in dark, so a
+     re-themed gray dial carries both. */
+  .pc-alert-dialog__footer {
+    @apply flex flex-col-reverse gap-2 shrink-0 px-6 py-4;
     @apply sm:flex-row sm:justify-end;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
   }
 
-  .pc-alert-dialog__actions .pc-alert-dialog__cancel,
-  .pc-alert-dialog__actions .pc-alert-dialog__confirm {
+  /* flex-col-reverse with cancel FIRST in the DOM: Tab still reaches the safe
+     action first, and on mobile the stack puts the primary action on top
+     under the thumb (shadcn's ergonomics). sm+ unstacks to a right-aligned
+     row with confirm last. */
+  .pc-alert-dialog__footer .pc-alert-dialog__cancel,
+  .pc-alert-dialog__footer .pc-alert-dialog__confirm {
     @apply justify-center sm:w-auto w-full;
   }
 
   /* Nested-child radius: the action buttons derive from the PANEL's clamped
      radius, not the raw token - at large user radii a raw-token button
      out-rounds its own dialog (same recipe as the modal/slideover actions). */
-  .pc-alert-dialog__actions .pc-button {
+  .pc-alert-dialog__footer .pc-button {
     border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
+  /* THE PROPERTY MATTERS (see the slide_over keyframes): these animate
+     `scale`, not `transform`. Tailwind v4's scale-* utilities set the
+     `scale` property, and scale + transform COMPOSE - keyframes on transform
+     would play ON TOP of a consumer's scale-95 rather than overriding it,
+     the same class of bug that made the slide_over teleport. Same property =
+     the running animation wins outright and hands back cleanly at the
+     boundary.
+
+     THE EXIT IS NOT A TRANSITION. dialog.close() is instant - the element
+     leaves the top layer in the same frame - so there is no state left for
+     CSS to animate out of. The hook adds --closing, this plays, and only
+     then does the real close() run (PetalAlertDialog.requestClose). The
+     ::backdrop is a separate animation on a separate pseudo-element: it gets
+     its own in AND out keyframes, because it does not inherit the box's.
+
+     Reduced motion: the whole block is gated, so nothing animates and the
+     hook (reading the same query from JS) skips straight to close(). */
   @media (prefers-reduced-motion: no-preference) {
     .pc-alert-dialog[open] {
       animation: pc-alert-dialog-in 0.15s ease-out;
@@ -7702,17 +7740,56 @@
     .pc-alert-dialog[open]::backdrop {
       animation: pc-alert-dialog-backdrop-in 0.15s ease-out;
     }
+
+    /* One class more specific than the entrance rules above, and later in the
+       sheet, so the exit wins while it plays. `forwards` holds the last frame
+       so the box cannot flash back to full opacity in the gap between
+       animationend and close(). */
+    .pc-alert-dialog[open].pc-alert-dialog--closing {
+      animation: pc-alert-dialog-out 0.15s ease-in forwards;
+    }
+
+    .pc-alert-dialog[open].pc-alert-dialog--closing::backdrop {
+      animation: pc-alert-dialog-backdrop-out 0.15s ease-in forwards;
+    }
+  }
+
+  /* The answer is already given - a second click during the 150ms exit would
+     run the OTHER action's on_confirm/on_cancel on the way out. */
+  .pc-alert-dialog--closing {
+    pointer-events: none;
   }
 
   @keyframes pc-alert-dialog-in {
     from {
       opacity: 0;
-      transform: scale(0.96);
+      scale: 0.96;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @keyframes pc-alert-dialog-out {
+    from {
+      opacity: 1;
+      scale: 1;
+    }
+    to {
+      opacity: 0;
+      scale: 0.96;
     }
   }
 
   @keyframes pc-alert-dialog-backdrop-in {
     from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes pc-alert-dialog-backdrop-out {
+    to {
       opacity: 0;
     }
   }
