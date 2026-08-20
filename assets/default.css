@@ -1487,6 +1487,34 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
 
+  /* ══ THE ADORNMENT CONTRACT ═════════════════════════════════════════════
+     Every glyph riding at the trailing edge of a field is one of two
+     species, and one line tells them apart:
+
+       if clicking it does something the field itself doesn't, it's an
+       ACTION (chip); if it only tells you what the field is, it's an
+       INDICATOR (bare).
+
+     ACTION - the clear x, copy, show/hide password, a picker toggle on a
+       typeable input. A real <button>: one 16px mini/outline-weight glyph
+       centred in a 24x24 rounded-md chip that takes a wash on hover, the
+       tap target grown to field height by the house invisible ::before,
+       and a focus-visible ring. .pc-combo-box__clear is the reference
+       implementation - colours and hover wash are copied from it verbatim.
+
+     INDICATOR - the combobox chevron, the marks on native date / month /
+       week inputs. The same 16px glyph in the same 24x24 box, muted and
+       bare: no chip, no wash, no button element, nothing in the tab order,
+       pointer-events:none. On the native date inputs the browser's own
+       ::-webkit-calendar-picker-indicator is the real click target and it
+       covers the whole right rail invisibly, so the mark is decoration.
+
+     ONE glyph size (16, mini) across both species. The chip - or its
+     absence - is what carries the meaning, never the size. A wash on an
+     indicator makes it look clickable when it isn't, and a bare action
+     hides a target: don't "fix" a bare glyph by giving it a chip.
+     ═══════════════════════════════════════════════════════════════════ */
+
   /* Password Field Styles */
   .pc-password-field-wrapper {
     @apply relative;
@@ -1496,20 +1524,32 @@
     @apply pr-10;
   }
 
-  /* In-field action buttons (viewable / copyable / clearable) share one
-     grammar: stroke icons at gray-400 that brighten on hover (never dim),
-     a focus-visible ring, and a dial-derived rounding for the ring box. */
-  .pc-password-field-toggle-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  /* ACTION chip - viewable / copyable / clearable are one button, three
+     glyphs. Anatomy, colours and hover wash match .pc-combo-box__clear. */
+  .pc-password-field-toggle-button,
+  .pc-copyable-field-button,
+  .pc-clearable-field-button {
+    @apply absolute top-1/2 right-2 inline-flex h-6 w-6 shrink-0 -translate-y-1/2 items-center justify-center rounded-md border-none bg-transparent text-gray-400 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+  }
+
+  /* The chip stays 24x24; the tap target reaches field height through the
+     house invisible ::before, which never participates in layout. */
+  .pc-password-field-toggle-button::before,
+  .pc-copyable-field-button::before,
+  .pc-clearable-field-button::before {
+    content: "";
+    @apply absolute -inset-2;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-password-field-toggle-icon.pc-password-field-toggle-icon,
+  .pc-copyable-field-icon.pc-copyable-field-icon,
+  .pc-clearable-field-icon.pc-clearable-field-icon {
+    @apply w-4! h-4!;
   }
 
   .pc-password-field-toggle-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-password-field-toggle-icon {
-    @apply w-5 h-5;
   }
 
   /* Copyable Field Styles */
@@ -1521,17 +1561,8 @@
     @apply pr-10 cursor-text;
   }
 
-  .pc-copyable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
   .pc-copyable-field-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-copyable-field-icon {
-    @apply w-5 h-5;
   }
 
   /* Copy success: the check reads success and ignores the button's hover color */
@@ -1553,17 +1584,8 @@
     @apply pr-10;
   }
 
-  .pc-clearable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
   .pc-clearable-field-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-clearable-field-icon {
-    @apply w-5 h-5;
   }
 
   /* Date and Time Field Styles */
@@ -1577,8 +1599,19 @@
     @apply relative;
   }
 
+  /* INDICATOR (see THE ADORNMENT CONTRACT above): the mark that says "this
+     is a date field". It is not a target - the browser's own invisible
+     ::-webkit-calendar-picker-indicator below covers the right rail and
+     opens the picker - so this is a bare span, out of the tab order and
+     out of the pointer's way. Same 24x24 box as the action chip so the two
+     sit on one rail; the missing wash is the entire difference. */
   .pc-date-input-icon {
-    @apply absolute inset-y-0 right-0 flex items-center mr-3 pointer-events-none text-gray-400 dark:text-gray-500;
+    @apply absolute top-1/2 right-2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center pointer-events-none text-gray-400 dark:text-gray-500;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-date-input-icon-glyph.pc-date-input-icon-glyph {
+    @apply w-4! h-4!;
   }
 
   .pc-date-picker-indicator {
@@ -2467,12 +2500,17 @@
   .pc-combo-box--lg .pc-combo-box__trigger {
     @apply py-2.5 text-base;
   }
+  /* INDICATOR (see THE ADORNMENT CONTRACT in the field section): the
+     chevron says "this opens a list". It is never its own target - the
+     control or the trigger around it is - so it stays BARE: no chip, no
+     hover wash, no button. Giving it one would promise a click it does not
+     own. Same 16px glyph as the clear chip sitting beside it. */
   .pc-combo-box__chevron {
     @apply shrink-0 pointer-events-none text-gray-400 dark:text-gray-500;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination previous chevron). */
   .pc-combo-box__chevron.pc-combo-box__chevron {
-    @apply w-5! h-5!;
+    @apply w-4! h-4!;
   }
 
   /* trigger variant: a select-like button; the search input lives in the
@@ -2627,7 +2665,11 @@
      the label yields truncation room only while a value is chosen, the
      exact grammar of the input variant's inline X. */
   .pc-combo-box__trigger-clear {
-    @apply absolute top-1/2 right-9 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply absolute top-1/2 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    /* the chip-to-chevron gap is the input variant's gap-1.5, spelled out
+       because this chip floats over the trigger instead of sharing its
+       flex row: trigger border + px-3 rail + the 16px chevron + 6px. */
+    right: calc(1px + 0.75rem + 1rem + 0.375rem);
   }
   .pc-combo-box[data-has-value] .pc-combo-box__trigger-clear {
     @apply inline-flex;
@@ -3034,8 +3076,13 @@
   .pc-data-table__column-move {
     @apply flex shrink-0 items-center;
   }
+  /* The action-adornment contract's colours (see the field adornments block):
+     rest gray-400/gray-500, hover wash gray-100 / gray-400/17, hover glyph
+     gray-700/gray-200, and a focus ring - this chip predated the contract. */
   .pc-data-table__column-move-btn {
-    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:pointer-events-none disabled:opacity-30;
+    @apply dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-data-table__column-move-icon.pc-data-table__column-move-icon {
@@ -3047,8 +3094,11 @@
   .pc-data-table__filter-apply {
     @apply self-end;
   }
+  /* ACTION chip (see THE ADORNMENT CONTRACT in the field section): clearing
+     the filter is something the pill itself doesn't do, so it wears the
+     chip - the same box, radius, colours and wash as .pc-combo-box__clear. */
   .pc-data-table__filter-clear {
-    @apply inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-data-table__filter-clear-icon.pc-data-table__filter-clear-icon {
@@ -5495,8 +5545,8 @@
 }
 
 /*
-  Hide the calendar icon added by Petal in Firefox since Firefox includes one
-  and the onclick for the Petal one doesn't work.
+  Firefox draws its own mark on date inputs, so ours would be a second one
+  saying the same thing. Drop it and give the text its padding back.
   See: https://css-tricks.com/snippets/css/css-hacks-targeting-firefox/
 */
 @-moz-document url-prefix() {

@@ -715,7 +715,7 @@ defmodule PetalComponents.Field do
         >
           <!-- Clear Icon -->
           <span class="pc-clearable-field-icon-container">
-            <.icon name="hero-x-mark-solid" class="pc-clearable-field-icon" />
+            <.icon name="hero-x-mark-mini" class="pc-clearable-field-icon" />
           </span>
         </button>
       </div>
@@ -750,9 +750,9 @@ defmodule PetalComponents.Field do
           required={@required}
           {@rest}
         />
-        <div class="pc-date-input-icon">
-          <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
-        </div>
+        <span class="pc-date-input-icon" aria-hidden="true">
+          <.icon name={@icon_name} class="pc-date-input-icon-glyph" />
+        </span>
       </div>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
       <.field_help_text help_text={@help_text} />
