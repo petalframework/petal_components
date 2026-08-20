@@ -2676,8 +2676,10 @@
     @apply absolute top-1/2 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
     /* the chip-to-chevron gap is the input variant's gap-1.5, spelled out
        because this chip floats over the trigger instead of sharing its
-       flex row: trigger border + px-3 rail + the 16px chevron + 6px. */
-    right: calc(1px + 0.75rem + 1rem + 0.375rem);
+       flex row: trigger border + px-3 rail + the 20px chevron + 6px.
+       The 1.25rem term IS the chevron's width - if the chevron resizes,
+       this moves with it. */
+    right: calc(1px + 0.75rem + 1.25rem + 0.375rem);
   }
   .pc-combo-box[data-has-value] .pc-combo-box__trigger-clear {
     @apply inline-flex;
