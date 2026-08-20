@@ -3,6 +3,32 @@
 
 #### Added
 
+- **`modal` takes a `:footer`.** Every dialog with a Save button was
+  building the same row by hand at the bottom of the content - a
+  `flex justify-end gap-2 mt-6` div, give or take the margin - and it sat
+  on the body's own surface, so a modal and a slide over open on the same
+  page looked like two different components. The slot puts the row where
+  it belongs. It renders below the content in a band: border on top, muted
+  wash behind, edge to edge, the exact treatment the table's tfoot wears
+  and the one the alert dialog will ship with. Buttons stack on a narrow
+  screen with the primary action on top under the thumb, and unstack to a
+  right-aligned row from `sm` up. Want something on the far left instead -
+  a docs link, a step counter - put one full-width child in the slot and
+  lay it out yourself; the band, the border and the padding stay the
+  component's job.
+
+  Pinning it meant changing how the box scrolls, which is the part worth
+  reading twice. The box used to be one scrolling block, so a long body
+  carried the header off the top and would have carried the footer off the
+  bottom. It is now a column, the same shape the slide over has always
+  had: header and footer are fixed bands and the content between them is
+  the only part that scrolls. That is a visible change for a modal with
+  more content than fits, footer or no footer - the title now stays put
+  where it used to scroll away - and it is the behaviour the component
+  should have had. Everything else is untouched: omit the slot and the
+  modal renders exactly what it always did, buttons in the content and
+  all.
+
 - **`badge` takes a status dot.** Every app that shows state ends up
   writing the same span by hand - a 6px filled circle in front of the
   label - because that is how a status reads at a glance in a table of
@@ -123,6 +149,21 @@
   sidebar-bottom user menu opens up and to the right instead of off-screen.
 
 #### Changed
+
+- **The slide over's footer joins the band.** Visible change: the footer
+  used to be a bare `gray-100` hairline with nothing behind it, which was
+  the treatment before the house settled on what a component-owned footer
+  looks like. It now wears the same pair the table's tfoot and the new
+  modal footer wear - `border-gray-200` with a `bg-gray-50` wash in light,
+  the `gray-400` alphas in dark - so the strip reads as the same part in
+  whichever component it turns up in, and a re-themed gray dial carries
+  all three together. Nothing moved: the padding, the alignment and the
+  slot are what they were. The band is simply darker and no longer
+  transparent, which is most noticeable on a sheet whose body scrolls
+  under it, where the wash is what tells you the row is pinned rather than
+  the last thing in the list. If you were leaning on the old flat look,
+  the band is one rule - override `.pc-slideover__footer` in your own
+  stylesheet.
 
 - **`badge` never wraps.** Behaviour change: a plain badge used to wrap a
   long label onto a second line, while a `with_icon` badge did not, so the

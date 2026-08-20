@@ -4,7 +4,7 @@ defmodule PetalComponents.Showcase.Modal do
 
   example :invite_dialog, "Invite dialog",
     description:
-      "The whole wiring in one place: a modal rendered with hide stays out of view until show_modal/1 - a plain LiveView.JS command on any phx-click, no server round-trip - and hide_modal/1 closes it the same way. Escape and click-away close by default (close_on_escape / close_on_click_away), title labels the dialog for screen readers, and max_width sizes the box." do
+      "The whole wiring in one place: a modal rendered with hide stays out of view until show_modal/1 - a plain LiveView.JS command on any phx-click, no server round-trip - and hide_modal/1 closes it the same way. Escape and click-away close by default (close_on_escape / close_on_click_away), title labels the dialog for screen readers, max_width sizes the box, and the :footer slot puts the actions in the band at the bottom." do
     ~H"""
     <.button color="gray" variant="outline" phx-click={show_modal("showcase-modal")}>
       Open modal
@@ -21,12 +21,150 @@ defmodule PetalComponents.Showcase.Modal do
           <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
         </.input_group>
       </div>
-      <div class="flex justify-end gap-2 mt-6">
+      <:footer>
         <.button color="gray" variant="outline" phx-click={hide_modal("showcase-modal")}>
           Cancel
         </.button>
         <.button phx-click={hide_modal("showcase-modal")}>Copy link</.button>
+      </:footer>
+    </.modal>
+    """
+  end
+
+  example :form_modal, "A form in a modal",
+    description:
+      "The most common thing a dialog holds. Fields go in the content, the submit row goes in the :footer, and the two never fight over spacing: the band supplies its own padding and the body keeps its own. On a narrow screen the buttons stack with the primary one on top, under the thumb, and unstack to a right-aligned row from sm up." do
+    ~H"""
+    <.button color="gray" variant="outline" phx-click={show_modal("showcase-modal-form")}>
+      <.icon name="hero-pencil-square" class="w-4 h-4 mr-1" /> Edit profile
+    </.button>
+
+    <.modal id="showcase-modal-form" title="Edit profile" hide max_width="md">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Make changes to your profile here. Nothing saves until you say so.
+      </p>
+      <div class="flex flex-col gap-4 mt-4">
+        <.field type="text" name="profile_name" value="Alex Rivera" label="Name" />
+        <.field type="text" name="profile_username" value="@alexrivera" label="Username" />
+        <.field
+          type="textarea"
+          name="profile_bio"
+          value=""
+          label="Bio"
+          placeholder="A line about you"
+        />
       </div>
+      <:footer>
+        <.button color="gray" variant="outline" phx-click={hide_modal("showcase-modal-form")}>
+          Cancel
+        </.button>
+        <.button type="submit" phx-click={hide_modal("showcase-modal-form")}>
+          Save changes
+        </.button>
+      </:footer>
+    </.modal>
+    """
+  end
+
+  example :scrolling_content, "A long body, a footer that stays put",
+    description:
+      "The box is a column: the header and the footer are fixed bands and the content between them is the only part that scrolls. Give the modal more text than the viewport can hold and the body scrolls under the action row rather than pushing it off the bottom, so the way out is always on screen." do
+    ~H"""
+    <.button color="gray" variant="outline" phx-click={show_modal("showcase-modal-terms")}>
+      Read the terms
+    </.button>
+
+    <.modal id="showcase-modal-terms" title="Terms of service" hide max_width="md">
+      <div class="flex flex-col gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <p :for={n <- 1..12}>
+          Section {n}. You agree to use the service in the way a reasonable
+          person would, and we agree to keep it running. Neither of us will
+          sell the other's data, send unsolicited mail, or pretend a change
+          to this document is a feature announcement. Scroll on: the accept
+          button is not going anywhere.
+        </p>
+      </div>
+      <:footer>
+        <.button color="gray" variant="outline" phx-click={hide_modal("showcase-modal-terms")}>
+          Decline
+        </.button>
+        <.button phx-click={hide_modal("showcase-modal-terms")}>Accept</.button>
+      </:footer>
+    </.modal>
+    """
+  end
+
+  example :sizes, "Sizes",
+    description:
+      "max_width caps the box: sm, md (the default), lg, xl, 2xl and full. The wrapper keeps its own padding either way, so even full stays off the viewport edges on a phone. Pick the smallest one the content reads comfortably in - a two-line confirmation in a 2xl box is mostly empty space." do
+    ~H"""
+    <div class="flex flex-wrap gap-2">
+      <.button
+        :for={size <- ~w(sm md lg xl 2xl full)}
+        color="gray"
+        variant="outline"
+        phx-click={show_modal("showcase-modal-size-" <> size)}
+      >
+        {size}
+      </.button>
+    </div>
+
+    <.modal
+      :for={size <- ~w(sm md lg xl 2xl full)}
+      id={"showcase-modal-size-" <> size}
+      title={"Size " <> size}
+      hide
+      max_width={size}
+    >
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        This box is capped at max_width="{size}". Everything else about it is
+        the same dialog.
+      </p>
+      <:footer>
+        <.button
+          color="gray"
+          variant="outline"
+          phx-click={hide_modal("showcase-modal-size-" <> size)}
+        >
+          Close
+        </.button>
+      </:footer>
+    </.modal>
+    """
+  end
+
+  example :custom_footer, "A footer with a tertiary action",
+    description:
+      "The band is a flex row that pushes its children to the end. Want something on the far left instead - a help link, a destructive action, a step counter - put one full-width child in the slot and lay it out yourself. The band, the border and the padding stay the component's job." do
+    ~H"""
+    <.button color="gray" variant="outline" phx-click={show_modal("showcase-modal-tertiary")}>
+      Open API key
+    </.button>
+
+    <.modal id="showcase-modal-tertiary" title="Rotate API key" hide max_width="md">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        A new key is issued straight away and the old one keeps working for
+        another 24 hours, so you have time to redeploy.
+      </p>
+      <:footer>
+        <div class="flex items-center justify-between w-full gap-4">
+          <.button color="gray" variant="ghost" phx-click={hide_modal("showcase-modal-tertiary")}>
+            <.icon name="hero-book-open" class="w-4 h-4 mr-1" /> Read the docs
+          </.button>
+          <div class="flex items-center gap-2">
+            <.button
+              color="gray"
+              variant="outline"
+              phx-click={hide_modal("showcase-modal-tertiary")}
+            >
+              Cancel
+            </.button>
+            <.button color="danger" phx-click={hide_modal("showcase-modal-tertiary")}>
+              Rotate key
+            </.button>
+          </div>
+        </div>
+      </:footer>
     </.modal>
     """
   end

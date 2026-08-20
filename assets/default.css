@@ -4000,8 +4000,13 @@
   .pc-modal__wrapper {
     @apply fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6;
   }
+  /* A column, like the slide over's box: header and footer are flex-none
+     bands and the content between them is the only part that scrolls. The
+     box itself clips rather than scrolls - a scrolling box would carry a
+     pinned footer up and out of view with it, and clipping is also what
+     keeps the footer's wash inside the rounded corners. */
   .pc-modal__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
+    @apply flex w-full max-h-full flex-col overflow-hidden bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-modal__box--sm {
@@ -4023,7 +4028,7 @@
     @apply max-w-full;
   }
   .pc-modal__header {
-    @apply px-5 py-3 border-b border-gray-100 dark:border-gray-700;
+    @apply flex-none px-5 py-3 border-b border-gray-100 dark:border-gray-700;
   }
   /* hide_header collapses the bar to a screen-reader-only box, never
      display:none - the dialog's aria-labelledby points at the title inside
@@ -4051,7 +4056,29 @@
     @apply w-5 h-5 fill-current;
   }
   .pc-modal__content {
-    @apply p-5;
+    @apply p-5 flex-1 min-h-0 overflow-y-auto;
+  }
+
+  /* The footer band. Same idiom as the table's tfoot and the alert dialog's
+     footer: border-t, a muted wash, edge to edge. flex-none is what pins it
+     - the box is a column and the content is the only part that scrolls, so
+     a long body slides UNDER this strip instead of pushing it off. Padding
+     is the modal's own px-5, so the band lines up with the header and the
+     body; the content keeps its own pb-5, so nothing double-counts. The
+     wash pair is the house convention: gray-50 in light, a gray-400 alpha
+     in dark, so a re-themed gray dial carries both. */
+  .pc-modal__footer {
+    @apply flex flex-none flex-col-reverse gap-2 px-5 py-4;
+    @apply sm:flex-row sm:justify-end;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
+  }
+
+  /* Nested-child radius: the action buttons derive from the BOX's clamped
+     radius, not the raw token - at large user radii a raw-token button
+     out-rounds its own dialog (same recipe as the alert dialog's footer,
+     spending the modal's own 1.2x/1.25rem clamp). */
+  .pc-modal__footer .pc-button {
+    border-radius: max(calc(min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem) - 0.25rem), 0px);
   }
 
   /* Skeleton */
@@ -4628,8 +4655,13 @@
   .pc-slideover__header__close-svg {
     @apply w-5 h-5 fill-current;
   }
+  /* The footer band: the tfoot pair, same as the modal's and the alert
+     dialog's. It used to carry a bare gray-100 hairline and no wash, so a
+     slide over and a modal open on the same page disagreed about what a
+     footer looks like. */
   .pc-slideover__footer {
-    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-400/17;
+    @apply flex flex-none items-center justify-end gap-2 px-5 py-4;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
   }
   .pc-slideover__content {
     @apply p-5 flex-1 overflow-y-auto;
