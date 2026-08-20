@@ -7638,11 +7638,17 @@
     --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
   }
 
-  /* A drag or keyboard focus IS intent, and keeps the accent. :is() so the
-     dragging modifier weighs the same as :hover above and wins on source order
-     - the pointer is sitting on the handle for the whole drag. */
-  .pc-resizable__handle:is(:focus-visible, .pc-resizable__handle--dragging) {
-    --pc-resizable-line: var(--color-primary-500);
+  /* A drag or keyboard focus IS intent, and keeps the accent - at 60%,
+     which reads as "live" without going full ink on a monochrome ramp
+     (solid primary-500 is near-black on white and near-white on black,
+     and a 1px line at full contrast shouts). :is() so the dragging
+     modifier weighs the same as :hover above and wins on source order -
+     the pointer is sitting on the handle for the whole drag. */
+  .pc-resizable__handle:is(
+      :focus-visible:not([data-pc-pointer-focus]),
+      .pc-resizable__handle--dragging
+    ) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-primary-500) 60%, transparent);
   }
 
   .pc-resizable--vertical > .pc-resizable__handle {
@@ -7663,8 +7669,11 @@
 
   /* Never a persistent :focus fill. The ring is for keyboard users only, and
    * on a splitter it has to be unmissable - arrows do nothing until you can
-   * see which separator has focus. */
-  .pc-resizable__handle:focus-visible {
+   * see which separator has focus. The :not() guard is the pointer-focus
+   * session (see the hook's startDrag): a script focus() on a modality-fresh
+   * page matches :focus-visible, and the ring on a mouse drag reads as two
+   * stray hairlines. */
+  .pc-resizable__handle:focus-visible:not([data-pc-pointer-focus]) {
     @apply ring-2 ring-primary-500/50;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
   }
@@ -7714,8 +7723,12 @@
     @apply border-gray-400 text-gray-500 dark:border-gray-400/40 dark:text-gray-400;
   }
 
-  .pc-resizable__handle:is(:focus-visible, .pc-resizable__handle--dragging) .pc-resizable__grip {
-    @apply border-primary-500 text-primary-500;
+  .pc-resizable__handle:is(
+      :focus-visible:not([data-pc-pointer-focus]),
+      .pc-resizable__handle--dragging
+    )
+    .pc-resizable__grip {
+    @apply border-primary-500/60 text-primary-500;
   }
 
   /* Mid-drag the pointer belongs to the separator: no text selection, and no

@@ -5674,6 +5674,11 @@ export const PetalResizable = {
     this.el.addEventListener("lostpointercapture", this.onPointerUp);
     this.el.addEventListener("keydown", this.onKeyDown);
     this.el.addEventListener("dblclick", this.onDblClick);
+    // Leaving the handle ends the pointer-focus session, so the next Tab in
+    // gets its ring.
+    this.onFocusOut = (e) =>
+      e.target?.removeAttribute?.("data-pc-pointer-focus");
+    this.el.addEventListener("focusout", this.onFocusOut);
   },
 
   // A LiveView patch re-renders panels from the server, which restores the
@@ -5695,6 +5700,7 @@ export const PetalResizable = {
     this.el.removeEventListener("lostpointercapture", this.onPointerUp);
     this.el.removeEventListener("keydown", this.onKeyDown);
     this.el.removeEventListener("dblclick", this.onDblClick);
+    this.el.removeEventListener("focusout", this.onFocusOut);
   },
 
   // :scope > … is the whole nesting story: an inner group's panels are not
@@ -5769,8 +5775,14 @@ export const PetalResizable = {
     this.holdBody();
     // preventDefault suppresses the browser's native focus-on-pointerdown,
     // so hand focus over explicitly - a pointer user should be able to grab
-    // a divider and immediately fine-tune with the arrow keys.
+    // a divider and immediately fine-tune with the arrow keys. But a script
+    // focus() on a modality-fresh page (nothing focused since load) matches
+    // :focus-visible in Chromium, so the very first drag after a reload wore
+    // the keyboard ring. The attribute records that THIS focus came from a
+    // pointer; the CSS keyboard affordances stand down while it is present,
+    // and the first real keystroke (keydown below) or a blur lifts it.
     handle.focus?.();
+    handle.setAttribute("data-pc-pointer-focus", "");
     e.preventDefault();
   },
 
@@ -5821,6 +5833,11 @@ export const PetalResizable = {
   keydown(e) {
     const index = this.handleIndex(e.target);
     if (index < 0 || index + 1 >= this.panels.length) return;
+
+    // Keys are keyboard modality by definition - restore the visible focus
+    // affordance a pointer-initiated focus had stood down (even for a no-op
+    // arrow at a hard bound: the intent is what matters).
+    this.handles[index]?.removeAttribute("data-pc-pointer-focus");
 
     let result = null;
 
