@@ -2111,23 +2111,35 @@
     @apply text-base;
   }
 
+  /* Resting cards RECEDE. A selection group spends its contrast budget on
+     which member is selected, so unselected cards sit a step quieter than
+     the standard input material (gray-400/8 + /25) a lone field wears -
+     pre-filled resting cards were eating the selected card's fill shift,
+     worst on a monochrome primary where the border can't carry it alone. */
   .pc-radio-card--outline .pc-radio-card__fake-input {
-    @apply bg-transparent border border-gray-300 dark:bg-gray-400/8 dark:border-gray-400/25;
+    @apply bg-transparent border border-gray-300 dark:bg-gray-400/4 dark:border-gray-400/20;
   }
 
-  /* Hover speaks through the border, not the fill - on a selection surface
-     the fill means "selected", so a hover wash would half-lie. Checked cards
-     keep their selected border (the :not guard). */
+  /* Hover: border firms AND a neutral wash lifts the card one step - to
+     roughly where the old resting state sat, never to the selected fill.
+     The wash stays on the GRAY ramp so the primary tint keeps meaning
+     exactly one thing: selected. (This used to be border-only; receding
+     the resting state made hover's "this is clickable" job matter more.)
+     Checked cards keep their selected treatment (the :not guard). */
   .pc-radio-card--outline:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
-    @apply border-gray-400 dark:border-gray-400/40;
+    @apply border-gray-400 bg-gray-50 dark:border-gray-400/40 dark:bg-gray-400/8;
   }
 
+  /* Classic rests FILLED - that's its identity - so its whole ladder sits
+     one rung above outline's, and the same receding applies: quieter
+     resting chips leave room for the selected one to speak. Hover climbs
+     one rung (unchecked only, same guard as outline). */
   .pc-radio-card--classic .pc-radio-card__fake-input {
-    @apply bg-gray-100 border border-transparent dark:bg-gray-400/17;
+    @apply bg-gray-100 border border-transparent dark:bg-gray-400/10;
   }
 
-  .pc-radio-card--classic:hover .pc-radio-card__fake-input {
-    @apply bg-gray-200/70 dark:bg-gray-400/25;
+  .pc-radio-card--classic:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
+    @apply bg-gray-200/70 dark:bg-gray-400/17;
   }
 
   /* Checked state: the fill shift is the primary signal (alpha tints stay
@@ -2136,12 +2148,17 @@
      carries the accent. Alpha also self-calibrates the border: it softens a
      monochrome's near-white/near-black poles more than it dulls a hue. */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-500 bg-primary-600/5 dark:border-primary-500/60 dark:bg-primary-500/10;
+    @apply border-primary-500 bg-primary-600/8 dark:border-primary-500/60 dark:bg-primary-500/17;
   }
-  /* classic is already a filled chip - the alpha tint would LIGHTEN it, so
-     selection keeps its resting material and speaks through the border */
+  /* Classic's selected fill takes the same primary tint as outline, one
+     rung stronger, because its resting chip is already filled and the
+     outline-strength tint would land level with it. (The old stance -
+     "the tint would LIGHTEN the chip, so selection speaks through the
+     border alone" - was true at the previous 5% tint; it isn't at these
+     strengths, and border-only selection was exactly the monochrome
+     weakness this ladder exists to fix.) */
   .pc-radio-card--classic > .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply bg-gray-100 dark:bg-gray-400/17;
+    @apply bg-primary-600/12 dark:bg-primary-500/25;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
