@@ -1865,6 +1865,8 @@ export const PetalCommand = {
 export const PetalCommandDialog = {
   mounted() {
     this.palette = this.el.querySelector(".pc-command");
+    this.wasOpen = false;
+    this.refocus = null;
 
     this.onShortcut = (e) => {
       const key = this.el.dataset.shortcut;
@@ -1911,6 +1913,31 @@ export const PetalCommandDialog = {
     this.el.addEventListener("click", this.onItemClick);
   },
 
+  // LiveView merges this element's attributes against the SERVER's render,
+  // and the server renders no `open` - showModal() sets it client-side. So
+  // any patch that re-renders the dialog's subtree (a reconnect's join
+  // morph, live assigns feeding the items) strips `open`, yanking an open
+  // palette shut with no `close` event: the scroll lock never releases and
+  // the page behind stays frozen with nothing on screen. Remember the
+  // client-owned state before the patch, put it back after.
+  beforeUpdate() {
+    this.wasOpen = this.el.open;
+    this.refocus = this.el.contains(document.activeElement)
+      ? document.activeElement
+      : null;
+  },
+
+  updated() {
+    if (this.wasOpen && !this.el.open) {
+      // Same task as the strip, so `open` never hits a style recalc off -
+      // the entrance animation does not replay.
+      this.el.showModal();
+      if (this.refocus?.isConnected) this.refocus.focus();
+      else this.focusInput();
+    }
+    this.refocus = null;
+  },
+
   destroyed() {
     // A patch can remove an OPEN dialog, and a removed element fires no close
     // event - never leave the page locked with nothing on screen. Guarded on
@@ -1937,6 +1964,10 @@ export const PetalCommandDialog = {
     // stacking a lock the single close would then under-release.
     document.body.classList.add("overflow-hidden");
     this.el.showModal();
+    this.focusInput();
+  },
+
+  focusInput() {
     const input = this.el.querySelector(".pc-command__input");
     if (input) input.focus();
   },
