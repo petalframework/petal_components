@@ -3034,7 +3034,8 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
           <.button
-            color={if @alert_dialog.variant == "destructive", do: "danger", else: "primary"}
+            color="gray"
+            variant="outline"
             phx-click={PetalComponents.AlertDialog.open_alert_dialog("pg-alert-dialog")}
           >
             Open alert dialog
