@@ -787,7 +787,7 @@ defmodule Dev.PlaygroundLive do
          ind_pos: "end",
          disabled: false
        },
-       switch: %{size: "md", disabled: false, error: false},
+       switch: %{size: "md", variant: "default", disabled: false, error: false},
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
@@ -1511,6 +1511,10 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
+
+  def handle_event("ctl_switch", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default pill),
+      do: {:noreply, update(socket, :switch, &%{&1 | variant: v})}
 
   def handle_event("ctl_switch", %{"k" => k}, socket) when k in ~w(disabled error),
     do:
@@ -2324,6 +2328,7 @@ defmodule Dev.PlaygroundLive do
         ~s(label="Email notifications"),
         "checked",
         sw.size != "md" && ~s(size="#{sw.size}"),
+        sw.variant != "default" && ~s(variant="#{sw.variant}"),
         sw.error && ~s(errors={["must be enabled"]}),
         sw.disabled && "disabled"
       ]
@@ -7240,6 +7245,7 @@ defmodule Dev.PlaygroundLive do
               label="Email notifications"
               checked
               size={@switch.size}
+              variant={@switch.variant}
               disabled={@switch.disabled}
               errors={if @switch.error, do: ["must be enabled"], else: []}
               no_margin
@@ -7259,6 +7265,21 @@ defmodule Dev.PlaygroundLive do
             >
               <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumb</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Thumb"
+              value={@switch.variant}
+              on_change="ctl_switch"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={t <- ~w(default pill)} value={t} phx-value-k="variant" phx-value-v={t}>
+                {t}
               </:item>
             </.toggle_group>
           </div>

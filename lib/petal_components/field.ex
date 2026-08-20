@@ -41,7 +41,10 @@ defmodule PetalComponents.Field do
     values: ~w(xs sm md lg xl),
     doc: "the size of the switch (xs, sm, md, lg or xl) or radio card (sm, md or lg)"
 
-  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
+  attr :variant, :any,
+    default: "outline",
+    doc:
+      ~s(radio-card: outline, classic. switch: "pill" swaps the round thumb for an iOS-style capsule; the track is unchanged)
 
   attr :combo_variant, :string,
     values: ["input", "trigger"],
@@ -361,7 +364,7 @@ defmodule PetalComponents.Field do
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
         <input :if={!@rest[:disabled]} type="hidden" name={@name} value="false" />
-        <label class={["pc-switch", "pc-switch--#{@size}"]}>
+        <label class={["pc-switch", "pc-switch--#{@size}", @variant == "pill" && "pc-switch--pill"]}>
           <input
             type="checkbox"
             id={@id}
