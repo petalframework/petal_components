@@ -1,4 +1,11 @@
 defmodule PetalComponents.Modal do
+  @moduledoc """
+  This is the general dialog, and it is light-dismissible on purpose - close
+  button, backdrop click, Escape. When the user must actually answer, and
+  walking away would leave it ambiguous what happened, reach for
+  `PetalComponents.AlertDialog.alert_dialog/1` instead: it asks one question
+  with two answers and ignores backdrop clicks.
+  """
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS

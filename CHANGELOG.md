@@ -139,6 +139,20 @@
 
 #### Fixed
 
+- **A LiveView patch no longer closes an open command palette.** The
+  server never renders `open` on the dialog - `showModal()` sets it
+  client-side - so any patch that re-rendered the dialog's subtree (a
+  reconnect's join morph after a deploy or a network blip, live assigns
+  feeding the items) merged the attribute away: the palette vanished
+  with no `close` event, and the body scroll lock it owns leaked
+  forever - a page that cannot scroll, with nothing on screen to
+  explain why. The `PetalCommandDialog` hook now records the
+  client-owned state in `beforeUpdate` and restores it in `updated`:
+  the dialog re-opens in the same task (the `open` remove-and-re-add
+  never reaches a style recalc, so the entrance animation does not
+  replay), and focus lands back where the user left it, so a half-typed
+  query keeps its cursor.
+
 - **`<.progress />` with no `value` no longer raises.** `value` has always
   defaulted to `nil` and the percentage maths divided by it anyway, so the
   documented default blew up with an arithmetic error. It now renders an
