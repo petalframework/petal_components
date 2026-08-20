@@ -3058,7 +3058,11 @@ defmodule Dev.PlaygroundLive do
             description={
               if @alert_dialog.description == "with",
                 do:
-                  "Everyone on the team loses access straight away, and the deployment history goes with it.",
+                  if(@alert_dialog.variant == "destructive",
+                    do:
+                      "Everyone on the team loses access straight away, and the deployment history goes with it.",
+                    else: "The new version goes live for every visitor as soon as you confirm."
+                  ),
                 else: nil
             }
             confirm_label={
@@ -3081,13 +3085,25 @@ defmodule Dev.PlaygroundLive do
               <img src="/dev-static/avatars/p32.jpg" alt="" />
             </:media>
             <div :if={@alert_dialog.length == "long"} class="space-y-3">
-              <p>Deleting this workspace also removes:</p>
-              <ul class="pl-4 space-y-1 list-disc marker:text-gray-400">
-                <li :for={n <- 1..12}>Project {n} and its {n * 3} deployments</li>
-              </ul>
               <p>
+                {if @alert_dialog.variant == "destructive",
+                  do: "Deleting this workspace also removes:",
+                  else: "Publishing updates:"}
+              </p>
+              <ul class="pl-4 space-y-1 list-disc marker:text-gray-400">
+                <li :for={n <- 1..12}>
+                  {if @alert_dialog.variant == "destructive",
+                    do: "Project #{n} and its #{n * 3} deployments",
+                    else: "Project #{n} and its #{n * 3} pages"}
+                </li>
+              </ul>
+              <p :if={@alert_dialog.variant == "destructive"}>
                 Billing stops at the end of the current period. Invoices already
                 issued stay in your records and are not refunded automatically.
+              </p>
+              <p :if={@alert_dialog.variant != "destructive"}>
+                Drafts stay unpublished. You can roll back to the previous
+                version from the deploy history at any time.
               </p>
             </div>
           </.alert_dialog>
