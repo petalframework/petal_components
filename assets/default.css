@@ -1475,6 +1475,34 @@
     @apply w-7 h-7;
     @apply peer-checked:translate-x-7;
   }
+  /* variant="pill" - the iOS-style thumb. Same height as the round one,
+     wider, so rounded-full stops being a circle and reads as a capsule.
+     The track is deliberately untouched: a pill and a round switch sitting
+     in the same form should differ in the thumb and nothing else, which
+     means the 2px inset at rest and when checked has to survive. Travel is
+     therefore wrapper width minus thumb width, not the round thumb's.
+     Two classes beat the base rule's one, so these win on specificity - no
+     bang needed. */
+  .pc-switch--pill .pc-switch__fake-input-bg--xs {
+    @apply w-4 h-3;
+    @apply peer-checked:translate-x-2;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--sm {
+    @apply w-5 h-4;
+    @apply peer-checked:translate-x-3;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--md {
+    @apply w-7 h-5;
+    @apply peer-checked:translate-x-3;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--lg {
+    @apply w-8 h-6;
+    @apply peer-checked:translate-x-4;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--xl {
+    @apply w-9 h-7;
+    @apply peer-checked:translate-x-5;
+  }
   /* Multiline surfaces clamp the radius: a full-radius theme on a
      textarea over-rounds into the text. Single-line inputs keep the
      pill option - that's a real style. */
