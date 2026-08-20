@@ -62,7 +62,8 @@ afterEach(() => {
 });
 
 // A rail plus its sections. `tops` sets each section's rect top in viewport
-// coordinates, which is the only geometry the hook reads.
+// coordinates; page-scrolled rails read exactly that, pane-scrolled rails
+// subtract the pane's own top (see the pane spec).
 function mount({ ids = ["a", "b", "c"], tops = {}, offset = "6rem" } = {}) {
   const observers = stubIntersectionObserver();
 
@@ -106,6 +107,8 @@ const fakeScroller = (metrics) => ({
   addEventListener() {},
   removeEventListener() {},
   style: {},
+  // a pane at the top of the viewport unless the spec says otherwise
+  getBoundingClientRect: () => ({ top: 0 }),
   ...metrics,
 });
 
@@ -234,6 +237,24 @@ describe("PetalScrollspy", () => {
 
     expect(activeIds(wrap)).toEqual(["c"]);
     expect(currentIds(wrap)).toEqual(["c"]);
+  });
+
+  it("measures against the pane when the sections scroll inside one", () => {
+    // The pane sits 500px down the page and is 400px tall. Section b is
+    // 100px into the pane (viewport top 600). Measured against the viewport,
+    // the -25% line (192 of jsdom's 768) would still call `a` active - the
+    // bug this pins: the highlight depended on where the pane sat on the
+    // page. Against the pane's own box the line is 100, and b has reached it.
+    const { hook, wrap } = mount({ tops: { a: -400, b: 600, c: 1400 } });
+    hook.scrollRoot = fakeScroller({
+      clientHeight: 400,
+      scrollTop: 500,
+      scrollHeight: 3000,
+      getBoundingClientRect: () => ({ top: 500 }),
+    });
+    hook.sync();
+
+    expect(activeIds(wrap)).toEqual(["b"]);
   });
 
   it("re-syncs when the observer fires", () => {

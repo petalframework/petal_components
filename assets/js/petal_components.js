@@ -5460,9 +5460,10 @@ export function scrollspyActive(sections, { line = 0, atBottom = false } = {}) {
   return active;
 }
 
-// The scrollable box the sections live in. Sections inside an overflow pane
-// (an app shell with its own scroller) still measure against the viewport for
-// the observer, but "am I at the bottom" is a question about their scroller.
+// The scrollable box the sections live in. For sections inside an overflow
+// pane (an app shell with its own scroller) this box is the frame every
+// measurement uses: the activation line, the section tops, and "am I at the
+// bottom" are all questions about the pane, not the viewport.
 function scrollspyScrollRoot(el) {
   let node = el?.parentElement;
   while (node && node !== document.body) {
@@ -5573,7 +5574,10 @@ export const PetalScrollspy = {
 
     this.observer?.disconnect();
     if (typeof IntersectionObserver === "undefined") return;
+    // Observe within the pane when there is one, so rootMargin crops the box
+    // that actually scrolls; null = the viewport, for page-scrolled rails.
     this.observer = new IntersectionObserver(() => this.sync(), {
+      root: this.scrollFrame().pane,
       rootMargin: this.rootMargin,
       threshold: 0,
     });
@@ -5663,13 +5667,34 @@ export const PetalScrollspy = {
     return root.scrollTop + root.clientHeight >= root.scrollHeight - 2;
   },
 
+  // The page-vs-pane question, answered once for both measurements. Sections
+  // in an overflow pane measure against THEIR scroller and the activation
+  // line is a fraction of the pane's height - measured against the viewport,
+  // the highlight becomes a function of where the pane happens to sit on the
+  // page (right at one page-scroll position, wrong at every other).
+  scrollFrame() {
+    const root = this.scrollRoot;
+    if (
+      !root ||
+      root === document.scrollingElement ||
+      root === document.documentElement
+    ) {
+      return { base: 0, height: window.innerHeight || 0, pane: null };
+    }
+    return {
+      base: root.getBoundingClientRect().top,
+      height: root.clientHeight,
+      pane: root,
+    };
+  },
+
   sync() {
     if (!this.targets?.length) return;
 
-    const height = window.innerHeight || 0;
+    const { base, height } = this.scrollFrame();
     const sections = this.targets.map((target) => ({
       id: target.id,
-      top: target.getBoundingClientRect().top,
+      top: target.getBoundingClientRect().top - base,
     }));
 
     this.setActive(
