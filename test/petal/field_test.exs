@@ -1006,12 +1006,41 @@ defmodule PetalComponents.FieldTest do
     assert html =~ "<input"
     assert html =~ ~s|type="text"|
     assert html =~ "pc-clearable-field-button"
-    assert html =~ "hero-x-mark-solid"
+    # adornment contract: an ACTION wears the chip and the house mini x -
+    # the same glyph the combobox clear uses, never the heavy 24/solid one
+    assert has_icon?(html, "hero-x-mark-mini")
+    refute html =~ "hero-x-mark-solid"
     assert html =~ "pc-clearable-field-icon"
     assert html =~ ~s|phx-hook="PetalClearableInput"|
     assert html =~ "data-pc-clear-input"
     assert html =~ "data-pc-clear-btn"
     refute html =~ "x-data"
+  end
+
+  # Adornment contract: clicking the calendar mark does nothing the field
+  # doesn't already do - the browser's own picker indicator covers the rail -
+  # so it is an INDICATOR: a bare span, hidden from the a11y tree, no button
+  # semantics and nothing in the tab order.
+  test "native date field renders the mark as a bare indicator, not a button" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    for type <- ~w(date datetime-local month week time) do
+      assigns = Map.put(assigns, :type, type)
+
+      html =
+        rendered_to_string(~H"""
+        <.form for={@form}>
+          <.field type={@type} field={@form[:when]} label="When" />
+        </.form>
+        """)
+
+      assert html =~ ~s|<span class="pc-date-input-icon" aria-hidden="true">|
+      assert html =~ "pc-date-input-icon-glyph"
+      refute html =~ "showPicker"
+      refute html =~ ~s|<button type="button" class="pc-date-input-icon"|
+      # the mark is never sized inline - the glyph class owns the one size
+      refute html =~ ~s|class="w-5 h-5 text-gray-400"|
+    end
   end
 
   test "field_help_text" do
