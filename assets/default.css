@@ -3083,9 +3083,12 @@
   .pc-data-table__filter {
     @apply flex items-center gap-1;
   }
-  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     chevrons). No margin: the icon always sits inside a pc-button, whose
+     own gap-2 spaces it - a margin here stacked on top and made the filter
+     triggers the one button family with a wider icon gap. */
   .pc-data-table__filter-icon.pc-data-table__filter-icon {
-    @apply w-3.5! h-3.5! mr-1.5;
+    @apply w-3.5! h-3.5!;
   }
   .pc-data-table__filter-form {
     @apply flex w-56 flex-col gap-2;
