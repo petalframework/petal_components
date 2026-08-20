@@ -7611,6 +7611,38 @@
   .pc-resizable__handle {
     @apply relative z-10 flex items-center justify-center shrink-0 self-stretch;
     @apply w-[11px] -mx-[5px] cursor-col-resize touch-none select-none outline-none;
+    /* At rest the divider is the same structural hairline the cards and tables
+       draw with: chrome between two panes, not a line asking to be looked at. */
+    --pc-resizable-line: var(--color-gray-200);
+  }
+
+  /* The line colour rides a variable set on the HANDLE - a real element, so the
+     dark override resolves - and the ::before below only reads it. Same reason
+     as the range input's track: a `dark:` variant applied straight to a
+     pseudo-element compiles to a trailing `:where(.dark, ...)` that can never
+     match, which is why the line used to sit at its light gray in dark mode and
+     read as a white bar. Setting it here also keeps every state at one class of
+     specificity, so hover can never out-rank a live drag. */
+  .pc-resizable__handle:where(.dark, .dark *) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
+  }
+
+  /* Hover firms the hairline exactly one neutral step. Passing the mouse over a
+     divider on the way somewhere else is not an intent to resize, so it does
+     not get the accent - it just becomes a slightly more present line. */
+  .pc-resizable__handle:hover {
+    --pc-resizable-line: var(--color-gray-300);
+  }
+
+  .pc-resizable__handle:hover:where(.dark, .dark *) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
+  }
+
+  /* A drag or keyboard focus IS intent, and keeps the accent. :is() so the
+     dragging modifier weighs the same as :hover above and wins on source order
+     - the pointer is sitting on the handle for the whole drag. */
+  .pc-resizable__handle:is(:focus-visible, .pc-resizable__handle--dragging) {
+    --pc-resizable-line: var(--color-primary-500);
   }
 
   .pc-resizable--vertical > .pc-resizable__handle {
@@ -7621,18 +7653,12 @@
    * without touching the hit area's geometry. */
   .pc-resizable__handle::before {
     content: "";
-    @apply absolute w-px h-full bg-gray-200 transition-colors duration-150 ease-out;
-    @apply dark:bg-gray-400/25;
+    @apply absolute w-px h-full transition-colors duration-150 ease-out;
+    background-color: var(--pc-resizable-line);
   }
 
   .pc-resizable--vertical > .pc-resizable__handle::before {
     @apply w-full h-px;
-  }
-
-  .pc-resizable__handle:hover::before,
-  .pc-resizable__handle:focus-visible::before,
-  .pc-resizable__handle--dragging::before {
-    @apply bg-primary-500;
   }
 
   /* Never a persistent :focus fill. The ring is for keyboard users only, and
@@ -7643,15 +7669,17 @@
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
   }
 
-  /* The grip pill: the visible "you can drag this" affordance. */
+  /* The grip chip: the visible "you can drag this" affordance. A panel surface
+     sitting on the hairline, wearing the same border the inputs and radio
+     cards wear, with the muted-glyph pair on its dots. */
   .pc-resizable__grip {
     @apply relative z-10 flex items-center justify-center;
     /* Note: .pc-resizable__handle--with-handle is deliberately markup-only -
        the grip below carries all the visible styling; the modifier exists on
        the separator as a stable override hook for consumers. */
-    @apply w-[11px] h-6 border border-gray-200 bg-gray-50 text-gray-400;
+    @apply w-[11px] h-6 border border-gray-300 bg-white text-gray-400;
     @apply transition-colors duration-150 ease-out;
-    @apply dark:border-gray-400/25 dark:bg-gray-800 dark:text-gray-500;
+    @apply dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-500;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
   }
 
@@ -7679,9 +7707,14 @@
     );
   }
 
-  .pc-resizable__handle:hover .pc-resizable__grip,
-  .pc-resizable__handle:focus-visible .pc-resizable__grip,
-  .pc-resizable__handle--dragging .pc-resizable__grip {
+  /* Same story as the hairline: hover firms the border one step (the pair the
+     outline radio cards hover with) and darkens the dots; the accent is held
+     back for a real drag or keyboard focus. */
+  .pc-resizable__handle:hover .pc-resizable__grip {
+    @apply border-gray-400 text-gray-500 dark:border-gray-400/40 dark:text-gray-400;
+  }
+
+  .pc-resizable__handle:is(:focus-visible, .pc-resizable__handle--dragging) .pc-resizable__grip {
     @apply border-primary-500 text-primary-500;
   }
 

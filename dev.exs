@@ -7712,14 +7712,28 @@ defmodule Dev.PlaygroundLive do
               min_size={18}
               collapsible={@rsz.collapsible}
             >
-              <nav class="h-full p-4 text-sm bg-gray-50 dark:bg-gray-800/40">
-                <div class="mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
-                  Components
+              <nav class="h-full p-3 overflow-auto text-sm bg-gray-50 dark:bg-gray-800/40">
+                <div class="px-2 mb-1.5 text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+                  Layout
                 </div>
-                <ul class="space-y-1.5 text-gray-600 dark:text-gray-300">
-                  <li>Button</li>
-                  <li class="font-medium text-gray-900 dark:text-white">Resizable</li>
-                  <li>Table</li>
+                <ul class="mb-4 space-y-0.5 text-gray-600 dark:text-gray-300">
+                  <li class="px-2 py-1 rounded-md">Container</li>
+                  <li class="px-2 py-1 font-medium text-gray-900 rounded-md bg-gray-200/70 dark:bg-gray-400/17 dark:text-white">
+                    Resizable
+                  </li>
+                  <li class="px-2 py-1 rounded-md">Accordion</li>
+                </ul>
+                <div class="px-2 mb-1.5 text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+                  Data
+                </div>
+                <ul class="space-y-0.5 text-gray-600 dark:text-gray-300">
+                  <li class="px-2 py-1 rounded-md">Table</li>
+                  <li class="flex items-center justify-between gap-2 px-2 py-1 rounded-md">
+                    Data table
+                    <span class="text-[10px] font-semibold uppercase text-success-600 dark:text-success-400">
+                      new
+                    </span>
+                  </li>
                 </ul>
               </nav>
             </.resizable_panel>
@@ -7735,11 +7749,28 @@ defmodule Dev.PlaygroundLive do
             />
             <.resizable_panel default_size={72} min_size={30}>
               <div class="h-full p-5 overflow-auto">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Resizable</h3>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                <div class="text-[11px] font-semibold tracking-wide uppercase text-primary-600 dark:text-primary-400">
+                  Layout
+                </div>
+                <h3 class="mt-1 text-base font-semibold text-gray-900 dark:text-white">Resizable</h3>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
                   Drag the divider. With collapsible on, pull the nav past half its
                   min_size and it snaps shut - pull back out and it reopens.
                 </p>
+                <dl class="grid grid-cols-2 gap-3 mt-4 text-sm">
+                  <div class="p-3 border border-gray-200 rounded-lg dark:border-gray-400/17">
+                    <dt class="text-xs text-gray-500 dark:text-gray-400">default_size</dt>
+                    <dd class="font-mono font-medium text-gray-900 tabular-nums dark:text-white">
+                      28 / 72
+                    </dd>
+                  </div>
+                  <div class="p-3 border border-gray-200 rounded-lg dark:border-gray-400/17">
+                    <dt class="text-xs text-gray-500 dark:text-gray-400">min_size</dt>
+                    <dd class="font-mono font-medium text-gray-900 tabular-nums dark:text-white">
+                      18 / 30
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </.resizable_panel>
           </.resizable_group>
@@ -7806,11 +7837,32 @@ defmodule Dev.PlaygroundLive do
         class="h-64 border border-gray-200 rounded-xl dark:border-gray-400/20"
       >
         <.resizable_panel id="pg-rsz-editor" default_size={65} min_size={25}>
-          <div class="h-full p-4 font-mono text-xs leading-5 text-gray-700 whitespace-pre dark:text-gray-200">
-            <div>&lt;.resizable_group orientation="vertical" on_resize="pg_resize"&gt;</div>
-            <div></div>
-            <div>def handle_event("pg_resize", params, socket), do:</div>
-            <div>assign(socket, :rsz_sizes, params["sizes"])</div>
+          <div class="flex flex-col h-full">
+            <div class="flex items-center gap-1 px-2 pt-2 text-xs shrink-0">
+              <span class="px-2 py-1 font-medium text-gray-900 bg-gray-100 rounded-t-md dark:bg-gray-400/17 dark:text-white">
+                playground_live.ex
+              </span>
+            </div>
+            <%!-- Hand-rolled tokens rather than the mdex/lumis path the "View
+            code" panels use: this is demo content inside a pane, and it has to
+            read on the page's own surface in both schemes. --%>
+            <div class="flex-1 p-4 overflow-auto font-mono text-xs leading-5 text-gray-700 dark:text-gray-200">
+              <div>
+                <span class="text-gray-400 dark:text-gray-500">&lt;</span><span class="text-danger-500 dark:text-danger-400">.resizable_group</span>
+                <span class="text-warning-600 dark:text-warning-400">orientation</span><span class="text-gray-400 dark:text-gray-500">=</span><span class="text-success-600 dark:text-success-400">"vertical"</span>
+                <span class="text-warning-600 dark:text-warning-400">on_resize</span><span class="text-gray-400 dark:text-gray-500">=</span><span class="text-success-600 dark:text-success-400">"pg_resize"</span><span class="text-gray-400 dark:text-gray-500">&gt;</span>
+              </div>
+              <div>&nbsp;</div>
+              <div>
+                <span class="text-danger-500 dark:text-danger-400">def</span>
+                <span class="text-info-600 dark:text-info-400">handle_event</span><span class="text-gray-500 dark:text-gray-400">(</span><span class="text-success-600 dark:text-success-400">"pg_resize"</span><span class="text-gray-500 dark:text-gray-400">, params, socket)</span><span class="text-gray-400 dark:text-gray-500">,</span>
+                <span class="text-danger-500 dark:text-danger-400">do:</span>
+              </div>
+              <div class="pl-3">
+                <span class="text-info-600 dark:text-info-400">assign</span><span class="text-gray-500 dark:text-gray-400">(socket,</span>
+                <span class="text-warning-600 dark:text-warning-400">:rsz_sizes</span><span class="text-gray-500 dark:text-gray-400">, params[</span><span class="text-success-600 dark:text-success-400">"sizes"</span><span class="text-gray-500 dark:text-gray-400">])</span>
+              </div>
+            </div>
           </div>
         </.resizable_panel>
         <.resizable_handle
@@ -7822,10 +7874,19 @@ defmodule Dev.PlaygroundLive do
           label="Resize console"
         />
         <.resizable_panel default_size={35} min_size={15}>
-          <div class="h-full p-4 font-mono text-xs bg-gray-50 dark:bg-gray-800/40">
-            <div class="text-gray-400">last pushed sizes</div>
-            <div class="mt-1 text-gray-700 dark:text-gray-200">
-              {Enum.map_join(@rsz_sizes, " / ", &"#{&1}%")}
+          <div class="h-full p-4 overflow-auto font-mono text-xs leading-5 bg-gray-50 dark:bg-gray-800/40">
+            <div class="mb-1 font-sans text-[10px] tracking-wide text-gray-400 uppercase">
+              console
+            </div>
+            <div>
+              <span class="text-info-600 dark:text-info-400">[info]</span>
+              <span class="text-gray-700 dark:text-gray-200">pg_resize &rarr;</span>
+              <span class="font-medium text-success-600 tabular-nums dark:text-success-400">
+                {Enum.map_join(@rsz_sizes, " / ", &"#{&1}%")}
+              </span>
+            </div>
+            <div class="text-gray-400 dark:text-gray-500">
+              # also on the wire as petal:resizable-resize
             </div>
           </div>
         </.resizable_panel>
