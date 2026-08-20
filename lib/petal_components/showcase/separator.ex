@@ -44,13 +44,13 @@ defmodule PetalComponents.Showcase.Separator do
 
   example :activity_feed, "A date separator in a feed",
     description:
-      "Rich label content goes in the default slot, which wins over the label attr. Here it is an icon plus a date, start-aligned the way an activity feed wants it." do
+      "Rich label content goes in the default slot, which wins over the label attr. Here it is an icon plus a date, centred the way feeds conventionally break days - start and end alignment are above, for labels that hug an edge." do
     ~H"""
     <div class="max-w-md">
       <div class="flex items-center gap-2 py-2 text-sm text-gray-700 dark:text-gray-300">
         <.avatar size="xs" name="Amelia Reid" random_color />Amelia closed PET-114
       </div>
-      <.separator label_position="start" class="my-3">
+      <.separator class="my-3">
         <span class="inline-flex items-center gap-1.5">
           <.icon name="hero-calendar-days" class="h-3.5 w-3.5" /> 12 August
         </span>
@@ -64,12 +64,12 @@ defmodule PetalComponents.Showcase.Separator do
 
   example :vertical, "Vertical",
     description:
-      "A w-px rule that stretches to its flex parent. Give it a height when the parent does not, as in this toolbar. Vertical separators are never labelled." do
+      "A w-px rule that stretches to its flex parent. Give it a height when the parent does not, as in this toolbar - and pair the height with self-center, because an explicit height defeats the stretch and flexbox then parks the rule at the top of the row. Vertical separators are never labelled." do
     ~H"""
     <div class="inline-flex items-center gap-2 rounded-xl border border-gray-200 p-1.5 dark:border-gray-800">
       <.button variant="ghost" size="sm" label="Bold" />
       <.button variant="ghost" size="sm" label="Italic" />
-      <.separator orientation="vertical" class="h-6" />
+      <.separator orientation="vertical" class="h-6 self-center" />
       <.button variant="ghost" size="sm" label="Link" />
       <.button variant="ghost" size="sm" label="Code" />
     </div>

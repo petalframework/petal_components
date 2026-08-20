@@ -18,8 +18,11 @@ defmodule PetalComponents.Separator do
   ## Vertical
 
   A vertical separator is a `w-px` rule that stretches to its flex parent
-  (`self-stretch`). If the parent does not give it a height, set one yourself:
-  `class="h-6"`. Labelled vertical separators are deliberately not supported.
+  (`self-stretch`). If the parent does not give it a height, set one yourself -
+  and pair it with `self-center`: `class="h-6 self-center"`. An explicit height
+  defeats the stretch, and flexbox's fallback then parks the rule at the top of
+  the row instead of the middle. Labelled vertical separators are deliberately
+  not supported.
 
   ## Decorative vs semantic
 
