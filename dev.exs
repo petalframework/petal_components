@@ -789,9 +789,10 @@ defmodule Dev.PlaygroundLive do
        },
        switch: %{size: "md", variant: "default", disabled: false, error: false},
        modal: %{
-         max_width: "md",
+         max_width: "sm",
          header: true,
          close: true,
+         dismiss: true,
          footer: "actions",
          content: "short"
        },
@@ -834,7 +835,7 @@ defmodule Dev.PlaygroundLive do
          label: "none",
          step: "whole"
        },
-       slideover: %{origin: "right", width: "md"},
+       slideover: %{origin: "right", width: "sm"},
        tabs: %{variant: "segmented", active: "overview", number: true},
        table: %{
          sort_by: "name",
@@ -1540,7 +1541,7 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(short long),
       do: {:noreply, update(socket, :modal, &%{&1 | content: v})}
 
-  def handle_event("ctl_modal", %{"k" => k}, socket) when k in ~w(header close),
+  def handle_event("ctl_modal", %{"k" => k}, socket) when k in ~w(header close dismiss),
     do:
       {:noreply,
        update(socket, :modal, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
@@ -2369,7 +2370,8 @@ defmodule Dev.PlaygroundLive do
         "hide",
         m.max_width != "md" && ~s(max_width="#{m.max_width}"),
         !m.header && "hide_header",
-        m.header && !m.close && "hide_close_button"
+        m.header && !m.close && "hide_close_button",
+        !m.dismiss && ~s(close_on_click_away={false})
       ]
       |> Enum.filter(& &1)
 
@@ -5027,10 +5029,10 @@ defmodule Dev.PlaygroundLive do
         ignores backdrop clicks.
       </p>
       <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
-        One playground-only detail: the flagship below turns <code>close_on_click_away</code>
-        off, so the dials stay usable while it is open. Everywhere else,
-        including every example further down, click-away closes the way it
-        ships.
+        The flagship ships the way the component does: click-away closes it.
+        That includes clicking a dial while it is open - the dial still
+        registers, so reopen to see the change. Flip <code>click away</code>
+        off to keep it up while you play.
       </p>
 
       <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
@@ -5098,12 +5100,21 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Chrome"
-              value={for {k, on} <- [{"header", @modal.header}, {"close", @modal.close}], on, do: k}
+              value={
+                for {k, on} <- [
+                      {"header", @modal.header},
+                      {"close", @modal.close},
+                      {"dismiss", @modal.dismiss}
+                    ],
+                    on,
+                    do: k
+              }
               on_change="ctl_modal"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item value="header" phx-value-k="header">header</:item>
               <:item value="close" phx-value-k="close">close button</:item>
+              <:item value="dismiss" phx-value-k="dismiss">click away</:item>
             </.toggle_group>
           </div>
         </div>
@@ -5116,7 +5127,7 @@ defmodule Dev.PlaygroundLive do
         max_width={@modal.max_width}
         hide_header={!@modal.header}
         hide_close_button={!@modal.close}
-        close_on_click_away={false}
+        close_on_click_away={@modal.dismiss}
       >
         <p class="text-sm text-gray-500 dark:text-gray-400">
           Share this link with your teammates and they'll join the workspace
