@@ -3076,8 +3076,13 @@
   .pc-data-table__column-move {
     @apply flex shrink-0 items-center;
   }
+  /* The action-adornment contract's colours (see the field adornments block):
+     rest gray-400/gray-500, hover wash gray-100 / gray-400/17, hover glyph
+     gray-700/gray-200, and a focus ring - this chip predated the contract. */
   .pc-data-table__column-move-btn {
-    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:pointer-events-none disabled:opacity-30;
+    @apply dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-data-table__column-move-icon.pc-data-table__column-move-icon {
