@@ -7829,8 +7829,16 @@
     @apply -mb-1.5;
   }
 
+  /* The line runs to 0.5rem short of the NEXT marker, not of its own item:
+     the items sit in the list's --pc-timeline-h-gap, so a symmetric margin
+     would leave gap + margin of bare rail on the right of every joint while
+     the left had margin alone (maintainer's catch: 8px vs 32px). The end
+     margin swallows the gap so both shoulders of the line measure the same
+     0.5rem. Change the list's gap only through the property, or the line
+     stops reaching. */
   .pc-timeline--horizontal .pc-timeline__connector {
-    @apply mx-2 h-0 flex-1 border-t-2 border-gray-200 dark:border-gray-400/25;
+    @apply h-0 flex-1 border-t-2 border-gray-200 dark:border-gray-400/25;
+    margin-inline: 0.5rem calc(0.5rem - var(--pc-timeline-h-gap));
   }
 
   .pc-timeline--dashed .pc-timeline__connector {
@@ -7981,7 +7989,12 @@
      grows the padding box without growing the content, so no vertical
      scrollbar appears. */
   .pc-timeline--horizontal {
-    @apply flex snap-x snap-mandatory gap-6 overflow-x-auto;
+    /* The gap is a property because the connector's end margin has to
+       reference it (see the connector rule): the line crosses this gap to
+       land 0.5rem short of the next marker. */
+    --pc-timeline-h-gap: 1.5rem;
+    @apply flex snap-x snap-mandatory overflow-x-auto;
+    gap: var(--pc-timeline-h-gap);
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
     border-radius: var(--pc-radius, 0.625rem);
     padding-block: calc(var(--pc-timeline-ring) + 0.25rem);
