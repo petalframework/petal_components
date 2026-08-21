@@ -7598,6 +7598,11 @@
 @layer components {
   .pc-timeline {
     @apply m-0 list-none p-0;
+    /* How far the current entry's halo reaches past its marker. It lives here
+       rather than inline in the box-shadow because the horizontal scroller has
+       to reserve exactly this much room for it - see the padding-block down in
+       the horizontal section. Change one and the other follows. */
+    --pc-timeline-ring: 4px;
   }
 
   .pc-timeline--vertical {
@@ -7684,37 +7689,44 @@
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--primary,
-  .pc-timeline__marker--number.pc-timeline__marker--primary {
+  .pc-timeline__marker--number.pc-timeline__marker--primary,
+  .pc-timeline__marker--loading.pc-timeline__marker--primary {
     @apply bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--secondary,
-  .pc-timeline__marker--number.pc-timeline__marker--secondary {
+  .pc-timeline__marker--number.pc-timeline__marker--secondary,
+  .pc-timeline__marker--loading.pc-timeline__marker--secondary {
     @apply bg-secondary-50 text-secondary-600 dark:bg-secondary-500/15 dark:text-secondary-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--gray,
-  .pc-timeline__marker--number.pc-timeline__marker--gray {
+  .pc-timeline__marker--number.pc-timeline__marker--gray,
+  .pc-timeline__marker--loading.pc-timeline__marker--gray {
     @apply bg-gray-100 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--info,
-  .pc-timeline__marker--number.pc-timeline__marker--info {
+  .pc-timeline__marker--number.pc-timeline__marker--info,
+  .pc-timeline__marker--loading.pc-timeline__marker--info {
     @apply bg-info-50 text-info-600 dark:bg-info-500/15 dark:text-info-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--success,
-  .pc-timeline__marker--number.pc-timeline__marker--success {
+  .pc-timeline__marker--number.pc-timeline__marker--success,
+  .pc-timeline__marker--loading.pc-timeline__marker--success {
     @apply bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--warning,
-  .pc-timeline__marker--number.pc-timeline__marker--warning {
+  .pc-timeline__marker--number.pc-timeline__marker--warning,
+  .pc-timeline__marker--loading.pc-timeline__marker--warning {
     @apply bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-300;
   }
 
   .pc-timeline__marker--icon.pc-timeline__marker--danger,
-  .pc-timeline__marker--number.pc-timeline__marker--danger {
+  .pc-timeline__marker--number.pc-timeline__marker--danger,
+  .pc-timeline__marker--loading.pc-timeline__marker--danger {
     @apply bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-300;
   }
 
@@ -7753,7 +7765,7 @@
   /* States. Two classes deep so they land on top of the colour rules above
      without an `!important` fight. */
   .pc-timeline__marker.pc-timeline__marker--current {
-    box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 20%, transparent);
+    box-shadow: 0 0 0 var(--pc-timeline-ring) color-mix(in oklab, currentColor 20%, transparent);
   }
 
   .pc-timeline__marker.pc-timeline__marker--upcoming {
@@ -7764,9 +7776,53 @@
     @apply h-3 w-3;
   }
 
-  /* Connectors */
+  /* Loading. The marker is always a chip here, whatever the entry's `marker`
+     is, because a 10px dot has nowhere to put a spinner - the colour rules
+     above already hand a loading marker the icon chip's wash. The dot's
+     first-line offset comes off with it, or the chip would hang low. */
+  .pc-timeline__marker--loading {
+    @apply h-8 w-8;
+  }
+
+  .pc-timeline--vertical .pc-timeline__marker--dot.pc-timeline__marker--loading {
+    @apply mt-0;
+  }
+
+  /* The button's spinner, sized for the chip. Its class carries `animate-spin`
+     and no reduced-motion guard of its own, so the guard lives here: a
+     timeline can sit on screen for minutes at a time, which is exactly the
+     case reduced-motion is asking about. Two classes deep to beat it. */
+  .pc-timeline__spinner {
+    @apply h-4 w-4 flex-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-timeline__marker .pc-timeline__spinner {
+      animation: none;
+    }
+  }
+
+  /* Connectors. No margins around the vertical line: it runs from one marker's
+     edge to the next one's, so the rail reads as a single line instead of a
+     column of stubs.
+
+     This used to be `my-1.5`, and that was a bug waiting for the right entry.
+     The run between two markers is content-driven (it's whatever is left of
+     the entry after the marker), but 12px of margin came off it whatever its
+     height, so a short entry - a title with no description - was left with a
+     5px connector sitting between 23px neighbours. min-height keeps a real
+     segment under even the shortest entry the layout can produce. */
   .pc-timeline--vertical .pc-timeline__connector {
-    @apply my-1.5 w-0 flex-1 border-l-2 border-gray-200 dark:border-gray-400/25;
+    @apply w-0 min-h-3 flex-1 border-l-2 border-gray-200 dark:border-gray-400/25;
+  }
+
+  /* A dot is small, so it drops 6px to sit on the first line of text. Left
+     alone that offset is a hole in the rail, because the line above it stops
+     at the entry boundary. The entry BEFORE a dot reaches down through it. */
+  .pc-timeline--vertical
+    .pc-timeline__item:has(+ .pc-timeline__item .pc-timeline__marker--dot)
+    .pc-timeline__connector {
+    @apply -mb-1.5;
   }
 
   .pc-timeline--horizontal .pc-timeline__connector {
@@ -7858,11 +7914,21 @@
   /* Horizontal: milestones on a rail, content underneath, scrolling sideways
      with snap points when the row outgrows its container. The list itself is
      the scroller, so it takes focus and shows a ring - a scroll region that
-     can't be reached by keyboard is a trap for anyone not using a mouse. */
+     can't be reached by keyboard is a trap for anyone not using a mouse.
+
+     Watch the vertical padding. `overflow-x: auto` against an `overflow-y`
+     of `visible` computes the y axis to `auto` as well - that is the spec, not
+     a browser quirk - so this element clips at its padding box top and bottom
+     even though nothing here ever scrolls vertically. The rail sits flush at
+     the top of that box, so with no padding-top the current marker's halo was
+     sliced off at exactly its own reach. The padding is the halo's room: it
+     grows the padding box without growing the content, so no vertical
+     scrollbar appears. */
   .pc-timeline--horizontal {
-    @apply flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2;
+    @apply flex snap-x snap-mandatory gap-6 overflow-x-auto;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
     border-radius: var(--pc-radius, 0.625rem);
+    padding-block: calc(var(--pc-timeline-ring) + 0.25rem);
   }
 
   @media (prefers-reduced-motion: no-preference) {

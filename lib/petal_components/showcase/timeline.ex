@@ -45,7 +45,7 @@ defmodule PetalComponents.Showcase.Timeline do
 
   example :activity_feed, "Activity feed",
     description:
-      "variant=\"compact\" is the density you want for a feed: tighter rhythm, smaller type, avatar markers. Timestamps are plain strings here - swap in <.local_time format=\"relative\"> and they stay right without a re-render." do
+      "variant=\"compact\" is the density you want for a feed: tighter rhythm, smaller type, avatar markers. The last entry is state=\"loading\" - the thing that is still happening while you read about it. Timestamps are plain strings here - swap in <.local_time format=\"relative\"> and they stay right without a re-render." do
     ~H"""
     <.timeline variant="compact" label="Recent activity">
       <:item
@@ -72,9 +72,10 @@ defmodule PetalComponents.Showcase.Timeline do
       <:item
         marker="icon"
         icon="hero-rocket-launch"
-        state="current"
+        state="loading"
         time="just now"
-        title="Deploying v4.2.0 to production"
+        title="Deploying v4.14.0 to production"
+        description="Rolling through Sydney, Dublin and Ohio."
       />
     </.timeline>
     """

@@ -57,10 +57,24 @@ defmodule PetalComponents.Timeline do
 
   ## States
 
-  `state` is `"complete"` (default), `"current"` or `"upcoming"`. The current
-  entry is ringed and carries `aria-current="step"`; upcoming entries render
-  muted with a hollow marker, and the connector running down to them is
-  de-emphasised.
+  `state` is `"complete"` (default), `"current"`, `"loading"` or `"upcoming"`.
+  The current entry is ringed and carries `aria-current="step"`; upcoming
+  entries render muted with a hollow marker, and the connector running down to
+  them is de-emphasised.
+
+  `"loading"` is the entry that is happening while you watch it - a deploy
+  mid-roll, a file still uploading. Its marker spins:
+
+      <.timeline variant="compact">
+        <:item marker="icon" icon="hero-check-circle" color="success" time="9 minutes ago" title="CI passed" />
+        <:item marker="icon" state="loading" time="just now" title="Deploying v4.14.0 to production" />
+      </.timeline>
+
+  A loading marker shows the spinner instead of its icon, number or avatar,
+  whatever `marker` says - a 10px dot has nowhere to put one - so the entry
+  keeps the chip and the semantic colour but loses its glyph for the duration.
+  The entry carries `aria-busy="true"`, and the spin stops under
+  `prefers-reduced-motion`.
 
   ## Accessibility
 
@@ -69,9 +83,10 @@ defmodule PetalComponents.Timeline do
 
     * `<ol>` root, `<li>` entries. No `role` overrides, no interactive wrappers.
     * `aria-current="step"` on the current entry, and nowhere else.
+    * `aria-busy="true"` on a loading entry, and nowhere else.
     * The rail (markers and connectors) is decorative and `aria-hidden`. State
-      is never conveyed by colour alone - `current` and `upcoming` entries each
-      carry a visually-hidden label.
+      is never conveyed by colour alone - `current`, `loading` and `upcoming`
+      entries each carry a visually-hidden label.
     * The horizontal scroll container takes focus so it can be scrolled by
       keyboard, with a visible focus ring, and its smooth scrolling is behind a
       `prefers-reduced-motion` guard.
@@ -89,12 +104,14 @@ defmodule PetalComponents.Timeline do
   """
   use Phoenix.Component
 
+  alias PetalComponents.Loading
+
   import PetalComponents.Avatar
   import PetalComponents.Icon
 
   @colors ~w(primary secondary gray info success warning danger)
   @markers ~w(dot icon avatar number)
-  @states ~w(complete current upcoming)
+  @states ~w(complete current loading upcoming)
 
   attr :orientation, :string,
     default: "vertical",
@@ -147,7 +164,7 @@ defmodule PetalComponents.Timeline do
 
     attr :state, :string,
       doc:
-        ~s|"complete" (default), "current", or "upcoming". current gets a ringed marker + aria-current="step"; upcoming renders muted with the connector into it de-emphasised|
+        ~s|"complete" (default), "current", "loading", or "upcoming". current gets a ringed marker + aria-current="step"; loading spins the marker and sets aria-busy; upcoming renders muted with the connector into it de-emphasised|
 
     attr :class, :any, doc: "CSS class on this entry's <li>"
   end
@@ -189,6 +206,7 @@ defmodule PetalComponents.Timeline do
           entry.class
         ]}
         aria-current={entry.state == "current" && "step"}
+        aria-busy={entry.loading? && "true"}
       >
         <div class="pc-timeline__rail" aria-hidden="true">
           <span class={[
@@ -197,10 +215,21 @@ defmodule PetalComponents.Timeline do
             "pc-timeline__marker--#{entry.color}",
             "pc-timeline__marker--#{entry.state}"
           ]}>
-            <.icon :if={entry.marker == "icon"} name={entry.icon} class="pc-timeline__icon" />
-            <span :if={entry.marker == "number"} class="pc-timeline__number">{entry.index + 1}</span>
+            <%!-- A spinning marker replaces the glyph rather than sitting
+                  beside it: the chip is 32px, and whatever the entry's marker
+                  normally shows, while it's in flight the news is that it's in
+                  flight. Same spinner the buttons use. --%>
+            <Loading.spinner :if={entry.loading?} size_class="pc-timeline__spinner" />
+            <.icon
+              :if={!entry.loading? && entry.marker == "icon"}
+              name={entry.icon}
+              class="pc-timeline__icon"
+            />
+            <span :if={!entry.loading? && entry.marker == "number"} class="pc-timeline__number">
+              {entry.index + 1}
+            </span>
             <.avatar
-              :if={entry.marker == "avatar"}
+              :if={!entry.loading? && entry.marker == "avatar"}
               src={entry.src}
               name={entry.name}
               alt={entry.name}
@@ -247,6 +276,7 @@ defmodule PetalComponents.Timeline do
         index: index,
         last?: index == count - 1,
         state: Enum.at(states, index),
+        loading?: Enum.at(states, index) == "loading",
         next_state: Enum.at(states, index + 1),
         side: alternating? && if(rem(index, 2) == 0, do: "start", else: "end"),
         marker: one_of(item, :marker, @markers, "dot"),
@@ -271,6 +301,7 @@ defmodule PetalComponents.Timeline do
   end
 
   defp state_label("current"), do: "Current"
+  defp state_label("loading"), do: "In progress"
   defp state_label("upcoming"), do: "Upcoming"
   defp state_label(_), do: nil
 end

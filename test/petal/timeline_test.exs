@@ -400,6 +400,50 @@ defmodule PetalComponents.TimelineTest do
         assert doc |> LazyHTML.query(".pc-timeline__marker--#{state}") |> Enum.count() == 1
       end
     end
+
+    test "loading spins the shared spinner inside the marker" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline>
+          <:item title="Built" />
+          <:item title="Deploying" state="loading" />
+        </.timeline>
+        """)
+
+      doc = LazyHTML.from_fragment(html)
+      spinner = LazyHTML.query(doc, ".pc-timeline__marker--loading svg.pc-timeline__spinner")
+
+      assert Enum.count(spinner) == 1
+      assert doc |> LazyHTML.query("li.pc-timeline__item--loading") |> Enum.count() == 1
+
+      # the button's spinner, not a second one grown here
+      assert_has_class(html, "pc-button__spinner-icon")
+      refute_has_class(html, "pc-spinner--sm")
+    end
+
+    test "the spinner takes the marker's place, whatever the marker was" do
+      for {marker, glyph} <- [
+            {"icon", ".pc-timeline__icon"},
+            {"number", ".pc-timeline__number"},
+            {"avatar", ".pc-timeline__avatar"}
+          ] do
+        assigns = %{marker: marker}
+
+        html =
+          rendered_to_string(~H"""
+          <.timeline>
+            <:item title="One" marker={@marker} icon="hero-truck" name="Sam Rivera" state="loading" />
+          </.timeline>
+          """)
+
+        doc = LazyHTML.from_fragment(html)
+
+        assert doc |> LazyHTML.query(".pc-timeline__spinner") |> Enum.count() == 1
+        assert doc |> LazyHTML.query(glyph) |> Enum.empty?()
+      end
+    end
   end
 
   describe "accessibility" do
@@ -464,6 +508,30 @@ defmodule PetalComponents.TimelineTest do
         |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
 
       assert labels == ["Current", "Upcoming"]
+    end
+
+    test "aria-busy is on the loading entry and nowhere else" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline>
+          <:item title="One" />
+          <:item title="Two" state="loading" />
+          <:item title="Three" state="current" />
+        </.timeline>
+        """)
+
+      doc = LazyHTML.from_fragment(html)
+      busy = LazyHTML.query(doc, "li[aria-busy]")
+
+      assert Enum.count(busy) == 1
+      assert LazyHTML.attribute(busy, "aria-busy") == ["true"]
+      assert busy |> LazyHTML.text() =~ "Two"
+
+      # and it announces in words as well, like the other states
+      assert busy |> LazyHTML.query(".pc-timeline__state-label") |> LazyHTML.text() =~
+               "In progress"
     end
 
     test "no role overrides are invented on the list" do
