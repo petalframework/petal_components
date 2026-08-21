@@ -5011,7 +5011,16 @@
   }
 
   .pc-stepper--bars .pc-stepper__item-content {
-    @apply w-full flex-col items-start gap-2;
+    @apply relative w-full flex-col items-start gap-2;
+  }
+
+  /* A nameless bars step is a 4px-tall button - the segment IS the whole
+     target. The invisible inset grows the hit area to ~20px without
+     painting anything (the adornment chips' tap-growth idiom). Titled
+     bars get it too; extra reach above a small target never hurts. */
+  .pc-stepper--bars .pc-stepper__item-content::before {
+    content: "";
+    @apply absolute inset-x-0 -inset-y-2;
   }
 
   .pc-stepper--bars .pc-stepper__node {

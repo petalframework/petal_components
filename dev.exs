@@ -2547,7 +2547,10 @@ defmodule Dev.PlaygroundLive do
       pg_step_defs()
       |> Enum.with_index()
       |> Enum.map_join(",\n", fn {step, i} ->
-        state = "complete?: #{i < st.at}, active?: #{i == st.at}"
+        # `done` completes every step and clears the active one, exactly as
+        # the live rail renders it - the snippet must tell the same story.
+        state =
+          "complete?: #{i < st.at or st.done}, active?: #{i == st.at and not st.done}"
 
         if st.labels == "none" do
           "    %{#{state}}"
