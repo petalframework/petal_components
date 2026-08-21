@@ -4067,6 +4067,12 @@
      body; the content keeps its own pb-5, so nothing double-counts. The
      wash pair is the house convention: gray-50 in light, a gray-400 alpha
      in dark, so a re-themed gray dial carries both. */
+  /* flex-col-reverse with cancel FIRST in the DOM is deliberate, same as the
+     alert dialog's footer: Tab reaches the safe action first, and the mobile
+     stack puts the primary action on top under the thumb (shadcn's
+     ergonomics). Visual order and focus order diverge by design on the
+     stacked layout - a two-button confirm row is the recognised case where
+     that trade is worth it. */
   .pc-modal__footer {
     @apply flex flex-none flex-col-reverse gap-2 px-5 py-4;
     @apply sm:flex-row sm:justify-end;

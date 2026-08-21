@@ -33,7 +33,7 @@ defmodule PetalComponents.Showcase.Modal do
 
   example :form_modal, "A form in a modal",
     description:
-      "The most common thing a dialog holds. Fields go in the content, the submit row goes in the :footer, and the two never fight over spacing: the band supplies its own padding and the body keeps its own. On a narrow screen the buttons stack with the primary one on top, under the thumb, and unstack to a right-aligned row from sm up." do
+      "The most common thing a dialog holds. Fields go in the content inside a form, the submit row goes in the :footer, and the button reaches back into the form with the HTML form attribute - the footer band is outside the form element, and form=\"...\" is how a submit crosses that boundary. On a narrow screen the buttons stack with the primary one on top, under the thumb, and unstack to a right-aligned row from sm up." do
     ~H"""
     <.button color="gray" variant="outline" phx-click={show_modal("showcase-modal-form")}>
       <.icon name="hero-pencil-square" class="w-4 h-4 mr-1" /> Edit profile
@@ -43,22 +43,27 @@ defmodule PetalComponents.Showcase.Modal do
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Make changes to your profile here. Nothing saves until you say so.
       </p>
-      <div class="flex flex-col gap-4 mt-4">
-        <.field type="text" name="profile_name" value="Alex Rivera" label="Name" />
-        <.field type="text" name="profile_username" value="@alexrivera" label="Username" />
-        <.field
-          type="textarea"
-          name="profile_bio"
-          value=""
-          label="Bio"
-          placeholder="A line about you"
-        />
-      </div>
+      <form id="showcase-profile-form" phx-submit={hide_modal("showcase-modal-form")}>
+        <div class="flex flex-col gap-4 mt-4">
+          <.field type="text" name="profile_name" value="Alex Rivera" label="Name" />
+          <.field type="text" name="profile_username" value="@alexrivera" label="Username" />
+          <.field
+            type="textarea"
+            name="profile_bio"
+            value=""
+            label="Bio"
+            placeholder="A line about you"
+          />
+        </div>
+      </form>
       <:footer>
         <.button color="gray" variant="outline" phx-click={hide_modal("showcase-modal-form")}>
           Cancel
         </.button>
-        <.button type="submit" phx-click={hide_modal("showcase-modal-form")}>
+        <%!-- The footer band sits outside the <form> element, so the submit
+        reaches back in with the form attribute - without it this button
+        could never submit the fields above it. --%>
+        <.button type="submit" form="showcase-profile-form">
           Save changes
         </.button>
       </:footer>
