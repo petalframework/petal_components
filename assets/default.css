@@ -4776,7 +4776,13 @@
     box-shadow: 0 0 0 var(--pc-stepper-ring) color-mix(in oklab, currentColor 20%, transparent);
   }
 
-  /* Size variants for indicator */
+  /* Size variants for indicator. xs is the 24px disc the compact systems
+     draw (reui's basic stepper sits at 20-24px) - small enough to run a
+     numbered rail above a form without it reading as the form's heading. */
+  .pc-stepper--xs .pc-stepper__indicator {
+    @apply h-6 w-6;
+  }
+
   .pc-stepper--sm .pc-stepper__indicator {
     @apply h-7 w-7;
   }
@@ -4792,6 +4798,10 @@
   /* Check icon */
   .pc-stepper__check {
     color: inherit;
+  }
+
+  .pc-stepper--xs .pc-stepper__check {
+    @apply h-3 w-3;
   }
 
   .pc-stepper--sm .pc-stepper__check {
@@ -4811,6 +4821,13 @@
      different component sat next to it. Each size steps down one notch. */
   .pc-stepper__number {
     @apply font-semibold;
+  }
+
+  /* xs holds sm's 11px rather than stepping down again: below that a numeral
+     inside a 2px-ringed 24px disc stops being readable, and the disc is the
+     thing that shrank, not the count. */
+  .pc-stepper--xs .pc-stepper__number {
+    @apply text-[11px];
   }
 
   .pc-stepper--sm .pc-stepper__number {
@@ -4843,6 +4860,14 @@
   }
 
   /* Labels scale with the size dial, like the circles do */
+  .pc-stepper--xs .pc-stepper__title {
+    @apply text-[11px];
+  }
+
+  .pc-stepper--xs .pc-stepper__description {
+    @apply text-[10px];
+  }
+
   .pc-stepper--sm .pc-stepper__title {
     @apply text-xs;
   }
@@ -4907,6 +4932,14 @@
     background-color: var(--pc-stepper-line);
   }
 
+  /* Per size: top is half the indicator minus half the 2px line, and the
+     inset is the circle's radius plus 6px of air. xs: 24/2 - 1, 12 + 6. */
+  .pc-stepper--labels-bottom.pc-stepper--xs .pc-stepper__item:not(:first-child)::before {
+    top: 11px;
+    left: calc(-50% + 18px);
+    right: calc(50% + 18px);
+  }
+
   .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__item:not(:first-child)::before {
     top: 13px;
     left: calc(-50% + 20px);
@@ -4934,6 +4967,9 @@
   }
   .pc-stepper--vertical .pc-stepper__connector-wrapper {
     @apply self-start;
+  }
+  .pc-stepper--vertical.pc-stepper--xs .pc-stepper__connector-wrapper {
+    @apply w-6;
   }
   .pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
     @apply w-7;
@@ -4975,6 +5011,96 @@
 
   .pc-stepper--vertical .pc-stepper__connector {
     @apply w-0.5 h-8 mx-auto;
+  }
+
+  /* Bars - reui's progress-bar indicator.
+
+     Same markup, same aria, same jump targets; the circles just stop being
+     circles. Each step becomes a 4px segment sharing the row equally, and
+     the gap between segments IS the rail - no connectors to draw, no line
+     to tint, nothing to pin to a circle centre. Titles, when the steps
+     carry names, sit under their own segment and left-align, because a
+     segment has a left edge to align to and a circle does not.
+
+     Completed AND active both fill solid primary: in this paint the fill is
+     the entire state read (that is the same ruling as the solid completed
+     disc above, carried through), and a wash on a 4px bar reads as a
+     rendering artefact rather than a state. Unreached segments take the
+     connector's gray hairline pair, so the two paints share one ink set.
+
+     Horizontal only - a column of full-width segments is a different
+     component - which is also why the small-screen compression rules above
+     keep covering bars: they key off `--horizontal`, and bars is never
+     anything else. */
+  .pc-stepper--bars {
+    /* The ring property is really INTERACTION headroom: circles spend it
+       on the halo, bars spend it on the invisible tap overhang below. A
+       first pass zeroed it because bars draw no halo - and inside an
+       overflow-x wrapper (which clips hit areas exactly the way it clips
+       halos, per the container comment above) that clipped the 12px-per-
+       side tap growth back to a 4px target. 0.75rem = the overhang, so
+       the whole hit area stays operable inside a scroller. */
+    --pc-stepper-ring: 0.75rem;
+  }
+
+  .pc-stepper--bars .pc-stepper__container {
+    /* Flat, not the container's md bump: the gaps are the rail, and a rail
+       whose joints widen at desktop stops reading as one bar. */
+    @apply gap-2;
+  }
+
+  .pc-stepper--bars .pc-stepper__item {
+    @apply min-w-0 flex-1;
+  }
+
+  .pc-stepper--bars .pc-stepper__item-content {
+    @apply relative w-full flex-col items-start gap-2;
+  }
+
+  /* A nameless bars step is a 4px-tall button - the segment IS the whole
+     target. The invisible inset grows the hit area to 28px without
+     painting anything (the adornment chips' tap-growth idiom): 12px each
+     side clears WCAG 2.5.8's 24px minimum with margin. Titled bars get it
+     too; the reach stays inside the button's own box family, and the
+     x-axis is untouched so neighbouring steps never overlap. */
+  .pc-stepper--bars .pc-stepper__item-content::before {
+    content: "";
+    @apply absolute inset-x-0 -inset-y-3;
+  }
+
+  .pc-stepper--bars .pc-stepper__node {
+    @apply w-full;
+  }
+
+  /* The segment. h-1 at every size - the size dial moves the titles, not the
+     rail. The radius is derived, not a literal pill: at the house default the
+     browser's own clamp already rounds a 4px bar's ends completely, and a
+     squared-off theme gets squared-off segments instead of stubbornly round
+     ones. */
+  .pc-stepper--bars .pc-stepper__indicator {
+    @apply h-1 w-full border-0 bg-gray-200 dark:bg-gray-400/25;
+    border-radius: min(var(--pc-radius, 0.625rem), 0.125rem);
+  }
+
+  .pc-stepper--bars .pc-stepper__node--complete .pc-stepper__indicator,
+  .pc-stepper--bars .pc-stepper__node--active .pc-stepper__indicator {
+    @apply bg-primary-600;
+    /* No halo here. It exists to say "you are here" among identical discs;
+       among segments the fill already says it, and a ring bleeding off a 4px
+       bar just smudges the gap either side of it. */
+    box-shadow: none;
+  }
+
+  /* A step you haven't reached reads back one notch, the way its segment
+     does. */
+  .pc-stepper--bars
+    .pc-stepper__item:not(:has(.pc-stepper__node--complete, .pc-stepper__node--active))
+    .pc-stepper__title {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-stepper--bars .pc-stepper__connector-wrapper {
+    @apply hidden;
   }
 
   /* Rating */

@@ -3,6 +3,29 @@
 
 #### Added
 
+- **`stepper` gains `size="xs"`, `variant="bars"`, and circles that
+  don't need names.** Three gaps against the reference set, closed
+  together. `xs` is a 24px disc with 11px numerals, sized for a rail
+  that sits above a form rather than one that headlines the page, and it
+  carries its own labels-bottom connector offsets like the other sizes.
+  Steps whose maps leave out `name` and `description` now render no
+  label block at all rather than an empty one, so a nameless stepper is
+  circles and connectors with nothing padding them out - the plain
+  numbered rail everyone else ships as a separate "basic" component is
+  just this one with less in its maps, and each step's `aria-label`
+  falls back to its count. `variant="bars"` trades the discs for a row
+  of 4px segments and drops the connectors, because the gaps between
+  segments are already the rail: completed and current fill solid,
+  ahead of you stays the same gray hairline the connector uses, the
+  numerals go `sr-only`, and titles (when the steps have names) sit
+  under their own segment, left-aligned, muted for the ones you haven't
+  reached. Bars is horizontal only and outranks `label_placement`.
+  Everything else is byte for byte identical between the two paints -
+  same jump targets, same `role="list"`, same `aria-current`, same
+  completed labels - so it really is one component with two faces. The
+  "Step 3 of 4" line people pair with the bars is composition, not an
+  attr, and the showcase demonstrates the shape.
+
 - **`modal` takes a `:footer`.** Every dialog with a Save button was
   building the same row by hand at the bottom of the content - a
   `flex justify-end gap-2 mt-6` div, give or take the margin - and it sat

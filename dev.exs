@@ -848,7 +848,14 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
-       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       stepper: %{
+         orientation: "horizontal",
+         size: "md",
+         variant: "circles",
+         labels: "beside",
+         at: 0,
+         done: false
+       },
        toast: %{pos: "bottom-right", undone: 0},
        car: %{
          transition: "fade",
@@ -1306,11 +1313,17 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(horizontal vertical),
       do: {:noreply, update(socket, :stepper, &%{&1 | orientation: v})}
 
-  def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+  def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg),
     do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
 
+  def handle_event("ctl_stepper", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(circles bars),
+      do: {:noreply, update(socket, :stepper, &%{&1 | variant: v})}
+
+  # "none" isn't a label_placement - it strips name and description from the
+  # step maps, which is how a label-less stepper is built.
   def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
-      when v in ~w(beside bottom),
+      when v in ~w(beside bottom none),
       do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
 
   def handle_event("ctl_carousel", %{"k" => "transition", "v" => v}, socket)
@@ -2549,11 +2562,14 @@ defmodule Dev.PlaygroundLive do
     ]
   end
 
-  defp pg_steps(at, done) do
+  # labels: "none" drops name and description from the maps rather than passing
+  # an attr - a label-less stepper is the same component with less in its steps.
+  defp pg_steps(at, done, labels) do
     pg_step_defs()
     |> Enum.with_index()
     |> Enum.map(fn {step, i} ->
       step
+      |> then(&if labels == "none", do: Map.drop(&1, [:name, :description]), else: &1)
       |> Map.put(:complete?, done || i < at)
       |> Map.put(:active?, !done && i == at)
       |> Map.put(
@@ -2562,6 +2578,55 @@ defmodule Dev.PlaygroundLive do
       )
     end)
   end
+
+  defp stepper_snippet(st) do
+    # Only the attrs that actually reach the paint: bars is horizontal-only and
+    # outranks label_placement, so the snippet never shows an attr the
+    # component would ignore.
+    bars? = st.orientation == "horizontal" and st.variant == "bars"
+
+    attrs =
+      [
+        st.orientation != "horizontal" && ~s(orientation="#{st.orientation}"),
+        st.size != "md" && ~s(size="#{st.size}"),
+        bars? && ~s(variant="bars"),
+        not bars? and st.orientation == "horizontal" and st.labels == "bottom" &&
+          ~s(label_placement="bottom")
+      ]
+      |> Enum.filter(& &1)
+
+    # The steps are the interesting half, so the snippet shows them rather than
+    # a placeholder - including the label-less form, where the maps just lose
+    # their name and description keys.
+    steps =
+      pg_step_defs()
+      |> Enum.with_index()
+      |> Enum.map_join(",\n", fn {step, i} ->
+        # `done` completes every step and clears the active one, exactly as
+        # the live rail renders it - the snippet must tell the same story.
+        state =
+          "complete?: #{i < st.at or st.done}, active?: #{i == st.at and not st.done}"
+
+        if st.labels == "none" do
+          "    %{#{state}}"
+        else
+          ~s|    %{name: "#{step.name}", description: "#{step.description}", #{state}}|
+        end
+      end)
+
+    open = Enum.join(["<.stepper" | attrs], " ")
+
+    "#{open}\n  steps={[\n#{steps}\n  ]}\n/>"
+  end
+
+  # The labels dial stays live in every mode because "none" always applies -
+  # it's the steps, not the placement. The hint says which half is being
+  # ignored instead of greying out a control that still does something.
+  defp stepper_labels_hint(%{orientation: "vertical"}),
+    do: "beside and bottom are horizontal only"
+
+  defp stepper_labels_hint(%{variant: "bars"}), do: "bars always sit titles under"
+  defp stepper_labels_hint(_), do: nil
 
   defp table_rows(%{sort_by: key, sort_dir: dir}) do
     key = String.to_existing_atom(key)
@@ -6070,10 +6135,11 @@ defmodule Dev.PlaygroundLive do
             @stepper.orientation == "vertical" && "justify-center md:justify-start md:shrink-0"
           ]}>
             <.stepper
-              steps={pg_steps(@stepper.at, @stepper.done)}
+              steps={pg_steps(@stepper.at, @stepper.done, @stepper.labels)}
               orientation={@stepper.orientation}
               size={@stepper.size}
-              label_placement={@stepper.labels}
+              variant={@stepper.variant}
+              label_placement={if @stepper.labels == "none", do: "beside", else: @stepper.labels}
             />
           </div>
           <div class={[
@@ -6176,6 +6242,12 @@ defmodule Dev.PlaygroundLive do
                 >
                   Back
                 </.button>
+                <%!-- "Step 3 of 4" is composition, not an attr: the stepper
+                draws the rail, the page owns the row underneath. It's the
+                whole labelling story when the steps have no names. --%>
+                <span class="text-sm text-gray-500 tabular-nums dark:text-gray-400">
+                  Step {@stepper.at + 1} of {length(pg_step_defs())}
+                </span>
                 <.button phx-click="ctl_stepper" phx-value-k="next">
                   {if @stepper.at == length(pg_step_defs()) - 1, do: "Complete", else: "Continue"}
                 </.button>
@@ -6183,7 +6255,7 @@ defmodule Dev.PlaygroundLive do
             <% end %>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 sm:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -6214,10 +6286,29 @@ defmodule Dev.PlaygroundLive do
               on_change="ctl_stepper"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={sz <- ~w(sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
+              <:item :for={sz <- ~w(xs sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
               </:item>
             </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@stepper.variant}
+              on_change="ctl_stepper"
+              disabled={@stepper.orientation == "vertical"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(circles bars)} value={v} phx-value-k="variant" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
+              horizontal only
+            </div>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
@@ -6227,17 +6318,36 @@ defmodule Dev.PlaygroundLive do
               aria_label="Labels"
               value={@stepper.labels}
               on_change="ctl_stepper"
-              disabled={@stepper.orientation == "vertical"}
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={lp <- ~w(beside bottom)} value={lp} phx-value-k="labels" phx-value-v={lp}>
+              <:item
+                :for={lp <- ~w(beside bottom none)}
+                value={lp}
+                phx-value-k="labels"
+                phx-value-v={lp}
+              >
                 {lp}
               </:item>
             </.toggle_group>
-            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
-              horizontal only
+            <div :if={stepper_labels_hint(@stepper)} class="mt-1.5 text-[10px] text-gray-400">
+              {stepper_labels_hint(@stepper)}
             </div>
           </div>
+        </div>
+
+        <div class="px-6 pb-5">
+          <button
+            phx-click="flip"
+            phx-value-k="show_code"
+            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            <.icon name="hero-code-bracket" class="w-4 h-4" />
+            {if @show_code, do: "Hide code", else: "View code"}
+          </button>
+          <pre
+            :if={@show_code}
+            class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+          ><code>{stepper_snippet(@stepper)}</code></pre>
         </div>
       </div>
       <div :for={ex <- PetalComponents.Showcase.Stepper.examples()} class="mt-10">
