@@ -2,6 +2,15 @@ defmodule PetalComponents.Tree do
   @moduledoc """
   A hierarchical tree view: the file-explorer staple.
 
+  A tree is for data you EXPLORE, not pages you navigate to. It is a
+  composite widget - one tab stop, arrow keys traverse it, screen readers
+  announce it as a tree - which is exactly wrong for site navigation
+  (the APG says so too): links belong in `PetalComponents.Menu.vertical_menu/1`,
+  where Tab and `aria-current` do what a reader expects. Both drop
+  straight into a `PetalComponents.Sidebar.sidebar/1` - the shell holds
+  either; they never hold each other. If it's a page, it's a menu item;
+  if it's a thing, it's a tree node.
+
   `tree/1` takes a nested list of maps and renders arbitrary depth with
   expand/collapse, single selection, optional connecting indent guides, and the
   WAI-ARIA [TreeView](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/)
