@@ -788,6 +788,14 @@ defmodule Dev.PlaygroundLive do
          disabled: false
        },
        switch: %{size: "md", variant: "default", disabled: false, error: false},
+       modal: %{
+         max_width: "sm",
+         header: true,
+         close: true,
+         dismiss: true,
+         footer: "actions",
+         content: "short"
+       },
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
@@ -827,7 +835,7 @@ defmodule Dev.PlaygroundLive do
          label: "none",
          step: "whole"
        },
-       slideover: %{origin: "right", width: "md"},
+       slideover: %{origin: "right", width: "sm"},
        tabs: %{variant: "segmented", active: "overview", number: true},
        table: %{
          sort_by: "name",
@@ -1520,6 +1528,23 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_modal", %{"k" => "max_width", "v" => v}, socket)
+      when v in ~w(sm md lg xl 2xl full),
+      do: {:noreply, update(socket, :modal, &%{&1 | max_width: v})}
+
+  def handle_event("ctl_modal", %{"k" => "footer", "v" => v}, socket)
+      when v in ~w(none actions),
+      do: {:noreply, update(socket, :modal, &%{&1 | footer: v})}
+
+  def handle_event("ctl_modal", %{"k" => "content", "v" => v}, socket)
+      when v in ~w(short long),
+      do: {:noreply, update(socket, :modal, &%{&1 | content: v})}
+
+  def handle_event("ctl_modal", %{"k" => k}, socket) when k in ~w(header close dismiss),
+    do:
+      {:noreply,
+       update(socket, :modal, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_slider", %{"k" => "format", "v" => v}, socket)
       when v in ~w(money percent plain),
@@ -2335,6 +2360,36 @@ defmodule Dev.PlaygroundLive do
       |> Enum.filter(& &1)
 
     "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp modal_snippet(m) do
+    attrs =
+      [
+        ~s(id="invite"),
+        ~s(title="Invite your team"),
+        "hide",
+        m.max_width != "md" && ~s(max_width="#{m.max_width}"),
+        !m.header && "hide_header",
+        m.header && !m.close && "hide_close_button",
+        !m.dismiss && ~s(close_on_click_away={false})
+      ]
+      |> Enum.filter(& &1)
+
+    body =
+      if m.content == "long",
+        do: "  <p>Long body copy that outgrows the box and scrolls.</p>",
+        else: "  <p>Share this link and they'll join the workspace.</p>"
+
+    footer =
+      if m.footer == "actions",
+        do:
+          "  <:footer>\n" <>
+            "    <.button color=\"gray\" variant=\"outline\" phx-click={hide_modal(\"invite\")}>Cancel</.button>\n" <>
+            "    <.button phx-click={hide_modal(\"invite\")}>Copy link</.button>\n" <>
+            "  </:footer>\n",
+        else: ""
+
+    "<.modal #{Enum.join(attrs, " ")}>\n#{body}\n#{footer}</.modal>"
   end
 
   defp radio_snippet(%{style: "plain"} = r) do
@@ -4965,9 +5020,152 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Dialog on the panel surface with a proper scrim. Escape and
-        click-away close it; the box radius scales gently with the rail.
+        The general dialog (shadcn calls it "Dialog"), on the panel surface
+        with a proper scrim. It is light-dismissible on purpose: close button,
+        click-away, Escape. The box is a column, so the body scrolls and the
+        :footer band stays pinned under it. When the user has to answer, and
+        walking away would leave it ambiguous what happened, reach for the
+        alert dialog instead - it asks one question with two answers and
+        ignores backdrop clicks.
       </p>
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        The flagship ships the way the component does: click-away closes it.
+        That includes clicking a dial while it is open - the dial still
+        registers, so reopen to see the change. Flip <code>click away</code>
+        off to keep it up while you play.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.button color="gray" variant="outline" phx-click={show_modal("pg-modal")}>
+            Open modal
+          </.button>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max width</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Max width"
+              value={@modal.max_width}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={w <- ~w(sm md lg xl 2xl full)}
+                value={w}
+                phx-value-k="max_width"
+                phx-value-v={w}
+              >
+                {w}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">footer</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Footer"
+              value={@modal.footer}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={f <- ~w(none actions)} value={f} phx-value-k="footer" phx-value-v={f}>
+                {f}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">content</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Content"
+              value={@modal.content}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(short long)} value={c} phx-value-k="content" phx-value-v={c}>
+                {c}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Chrome"
+              value={
+                for {k, on} <- [
+                      {"header", @modal.header},
+                      {"close", @modal.close},
+                      {"dismiss", @modal.dismiss}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="header" phx-value-k="header">header</:item>
+              <:item value="close" phx-value-k="close">close button</:item>
+              <:item value="dismiss" phx-value-k="dismiss">click away</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <.modal
+        id="pg-modal"
+        hide
+        title="Invite your team"
+        max_width={@modal.max_width}
+        hide_header={!@modal.header}
+        hide_close_button={!@modal.close}
+        close_on_click_away={@modal.dismiss}
+      >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Share this link with your teammates and they'll join the workspace
+          with member access.
+        </p>
+        <div class="mt-4">
+          <.input_group>
+            <.input type="text" name="pg_invite_url" value="https://example.com/join/x1y2z3" readonly />
+            <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
+          </.input_group>
+        </div>
+        <div :if={@modal.content == "long"} class="flex flex-col gap-4 mt-4">
+          <p :for={n <- 1..10} class="text-sm text-gray-500 dark:text-gray-400">
+            Note {n}. Anyone with the link can join until you revoke it, and
+            revoking it does not remove people who already used it. Keep
+            scrolling: the action row below is pinned, so it never leaves.
+          </p>
+        </div>
+        <:footer :if={@modal.footer == "actions"}>
+          <.button color="gray" variant="outline" phx-click={hide_modal("pg-modal")}>
+            Cancel
+          </.button>
+          <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
+        </:footer>
+      </.modal>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{modal_snippet(@modal)}</code></pre>
 
       <div :for={ex <- PetalComponents.Showcase.Modal.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>

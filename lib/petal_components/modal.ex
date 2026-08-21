@@ -5,6 +5,11 @@ defmodule PetalComponents.Modal do
   walking away would leave it ambiguous what happened, reach for
   `PetalComponents.AlertDialog.alert_dialog/1` instead: it asks one question
   with two answers and ignores backdrop clicks.
+
+  The `:footer` slot is the action row the modal owns. Pass it and the
+  buttons sit in a banded strip pinned to the bottom of the box while the
+  content scrolls under them - the same band the table's tfoot wears. Omit
+  it and the modal renders exactly what it always did.
   """
   use Phoenix.Component
 
@@ -56,6 +61,11 @@ defmodule PetalComponents.Modal do
   attr :rest, :global
   slot :inner_block, required: false
 
+  slot :footer,
+    required: false,
+    doc:
+      "the action row the modal owns: pinned below the content, which scrolls under it, and wearing the same band the table's tfoot and the alert dialog's footer wear. Buttons stack on mobile and unstack to a right-aligned row at sm. Omit it and nothing renders - put the buttons in the content the way you always did"
+
   def modal(assigns) do
     assigns =
       assigns
@@ -106,6 +116,9 @@ defmodule PetalComponents.Modal do
           <div class="pc-modal__content">
             {render_slot(@inner_block)}
           </div>
+          <div :if={@footer != []} class="pc-modal__footer">
+            {render_slot(@footer)}
+          </div>
         </div>
       </div>
     </div>
@@ -151,9 +164,14 @@ defmodule PetalComponents.Modal do
       time: 300,
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
     )
+    # display: "flex", not the JS.show default of "block" - the box is a
+    # column (header band, scrolling content, footer band) and an inline
+    # display:block from the show command would out-rank the stylesheet's
+    # flex every time the modal opened, unpinning the footer.
     |> JS.show(
       to: "##{id} .pc-modal__box",
       time: 300,
+      display: "flex",
       transition:
         {"transition-all transform ease-out duration-300",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
