@@ -4659,16 +4659,35 @@
      axis to auto with it, which clips at the padding box - so the component
      carries its own headroom rather than trusting whoever wraps it. */
   .pc-stepper__container {
-    @apply flex w-full md:gap-4;
+    @apply flex w-full gap-2 md:gap-4;
     padding-block: var(--pc-stepper-ring);
   }
 
+  /* Orientation is a contract: horizontal stays horizontal at every
+     width. The old silent md flip reshaped the page under the consumer
+     (and under any agent that asked for a horizontal wizard); on small
+     screens the rail now COMPRESSES instead - see the description/title
+     rules below. Vertical stays an explicit choice. */
   .pc-stepper--horizontal .pc-stepper__container {
-    @apply flex-col items-start md:flex-row md:items-center;
+    @apply flex-row items-center;
   }
 
   .pc-stepper--vertical .pc-stepper__container {
     @apply flex-col items-start;
+  }
+
+  /* The small-screen compression: descriptions go first, then every title
+     except the active step's - the circles carry the count, the active
+     label carries the context, and each step's aria-label keeps its name
+     for assistive tech. This is how the leading systems treat a mobile
+     wizard: a compact band above the form, never a tall rail pushing it
+     down. */
+  .pc-stepper--horizontal .pc-stepper__description {
+    @apply hidden md:block;
+  }
+
+  .pc-stepper--horizontal .pc-stepper__item:not(:has(.pc-stepper__node--active)) .pc-stepper__content {
+    @apply hidden sm:block;
   }
 
   /* Item */
@@ -4691,11 +4710,20 @@
     @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-400 transition-all duration-200 dark:border-gray-400/30 dark:text-gray-500;
   }
 
-  /* Reached steps take the timeline's chip wash instead of the solid primary
-     disc they used to wear. A wizard usually has more circles than a timeline
-     has markers, and four solid discs in a row shout over the step you are
-     actually on. */
-  .pc-stepper__node--complete .pc-stepper__indicator,
+  /* Completion is the one thing a wizard reports, so a completed step is
+     SOLID - done and not-done must separate at a glance, and reui, Material
+     and Ant all fill their completed discs. (A first pass ported the
+     timeline's quiet chip wash here; the maintainer's eye caught why that
+     can't transfer: in a timeline "complete" is the resting record, in a
+     stepper it is the payload.) */
+  .pc-stepper__node--complete .pc-stepper__indicator {
+    @apply border-transparent bg-primary-600;
+    color: var(--pc-button-solid-fg, #fff);
+  }
+
+  /* The step you're on wears the timeline's chip wash: "you are here"
+     reads through the halo below, one register quieter than the solid
+     done-discs behind it. */
   .pc-stepper__node--active .pc-stepper__indicator {
     @apply border-transparent bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
   }
@@ -4790,10 +4818,7 @@
     @apply text-sm;
   }
 
-  /* Labels under the circles - the classic wizard look. Applies at the
-     md+ breakpoint where the stepper is genuinely horizontal; below it
-     the stacked mobile layout keeps labels beside (which is why the
-     sibling connectors are only md:hidden, not removed).
+  /* Labels under the circles - the classic wizard look.
 
      Items share the row equally and each item after the first draws its
      own connector as an absolutely-positioned line running from the
@@ -4802,7 +4827,7 @@
      half the indicator height (top) and half the item width back plus
      the circle radius and a little air (left/right), per size. */
   .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
-    @apply md:items-start md:gap-0;
+    @apply items-start gap-0;
   }
 
   /* The line colour lives here, on a real element, not on the ::before that
@@ -4810,32 +4835,31 @@
      they'd silently drop (see .pc-chat__marker--separator for the same shape).
      Same two inks as the div connector above. */
   .pc-stepper--labels-bottom .pc-stepper__item {
-    @apply md:relative md:min-w-0 md:flex-1;
+    @apply relative min-w-0 flex-1;
     --pc-stepper-line: var(--color-gray-200, #e4e4e7);
     @apply dark:[--pc-stepper-line:color-mix(in_oklab,var(--color-gray-400)_25%,transparent)];
   }
 
   .pc-stepper--labels-bottom .pc-stepper__item-content {
-    @apply md:w-full md:flex-col md:items-center md:gap-2;
+    @apply w-full flex-col items-center gap-2;
   }
 
   .pc-stepper--labels-bottom .pc-stepper__content {
-    @apply md:text-center;
+    @apply text-center;
   }
 
   .pc-stepper--labels-bottom .pc-stepper__connector-wrapper {
-    @apply md:hidden;
+    @apply hidden;
   }
 
   /* :not(:first-child) keeps this above the base declaration on the item, and
      keeps the first step - which paints no line at all - out of it */
   .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child) {
-    --pc-stepper-line: var(--color-primary-300);
-    @apply dark:[--pc-stepper-line:color-mix(in_oklab,var(--color-primary-300)_50%,transparent)];
+    --pc-stepper-line: var(--color-primary-600);
   }
 
   .pc-stepper--labels-bottom .pc-stepper__item:not(:first-child)::before {
-    @apply hidden transition-colors md:block;
+    @apply block transition-colors;
     content: "";
     position: absolute;
     height: 2px;
@@ -4862,34 +4886,25 @@
 
   /* Connector Wrapper */
   .pc-stepper__connector-wrapper {
-    @apply flex shrink justify-center self-start md:self-center;
+    @apply flex shrink justify-center self-center;
   }
   .pc-stepper--horizontal .pc-stepper__connector-wrapper {
-    @apply md:min-w-8 md:flex-1;
-  }
-  .pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply w-7 md:w-auto;
-  }
-  .pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply w-8 md:w-auto;
-  }
-  .pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply w-10 md:w-auto;
+    @apply min-w-6 flex-1 md:min-w-8;
   }
   .pc-stepper--vertical .pc-stepper__connector-wrapper {
-    @apply md:self-start;
+    @apply self-start;
   }
   .pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply md:w-7;
+    @apply w-7;
   }
   .pc-stepper--vertical.pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply md:w-8;
+    @apply w-8;
   }
   .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply md:w-10;
+    @apply w-10;
   }
   .pc-stepper--vertical .pc-stepper__container {
-    @apply md:gap-1;
+    @apply gap-1;
   }
 
   /* Connector. The timeline's hairline pair, at the 2px weight both components
@@ -4906,16 +4921,15 @@
     @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/25;
   }
 
-  /* 300 in both schemes, not 400 in the dark one: a palette is free to make
-     its mid stops scheme-aware, and a 400 that darkens for dark mode leaves
-     the completed line dimmer than the plain gray rail it is meant to outrank.
-     300 is the stop the timeline already trusts for dark-mode ink. */
+  /* Solid, matching the disc it trails: with completed steps back on solid
+     primary, a solid run underneath is hierarchy, not noise - the quieter
+     300 belonged to the washed-disc experiment. */
   .pc-stepper__connector--complete {
-    @apply bg-primary-300 dark:bg-primary-300/50;
+    @apply bg-primary-600;
   }
 
   .pc-stepper--horizontal .pc-stepper__connector {
-    @apply h-8 w-0.5 my-2 mx-auto md:h-0.5 md:w-full md:my-auto md:mx-0;
+    @apply h-0.5 w-full my-auto;
   }
 
   .pc-stepper--vertical .pc-stepper__connector {

@@ -124,6 +124,33 @@
 
 #### Changed
 
+- **The stepper learns the timeline's visual language - except where a
+  wizard has to disagree.** The active step is now ringed with the
+  timeline's currentColor halo instead of a thick outline, unreached
+  steps go hollow (gray ring, no fill, muted glyph), the connector takes
+  the house hairline pair, and the component reserves its own halo
+  headroom so a scrolling wrapper can't clip it. Completed steps stay
+  SOLID primary discs - a restyle pass tried the timeline's quiet chip
+  wash there and the eye-test caught why it can't transfer: in a
+  timeline "complete" is the resting record, in a stepper it is the
+  payload, and done-vs-not-done has to separate at a glance. Two latent
+  bugs fixed on the way: `.pc-stepper__title` was declared twice with
+  the second quietly winning, and the labels-bottom line's dark colour
+  sat on a `::before` where `dark:` variants silently never match.
+
+- **A horizontal stepper stays horizontal - behaviour change.** Below
+  `md` it used to flip itself into a vertical stack. Orientation is now
+  a contract: `horizontal` holds at every width and the rail compresses
+  instead - descriptions hide below `md`, and below `sm` every title but
+  the active step's hides too, so the circles carry the count, the
+  active label carries the context, and each step's `aria-label` keeps
+  its name for assistive tech. This is how the leading systems treat a
+  mobile wizard (a compact band above the form, never a component that
+  reshapes the page at a breakpoint the consumer didn't choose - and
+  never one that surprises an agent that asked for a horizontal wizard).
+  If you relied on the flip, render `orientation="vertical"` under a
+  breakpoint yourself - that keeps the choice in your hands.
+
 - **`badge` never wraps.** Behaviour change: a plain badge used to wrap a
   long label onto a second line, while a `with_icon` badge did not, so the
   same string in the same column laid out two different ways depending on
