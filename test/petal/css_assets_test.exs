@@ -53,6 +53,86 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "slider thumb-centring invariant" do
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the compensation lives in exactly one rule", %{css: css} do
+      # WebKit centres ::-webkit-slider-runnable-track in the input's content
+      # box and then puts the thumb's TOP EDGE on the runnable track's top
+      # edge. This margin is the only thing that turns that into "centred", so
+      # every mode has to go through the one rule that carries it. Dual mode
+      # used to reset it to 0 and collapse the input to height: 0, which hung
+      # both thumbs (thumb - track) / 2 low: 6px at sm, 7px at md, 8px at lg.
+      compensation = "margin-top: calc((var(--pc-slider-track) - var(--pc-slider-thumb)) / 2)"
+
+      assert rule_body(css, ".pc-slider__input::-webkit-slider-thumb") =~ compensation
+
+      with_margins =
+        ~r/\.pc-slider[^{}]*::-webkit-slider-thumb\s*\{[^}]*margin-top:/
+        |> Regex.scan(css)
+        |> length()
+
+      assert with_margins == 1,
+             "#{with_margins} slider thumb rules set margin-top; the compensation must live in one"
+    end
+
+    test "a dual input keeps the single input's box", %{css: css} do
+      # A dual input is a single input taken out of flow. Same box, same thumb,
+      # same centring - only `position` and pointer-events differ.
+      assert [_, body] = Regex.run(~r/\n  \.pc-slider--dual \.pc-slider__input \{([^}]*)\}/, css)
+
+      refute body =~ ~r/height:\s*0/,
+             "collapsing the dual input's box moves its thumb off the track centreline"
+
+      assert [_, vertical] =
+               Regex.run(
+                 ~r/\n  \.pc-slider--vertical\.pc-slider--dual \.pc-slider__input \{([^}]*)\}/,
+                 css
+               )
+
+      refute vertical =~ ~r/width:\s*0/,
+             "the standing dual input's cross size is the box WebKit centres its thumb in"
+    end
+  end
+
+  describe "slider vertical-orientation invariant" do
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "vertical never hands the control back to the UA", %{css: css} do
+      # -webkit-appearance IS `appearance`, so `-webkit-appearance:
+      # slider-vertical` on the vertical rule outranked the base rule's
+      # appearance: none at higher specificity and restored native rendering:
+      # ::-webkit-slider-thumb generated no box at all, and a native vertical
+      # slider painted over our track and fill. Vertical stands the input up
+      # with writing-mode and keeps every custom rule.
+      declarations = String.replace(css, ~r|/\*.*?\*/|s, "")
+
+      refute declarations =~ ~r/appearance:\s*slider-vertical/,
+             "the deprecated vertical appearance re-enables native rendering: " <>
+               inspect(Regex.run(~r/^.*appearance:\s*slider-vertical.*$/m, declarations))
+
+      assert rule_body(css, ".pc-slider--vertical .pc-slider__input") =~
+               "writing-mode: vertical-lr"
+    end
+
+    test "no dark: variant rides a slider pseudo-element", %{css: css} do
+      # A `dark:` variant compiles to a trailing :where(.dark, .dark *) ancestor
+      # test, which a pseudo-element can never satisfy - it reads as an
+      # intention the paint never honours. Scheme-dependent values ride a custom
+      # property on .pc-slider (a real element), the way --pc-slider-surface
+      # does. This has shipped as a live bug more than once.
+      offenders =
+        Regex.scan(~r/^\s*\.pc-slider[^{}\n]*::[a-z-]+ \{[^}]*dark:[^}]*\}/m, css)
+
+      assert offenders == [],
+             "dark: variant on a slider pseudo-element rule: #{inspect(offenders)}"
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).

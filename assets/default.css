@@ -7757,16 +7757,31 @@
   /* box-border is load-bearing: preflight's border-box reset cannot reach a
      pseudo-element (the universal selector does not match one) and the UA
      defaults disagree - WebKit sizes range thumbs border-box, Firefox
-     content-box - so without it Firefox draws the ring outside the diameter. */
+     content-box - so without it Firefox draws the ring outside the diameter.
+
+     margin-top is the thumb-centring mechanism, and it is the ONLY one: WebKit
+     centres ::-webkit-slider-runnable-track in the input's content box and then
+     puts the thumb's TOP EDGE on the runnable track's top edge, so an
+     uncompensated thumb hangs (thumb - track) / 2 below the line it is meant to
+     sit on. Both modes go through this rule; nothing may reset it. (Firefox
+     centres ::-moz-range-thumb on the track itself, hence no equivalent.)
+
+     The ring is white in both schemes, the look .pc-range-input settled on:
+     it separates the thumb from a light track and a dark one alike. There is
+     deliberately no `dark:` variant here - on a pseudo-element it compiles to a
+     trailing :where(.dark, ...) ancestor test that can never match, so it would
+     read as an intention the paint never honours. A pseudo-element that really
+     needs a scheme-dependent value reads a custom property off .pc-slider
+     instead, the way --pc-slider-surface does. */
   .pc-slider__input::-webkit-slider-thumb {
-    @apply relative appearance-none rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out dark:border-gray-900;
+    @apply relative appearance-none rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out;
     width: var(--pc-slider-thumb);
     height: var(--pc-slider-thumb);
     margin-top: calc((var(--pc-slider-track) - var(--pc-slider-thumb)) / 2);
   }
 
   .pc-slider__input::-moz-range-thumb {
-    @apply rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out dark:border-gray-900;
+    @apply rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out;
     width: var(--pc-slider-thumb);
     height: var(--pc-slider-thumb);
   }
@@ -7791,18 +7806,23 @@
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
   }
 
-  /* Dual: two zero-height inputs stacked over the shared track. Only the
-     thumbs take pointer events, so each one stays independently draggable
-     where they overlap. Zero height plus `top: auto` means the flex parent's
-     align-items: center resolves their static position for us. */
+  /* Dual: two inputs stacked over the shared track. Only the thumbs take
+     pointer events, so each one stays independently draggable where they
+     overlap, and `top: auto` lets the flex parent's align-items: center
+     resolve their static position - the same alignment that places the track
+     itself, so the two cannot drift apart.
+
+     A dual input is a single input that has been taken out of flow. It keeps
+     the same box (height: var(--pc-slider-thumb), from the base rule) and the
+     same thumb, so it inherits the one thumb-centring compensation above.
+     Collapsing it to height: 0 and dropping that compensation is what used to
+     hang both thumbs (thumb - track) / 2 low: 6px at sm, 7px at md, 8px at lg. */
   .pc-slider--dual .pc-slider__input {
     @apply absolute w-full outline-none pointer-events-none;
-    height: 0;
   }
 
   .pc-slider--dual .pc-slider__input::-webkit-slider-thumb {
     @apply pointer-events-auto;
-    margin-top: 0;
   }
 
   .pc-slider--dual .pc-slider__input::-moz-range-thumb {
@@ -7826,11 +7846,23 @@
   }
 
   /* Vertical. writing-mode is the standards-track way to stand a range up
-     (Chrome 111+, Firefox 108+, Safari 15.4+); direction: rtl puts the
-     minimum at the bottom where it belongs. slider-vertical is the deprecated
-     fallback for older WebKit, and only ever existed under the -webkit- prefix,
-     so it has to be written that way - as the standard `appearance` property it
-     is not a recognised value. */
+     (Chrome 111+, Firefox 108+, Safari 15.4+); direction: rtl puts the minimum
+     at the bottom where it belongs. Rotated that way the input keeps
+     appearance: none from the base rule, so every custom rule above - the
+     painted-out runnable track, the thumb's fill, ring, radius and shadow -
+     applies exactly as it does lying down. Vertical is the same control,
+     turned; it has no styling of its own.
+
+     -webkit-appearance: slider-vertical must never come back. It is not a
+     second, harmless hint: -webkit-appearance IS `appearance`, so that
+     declaration outranked the base rule's appearance: none at higher
+     specificity and handed the whole control back to the UA - a native vertical
+     slider painted over our track and fill, with ::-webkit-slider-thumb
+     generating no box at all. The deprecated value only ever bought pre-2023
+     WebKit, which this stylesheet has already left behind (the gray surface and
+     the marks are color-mix(in oklab), Safari 16.2+). In anything older the
+     input degrades to a horizontal range inside the standing wrapper while the
+     track, fill and marks - real elements - still paint. */
   .pc-slider--vertical .pc-slider__track-wrapper {
     @apply flex-col justify-center w-auto;
     height: var(--pc-slider-length);
@@ -7841,14 +7873,19 @@
   .pc-slider--vertical .pc-slider__input {
     writing-mode: vertical-lr;
     direction: rtl;
-    -webkit-appearance: slider-vertical;
     width: var(--pc-slider-thumb);
     height: 100%;
   }
 
+  /* Out of flow, full length, thumb-thick: the standing form of the dual rule
+     above, keeping the single input's box for the same reason. Standing up,
+     WebKit centres the thumb across the runnable track itself rather than off
+     the margin, so a collapsed cross size measured the same here as a thumb-
+     thick one - but leaving one dual rule shaped like the bug the other one
+     just had is how it grows back. */
   .pc-slider--vertical.pc-slider--dual .pc-slider__input {
     @apply absolute h-full;
-    width: 0;
+    width: var(--pc-slider-thumb);
   }
 
   .pc-slider--vertical .pc-slider__track,
