@@ -4638,13 +4638,29 @@
     @apply p-5 flex-1 overflow-y-auto;
   }
 
-  /* Stepper */
+  /* Stepper
+     Visual language mirrors pc-timeline - if you change one, look at the
+     other; shared extraction is deferred until timeline merges. The pairs
+     borrowed from there: the soft chip wash for a step that's been reached,
+     the hollow gray circle for one that hasn't, the currentColor halo on the
+     step you're on, and the 2px gray hairline for the line between them. What
+     stays the stepper's own is the tinted connector behind you - a timeline
+     has no progress to report, a wizard does. */
   .pc-stepper {
     @apply w-full;
+    /* How far the active step's halo reaches past its circle. Kept as a
+       property because the container reserves exactly this much room for it
+       below - change one and the other follows. */
+    --pc-stepper-ring: 4px;
   }
 
+  /* The halo needs somewhere to live. Consumers routinely put a stepper in a
+     horizontally scrolling wrapper, and an `overflow-x` of auto computes the y
+     axis to auto with it, which clips at the padding box - so the component
+     carries its own headroom rather than trusting whoever wraps it. */
   .pc-stepper__container {
     @apply flex w-full md:gap-4;
+    padding-block: var(--pc-stepper-ring);
   }
 
   .pc-stepper--horizontal .pc-stepper__container {
@@ -4669,18 +4685,26 @@
     @apply flex cursor-pointer items-center gap-3 transition-all duration-200 ease-out hover:opacity-90;
   }
 
-  /* Indicator */
+  /* Indicator. A step you haven't reached is the timeline's hollow marker:
+     gray ring, no fill, muted glyph. */
   .pc-stepper__indicator {
-    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-gray-400/25 dark:text-gray-400;
+    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-400 transition-all duration-200 dark:border-gray-400/30 dark:text-gray-500;
   }
 
-  .pc-stepper__node--complete .pc-stepper__indicator {
-    @apply border-transparent bg-primary-600;
-    color: var(--pc-button-solid-fg, #fff);
-  }
-
+  /* Reached steps take the timeline's chip wash instead of the solid primary
+     disc they used to wear. A wizard usually has more circles than a timeline
+     has markers, and four solid discs in a row shout over the step you are
+     actually on. */
+  .pc-stepper__node--complete .pc-stepper__indicator,
   .pc-stepper__node--active .pc-stepper__indicator {
-    @apply border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
+    @apply border-transparent bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
+  }
+
+  /* The step you're on is ringed rather than outlined - same halo recipe as
+     the timeline's current marker, drawn in currentColor so it tracks whatever
+     the chip's ink is. */
+  .pc-stepper__node--active .pc-stepper__indicator {
+    box-shadow: 0 0 0 var(--pc-stepper-ring) color-mix(in oklab, currentColor 20%, transparent);
   }
 
   /* Size variants for indicator */
@@ -4713,21 +4737,23 @@
     @apply h-5 w-5;
   }
 
-  /* Number */
+  /* Number. The timeline sets a numbered marker in text-xs/semibold inside the
+     same 32px circle the md stepper uses, and text-base was reading as a
+     different component sat next to it. Each size steps down one notch. */
   .pc-stepper__number {
-    @apply font-medium;
+    @apply font-semibold;
   }
 
   .pc-stepper--sm .pc-stepper__number {
-    @apply text-xs;
+    @apply text-[11px];
   }
 
   .pc-stepper--md .pc-stepper__number {
-    @apply text-base;
+    @apply text-xs;
   }
 
   .pc-stepper--lg .pc-stepper__number {
-    @apply text-lg;
+    @apply text-sm;
   }
 
   /* Content */
@@ -4735,9 +4761,11 @@
     @apply flex flex-col w-full gap-1 text-left grow;
   }
 
-  /* Title */
+  /* Title. Same weight and colour pair as a timeline entry's title. This rule
+     had a duplicate further down the section that quietly won and set
+     font-medium; the two are merged here so there is one place to look. */
   .pc-stepper__title {
-    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+    @apply text-sm font-semibold leading-tight text-gray-900 dark:text-gray-100;
   }
 
   /* Description */
@@ -4777,8 +4805,14 @@
     @apply md:items-start md:gap-0;
   }
 
+  /* The line colour lives here, on a real element, not on the ::before that
+     paints it - dark: variants don't compile inside pseudo-element selectors,
+     they'd silently drop (see .pc-chat__marker--separator for the same shape).
+     Same two inks as the div connector above. */
   .pc-stepper--labels-bottom .pc-stepper__item {
     @apply md:relative md:min-w-0 md:flex-1;
+    --pc-stepper-line: var(--color-gray-200, #e4e4e7);
+    @apply dark:[--pc-stepper-line:color-mix(in_oklab,var(--color-gray-400)_25%,transparent)];
   }
 
   .pc-stepper--labels-bottom .pc-stepper__item-content {
@@ -4793,17 +4827,19 @@
     @apply md:hidden;
   }
 
+  /* :not(:first-child) keeps this above the base declaration on the item, and
+     keeps the first step - which paints no line at all - out of it */
+  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child) {
+    --pc-stepper-line: var(--color-primary-300);
+    @apply dark:[--pc-stepper-line:color-mix(in_oklab,var(--color-primary-300)_50%,transparent)];
+  }
+
   .pc-stepper--labels-bottom .pc-stepper__item:not(:first-child)::before {
-    @apply hidden bg-gray-200 transition-colors md:block dark:bg-gray-400/17;
+    @apply hidden transition-colors md:block;
     content: "";
     position: absolute;
     height: 2px;
-  }
-
-  /* :not(:first-child) mirrors the base line rule's specificity, which
-     would otherwise beat this one and keep completed lines gray */
-  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child)::before {
-    @apply bg-primary-600 dark:bg-primary-600;
+    background-color: var(--pc-stepper-line);
   }
 
   .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__item:not(:first-child)::before {
@@ -4852,21 +4888,30 @@
   .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
     @apply md:w-10;
   }
-  .pc-stepper__title {
-    @apply text-sm font-medium leading-tight text-gray-900 dark:text-gray-100;
-  }
-
   .pc-stepper--vertical .pc-stepper__container {
     @apply md:gap-1;
   }
 
-  /* Connector */
+  /* Connector. The timeline's hairline pair, at the 2px weight both components
+     already drew.
+
+     The completed run keeps a tint, because that is the stepper's progress
+     read and a timeline has nothing to report, but it drops from primary-600
+     to primary-300. In the timeline the rail is always quieter than the
+     markers on it - the markers carry the state, the line just joins them -
+     and once the circles stopped being solid discs a full-strength line was
+     the loudest thing in the component, which put the emphasis on the ground
+     you have already covered rather than the step you are standing on. */
   .pc-stepper__connector {
-    @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/17;
+    @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/25;
   }
 
+  /* 300 in both schemes, not 400 in the dark one: a palette is free to make
+     its mid stops scheme-aware, and a 400 that darkens for dark mode leaves
+     the completed line dimmer than the plain gray rail it is meant to outrank.
+     300 is the stop the timeline already trusts for dark-mode ink. */
   .pc-stepper__connector--complete {
-    @apply bg-primary-600;
+    @apply bg-primary-300 dark:bg-primary-300/50;
   }
 
   .pc-stepper--horizontal .pc-stepper__connector {
