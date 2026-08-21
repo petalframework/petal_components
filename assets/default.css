@@ -8010,8 +8010,14 @@
     @apply w-56 flex-none snap-start flex-col gap-3;
   }
 
+  /* min-h-8: the rail's height is the chip's even when it holds a smaller
+     marker. Without the floor a 10px dot's rail is 10px tall, its centre
+     rides 11px above its neighbours' and the whole entry contracts upward -
+     visible the moment one row mixes dots with icons, avatars or numbers
+     (maintainer's catch). items-center then puts every marker type on the
+     same line, which is also where every connector already draws. */
   .pc-timeline--horizontal .pc-timeline__rail {
-    @apply w-full flex-row items-center;
+    @apply min-h-8 w-full flex-row items-center;
   }
 
   .pc-timeline--horizontal .pc-timeline__content {
