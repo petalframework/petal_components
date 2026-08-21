@@ -5015,12 +5015,14 @@
   }
 
   /* A nameless bars step is a 4px-tall button - the segment IS the whole
-     target. The invisible inset grows the hit area to ~20px without
-     painting anything (the adornment chips' tap-growth idiom). Titled
-     bars get it too; extra reach above a small target never hurts. */
+     target. The invisible inset grows the hit area to 28px without
+     painting anything (the adornment chips' tap-growth idiom): 12px each
+     side clears WCAG 2.5.8's 24px minimum with margin. Titled bars get it
+     too; the reach stays inside the button's own box family, and the
+     x-axis is untouched so neighbouring steps never overlap. */
   .pc-stepper--bars .pc-stepper__item-content::before {
     content: "";
-    @apply absolute inset-x-0 -inset-y-2;
+    @apply absolute inset-x-0 -inset-y-3;
   }
 
   .pc-stepper--bars .pc-stepper__node {
