@@ -8457,12 +8457,12 @@
     @apply border-l;
   }
 
-  /* focus_wrap traps Tab between its two sentinel divs. On desktop that would
-     fence the whole page into the sidebar, so the sentinels only exist while
-     the mobile sheet is actually open. */
-  .pc-sidebar:not([data-mobile-open="true"]) .pc-sidebar__panel > [tabindex="0"][aria-hidden="true"] {
-    @apply hidden;
-  }
+  /* No focus_wrap sentinels to manage: the panel is a plain div. LiveView's
+     focus_wrap focuses its first focusable at MOUNT whenever the element is
+     displayed, and this panel is always displayed on desktop - the trap's
+     job while the sheet is open belongs to `inert` on the shell's content
+     region instead (nothing outside the sheet is focusable), which is how
+     native dialogs contain focus too. */
 
   .pc-sidebar__scrim {
     @apply hidden;

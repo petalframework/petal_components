@@ -159,8 +159,11 @@ defmodule PetalComponents.SidebarTest do
         <.sidebar id="sb">items</.sidebar>
         """)
 
-      # focus containment: LiveView's focus_wrap around the panel
-      assert attr_of(html, ".pc-sidebar__panel", "phx-hook") == "Phoenix.FocusWrap"
+      # focus containment is inert-based, NOT focus_wrap: LiveView's wrap
+      # hook steals focus at mount whenever its element is displayed, and
+      # the panel is always displayed on desktop. show_sidebar moves focus
+      # in when the sheet opens; inert on the content region contains it.
+      assert attr_of(html, ".pc-sidebar__panel", "phx-hook") == nil
       assert attr_of(html, ".pc-sidebar__panel", "id") == "sb-panel"
 
       # Escape closes, but only while the sheet is actually open - the exec

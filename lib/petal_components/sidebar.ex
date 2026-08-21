@@ -186,7 +186,14 @@ defmodule PetalComponents.Sidebar do
       >
       </div>
 
-      <.focus_wrap id={"#{@id}-panel"} class="pc-sidebar__panel">
+      <%!-- Deliberately NOT LiveView's focus_wrap: its hook focuses the
+      first focusable at mount whenever the element is displayed, and this
+      panel is always displayed on desktop - so every page holding a
+      sidebar stole keyboard focus into the nav on load. The sheet's
+      containment doesn't need it: while open, the shell's content region
+      is inert (nothing outside the sheet is focusable), show_sidebar
+      moves focus in, and hide_sidebar returns it to the trigger. --%>
+      <div id={"#{@id}-panel"} class="pc-sidebar__panel">
         <nav class="pc-sidebar__nav" aria-label={@label}>
           <div :if={@header != []} class="pc-sidebar__header">
             {render_slot(@header)}
@@ -200,7 +207,7 @@ defmodule PetalComponents.Sidebar do
             {render_slot(@footer)}
           </div>
         </nav>
-      </.focus_wrap>
+      </div>
     </div>
     """
   end
