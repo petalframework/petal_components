@@ -28,6 +28,287 @@
   the accessibility tree when the rail collapses, and transitions that
   drop to instant under `prefers-reduced-motion`.
 
+- **`stepper` gains `size="xs"`, `variant="bars"`, and circles that
+  don't need names.** Three gaps against the reference set, closed
+  together. `xs` is a 24px disc with 11px numerals, sized for a rail
+  that sits above a form rather than one that headlines the page, and it
+  carries its own labels-bottom connector offsets like the other sizes.
+  Steps whose maps leave out `name` and `description` now render no
+  label block at all rather than an empty one, so a nameless stepper is
+  circles and connectors with nothing padding them out - the plain
+  numbered rail everyone else ships as a separate "basic" component is
+  just this one with less in its maps, and each step's `aria-label`
+  falls back to its count. `variant="bars"` trades the discs for a row
+  of 4px segments and drops the connectors, because the gaps between
+  segments are already the rail: completed and current fill solid,
+  ahead of you stays the same gray hairline the connector uses, the
+  numerals go `sr-only`, and titles (when the steps have names) sit
+  under their own segment, left-aligned, muted for the ones you haven't
+  reached. Bars is horizontal only and outranks `label_placement`.
+  Everything else is byte for byte identical between the two paints -
+  same jump targets, same `role="list"`, same `aria-current`, same
+  completed labels - so it really is one component with two faces. The
+  "Step 3 of 4" line people pair with the bars is composition, not an
+  attr, and the showcase demonstrates the shape.
+
+- **`modal` takes a `:footer`.** Every dialog with a Save button was
+  building the same row by hand at the bottom of the content - a
+  `flex justify-end gap-2 mt-6` div, give or take the margin - and it sat
+  on the body's own surface, so a modal and a slide over open on the same
+  page looked like two different components. The slot puts the row where
+  it belongs. It renders below the content in a band: border on top, muted
+  wash behind, edge to edge, the exact treatment the table's tfoot wears
+  and the one the alert dialog will ship with. Buttons stack on a narrow
+  screen with the primary action on top under the thumb, and unstack to a
+  right-aligned row from `sm` up. Want something on the far left instead -
+  a docs link, a step counter - put one full-width child in the slot and
+  lay it out yourself; the band, the border and the padding stay the
+  component's job.
+
+  Pinning it meant changing how the box scrolls, which is the part worth
+  reading twice. The box used to be one scrolling block, so a long body
+  carried the header off the top and would have carried the footer off the
+  bottom. It is now a column, the same shape the slide over has always
+  had: header and footer are fixed bands and the content between them is
+  the only part that scrolls. That is a visible change for a modal with
+  more content than fits, footer or no footer - the title now stays put
+  where it used to scroll away - and it is the behaviour the component
+  should have had. Everything else is untouched: omit the slot and the
+  modal renders exactly what it always did, buttons in the content and
+  all.
+
+- **`badge` takes a status dot.** Every app that shows state ends up
+  writing the same span by hand - a 6px filled circle in front of the
+  label - because that is how a status reads at a glance in a table of
+  forty rows. `dot` renders it. The dot takes the badge's own colour at
+  the strength that ramp reads as "the" colour, so a success badge gets a
+  green dot and a danger badge a red one with nothing else to pass: the
+  600 stop on `light`, `soft` and `outline`, rising to 400 in the dark
+  where soft and outline go translucent, and `currentColor` on `dark`,
+  where a saturated fill leaves no stop of its own ramp visible (that also
+  means it picks up the `--pc-button-solid-fg` token rather than a
+  hardcoded white). It scales with `size`, from 4px at `xs` to 8px at
+  `xl`, and sits `shrink-0` so it stays a circle next to a long label. The
+  dot is `aria-hidden` on purpose - the colour only repeats what the label
+  already says, so a screen reader gets "Failed", not "Failed" and a
+  circle. It composes with `with_icon` (dot, then icon, then text), and
+  `dot` defaults to false, where the badge renders byte for byte what it
+  always did.
+- **The dropdown places its panel with `side` and `align`.** Two attrs
+  that were three answers to two questions. `side` is which side of the
+  trigger the panel opens on: `"bottom"`, `"top"`, or `"left"` / `"right"`
+  for a panel that opens BESIDE the trigger, over whatever sits next to it
+  rather than over the thing it belongs to - the sidebar account panel
+  that pushes out into the content area instead of burying the nav it grew
+  from. `align` is which edges line up on the other axis, `"start"` or
+  `"end"`, and it reads horizontally for a panel above or below (start
+  grows it rightward, end grows it leftward) and vertically for one beside
+  (start aligns the tops, end aligns the bottoms - the sidebar-bottom
+  one). Leave `side` out and nothing changes: the panel opens downward and
+  the hook measures on every open. Name a side and there is nothing left
+  to measure, so the hook never attaches - including for `"left"` and
+  `"right"`, which are not on the flip's axis at all. That last one is a
+  deliberate limit rather than an oversight: a side-out panel that would
+  run off a short viewport stays where you put it, because you put it
+  there. `placement` and `direction` are the older spelling of the same
+  two questions, they keep working unchanged, and they map straight on -
+  `placement="left"` is `align="end"`, `placement="right"` is
+  `align="start"`, `direction="up"` is `side="top"`, `direction="down"` is
+  `side="bottom"`, `direction="auto"` is naming no side at all. Pass both
+  spellings and the new one wins. `user_dropdown_menu` passes `side` and
+  `align` through like the rest.
+- **The badge's dot can carry a different colour to the badge.** A dot in
+  the badge's own colour is right when the state is the message. It is the
+  wrong shape for the other convention, the one reui uses: a quiet chip
+  where the label is what varies and the same three or four states repeat
+  behind it, so the colour belongs on the circle and nowhere else.
+  `dot_color` puts it there. `<.badge color="gray" variant="outline" dot
+  dot_color="success">Production</.badge>` is neutral chrome with a green
+  dot, and it is the same green a success outline badge's own dot shows,
+  because the override takes the stop that variant already maps the colour
+  to rather than inventing one. It defaults to nil, which inherits exactly
+  as before, so nothing you have written moves. The one variant it cannot
+  match is `dark`, where the inherited dot is `currentColor` and no ramp
+  can match that: an override there takes the 400 stop, which means naming
+  the badge's own colour on `dark` is a visible change rather than a
+  no-op, and same-hue on `dark` is the one combination with little to show.
+
+- **The dropdown takes an explicit open direction.** The panel learned to
+  flip upward when the viewport left no room below it, which is the right
+  behaviour when nobody knows in advance. At the bottom of a sidebar
+  somebody does: it opens up, every time, and measuring to rediscover that
+  on each open buys a MutationObserver, two sets of scroll and resize
+  listeners and a frame's worth of risk that the panel paints downward
+  first. `direction` says it outright. `"auto"` is the default and is
+  exactly what shipped before - the hook attaches and measures. `"up"`
+  renders the panel already flipped and never attaches the hook at all.
+  `"down"` pins it downward and skips the hook too. `user_dropdown_menu`
+  passes `direction` through, alongside the new `menu_items_wrapper_class`,
+  so a sidebar account menu can be `direction="up"` with the panel pinned
+  to the sidebar's width.
+- **`user_dropdown_menu` accepts its own panel.** The component built the
+  menu from a `user_menu_items` list of maps, which is right up until the
+  menu wants an org switcher, a group label or a theme row - none of which
+  fit in a `%{path:, icon:, label:}`. Pass content in the inner block
+  instead and it replaces the generated list; the trigger, including
+  `variant="sidebar"`, is untouched. `user_menu_items` is now optional.
+- **`dropdown_menu_row` parks a control in the panel.** A theme switcher or
+  a plan badge is not a command, so it should not be a menu item pretending
+  to be one. The row carries menu-item padding and type with no hover wash,
+  and marks itself `role="none"` so it opts out of the surrounding
+  `role="menu"` and whatever you put inside keeps its own semantics. The
+  new "The account panel" example on the user menu shows the whole thing:
+  orgs with avatars, keyboard hints, a colour-scheme switch inline.- **`user_dropdown_menu` has a sidebar presentation.** The component only
+  ever rendered the compact navbar trigger - avatar plus chevron - so
+  anyone building the app-shell sidebar it is named after had to hand-roll
+  the rest of the row beside it: a name span, an email span, the truncation,
+  the hover wash. `variant="sidebar"` renders that row itself. Avatar, name
+  over email in muted text, `hero-chevron-up-down` on the right (up-down
+  because from the bottom of a sidebar the panel really can go either way),
+  the house hover wash and the `--pc-radius` corner. Both text lines
+  truncate. The new `current_user_email` is optional, and without it the row
+  is a single line. It all still rides the same `<button>` the dropdown
+  already owned, so `placement` and the upward flip work exactly as before:
+  `variant="sidebar"` with `placement="right"` at the bottom of a left-hand
+  sidebar opens up and to the right. `variant` defaults to `"icon"`, which
+  renders byte for byte what it always did.
+- **`progress_ring` draws determinate progress as a circle.** Every other
+  library in this space ships one and we didn't, so a quota meter in a
+  table cell had to be a bar squeezed into a column where five stacked
+  bars read as a barcode. It lives in `PetalComponents.Progress` next to
+  the bar and takes the same `value`, `max`, `size` (xs to xl, 16px up to
+  96px) and `color` attrs, so the two shapes agree wherever a page uses
+  both. Server-rendered SVG, no JavaScript: a track circle plus an arc
+  drawn with `stroke-dasharray`, starting at 12 o'clock with round caps,
+  and the value change animates unless the reader asked for less motion.
+  The arc is `currentColor`, so a `text-*` class recolours it the way it
+  does a sparkline. `show_value` puts the percentage in the middle at lg
+  and xl, the two sizes with a hole big enough to read a number in; below
+  that it draws nothing and the readout goes beside the ring, which the
+  showcase demonstrates. Pass a slot and the middle takes a count or an
+  icon instead, at any size. Same ARIA contract as the bar, down to
+  `aria-valuetext`.
+- **`user_dropdown_menu` takes a `placement`.** It always rendered its
+  dropdown at the default `"left"` placement (panel hangs leftward, right
+  edges aligned), which is exactly wrong for the component's most common
+  home: an avatar at the bottom-left of a sidebar, where the menu must grow
+  rightward into the viewport. `placement` now passes straight through to
+  the dropdown, and together with the viewport flip that means a
+  sidebar-bottom user menu opens up and to the right instead of off-screen.
+
+#### Changed
+
+- **The slide over's footer joins the band.** Visible change: the footer
+  used to be a bare `gray-100` hairline with nothing behind it, which was
+  the treatment before the house settled on what a component-owned footer
+  looks like. It now wears the same pair the table's tfoot and the new
+  modal footer wear - `border-gray-200` with a `bg-gray-50` wash in light,
+  the `gray-400` alphas in dark - so the strip reads as the same part in
+  whichever component it turns up in, and a re-themed gray dial carries
+  all three together. Nothing moved: the padding, the alignment and the
+  slot are what they were. The band is simply darker and no longer
+  transparent, which is most noticeable on a sheet whose body scrolls
+  under it, where the wash is what tells you the row is pinned rather than
+  the last thing in the list. If you were leaning on the old flat look,
+  the band is one rule - override `.pc-slideover__footer` in your own
+  stylesheet.
+
+- **The stepper learns the timeline's visual language - except where a
+  wizard has to disagree.** The active step is now ringed with the
+  timeline's currentColor halo instead of a thick outline, unreached
+  steps go hollow (gray ring, no fill, muted glyph), the connector takes
+  the house hairline pair, and the component reserves its own halo
+  headroom so a scrolling wrapper can't clip it. Completed steps stay
+  SOLID primary discs - a restyle pass tried the timeline's quiet chip
+  wash there and the eye-test caught why it can't transfer: in a
+  timeline "complete" is the resting record, in a stepper it is the
+  payload, and done-vs-not-done has to separate at a glance. Two latent
+  bugs fixed on the way: `.pc-stepper__title` was declared twice with
+  the second quietly winning, and the labels-bottom line's dark colour
+  sat on a `::before` where `dark:` variants silently never match.
+
+- **A horizontal stepper stays horizontal - behaviour change.** Below
+  `md` it used to flip itself into a vertical stack. Orientation is now
+  a contract: `horizontal` holds at every width and the rail compresses
+  instead - descriptions hide below `md`, and below `sm` every title but
+  the active step's hides too, so the circles carry the count, the
+  active label carries the context, and each step's `aria-label` keeps
+  its name for assistive tech. This is how the leading systems treat a
+  mobile wizard (a compact band above the form, never a component that
+  reshapes the page at a breakpoint the consumer didn't choose - and
+  never one that surprises an agent that asked for a horizontal wizard).
+  If you relied on the flip, render `orientation="vertical"` under a
+  breakpoint yourself - that keeps the choice in your hands.
+
+- **`badge` never wraps.** Behaviour change: a plain badge used to wrap a
+  long label onto a second line, while a `with_icon` badge did not, so the
+  same string in the same column laid out two different ways depending on
+  whether an icon happened to be there. A badge is a label - two lines of
+  10px semibold inside a pill reads as a rendering bug - so
+  `whitespace-nowrap` moved onto the base `.pc-badge` rule and came off
+  `--with-icon`, where it would only have said the same thing twice. Every
+  badge answers the question identically. A label too long for its column now
+  overflows instead of wrapping, which is the container's problem to fix
+  the way it fixes it for anything else: a `min-w-0` track, a `truncate`,
+  or a shorter label. If you were relying on the old wrapping, put
+  `class="whitespace-normal"` on the badge.
+
+#### Fixed
+
+- **A LiveView patch no longer closes an open command palette.** The
+  server never renders `open` on the dialog - `showModal()` sets it
+  client-side - so any patch that re-rendered the dialog's subtree (a
+  reconnect's join morph after a deploy or a network blip, live assigns
+  feeding the items) merged the attribute away: the palette vanished
+  with no `close` event, and the body scroll lock it owns leaked
+  forever - a page that cannot scroll, with nothing on screen to
+  explain why. The `PetalCommandDialog` hook now records the
+  client-owned state in `beforeUpdate` and restores it in `updated`:
+  the dialog re-opens in the same task (the `open` remove-and-re-add
+  never reaches a style recalc, so the entrance animation does not
+  replay), and focus lands back where the user left it, so a half-typed
+  query keeps its cursor.
+
+- **`<.progress />` with no `value` no longer raises.** `value` has always
+  defaulted to `nil` and the percentage maths divided by it anyway, so the
+  documented default blew up with an arithmetic error. It now renders an
+  empty bar and leaves `aria-valuenow` off, which is how ARIA spells
+  "indeterminate".
+
+- **The dropdown family flips its panel upward when the viewport leaves
+  no room below.** The canonical break was the user menu every app shell
+  ends up with: an avatar pinned to the bottom of a sidebar dropped its
+  menu clean off the bottom of the screen, with nothing to scroll to and
+  no way to reach Sign out. The panel opened downward unconditionally
+  because nothing measured it - the dropdown is LiveView.JS and CSS with
+  no JS in the open path at all. A new `PetalDropdown` hook rides the
+  panel (it already carries the id `JS.toggle` targets) and marks
+  `data-flip` when there is no room below and more above, which is the
+  same rule and the same attribute the combobox has used since 4.10;
+  both now call one shared `flipDecision`, so the rule can't drift
+  between them. The transform origin swaps with the flip, so a flipped
+  panel still scales out of the trigger rather than unfolding away from
+  it, and the side is re-measured on scroll and resize while the menu is
+  open. Applies to everything built on `dropdown`: `user_dropdown_menu`,
+  `language_select` and the `color_scheme_switch` dropdown variant.
+  Register the bundled hooks (see the README) to get it - without them
+  the panel keeps its previous always-downward behaviour.
+
+- **`command_dialog` now locks background scroll while the palette is
+  open.** A native modal `<dialog>` hands you the top layer, the focus
+  trap and Escape, but it does not stop the page underneath from
+  scrolling, so a trackpad flick while the palette was up slid the whole
+  page behind it. The hook adds the same `overflow-hidden` body class
+  `modal` and `slide_over` already use, so the treatment is one thing
+  across the library. The release hangs off the dialog's native `close`
+  event rather than each call site, because that is the single funnel
+  every close path drains through: the hook's own close, a backdrop
+  click, an item running, and Escape, including the case where the
+  browser's close watcher fires `close` with no cancel to intercept. A
+  patch that removes an open dialog fires no close event at all, so
+  `destroyed()` releases it too, guarded on `open` so tearing down a
+  closed palette cannot strip a lock another overlay owns.
+
 ### 4.14.0 - 2026-08-11
 
 #### Added
