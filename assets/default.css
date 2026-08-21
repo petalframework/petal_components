@@ -5033,9 +5033,14 @@
      keep covering bars: they key off `--horizontal`, and bars is never
      anything else. */
   .pc-stepper--bars {
-    /* Nothing haloed to make room for, so the rail sits flush against
-       whatever contains it instead of floating 4px inside it. */
-    --pc-stepper-ring: 0px;
+    /* The ring property is really INTERACTION headroom: circles spend it
+       on the halo, bars spend it on the invisible tap overhang below. A
+       first pass zeroed it because bars draw no halo - and inside an
+       overflow-x wrapper (which clips hit areas exactly the way it clips
+       halos, per the container comment above) that clipped the 12px-per-
+       side tap growth back to a 4px target. 0.75rem = the overhang, so
+       the whole hit area stays operable inside a scroller. */
+    --pc-stepper-ring: 0.75rem;
   }
 
   .pc-stepper--bars .pc-stepper__container {
