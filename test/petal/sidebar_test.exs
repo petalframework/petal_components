@@ -818,6 +818,85 @@ defmodule PetalComponents.SidebarTest do
     end
   end
 
+  describe "the collapsed rail" do
+    # The markup is byte for byte the same collapsed or not - the rail is a
+    # data attribute and a stylesheet - so default.css is the only place any
+    # of this can be pinned.
+
+    @app_root Path.expand("../..", __DIR__)
+    @rail ~s(.pc-sidebar[data-collapsible="icon"][data-collapsed="true"])
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the header is a centred grid column, not a flex row", %{css: css} do
+      body = rule_of(css, "#{@rail} .pc-sidebar__header")
+
+      # Grid rather than a flex column on purpose: the single track is only as
+      # wide as the widest child, which leaves an `ml-auto` a caller put on the
+      # trigger for the expanded row no free space to shove it into. Resetting
+      # that margin from here is not an option - @layer utilities outranks
+      # @layer components, so the utility wins whatever this rule says. Swap
+      # this back to flex-col and the trigger goes flush right while the logo
+      # above it stays centred.
+      assert body =~ "grid"
+      refute body =~ "flex-col"
+      assert body =~ "justify-center", "the track has to be centred on the rail"
+      assert body =~ "justify-items-center", "and each row centred inside the track"
+    end
+
+    test "the header sheds its one-row height without shrinking below it", %{css: css} do
+      body = rule_of(css, "#{@rail} .pc-sidebar__header")
+
+      # h-14 is the height of ONE row; a logo stacked over a trigger needs more.
+      assert body =~ "h-auto"
+      assert body =~ "py-3"
+      # A header holding nothing but a logo should still be exactly as tall as
+      # it was expanded, or collapsing the rail jogs the whole nav upward.
+      assert body =~ "min-h-14"
+    end
+
+    test "the footer centres what the caller cannot", %{css: css} do
+      # A plain block gives an inline-level child - a bare trigger, which is
+      # what the collapsed-rail example puts down there - nothing for mx-auto
+      # to work on, so it sits left of every icon above it.
+      body = rule_of(css, "#{@rail} .pc-sidebar__footer")
+
+      assert body =~ "flex"
+      assert body =~ "flex-col"
+      assert body =~ "items-center"
+    end
+
+    test "a sidebar-variant user menu hides its identity the way items hide labels",
+         %{css: css} do
+      # sr-only, not hidden: the avatar beside it goes aria-hidden whenever
+      # there is a name to read, so this text is what names the trigger button.
+      assert rule_of(css, "#{@rail} .pc-user-menu__identity") =~ "sr-only"
+      assert rule_of(css, "#{@rail} .pc-user-menu__row .pc-dropdown__chevron") =~ "hidden"
+    end
+
+    test "the user menu row centres its avatar like any other rail item", %{css: css} do
+      assert rule_of(css, "#{@rail} .pc-user-menu__row") =~ "justify-center"
+    end
+
+    test "the rail stops clipping, so a panel can open out of it", %{css: css} do
+      # 240px of account panel inside a 64px overflow-hidden box is one sliver
+      # of panel. The clip holds labels in while the width animates, and by the
+      # time the rail is narrow they are already sr-only.
+      assert rule_of(css, "#{@rail} .pc-sidebar__panel") =~ "overflow-visible"
+    end
+
+    # The body of whichever rule lists `selector` among its selectors, so a
+    # selector that shares a rule with its siblings still resolves.
+    defp rule_of(css, selector) do
+      case Regex.run(~r/#{Regex.escape(selector)}\s*(?:,[^{}]*)?\{([^}]*)\}/s, css) do
+        [_, body] -> body
+        nil -> flunk("selector not found in default.css: #{selector}")
+      end
+    end
+  end
+
   defp custom_icon(assigns) do
     ~H"""
     <svg id="custom-icon-svg" class={@class}></svg>

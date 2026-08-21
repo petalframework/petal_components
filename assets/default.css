@@ -8612,10 +8612,15 @@
     }
 
     /* Icon rail: labels stay in the accessibility tree, they just stop taking
-       space. The title attribute carries the same text on hover. */
+       space. The title attribute carries the same text on hover.
+       .pc-user-menu__identity is the same idea for a user_dropdown_menu
+       variant="sidebar" in the footer slot: hiding it rather than dropping it
+       is what keeps the trigger button named, since the avatar beside it goes
+       aria-hidden whenever there is a name to read. */
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__label,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__badge,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__identity,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__brand {
       @apply sr-only;
     }
@@ -8626,12 +8631,47 @@
       @apply hidden;
     }
 
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item {
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row {
       @apply justify-center px-0;
     }
 
+    /* The rail's header is a centred COLUMN, so a logo and a collapse trigger
+       each get a row of their own instead of elbowing each other along one
+       4rem line. Grid rather than a flex column on purpose: the single track
+       is only as wide as the widest child, which leaves an `ml-auto` a caller
+       put on the trigger for the expanded row no free space to shove it into.
+       Resetting that margin here is not an option - @layer utilities outranks
+       @layer components, so the utility wins whatever this rule says.
+       h-14 is a one-row height; min-h-14 keeps a header holding nothing but a
+       logo exactly as tall as it was expanded, and taller ones grow. */
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__header {
-      @apply justify-center px-0;
+      @apply grid justify-center justify-items-center h-auto px-0 py-3 min-h-14;
+    }
+
+    /* The footer is a plain block, so an inline-level child - a bare trigger,
+       the pattern the collapsed-rail example ships - cannot be centred by the
+       caller at all: auto margins need a block box to work on. A flex column
+       centres it, and a full-width item still spans the rail because its own
+       width outranks align-items. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__footer {
+      @apply flex flex-col items-center;
+    }
+
+    /* The user menu's chevron admits the panel can open either way. On the
+       rail there is no room to say it, and the avatar is the whole row. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row .pc-dropdown__chevron {
+      @apply hidden;
+    }
+
+    /* A panel opened from the rail - a user menu, a workspace switcher - is
+       240px of content hanging out of a 64px box, and the panel's
+       overflow-hidden ate all but the first sliver of it. That clip exists to
+       stop labels spilling while the width animates, and on the rail the
+       labels are already sr-only, so there is nothing left for it to hold in.
+       The content region keeps its own scroller either way. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__panel {
+      @apply overflow-visible;
     }
   }
 

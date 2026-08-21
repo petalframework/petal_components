@@ -3,6 +3,11 @@ defmodule PetalComponents.Sidebar do
   The app-shell navigation sidebar: a fixed rail of grouped links that collapses
   to icons on desktop and takes over as a sheet on mobile.
 
+  This is the chrome, not the list. `sidebar_item/1` is here for when you are
+  writing the nav markup anyway, but when your nav already ships as data,
+  `PetalComponents.Menu.vertical_menu/1` renders the same list from plain maps
+  and drops straight into the content area. The sidebar is the shell it sits in.
+
   Five function components compose the shell:
 
     * `sidebar_shell/1` - the flex wrapper holding the sidebar and your page content
