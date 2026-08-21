@@ -64,6 +64,7 @@ defmodule PetalComponents do
         SocialButton,
         Sparkline,
         ShineBorder,
+        Sidebar,
         SpotlightCard,
         Stepper,
         Table,
