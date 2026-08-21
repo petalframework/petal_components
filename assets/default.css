@@ -4660,7 +4660,10 @@
      carries its own headroom rather than trusting whoever wraps it. */
   .pc-stepper__container {
     @apply flex w-full gap-2 md:gap-4;
-    padding-block: var(--pc-stepper-ring);
+    /* All four sides, not just block: a halo on the FIRST or LAST step
+       reaches sideways past its circle, and a wrapping overflow-x-auto
+       clips the inline axis exactly the way it clips the block one. */
+    padding: var(--pc-stepper-ring);
   }
 
   /* Orientation is a contract: horizontal stays horizontal at every
