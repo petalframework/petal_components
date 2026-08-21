@@ -205,6 +205,140 @@ defmodule PetalComponents.TimelineTest do
     end
   end
 
+  describe "time placement" do
+    test "top is the default and emits no modifier" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline>
+          <:item time="9:41am" title="Order placed" />
+        </.timeline>
+        """)
+
+      refute_has_class(html, "pc-timeline--time-start")
+
+      # and the time stays inside the content, above the title
+      doc = LazyHTML.from_fragment(html)
+
+      assert doc |> LazyHTML.query(".pc-timeline__content > .pc-timeline__time") |> Enum.count() ==
+               1
+    end
+
+    test ~s|time_placement="top" is byte for byte what no attr at all renders| do
+      assigns = %{}
+
+      default =
+        rendered_to_string(~H"""
+        <.timeline variant="compact" connector="dashed">
+          <:item time="9:41am" title="Order placed" description="Payment authorised." />
+          <:item marker="avatar" name="Alex Chen" time="11:02am" title="Packed" state="current" />
+          <:item time="Tomorrow" title="Delivered" state="upcoming" />
+        </.timeline>
+        """)
+
+      explicit =
+        rendered_to_string(~H"""
+        <.timeline variant="compact" connector="dashed" time_placement="top">
+          <:item time="9:41am" title="Order placed" description="Payment authorised." />
+          <:item marker="avatar" name="Alex Chen" time="11:02am" title="Packed" state="current" />
+          <:item time="Tomorrow" title="Delivered" state="upcoming" />
+        </.timeline>
+        """)
+
+      assert default == explicit
+    end
+
+    test ~s|start puts the time in its own column, outside the content| do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline time_placement="start">
+          <:item time="12 minutes ago" title="Deployed to production" />
+        </.timeline>
+        """)
+
+      assert_has_class(html, "pc-timeline--time-start")
+
+      doc = LazyHTML.from_fragment(html)
+
+      # the time is a sibling of the rail now, not a child of the content, so
+      # the grid can put it on the other side of it
+      assert doc |> LazyHTML.query(".pc-timeline__item > .pc-timeline__time") |> LazyHTML.text() =~
+               "12 minutes ago"
+
+      assert doc |> LazyHTML.query(".pc-timeline__content .pc-timeline__time") |> Enum.count() ==
+               0
+
+      # exactly once, wherever it lands - a time announced twice is a bug
+      assert doc |> LazyHTML.query(".pc-timeline__time") |> Enum.count() == 1
+    end
+
+    test "start leaves the rail alone" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline time_placement="start">
+          <:item marker="icon" icon="hero-check" color="success" time="9:41am" title="Built" />
+          <:item marker="icon" icon="hero-rocket-launch" time="9:52am" title="Shipped" />
+        </.timeline>
+        """)
+
+      doc = LazyHTML.from_fragment(html)
+
+      # same markers, same connector, same order - the column is a layout
+      # change, not a rail change
+      assert doc |> LazyHTML.query(".pc-timeline__rail") |> Enum.count() == 2
+      assert doc |> LazyHTML.query(".pc-timeline__marker--icon") |> Enum.count() == 2
+      assert doc |> LazyHTML.query(".pc-timeline__connector") |> Enum.count() == 1
+    end
+
+    test "alternating and horizontal accept it and ignore it" do
+      assigns = %{}
+
+      for markup <- [
+            rendered_to_string(~H"""
+            <.timeline variant="alternating" time_placement="start">
+              <:item time="2019" title="Founded" />
+              <:item time="2021" title="Series A" />
+            </.timeline>
+            """),
+            rendered_to_string(~H"""
+            <.timeline orientation="horizontal" time_placement="start" label="Milestones">
+              <:item time="Q1" title="Research" />
+              <:item time="Q2" title="Beta" />
+            </.timeline>
+            """)
+          ] do
+        refute_has_class(markup, "pc-timeline--time-start")
+
+        doc = LazyHTML.from_fragment(markup)
+
+        assert doc
+               |> LazyHTML.query(".pc-timeline__content > .pc-timeline__time")
+               |> Enum.count() == 2
+      end
+    end
+
+    test "an entry with no time leaves the column empty rather than emitting a blank" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.timeline time_placement="start">
+          <:item time="12 minutes ago" title="Deployed" />
+          <:item title="Rolled back" />
+        </.timeline>
+        """)
+
+      doc = LazyHTML.from_fragment(html)
+
+      assert doc |> LazyHTML.query(".pc-timeline__time") |> Enum.count() == 1
+    end
+  end
+
   describe "connector" do
     test "solid is the default and emits no modifier" do
       assigns = %{}

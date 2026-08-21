@@ -840,6 +840,7 @@ defmodule Dev.PlaygroundLive do
          orientation: "vertical",
          marker: "icon",
          connector: "solid",
+         time_placement: "top",
          states: true
        },
        toast: %{pos: "bottom-right", undone: 0},
@@ -1272,6 +1273,10 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_timeline", %{"k" => "connector", "v" => v}, socket)
       when v in ~w(solid dashed),
       do: {:noreply, update(socket, :timeline, &%{&1 | connector: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "time_placement", "v" => v}, socket)
+      when v in ~w(top start),
+      do: {:noreply, update(socket, :timeline, &%{&1 | time_placement: v})}
 
   def handle_event("ctl_timeline", %{"k" => "states"}, socket),
     do: {:noreply, update(socket, :timeline, &%{&1 | states: !&1.states})}
@@ -5959,6 +5964,7 @@ defmodule Dev.PlaygroundLive do
             orientation={@timeline.orientation}
             variant={@timeline.variant}
             connector={@timeline.connector}
+            time_placement={@timeline.time_placement}
             label="Release pipeline"
           >
             <:item
@@ -6066,6 +6072,44 @@ defmodule Dev.PlaygroundLive do
                 {c}
               </:item>
             </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              time_placement
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Time placement"
+              value={@timeline.time_placement}
+              on_change="ctl_timeline"
+              disabled={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={t <- ~w(top start)}
+                value={t}
+                phx-value-k="time_placement"
+                phx-value-v={t}
+              >
+                {t}
+              </:item>
+            </.toggle_group>
+            <div
+              :if={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              vertical default and compact only
+            </div>
+            <div
+              :if={
+                @timeline.time_placement == "start" and @timeline.orientation == "vertical" and
+                  @timeline.variant != "alternating"
+              }
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              the column shows from sm up - narrow the window and it folds back on top
+            </div>
           </div>
           <div class="md:col-span-2">
             <.button

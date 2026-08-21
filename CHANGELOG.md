@@ -24,7 +24,11 @@
   never the signal, each of those entries also carries a
   visually-hidden state label. Connectors come `solid` or `dashed`, and
   each entry's inner block renders below the description, so a card, a
-  diff or an image grid drops straight in. Pure CSS and HEEx: no hook,
+  diff or an image grid drops straight in. `time_placement="start"` hands
+  the time a column of its own beside the rail, right-aligned against it,
+  which is the layout for a log you scan by when rather than by what -
+  `--pc-timeline-time-col` sets how wide, and below `sm` the time folds
+  back above the title without a marker moving. Pure CSS and HEEx: no hook,
   nothing to wire up, and the horizontal scroller's smooth behaviour sits
   behind a `prefers-reduced-motion` guard.
 

@@ -81,6 +81,100 @@ defmodule PetalComponents.Showcase.Timeline do
     """
   end
 
+  example :pipeline, "Pipeline steps",
+    description:
+      "A CI run read top to bottom. Finished stages carry a check and how long they took, the stage in flight is state=\"loading\" so its marker spins, and the one after it is upcoming. The title attr is a plain string, so anything that has to sit BESIDE the title - a duration chip, a status badge - goes in the entry's block on a flex row of its own. Reuse pc-timeline__title there and the row keeps the component's type and keeps fading when the entry is upcoming; mt-0 takes off the title's own first-line nudge, which a flex row does not want." do
+    ~H"""
+    <.timeline label="Pipeline run 482">
+      <:item marker="icon" icon="hero-check" color="success">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Checkout code</h3>
+          <.badge size="sm" color="success" variant="light" label="12s" />
+        </div>
+        <div class="p-3 mt-2 border border-gray-200 rounded-lg dark:border-gray-400/17">
+          <div class="flex items-center gap-2">
+            <.avatar name="Alex Chen" alt="Alex Chen" size="2xs" />
+            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">alex-chen</span>
+          </div>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Pushed <span class="font-mono">a1b2c3d</span> to main, 4 files changed.
+          </p>
+        </div>
+      </:item>
+      <:item marker="icon" icon="hero-check" color="success">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Install dependencies</h3>
+          <.badge size="sm" color="success" variant="light" label="48s" />
+        </div>
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          Restored the cache, 3 of 214 packages fetched.
+        </p>
+      </:item>
+      <:item marker="icon" color="warning" state="loading">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Unit & integration tests</h3>
+          <.badge size="sm" color="warning" variant="light" with_icon>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true"></span> Running
+          </.badge>
+        </div>
+        <div class="p-3 mt-2 border border-gray-200 rounded-lg dark:border-gray-400/17">
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            311 of 418 tests, 2 shards on <span class="font-mono">ubuntu-24.04</span>.
+          </p>
+        </div>
+      </:item>
+      <:item marker="icon" icon="hero-cube" state="upcoming">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Production build</h3>
+          <.badge size="sm" color="gray" variant="light" label="Pending" />
+        </div>
+      </:item>
+    </.timeline>
+    """
+  end
+
+  example :deploy_feed, "Deploy feed",
+    description:
+      "time_placement=\"start\" hands the time a column of its own beside the rail, right-aligned against it, which is the layout for a log you scan by when rather than by what. The column is 8rem of --pc-timeline-time-col and it only shows up from sm - narrower than that the time drops back above the title and the markers do not move." do
+    ~H"""
+    <.timeline time_placement="start" label="Recent deploys">
+      <:item color="success" time="12 minutes ago">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Deploy to production</h3>
+          <.badge size="sm" color="success" variant="light" with_icon>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true"></span> Success
+          </.badge>
+        </div>
+        <p class="mt-1 font-mono text-xs text-gray-500 dark:text-gray-400">
+          a1b2c3d · main · 42s
+        </p>
+      </:item>
+      <:item color="danger" time="1 hour ago">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Deploy to production</h3>
+          <.badge size="sm" color="danger" variant="light" with_icon>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true"></span> Failed
+          </.badge>
+        </div>
+        <p class="mt-1 font-mono text-xs text-gray-500 dark:text-gray-400">
+          9f4e210 · main · 18s
+        </p>
+      </:item>
+      <:item color="success" time="Yesterday, 4:02pm">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="mt-0 pc-timeline__title">Deploy to staging</h3>
+          <.badge size="sm" color="success" variant="light" with_icon>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true"></span> Success
+          </.badge>
+        </div>
+        <p class="mt-1 font-mono text-xs text-gray-500 dark:text-gray-400">
+          c81d0a7 · release/4.15 · 39s
+        </p>
+      </:item>
+    </.timeline>
+    """
+  end
+
   example :rich_entries, "Rich entry bodies",
     description:
       "Anything in an entry's inner block renders under the description, in every variant - a card, a diff, a thumbnail grid. Dashed connectors suit a log that has gaps in it." do

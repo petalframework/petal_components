@@ -7603,6 +7603,10 @@
        to reserve exactly this much room for it - see the padding-block down in
        the horizontal section. Change one and the other follows. */
     --pc-timeline-ring: 4px;
+    /* Width of the leading time column when time_placement="start". 8rem
+       clears "15 minutes ago" at this type size with room over. Set it on the
+       timeline to retune: style="--pc-timeline-time-col: 11rem". */
+    --pc-timeline-time-col: 8rem;
   }
 
   .pc-timeline--vertical {
@@ -7854,6 +7858,18 @@
     @apply mt-3;
   }
 
+  /* That top margin is separation from the description above it. An entry that
+     is only a body has nothing to separate from, and 12px of dead air at the
+     top drops its first line off its own marker. This is the case you hit the
+     moment you compose your own title row in the block - a title with badges
+     beside it, which the title attr cannot carry because it is a plain string.
+     The state label is visually hidden but still a sibling, so it needs
+     saying twice. */
+  .pc-timeline__content > .pc-timeline__body:first-child,
+  .pc-timeline__state-label + .pc-timeline__body {
+    @apply mt-0;
+  }
+
   .pc-timeline__state-label {
     @apply sr-only;
   }
@@ -7909,6 +7925,46 @@
 
   .pc-timeline--compact .pc-timeline__time {
     @apply text-[11px];
+  }
+
+  /* Leading times: the time gets a column of its own on the far side of the
+     rail, right-aligned against it, with the title and body to the right.
+
+     The entry turns into a grid for this, because the time is a sibling of the
+     rail now rather than a child of the content, and a three-item flex row
+     would put it in the wrong place. Below sm the grid is the same two tracks
+     the flex row was - a 2rem rail and the rest - with the time back on the
+     first row of column two, which is the default placement to the pixel: same
+     rail width, same 1rem gutter, and row-gap 0 so the title still sits under
+     it on its own 2px margin. Below sm a marker lands on exactly the x and y
+     it would have under the default placement, measured. From sm up the whole
+     rail translates right by the column plus the gutter, which is the point of
+     the layout, and nothing else about it moves.
+
+     Only row-gap is set here. The column gutter stays whatever the variant
+     asked for, so compact keeps its tighter 0.75rem. */
+  .pc-timeline--time-start .pc-timeline__item {
+    @apply grid gap-y-0 grid-cols-[2rem_1fr];
+    @apply sm:grid-cols-[var(--pc-timeline-time-col)_2rem_1fr];
+  }
+
+  /* Row placement is written as two longhands rather than row-span, which
+     compiles to the grid-row shorthand and would wipe the start back out. */
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__rail {
+    @apply col-start-1 row-start-1 row-end-3 sm:col-start-2 sm:row-end-2;
+  }
+
+  /* self-baseline is what lines the time up with the title rather than with
+     the top of the content box: the two type sizes differ, and they differ
+     again in compact, so a fixed nudge would be right in one variant and wrong
+     in the other. Baseline alignment needs a group, so the content opts in
+     too. */
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__time {
+    @apply col-start-2 row-start-1 sm:col-start-1 sm:self-baseline sm:text-right;
+  }
+
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__content {
+    @apply col-start-2 row-start-2 sm:col-start-3 sm:row-start-1 sm:self-baseline;
   }
 
   /* Horizontal: milestones on a rail, content underneath, scrolling sideways

@@ -48,6 +48,30 @@ defmodule PetalComponents.Timeline do
   scroll-snap when the row runs out of room. The `variant` attr is vertical-only
   and is ignored when horizontal.
 
+  ## Leading times
+
+  `time_placement="start"` moves the time out of the entry and into a column of
+  its own on the far side of the rail, right-aligned against it, with the title
+  and body to the right. It is the layout for a log you scan by when rather than
+  by what - deploys, audit trails, a day's worth of events:
+
+      <.timeline time_placement="start">
+        <:item time="12 minutes ago" title="Deployed to production" />
+        <:item time="1 hour ago" title="Merged #641" />
+      </.timeline>
+
+  The column is `--pc-timeline-time-col` wide (8rem, which clears "15 minutes
+  ago" with room over). Set the property on the timeline to retune it:
+
+      <.timeline time_placement="start" style="--pc-timeline-time-col: 11rem">
+
+  Below `sm` there is no room for a third column, so the time falls back to the
+  default placement above the title and the markers stay exactly where they
+  were. Vertical `default` and `compact` only: `alternating` and
+  `orientation="horizontal"` already spend the axis this column needs, so they
+  accept the attr and ignore it, the same way `variant` is ignored when
+  horizontal.
+
   ## Markers
 
   `marker` takes `"dot"` (the default), `"icon"` (pass `icon`), `"avatar"` (pass
@@ -133,6 +157,15 @@ defmodule PetalComponents.Timeline do
     values: ["solid", "dashed"],
     doc: "line style of the rail between markers"
 
+  attr :time_placement, :string,
+    default: "top",
+    values: ["top", "start"],
+    doc: """
+    where each entry's time sits.
+    top: above the title, inside the entry (the default).
+    start: in its own column on the far side of the rail, right-aligned against it, from sm up - below that it falls back to top. Vertical default and compact only; alternating and horizontal ignore it. Width is the --pc-timeline-time-col custom property (8rem).
+    """
+
   attr :label, :string,
     default: nil,
     doc:
@@ -182,6 +215,7 @@ defmodule PetalComponents.Timeline do
       assigns
       |> assign(:entries, entries(assigns.item, alternating?))
       |> assign(:horizontal?, assigns.orientation == "horizontal")
+      |> assign(:time_start?, time_start?(assigns))
 
     ~H"""
     <ol
@@ -190,6 +224,7 @@ defmodule PetalComponents.Timeline do
         "pc-timeline--#{@orientation}",
         !@horizontal? && "pc-timeline--#{@variant}",
         @connector == "dashed" && "pc-timeline--dashed",
+        @time_start? && "pc-timeline--time-start",
         @class
       ]}
       aria-label={@label}
@@ -208,6 +243,11 @@ defmodule PetalComponents.Timeline do
         aria-current={entry.state == "current" && "step"}
         aria-busy={entry.loading? && "true"}
       >
+        <%!-- The leading time is a sibling of the rail, not a child of the
+              content, because it has to sit on the other side of it. Same
+              element and same class either way, so nothing is announced twice
+              and every rule that reaches a time still reaches this one. --%>
+        <div :if={@time_start? && entry.time} class="pc-timeline__time">{entry.time}</div>
         <div class="pc-timeline__rail" aria-hidden="true">
           <span class={[
             "pc-timeline__marker",
@@ -249,7 +289,7 @@ defmodule PetalComponents.Timeline do
           <span :if={state_label(entry.state)} class="pc-timeline__state-label">
             {state_label(entry.state)}
           </span>
-          <div :if={entry.time} class="pc-timeline__time">{entry.time}</div>
+          <div :if={!@time_start? && entry.time} class="pc-timeline__time">{entry.time}</div>
           <h3 :if={entry.title} class="pc-timeline__title">{entry.title}</h3>
           <p :if={entry.description} class="pc-timeline__description">{entry.description}</p>
           <div :if={entry.body?} class="pc-timeline__body">{render_slot(entry.slot)}</div>
@@ -257,6 +297,16 @@ defmodule PetalComponents.Timeline do
       </li>
     </ol>
     """
+  end
+
+  # The leading time column costs a whole column of horizontal room, which only
+  # the two single-rail vertical variants have going spare. Alternating already
+  # owns both sides of its rail and horizontal runs the other way, so they take
+  # the attr and ignore it rather than raising - same contract as `variant` when
+  # orientation is horizontal.
+  defp time_start?(assigns) do
+    assigns.time_placement == "start" and assigns.orientation == "vertical" and
+      assigns.variant in ["default", "compact"]
   end
 
   # Flattens each :item slot into everything the markup needs, so the template
