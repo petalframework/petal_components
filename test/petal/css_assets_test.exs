@@ -226,6 +226,45 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "the dialog footer band" do
+    # A footer a component OWNS wears one band - the table tfoot's border
+    # plus muted wash - so a modal and a slide over open on the same page
+    # cannot disagree about what a footer looks like. The pair exists only
+    # in CSS (the markup is one class either side), so this is the only
+    # place it can be pinned. The slide over drifted here once already: a
+    # bare gray-100 hairline and no wash at all.
+
+    @footer_band ~w(border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8)
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the tfoot still defines the pair the others copy", %{css: css} do
+      body = rule_body(css, ".pc-table__tfoot")
+
+      for token <- @footer_band do
+        assert body =~ token, "the tfoot lost #{token}; the band's source of truth moved"
+      end
+    end
+
+    test "the modal and slide over footers wear it too", %{css: css} do
+      for selector <- [".pc-modal__footer", ".pc-slideover__footer"], token <- @footer_band do
+        assert rule_body(css, selector) =~ token,
+               "#{selector} is missing #{token} from the footer band"
+      end
+    end
+
+    test "the modal's footer is pinned, not scrolled", %{css: css} do
+      # The box is a column and the content is the only scroller. Drop
+      # flex-none here (or the overflow off the content) and a long body
+      # pushes the action row off the bottom of the dialog.
+      assert rule_body(css, ".pc-modal__footer") =~ "flex-none"
+      assert rule_body(css, ".pc-modal__box") =~ "flex-col"
+      assert rule_body(css, ".pc-modal__content") =~ "overflow-y-auto"
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).
