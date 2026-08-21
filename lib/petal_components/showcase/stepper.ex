@@ -4,20 +4,22 @@ defmodule PetalComponents.Showcase.Stepper do
 
   example :horizontal, "Steps from plain maps",
     description:
-      "Multi-step progress for onboarding, checkout, wizards. Steps are plain maps - name, description, complete?, active?, and an optional on_click JS command to make them jump targets. aria-current and completed labels are wired for screen readers." do
+      "Multi-step progress for onboarding, checkout, wizards. Steps are plain maps - name, description, complete?, active?, and an optional on_click JS command to make them jump targets. aria-current and completed labels are wired for screen readers. Beside-labels run wide, so a constrained container gives the rail an overflow-x-auto wrapper and lets it scroll." do
     ~H"""
-    <.stepper steps={[
-      %{name: "Account", description: "Email and password", complete?: true, active?: false},
-      %{name: "Workspace", description: "Name your project", complete?: false, active?: true},
-      %{name: "Invite", description: "Bring the team", complete?: false, active?: false},
-      %{name: "Review", description: "Confirm and finish", complete?: false, active?: false}
-    ]} />
+    <div class="overflow-x-auto">
+      <.stepper steps={[
+        %{name: "Account", description: "Email and password", complete?: true, active?: false},
+        %{name: "Workspace", description: "Name your project", complete?: false, active?: true},
+        %{name: "Invite", description: "Bring the team", complete?: false, active?: false},
+        %{name: "Review", description: "Confirm and finish", complete?: false, active?: false}
+      ]} />
+    </div>
     """
   end
 
   example :bottom_labels, "Labels underneath",
     description:
-      "label_placement=\"bottom\" is the classic wizard look - circles in a row, labels centred underneath, connectors pinned to the circle centres. Horizontal only; the stacked mobile layout is unchanged." do
+      "label_placement=\"bottom\" is the classic wizard look - circles in a row, labels centred underneath, connectors pinned to the circle centres. Horizontal only, at every width - on small screens the rail compresses rather than stacking." do
     ~H"""
     <.stepper
       label_placement="bottom"
