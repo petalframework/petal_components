@@ -7,6 +7,11 @@ defmodule PetalComponents.Menu do
   list usually lives in - the rail, the collapse to icons, the mobile sheet -
   reach for `PetalComponents.Sidebar.sidebar/1`; menu is the list it holds. The
   two compose: a `vertical_menu/1` drops straight into a sidebar's content area.
+
+  And a menu is for pages you NAVIGATE to. Hierarchical data you explore -
+  files, folders, an org chart - belongs in `PetalComponents.Tree.tree/1`,
+  a different widget with a different keyboard grammar. The sidebar holds
+  either; they never hold each other.
   """
   use Phoenix.Component
   import PetalComponents.Link
