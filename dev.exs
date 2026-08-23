@@ -9435,7 +9435,7 @@ defmodule Dev.PlaygroundLive do
               month={@pick_month}
               on_month_change="picker_month"
               min={Date.utc_today()}
-              help_text="Try typing 14 Mar 2027, then blur."
+              help_text="Try typing 14 Mar 2027 - the calendar follows as the year lands."
             />
           </div>
         </div>
