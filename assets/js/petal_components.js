@@ -1954,6 +1954,24 @@ export const PetalAlertDialog = {
     this.wasOpen = false;
     this.wasClosing = false;
     this.refocus = null;
+    // WebKit marks ANY focus inside a freshly shown modal dialog as
+    // keyboard-visible - even a script focus following a tap, even deferred
+    // past the click task (measured against real WebKit; Chromium's
+    // heuristic behaves). The one escape hatch the engines share is
+    // FocusOptions.focusVisible, so track the user's input modality the
+    // classic way and say what we mean when focusing cancel. Engines that
+    // ignore the option just fall back to their heuristic.
+    this.lastInputWasKeyboard = false;
+    this.onModalityKey = (e) => {
+      if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+        this.lastInputWasKeyboard = true;
+      }
+    };
+    this.onModalityPointer = () => {
+      this.lastInputWasKeyboard = false;
+    };
+    document.addEventListener("keydown", this.onModalityKey, true);
+    document.addEventListener("pointerdown", this.onModalityPointer, true);
     this.onOpen = () => this.open();
     this.onCloseEvent = () => this.requestClose();
     // Escape. Swallow the native close and route through the cancel button so
@@ -2040,6 +2058,8 @@ export const PetalAlertDialog = {
     this.el.removeEventListener("click", this.onAction);
     this.el.removeEventListener("close", this.onClose);
     this.el.removeEventListener("animationend", this.onExitEnd);
+    document.removeEventListener("keydown", this.onModalityKey, true);
+    document.removeEventListener("pointerdown", this.onModalityPointer, true);
   },
 
   cancelButton() {
@@ -2078,15 +2098,15 @@ export const PetalAlertDialog = {
   focusCancel() {
     const cancel = this.cancelButton();
     if (!cancel) return;
-    // showModal()'s own focusing pass may already sit here - and anything
-    // focused by that native pass is marked keyboard-visible unconditionally,
-    // which is a permanent focus ring on every tap-open (iOS Safari paints
-    // it; Radix, being a div with only script focus, does not). focus() on
-    // the already-focused element is a no-op that would keep that state, so
-    // drop focus first: the fresh script focus inherits the user's actual
-    // input modality - ring for keyboard opens, none for pointer.
+    // showModal()'s own focusing pass may already sit here, marked
+    // keyboard-visible by the attribute-path rules. The blur makes the
+    // focus below a real focus rather than a no-op (enough for Chromium's
+    // inherit rule); the focusVisible option is for WebKit, which marks
+    // every focus inside a fresh modal keyboard-visible regardless and
+    // honours only the explicit request. Ring for keyboard opens, none
+    // for taps - the Radix behaviour, stated instead of inferred.
     if (document.activeElement === cancel) cancel.blur();
-    cancel.focus();
+    cancel.focus({ focusVisible: this.lastInputWasKeyboard });
   },
 
   // Close INTENT. The single door every close path walks through.

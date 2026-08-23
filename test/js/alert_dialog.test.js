@@ -184,6 +184,38 @@ describe("PetalAlertDialog", () => {
     expect(document.activeElement).toBe(cancel);
   });
 
+  it("tells the engine the modality: tap-open asks for focusVisible false, keyboard true", () => {
+    // WebKit marks any focus inside a freshly shown modal keyboard-visible -
+    // even script focus after a tap, even deferred (measured in real WebKit;
+    // this is why the blur-refocus alone satisfied Chromium and still ringed
+    // on the maintainer's iPhone). FocusOptions.focusVisible is the shared
+    // escape hatch, driven by tracked input modality.
+    const { hook, el, cancel } = mount();
+    const focusCalls = [];
+    cancel.focus = (opts) => focusCalls.push(opts);
+
+    document.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    hook.focusCancel();
+    expect(focusCalls).toEqual([{ focusVisible: false }]);
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+    );
+    hook.focusCancel();
+    expect(focusCalls).toEqual([
+      { focusVisible: false },
+      { focusVisible: true },
+    ]);
+
+    // a modifier chord is a shortcut, not keyboard navigation
+    document.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
+    );
+    hook.focusCancel();
+    expect(focusCalls[2]).toEqual({ focusVisible: false });
+  });
+
   it("re-issues a FRESH focus even when the native pass already sits on cancel", () => {
     // showModal()'s own focusing pass marks whatever it lands on as
     // keyboard-visible unconditionally - a permanent ring on every
