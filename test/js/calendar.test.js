@@ -224,6 +224,7 @@ function pickerMarkup({
   return `
     <div id="dp" class="pc-date-picker" data-mode="${mode}" data-format="${format}"
       ${clearEvent ? `data-clear-event="${clearEvent}"` : ""}
+      data-close="close-command"
       data-range-separator="${separator}">
       <div class="pc-date-picker__control">
         <input type="text" id="dp-input" data-pc-date-input value="${display}" />
@@ -936,6 +937,29 @@ describe("PetalDatePicker focus", () => {
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(document.activeElement.dataset.date).toBe("2026-03-01");
+  });
+
+  it("Enter on a complete value closes the panel through data-close", () => {
+    const p = mountPicker();
+    const executed = [];
+    p.hook.liveSocket = { execJS: (el, js) => executed.push(js) };
+    p.input.value = "2026-03-14";
+    p.input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    expect(p.hidden("value").value).toBe("2026-03-14");
+    expect(executed).toEqual(["close-command"]);
+  });
+
+  it("Enter on a half-open range commits the end it has and stays open", () => {
+    const p = mountPicker({ mode: "range" });
+    const executed = [];
+    p.hook.liveSocket = { execJS: (el, js) => executed.push(js) };
+    p.input.value = "2026-03-10 - ";
+    p.input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    expect(executed).toEqual([]);
   });
 
   it("ArrowDown on a closed panel opens through the toggle", () => {

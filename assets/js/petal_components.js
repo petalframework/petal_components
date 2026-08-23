@@ -5736,7 +5736,13 @@ export const PetalDatePicker = {
     this.onInputKeydown = (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        this.parse();
+        // A complete selection is an answer: close the panel the same way
+        // click-away would (the data-close command), caret staying put.
+        // Partial or failed parses keep it open - mid-typing is not "done".
+        if (this.parse()) {
+          const close = this.el.getAttribute("data-close");
+          if (close && this.liveSocket) this.liveSocket.execJS(this.el, close);
+        }
         return;
       }
       // The keyboard road into the calendar: ArrowDown from the input opens
@@ -5894,6 +5900,10 @@ export const PetalDatePicker = {
     }, 0);
   },
 
+  // Returns true when the parse committed (or pushed) a COMPLETE selection -
+  // both ends in range mode, the one date in single - so Enter can know
+  // whether "done" has actually happened. Reverts and partial parses return
+  // false and the panel stays up.
   parse() {
     const text = (this.input.value || "").trim();
 
@@ -5905,12 +5915,12 @@ export const PetalDatePicker = {
         const clear = this.el.dataset.clearEvent;
         if (clear) this.push(clear, {});
         else this.revert();
-        return;
+        return false;
       }
 
       this.lastValid = "";
       this.commit(null, null);
-      return;
+      return false;
     }
 
     const format = this.el.dataset.format || "%Y-%m-%d";
@@ -5920,18 +5930,25 @@ export const PetalDatePicker = {
       const [rawFrom, rawTo] = this.splitRange(text, separator);
       const from = this.parseOne(rawFrom, format);
       const to = this.parseOne(rawTo, format);
-      if (!from && !to) return this.revert();
+      if (!from && !to) {
+        this.revert();
+        return false;
+      }
       this.lastValid = this.input.value;
       if (this.serverOwned()) this.pushSelection(from, to);
       else this.commit(from, to);
-      return;
+      return !!(from && to);
     }
 
     const iso = this.parseOne(text, format);
-    if (!iso) return this.revert();
+    if (!iso) {
+      this.revert();
+      return false;
+    }
     this.lastValid = this.input.value;
     if (this.serverOwned()) this.pushSelection(iso, null);
     else this.commit(iso, null);
+    return true;
   },
 
   // Split on the separator as configured, at its first occurrence. Splitting on

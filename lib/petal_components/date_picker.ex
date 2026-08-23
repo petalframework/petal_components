@@ -54,7 +54,17 @@ defmodule PetalComponents.DatePicker do
 
   On success the hidden value and the calendar's month both move to the parsed
   date. On failure the input reverts to the last valid formatted value, so a
-  half-typed date can never silently post as nothing.
+  half-typed date can never silently post as nothing. Enter commits the same
+  way blur does, and when it lands a COMPLETE selection - both ends in range
+  mode - it also closes the panel; a partial or failed parse keeps it open.
+
+  One wiring requirement that bites: with `on_month_change` left `nil`, month
+  navigation renders as patch links carrying `month_param` - which only pages
+  if your LiveView actually handles that param in `handle_params/3` and feeds
+  it back through `month`. In a LiveView that ignores the param, prev/next do
+  nothing and a typed far-away date cannot bring its month into view. Either
+  handle the param, or pass `on_month_change` and assign the pushed month -
+  the typed-date month jump works through whichever wiring you chose.
 
   With `on_select` set the server owns the value, so a parsed date is pushed to
   you as that same event rather than written client-side - typing `12 Jun 1987`
@@ -175,6 +185,7 @@ defmodule PetalComponents.DatePicker do
       data-range-separator={@range_separator}
       data-clear-event={@on_clear}
       phx-click-away={close(@id)}
+      data-close={close(@id)}
       phx-keydown={close_and_refocus(@id)}
       phx-key="Escape"
       {@rest}

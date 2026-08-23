@@ -794,6 +794,12 @@ defmodule Dev.PlaygroundLive do
        cal_multi: [],
        picker: %{mode: "range", two_months: true, clearable: true},
        pick_stay: {Date.utc_today(), Date.add(Date.utc_today(), 4)},
+       # The flagship's single value starts EMPTY on purpose: its help text
+       # invites typing, and the old seed (a 1987 birthday) sat before the
+       # flagship's own min={Date.utc_today()} - a date the calendar itself
+       # would refuse. The wired birthday example below keeps its own seed.
+       pick_single: nil,
+       pick_month: nil,
        pick_birthday: ~D[1987-06-12],
        pick_deadline: nil,
        progress: %{
@@ -1512,6 +1518,13 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("birthday_pick", %{"date" => iso}, socket),
     do: {:noreply, assign(socket, :pick_birthday, parse_date!(iso))}
+
+  # The flagship's month paging. Its VALUE stays client-owned (no on_select -
+  # that is the flagship's story), but link-based month nav only works when
+  # the page handles the month_param patch, which this playground LV does
+  # not - so the nav is evented instead and this is its handler.
+  def handle_event("picker_month", %{"month" => iso}, socket),
+    do: {:noreply, assign(socket, :pick_month, parse_date!(iso))}
 
   def handle_event("deadline_pick", %{"date" => iso}, socket),
     do: {:noreply, assign(socket, :pick_deadline, parse_date!(iso))}
@@ -9418,7 +9431,9 @@ defmodule Dev.PlaygroundLive do
               format="%d %b %Y"
               two_months={@picker.mode == "range" && @picker.two_months}
               clearable={@picker.clearable}
-              value={if @picker.mode == "range", do: @pick_stay, else: @pick_birthday}
+              value={if @picker.mode == "range", do: @pick_stay, else: @pick_single}
+              month={@pick_month}
+              on_month_change="picker_month"
               min={Date.utc_today()}
               help_text="Try typing 14 Mar 2027, then blur."
             />
