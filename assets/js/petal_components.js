@@ -5757,10 +5757,7 @@ export const PetalDatePicker = {
         // A complete selection is an answer: close the panel the same way
         // click-away would (the data-close command), caret staying put.
         // Partial or failed parses keep it open - mid-typing is not "done".
-        if (this.parse()) {
-          const close = this.el.getAttribute("data-close");
-          if (close && this.liveSocket) this.liveSocket.execJS(this.el, close);
-        }
+        if (this.parse()) this.closePanel();
         return;
       }
       // The keyboard road into the calendar: ArrowDown from the input opens
@@ -5780,10 +5777,23 @@ export const PetalDatePicker = {
     this.onClearClick = (e) => this.clearClick(e);
     // Live preview: a complete date typed while the panel is open shows up in
     // the grid before Enter. Debounced past any human keystroke gap; %Y needs
-    // all four digits, so nothing fires mid-year.
+    // all four digits, so nothing fires mid-year. The clear button tracks the
+    // text immediately - an X for a half-typed mess is half its job.
     this.onType = () => {
+      this.syncClear();
       clearTimeout(this.previewTimer);
       this.previewTimer = setTimeout(() => this.preview(), 150);
+    };
+    // The icon button is a TOGGLE: JS commands cannot branch on panel state,
+    // so the hook does - closed runs the root's open command (which carries
+    // the grid-focus intent), open runs the close command.
+    this.onToggleClick = () => {
+      if (this.panelHidden()) {
+        const open = this.el.getAttribute("data-open");
+        if (open && this.liveSocket) this.liveSocket.execJS(this.el, open);
+      } else {
+        this.closePanel();
+      }
     };
 
     this.bind();
@@ -5803,6 +5813,13 @@ export const PetalDatePicker = {
     if (this.clearButton) {
       this.clearButton.addEventListener("click", this.onClearClick);
     }
+
+    this.toggleButton = this.el.querySelector("[data-pc-date-toggle]");
+    if (this.toggleButton) {
+      this.toggleButton.addEventListener("click", this.onToggleClick);
+    }
+
+    this.syncClear();
   },
 
   // A patch hands back everything the server painted from ITS assigns, which
@@ -5881,6 +5898,9 @@ export const PetalDatePicker = {
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
+    if (this.toggleButton) {
+      this.toggleButton.removeEventListener("click", this.onToggleClick);
+    }
     clearTimeout(this.focusTimer);
     clearTimeout(this.previewTimer);
   },
@@ -5945,6 +5965,19 @@ export const PetalDatePicker = {
 
   panelHidden() {
     return getComputedStyle(this.panel).display === "none";
+  },
+
+  closePanel() {
+    const close = this.el.getAttribute("data-close");
+    if (close && this.liveSocket) this.liveSocket.execJS(this.el, close);
+  },
+
+  // The server renders the clear button's first paint, but only the client
+  // knows the field's state from there - a client-owned value never reaches
+  // the server's assigns at all. Visible whenever the field holds text.
+  syncClear() {
+    if (!this.clearButton) return;
+    this.clearButton.hidden = !(this.input.value || "").length;
   },
 
   focusGrid() {
@@ -6086,8 +6119,14 @@ export const PetalDatePicker = {
 
     const iso = day.dataset.date;
 
+    // The same contract Enter keeps: a COMPLETE selection is an answer, so
+    // the click that completes one closes the panel and hands focus back to
+    // the input, the way Escape does. A range's anchor click is half an
+    // answer and keeps browsing.
     if (this.el.dataset.mode !== "range") {
       this.commit(iso, null);
+      this.closePanel();
+      this.input.focus();
       return;
     }
 
@@ -6098,10 +6137,14 @@ export const PetalDatePicker = {
 
     if (!haveFrom || haveTo) {
       this.commit(iso, null);
-    } else if (iso < from.value) {
-      this.commit(iso, from.value);
     } else {
-      this.commit(from.value, iso);
+      if (iso < from.value) {
+        this.commit(iso, from.value);
+      } else {
+        this.commit(from.value, iso);
+      }
+      this.closePanel();
+      this.input.focus();
     }
   },
 
@@ -6126,6 +6169,7 @@ export const PetalDatePicker = {
     // rewriting a field someone is typing in is the same family of theft as
     // stealing its focus. Blur or Enter canonicalises the text later.
     if (!keepText) this.input.value = this.lastValid;
+    this.syncClear();
     this.paint(from, to);
 
     // The moduledoc's other half: the calendar's month moves to the parsed

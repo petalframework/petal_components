@@ -7869,9 +7869,18 @@
     @apply right-9.5;
   }
 
+  /* the hook drives the clear's visibility from the field's actual state
+     (the server can't know a client-owned value), and inline-flex above
+     would beat the UA's [hidden] rule without this */
+  .pc-date-picker__clear[hidden] {
+    display: none;
+  }
+
   /* two 24px boxes and a gap sit in the rail, so a value long enough to
-     fill the input stops short of the clear instead of running under it */
-  .pc-date-picker__control:has(.pc-date-picker__clear) .pc-date-picker__input {
+     fill the input stops short of the clear instead of running under it -
+     scoped to a VISIBLE clear, or an empty field pads for a button that
+     is not there */
+  .pc-date-picker__control:has(.pc-date-picker__clear:not([hidden])) .pc-date-picker__input {
     @apply pr-16;
   }
 

@@ -215,7 +215,10 @@ defmodule PetalComponents.DatePickerTest do
   end
 
   describe "clearable" do
-    test "the clear button shows only when there is a value" do
+    # The server can only decide the FIRST frame - a client-owned value never
+    # reaches its assigns, so the button always renders and the hidden attr
+    # carries the initial state. The hook keeps it truthful from there.
+    test "the clear button renders whenever clearable, hidden until a value" do
       assigns = %{}
 
       with_value =
@@ -234,7 +237,9 @@ defmodule PetalComponents.DatePickerTest do
         """)
 
       assert Enum.count(query(with_value, "[data-pc-date-clear]")) == 1
-      assert Enum.empty?(query(without, "[data-pc-date-clear]"))
+      assert attr_of(with_value, "[data-pc-date-clear]", "hidden") == nil
+      assert Enum.count(query(without, "[data-pc-date-clear]")) == 1
+      assert attr_of(without, "[data-pc-date-clear]", "hidden") == ""
       assert Enum.empty?(query(off, "[data-pc-date-clear]"))
     end
 
@@ -370,7 +375,10 @@ defmodule PetalComponents.DatePickerTest do
 
       assert attr_of(html, "#dp-toggle", "aria-expanded") == "false"
 
-      open = attr_of(html, "#dp-toggle", "phx-click")
+      # The toggle is hook-driven (a JS command cannot branch on panel
+      # state), so the open command lives on the root for the hook to run.
+      assert attr_of(html, "#dp-toggle", "phx-click") == nil
+      open = attr_of(html, "#dp", "data-open")
       assert open =~ "dp-toggle"
       assert open =~ "aria-expanded"
 

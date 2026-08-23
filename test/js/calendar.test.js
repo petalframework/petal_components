@@ -225,6 +225,7 @@ function pickerMarkup({
     <div id="dp" class="pc-date-picker" data-mode="${mode}" data-format="${format}"
       ${clearEvent ? `data-clear-event="${clearEvent}"` : ""}
       data-close="close-command"
+      data-open="open-command"
       data-range-separator="${separator}">
       <div class="pc-date-picker__control">
         <input type="text" id="dp-input" data-pc-date-input value="${display}" />
@@ -1154,5 +1155,88 @@ describe("PetalDatePicker live preview", () => {
     expect(p.hidden("from").value).toBe("2026-03-10");
     expect(p.hidden("to").value).toBe("2026-03-14");
     expect(p.input.value).toBe("2026-03-10 - 2026-03-14");
+  });
+});
+
+describe("PetalDatePicker complete-selection close", () => {
+  // The contract Enter already keeps, extended to the pointer: the click
+  // that COMPLETES a selection is an answer, so the panel closes and focus
+  // returns to the input (the way Escape hands it back). A range's anchor
+  // click is half an answer and keeps browsing.
+  it("a single-mode day click closes the panel", () => {
+    const p = mountPicker();
+    const executed = [];
+    p.hook.liveSocket = { execJS: (el, js) => executed.push(js) };
+    p.day("2026-03-14").click();
+    expect(p.hidden("value").value).toBe("2026-03-14");
+    expect(executed).toEqual(["close-command"]);
+    expect(document.activeElement).toBe(p.input);
+  });
+
+  it("a range's anchor click stays open; the completing click closes", () => {
+    const p = mountPicker({ mode: "range" });
+    const executed = [];
+    p.hook.liveSocket = { execJS: (el, js) => executed.push(js) };
+
+    p.day("2026-03-10").click();
+    expect(p.hidden("from").value).toBe("2026-03-10");
+    expect(executed).toEqual([]);
+
+    p.day("2026-03-14").click();
+    expect(p.hidden("to").value).toBe("2026-03-14");
+    expect(executed).toEqual(["close-command"]);
+    expect(document.activeElement).toBe(p.input);
+  });
+});
+
+describe("PetalDatePicker toggle button", () => {
+  // JS commands cannot branch on panel state, so the hook does: closed runs
+  // the root's open command (grid intent and all), open runs close.
+  it("toggles: open when closed, close when open", () => {
+    const p = mountPicker();
+    const executed = [];
+    p.hook.liveSocket = { execJS: (el, js) => executed.push(js) };
+    const toggle = p.el.querySelector("[data-pc-date-toggle]");
+    const panel = p.el.querySelector("#dp-panel");
+
+    panel.style.display = "none";
+    toggle.click();
+    expect(executed).toEqual(["open-command"]);
+
+    panel.style.display = "";
+    toggle.click();
+    expect(executed).toEqual(["open-command", "close-command"]);
+  });
+});
+
+describe("PetalDatePicker clear visibility", () => {
+  // The server can only paint the first frame - a client-owned value never
+  // reaches its assigns. From mount on, the hook shows the X whenever the
+  // field holds text, immediately on typing, and hides it again on clear.
+  it("tracks the field: hidden empty, shown on typing, hidden on clear", () => {
+    const p = mountPicker({ clearable: true });
+    const clear = p.el.querySelector("[data-pc-date-clear]");
+    expect(clear.hidden).toBe(true);
+
+    p.input.value = "14 M";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(clear.hidden).toBe(false);
+
+    clear.click();
+    expect(p.hidden("value").value).toBe("");
+    expect(clear.hidden).toBe(true);
+  });
+
+  it("a committed value keeps the X across a patch", () => {
+    const p = mountPicker({ clearable: true });
+    p.input.value = "2026-03-14";
+    p.input.dispatchEvent(new Event("blur"));
+    const clear = p.el.querySelector("[data-pc-date-clear]");
+    expect(clear.hidden).toBe(false);
+
+    // morphdom puts the server's first-paint hidden back; updated() re-syncs
+    clear.hidden = true;
+    p.hook.updated();
+    expect(clear.hidden).toBe(false);
   });
 });

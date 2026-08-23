@@ -57,6 +57,11 @@ defmodule PetalComponents.DatePicker do
   half-typed date can never silently post as nothing. Enter commits the same
   way blur does, and when it lands a COMPLETE selection - both ends in range
   mode - it also closes the panel; a partial or failed parse keeps it open.
+  Clicking a day keeps the same contract: the click that completes the
+  selection (any single-mode click, a range's second end) closes the panel
+  and hands focus back to the input; a range's anchor click keeps browsing.
+  The calendar icon is a true toggle - it opens a closed panel and closes an
+  open one.
 
   While the panel is open, typing does not even wait for blur: the moment the
   text parses to a complete selection, the calendar pages to it and paints it,
@@ -131,7 +136,7 @@ defmodule PetalComponents.DatePicker do
 
   attr :clearable, :boolean,
     default: false,
-    doc: "show a clear button when a value is set"
+    doc: "show a clear button whenever the field holds text"
 
   attr :two_months, :boolean,
     default: false,
@@ -194,6 +199,7 @@ defmodule PetalComponents.DatePicker do
       data-clear-event={@on_clear}
       phx-click-away={close(@id)}
       data-close={close(@id)}
+      data-open={open(@id, :grid)}
       phx-keydown={close_and_refocus(@id)}
       phx-key="Escape"
       {@rest}
@@ -217,10 +223,11 @@ defmodule PetalComponents.DatePicker do
             phx-click={!@disabled && open(@id)}
           />
           <button
-            :if={@clearable && @display_value not in [nil, ""]}
+            :if={@clearable}
             type="button"
             class="pc-date-picker__clear"
             data-pc-date-clear
+            hidden={@display_value in [nil, ""]}
             disabled={@disabled}
             aria-label={@clear_label}
             phx-click={@on_clear}
@@ -238,7 +245,6 @@ defmodule PetalComponents.DatePicker do
             aria-haspopup="dialog"
             aria-expanded="false"
             aria-controls={"#{@id}-panel"}
-            phx-click={open(@id, :grid)}
           >
             <.icon name="hero-calendar" class="pc-date-picker__toggle-icon" />
           </button>
