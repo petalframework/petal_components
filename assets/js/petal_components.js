@@ -5471,8 +5471,18 @@ export const PetalCalendar = {
     this.pendingFocus = null;
     this.onKeydown = (e) => this.keydown(e);
     this.onFocusIn = (e) => this.focusIn(e);
+    // The programmatic road to a date: the date picker dispatches this after
+    // a TYPED commit so the grid pages to the committed month. focus: false
+    // by default - the caret is in the input and must stay there; keyboard
+    // paging keeps using focusDate() directly, which does focus.
+    this.onShowDate = (e) => {
+      if (e.detail && e.detail.date) {
+        this.focusDate(e.detail.date, { focus: !!e.detail.focus });
+      }
+    };
     this.grid.addEventListener("keydown", this.onKeydown);
     this.grid.addEventListener("focusin", this.onFocusIn);
+    this.el.addEventListener("pc:calendar:show-date", this.onShowDate);
   },
 
   // A month change re-renders the whole grid, so the day we asked to land on
@@ -5480,12 +5490,14 @@ export const PetalCalendar = {
   // and the keyboard user is stranded.
   updated() {
     if (!this.pendingFocus) return;
-    const iso = this.pendingFocus;
+    const { iso, focus } = this.pendingFocus;
     this.pendingFocus = null;
     const target = this.dayFor(iso) || this.firstDayOfMonth();
     if (target) {
       this.setTabbable(target);
-      target.focus();
+      // A silent jump (typed commit) moves the month and the roving tabindex
+      // but leaves focus where it is - the input's caret survives the patch.
+      if (focus) target.focus();
     }
   },
 
@@ -5493,6 +5505,7 @@ export const PetalCalendar = {
     if (!this.grid) return;
     this.grid.removeEventListener("keydown", this.onKeydown);
     this.grid.removeEventListener("focusin", this.onFocusIn);
+    this.el.removeEventListener("pc:calendar:show-date", this.onShowDate);
   },
 
   days() {
@@ -5588,7 +5601,7 @@ export const PetalCalendar = {
     return iso;
   },
 
-  focusDate(iso) {
+  focusDate(iso, { focus = true } = {}) {
     iso = this.clamp(iso);
 
     // Landing in another month means the month must change, even when the day
@@ -5597,7 +5610,7 @@ export const PetalCalendar = {
       const day = this.dayFor(iso);
       if (day) {
         this.setTabbable(day);
-        day.focus();
+        if (focus) day.focus();
         return;
       }
     }
@@ -5620,7 +5633,7 @@ export const PetalCalendar = {
       );
     }
 
-    this.pendingFocus = iso;
+    this.pendingFocus = { iso, focus };
     nav.click();
   },
 };
@@ -6037,6 +6050,20 @@ export const PetalDatePicker = {
     this.input.value = this.formatDisplay(from, to);
     this.lastValid = this.input.value;
     this.paint(from, to);
+
+    // The moduledoc's other half: the calendar's month moves to the parsed
+    // date. Silently - the caret is in the input and stays there; the grid
+    // pages underneath via the calendar's own jump machinery, whichever nav
+    // wiring (evented or link) the consumer chose.
+    const anchor = from || to;
+    const calendar = this.calendar();
+    if (anchor && calendar) {
+      calendar.dispatchEvent(
+        new CustomEvent("pc:calendar:show-date", {
+          detail: { date: anchor, focus: false },
+        }),
+      );
+    }
   },
 
   write(el, value) {

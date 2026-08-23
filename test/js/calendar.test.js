@@ -352,7 +352,7 @@ describe("PetalCalendar month paging", () => {
 
     key(c.day("2026-03-12"), "PageDown");
     expect(c.navClicks).toEqual(["next"]);
-    expect(c.hook.pendingFocus).toBe("2026-04-12");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-04-12", focus: true });
 
     c.repaint({ month: "2026-04-01" });
     expect(document.activeElement.dataset.date).toBe("2026-04-12");
@@ -363,7 +363,7 @@ describe("PetalCalendar month paging", () => {
 
     key(c.day("2026-01-15"), "PageUp", { shiftKey: true });
     expect(c.navClicks).toEqual(["prev"]);
-    expect(c.hook.pendingFocus).toBe("2025-01-15");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2025-01-15", focus: true });
 
     c.repaint({ month: "2025-01-01" });
     expect(document.activeElement.dataset.date).toBe("2025-01-15");
@@ -377,7 +377,7 @@ describe("PetalCalendar month paging", () => {
 
     key(c.day("2026-09-23"), "PageUp", { shiftKey: true });
     expect(c.nav("prev").getAttribute("phx-value-month")).toBe("2025-09-01");
-    expect(c.hook.pendingFocus).toBe("2025-09-23");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2025-09-23", focus: true });
   });
 
   it("retargets the link-mode arrow's month param", () => {
@@ -386,7 +386,7 @@ describe("PetalCalendar month paging", () => {
 
     key(c.day("2026-09-23"), "PageDown", { shiftKey: true });
     expect(c.nav("next").getAttribute("href")).toBe("?month=2027-09-01");
-    expect(c.hook.pendingFocus).toBe("2027-09-23");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2027-09-23", focus: true });
   });
 
   it("retargets for an ordinary one-month page too, so both paths agree", () => {
@@ -398,14 +398,14 @@ describe("PetalCalendar month paging", () => {
   it("clamps a day the target month does not have", () => {
     const c = mountCalendar({ month: "2026-01-01" });
     key(c.day("2026-01-31"), "PageDown");
-    expect(c.hook.pendingFocus).toBe("2026-02-28");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-02-28", focus: true });
   });
 
   it("PageUp from January asks for December of the year before", () => {
     const c = mountCalendar({ month: "2026-01-01" });
     key(c.day("2026-01-15"), "PageUp");
     expect(c.navClicks).toEqual(["prev"]);
-    expect(c.hook.pendingFocus).toBe("2025-12-15");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2025-12-15", focus: true });
   });
 
   it("an arrow that lands in the next month pages too, even when the day is on screen", () => {
@@ -415,14 +415,14 @@ describe("PetalCalendar month paging", () => {
 
     key(c.day("2026-03-31"), "ArrowRight");
     expect(c.navClicks).toEqual(["next"]);
-    expect(c.hook.pendingFocus).toBe("2026-04-01");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-04-01", focus: true });
   });
 
   it("an arrow off the top of the grid pages backwards", () => {
     const c = mountCalendar();
     key(c.day("2026-03-02"), "ArrowUp");
     expect(c.navClicks).toEqual(["prev"]);
-    expect(c.hook.pendingFocus).toBe("2026-02-23");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-02-23", focus: true });
   });
 
   it("keeps the clamped day through the repaint", () => {
@@ -434,7 +434,7 @@ describe("PetalCalendar month paging", () => {
 
   it("falls back to the first day of the month when the requested day is not rendered", () => {
     const c = mountCalendar({ month: "2026-03-01" });
-    c.hook.pendingFocus = "2029-09-09";
+    c.hook.pendingFocus = { iso: "2029-09-09", focus: true };
     c.repaint({ month: "2026-04-01" });
     expect(document.activeElement.dataset.date).toBe("2026-04-01");
   });
@@ -480,14 +480,14 @@ describe("PetalCalendar min/max window", () => {
     });
     key(c.day("2026-03-12"), "PageDown");
     expect(c.navClicks).toEqual(["next"]);
-    expect(c.hook.pendingFocus).toBe("2026-04-12");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-04-12", focus: true });
   });
 
   it("pages to the edge month when the window ends part way in", () => {
     const c = mountCalendar({ month: "2026-03-01", max: "2026-04-10" });
     key(c.day("2026-03-12"), "PageDown");
     expect(c.navClicks).toEqual(["next"]);
-    expect(c.hook.pendingFocus).toBe("2026-04-10");
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-04-10", focus: true });
   });
 
   it("leaves arrow movement alone when no window is set", () => {
@@ -903,6 +903,41 @@ describe("PetalDatePicker parity with the server's range anatomy", () => {
   });
 });
 
+describe("PetalCalendar silent month jump", () => {
+  // The date picker's typed commit pages the grid to the committed month
+  // WITHOUT taking focus - the caret is in the input and must survive.
+  it("show-date on the visible month moves the tabindex, not the focus", () => {
+    const c = mountCalendar();
+    document.body.focus();
+    c.el.dispatchEvent(
+      new CustomEvent("pc:calendar:show-date", {
+        detail: { date: "2026-03-20", focus: false },
+      }),
+    );
+    expect(c.tabbable().map((d) => d.dataset.date)).toEqual(["2026-03-20"]);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("show-date across months pages silently", () => {
+    const c = mountCalendar();
+    document.body.focus();
+    c.el.dispatchEvent(
+      new CustomEvent("pc:calendar:show-date", {
+        detail: { date: "2026-05-09", focus: false },
+      }),
+    );
+    expect(c.hook.pendingFocus).toEqual({ iso: "2026-05-09", focus: false });
+    c.repaint({ month: "2026-05-01" });
+    // repaint replaces the element, so query through hook.el - the mount
+    // helper's closures still point at the detached March grid
+    const tabbable = Array.from(
+      c.hook.el.querySelectorAll('[data-date][tabindex="0"]'),
+    );
+    expect(tabbable.map((d) => d.dataset.date)).toEqual(["2026-05-09"]);
+    expect(document.activeElement).toBe(document.body);
+  });
+});
+
 describe("PetalDatePicker focus", () => {
   // Focus follows INTENT (the open event's detail), not the panel. Opening
   // from the toggle carries focus: "grid"; opening from the input's own
@@ -937,6 +972,18 @@ describe("PetalDatePicker focus", () => {
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(document.activeElement.dataset.date).toBe("2026-03-01");
+  });
+
+  it("a typed commit asks the calendar to show the month, silently", () => {
+    const p = mountPicker();
+    const shown = [];
+    p.el
+      .querySelector(".pc-calendar")
+      .addEventListener("pc:calendar:show-date", (e) => shown.push(e.detail));
+    p.input.value = "2027-03-14";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("value").value).toBe("2027-03-14");
+    expect(shown).toEqual([{ date: "2027-03-14", focus: false }]);
   });
 
   it("Enter on a complete value closes the panel through data-close", () => {
