@@ -7,7 +7,7 @@ defmodule PetalComponents.Tree do
   announce it as a tree - which is exactly wrong for site navigation
   (the APG says so too): links belong in `PetalComponents.Menu.vertical_menu/1`,
   where Tab and `aria-current` do what a reader expects. Both drop
-  straight into a `PetalComponents.Sidebar.sidebar/1` - the shell holds
+  straight into a `PetalComponents.Sidebar.sidebar_nav/1` - the shell holds
   either; they never hold each other. If it's a page, it's a menu item;
   if it's a thing, it's a tree node.
 
