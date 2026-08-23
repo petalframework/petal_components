@@ -2077,7 +2077,16 @@ export const PetalAlertDialog = {
 
   focusCancel() {
     const cancel = this.cancelButton();
-    if (cancel) cancel.focus();
+    if (!cancel) return;
+    // showModal()'s own focusing pass may already sit here - and anything
+    // focused by that native pass is marked keyboard-visible unconditionally,
+    // which is a permanent focus ring on every tap-open (iOS Safari paints
+    // it; Radix, being a div with only script focus, does not). focus() on
+    // the already-focused element is a no-op that would keep that state, so
+    // drop focus first: the fresh script focus inherits the user's actual
+    // input modality - ring for keyboard opens, none for pointer.
+    if (document.activeElement === cancel) cancel.blur();
+    cancel.focus();
   },
 
   // Close INTENT. The single door every close path walks through.

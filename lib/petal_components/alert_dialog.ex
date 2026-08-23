@@ -21,7 +21,9 @@ defmodule PetalComponents.AlertDialog do
     * `role="alertdialog"` rather than `role="dialog"`, so assistive tech
       announces it as an interruption that needs a decision.
     * Initial focus lands on the **cancel** button - the least destructive
-      action - not on confirm.
+      action - not on confirm. The hook places it with a script focus, so
+      the focus ring follows the user's input modality: visible for a
+      keyboard-driven open, absent for a tap or click.
     * Escape cancels.
     * Clicking the backdrop does **nothing**. The friction is the point.
 
@@ -227,7 +229,6 @@ defmodule PetalComponents.AlertDialog do
             type="button"
             color="gray"
             variant="outline"
-            autofocus
             phx-click={@on_cancel}
             data-pc-alert-dialog-cancel
             data-pc-alert-dialog-close

@@ -391,16 +391,14 @@ defmodule PetalComponents.AlertDialogTest do
         <.alert_dialog id="confirm" variant="destructive" title="Delete?" />
         """)
 
-      # showModal() honours [autofocus]; the hook also focuses this button
-      # explicitly. Either way it must be cancel, never confirm.
+      # No [autofocus] anywhere: the native pass marks attribute-focused
+      # elements keyboard-visible unconditionally, painting a permanent
+      # focus ring on every tap-open (iOS Safari). The HOOK focuses cancel
+      # with a fresh script focus instead, so the ring follows the user's
+      # input modality. Initial focus still lands on cancel, never confirm.
       assert html
              |> doc()
-             |> LazyHTML.query(".pc-alert-dialog__cancel[autofocus]")
-             |> Enum.count() == 1
-
-      assert html
-             |> doc()
-             |> LazyHTML.query(".pc-alert-dialog__confirm[autofocus]")
+             |> LazyHTML.query("[autofocus]")
              |> Enum.empty?()
     end
 

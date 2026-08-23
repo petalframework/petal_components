@@ -184,6 +184,25 @@ describe("PetalAlertDialog", () => {
     expect(document.activeElement).toBe(cancel);
   });
 
+  it("re-issues a FRESH focus even when the native pass already sits on cancel", () => {
+    // showModal()'s own focusing pass marks whatever it lands on as
+    // keyboard-visible unconditionally - a permanent ring on every
+    // tap-open. A focus() no-op on the already-focused button would keep
+    // that state, so focusCancel must blur and refocus: the fresh script
+    // focus follows the user's input modality instead (the Radix behavior
+    // the maintainer compared against on an iPhone).
+    const { hook, cancel } = mount();
+    let focusEvents = 0;
+    cancel.addEventListener("focus", () => focusEvents++);
+
+    cancel.focus(); // stand in for the native focusing pass
+    expect(focusEvents).toBe(1);
+
+    hook.focusCancel();
+    expect(focusEvents).toBe(2);
+    expect(document.activeElement).toBe(cancel);
+  });
+
   it("ignores a second open while already open", () => {
     const { el } = mount();
 
