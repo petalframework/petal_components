@@ -34,6 +34,14 @@ defmodule Dev.Layouts do
     if System.get_env("PLAYGROUND_DEPLOY") == "true", do: System.get_env("FATHOM_SITE_ID")
   end
 
+  # The playground's static assets go out with `cache-control: public` and no
+  # max-age, which invites Safari's heuristic caching - the maintainer
+  # refreshed an iPhone repeatedly and kept testing a build from BEFORE the
+  # deploy. A boot-stamped rev on both asset URLs makes every deploy its own
+  # cache key; unchanged files still answer 304 via the ETag.
+  @asset_rev System.system_time(:second) |> Integer.to_string()
+  defp asset_rev, do: @asset_rev
+
   def root(assigns) do
     ~H"""
     <!DOCTYPE html>
@@ -61,7 +69,8 @@ defmodule Dev.Layouts do
           })();
         </script>
         <meta name="pg-rev" content="alert-badge-1" />
-        <link rel="stylesheet" href="/assets/app.css" />
+        <meta name="pg-asset-rev" content={asset_rev()} />
+        <link rel="stylesheet" href={"/assets/app.css?v=" <> asset_rev()} />
         <script
           :if={fathom_site()}
           src="https://cdn.usefathom.com/script.js"
@@ -105,7 +114,13 @@ defmodule Dev.Layouts do
         <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js">
         </script>
         <script type="module">
-          import PetalComponents from "/assets/js/petal_components.js";
+          // Dynamic import so the rev can come from the meta tag - HEEx does
+          // not interpolate inside script bodies. Top-level await is legal in
+          // a module script.
+          const rev = document.querySelector('meta[name="pg-asset-rev"]').content;
+          const { default: PetalComponents } = await import(
+            "/assets/js/petal_components.js?v=" + rev
+          );
           window.liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {
             hooks: { ...PetalComponents },
             uploaders: {},
