@@ -7603,6 +7603,19 @@
     @apply grid grid-cols-2 gap-3 sm:grid-cols-3;
   }
 
+  /* iOS long-press on the drag surface starts TEXT SELECTION - the
+     magnifier, the blue band - before the hook's long press can lift, and
+     letting go leaves a selection where the user meant a drag. The surface
+     that drags cannot be selectable: the whole item when the item IS the
+     handle, only the grip button when a grip exists, so a handled row's
+     text stays copyable. touch-callout kills the iOS preview/share sheet
+     the same press would summon. */
+  .pc-sortable:not([data-handle]) .pc-sortable__item,
+  .pc-sortable__handle {
+    @apply select-none;
+    -webkit-touch-callout: none;
+  }
+
   .pc-sortable__item {
     @apply relative flex items-center gap-3 px-3 py-2.5 bg-white border border-gray-200 text-gray-900 shadow-xs;
     @apply dark:bg-gray-400/8 dark:border-gray-400/20 dark:text-gray-100;
