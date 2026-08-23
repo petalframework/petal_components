@@ -1061,6 +1061,21 @@ describe("PetalDatePicker across patches", () => {
     expect(p.input.value).toBe("14 Mar 2027");
   });
 
+  it("a server re-render that actually changes the value is adopted, not fought", () => {
+    const p = mountPicker({ display: "2026-03-14", value: "2026-03-14" });
+    // A real re-render: the server changes the hidden's value ATTRIBUTE,
+    // which nothing on the client ever touches - reconfigured picker, reset
+    // form. The hook's memory yields.
+    p.hidden("value").setAttribute("value", "2026-03-20");
+    p.hidden("value").value = "2026-03-20";
+    p.hook.updated();
+    expect(p.hidden("value").value).toBe("2026-03-20");
+    expect(
+      p.day("2026-03-20").classList.contains("pc-calendar__day--selected"),
+    ).toBe(true);
+    expect(p.input.value).toBe("2026-03-20");
+  });
+
   it("a patch cannot resurrect a cleared value either", () => {
     const p = mountPicker({ display: "2026-03-14", value: "2026-03-14" });
     p.input.value = "";

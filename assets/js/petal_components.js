@@ -5740,6 +5740,7 @@ export const PetalDatePicker = {
     // inputs cannot be that memory: a patch morphs them back to the server's
     // assigns, which in a client-owned picker never learned the value.
     this.remembered = this.committed();
+    this.seenSeeds = this.serverSeeds();
 
     // Focus follows INTENT, not the panel. The open event's detail says who
     // asked: the toggle button (and ArrowDown below) mean "browse", so the
@@ -5822,6 +5823,16 @@ export const PetalDatePicker = {
     this.bind();
 
     if (this.serverOwned()) return;
+    // Unless the server actually said something new. The hook only ever sets
+    // the hiddens' value PROPERTY, so a changed value attribute - or a
+    // reconfigured picker, which swaps the hiddens out entirely - is a real
+    // re-render to adopt, not stale state to fight.
+    const seeds = this.serverSeeds();
+    if (seeds !== this.seenSeeds) {
+      this.seenSeeds = seeds;
+      this.remembered = this.committed();
+      this.lastValid = this.formatDisplay(...this.remembered);
+    }
     const [from, to] = this.remembered || [null, null];
     const roles = this.el.dataset.mode === "range" ? ["from", "to"] : ["value"];
     [from, to].forEach((value, i) => {
@@ -5832,6 +5843,19 @@ export const PetalDatePicker = {
       this.input.value = this.lastValid || "";
     }
     this.paint(from, to);
+  },
+
+  // A fingerprint of what the SERVER last rendered: the mode plus each hidden
+  // input's value ATTRIBUTE. Commits write the property and leave the
+  // attribute alone, so this only moves when a re-render actually changes
+  // the picker.
+  serverSeeds() {
+    const roles = this.el.dataset.mode === "range" ? ["from", "to"] : ["value"];
+    const attrs = roles.map((role) => {
+      const el = this.hidden(role);
+      return (el && el.getAttribute("value")) || "";
+    });
+    return this.el.dataset.mode + ":" + attrs.join("|");
   },
 
   // The pair the hidden inputs currently hold; single mode has one input and
