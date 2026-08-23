@@ -1234,9 +1234,29 @@ describe("PetalDatePicker clear visibility", () => {
     const clear = p.el.querySelector("[data-pc-date-clear]");
     expect(clear.hidden).toBe(false);
 
-    // morphdom puts the server's first-paint hidden back; updated() re-syncs
+    // The full morph, as the maintainer hit it toggling clearable off and
+    // on: the patch wipes the unfocused input back to the server's stale
+    // display AND hands back a hidden button. The sync has to run after the
+    // display restore, or it reads the wiped input and keeps the X buried.
+    p.input.value = "";
     clear.hidden = true;
     p.hook.updated();
+    expect(p.input.value).toBe("2026-03-14");
     expect(clear.hidden).toBe(false);
+  });
+
+  it("a failed parse that reverts also takes the X with it", () => {
+    const p = mountPicker({ clearable: true });
+    const clear = p.el.querySelector("[data-pc-date-clear]");
+
+    p.input.value = "23";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(clear.hidden).toBe(false);
+
+    // blur: "23" parses to nothing, the display reverts to the last valid
+    // value (empty), and the X must not outlive the text it clears
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.input.value).toBe("");
+    expect(clear.hidden).toBe(true);
   });
 });

@@ -5859,6 +5859,10 @@ export const PetalDatePicker = {
     if (document.activeElement !== this.input) {
       this.input.value = this.lastValid || "";
     }
+    // After the restore, not before: bind()'s sync ran against the input the
+    // patch had just wiped, which is how a returning clear button stayed
+    // hidden over a real value.
+    this.syncClear();
     this.paint(from, to);
   },
 
@@ -6109,6 +6113,7 @@ export const PetalDatePicker = {
   // field is the worst outcome of the three.
   revert() {
     this.input.value = this.lastValid || "";
+    this.syncClear();
   },
 
   panelClick(e) {
