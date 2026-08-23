@@ -58,6 +58,14 @@ defmodule PetalComponents.DatePicker do
   way blur does, and when it lands a COMPLETE selection - both ends in range
   mode - it also closes the panel; a partial or failed parse keeps it open.
 
+  While the panel is open, typing does not even wait for blur: the moment the
+  text parses to a complete selection, the calendar pages to it and paints it,
+  with the caret and your text left exactly where they are (`14 Mar 2027`
+  canonicalises to the configured format on blur or Enter, not mid-keystroke).
+  Incomplete text does nothing - previews never revert. Server-owned pickers
+  (`on_select`) keep the blur/Enter contract only, so your handler is never
+  fed per-keystroke half-states.
+
   One wiring requirement that bites: with `on_month_change` left `nil`, month
   navigation renders as patch links carrying `month_param` - which only pages
   if your LiveView actually handles that param in `handle_params/3` and feeds

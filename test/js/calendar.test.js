@@ -1031,3 +1031,113 @@ describe("PetalDatePicker focus", () => {
     expect(p.hidden("value").value).toBe("");
   });
 });
+
+describe("PetalDatePicker across patches", () => {
+  // The maintainer's repro: type a date, Enter, reopen - right month, no
+  // highlight. The month jump is a patch, the patch morphs the hidden inputs
+  // back to the server's assigns (which in a client-owned picker never
+  // learned the value), and the old updated() then faithfully repainted
+  // "nothing". LiveView only shields the FOCUSED input; the hiddens are fair
+  // game. The hook's own memory has to win.
+  it("a month patch cannot wipe a committed value", () => {
+    const p = mountPicker({ format: "%d %b %Y" });
+    p.input.value = "14 Mar 2027";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("value").value).toBe("2027-03-14");
+
+    // The patch: server repaints the subtree from its own assigns - hiddens
+    // come back empty, the grid comes back on the new month, unpainted.
+    p.hidden("value").value = "";
+    p.el.querySelector("#dp-panel").innerHTML = calendarMarkup({
+      month: "2027-03-01",
+      id: "dp-calendar",
+    });
+    p.hook.updated();
+
+    expect(p.hidden("value").value).toBe("2027-03-14");
+    expect(
+      p.day("2027-03-14").classList.contains("pc-calendar__day--selected"),
+    ).toBe(true);
+    expect(p.input.value).toBe("14 Mar 2027");
+  });
+
+  it("a patch cannot resurrect a cleared value either", () => {
+    const p = mountPicker({ display: "2026-03-14", value: "2026-03-14" });
+    p.input.value = "";
+    p.input.dispatchEvent(new Event("blur"));
+    expect(p.hidden("value").value).toBe("");
+
+    // Server still holds the mount-time seed; the patch puts it back.
+    p.hidden("value").value = "2026-03-14";
+    p.hook.updated();
+
+    expect(p.hidden("value").value).toBe("");
+    expect(
+      p.day("2026-03-14").classList.contains("pc-calendar__day--selected"),
+    ).toBe(false);
+  });
+});
+
+describe("PetalDatePicker live preview", () => {
+  const debounce = () => new Promise((resolve) => setTimeout(resolve, 200));
+
+  it("a complete date previews as you type - committed, paged, text untouched", async () => {
+    const p = mountPicker({ format: "%d %b %Y" });
+    const shown = [];
+    p.el
+      .querySelector(".pc-calendar")
+      .addEventListener("pc:calendar:show-date", (e) => shown.push(e.detail));
+
+    p.input.focus();
+    p.input.value = "14 Mar 2027";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+
+    expect(p.hidden("value").value).toBe("2027-03-14");
+    expect(shown).toEqual([{ date: "2027-03-14", focus: false }]);
+    // The two thefts this feature must not commit: the text and the caret.
+    expect(p.input.value).toBe("14 Mar 2027");
+    expect(document.activeElement).toBe(p.input);
+  });
+
+  it("incomplete text previews nothing - %Y wants all four digits", async () => {
+    const p = mountPicker({ format: "%d %b %Y" });
+    p.input.value = "14 Mar 2";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+    expect(p.hidden("value").value).toBe("");
+    expect(p.input.value).toBe("14 Mar 2");
+  });
+
+  it("a closed panel and a server-owned picker both sit it out", async () => {
+    const closed = mountPicker({ format: "%d %b %Y" });
+    closed.el.querySelector("#dp-panel").style.display = "none";
+    closed.input.value = "14 Mar 2027";
+    closed.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+    expect(closed.hidden("value").value).toBe("");
+
+    document.body.innerHTML = "";
+    const owned = mountPicker({ selectEvent: "pick" });
+    owned.input.value = "2027-03-14";
+    owned.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+    expect(owned.pushes).toEqual([]);
+    expect(owned.hidden("value").value).toBe("");
+  });
+
+  it("a range previews only once both ends are in", async () => {
+    const p = mountPicker({ mode: "range" });
+    p.input.value = "2026-03-10 - ";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+    expect(p.hidden("from").value).toBe("");
+
+    p.input.value = "2026-03-10 - 2026-03-14";
+    p.input.dispatchEvent(new Event("input", { bubbles: true }));
+    await debounce();
+    expect(p.hidden("from").value).toBe("2026-03-10");
+    expect(p.hidden("to").value).toBe("2026-03-14");
+    expect(p.input.value).toBe("2026-03-10 - 2026-03-14");
+  });
+});

@@ -5736,6 +5736,10 @@ export const PetalDatePicker = {
     if (!this.input || !this.panel) return;
 
     this.lastValid = this.input.value;
+    // The value the hook has committed, remembered across patches. The hidden
+    // inputs cannot be that memory: a patch morphs them back to the server's
+    // assigns, which in a client-owned picker never learned the value.
+    this.remembered = this.committed();
 
     // Focus follows INTENT, not the panel. The open event's detail says who
     // asked: the toggle button (and ArrowDown below) mean "browse", so the
@@ -5773,6 +5777,13 @@ export const PetalDatePicker = {
     };
     this.onPanelClick = (e) => this.panelClick(e);
     this.onClearClick = (e) => this.clearClick(e);
+    // Live preview: a complete date typed while the panel is open shows up in
+    // the grid before Enter. Debounced past any human keystroke gap; %Y needs
+    // all four digits, so nothing fires mid-year.
+    this.onType = () => {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = setTimeout(() => this.preview(), 150);
+    };
 
     this.bind();
   },
@@ -5784,6 +5795,7 @@ export const PetalDatePicker = {
     this.el.addEventListener("pc:date-picker:open", this.onOpen);
     this.input.addEventListener("blur", this.onBlur);
     this.input.addEventListener("keydown", this.onInputKeydown);
+    this.input.addEventListener("input", this.onType);
     this.panel.addEventListener("click", this.onPanelClick);
 
     this.clearButton = this.el.querySelector("[data-pc-date-clear]");
@@ -5792,12 +5804,13 @@ export const PetalDatePicker = {
     }
   },
 
-  // A patch hands back a grid the server painted from ITS assigns, which in a
-  // client-owned picker are whatever they were when the page first rendered -
-  // and month nav here is a patch link, so paging is exactly the case where a
-  // stale selection comes back over a live one. Repaint from the hidden inputs
-  // rather than from anything the hook remembers: they are what actually posts,
-  // so the grid can never end up saying one thing and the form another.
+  // A patch hands back everything the server painted from ITS assigns, which
+  // in a client-owned picker never learned the value - and month nav is a
+  // patch, so paging to a typed date is exactly the moment the patch wipes
+  // that date out of the hidden inputs. LiveView only shields the focused
+  // element, which is the display input, not the hiddens. So the hook's own
+  // memory is the source of truth: put the value back into the hiddens
+  // (silently - nothing changed, so no input/change events), then repaint.
   updated() {
     const input = this.el.querySelector("[data-pc-date-input]");
     const panel = this.el.querySelector(".pc-date-picker__panel");
@@ -5809,7 +5822,15 @@ export const PetalDatePicker = {
     this.bind();
 
     if (this.serverOwned()) return;
-    const [from, to] = this.committed();
+    const [from, to] = this.remembered || [null, null];
+    const roles = this.el.dataset.mode === "range" ? ["from", "to"] : ["value"];
+    [from, to].forEach((value, i) => {
+      const el = roles[i] && this.hidden(roles[i]);
+      if (el) el.value = value || "";
+    });
+    if (document.activeElement !== this.input) {
+      this.input.value = this.lastValid || "";
+    }
     this.paint(from, to);
   },
 
@@ -5831,11 +5852,13 @@ export const PetalDatePicker = {
     this.el.removeEventListener("pc:date-picker:open", this.onOpen);
     this.input.removeEventListener("blur", this.onBlur);
     this.input.removeEventListener("keydown", this.onInputKeydown);
+    this.input.removeEventListener("input", this.onType);
     this.panel.removeEventListener("click", this.onPanelClick);
     if (this.clearButton) {
       this.clearButton.removeEventListener("click", this.onClearClick);
     }
     clearTimeout(this.focusTimer);
+    clearTimeout(this.previewTimer);
   },
 
   calendar() {
@@ -5964,6 +5987,32 @@ export const PetalDatePicker = {
     return true;
   },
 
+  // The live half of typing: while the panel is open, a text that already
+  // parses to a complete selection commits as you type - the grid pages to it
+  // and paints it without waiting for Enter, and without touching the text.
+  // Incomplete text does nothing (no reverts mid-typing), and a server-owned
+  // picker sits this out: pushing select events per keystroke would hand the
+  // consumer's handler half-states it never asked for.
+  preview() {
+    if (this.serverOwned() || this.panelHidden()) return;
+    const text = (this.input.value || "").trim();
+    if (!text) return;
+
+    const format = this.el.dataset.format || "%Y-%m-%d";
+
+    if (this.el.dataset.mode === "range") {
+      const separator = this.el.dataset.rangeSeparator || " - ";
+      const [rawFrom, rawTo] = this.splitRange(text, separator);
+      const from = this.parseOne(rawFrom, format);
+      const to = this.parseOne(rawTo, format);
+      if (from && to) this.commit(from, to, { keepText: true });
+      return;
+    }
+
+    const iso = this.parseOne(text, format);
+    if (iso) this.commit(iso, null, { keepText: true });
+  },
+
   // Split on the separator as configured, at its first occurrence. Splitting on
   // its trimmed remains tears "2026-03-09" apart on its own hyphens, which is
   // exactly what the default format and the default " - " separator do
@@ -6039,7 +6088,7 @@ export const PetalDatePicker = {
     this.input.focus();
   },
 
-  commit(from, to) {
+  commit(from, to, { keepText = false } = {}) {
     if (this.el.dataset.mode === "range") {
       this.write(this.hidden("from"), from);
       this.write(this.hidden("to"), to);
@@ -6047,8 +6096,12 @@ export const PetalDatePicker = {
       this.write(this.hidden("value"), from);
     }
 
-    this.input.value = this.formatDisplay(from, to);
-    this.lastValid = this.input.value;
+    this.remembered = [from, to];
+    this.lastValid = this.formatDisplay(from, to);
+    // keepText is the live-preview path: the user is mid-typing, and
+    // rewriting a field someone is typing in is the same family of theft as
+    // stealing its focus. Blur or Enter canonicalises the text later.
+    if (!keepText) this.input.value = this.lastValid;
     this.paint(from, to);
 
     // The moduledoc's other half: the calendar's month moves to the parsed
