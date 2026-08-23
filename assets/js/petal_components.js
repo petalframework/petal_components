@@ -5724,12 +5724,33 @@ export const PetalDatePicker = {
 
     this.lastValid = this.input.value;
 
-    this.onOpen = () => this.focusGrid();
+    // Focus follows INTENT, not the panel. The open event's detail says who
+    // asked: the toggle button (and ArrowDown below) mean "browse", so the
+    // grid takes focus; the input's own click means "type", so the caret
+    // stays put - a grid that steals focus from a typeable input makes the
+    // input untypeable, and blur-parse then fires on half-typed text.
+    this.onOpen = (e) => {
+      if (e.detail && e.detail.focus === "grid") this.focusGrid();
+    };
     this.onBlur = () => this.parse();
     this.onInputKeydown = (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      this.parse();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.parse();
+        return;
+      }
+      // The keyboard road into the calendar: ArrowDown from the input opens
+      // the panel (via the toggle, whose command carries grid intent) or,
+      // when already open, hands focus to the grid directly.
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const toggle = document.getElementById(this.el.id + "-toggle");
+        if (this.panelHidden()) {
+          toggle?.click();
+        } else {
+          this.focusGrid();
+        }
+      }
     };
     this.onPanelClick = (e) => this.panelClick(e);
     this.onClearClick = (e) => this.clearClick(e);
@@ -5854,6 +5875,10 @@ export const PetalDatePicker = {
 
   hidden(role) {
     return this.el.querySelector(`[data-pc-date-${role}]`);
+  },
+
+  panelHidden() {
+    return getComputedStyle(this.panel).display === "none";
   },
 
   focusGrid() {

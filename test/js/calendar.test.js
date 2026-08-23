@@ -903,11 +903,53 @@ describe("PetalDatePicker parity with the server's range anatomy", () => {
 });
 
 describe("PetalDatePicker focus", () => {
-  it("moves focus into the grid when the panel opens", async () => {
+  // Focus follows INTENT (the open event's detail), not the panel. Opening
+  // from the toggle carries focus: "grid"; opening from the input's own
+  // click carries nothing, and the caret must stay in the input - the
+  // maintainer found the grid stealing focus made the input untypeable and
+  // blur-parse fire on half-typed text.
+  it("moves focus into the grid when the open asks for it", async () => {
     const p = mountPicker();
-    p.el.dispatchEvent(new Event("pc:date-picker:open"));
+    p.el.dispatchEvent(
+      new CustomEvent("pc:date-picker:open", { detail: { focus: "grid" } }),
+    );
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(document.activeElement.dataset.date).toBe("2026-03-01");
+  });
+
+  it("leaves the caret in the input when the input opened the panel", async () => {
+    const p = mountPicker();
+    p.input.focus();
+    p.el.dispatchEvent(
+      new CustomEvent("pc:date-picker:open", { detail: { focus: "" } }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(document.activeElement).toBe(p.input);
+  });
+
+  it("ArrowDown is the keyboard road into the grid", async () => {
+    const p = mountPicker();
+    p.input.focus();
+    // panel visible: straight to the grid
+    p.input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(document.activeElement.dataset.date).toBe("2026-03-01");
+  });
+
+  it("ArrowDown on a closed panel opens through the toggle", () => {
+    const p = mountPicker();
+    p.el.querySelector(".pc-date-picker__panel").style.display = "none";
+    let toggled = 0;
+    document
+      .getElementById("dp-toggle")
+      .addEventListener("click", () => toggled++);
+    p.input.focus();
+    p.input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(toggled).toBe(1);
   });
 
   it("unbinds on destroy", () => {

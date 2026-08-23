@@ -219,7 +219,7 @@ defmodule PetalComponents.DatePicker do
             aria-haspopup="dialog"
             aria-expanded="false"
             aria-controls={"#{@id}-panel"}
-            phx-click={open(@id)}
+            phx-click={open(@id, :grid)}
           >
             <.icon name="hero-calendar" class="pc-date-picker__toggle-icon" />
           </button>
@@ -304,13 +304,22 @@ defmodule PetalComponents.DatePicker do
   # Both the input and the icon button open the panel, so both have to report
   # its state - the icon is the primary pointer target, and a trigger stuck on
   # aria-expanded="false" tells a screen reader nothing happened.
+  #
+  # The event carries WHO asked. Opening from the toggle (or ArrowDown) is
+  # browse intent and the hook moves focus into the grid; opening from the
+  # input is TYPING intent and focus stays exactly where the caret is - a
+  # grid that steals focus from a typeable input makes the input untypeable,
+  # which is the bug this argument exists to prevent.
   @doc false
-  def open(id) do
+  def open(id, focus \\ nil) do
     %JS{}
     |> JS.show(to: "##{id}-panel", transition: @transition_in)
     |> JS.set_attribute({"aria-expanded", "true"}, to: "##{id}-input")
     |> JS.set_attribute({"aria-expanded", "true"}, to: "##{id}-toggle")
-    |> JS.dispatch("pc:date-picker:open", to: "##{id}")
+    |> JS.dispatch("pc:date-picker:open",
+      to: "##{id}",
+      detail: %{focus: to_string(focus || "")}
+    )
   end
 
   @doc false
