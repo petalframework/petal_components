@@ -159,7 +159,11 @@ defmodule PetalComponents.Sidebar do
   attr :rest, :global
 
   slot :header, doc: "pinned top area - logo, workspace switcher"
-  slot :footer, doc: "pinned bottom area, typically a user menu"
+
+  slot :footer,
+    doc:
+      ~s|pinned bottom area, typically a user menu. A dropdown here should align with the rail: align="start" on a left sidebar, align="end" on a right one, so the panel grows into the page instead of off the viewport|
+
   slot :inner_block, required: true, doc: "`sidebar_group/1` and `sidebar_item/1` content"
 
   @doc """

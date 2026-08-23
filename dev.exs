@@ -6713,12 +6713,15 @@ defmodule Dev.PlaygroundLive do
                 </.sidebar_group>
 
                 <:footer>
+                  <%!-- align follows the sidebar's side: an up-opening panel
+                  grows in the align direction, and a start-aligned panel on a
+                  right-hand rail grows straight out of the viewport. --%>
                   <.user_dropdown_menu
                     variant="sidebar"
                     current_user_name="Ada Lovelace"
                     current_user_email="ada@example.com"
                     side="top"
-                    align="start"
+                    align={if @sidebar.side == "right", do: "end", else: "start"}
                     menu_items_wrapper_class="w-60"
                   >
                     <.dropdown_menu_label>ada@example.com</.dropdown_menu_label>
