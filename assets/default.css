@@ -2437,7 +2437,11 @@
     @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
   }
   .pc-command__input {
-    @apply h-11 w-full border-0 bg-transparent p-0 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
+    /* text-base below sm, the field-family convention (pc-text-input,
+       combobox, number-field): iOS Safari zooms the viewport when focusing
+       an input under 16px, and the palette is exactly the surface a phone
+       opens to type into. */
+    @apply h-11 w-full border-0 bg-transparent p-0 text-base sm:text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
   }
   .pc-command__input:focus {
     @apply outline-none ring-0 shadow-none border-0;
