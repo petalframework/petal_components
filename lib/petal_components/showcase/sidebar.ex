@@ -3,7 +3,7 @@ defmodule PetalComponents.Showcase.Sidebar do
   use PetalComponents.Showcase,
     component: PetalComponents.Sidebar,
     title: "Sidebar",
-    functions: [:sidebar_shell, :sidebar, :sidebar_group, :sidebar_item, :sidebar_trigger]
+    functions: [:sidebar_shell, :sidebar_nav, :sidebar_group, :sidebar_item, :sidebar_trigger]
 
   example :app_shell, "App shell",
     description:
@@ -14,7 +14,7 @@ defmodule PetalComponents.Showcase.Sidebar do
       class="h-[30rem] min-h-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800"
     >
       <:sidebar>
-        <.sidebar id="sb-shell" label="Main">
+        <.sidebar_nav id="sb-shell" label="Main">
           <:header>
             <.icon name="hero-cube" class="w-5 h-5 shrink-0 text-primary-500" />
             <span class="pc-sidebar__brand">Acme Inc</span>
@@ -43,7 +43,7 @@ defmodule PetalComponents.Showcase.Sidebar do
               icon="hero-arrow-left-start-on-rectangle"
             />
           </:footer>
-        </.sidebar>
+        </.sidebar_nav>
       </:sidebar>
 
       <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-800">
@@ -66,7 +66,7 @@ defmodule PetalComponents.Showcase.Sidebar do
       class="h-[22rem] min-h-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800"
     >
       <:sidebar>
-        <.sidebar id="sb-rail" label="Compact" collapsible="icon" collapsed>
+        <.sidebar_nav id="sb-rail" label="Compact" collapsible="icon" collapsed>
           <:header>
             <.icon name="hero-cube" class="w-5 h-5 shrink-0 text-primary-500" />
             <span class="pc-sidebar__brand">Acme</span>
@@ -81,7 +81,7 @@ defmodule PetalComponents.Showcase.Sidebar do
           <:footer>
             <.sidebar_trigger for="sb-rail" class="mx-auto" />
           </:footer>
-        </.sidebar>
+        </.sidebar_nav>
       </:sidebar>
 
       <div class="p-4 text-sm text-gray-500 dark:text-gray-400">
@@ -100,7 +100,7 @@ defmodule PetalComponents.Showcase.Sidebar do
       class="h-[22rem] min-h-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800"
     >
       <:sidebar>
-        <.sidebar id="sb-groups" label="Docs" collapsible="none">
+        <.sidebar_nav id="sb-groups" label="Docs" collapsible="none">
           <.sidebar_group label="Getting started" collapsible open>
             <.sidebar_item label="Installation" path="#" link_type="a" active />
             <.sidebar_item label="Theming" path="#" link_type="a" />
@@ -115,7 +115,7 @@ defmodule PetalComponents.Showcase.Sidebar do
           <.sidebar_group>
             <.sidebar_item label="Changelog" path="#" link_type="a" icon="hero-sparkles" />
           </.sidebar_group>
-        </.sidebar>
+        </.sidebar_nav>
       </:sidebar>
 
       <div class="p-4 text-sm text-gray-500 dark:text-gray-400">
@@ -134,7 +134,7 @@ defmodule PetalComponents.Showcase.Sidebar do
       class="h-[20rem] min-h-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800"
     >
       <:sidebar>
-        <.sidebar id="sb-inspector" label="Inspector" side="right" collapsible="offcanvas">
+        <.sidebar_nav id="sb-inspector" label="Inspector" side="right" collapsible="offcanvas">
           <:header>
             <span class="pc-sidebar__brand">Properties</span>
             <.sidebar_trigger for="sb-inspector" class="ml-auto" label="Hide inspector" />
@@ -145,7 +145,7 @@ defmodule PetalComponents.Showcase.Sidebar do
             <.sidebar_item label="Stroke" path="#" link_type="a" icon="hero-pencil" />
             <.sidebar_item label="Effects" path="#" link_type="a" icon="hero-sparkles" />
           </.sidebar_group>
-        </.sidebar>
+        </.sidebar_nav>
       </:sidebar>
 
       <div class="flex items-center gap-3 p-4">

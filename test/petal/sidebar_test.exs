@@ -48,15 +48,15 @@ defmodule PetalComponents.SidebarTest do
     end
   end
 
-  describe "sidebar/1" do
+  describe "sidebar_nav/1" do
     test "renders a nav landmark with an accessible name" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb" label="Primary">
+        <.sidebar_nav id="sb" label="Primary">
           <span>items</span>
-        </.sidebar>
+        </.sidebar_nav>
         """)
 
       assert attr_of(html, "nav.pc-sidebar__nav", "aria-label") == "Primary"
@@ -67,7 +67,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb">items</.sidebar>
+        <.sidebar_nav id="sb">items</.sidebar_nav>
         """)
 
       assert attr_of(html, "nav.pc-sidebar__nav", "aria-label") == "Sidebar"
@@ -78,7 +78,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb">items</.sidebar>
+        <.sidebar_nav id="sb">items</.sidebar_nav>
         """)
 
       assert attr_of(html, "#sb", "data-side") == "left"
@@ -92,7 +92,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb" collapsed>items</.sidebar>
+        <.sidebar_nav id="sb" collapsed>items</.sidebar_nav>
         """)
 
       assert attr_of(html, "#sb", "data-collapsed") == "true"
@@ -104,7 +104,7 @@ defmodule PetalComponents.SidebarTest do
 
         html =
           rendered_to_string(~H"""
-          <.sidebar id="sb" collapsible={@mode}>items</.sidebar>
+          <.sidebar_nav id="sb" collapsible={@mode}>items</.sidebar_nav>
           """)
 
         assert attr_of(html, "#sb", "data-collapsible") == unquote(mode)
@@ -117,7 +117,7 @@ defmodule PetalComponents.SidebarTest do
 
         html =
           rendered_to_string(~H"""
-          <.sidebar id="sb" side={@side}>items</.sidebar>
+          <.sidebar_nav id="sb" side={@side}>items</.sidebar_nav>
           """)
 
         assert attr_of(html, "#sb", "data-side") == unquote(side)
@@ -129,7 +129,7 @@ defmodule PetalComponents.SidebarTest do
 
       bare =
         rendered_to_string(~H"""
-        <.sidebar id="sb">body</.sidebar>
+        <.sidebar_nav id="sb">body</.sidebar_nav>
         """)
 
       refute bare =~ "pc-sidebar__header"
@@ -138,11 +138,11 @@ defmodule PetalComponents.SidebarTest do
 
       full =
         rendered_to_string(~H"""
-        <.sidebar id="sb">
+        <.sidebar_nav id="sb">
           <:header>brand</:header>
           body
           <:footer>user menu</:footer>
-        </.sidebar>
+        </.sidebar_nav>
         """)
 
       assert full =~ "pc-sidebar__header"
@@ -156,7 +156,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb">items</.sidebar>
+        <.sidebar_nav id="sb">items</.sidebar_nav>
         """)
 
       # focus containment is inert-based, NOT focus_wrap: LiveView's wrap
@@ -185,7 +185,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb">items</.sidebar>
+        <.sidebar_nav id="sb">items</.sidebar_nav>
         """)
 
       close = attr_of(html, "#sb", "data-close")
@@ -204,7 +204,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb" on_close={@js}>items</.sidebar>
+        <.sidebar_nav id="sb" on_close={@js}>items</.sidebar_nav>
         """)
 
       assert attr_of(html, "#sb", "data-close") =~ "sidebar_closed"
@@ -216,8 +216,8 @@ defmodule PetalComponents.SidebarTest do
       html =
         rendered_to_string(~H"""
         <div>
-          <.sidebar id="left-sb">a</.sidebar>
-          <.sidebar id="right-sb" side="right">b</.sidebar>
+          <.sidebar_nav id="left-sb">a</.sidebar_nav>
+          <.sidebar_nav id="right-sb" side="right">b</.sidebar_nav>
         </div>
         """)
 
@@ -232,7 +232,7 @@ defmodule PetalComponents.SidebarTest do
 
       html =
         rendered_to_string(~H"""
-        <.sidebar id="sb" class="w-72" data-testid="sb">items</.sidebar>
+        <.sidebar_nav id="sb" class="w-72" data-testid="sb">items</.sidebar_nav>
         """)
 
       assert attr_of(html, "#sb", "class") =~ "pc-sidebar"
@@ -789,7 +789,7 @@ defmodule PetalComponents.SidebarTest do
         rendered_to_string(~H"""
         <.sidebar_shell for="app">
           <:sidebar>
-            <.sidebar id="app" label="Main">
+            <.sidebar_nav id="app" label="Main">
               <:header>Acme</:header>
               <.sidebar_group label="Workspace">
                 <.sidebar_item label="Dashboard" path="/" icon="hero-home" active />
@@ -803,7 +803,7 @@ defmodule PetalComponents.SidebarTest do
               <:footer>
                 <.sidebar_item label="Sign out" path="/out" />
               </:footer>
-            </.sidebar>
+            </.sidebar_nav>
           </:sidebar>
           <.sidebar_trigger for="app" target="mobile" />
           <main>page</main>

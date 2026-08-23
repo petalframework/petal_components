@@ -5,8 +5,14 @@
 
 - **New `sidebar` family: the app-shell navigation almost every LiveView
   product ends up hand-rolling.** Five components compose the whole
-  anatomy - `sidebar_shell` (the flex wrapper), `sidebar` (the `<nav>`
-  landmark with header and footer slots), `sidebar_group` (a labelled,
+  anatomy - `sidebar_shell` (the flex wrapper), `sidebar_nav` (the `<nav>`
+  landmark with header and footer slots - deliberately NOT bare
+  `sidebar/1`: `use PetalComponents` imports every component, a
+  hand-rolled `def sidebar` is the most common helper in Phoenix layout
+  modules, and the collision is a hard CompileError when the call sits
+  above the definition or a silent shadow when it sits below - the one
+  name in the family that could collide is the one that doesn't exist),
+  `sidebar_group` (a labelled,
   optionally collapsible run of items), `sidebar_item` (icon, label,
   badge, active state, and arbitrarily nested sub-items) and
   `sidebar_trigger` (the rail toggle and the mobile burger). Three

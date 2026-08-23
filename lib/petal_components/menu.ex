@@ -5,7 +5,7 @@ defmodule PetalComponents.Menu do
 
   This is the list, not the chrome around it. For the app-shell furniture a nav
   list usually lives in - the rail, the collapse to icons, the mobile sheet -
-  reach for `PetalComponents.Sidebar.sidebar/1`; menu is the list it holds. The
+  reach for `PetalComponents.Sidebar.sidebar_nav/1`; menu is the list it holds. The
   two compose: a `vertical_menu/1` drops straight into a sidebar's content area.
 
   And a menu is for pages you NAVIGATE to. Hierarchical data you explore -

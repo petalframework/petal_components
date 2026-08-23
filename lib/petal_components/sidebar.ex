@@ -11,7 +11,7 @@ defmodule PetalComponents.Sidebar do
   Five function components compose the shell:
 
     * `sidebar_shell/1` - the flex wrapper holding the sidebar and your page content
-    * `sidebar/1` - the `<nav>` landmark itself, with header/footer slots
+    * `sidebar_nav/1` - the `<nav>` landmark itself, with header/footer slots
     * `sidebar_group/1` - a labelled (optionally collapsible) run of items
     * `sidebar_item/1` - one link, or a parent with nested sub-items
     * `sidebar_trigger/1` - the button that collapses the rail or opens the sheet
@@ -20,7 +20,7 @@ defmodule PetalComponents.Sidebar do
 
       <.sidebar_shell for="app-sidebar">
         <:sidebar>
-          <.sidebar id="app-sidebar" label="Main" collapsible="icon">
+          <.sidebar_nav id="app-sidebar" label="Main" collapsible="icon">
             <:header>
               <.icon name="hero-cube" class="w-6 h-6 shrink-0" />
               <span class="pc-sidebar__brand">Acme</span>
@@ -41,7 +41,7 @@ defmodule PetalComponents.Sidebar do
             <:footer>
               <.sidebar_item label="Sign out" path="/sign-out" icon="hero-arrow-left-start-on-rectangle" />
             </:footer>
-          </.sidebar>
+          </.sidebar_nav>
         </:sidebar>
 
         <header class="flex items-center gap-3 p-4">
@@ -63,7 +63,7 @@ defmodule PetalComponents.Sidebar do
   the choice across navigation, keep it in your own assign (or a session cookie
   you read in the plug pipeline) and pass it back in:
 
-      <.sidebar id="app-sidebar" collapsed={@sidebar_collapsed}>
+      <.sidebar_nav id="app-sidebar" collapsed={@sidebar_collapsed}>
 
   ...then have the trigger tell the server as well as the DOM:
 
@@ -98,12 +98,12 @@ defmodule PetalComponents.Sidebar do
   attr :for, :string,
     required: true,
     doc:
-      "id of the `sidebar/1` this shell wraps. The content region is rendered as `<for>-main` so the trigger can mark it inert while the mobile sheet is open"
+      "id of the `sidebar_nav/1` this shell wraps. The content region is rendered as `<for>-main` so the trigger can mark it inert while the mobile sheet is open"
 
   attr :class, :any, default: nil, doc: "CSS class for the shell wrapper"
   attr :rest, :global
 
-  slot :sidebar, required: true, doc: "the `sidebar/1` itself"
+  slot :sidebar, required: true, doc: "the `sidebar_nav/1` itself"
 
   slot :inner_block,
     required: true,
@@ -113,7 +113,7 @@ defmodule PetalComponents.Sidebar do
   @doc """
   The app shell: a flex row holding the sidebar beside your page content.
 
-  Optional - a `sidebar/1` works inside your own layout too - but the shell is
+  Optional - a `sidebar_nav/1` works inside your own layout too - but the shell is
   what gives the mobile sheet something to mark `inert`, so use it if you want
   the accessible sheet behaviour for free.
   """
@@ -169,7 +169,7 @@ defmodule PetalComponents.Sidebar do
   @doc """
   The sidebar itself: a `<nav>` landmark wrapped in the collapse/sheet machinery.
   """
-  def sidebar(assigns) do
+  def sidebar_nav(assigns) do
     ~H"""
     <div
       id={@id}
@@ -348,7 +348,7 @@ defmodule PetalComponents.Sidebar do
     """
   end
 
-  attr :for, :string, required: true, doc: "id of the `sidebar/1` this button controls"
+  attr :for, :string, required: true, doc: "id of the `sidebar_nav/1` this button controls"
 
   attr :id, :string,
     default: nil,

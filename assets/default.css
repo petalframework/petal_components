@@ -8620,6 +8620,13 @@
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__label,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__badge,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__label,
+    /* vertical_menu participates in the rail too - the moduledocs promise a
+       menu drops straight into the content area, and a promise the rail
+       doesn't keep is a 4rem rail with full-width labels (Pro adoption
+       audit, gap G1). Same treatment as the family's own labels. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__toggle-label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu__menu-group__title,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__identity,
     .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__brand {
       @apply sr-only;

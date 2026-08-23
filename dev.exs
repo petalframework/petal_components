@@ -6662,7 +6662,7 @@ defmodule Dev.PlaygroundLive do
             class="h-[30rem] min-h-0 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-800"
           >
             <:sidebar>
-              <.sidebar
+              <.sidebar_nav
                 id="pg-sidebar"
                 label="Product"
                 side={@sidebar.side}
@@ -6740,7 +6740,7 @@ defmodule Dev.PlaygroundLive do
                     </.dropdown_menu_item>
                   </.user_dropdown_menu>
                 </:footer>
-              </.sidebar>
+              </.sidebar_nav>
             </:sidebar>
 
             <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-800">
@@ -9314,7 +9314,7 @@ defmodule Dev.PlaygroundLive do
         class="mt-8 h-[34rem] min-h-0 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
       >
         <:sidebar>
-          <.sidebar id="pg-menu-sidebar" label="Platform" collapsible="offcanvas">
+          <.sidebar_nav id="pg-menu-sidebar" label="Platform" collapsible="offcanvas">
             <:header>
               <.dropdown
                 class="w-full"
@@ -9383,7 +9383,7 @@ defmodule Dev.PlaygroundLive do
                 </.dropdown_menu_item>
               </.user_dropdown_menu>
             </:footer>
-          </.sidebar>
+          </.sidebar_nav>
         </:sidebar>
 
         <div class="flex items-center h-12 gap-2 px-4 text-sm text-gray-500 border-b shrink-0 border-gray-200 dark:border-white/10 dark:text-gray-400">
