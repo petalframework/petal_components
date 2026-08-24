@@ -9756,3 +9756,102 @@
     @apply flex items-center justify-center w-full h-full;
   }
 }
+
+@layer components {
+  /* Context menu */
+
+  /* The wrapper is layout-neutral: whatever the consumer put in the
+     trigger slot owns the box. The panel lives in the top layer, so
+     nothing here needs to establish a containing block. */
+  .pc-context-menu {
+    @apply contents;
+  }
+
+  /* A focus stop, because Shift+F10 needs somewhere to fire from - the
+     region itself is often plain content with nothing focusable in it.
+     touch-callout off so a long press reads as "open the menu" rather
+     than the OS text-selection loupe; touch-action is left alone so the
+     region still scrolls under a finger. */
+  .pc-context-menu__trigger {
+    @apply block focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    -webkit-touch-callout: none;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Same floating surface as the dropdown menu, painted in the top layer
+     and positioned by the hook. `fixed` matches the cursor coordinates
+     the hook reads; margin:0 kills the UA's centring so the panel sits
+     where it is told. */
+  .pc-context-menu__panel {
+    /* min-w-40 (vs the dropdown surface's min-w-36) is deliberate: context
+       rows routinely carry trailing kbd hints, and the wider floor keeps
+       label + hint from crowding. */
+    @apply fixed p-1 m-0 w-max min-w-40 max-w-72 bg-white shadow-lg border border-gray-200 focus:outline-hidden dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
+  .pc-context-menu__panel:popover-open {
+    @apply transition-opacity duration-100;
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  /* the top layer is ours alone - no UA dimming behind an anchored panel */
+  .pc-context-menu__panel::backdrop {
+    background: transparent;
+  }
+
+  /* Item anatomy mirrors .pc-dropdown__menu-item, with the focus ramp
+     doing the highlighting: roving tabindex means the focused item IS
+     the active item, so hover and focus-visible share one surface. */
+  .pc-context-menu__item {
+    @apply flex items-center self-start justify-start w-full gap-2 px-3 py-2 text-sm text-left text-gray-700 cursor-default transition-colors duration-150 ease-out hover:bg-gray-100 focus:outline-hidden focus-visible:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-400/17 dark:focus-visible:bg-gray-400/17;
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
+  }
+
+  .pc-context-menu__item--danger {
+    @apply text-danger-700 hover:bg-danger-50 hover:text-danger-800 focus-visible:bg-danger-50 focus-visible:text-danger-800 dark:text-danger-300 dark:hover:bg-danger-500/15 dark:hover:text-danger-200 dark:focus-visible:bg-danger-500/15 dark:focus-visible:text-danger-200;
+  }
+
+  /* Off the arrows and off the pointer - no hover surface, because a
+     surface that lights up promises something the item won't do. */
+  .pc-context-menu__item--disabled {
+    @apply text-gray-400 pointer-events-none hover:bg-transparent focus-visible:bg-transparent dark:text-gray-500;
+  }
+
+  .pc-context-menu__item--disabled.pc-context-menu__item--danger {
+    @apply text-danger-700/40 hover:bg-transparent hover:text-danger-700/40 dark:text-danger-300/40 dark:hover:bg-transparent;
+  }
+
+  /* ml-auto is what right-aligns the hint; the item's gap does the rest */
+  .pc-context-menu__kbd {
+    @apply ml-auto pl-3 text-xs tracking-widest text-gray-400 tabular-nums dark:text-gray-500;
+  }
+
+  .pc-context-menu__label {
+    @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
+  }
+
+  .pc-context-menu__separator {
+    @apply h-px my-1 -mx-1 bg-gray-200 dark:bg-gray-400/17;
+  }
+
+  /* The fade is the only motion here; resting state is the open panel,
+     so killing the transition leaves a complete menu, not a missing one. */
+  @media (prefers-reduced-motion: reduce) {
+    .pc-context-menu__panel:popover-open {
+      transition-duration: 1ms;
+
+      @starting-style {
+        opacity: 1;
+      }
+    }
+
+    .pc-context-menu__item {
+      transition-duration: 1ms;
+    }
+  }
+}

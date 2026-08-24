@@ -37,6 +37,7 @@ defmodule PetalComponents do
         ColorSchemeSwitch,
         Confetti,
         Container,
+        ContextMenu,
         Dropdown,
         Empty,
         Field,

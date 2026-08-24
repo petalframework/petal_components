@@ -3,6 +3,27 @@
 
 #### Added
 
+- **New `context_menu` component: right-click a region of the page and
+  get a menu at the cursor.** It completes the menu family alongside
+  `dropdown` - same floating panel, same item anatomy, different
+  invocation. Wrap anything in the `:trigger` slot (a card, a table row,
+  a paragraph) and fill the inner block with `context_menu_item`,
+  `context_menu_label` and `context_menu_separator`. Items take icons,
+  a right-aligned `kbd` hint, `variant="danger"` for the destructive
+  one, `disabled`, and all four `link_type` values. `disabled` on the
+  component itself drops the wiring so right-click falls straight
+  through to the browser's own menu.
+  Touch gets the same menu from a half-second long press, and keyboard
+  users tab to the region and press Shift+F10 or the Menu key - the
+  panel then opens with the first item focused, arrows move and skip
+  disabled rows, Home and End jump to the ends, Escape closes and hands
+  focus back. The panel is a native `popover="manual"` element, so an
+  overflow-hidden ancestor can never clip it, and dismiss is the
+  library's own tap-outside rule rather than the UA's press-outside
+  one - a drag that starts on the page is a scroll, not a dismissal.
+  The `PetalContextMenu` hook exists for the one thing CSS cannot do:
+  read cursor coordinates and clamp the panel inside the viewport.
+
 - **`<.qr_code>` - a QR code as pure server-rendered SVG.** No JavaScript,
   crisp at any size, prints, and every dark module lands in a single
   `<path>` so a dense code is one DOM node instead of eight hundred.
