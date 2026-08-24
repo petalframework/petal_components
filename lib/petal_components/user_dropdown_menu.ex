@@ -5,19 +5,97 @@ defmodule PetalComponents.UserDropdownMenu do
   import PetalComponents.Icon
 
   attr :user_menu_items, :list,
-    doc: "list of maps with keys :path, :icon (atom), :label, :method (atom - optional)"
+    default: [],
+    doc:
+      "list of maps with keys :path, :icon (atom), :label, :method (atom - optional). Leave it out when you pass your own panel through the inner block"
 
   attr :current_user_name, :string, doc: "the current signed in user's name"
+
+  attr :current_user_email, :string,
+    default: nil,
+    doc:
+      ~s|the current signed in user's email. It renders as the second line of the "sidebar" variant's row, under the name - leave it out and the row is a single line. The "icon" variant has nowhere to put it and ignores it|
+
   attr :avatar_src, :string, default: nil, doc: "the current signed in user's avatar image src"
+
+  attr :variant, :string,
+    default: "icon",
+    values: ["icon", "sidebar"],
+    doc:
+      ~s|"icon" is the compact navbar trigger - avatar plus chevron, no wider than it needs to be, which is what a top bar wants. "sidebar" is the full-width row that belongs at the bottom of a sidebar: avatar, name over email, and a chevron-up-down on the right, because from down there the panel genuinely can open either way. Reach for it when the menu has a whole sidebar width to itself and the name is worth showing at rest; pair it with side="top" align="start" when that sidebar sits against the left edge of the screen, or side="right" align="end" to push the panel out over the content area instead|
 
   attr :show_chevron, :boolean,
     default: true,
     doc: "hide for the chevron-less avatar trigger - the leaner app-shell look"
 
+  attr :side, :string,
+    default: nil,
+    values: [nil, "bottom", "top", "left", "right"],
+    doc:
+      ~s|which side of the trigger the panel opens on, passed through to the dropdown. At the bottom of a sidebar the answer is known, so say it: side="top" renders the panel above the row from the first frame and skips the measuring hook altogether. side="right" is the other sidebar answer - the panel beside the sidebar, out over the content area, instead of on top of the nav it came from|
+
+  attr :align, :string,
+    default: nil,
+    values: [nil, "start", "end"],
+    doc:
+      ~s|how the panel lines up along the other axis, passed through to the dropdown. Above or below that is horizontal ("start" grows it rightward, "end" leftward); beside, it is vertical, and "end" is the one a sidebar-bottom menu wants - the panel's bottom edge flush with the row that opened it|
+
+  attr :placement, :string,
+    default: "left",
+    values: ["left", "right"],
+    doc:
+      ~s|the legacy spelling of align, kept working: "left" is align="end" (the panel grows leftward, right edges aligned) and "right" is align="start" (it grows rightward from the trigger's left edge). Prefer align in new code. Either way, reach for the rightward one when the trigger sits against the left viewport edge, like an avatar at the bottom of a sidebar, so the panel grows into the viewport instead of off it|
+
+  attr :direction, :string,
+    default: "auto",
+    values: ["auto", "up", "down"],
+    doc:
+      ~s|the legacy spelling of side on the vertical axis, kept working: "up" is side="top", "down" is side="bottom", "auto" the measured default. Prefer side in new code|
+
+  attr :menu_items_wrapper_class, :any,
+    default: nil,
+    doc:
+      ~s|extra classes for the panel itself, passed through to the dropdown. The panel is content-width by default; this is where you pin it, e.g. "w-60" for an account panel that should not breathe as its rows change|
+
+  slot :inner_block,
+    doc:
+      "your own panel content, in place of the user_menu_items list. Use it when the menu is more than a list of links - an org switcher, a theme row, a group label or two - and compose it from dropdown_menu_item, dropdown_menu_label, dropdown_menu_row and dropdown_menu_separator. The trigger stays exactly the same"
+
   def user_dropdown_menu(assigns) do
+    # current_user_name is declared without a default, so the assign is simply
+    # absent when a caller leaves it out. The "icon" branch only ever reaches
+    # it through assigns[...]; the "sidebar" branch renders it, so give the key
+    # a nil to land on rather than moving the published attr default.
+    assigns = assign_new(assigns, :current_user_name, fn -> nil end)
+
     ~H"""
-    <.dropdown :if={@user_menu_items != []}>
-      <:trigger_element>
+    <.dropdown
+      :if={@user_menu_items != [] or @inner_block != []}
+      side={@side}
+      align={@align}
+      placement={@placement}
+      direction={@direction}
+      menu_items_wrapper_class={@menu_items_wrapper_class}
+      class={sidebar_container_class(@variant)}
+      trigger_class={sidebar_trigger_class(@variant)}
+    >
+      <:trigger_element :if={@variant == "sidebar"}>
+        <.avatar
+          name={@current_user_name}
+          src={@avatar_src}
+          size="sm"
+          random_color
+          aria-hidden={@current_user_name && "true"}
+        />
+
+        <span class="pc-user-menu__identity">
+          <span :if={@current_user_name} class="pc-user-menu__name">{@current_user_name}</span>
+          <span :if={@current_user_email} class="pc-user-menu__email">{@current_user_email}</span>
+        </span>
+
+        <.icon :if={@show_chevron} name="hero-chevron-up-down" class="pc-dropdown__chevron" />
+      </:trigger_element>
+      <:trigger_element :if={@variant != "sidebar"}>
         <div class="inline-flex items-center justify-center w-full gap-1 align-middle focus:outline-hidden">
           <%= if assigns[:current_user_name] || assigns[:avatar_src] do %>
             <.avatar name={@current_user_name} src={@avatar_src} size="sm" random_color />
@@ -32,7 +110,8 @@ defmodule PetalComponents.UserDropdownMenu do
           />
         </div>
       </:trigger_element>
-      <%= for menu_item <- @user_menu_items do %>
+      {render_slot(@inner_block)}
+      <%= for menu_item <- menu_items(@inner_block, @user_menu_items) do %>
         <.dropdown_menu_item
           link_type={if menu_item[:method], do: "a", else: "live_redirect"}
           method={if menu_item[:method], do: menu_item[:method], else: nil}
@@ -57,4 +136,19 @@ defmodule PetalComponents.UserDropdownMenu do
     </.dropdown>
     """
   end
+
+  # A panel passed in wholesale REPLACES the generated list rather than stacking
+  # on top of it: the two are alternatives, and rendering both would only ever
+  # be somebody's mistake.
+  defp menu_items([], user_menu_items), do: user_menu_items
+  defp menu_items(_inner_block, _user_menu_items), do: []
+
+  # The sidebar row needs the width dialled up on the dropdown container (which
+  # is inline-block) as well as on the trigger button it wraps. Both stay nil
+  # for "icon", so that variant renders byte for byte what it always did.
+  defp sidebar_container_class("sidebar"), do: "pc-user-menu--sidebar"
+  defp sidebar_container_class(_variant), do: nil
+
+  defp sidebar_trigger_class("sidebar"), do: "pc-user-menu__row"
+  defp sidebar_trigger_class(_variant), do: nil
 end

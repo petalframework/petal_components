@@ -24,6 +24,247 @@ defmodule PetalComponents.CssAssetsTest do
     end
   end
 
+  describe "badge status dot" do
+    # The dot's colour lives entirely in CSS - the markup is one class on
+    # every colour x variant combination - so this is the only place the
+    # mapping can be checked at all.
+
+    @badge_colors ~w(primary secondary info success warning danger gray)
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the base dot is a currentColor circle", %{css: css} do
+      body = rule_body(css, ".pc-badge__dot")
+
+      # currentColor is what makes the `dark` variant work without a rule of
+      # its own: on a saturated 600 fill no stop of the same ramp reads, and
+      # inheriting the text colour picks up primary-dark's
+      # --pc-button-solid-fg token instead of hardcoding white.
+      assert body =~ "bg-current"
+      assert body =~ "rounded-full"
+      assert body =~ "shrink-0", "the dot must not squash when the label is long"
+    end
+
+    test "every colour maps its dot onto the ramp", %{css: css} do
+      for color <- @badge_colors do
+        # light keeps a pale surface in both schemes (bg-100 / dark:bg-200),
+        # so its dot is scheme-invariant.
+        light = rule_body(css, ".pc-badge--#{color}-light .pc-badge__dot")
+        assert light =~ "bg-#{color}-600"
+        refute light =~ "dark:", "#{color}-light's surface doesn't change with the scheme"
+
+        # soft and outline follow their own text down the ramp in the dark.
+        tinted =
+          rule_body(
+            css,
+            ".pc-badge--#{color}-soft .pc-badge__dot,\n  .pc-badge--#{color}-outline .pc-badge__dot"
+          )
+
+        assert tinted =~ "bg-#{color}-600"
+        assert tinted =~ "dark:bg-#{color}-400"
+      end
+    end
+
+    test "the dark variant takes no dot colour of its own", %{css: css} do
+      # A `bg-<color>-600` dot on a `bg-<color>-600` badge is an invisible
+      # dot. dark must fall through to the base rule's currentColor.
+      for color <- @badge_colors do
+        refute css =~ ".pc-badge--#{color}-dark .pc-badge__dot",
+               "#{color}-dark overrides the dot colour; it must inherit currentColor"
+      end
+    end
+
+    test "the dot gap outranks the icon gap by source order", %{css: css} do
+      # Both selectors are one class deep (0,1,0), so ONLY source order
+      # gives a dot-plus-icon badge the roomier gap. If --with-dot moves
+      # above --with-icon the dot crowds the label whenever both are set.
+      {icon_pos, _} = :binary.match(css, ".pc-badge--with-icon {")
+      {dot_pos, _} = :binary.match(css, ".pc-badge--with-dot {")
+      assert dot_pos > icon_pos
+
+      assert rule_body(css, ".pc-badge--with-dot") =~ "gap-"
+    end
+  end
+
+  describe "badge dot colour override" do
+    # dot_color's whole promise is that it moves the dot's hue and nothing
+    # else. Both halves of that - the stops, and the source order that lets
+    # them win - live in CSS, so this is the only place to hold them.
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "each override matches the stop an inherited dot of that colour shows", %{css: css} do
+      # Compared declaration for declaration, not by eye: a dot_color="success"
+      # dot on an outline badge has to be the same green a success outline
+      # badge's own dot is, in both schemes.
+      for color <- @badge_colors do
+        assert rule_body(css, ".pc-badge__dot.pc-badge__dot--#{color}-light") ==
+                 rule_body(css, ".pc-badge--#{color}-light .pc-badge__dot"),
+               "#{color} override on light diverges from the inherited stop"
+
+        assert rule_body(
+                 css,
+                 ".pc-badge__dot.pc-badge__dot--#{color}-soft,\n  .pc-badge__dot.pc-badge__dot--#{color}-outline"
+               ) ==
+                 rule_body(
+                   css,
+                   ".pc-badge--#{color}-soft .pc-badge__dot,\n  .pc-badge--#{color}-outline .pc-badge__dot"
+                 ),
+               "#{color} override on soft/outline diverges from the inherited stop"
+      end
+    end
+
+    test "the dark variant override takes the 400 stop", %{css: css} do
+      # `dark` is the one variant with no inherited stop to match - its dot
+      # is currentColor - so an override there picks the stop this file
+      # already uses for a dot against a dark surface, and does so in both
+      # schemes because the fill is dark in both.
+      for color <- @badge_colors do
+        body = rule_body(css, ".pc-badge__dot.pc-badge__dot--#{color}-dark")
+
+        assert body =~ "bg-#{color}-400"
+        refute body =~ "dark:", "a dark-variant badge is a dark surface in either scheme"
+      end
+    end
+
+    test "an override sets a colour and nothing else", %{css: css} do
+      # Size, gap and whitespace are settled once, above. A stop rule that
+      # grew geometry would change a dot's shape when it changed its hue.
+      for color <- @badge_colors,
+          selector <- [
+            ".pc-badge__dot.pc-badge__dot--#{color}-light",
+            ".pc-badge__dot.pc-badge__dot--#{color}-soft,\n  .pc-badge__dot.pc-badge__dot--#{color}-outline",
+            ".pc-badge__dot.pc-badge__dot--#{color}-dark"
+          ] do
+        body = css |> rule_body(selector) |> String.trim()
+
+        assert Regex.match?(~r/^@apply bg-#{color}-\d00( dark:bg-#{color}-\d00)?;$/, body),
+               "#{selector} must set a background colour and nothing else, got: #{body}"
+      end
+    end
+
+    test "the override outranks the inherited mapping by source order", %{css: css} do
+      # Both sides are (0,2,0) - a descendant pair one way, the dot class
+      # doubled the other - so ONLY source order lets dot_color win. Move
+      # this block above the inherited one and dot_color silently does
+      # nothing on every variant but `dark`.
+      {inherited, _} = :binary.match(css, ".pc-badge--gray-outline .pc-badge__dot {")
+      {override, _} = :binary.match(css, ".pc-badge__dot.pc-badge__dot--gray-outline {")
+      assert override > inherited
+    end
+  end
+
+  describe "dropdown side-out anatomy" do
+    # side="left"/"right" put the panel BESIDE the trigger. The Elixir side
+    # only emits two class names; everything about where the panel actually
+    # lands is here, so this is the only place the geometry can be checked.
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "each side anchors on the trigger's far edge with a horizontal gap", %{css: css} do
+      left = rule_body(css, ".pc-dropdown__menu-items-wrapper-side--left")
+      assert left =~ "right-full", "a left-side panel hangs off the trigger's left edge"
+      assert left =~ "mr-2"
+
+      right = rule_body(css, ".pc-dropdown__menu-items-wrapper-side--right")
+      assert right =~ "left-full", "a right-side panel hangs off the trigger's right edge"
+      assert right =~ "ml-2"
+    end
+
+    test "the vertical margin is cleared, and only source order does it", %{css: css} do
+      # The base rule's mt-2 is the gap for a panel that opens downward.
+      # Beside the trigger the gap is horizontal, so the top margin has to
+      # go - and both selectors are one class deep (0,1,0), so nothing but
+      # order decides it. Move these above the base rule and every side-out
+      # panel picks up 8px of drop it should not have.
+      {base_pos, _} = :binary.match(css, ".pc-dropdown__menu-items-wrapper {")
+
+      for side <- ~w(left right) do
+        selector = ".pc-dropdown__menu-items-wrapper-side--#{side}"
+        assert rule_body(css, selector) =~ "mt-0"
+        {side_pos, _} = :binary.match(css, selector <> " {")
+        assert side_pos > base_pos
+      end
+    end
+
+    test "align anchors the panel vertically when it is beside the trigger", %{css: css} do
+      # start = tops flush, end = bottoms flush (the sidebar-bottom one).
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--start") =~ "top-0"
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--end") =~ "bottom-0"
+    end
+
+    test "the transform origin is split across the two rules", %{css: css} do
+      # Four corners out of two classes: the side rule hands its horizontal
+      # half over in a custom property and the align rule spends it. If a
+      # side rule stops publishing the property the align rules silently
+      # fall back to the left column and a left-side panel unfolds from the
+      # wrong corner.
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-side--left") =~
+               "--pc-dropdown-origin-x: right"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-side--right") =~
+               "--pc-dropdown-origin-x: left"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--start") =~
+               "transform-origin: top var(--pc-dropdown-origin-x"
+
+      assert rule_body(css, ".pc-dropdown__menu-items-wrapper-align--end") =~
+               "transform-origin: bottom var(--pc-dropdown-origin-x"
+    end
+
+    test "no side rule pairs itself with the vertical flip", %{css: css} do
+      # data-flip is the vertical question. A side-out panel is not on that
+      # axis, the hook never attaches to it, and a [data-flip] rule aimed at
+      # a side class would only ever fire by accident.
+      refute css =~ ~r/\.pc-dropdown__menu-items-wrapper-side--\w+\[data-flip\]/
+    end
+  end
+
+  describe "the dialog footer band" do
+    # A footer a component OWNS wears one band - the table tfoot's border
+    # plus muted wash - so a modal and a slide over open on the same page
+    # cannot disagree about what a footer looks like. The pair exists only
+    # in CSS (the markup is one class either side), so this is the only
+    # place it can be pinned. The slide over drifted here once already: a
+    # bare gray-100 hairline and no wash at all.
+
+    @footer_band ~w(border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8)
+
+    setup do
+      %{css: File.read!(Path.join(@app_root, "assets/default.css"))}
+    end
+
+    test "the tfoot still defines the pair the others copy", %{css: css} do
+      body = rule_body(css, ".pc-table__tfoot")
+
+      for token <- @footer_band do
+        assert body =~ token, "the tfoot lost #{token}; the band's source of truth moved"
+      end
+    end
+
+    test "the modal and slide over footers wear it too", %{css: css} do
+      for selector <- [".pc-modal__footer", ".pc-slideover__footer"], token <- @footer_band do
+        assert rule_body(css, selector) =~ token,
+               "#{selector} is missing #{token} from the footer band"
+      end
+    end
+
+    test "the modal's footer is pinned, not scrolled", %{css: css} do
+      # The box is a column and the content is the only scroller. Drop
+      # flex-none here (or the overflow off the content) and a long body
+      # pushes the action row off the bottom of the dialog.
+      assert rule_body(css, ".pc-modal__footer") =~ "flex-none"
+      assert rule_body(css, ".pc-modal__box") =~ "flex-col"
+      assert rule_body(css, ".pc-modal__content") =~ "overflow-y-auto"
+    end
+  end
+
   describe "border_plasma cross-rule invariants" do
     # This CSS section has shipped three cross-rule interaction bugs
     # (custom-property var scoping twice, headroom geometry drift once).

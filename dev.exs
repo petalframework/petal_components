@@ -34,6 +34,14 @@ defmodule Dev.Layouts do
     if System.get_env("PLAYGROUND_DEPLOY") == "true", do: System.get_env("FATHOM_SITE_ID")
   end
 
+  # The playground's static assets go out with `cache-control: public` and no
+  # max-age, which invites Safari's heuristic caching - the maintainer
+  # refreshed an iPhone repeatedly and kept testing a build from BEFORE the
+  # deploy. A boot-stamped rev on both asset URLs makes every deploy its own
+  # cache key; unchanged files still answer 304 via the ETag.
+  @asset_rev System.system_time(:second) |> Integer.to_string()
+  defp asset_rev, do: @asset_rev
+
   def root(assigns) do
     ~H"""
     <!DOCTYPE html>
@@ -61,7 +69,8 @@ defmodule Dev.Layouts do
           })();
         </script>
         <meta name="pg-rev" content="alert-badge-1" />
-        <link rel="stylesheet" href="/assets/app.css" />
+        <meta name="pg-asset-rev" content={asset_rev()} />
+        <link rel="stylesheet" href={"/assets/app.css?v=" <> asset_rev()} />
         <script
           :if={fathom_site()}
           src="https://cdn.usefathom.com/script.js"
@@ -105,7 +114,13 @@ defmodule Dev.Layouts do
         <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js">
         </script>
         <script type="module">
-          import PetalComponents from "/assets/js/petal_components.js";
+          // Dynamic import so the rev can come from the meta tag - HEEx does
+          // not interpolate inside script bodies. Top-level await is legal in
+          // a module script.
+          const rev = document.querySelector('meta[name="pg-asset-rev"]').content;
+          const { default: PetalComponents } = await import(
+            "/assets/js/petal_components.js?v=" + rev
+          );
           window.liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {
             hooks: { ...PetalComponents },
             uploaders: {},
@@ -243,6 +258,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "toggle-group", name: "Toggle group", ready: true},
         %{slug: "input", name: "Input", ready: true},
         %{slug: "input-group", name: "Input group", ready: true},
+        %{slug: "number-field", name: "Number field", ready: true},
         %{slug: "checkbox", name: "Checkbox", ready: true},
         %{slug: "select", name: "Select", ready: true},
         %{slug: "combo-box", name: "Combobox", ready: true},
@@ -262,6 +278,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "progress", name: "Progress", ready: true},
         %{slug: "rating", name: "Rating", ready: true},
         %{slug: "skeleton", name: "Skeleton", ready: true},
+        %{slug: "empty", name: "Empty state", ready: true},
         %{slug: "loading", name: "Loading", ready: true}
       ]
     },
@@ -272,9 +289,11 @@ defmodule Dev.PlaygroundLive do
         %{slug: "pagination", name: "Pagination", ready: true},
         %{slug: "breadcrumbs", name: "Breadcrumbs", ready: true},
         %{slug: "stepper", name: "Stepper", ready: true},
+        %{slug: "sidebar", name: "Sidebar", ready: true},
         %{slug: "menu", name: "Menu", ready: true},
         %{slug: "navigation-menu", name: "Navigation menu", ready: true},
         %{slug: "tree", name: "Tree", ready: true},
+        %{slug: "scrollspy", name: "Scrollspy", ready: true},
         %{slug: "user-menu", name: "User menu", ready: true},
         %{slug: "language-select", name: "Language select", ready: true}
       ]
@@ -284,8 +303,8 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "table", name: "Table", ready: true},
         %{slug: "data-table", name: "Data table", ready: true},
-        %{slug: "data-table-link", name: "Data table · links", ready: true},
         %{slug: "chart", name: "Chart", ready: true},
+        %{slug: "qr-code", name: "QR code", ready: true},
         %{slug: "local-time", name: "Local time", ready: true}
       ]
     },
@@ -296,6 +315,11 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "scroll-area", name: "Scroll area", ready: true},
+        %{slug: "timeline", name: "Timeline", ready: true},
+        %{slug: "collapsible", name: "Collapsible", ready: true},
+        %{slug: "kbd", name: "Kbd", ready: true},
+        %{slug: "separator", name: "Separator", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
     },
@@ -306,6 +330,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "popover", name: "Popover", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
         %{slug: "dropdown", name: "Dropdown", ready: true},
+        %{slug: "context-menu", name: "Context menu", ready: true},
         %{slug: "command", name: "Command", ready: true},
         %{slug: "slide-over", name: "Slide over", ready: true}
       ]
@@ -704,6 +729,13 @@ defmodule Dev.PlaygroundLive do
 
   @input_types ~w(text email password search date time select textarea file color)
 
+  @qr_presets ~w(url totp wifi custom)
+  @qr_preset_values %{
+    "url" => "https://petal.build",
+    "totp" => "otpauth://totp/Petal:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Petal",
+    "wifi" => "WIFI:T:WPA;S:MyNetwork;P:secret;;"
+  }
+
   @alert_colors ~w(gray info success warning danger)
   @badge_colors ~w(primary secondary info success warning danger gray)
   @tint_variants ~w(light soft dark outline callout)
@@ -762,13 +794,33 @@ defmodule Dev.PlaygroundLive do
          actions: false,
          rev: 0
        },
-       badge: %{color: "primary", variant: "outline", size: "md", icon: false},
+       badge: %{
+         color: "primary",
+         variant: "outline",
+         size: "md",
+         icon: false,
+         dot: false,
+         dot_color: nil
+       },
+       empty: %{variant: "default", size: "md", actions: "primary"},
        input: %{type: "text", disabled: false, error: false, help: false},
        checkbox: %{layout: "row", disabled: false, error: false},
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
+       kbd: %{size: "md", separator: "+"},
+       separator: %{orientation: "horizontal", label_position: "center", decorative: true},
+       collapsible: %{open: false, disabled: false},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
+       qr: %{
+         preset: "url",
+         value: "https://petal.build",
+         size: "md",
+         ec: "m",
+         rounded: "0",
+         logo: false,
+         surface: "light"
+       },
        dt_selected: [],
        dt_hidden: [],
        dt_order: [],
@@ -782,11 +834,21 @@ defmodule Dev.PlaygroundLive do
          ind_pos: "end",
          disabled: false
        },
-       switch: %{size: "md", disabled: false, error: false},
+       switch: %{size: "md", variant: "default", disabled: false, error: false},
+       modal: %{
+         max_width: "sm",
+         header: true,
+         close: true,
+         dismiss: true,
+         footer: "actions",
+         content: "short"
+       },
        slider: %{thumbs: "dual", format: "money", disabled: false, fill: true},
        slider_form: slider_form("money"),
        otp: %{length: 6, grouped: false, pattern: "numeric", disabled: false},
+       number: %{variant: "stacked", size: "md", bounds: "qty", disabled: false},
        progress: %{
+         shape: "bar",
          value: 0,
          color: "primary",
          size: "xs",
@@ -810,6 +872,7 @@ defmodule Dev.PlaygroundLive do
          glow: "outside",
          palette: "rainbow"
        },
+       scroll: %{orientation: "vertical", fade: "off", gutter: "auto", visibility: "auto"},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -821,7 +884,7 @@ defmodule Dev.PlaygroundLive do
          label: "none",
          step: "whole"
        },
-       slideover: %{origin: "right", width: "md"},
+       slideover: %{origin: "right", width: "sm"},
        tabs: %{variant: "segmented", active: "overview", number: true},
        table: %{
          sort_by: "name",
@@ -847,7 +910,28 @@ defmodule Dev.PlaygroundLive do
          settings_expanded: MapSet.new(["workspace"]),
          settings_page: "members"
        },
-       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       timeline: %{
+         variant: "default",
+         orientation: "vertical",
+         marker: "icon",
+         connector: "solid",
+         time_placement: "top",
+         states: true
+       },
+       sidebar: %{
+         collapsible: "icon",
+         side: "left",
+         collapsed: false,
+         badges: true
+       },
+       stepper: %{
+         orientation: "horizontal",
+         size: "md",
+         variant: "circles",
+         labels: "beside",
+         at: 0,
+         done: false
+       },
        toast: %{pos: "bottom-right", undone: 0},
        car: %{
          transition: "fade",
@@ -860,11 +944,14 @@ defmodule Dev.PlaygroundLive do
          thumbnails: false
        },
        nav_trigger: "hover",
+       user_menu_opens: "up",
        crumbs: %{separator: "chevron"},
        marquee_ctl: %{reverse: false, vertical: false, pause: true},
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
+       context_menu: %{disabled: false},
+       scrollspy: %{offset: "6rem", nested: false, indicator: "bar"},
        chart: %{
          revenue: gen_wave(1100, 1),
          expenses: gen_wave(650, 4),
@@ -882,9 +969,14 @@ defmodule Dev.PlaygroundLive do
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
   def handle_params(params, uri, socket) do
+    # /c/data-table-link folded into /c/data-table (Aug 2026). Old shared
+    # links keep working: same page, and the State query params decode as
+    # before. The address bar normalises on the first link-mode click.
+    c = if params["c"] == "data-table-link", do: "data-table", else: params["c"]
+
     socket =
       socket
-      |> assign(:active, allow(params["c"], @slugs, "button"))
+      |> assign(:active, allow(c, @slugs, "button"))
       |> assign(:primary, allow(params["primary"] || params["accent"], @primary_names, "neutral"))
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
@@ -902,16 +994,16 @@ defmodule Dev.PlaygroundLive do
   # Link mode's whole loop: the table patches State-encoded URLs, this
   # decodes them back through the same whitelist and re-runs the engine.
   # No events, no other server state - the URL IS the table state.
-  defp maybe_run_dt_link(%{assigns: %{active: "data-table-link"}} = socket, params, uri) do
+  defp maybe_run_dt_link(%{assigns: %{active: "data-table"}} = socket, params, uri) do
     alias PetalComponents.DataTable.State
 
     # PhoenixPlayground's dead render hands handle_params only the path
     # params - the query string arrives solely in uri (the theme dials
     # have always had this flash). Decode it from there so a shared or
     # curled URL renders the right rows on FIRST paint, which is the
-    # claim this page exists to make. Plug's decoder, not URI's, because
-    # filters use bracket-indexed params. On connected patches params
-    # already carries the query and the merge is a no-op.
+    # claim the link-mode demo exists to make. Plug's decoder, not URI's,
+    # because filters use bracket-indexed params. On connected patches
+    # params already carries the query and the merge is a no-op.
     query = uri |> URI.parse() |> Map.get(:query) || ""
     params = Map.merge(Plug.Conn.Query.decode(query), params)
 
@@ -1015,6 +1107,29 @@ defmodule Dev.PlaygroundLive do
   def handle_event("flip", %{"k" => "show_code"}, socket),
     do: {:noreply, update(socket, :show_code, &(!&1))}
 
+  def handle_event("flip", %{"k" => "qr_logo"}, socket),
+    do: {:noreply, update(socket, :qr, &%{&1 | logo: !&1.logo})}
+
+  # QR code dials. The content preset swaps the encoded value too, so the code
+  # in the hero is always really encoding whatever the preset says.
+  def handle_event("ctl_qr", %{"k" => "preset", "v" => v}, socket) when v in @qr_presets,
+    do: {:noreply, update(socket, :qr, &%{&1 | preset: v, value: qr_preset_value(v, &1.value)})}
+
+  def handle_event("ctl_qr", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg xl),
+    do: {:noreply, update(socket, :qr, &%{&1 | size: v})}
+
+  def handle_event("ctl_qr", %{"k" => "ec", "v" => v}, socket) when v in ~w(l m q h),
+    do: {:noreply, update(socket, :qr, &%{&1 | ec: v})}
+
+  def handle_event("ctl_qr", %{"k" => "rounded", "v" => v}, socket) when v in ~w(0 0.5 1),
+    do: {:noreply, update(socket, :qr, &%{&1 | rounded: v})}
+
+  def handle_event("ctl_qr", %{"k" => "surface", "v" => v}, socket) when v in ~w(light dark),
+    do: {:noreply, update(socket, :qr, &%{&1 | surface: v})}
+
+  def handle_event("ctl_qr_value", %{"pg_qr_value" => value}, socket),
+    do: {:noreply, update(socket, :qr, &%{&1 | preset: "custom", value: value})}
+
   def handle_event("ctl_input", %{"k" => "type", "v" => v}, socket) when v in @input_types,
     do: {:noreply, update(socket, :input, &%{&1 | type: v})}
 
@@ -1022,6 +1137,41 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_kbd", %{"k" => k, "v" => v}, socket) when k in ~w(size separator),
+    do: {:noreply, update(socket, :kbd, &Map.put(&1, String.to_existing_atom(k), v))}
+
+  def handle_event("ctl_separator", %{"k" => k, "v" => v}, socket)
+      when k in ~w(orientation label_position),
+      do: {:noreply, update(socket, :separator, &Map.put(&1, String.to_existing_atom(k), v))}
+
+  def handle_event("ctl_separator", %{"k" => "decorative"}, socket),
+    do: {:noreply, update(socket, :separator, &%{&1 | decorative: !&1.decorative})}
+
+  def handle_event("ctl_collapsible", %{"k" => k}, socket) when k in ~w(open disabled),
+    do:
+      {:noreply,
+       update(socket, :collapsible, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  # Swapping shape keeps the value/colour/size dials where they are, which is
+  # the point: the ring is the same component wearing a different outline.
+  # The bar's xs is a hairline, so the ring borrows a size you can see.
+  def handle_event("ctl_progress", %{"k" => "shape", "v" => v}, socket) when v in ~w(bar ring),
+    do:
+      {:noreply,
+       update(socket, :progress, fn p ->
+         # Same normalisation as the size dial, in both directions: inside only
+         # draws where the shape has room for it, so arriving at a shape that
+         # can't show it must stop the label dial claiming "inside".
+         size = if(v == "ring" and p.size in ~w(xs sm), do: "xl", else: p.size)
+
+         label =
+           if p.label == "inside" and not progress_inside_fits?(v, size),
+             do: "top",
+             else: p.label
+
+         %{p | shape: v, size: size, label: label}
+       end)}
 
   def handle_event("ctl_progress", %{"k" => "value", "v" => v}, socket)
       when v in ~w(15 40 60 85 100),
@@ -1031,19 +1181,42 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(primary secondary info success warning danger gray),
       do: {:noreply, update(socket, :progress, &%{&1 | color: v})}
 
+  # The ring only draws its readout in the hole at lg and xl, so shrinking past
+  # that moves the readout beside the ring - and the dial follows, dropping
+  # from "inside" to the option the ring labels "beside".
   def handle_event("ctl_progress", %{"k" => "size", "v" => v}, socket)
       when v in ~w(xs sm md lg xl),
-      do: {:noreply, update(socket, :progress, &%{&1 | size: v})}
-
-  def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
-      when v in ~w(none inside top),
       do:
         {:noreply,
          update(
            socket,
            :progress,
-           &%{&1 | label: v, size: if(v == "inside", do: "xl", else: &1.size)}
+           &%{
+             &1
+             | size: v,
+               label:
+                 if(&1.shape == "ring" and &1.label == "inside" and v not in ~w(lg xl),
+                   do: "top",
+                   else: &1.label
+                 )
+           }
          )}
+
+  # Picking "inside" at a size with no room for it moves the size rather than
+  # break the promise - xl is the only bar tall enough to carry a label in the
+  # track. A ring already at lg keeps its lg: the hole is big enough there.
+  def handle_event("ctl_progress", %{"k" => "label", "v" => v}, socket)
+      when v in ~w(none inside top),
+      do:
+        {:noreply,
+         update(socket, :progress, fn p ->
+           size =
+             if v == "inside" and not progress_inside_fits?(p.shape, p.size),
+               do: "xl",
+               else: p.size
+
+           %{p | label: v, size: size}
+         end)}
 
   def handle_event("ctl_plasma", %{"k" => "mode", "v" => v}, socket) when v in ~w(pulse rotate),
     do: {:noreply, update(socket, :plasma, &%{&1 | mode: v})}
@@ -1065,6 +1238,20 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical horizontal both),
+      do: {:noreply, update(socket, :scroll, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "fade", "v" => v}, socket) when v in ~w(off on),
+    do: {:noreply, update(socket, :scroll, &%{&1 | fade: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "gutter", "v" => v}, socket) when v in ~w(auto stable),
+    do: {:noreply, update(socket, :scroll, &%{&1 | gutter: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "visibility", "v" => v}, socket)
+      when v in ~w(auto always),
+      do: {:noreply, update(socket, :scroll, &%{&1 | visibility: v})}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -1300,16 +1487,58 @@ defmodule Dev.PlaygroundLive do
   def handle_event("settings_pick", %{"id" => id}, socket),
     do: {:noreply, update(socket, :tree, &%{&1 | settings_page: id})}
 
+  def handle_event("ctl_sidebar", %{"k" => "collapsible", "v" => v}, socket)
+      when v in ~w(icon offcanvas none),
+      do: {:noreply, update(socket, :sidebar, &%{&1 | collapsible: v})}
+
+  def handle_event("ctl_sidebar", %{"k" => "side", "v" => v}, socket) when v in ~w(left right),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | side: v})}
+
+  def handle_event("ctl_sidebar", %{"k" => "collapsed"}, socket),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | collapsed: !&1.collapsed})}
+
+  def handle_event("ctl_sidebar", %{"k" => "badges"}, socket),
+    do: {:noreply, update(socket, :sidebar, &%{&1 | badges: !&1.badges})}
+
   def handle_event("ctl_stepper", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(horizontal vertical),
       do: {:noreply, update(socket, :stepper, &%{&1 | orientation: v})}
 
-  def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+  def handle_event("ctl_stepper", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg),
     do: {:noreply, update(socket, :stepper, &%{&1 | size: v})}
 
+  def handle_event("ctl_stepper", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(circles bars),
+      do: {:noreply, update(socket, :stepper, &%{&1 | variant: v})}
+
+  # "none" isn't a label_placement - it strips name and description from the
+  # step maps, which is how a label-less stepper is built.
   def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
-      when v in ~w(beside bottom),
+      when v in ~w(beside bottom none),
       do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default alternating compact),
+      do: {:noreply, update(socket, :timeline, &%{&1 | variant: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical horizontal),
+      do: {:noreply, update(socket, :timeline, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "marker", "v" => v}, socket)
+      when v in ~w(dot icon avatar number),
+      do: {:noreply, update(socket, :timeline, &%{&1 | marker: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "connector", "v" => v}, socket)
+      when v in ~w(solid dashed),
+      do: {:noreply, update(socket, :timeline, &%{&1 | connector: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "time_placement", "v" => v}, socket)
+      when v in ~w(top start),
+      do: {:noreply, update(socket, :timeline, &%{&1 | time_placement: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "states"}, socket),
+    do: {:noreply, update(socket, :timeline, &%{&1 | states: !&1.states})}
 
   def handle_event("ctl_carousel", %{"k" => "transition", "v" => v}, socket)
       when v in ~w(fade slide),
@@ -1440,6 +1669,10 @@ defmodule Dev.PlaygroundLive do
       when v in ~w(hover click),
       do: {:noreply, assign(socket, :nav_trigger, v)}
 
+  def handle_event("ctl_usermenu", %{"k" => "opens", "v" => v}, socket)
+      when v in ~w(up beside),
+      do: {:noreply, assign(socket, :user_menu_opens, v)}
+
   def handle_event("ctl_crumbs", %{"k" => "separator", "v" => v}, socket)
       when v in ~w(slash chevron),
       do: {:noreply, update(socket, :crumbs, &%{&1 | separator: v})}
@@ -1499,6 +1732,20 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
     do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
 
+  def handle_event("ctl_context_menu", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :context_menu, &%{&1 | disabled: !&1.disabled})}
+
+  def handle_event("ctl_scrollspy", %{"k" => "offset", "v" => v}, socket)
+      when v in ~w(2rem 6rem 12rem),
+      do: {:noreply, update(socket, :scrollspy, &%{&1 | offset: v})}
+
+  def handle_event("ctl_scrollspy", %{"k" => "indicator", "v" => v}, socket)
+      when v in ~w(bar none),
+      do: {:noreply, update(socket, :scrollspy, &%{&1 | indicator: v})}
+
+  def handle_event("ctl_scrollspy", %{"k" => "nested"}, socket),
+    do: {:noreply, update(socket, :scrollspy, &%{&1 | nested: !&1.nested})}
+
   def handle_event("ctl_otp", %{"k" => "length", "v" => v}, socket) when v in ~w(4 6),
     do: {:noreply, update(socket, :otp, &%{&1 | length: String.to_integer(v)})}
 
@@ -1511,13 +1758,48 @@ defmodule Dev.PlaygroundLive do
       {:noreply,
        update(socket, :otp, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
+  def handle_event("ctl_number", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(stacked split plain),
+      do: {:noreply, update(socket, :number, &%{&1 | variant: v})}
+
+  def handle_event("ctl_number", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :number, &%{&1 | size: v})}
+
+  def handle_event("ctl_number", %{"k" => "bounds", "v" => v}, socket)
+      when v in ~w(qty pct free),
+      do: {:noreply, update(socket, :number, &%{&1 | bounds: v})}
+
+  def handle_event("ctl_number", %{"k" => "disabled"}, socket),
+    do: {:noreply, update(socket, :number, &%{&1 | disabled: !&1.disabled})}
+
   def handle_event("ctl_switch", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :switch, &%{&1 | size: v})}
+
+  def handle_event("ctl_switch", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default pill),
+      do: {:noreply, update(socket, :switch, &%{&1 | variant: v})}
 
   def handle_event("ctl_switch", %{"k" => k}, socket) when k in ~w(disabled error),
     do:
       {:noreply,
        update(socket, :switch, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_modal", %{"k" => "max_width", "v" => v}, socket)
+      when v in ~w(sm md lg xl 2xl full),
+      do: {:noreply, update(socket, :modal, &%{&1 | max_width: v})}
+
+  def handle_event("ctl_modal", %{"k" => "footer", "v" => v}, socket)
+      when v in ~w(none actions),
+      do: {:noreply, update(socket, :modal, &%{&1 | footer: v})}
+
+  def handle_event("ctl_modal", %{"k" => "content", "v" => v}, socket)
+      when v in ~w(short long),
+      do: {:noreply, update(socket, :modal, &%{&1 | content: v})}
+
+  def handle_event("ctl_modal", %{"k" => k}, socket) when k in ~w(header close dismiss),
+    do:
+      {:noreply,
+       update(socket, :modal, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   def handle_event("ctl_slider", %{"k" => "format", "v" => v}, socket)
       when v in ~w(money percent plain),
@@ -1662,6 +1944,48 @@ defmodule Dev.PlaygroundLive do
     {state, rows}
   end
 
+  # A preset swaps in its canned payload; "custom" keeps whatever is typed.
+  defp qr_preset_value(preset, current), do: Map.get(@qr_preset_values, preset, current)
+
+  defp qr_rounded("0"), do: 0
+  defp qr_rounded("0.5"), do: 0.5
+  defp qr_rounded("1"), do: 1
+
+  defp qr_size_class("sm"), do: "size-28"
+  defp qr_size_class("md"), do: "size-44"
+  defp qr_size_class("lg"), do: "size-60"
+  defp qr_size_class("xl"), do: "size-72"
+
+  # Never hand the component an empty string - there is nothing to encode.
+  defp qr_value(""), do: "https://petal.build"
+  defp qr_value(value), do: value
+
+  # The snippet shows EXACTLY what the hero renders - the same PC monogram
+  # slot content, and the label every hero render passes.
+  defp qr_snippet(qr) do
+    logo =
+      if qr.logo do
+        "\n  <:logo>\n" <>
+          ~s|    <div class="flex items-center justify-center w-full h-full text-5xl font-bold">\n| <>
+          ~s|      <span class="text-primary-600">PC</span>\n| <>
+          "    </div>\n  </:logo>\n</.qr_code>"
+      else
+        "\n/>"
+      end
+
+    background = if qr.surface == "light", do: ~s(\n  background="white"), else: ""
+    colour = if qr.surface == "light", do: "text-gray-900", else: "text-white"
+
+    ~s|<.qr_code| <>
+      ~s|\n  value="#{qr_value(qr.value)}"| <>
+      ~s|\n  error_correction={:#{qr.ec}}| <>
+      ~s|\n  rounded={#{qr.rounded}}| <>
+      background <>
+      ~s|\n  label="QR code for the value shown below"| <>
+      ~s|\n  class="#{qr_size_class(qr.size)} #{colour}"| <>
+      logo
+  end
+
   def handle_event("pg_remote_search", term, socket) do
     term = String.downcase(to_string(term))
 
@@ -1750,8 +2074,35 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_badge", %{"k" => "size", "v" => v}, socket) when v in ~w(xs sm md lg xl),
     do: {:noreply, update(socket, :badge, &%{&1 | size: v})}
 
+  # dot and icon are mutually exclusive on the flagship. They compose fine -
+  # the showcase examples below the dials still demonstrate the pairing - but
+  # as the one badge at the top of the page, a dot and an icon in front of a
+  # two-word label is more furniture than label.
   def handle_event("ctl_badge", %{"k" => "icon"}, socket),
-    do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon})}
+    do: {:noreply, update(socket, :badge, &%{&1 | icon: !&1.icon, dot: false})}
+
+  def handle_event("ctl_badge", %{"k" => "dot"}, socket),
+    do: {:noreply, update(socket, :badge, &%{&1 | dot: !&1.dot, icon: false})}
+
+  # The dot colour survives toggling the dot off and on - it is the dial's
+  # own state, not a consequence of the dot's.
+  def handle_event("ctl_badge", %{"k" => "dot_color", "v" => "inherit"}, socket),
+    do: {:noreply, update(socket, :badge, &%{&1 | dot_color: nil})}
+
+  def handle_event("ctl_badge", %{"k" => "dot_color", "v" => v}, socket)
+      when v in @badge_colors,
+      do: {:noreply, update(socket, :badge, &%{&1 | dot_color: v})}
+
+  def handle_event("ctl_empty", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default compact card dashed),
+      do: {:noreply, update(socket, :empty, &%{&1 | variant: v})}
+
+  def handle_event("ctl_empty", %{"k" => "size", "v" => v}, socket) when v in ~w(sm md lg),
+    do: {:noreply, update(socket, :empty, &%{&1 | size: v})}
+
+  def handle_event("ctl_empty", %{"k" => "actions", "v" => v}, socket)
+      when v in ~w(none primary both),
+      do: {:noreply, update(socket, :empty, &%{&1 | actions: v})}
 
   def handle_event("chat_send", %{"prompt" => prompt}, socket), do: chat_start(socket, prompt)
 
@@ -1907,10 +2258,71 @@ defmodule Dev.PlaygroundLive do
     end
   end
 
+  # Flat mode lists the h2s only, which is what most docs rails do. Nested
+  # mode folds the two h3s under the section they belong to.
+  defp scrollspy_items(%{nested: nested}) do
+    wiring =
+      if nested do
+        %{
+          label: "Wiring it up",
+          target: "ss-wiring",
+          children: [
+            %{label: "The items list", target: "ss-items"},
+            %{label: "The targets", target: "ss-targets"}
+          ]
+        }
+      else
+        %{label: "Wiring it up", target: "ss-wiring"}
+      end
+
+    [
+      %{label: "Why a rail", target: "ss-why"},
+      wiring,
+      %{label: "Clearing a header", target: "ss-offset"},
+      %{label: "Motion", target: "ss-motion"},
+      %{label: "Accessibility", target: "ss-a11y"},
+      %{label: "Wrapping up", target: "ss-end"}
+    ]
+  end
+
+  defp scrollspy_snippet(ss) do
+    """
+    <.scrollspy
+      id="docs-toc"
+      heading="On this page"
+      offset="#{ss.offset}"#{if ss.indicator == "none", do: ~s|\n  indicator="none"|, else: ""}
+      items={[
+        %{label: "Why a rail", target: "ss-why"},#{if ss.nested, do: nested_snippet(), else: ~s|\n    %{label: "Wiring it up", target: "ss-wiring"},|}
+        %{label: "Wrapping up", target: "ss-end"}
+      ]}
+    />
+    """
+  end
+
+  defp nested_snippet do
+    """
+
+        %{
+          label: "Wiring it up",
+          target: "ss-wiring",
+          children: [
+            %{label: "The items list", target: "ss-items"},
+            %{label: "The targets", target: "ss-targets"}
+          ]
+        },\
+    """
+  end
+
   # A page's slice of a showcase module, in the page's order. Field is one
   # component (so one registry module), but the playground splits its examples
   # across the input / select / checkbox / radio / switch pages. Raises on a
   # typo'd id so a page can't silently drop an example.
+  # The separator dial's "none" option is a real none: nil renders no
+  # separator span at all (a " " separator still rendered an aria-hidden
+  # whitespace span plus the group gap - double spacing, not none).
+  defp kbd_sep(" "), do: nil
+  defp kbd_sep(g), do: g
+
   defp examples_for(module, ids) do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))
@@ -2101,6 +2513,51 @@ defmodule Dev.PlaygroundLive do
   defp progress_status(v) when v < 85, do: "Extracting files..."
   defp progress_status(v) when v < 100, do: "Finishing up..."
   defp progress_status(_v), do: "Done!"
+
+  # Where an inside label actually draws: the ring paints its readout in the
+  # hole from lg up, the bar carries a label in the track at xl only.
+  defp progress_inside_fits?("ring", size), do: size in ~w(lg xl)
+  defp progress_inside_fits?(_bar, size), do: size == "xl"
+
+  # Only the ring greys the option out, because only the ring can sit at a size
+  # where "inside" would be a no-op: the bar's own dial moves the size to xl for
+  # you, the way it always has.
+  defp progress_inside_disabled?("ring" = shape, size), do: not progress_inside_fits?(shape, size)
+  defp progress_inside_disabled?(_bar, _size), do: false
+
+  # One state, two truthful names. The third position means "the readout lives
+  # outside the indicator": the bar says that with the component's own
+  # label_position="top", the ring by composing the readout beside itself (the
+  # "Labels beside the ring" example further down the page). Renaming the state
+  # value would only move the lie to the bar.
+  defp progress_label_name("ring", "top"), do: "beside"
+  defp progress_label_name(_shape, label), do: label
+
+  defp progress_snippet(%{shape: "ring"} = pr) do
+    attrs =
+      [
+        ~s(value={#{pr.value}}),
+        pr.color != "primary" && ~s(color="#{pr.color}"),
+        pr.size != "md" && ~s(size="#{pr.size}"),
+        pr.label == "inside" && "show_value"
+      ]
+      |> Enum.filter(& &1)
+
+    ring = "<.progress_ring #{Enum.join(attrs, " ")} />"
+
+    # Beside the ring is composition, not an attr - so the snippet has to show
+    # the row, or it stops matching what the preview is doing.
+    if pr.label == "top" do
+      """
+      <div class="flex items-center gap-2 text-sm tabular-nums">
+        #{ring}
+        #{pr.value}%
+      </div>\
+      """
+    else
+      ring
+    end
+  end
 
   defp progress_snippet(pr) do
     attrs =
@@ -2348,6 +2805,29 @@ defmodule Dev.PlaygroundLive do
     "<.input_otp #{Enum.join(attrs, " ")} />"
   end
 
+  defp number_bounds("qty"), do: %{min: 1, max: 99, step: 1, label: "1 to 99, step 1"}
+  defp number_bounds("pct"), do: %{min: 0, max: 100, step: 5, label: "0 to 100, step 5"}
+  defp number_bounds("free"), do: %{min: nil, max: nil, step: 0.5, label: "unbounded, step 0.5"}
+
+  defp number_snippet(n) do
+    b = number_bounds(n.bounds)
+
+    attrs =
+      [
+        ~s(name="quantity"),
+        ~s(value="12"),
+        b.min && ~s(min={#{b.min}}),
+        b.max && ~s(max={#{b.max}}),
+        b.step != 1 && ~s(step={#{b.step}}),
+        n.variant != "stacked" && ~s(variant="#{n.variant}"),
+        n.size != "md" && ~s(size="#{n.size}"),
+        n.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.number_field #{Enum.join(attrs, " ")} />"
+  end
+
   defp slider_form("money"), do: to_form(%{"min" => "250", "max" => "750"}, as: :pg_range)
   defp slider_form("percent"), do: to_form(%{"min" => "20", "max" => "80"}, as: :pg_range)
   defp slider_form("plain"), do: to_form(%{"min" => "25", "max" => "75"}, as: :pg_range)
@@ -2414,12 +2894,43 @@ defmodule Dev.PlaygroundLive do
         ~s(label="Email notifications"),
         "checked",
         sw.size != "md" && ~s(size="#{sw.size}"),
+        sw.variant != "default" && ~s(variant="#{sw.variant}"),
         sw.error && ~s(errors={["must be enabled"]}),
         sw.disabled && "disabled"
       ]
       |> Enum.filter(& &1)
 
     "<.field #{Enum.join(attrs, " ")} />"
+  end
+
+  defp modal_snippet(m) do
+    attrs =
+      [
+        ~s(id="invite"),
+        ~s(title="Invite your team"),
+        "hide",
+        m.max_width != "md" && ~s(max_width="#{m.max_width}"),
+        !m.header && "hide_header",
+        m.header && !m.close && "hide_close_button",
+        !m.dismiss && ~s(close_on_click_away={false})
+      ]
+      |> Enum.filter(& &1)
+
+    body =
+      if m.content == "long",
+        do: "  <p>Long body copy that outgrows the box and scrolls.</p>",
+        else: "  <p>Share this link and they'll join the workspace.</p>"
+
+    footer =
+      if m.footer == "actions",
+        do:
+          "  <:footer>\n" <>
+            "    <.button color=\"gray\" variant=\"outline\" phx-click={hide_modal(\"invite\")}>Cancel</.button>\n" <>
+            "    <.button phx-click={hide_modal(\"invite\")}>Copy link</.button>\n" <>
+            "  </:footer>\n",
+        else: ""
+
+    "<.modal #{Enum.join(attrs, " ")}>\n#{body}\n#{footer}</.modal>"
   end
 
   defp radio_snippet(%{style: "plain"} = r) do
@@ -2505,13 +3016,41 @@ defmodule Dev.PlaygroundLive do
     open <> ">Your subscription renews on 12 August.</.alert>"
   end
 
+  defp empty_snippet(e) do
+    attrs =
+      [
+        e.variant != "default" && ~s(variant="#{e.variant}"),
+        e.size != "md" && ~s(size="#{e.size}"),
+        ~s(title="No projects yet"),
+        ~s(description="Projects hold your environments, deploys and team access.")
+      ]
+      |> Enum.filter(& &1)
+
+    open = Enum.join(["<.empty" | attrs], " ")
+
+    case e.actions do
+      "none" ->
+        open <> " />"
+
+      "primary" ->
+        open <>
+          ">\n  <:actions>\n    <.button size=\"sm\" label=\"Create project\" />\n  </:actions>\n</.empty>"
+
+      "both" ->
+        open <>
+          ">\n  <:actions>\n    <.button size=\"sm\" label=\"Create project\" />\n    <.button size=\"sm\" variant=\"outline\" color=\"gray\" label=\"Import from Git\" />\n  </:actions>\n</.empty>"
+    end
+  end
+
   defp badge_snippet(b) do
     attrs =
       [
         b.color != "primary" && ~s(color="#{b.color}"),
         b.variant != "light" && ~s(variant="#{b.variant}"),
         b.size != "md" && ~s(size="#{b.size}"),
-        b.icon && "with_icon"
+        b.icon && "with_icon",
+        b.dot && "dot",
+        b.dot && b.dot_color && ~s(dot_color="#{b.dot_color}")
       ]
       |> Enum.filter(& &1)
 
@@ -2568,6 +3107,56 @@ defmodule Dev.PlaygroundLive do
     ]
   end
 
+  # The dial demo: one release pipeline, re-dressed by whichever marker and
+  # state the dials are set to.
+  defp pg_timeline_entries(tl) do
+    [
+      %{
+        icon: "hero-code-bracket",
+        name: "Alex Chen",
+        color: "gray",
+        time: "9:41am",
+        title: "Commit pushed",
+        description: "fix: retry the webhook worker with a backoff"
+      },
+      %{
+        icon: "hero-check-circle",
+        name: "Sam Rivera",
+        color: "success",
+        time: "9:47am",
+        title: "CI passed",
+        description: "418 tests, 2m 51s"
+      },
+      %{
+        icon: "hero-rocket-launch",
+        name: "Jo Park",
+        color: "primary",
+        time: "9:52am",
+        title: "Deploying to production",
+        description: "Rolling through Sydney, Dublin and Ohio."
+      },
+      %{
+        icon: "hero-bell-alert",
+        name: "Robin Lee",
+        color: "primary",
+        time: "in a few minutes",
+        title: "Release notes published",
+        description: "Sent to everyone watching the repo."
+      }
+    ]
+    |> Enum.with_index()
+    |> Enum.map(fn {entry, i} ->
+      entry
+      |> Map.put(:marker, tl.marker)
+      |> Map.put(:state, pg_timeline_state(tl.states, i))
+    end)
+  end
+
+  defp pg_timeline_state(false, _index), do: "complete"
+  defp pg_timeline_state(true, index) when index < 2, do: "complete"
+  defp pg_timeline_state(true, 2), do: "current"
+  defp pg_timeline_state(true, _index), do: "upcoming"
+
   defp pg_step_defs do
     [
       %{name: "Account", description: "Email and password"},
@@ -2577,11 +3166,14 @@ defmodule Dev.PlaygroundLive do
     ]
   end
 
-  defp pg_steps(at, done) do
+  # labels: "none" drops name and description from the maps rather than passing
+  # an attr - a label-less stepper is the same component with less in its steps.
+  defp pg_steps(at, done, labels) do
     pg_step_defs()
     |> Enum.with_index()
     |> Enum.map(fn {step, i} ->
       step
+      |> then(&if labels == "none", do: Map.drop(&1, [:name, :description]), else: &1)
       |> Map.put(:complete?, done || i < at)
       |> Map.put(:active?, !done && i == at)
       |> Map.put(
@@ -2590,6 +3182,55 @@ defmodule Dev.PlaygroundLive do
       )
     end)
   end
+
+  defp stepper_snippet(st) do
+    # Only the attrs that actually reach the paint: bars is horizontal-only and
+    # outranks label_placement, so the snippet never shows an attr the
+    # component would ignore.
+    bars? = st.orientation == "horizontal" and st.variant == "bars"
+
+    attrs =
+      [
+        st.orientation != "horizontal" && ~s(orientation="#{st.orientation}"),
+        st.size != "md" && ~s(size="#{st.size}"),
+        bars? && ~s(variant="bars"),
+        not bars? and st.orientation == "horizontal" and st.labels == "bottom" &&
+          ~s(label_placement="bottom")
+      ]
+      |> Enum.filter(& &1)
+
+    # The steps are the interesting half, so the snippet shows them rather than
+    # a placeholder - including the label-less form, where the maps just lose
+    # their name and description keys.
+    steps =
+      pg_step_defs()
+      |> Enum.with_index()
+      |> Enum.map_join(",\n", fn {step, i} ->
+        # `done` completes every step and clears the active one, exactly as
+        # the live rail renders it - the snippet must tell the same story.
+        state =
+          "complete?: #{i < st.at or st.done}, active?: #{i == st.at and not st.done}"
+
+        if st.labels == "none" do
+          "    %{#{state}}"
+        else
+          ~s|    %{name: "#{step.name}", description: "#{step.description}", #{state}}|
+        end
+      end)
+
+    open = Enum.join(["<.stepper" | attrs], " ")
+
+    "#{open}\n  steps={[\n#{steps}\n  ]}\n/>"
+  end
+
+  # The labels dial stays live in every mode because "none" always applies -
+  # it's the steps, not the placement. The hint says which half is being
+  # ignored instead of greying out a control that still does something.
+  defp stepper_labels_hint(%{orientation: "vertical"}),
+    do: "beside and bottom are horizontal only"
+
+  defp stepper_labels_hint(%{variant: "bars"}), do: "bars always sit titles under"
+  defp stepper_labels_hint(_), do: nil
 
   defp table_rows(%{sort_by: key, sort_dir: dir}) do
     key = String.to_existing_atom(key)
@@ -2846,67 +3487,83 @@ defmodule Dev.PlaygroundLive do
             </div>
             <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
           </div>
-          <nav class="flex-1 px-6 py-6 overflow-y-auto">
-            <div :for={grp <- @nav} class="mb-10">
-              <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
-                {grp.group}
-              </div>
-              <div class="flex flex-col">
-                <button
-                  :for={it <- grp.items}
-                  phx-click="select"
-                  phx-value-slug={it.slug}
-                  class={[
-                    "flex items-center py-1.5 text-2xl font-medium text-left",
-                    (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
-                      "text-gray-600 dark:text-gray-400"
-                  ]}
-                >
-                  {it.name}
-                  <span
-                    :if={not it.ready}
-                    class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+          <%!-- tabindex="-1": every item in here is already a button, so the
+          scroll area's own tab stop would just be one more thing to tab past. --%>
+          <.scroll_area tabindex="-1" class="flex-1 px-6 py-6">
+            <nav>
+              <div :for={grp <- @nav} class="mb-10">
+                <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
+                  {grp.group}
+                </div>
+                <div class="flex flex-col">
+                  <button
+                    :for={it <- grp.items}
+                    phx-click="select"
+                    phx-value-slug={it.slug}
+                    class={[
+                      "flex items-center py-1.5 text-2xl font-medium text-left",
+                      (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
+                        "text-gray-600 dark:text-gray-400"
+                    ]}
                   >
-                    soon
-                  </span>
-                </button>
+                    {it.name}
+                    <span
+                      :if={not it.ready}
+                      class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                    >
+                      soon
+                    </span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </nav>
+            </nav>
+          </.scroll_area>
         </.focus_wrap>
       </div>
 
       <div inert={@nav_open} class="flex flex-1 min-h-0">
-        <nav class="hidden lg:block flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
-          <div :for={grp <- @nav}>
-            <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
-              {grp.group}
-            </div>
-            <button
-              :for={it <- grp.items}
-              phx-click="select"
-              phx-value-slug={it.slug}
-              class={[
-                "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
-                (@active == it.slug &&
-                   "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
-                  "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
-              ]}
-            >
-              {it.name}
-              <span
-                :if={not it.ready}
-                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+        <%!-- tabindex="-1": the list is all buttons, so it is reachable without
+        the scroll area's own tab stop. --%>
+        <.scroll_area
+          tabindex="-1"
+          class="hidden lg:block flex-none p-3 border-r w-52 border-gray-200 dark:border-gray-800"
+        >
+          <nav>
+            <div :for={grp <- @nav}>
+              <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
+                {grp.group}
+              </div>
+              <button
+                :for={it <- grp.items}
+                phx-click="select"
+                phx-value-slug={it.slug}
+                class={[
+                  "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
+                  (@active == it.slug &&
+                     "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
+                    "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
+                ]}
               >
-                soon
-              </span>
-            </button>
-          </div>
-        </nav>
+                {it.name}
+                <span
+                  :if={not it.ready}
+                  class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                >
+                  soon
+                </span>
+              </button>
+            </div>
+          </nav>
+        </.scroll_area>
 
-        <main class="flex-1 min-w-0 overflow-y-auto">
+        <%!-- role="main" keeps the landmark that the <main> element carried.
+        The x-axis fence comes free now: pc-scroll-area--vertical clips
+        overflow-x, so the plasma halo's oversized blur-headroom boxes (up to
+        ~116px proud of their panels) still paint to the pane edge without
+        growing phantom horizontal scroll on mobile. --%>
+        <.scroll_area role="main" class="flex-1 min-w-0">
           {render_page(assigns)}
-        </main>
+        </.scroll_area>
       </div>
     </div>
     """
@@ -4394,6 +5051,186 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "qr-code"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">QR code</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        Encoded on the server and emitted as inline SVG. No JavaScript, no canvas, crisp at
+        any size, and it prints. Every dark module goes into a single path, so even a dense
+        code is one DOM node. Colour rides currentColor; size rides classes.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class={[
+          "flex items-center justify-center px-6 py-12",
+          @qr.surface == "dark" && "bg-gray-900"
+        ]}>
+          <div class={@qr.surface == "light" && "p-5 bg-white rounded-xl"}>
+            <.qr_code
+              value={qr_value(@qr.value)}
+              error_correction={String.to_existing_atom(@qr.ec)}
+              rounded={qr_rounded(@qr.rounded)}
+              background={if @qr.surface == "light", do: "white", else: "transparent"}
+              label="QR code for the value shown below"
+              class={[
+                qr_size_class(@qr.size),
+                if(@qr.surface == "light", do: "text-gray-900", else: "text-white")
+              ]}
+            >
+              <:logo :if={@qr.logo}>
+                <div class="flex items-center justify-center w-full h-full text-5xl font-bold">
+                  <span class="text-primary-600">PC</span>
+                </div>
+              </:logo>
+            </.qr_code>
+          </div>
+        </div>
+
+        <div class="px-4 pb-4 sm:px-6">
+          <form phx-change="ctl_qr_value">
+            <label class="block mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              value being encoded
+            </label>
+            <input
+              type="text"
+              name="pg_qr_value"
+              value={@qr.value}
+              autocomplete="off"
+              class="w-full px-3 py-2 font-mono text-xs text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </form>
+          <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+            The same information is right here as text - a QR code must never be the only way in.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">content</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Content preset"
+              value={@qr.preset}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={p <- ~w(url totp wifi)} value={p} phx-value-k="preset" phx-value-v={p}>
+                {p}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@qr.size}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(sm md lg xl)} value={s} phx-value-k="size" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              error correction
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Error correction"
+              value={@qr.ec}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={e <- ~w(l m q h)} value={e} phx-value-k="ec" phx-value-v={e}>
+                {e}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">modules</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Module rounding"
+              value={@qr.rounded}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="0" phx-value-k="rounded" phx-value-v="0">square</:item>
+              <:item value="0.5" phx-value-k="rounded" phx-value-v="0.5">soft</:item>
+              <:item value="1" phx-value-k="rounded" phx-value-v="1">dots</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">surface</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Surface"
+              value={@qr.surface}
+              on_change="ctl_qr"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="light" phx-value-k="surface" phx-value-v="light">white card</:item>
+              <:item value="dark" phx-value-k="surface" phx-value-v="dark">inverted</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">logo</div>
+            <button
+              phx-click="flip"
+              phx-value-k="qr_logo"
+              class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg dark:border-gray-700"
+            >
+              {if @qr.logo, do: "on", else: "off"}
+            </button>
+          </div>
+        </div>
+        <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          turning the logo on forces error correction to :h - watch the code get denser, that is
+          the redundancy that lets it survive the hole
+        </p>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{qr_snippet(@qr)}</code></pre>
+
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.QrCode, ~w(totp share dark_surface logo)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.QrCode} function={:qr_code} />
+    </div>
+    """
+  end
+
   defp render_page(%{active: "local-time"} = assigns) do
     now = DateTime.utc_now()
 
@@ -4916,7 +5753,13 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props
         component={PetalComponents.Dropdown}
-        functions={[:dropdown, :dropdown_menu_item, :dropdown_menu_label, :dropdown_menu_separator]}
+        functions={[
+          :dropdown,
+          :dropdown_menu_item,
+          :dropdown_menu_label,
+          :dropdown_menu_row,
+          :dropdown_menu_separator
+        ]}
       />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -5038,9 +5881,152 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Modal</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Dialog on the panel surface with a proper scrim. Escape and
-        click-away close it; the box radius scales gently with the rail.
+        The general dialog (shadcn calls it "Dialog"), on the panel surface
+        with a proper scrim. It is light-dismissible on purpose: close button,
+        click-away, Escape. The box is a column, so the body scrolls and the
+        :footer band stays pinned under it. When the user has to answer, and
+        walking away would leave it ambiguous what happened, reach for the
+        alert dialog instead - it asks one question with two answers and
+        ignores backdrop clicks.
       </p>
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        The flagship ships the way the component does: click-away closes it.
+        That includes clicking a dial while it is open - the dial still
+        registers, so reopen to see the change. Flip <code>click away</code>
+        off to keep it up while you play.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-16">
+          <.button color="gray" variant="outline" phx-click={show_modal("pg-modal")}>
+            Open modal
+          </.button>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">max width</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Max width"
+              value={@modal.max_width}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={w <- ~w(sm md lg xl 2xl full)}
+                value={w}
+                phx-value-k="max_width"
+                phx-value-v={w}
+              >
+                {w}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">footer</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Footer"
+              value={@modal.footer}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={f <- ~w(none actions)} value={f} phx-value-k="footer" phx-value-v={f}>
+                {f}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">content</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Content"
+              value={@modal.content}
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(short long)} value={c} phx-value-k="content" phx-value-v={c}>
+                {c}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">chrome</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Chrome"
+              value={
+                for {k, on} <- [
+                      {"header", @modal.header},
+                      {"close", @modal.close},
+                      {"dismiss", @modal.dismiss}
+                    ],
+                    on,
+                    do: k
+              }
+              on_change="ctl_modal"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="header" phx-value-k="header">header</:item>
+              <:item value="close" phx-value-k="close">close button</:item>
+              <:item value="dismiss" phx-value-k="dismiss">click away</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <.modal
+        id="pg-modal"
+        hide
+        title="Invite your team"
+        max_width={@modal.max_width}
+        hide_header={!@modal.header}
+        hide_close_button={!@modal.close}
+        close_on_click_away={@modal.dismiss}
+      >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Share this link with your teammates and they'll join the workspace
+          with member access.
+        </p>
+        <div class="mt-4">
+          <.input_group>
+            <.input type="text" name="pg_invite_url" value="https://example.com/join/x1y2z3" readonly />
+            <:trailing><kbd><span>⌘</span>C</kbd></:trailing>
+          </.input_group>
+        </div>
+        <div :if={@modal.content == "long"} class="flex flex-col gap-4 mt-4">
+          <p :for={n <- 1..10} class="text-sm text-gray-500 dark:text-gray-400">
+            Note {n}. Anyone with the link can join until you revoke it, and
+            revoking it does not remove people who already used it. Keep
+            scrolling: the action row below is pinned, so it never leaves.
+          </p>
+        </div>
+        <:footer :if={@modal.footer == "actions"}>
+          <.button color="gray" variant="outline" phx-click={hide_modal("pg-modal")}>
+            Cancel
+          </.button>
+          <.button phx-click={hide_modal("pg-modal")}>Copy link</.button>
+        </:footer>
+      </.modal>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{modal_snippet(@modal)}</code></pre>
 
       <div :for={ex <- PetalComponents.Showcase.Modal.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
@@ -5067,14 +6053,35 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Progress</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        Determinate progress on a washed track. The flagship simulates a
-        live upload - or take the wheel with the value control (which
-        pauses the simulation).
+        Determinate progress on a washed track, bar or ring. The flagship
+        simulates a live upload - or take the wheel with the value control
+        (which pauses the simulation). Flip shape and the same dials drive
+        the circular version, where the readout either sits in the hole (lg
+        and up, where there's room to read a number) or beside the ring.
       </p>
 
       <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex items-center justify-center px-6 py-16">
-          <div class="w-full max-w-md">
+          <%!-- The label dial drives the ring's readout rather than guessing at
+                it: "inside" is show_value in the hole (offered from lg up, where
+                it draws), "beside" is the composed row the component's docs point
+                at, and it stays available at every size. --%>
+          <div :if={@progress.shape == "ring"} class="flex items-center gap-2">
+            <.progress_ring
+              value={@progress.value}
+              color={@progress.color}
+              size={@progress.size}
+              show_value={@progress.label == "inside"}
+              label="Download progress"
+            />
+            <span
+              :if={@progress.label == "top"}
+              class="text-sm text-gray-500 tabular-nums dark:text-gray-400"
+            >
+              {@progress.value}%
+            </span>
+          </div>
+          <div :if={@progress.shape == "bar"} class="w-full max-w-md">
             <.progress
               value={@progress.value}
               color={@progress.color}
@@ -5092,6 +6099,21 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">shape</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Shape"
+              value={@progress.shape}
+              on_change="ctl_progress"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={s <- ~w(bar ring)} value={s} phx-value-k="shape" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <.toggle_group
@@ -5165,14 +6187,35 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Label"
+              aria-describedby={
+                progress_inside_disabled?(@progress.shape, @progress.size) &&
+                  "pg-progress-inside-hint"
+              }
               value={@progress.label}
               on_change="ctl_progress"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={l <- ~w(none inside top)} value={l} phx-value-k="label" phx-value-v={l}>
-                {l}
+              <:item
+                :for={l <- ~w(none inside top)}
+                value={l}
+                disabled={
+                  l == "inside" and progress_inside_disabled?(@progress.shape, @progress.size)
+                }
+                phx-value-k="label"
+                phx-value-v={l}
+              >
+                {progress_label_name(@progress.shape, l)}
               </:item>
             </.toggle_group>
+            <%!-- aria-describedby on the group ties the hint to the radios, so
+            assistive tech hears WHY inside is disabled, not just that it is. --%>
+            <div
+              :if={progress_inside_disabled?(@progress.shape, @progress.size)}
+              id="pg-progress-inside-hint"
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              inside needs lg or xl
+            </div>
           </div>
         </div>
       </div>
@@ -5199,7 +6242,7 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
-      <.showcase_props component={PetalComponents.Progress} function={:progress} />
+      <.showcase_props component={PetalComponents.Progress} functions={[:progress, :progress_ring]} />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Progress</code>
@@ -5477,6 +6520,116 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "empty"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Empty state</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        What a list, table, inbox or search renders when it has nothing to show.
+        Media, title, description, actions, a trailing line - every part optional,
+        pure markup and CSS.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-xl">
+            <.empty
+              variant={@empty.variant}
+              size={@empty.size}
+              title="No projects yet"
+              description="Projects hold your environments, deploys and team access. Create one to get started."
+            >
+              <:actions :if={@empty.actions != "none"}>
+                <.button size="sm" label="Create project" />
+                <.button
+                  :if={@empty.actions == "both"}
+                  size="sm"
+                  variant="outline"
+                  color="gray"
+                  label="Import from Git"
+                />
+              </:actions>
+            </.empty>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@empty.variant}
+              on_change="ctl_empty"
+            >
+              <:item
+                :for={v <- ~w(default compact card dashed)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@empty.size}
+              on_change="ctl_empty"
+            >
+              <:item :for={s <- ~w(sm md lg)} value={s} phx-value-k="size" phx-value-v={s}>
+                {s}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">actions</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Actions"
+              value={@empty.actions}
+              on_change="ctl_empty"
+            >
+              <:item :for={a <- ~w(none primary both)} value={a} phx-value-k="actions" phx-value-v={a}>
+                {a}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{empty_snippet(@empty)}</code></pre>
+
+      <div :for={ex <- PetalComponents.Showcase.Empty.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Empty} function={:empty} />
     </div>
     """
   end
@@ -5888,10 +7041,11 @@ defmodule Dev.PlaygroundLive do
             @stepper.orientation == "vertical" && "justify-center md:justify-start md:shrink-0"
           ]}>
             <.stepper
-              steps={pg_steps(@stepper.at, @stepper.done)}
+              steps={pg_steps(@stepper.at, @stepper.done, @stepper.labels)}
               orientation={@stepper.orientation}
               size={@stepper.size}
-              label_placement={@stepper.labels}
+              variant={@stepper.variant}
+              label_placement={if @stepper.labels == "none", do: "beside", else: @stepper.labels}
             />
           </div>
           <div class={[
@@ -5994,6 +7148,12 @@ defmodule Dev.PlaygroundLive do
                 >
                   Back
                 </.button>
+                <%!-- "Step 3 of 4" is composition, not an attr: the stepper
+                draws the rail, the page owns the row underneath. It's the
+                whole labelling story when the steps have no names. --%>
+                <span class="text-sm text-gray-500 tabular-nums dark:text-gray-400">
+                  Step {@stepper.at + 1} of {length(pg_step_defs())}
+                </span>
                 <.button phx-click="ctl_stepper" phx-value-k="next">
                   {if @stepper.at == length(pg_step_defs()) - 1, do: "Complete", else: "Continue"}
                 </.button>
@@ -6001,7 +7161,7 @@ defmodule Dev.PlaygroundLive do
             <% end %>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 sm:grid-cols-2 dark:border-gray-800/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -6032,10 +7192,29 @@ defmodule Dev.PlaygroundLive do
               on_change="ctl_stepper"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={sz <- ~w(sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
+              <:item :for={sz <- ~w(xs sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
               </:item>
             </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@stepper.variant}
+              on_change="ctl_stepper"
+              disabled={@stepper.orientation == "vertical"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(circles bars)} value={v} phx-value-k="variant" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
+              horizontal only
+            </div>
           </div>
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">labels</div>
@@ -6045,17 +7224,36 @@ defmodule Dev.PlaygroundLive do
               aria_label="Labels"
               value={@stepper.labels}
               on_change="ctl_stepper"
-              disabled={@stepper.orientation == "vertical"}
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <:item :for={lp <- ~w(beside bottom)} value={lp} phx-value-k="labels" phx-value-v={lp}>
+              <:item
+                :for={lp <- ~w(beside bottom none)}
+                value={lp}
+                phx-value-k="labels"
+                phx-value-v={lp}
+              >
                 {lp}
               </:item>
             </.toggle_group>
-            <div :if={@stepper.orientation == "vertical"} class="mt-1.5 text-[10px] text-gray-400">
-              horizontal only
+            <div :if={stepper_labels_hint(@stepper)} class="mt-1.5 text-[10px] text-gray-400">
+              {stepper_labels_hint(@stepper)}
             </div>
           </div>
+        </div>
+
+        <div class="px-6 pb-5">
+          <button
+            phx-click="flip"
+            phx-value-k="show_code"
+            class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            <.icon name="hero-code-bracket" class="w-4 h-4" />
+            {if @show_code, do: "Hide code", else: "View code"}
+          </button>
+          <pre
+            :if={@show_code}
+            class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+          ><code>{stepper_snippet(@stepper)}</code></pre>
         </div>
       </div>
       <div :for={ex <- PetalComponents.Showcase.Stepper.examples()} class="mt-10">
@@ -6078,6 +7276,203 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "timeline"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Timeline</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A record of things that happened - activity feeds, deploy logs, order tracking,
+        company history. Nothing here is clickable: if the user is meant to move through
+        it, you want the stepper instead.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-8">
+          <.timeline
+            orientation={@timeline.orientation}
+            variant={@timeline.variant}
+            connector={@timeline.connector}
+            time_placement={@timeline.time_placement}
+            label="Release pipeline"
+          >
+            <:item
+              :for={e <- pg_timeline_entries(@timeline)}
+              marker={e.marker}
+              icon={e.icon}
+              name={e.name}
+              color={e.color}
+              state={e.state}
+              time={e.time}
+              title={e.title}
+              description={e.description}
+            />
+            <%!-- the local_time composition the docs promise: the time attr is a
+                  plain string (Phoenix has no nested slots), so live timestamps
+                  ride the entry BODY - this is the pattern to copy --%>
+            <:item marker="dot" color="gray" state="complete" title="Nightly build archived">
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                Completed
+                <.local_time
+                  id="timeline-nightly-time"
+                  at={DateTime.add(DateTime.utc_now(), -7, :hour)}
+                  format="relative"
+                /> on runner 4.
+              </span>
+            </:item>
+          </.timeline>
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@timeline.orientation}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={o <- ~w(vertical horizontal)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@timeline.variant}
+              on_change="ctl_timeline"
+              disabled={@timeline.orientation == "horizontal"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(default alternating compact)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+            <div :if={@timeline.orientation == "horizontal"} class="mt-1.5 text-[10px] text-gray-400">
+              vertical only
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">marker</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Marker"
+              value={@timeline.marker}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={m <- ~w(dot icon avatar number)}
+                value={m}
+                phx-value-k="marker"
+                phx-value-v={m}
+              >
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">connector</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Connector"
+              value={@timeline.connector}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(solid dashed)} value={c} phx-value-k="connector" phx-value-v={c}>
+                {c}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              time_placement
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Time placement"
+              value={@timeline.time_placement}
+              on_change="ctl_timeline"
+              disabled={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={t <- ~w(top start)}
+                value={t}
+                phx-value-k="time_placement"
+                phx-value-v={t}
+              >
+                {t}
+              </:item>
+            </.toggle_group>
+            <div
+              :if={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              vertical default and compact only
+            </div>
+            <div
+              :if={
+                @timeline.time_placement == "start" and @timeline.orientation == "vertical" and
+                  @timeline.variant != "alternating"
+              }
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              the column shows from sm up - narrow the window and it folds back on top
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <.button
+              size="sm"
+              color="gray"
+              variant={if(@timeline.states, do: "solid", else: "outline")}
+              phx-click="ctl_timeline"
+              phx-value-k="states"
+            >
+              {if @timeline.states,
+                do: "States on: complete, current, upcoming",
+                else: "States off: everything complete"}
+            </.button>
+          </div>
+        </div>
+      </div>
+      <div :for={ex <- PetalComponents.Showcase.Timeline.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Timeline} function={:timeline} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Timeline</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (The pipeline above is playground-only - its dials push events.)
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "avatar"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -6086,11 +7481,11 @@ defmodule Dev.PlaygroundLive do
         Images, initials fallbacks, presence dots, and stacked groups.
       </p>
       <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
-        Sizes - xs to xl
+        Sizes - 2xs to xl
       </div>
       <div class="border border-gray-200 rounded-xl dark:border-gray-800">
         <div class="flex flex-wrap items-end justify-center gap-4 px-6 py-12">
-          <div :for={sz <- ~w(xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
+          <div :for={sz <- ~w(2xs xs sm md lg xl)} class="flex flex-col items-center gap-2 shrink-0">
             <.avatar size={sz} src="/dev-static/avatars/p32.jpg" alt="Team member" />
             <span class="text-[11px] text-gray-400">{sz}</span>
           </div>
@@ -6326,6 +7721,209 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Card</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "sidebar"} = assigns) do
+    ~H"""
+    <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Sidebar</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The app shell almost every LiveView product hand-rolls: grouped nav with icons and
+        badges, a collapse rail, and a sheet takeover on mobile. Collapse is a data attribute
+        flipped by LiveView.JS - no hook, no round trip.
+      </p>
+
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="p-6">
+          <.sidebar_shell
+            for="pg-sidebar"
+            class="h-[30rem] min-h-0 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-800"
+          >
+            <:sidebar>
+              <.sidebar_nav
+                id="pg-sidebar"
+                label="Product"
+                side={@sidebar.side}
+                collapsible={@sidebar.collapsible}
+                collapsed={@sidebar.collapsed}
+              >
+                <:header>
+                  <.icon name="hero-cube" class="w-5 h-5 shrink-0 text-primary-500" />
+                  <span class="pc-sidebar__brand">Acme Inc</span>
+                  <.sidebar_trigger for="pg-sidebar" class="ml-auto" />
+                </:header>
+
+                <.sidebar_group label="Workspace">
+                  <.sidebar_item
+                    label="Dashboard"
+                    path="#"
+                    link_type="a"
+                    icon="hero-home"
+                    active
+                  />
+                  <.sidebar_item
+                    label="Inbox"
+                    path="#"
+                    link_type="a"
+                    icon="hero-inbox"
+                    badge={if @sidebar.badges, do: "12"}
+                  />
+                  <.sidebar_item
+                    label="Invoices"
+                    path="#"
+                    link_type="a"
+                    icon="hero-document-text"
+                    badge={if @sidebar.badges, do: "3"}
+                  />
+                </.sidebar_group>
+
+                <.sidebar_group id="pg-sidebar-acct" label="Account" collapsible>
+                  <.sidebar_item
+                    id="pg-sidebar-settings"
+                    label="Settings"
+                    icon="hero-cog-6-tooth"
+                    open
+                  >
+                    <.sidebar_item label="Profile" path="#" link_type="a" />
+                    <.sidebar_item label="Billing" path="#" link_type="a" />
+                  </.sidebar_item>
+                  <.sidebar_item label="Team" path="#" link_type="a" icon="hero-user-group" />
+                </.sidebar_group>
+
+                <:footer>
+                  <%!-- align follows the sidebar's side: an up-opening panel
+                  grows in the align direction, and a start-aligned panel on a
+                  right-hand rail grows straight out of the viewport. --%>
+                  <.user_dropdown_menu
+                    variant="sidebar"
+                    current_user_name="Ada Lovelace"
+                    current_user_email="ada@example.com"
+                    side="top"
+                    align={if @sidebar.side == "right", do: "end", else: "start"}
+                    menu_items_wrapper_class="w-60"
+                  >
+                    <.dropdown_menu_label>ada@example.com</.dropdown_menu_label>
+                    <.dropdown_menu_item link_type="button">
+                      <.icon name="hero-user" class="w-4 h-4" /> Profile
+                    </.dropdown_menu_item>
+                    <.dropdown_menu_item link_type="button">
+                      <.icon name="hero-adjustments-horizontal" class="w-4 h-4" /> Preferences
+                    </.dropdown_menu_item>
+                    <.dropdown_menu_separator />
+                    <.dropdown_menu_item
+                      link_type="button"
+                      class="text-danger-600 dark:text-danger-400"
+                    >
+                      <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
+                    </.dropdown_menu_item>
+                  </.user_dropdown_menu>
+                </:footer>
+              </.sidebar_nav>
+            </:sidebar>
+
+            <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-800">
+              <.sidebar_trigger for="pg-sidebar" target="mobile" />
+              <span class="text-sm font-semibold">Dashboard</span>
+            </header>
+            <div class="p-4 text-sm text-gray-500 dark:text-gray-400">
+              Page content. Narrow the window below 768px and the sidebar becomes a sheet -
+              this region goes inert, Escape closes it, and focus returns to the burger.
+            </div>
+          </.sidebar_shell>
+        </div>
+
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">collapsible</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Collapse mode"
+              value={@sidebar.collapsible}
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(icon offcanvas none)}
+                value={v}
+                phx-value-k="collapsible"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">side</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Side"
+              value={@sidebar.side}
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={v <- ~w(left right)} value={v} phx-value-k="side" phx-value-v={v}>
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div class="md:col-span-2">
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={
+                for {k, on} <- [{"collapsed", @sidebar.collapsed}, {"badges", @sidebar.badges}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_sidebar"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="collapsed" phx-value-k="collapsed">collapsed on first paint</:item>
+              <:item value="badges" phx-value-k="badges">badges</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The "collapsed on first paint" dial is the <code>collapsed</code>
+        attr - it is what the server renders, so a live_redirect can never flash the wrong
+        state. The toggle in the sidebar header is the client-side flip: it changes the DOM
+        without telling the server, which is why re-running a dial resets it. Persist the
+        choice by keeping it in your own assign and passing it back in. <br /><br />
+        Collapse the rail and watch the header: the logo and the toggle stop sharing one
+        4rem line and take a row each. The footer is <code>user_dropdown_menu</code>
+        with <code>variant="sidebar"</code>, not a hand-rolled avatar row, and it drops to
+        the avatar on the rail the same way items drop to their icons - the name and email
+        go screen-reader-only, so the button keeps its accessible name.
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.Sidebar.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props
+        component={PetalComponents.Sidebar}
+        functions={[:sidebar_shell, :sidebar, :sidebar_group, :sidebar_item, :sidebar_trigger]}
+      />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Sidebar</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
@@ -7133,6 +8731,131 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "context-menu"} = assigns) do
+    assigns =
+      assign(assigns, :files, [
+        %{
+          id: "forecast",
+          name: "Q3-forecast.xlsx",
+          icon: "hero-document-chart-bar",
+          meta: "Edited 2 days ago"
+        },
+        %{
+          id: "brief",
+          name: "Launch brief.md",
+          icon: "hero-document-text",
+          meta: "Edited 6 hours ago"
+        },
+        %{
+          id: "hero",
+          name: "hero-shot.png",
+          icon: "hero-photo",
+          meta: "Edited last week"
+        }
+      ])
+
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Context menu</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A right-click menu attached to a region of the page. Same panel as the
+        dropdown, different invocation: the menu opens at the cursor and clamps
+        itself inside the viewport.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-4 py-8 sm:px-6">
+          <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+            Right-click a card. On a phone, hold it for half a second. Keyboard only:
+            tab to a card and press <kbd class="pc-kbd">⇧</kbd>
+            <kbd class="pc-kbd">F10</kbd>
+            (or the Menu key), then arrow through the items and press Escape to get out.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <%!-- disabled is baked into the id ON PURPOSE: flipping the dial
+                  changes the id, forcing a remount so the hook attaches or
+                  detaches. Simplify it to a stable id and the toggle stops
+                  working (LiveView patches never re-run phx-hook wiring). --%>
+            <.context_menu
+              :for={f <- @files}
+              id={"pg-cm-#{f.id}-#{@context_menu.disabled}"}
+              disabled={@context_menu.disabled}
+            >
+              <:trigger>
+                <div class="flex flex-col gap-3 p-4 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-800">
+                  <.icon name={f.icon} class="w-8 h-8 text-gray-400" />
+                  <div class="min-w-0">
+                    <div class="text-sm font-medium truncate">{f.name}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{f.meta}</div>
+                  </div>
+                </div>
+              </:trigger>
+
+              <.context_menu_label>{f.name}</.context_menu_label>
+              <.context_menu_item link_type="button" kbd="↵">
+                <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4" /> Open
+              </.context_menu_item>
+              <.context_menu_item link_type="button" kbd="F2">
+                <.icon name="hero-pencil-square" class="w-4 h-4" /> Rename
+              </.context_menu_item>
+              <.context_menu_item link_type="button" kbd="⌘D">
+                <.icon name="hero-square-2-stack" class="w-4 h-4" /> Duplicate
+              </.context_menu_item>
+              <.context_menu_item link_type="button" disabled>
+                <.icon name="hero-lock-closed" class="w-4 h-4" /> Move to team folder
+              </.context_menu_item>
+              <.context_menu_separator />
+              <.context_menu_item link_type="button" variant="danger" kbd="⌘⌫">
+                <.icon name="hero-trash" class="w-4 h-4" /> Delete
+              </.context_menu_item>
+            </.context_menu>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={for {k, on} <- [{"disabled", @context_menu.disabled}], on, do: k}
+              on_change="ctl_context_menu"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+          <p class="text-xs text-gray-400">
+            disabled hands the region back to the browser's own menu.
+          </p>
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.ContextMenu, ~w(text_selection)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ContextMenu} function={:context_menu} />
+      <.showcase_props component={PetalComponents.ContextMenu} function={:context_menu_item} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.ContextMenu</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "input-otp"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -7243,6 +8966,196 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  defp render_page(%{active: "number-field"} = assigns) do
+    assigns = assign(assigns, :bounds, number_bounds(assigns.number.bounds))
+
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Number field</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A real spinbutton for quantities, prices and percentages. One text
+        input carrying <code>role="spinbutton"</code>, not <code>&lt;input type="number"&gt;</code>, so the steppers look the same
+        in every browser and a half-typed value survives. It's live - type in
+        it, hold a button, spin the wheel.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div class="w-full max-w-xs">
+            <.number_field
+              name="pg_quantity"
+              value="12"
+              min={@bounds.min}
+              max={@bounds.max}
+              step={@bounds.step}
+              variant={@number.variant}
+              size={@number.size}
+              disabled={@number.disabled}
+            />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@number.variant}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(stacked split plain)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Size"
+              value={@number.size}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>{z}</:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">bounds</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Bounds"
+              value={@number.bounds}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={b <- ~w(qty pct free)} value={b} phx-value-k="bounds" phx-value-v={b}>
+                {number_bounds(b).label}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="State"
+              value={if @number.disabled, do: ["disabled"], else: []}
+              on_change="ctl_number"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        Keyboard only: <kbd class="pc-kbd">↑</kbd>
+        and <kbd class="pc-kbd">↓</kbd>
+        step, <kbd class="pc-kbd">shift</kbd>
+        + arrow steps by <code>big_step</code>, <kbd class="pc-kbd">page up</kbd>
+        and <kbd class="pc-kbd">page down</kbd>
+        do the same without the modifier, and <kbd class="pc-kbd">home</kbd>
+        / <kbd class="pc-kbd">end</kbd>
+        jump to the bounds. The buttons are never tab stops - the input is the
+        one stop, the way the ARIA spinbutton pattern asks.
+      </p>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{number_snippet(@number)}</code></pre>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Cart quantity</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The split variant in its natural home: a line-item row where the value
+        wants to sit between the two controls. At the minimum the decrement
+        greys out with <code>aria-disabled</code>, so it keeps its label for a
+        screen reader instead of disappearing.
+      </p>
+      <div class="p-4 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Ceramic pour-over</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">$48.00</div>
+          </div>
+          <div class="w-32">
+            <.number_field name="pg_cart_qty" value="1" min={1} max={10} variant="split" size="sm" />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Price, formatted on blur</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        <code>precision={2}</code>
+        rounds and pads when you leave the field, and leaves the raw text alone
+        while you type - so <code>7.5</code>
+        becomes <code>7.50</code>, but only once you're done. Tab out to watch
+        it. Currency and percent display go through <code>Intl.NumberFormat</code>
+        on the same blur; the moduledoc has that pattern.
+      </p>
+      <div class="max-w-xs">
+        <.number_field name="pg_price" value="24.5" min={0} step={0.5} precision={2}>
+          <:leading>$</:leading>
+        </.number_field>
+      </div>
+
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Percentage allocation</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Bounded 0 to 100 with a step of 5 and a <code>big_step</code>
+        of 25, so shift+arrow moves a quarter at a time. Clamping is the hook's
+        job on the client, but bounds are advice a browser cannot enforce for
+        you - validate them on the server too.
+      </p>
+      <div class="max-w-xs">
+        <.number_field name="pg_allocation" value="25" min={0} max={100} step={5} big_step={25}>
+          <:trailing>%</:trailing>
+        </.number_field>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.NumberField, ~w(sizes in_a_field)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.NumberField} function={:number_field} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.NumberField</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "switch"} = assigns) do
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
@@ -7261,6 +9174,7 @@ defmodule Dev.PlaygroundLive do
               label="Email notifications"
               checked
               size={@switch.size}
+              variant={@switch.variant}
               disabled={@switch.disabled}
               errors={if @switch.error, do: ["must be enabled"], else: []}
               no_margin
@@ -7280,6 +9194,21 @@ defmodule Dev.PlaygroundLive do
             >
               <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">thumb</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Thumb"
+              value={@switch.variant}
+              on_change="ctl_switch"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={t <- ~w(default pill)} value={t} phx-value-k="variant" phx-value-v={t}>
+                {t}
               </:item>
             </.toggle_group>
           </div>
@@ -7370,12 +9299,23 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp render_page(%{active: "user-menu"} = assigns) do
+    # The corner dial is one question with two answers, and each answer
+    # settles both attrs: there is no alignment for "up" other than lining
+    # the panel's left edge up with the row it grew out of, and none for
+    # "beside" other than levelling their bottoms.
+    assigns =
+      case assigns.user_menu_opens do
+        "up" -> assign(assigns, um_side: "top", um_align: "start")
+        "beside" -> assign(assigns, um_side: "right", um_align: "end")
+      end
+
     ~H"""
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">User menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         The avatar-with-chevron every app shell ends up needing - an avatar
-        trigger, a dropdown, and a list of menu items from plain maps.
+        trigger, a dropdown, and a list of menu items from plain maps. Or, with
+        variant="sidebar", the full-width name-and-email row a sidebar wants.
       </p>
 
       <div :for={ex <- PetalComponents.Showcase.UserDropdownMenu.examples()} class="mt-10">
@@ -7406,6 +9346,122 @@ defmodule Dev.PlaygroundLive do
             ]}
           />
         </div>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+        The corner it actually lives in - variant="sidebar" pinned to the bottom of a sidebar
+      </div>
+      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex h-[500px]">
+          <%!-- p-2 rather than p-3 so the sidebar's own padding matches the
+          panel's 8px side gap: in "beside" mode the panel then clears the
+          sidebar's edge exactly instead of landing 4px inside it. --%>
+          <div class="flex flex-col flex-none p-2 border-r w-64 border-gray-200 dark:border-gray-800">
+            <div class="px-2 py-1 text-sm font-semibold">Acme Inc</div>
+            <div class="mt-3 space-y-0.5">
+              <div
+                :for={
+                  {icon, label} <- [
+                    {"hero-home", "Dashboard"},
+                    {"hero-users", "Customers"},
+                    {"hero-banknotes", "Billing"},
+                    {"hero-cog-6-tooth", "Settings"}
+                  ]
+                }
+                class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-500 rounded-lg dark:text-gray-400"
+              >
+                <.icon name={icon} class="w-4 h-4 text-gray-400 dark:text-gray-500" />{label}
+              </div>
+            </div>
+            <div class="pt-3 mt-auto border-t border-gray-100 dark:border-gray-800/80">
+              <.user_dropdown_menu
+                variant="sidebar"
+                current_user_name="Sarah Chen"
+                current_user_email="sarah@acme.com"
+                avatar_src="/dev-static/avatars/p32.jpg"
+                side={@um_side}
+                align={@um_align}
+                menu_items_wrapper_class="w-60"
+              >
+                <.dropdown_menu_label>Organizations</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Acme Inc" size="2xs" random_color /> Acme Inc
+                  <.icon name="hero-check" class="w-4 h-4 ml-auto" />
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Northwind" size="2xs" random_color /> Northwind
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.avatar name="Petal Labs" size="2xs" random_color /> Petal Labs
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-plus" class="w-4 h-4" /> New organization
+                </.dropdown_menu_item>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_label>Account</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-user" class="w-4 h-4" /> Profile
+                  <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>P</kbd>
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-adjustments-horizontal" class="w-4 h-4" /> Preferences
+                </.dropdown_menu_item>
+                <.dropdown_menu_row>
+                  <.icon name="hero-paint-brush" class="w-4 h-4" /> Theme
+                  <.color_scheme_switch id="pg-corner-scheme" variant="segmented" class="ml-auto" />
+                </.dropdown_menu_row>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_item
+                  link_type="button"
+                  class="text-danger-600 dark:text-danger-400"
+                >
+                  <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Sign out
+                  <kbd class="pc-kbd ml-auto"><span>⇧</span><span>⌘</span>Q</kbd>
+                </.dropdown_menu_item>
+              </.user_dropdown_menu>
+            </div>
+          </div>
+          <div class="flex-1 p-4 space-y-3">
+            <div class="w-32 h-3 rounded bg-gray-100 dark:bg-gray-900"></div>
+            <div class="w-full h-24 rounded-lg bg-gray-50 dark:bg-gray-900/50"></div>
+            <div class="w-full h-24 rounded-lg bg-gray-50 dark:bg-gray-900/50"></div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">opens</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Opens"
+            value={@user_menu_opens}
+            on_change="ctl_usermenu"
+            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <:item :for={o <- ~w(up beside)} value={o} phx-value-k="opens" phx-value-v={o}>
+              {o}
+            </:item>
+          </.toggle_group>
+        </div>
+      </div>
+      <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        The row takes the full sidebar width and carries the name and email itself, so
+        there is no avatar-plus-label pairing to hand-roll. Both lines truncate, which
+        is what you want the first time someone signs in with a long address. And a
+        menu down here is usually not a list of links at all - it is the account
+        panel: an org switcher, a labelled account group with shortcuts, a theme row. <br /><br />
+        side is which side of the trigger the panel opens on and align is which edges
+        line up on the other axis, so this corner is either <code>side="top" align="start"</code>
+        - above the row, left edges flush, growing into the app - or
+        <code>side="right" align="end"</code>
+        - out past the sidebar with its bottom edge level with the row that opened it.
+        There is no third setting and no dial for align, because a sidebar-bottom menu
+        opens up or out, never down, and each side leaves exactly one alignment that
+        reads as part of the same corner. Neither one measures anything: an explicit
+        side is a decision already made, so the hook never attaches and no first frame
+        points the wrong way. What differs is what gets covered - up buries the nav
+        you just came from, out lays over the content area instead. (placement and
+        direction are the older spelling of these same two questions and still work
+        exactly as they did.)
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -7879,12 +9935,17 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Data table</h1>
       <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
-        Sortable, paged and filter-aware, driven by one State struct. This live demo runs
-        EVENT mode: every interaction pushes a single op-grammar event, the handler applies it
-        with State helpers and re-runs the free in-memory engine. Link mode does the same
-        through patch URLs - state you can curl.
+        Sortable, paged and filter-aware, driven by one State struct. Wire it to events or
+        to the URL - the two live demos below run the same free in-memory engine, one per
+        mode.
       </p>
 
+      <h2 class="mb-1 text-lg font-semibold">Event mode</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        Every interaction pushes a single op-grammar event, the handler applies it with
+        State helpers and re-runs the engine. Sort this one and the URL stays put -
+        the state lives on the server.
+      </p>
       <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
         <% {state, rows} = @dt %>
         <.data_table
@@ -7940,48 +10001,24 @@ defmodule Dev.PlaygroundLive do
         </.data_table>
       </div>
 
-      <div
-        :for={
-          ex <-
-            examples_for(
-              PetalComponents.Showcase.DataTable,
-              ~w(basic toolbar selection columns loading empty)a
-            )
-        }
-        class="mt-10"
-      >
-        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
-        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          {ex.description}
-        </p>
-        <.showcase_example example={ex} />
-      </div>
-
-      <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
-    </div>
-    """
-  end
-
-  defp render_page(%{active: "data-table-link"} = assigns) do
-    ~H"""
-    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
-      <h1 class="text-3xl font-bold tracking-tight">Data table &middot; link mode</h1>
-      <p class="mt-2 mb-6 text-gray-600 dark:text-gray-300">
-        The same table, driven entirely by the URL: sort, filter, search and page all patch
-        State-encoded query params, <code class="text-sm">handle_params</code>
+      <h2 class="mt-10 mb-1 text-lg font-semibold">Link mode</h2>
+      <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+        The same rows and engine, driven entirely by the URL: sort, filter, search and page
+        all patch State-encoded query params, <code class="text-sm">handle_params</code>
         decodes them back through the field whitelist and re-runs the engine. No events -
-        every view is a link you can share, bookmark or curl. Try sorting, then reload.
+        every view is a link you can share, bookmark or curl. No selection or column
+        controls here either: those are UI state, and UI state rides events, never URLs.
+        Try sorting, then reload.
       </p>
-
       <div class="border border-gray-200 dark:border-gray-400/20 rounded-xl p-6">
-        <% {state, rows} = @dt_link %>
+        <% {link_state, link_rows} = @dt_link %>
         <.data_table
           id="pg-dt-link"
-          rows={rows}
-          state={state}
+          rows={link_rows}
+          state={link_state}
           path={
             theme_path(%{
-              active: "data-table-link",
+              active: "data-table",
               primary: @primary,
               secondary: @secondary,
               gray: @gray,
@@ -8021,10 +10058,29 @@ defmodule Dev.PlaygroundLive do
 
       <div class="mt-4">
         <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
-          The state this page decoded from the URL:
+          The state this demo decoded from the URL:
         </p>
         <pre class="p-3 overflow-x-auto text-xs rounded-lg bg-gray-100 dark:bg-gray-800"><code>{inspect(elem(@dt_link, 0), pretty: true, width: 60)}</code></pre>
       </div>
+
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.DataTable,
+              ~w(basic toolbar selection columns loading empty)a
+            )
+        }
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <.showcase_props component={PetalComponents.DataTable} function={:data_table} />
     </div>
     """
   end
@@ -8645,120 +10701,115 @@ defmodule Dev.PlaygroundLive do
     <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Menu</h1>
       <p class="mt-2 text-gray-500 dark:text-gray-400">
-        The sidebar menu - a workspace switcher, grouped nav with collapsible
-        sub-items, and an account menu. All composed from menu, dropdown and avatar.
+        The menu is the list. The sidebar is the shell it hangs in. Here they are
+        composed: sidebar_shell and sidebar for the chrome, a workspace switcher in
+        the header slot, a user menu in the footer slot, and vertical_menu doing the
+        one job it exists for in between.
       </p>
 
-      <div class="mt-8 flex h-[34rem] overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
-        <aside class="flex flex-col w-64 border-r shrink-0 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
-          <div class="p-2 border-b border-gray-200 dark:border-white/10">
-            <.dropdown
-              class="w-full"
-              trigger_class="w-full"
-              placement="right"
-              menu_items_wrapper_class="w-60"
-            >
-              <:trigger_element>
-                <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
-                  <div class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-lg shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
+      <.sidebar_shell
+        for="pg-menu-sidebar"
+        class="mt-8 h-[34rem] min-h-0 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
+      >
+        <:sidebar>
+          <.sidebar_nav id="pg-menu-sidebar" label="Platform" collapsible="offcanvas">
+            <:header>
+              <.dropdown
+                class="w-full"
+                trigger_class="w-full"
+                align="start"
+                menu_items_wrapper_class="w-60"
+              >
+                <:trigger_element>
+                  <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
+                    <div class="flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-lg shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
+                      N
+                    </div>
+                    <div class="flex-1 min-w-0 text-left">
+                      <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
+                        Northwind
+                      </div>
+                      <div class="text-xs text-gray-500 truncate dark:text-gray-400">Enterprise</div>
+                    </div>
+                    <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
+                  </div>
+                </:trigger_element>
+                <.dropdown_menu_label>Workspaces</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold rounded shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
                     N
                   </div>
-                  <div class="flex-1 min-w-0 text-left">
-                    <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
-                      Northwind
-                    </div>
-                    <div class="text-xs text-gray-500 truncate dark:text-gray-400">Enterprise</div>
+                  Northwind
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold text-gray-600 bg-gray-200 rounded shrink-0 dark:bg-white/10 dark:text-gray-300">
+                    V
                   </div>
-                  <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
-                </div>
-              </:trigger_element>
-              <.dropdown_menu_label>Workspaces</.dropdown_menu_label>
-              <.dropdown_menu_item link_type="button">
-                <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold rounded shrink-0 bg-primary-600 text-(--pc-button-solid-fg)">
-                  N
-                </div>
-                Northwind
-              </.dropdown_menu_item>
-              <.dropdown_menu_item link_type="button">
-                <div class="flex items-center justify-center w-6 h-6 text-xs font-semibold text-gray-600 bg-gray-200 rounded shrink-0 dark:bg-white/10 dark:text-gray-300">
-                  V
-                </div>
-                Vertex Labs
-              </.dropdown_menu_item>
-              <.dropdown_menu_separator />
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-plus" class="w-5 h-5 text-gray-500" /> Add workspace
-              </.dropdown_menu_item>
-            </.dropdown>
-          </div>
+                  Vertex Labs
+                </.dropdown_menu_item>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-plus" class="w-5 h-5 text-gray-500" /> Add workspace
+                </.dropdown_menu_item>
+              </.dropdown>
+            </:header>
 
-          <div class="flex-1 p-2 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <.vertical_menu current_page={:history} menu_items={sidebar_menu_items()} />
-          </div>
 
-          <div class="p-2 border-t border-gray-200 dark:border-white/10">
-            <.dropdown
-              class="w-full"
-              trigger_class="w-full"
-              placement="right"
-              menu_items_wrapper_class="w-60 top-auto bottom-full mb-2"
-            >
-              <:trigger_element>
-                <div class="flex items-center w-full gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
-                  <.avatar name="Alex Rivera" size="sm" random_color />
-                  <div class="flex-1 min-w-0 text-left">
-                    <div class="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
-                      Alex Rivera
-                    </div>
-                    <div class="text-xs text-gray-500 truncate dark:text-gray-400">
-                      alex@example.com
-                    </div>
-                  </div>
-                  <.icon name="hero-chevron-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
-                </div>
-              </:trigger_element>
-              <.dropdown_menu_label>alex@example.com</.dropdown_menu_label>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-user-circle" class="w-5 h-5 text-gray-500" /> Account
-              </.dropdown_menu_item>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-credit-card" class="w-5 h-5 text-gray-500" /> Billing
-              </.dropdown_menu_item>
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-bell" class="w-5 h-5 text-gray-500" /> Notifications
-              </.dropdown_menu_item>
-              <.dropdown_menu_separator />
-              <.dropdown_menu_item link_type="button">
-                <.icon name="hero-arrow-right-on-rectangle" class="w-5 h-5 text-gray-500" /> Log out
-              </.dropdown_menu_item>
-            </.dropdown>
-          </div>
-        </aside>
+            <:footer>
+              <.user_dropdown_menu
+                variant="sidebar"
+                current_user_name="Alex Rivera"
+                current_user_email="alex@example.com"
+                side="top"
+                align="start"
+                menu_items_wrapper_class="w-60"
+              >
+                <.dropdown_menu_label>alex@example.com</.dropdown_menu_label>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-user-circle" class="w-4 h-4" /> Account
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-credit-card" class="w-4 h-4" /> Billing
+                </.dropdown_menu_item>
+                <.dropdown_menu_item link_type="button">
+                  <.icon name="hero-bell" class="w-4 h-4" /> Notifications
+                </.dropdown_menu_item>
+                <.dropdown_menu_separator />
+                <.dropdown_menu_item link_type="button" class="text-danger-600 dark:text-danger-400">
+                  <.icon name="hero-arrow-right-start-on-rectangle" class="w-4 h-4" /> Log out
+                </.dropdown_menu_item>
+              </.user_dropdown_menu>
+            </:footer>
+          </.sidebar_nav>
+        </:sidebar>
 
-        <div class="flex-col flex-1 hidden min-w-0 sm:flex bg-white dark:bg-gray-950">
-          <div class="flex items-center h-12 gap-2 px-4 text-sm text-gray-500 border-b shrink-0 border-gray-200 dark:border-white/10 dark:text-gray-400">
-            <.icon name="hero-bars-3" class="w-4 h-4" />
-            <span class="w-px h-4 bg-gray-200 dark:bg-white/10"></span>
-            <span>Platform</span>
-            <.icon name="hero-chevron-right" class="w-3.5 h-3.5" />
-            <span class="font-medium text-gray-900 dark:text-gray-100">History</span>
-          </div>
-          <div class="grid flex-1 grid-cols-3 gap-4 p-4 auto-rows-min">
-            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
-            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
-            <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
-            <div class="col-span-3 rounded-xl bg-gray-100 dark:bg-white/[0.03] h-40"></div>
-          </div>
+        <div class="flex items-center h-12 gap-2 px-4 text-sm text-gray-500 border-b shrink-0 border-gray-200 dark:border-white/10 dark:text-gray-400">
+          <.sidebar_trigger for="pg-menu-sidebar" target="mobile" />
+          <.sidebar_trigger for="pg-menu-sidebar" label="Hide navigation" />
+          <span class="w-px h-4 bg-gray-200 dark:bg-white/10"></span>
+          <span>Platform</span>
+          <.icon name="hero-chevron-right" class="w-3.5 h-3.5" />
+          <span class="font-medium text-gray-900 dark:text-gray-100">History</span>
         </div>
-      </div>
+        <div class="grid flex-1 grid-cols-3 gap-4 p-4 auto-rows-min">
+          <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+          <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+          <div class="rounded-xl bg-gray-100 dark:bg-white/[0.03] aspect-video"></div>
+          <div class="col-span-3 rounded-xl bg-gray-100 dark:bg-white/[0.03] h-40"></div>
+        </div>
+      </.sidebar_shell>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
-        The whole sidebar is composition, not a new component: vertical_menu for the
-        grouped nav (menu_items with a nested menu_items renders a collapsible
-        sub-menu - Playground is open because a child is the current_page), dropdown
-        for the workspace switcher and the account menu (footer one opens upward), and
-        avatar for the account. Petal Pro's SidebarLayout wraps this with collapse and
-        a mobile drawer.
+        Nothing here is a new component. vertical_menu renders the grouped nav from
+        plain maps (a menu item carrying its own menu_items becomes a collapsible
+        sub-menu - Playground is open because a child is the current_page), and it is
+        the only part of this that menu owns. Everything around it is sidebar: the nav
+        landmark, the header and footer slots, the collapse the topbar toggle drives,
+        and the sheet the burger opens below 768px. The account row is
+        user_dropdown_menu with variant="sidebar", not a hand-rolled avatar and
+        dropdown - side="top" because a menu at the bottom of a sidebar already knows
+        which way it opens.
       </div>
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
@@ -8844,6 +10895,444 @@ defmodule Dev.PlaygroundLive do
           :navigation_menu_footer_link
         ]}
       />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "kbd"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Kbd</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The keyboard chip you end up hand-rolling in every app. Semantic
+        <code class="pc-inline-code">&lt;kbd&gt;</code>
+        elements with a key cap treatment - known key names fold to their glyph, anything
+        else renders as you typed it. Pure HEEx and CSS, nothing to wire up.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center justify-center gap-5 px-6 py-10">
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Open the command palette
+            <.kbd keys={["cmd", "K"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
+          </div>
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Toggle the sidebar
+            <.kbd
+              keys={["ctrl", "shift", "B"]}
+              size={@kbd.size}
+              separator={kbd_sep(@kbd.separator)}
+            />
+          </div>
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Assign to yourself
+            <.kbd keys={["A", "I"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Kbd size"
+              value={@kbd.size}
+              on_change="ctl_kbd"
+            >
+              <:item :for={z <- ~w(sm md)} value={z} phx-value-k="size" phx-value-v={z}>
+                {z}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Kbd separator"
+              value={@kbd.separator}
+              on_change="ctl_kbd"
+            >
+              <:item
+                :for={g <- ["+", "·", "then", " "]}
+                value={g}
+                phx-value-k="separator"
+                phx-value-v={g}
+              >
+                {if g == " ", do: "none", else: g}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          The command palette trigger uses the same chip
+        </div>
+        <.command_trigger dialog_id="pg-kbd-command" label="Search" kbd="⌘K" />
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Kbd, ~w(cheat_sheet menu_item)a)}
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Kbd} function={:kbd} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "separator"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Separator</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A hairline with no margin of its own, optionally labelled - app layouts already
+        control their own rhythm. Decorative by default; flip that off when the rule
+        really does divide content screen readers should hear as separate.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div :if={@separator.orientation == "horizontal"} class="w-full max-w-sm">
+            <.button label="Sign in with email" class="w-full" />
+            <.separator
+              label="OR"
+              label_position={@separator.label_position}
+              decorative={@separator.decorative}
+              class="my-5"
+            />
+            <.button variant="outline" label="Continue with GitHub" class="w-full" />
+          </div>
+          <div
+            :if={@separator.orientation == "vertical"}
+            class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-800"
+          >
+            <.button variant="ghost" size="sm" label="Bold" />
+            <.button variant="ghost" size="sm" label="Italic" />
+            <.separator orientation="vertical" decorative={@separator.decorative} class="h-6" />
+            <.button variant="ghost" size="sm" label="Link" />
+            <.button variant="ghost" size="sm" label="Code" />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Separator orientation"
+              value={@separator.orientation}
+              on_change="ctl_separator"
+            >
+              <:item
+                :for={o <- ~w(horizontal vertical)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              label position
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Label position"
+              value={@separator.label_position}
+              on_change="ctl_separator"
+            >
+              <:item
+                :for={o <- ~w(start center end)}
+                value={o}
+                phx-value-k="label_position"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">aria</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Separator aria"
+              value={if @separator.decorative, do: ["decorative"], else: []}
+              on_change="ctl_separator"
+            >
+              <:item value="decorative" phx-value-k="decorative">decorative</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.Separator,
+              ~w(label_positions activity_feed vertical)a
+            )
+        }
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Separator} function={:separator} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "collapsible"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Collapsible</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One disclosure region - the accordion without the group. Tab to the trigger and
+        press Enter or Space; it is a real button, so the keyboard works without any wiring.
+        The open dial below is the server driving it; clicking the trigger is the client
+        doing the same job without a round trip. Turn on Reduce Motion in your OS and the
+        height animation drops out while both rest states stay fully legible.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-10">
+          <div class="max-w-md mx-auto">
+            <.field
+              type="text"
+              name="pg_webhook"
+              label="Webhook URL"
+              value="https://example.com/hooks/deploy"
+            />
+            <.collapsible
+              id="pg-collapsible"
+              open={@collapsible.open}
+              disabled={@collapsible.disabled}
+            >
+              <:trigger>Advanced options</:trigger>
+              <div class="space-y-3">
+                <.field
+                  type="number"
+                  name="pg_timeout"
+                  label="Timeout (seconds)"
+                  value="30"
+                  no_margin
+                />
+                <.field type="number" name="pg_retries" label="Max retries" value="3" no_margin />
+                <.field
+                  type="checkbox"
+                  name="pg_verify"
+                  label="Verify TLS certificate"
+                  checked
+                  no_margin
+                />
+              </div>
+            </.collapsible>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Collapsible state"
+              value={
+                for {k, on} <- [{"open", @collapsible.open}, {"disabled", @collapsible.disabled}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_collapsible"
+            >
+              <:item value="open" phx-value-k="open">open</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Collapsible, ~w(changelog open)a)}
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Collapsible} function={:collapsible} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "scroll-area"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Scroll area</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One themed treatment for every overflow region, so a scrolling panel
+        looks like it belongs to the design system instead of inheriting
+        whatever the OS decided. One div, zero JavaScript: modern
+        scrollbar-width and scrollbar-color where the engine honours them, a
+        ::-webkit-scrollbar fallback where it does not. Size the viewport with
+        classes; the component never grows sizing attrs of its own.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <%!-- The border lives on the wrapper, not the scroll area: fade_edges
+        masks the whole element, border included. --%>
+        <div class="px-6 py-10">
+          <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+            <.scroll_area
+              orientation={@scroll.orientation}
+              fade_edges={@scroll.fade == "on"}
+              gutter_stable={@scroll.gutter == "stable"}
+              visibility={@scroll.visibility}
+              aria-label="Playground content"
+              class="w-full max-h-64"
+            >
+              <div class={[
+                "space-y-3 text-sm text-gray-700 dark:text-gray-300",
+                @scroll.orientation != "vertical" && "w-max"
+              ]}>
+                <p :for={n <- 1..12}>
+                  Line {n} - long enough to run past the right edge, so the horizontal scrollbar has somewhere to go and you can see both axes at once.
+                </p>
+              </div>
+            </.scroll_area>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@scroll.orientation}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={o <- ~w(vertical horizontal both)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">fade edges</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Fade edges"
+              value={@scroll.fade}
+              on_change="ctl_scroll"
+            >
+              <:item :for={f <- ~w(off on)} value={f} phx-value-k="fade" phx-value-v={f}>
+                {f}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gutter</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Gutter"
+              value={@scroll.gutter}
+              on_change="ctl_scroll"
+            >
+              <:item :for={g <- ~w(auto stable)} value={g} phx-value-k="gutter" phx-value-v={g}>
+                {g}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">visibility</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Visibility"
+              value={@scroll.visibility}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={v <- ~w(auto always)}
+                value={v}
+                phx-value-k="visibility"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-4 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          tab into the panel and the arrow keys, Page Up/Down, Home and End all scroll it - that is native browser behaviour, not a hook
+        </p>
+      </div>
+
+      <div class="p-4 mt-6 text-sm border rounded-xl border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+        <div class="mb-1 font-medium text-gray-900 dark:text-gray-100">
+          Scrollbars belong to the OS
+        </div>
+        <p>
+          On macOS with "Show scroll bars: Automatically" - the default - the
+          scrollbar is an overlay: it appears while you scroll, sits over the
+          content, ignores most theming and has no gutter to reserve. Most
+          mobile browsers do the same. On Windows, Linux, and macOS set to
+          "Always", you get a classic scrollbar that takes real layout space and
+          picks up the theming in full.
+        </p>
+        <p class="mt-2">
+          So <code class="font-mono text-xs">visibility="always"</code>
+          is a request, not a guarantee - WebKit honours it, Firefox has no
+          mechanism for it. <code class="font-mono text-xs">gutter_stable</code>
+          is a no-op wherever scrollbars are overlays, because there is no
+          gutter to reserve. This component themes what the platform exposes.
+          It does not fight the OS.
+        </p>
+      </div>
+
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div :for={ex <- PetalComponents.Showcase.ScrollArea.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ScrollArea} function={:scroll_area} />
     </div>
     """
   end
@@ -9231,6 +11720,8 @@ defmodule Dev.PlaygroundLive do
             variant={@badge.variant}
             size={@badge.size}
             with_icon={@badge.icon}
+            dot={@badge.dot}
+            dot_color={@badge.dot_color}
           >
             <.icon :if={@badge.icon} name="hero-sparkles" class="w-3 h-3" /> New
           </.badge>
@@ -9267,7 +11758,7 @@ defmodule Dev.PlaygroundLive do
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item
-                :for={v <- ~w(light soft dark outline callout)}
+                :for={v <- ~w(light soft dark outline)}
                 value={v}
                 phx-value-k="variant"
                 phx-value-v={v}
@@ -9298,12 +11789,38 @@ defmodule Dev.PlaygroundLive do
               variant="outline"
               size="sm"
               aria_label="Extras"
-              value={for {k, on} <- [{"icon", @badge.icon}], on, do: k}
+              value={for {k, on} <- [{"icon", @badge.icon}, {"dot", @badge.dot}], on, do: k}
               on_change="ctl_badge"
               class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <:item value="icon" phx-value-k="icon">icon</:item>
+              <:item value="dot" phx-value-k="dot">dot</:item>
             </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">dot colour</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Dot color"
+              value={@badge.dot_color || "inherit"}
+              on_change="ctl_badge"
+              disabled={!@badge.dot}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item value="inherit" phx-value-k="dot_color" phx-value-v="inherit">inherit</:item>
+              <:item
+                :for={c <- ~w(primary secondary info success warning danger gray)}
+                value={c}
+                phx-value-k="dot_color"
+                phx-value-v={c}
+              >
+                {c}
+              </:item>
+            </.toggle_group>
+            <div :if={!@badge.dot} class="mt-1.5 text-[10px] text-gray-400">
+              dot only
+            </div>
           </div>
         </div>
       </div>
@@ -9534,6 +12051,218 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.Tree</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "scrollspy"} = assigns) do
+    assigns = assign(assigns, :ss_items, scrollspy_items(assigns.scrollspy))
+
+    ~H"""
+    <div class="max-w-5xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Scrollspy</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The "on this page" rail. A hook watches the sections with an
+        IntersectionObserver and moves the highlight to whichever one you're reading.
+        Scroll this page and watch it track.
+      </p>
+
+      <div class="flex flex-wrap items-end px-4 py-4 mt-8 border border-gray-200 gap-x-8 gap-y-4 rounded-xl dark:border-gray-800">
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">offset</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Offset"
+            value={@scrollspy.offset}
+            on_change="ctl_scrollspy"
+          >
+            <:item
+              :for={v <- ~w(2rem 6rem 12rem)}
+              value={v}
+              phx-value-k="offset"
+              phx-value-v={v}
+            >
+              {v}
+            </:item>
+          </.toggle_group>
+        </div>
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">indicator</div>
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Indicator"
+            value={@scrollspy.indicator}
+            on_change="ctl_scrollspy"
+          >
+            <:item :for={v <- ~w(bar none)} value={v} phx-value-k="indicator" phx-value-v={v}>
+              {v}
+            </:item>
+          </.toggle_group>
+        </div>
+        <div>
+          <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">nesting</div>
+          <.toggle_group
+            multiple
+            variant="outline"
+            size="sm"
+            aria_label="Nesting"
+            value={for {k, on} <- [{"nested", @scrollspy.nested}], on, do: k}
+            on_change="ctl_scrollspy"
+          >
+            <:item value="nested" phx-value-k="nested">nested</:item>
+          </.toggle_group>
+        </div>
+      </div>
+
+      <div class="sticky top-0 z-10 px-4 py-3 mt-8 -mx-4 text-xs font-medium text-gray-500 border-b border-gray-200 sm:-mx-8 sm:px-8 bg-white/85 dark:bg-gray-950/85 backdrop-blur dark:border-gray-800 dark:text-gray-400">
+        Sticky page header - the offset dial is what keeps this bar off a heading you jump to.
+      </div>
+
+      <div class="flex gap-10 mt-8">
+        <article class="flex-1 min-w-0">
+          <section id="ss-why" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Why a rail</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Long pages lose people. A reader who scrolls past three headings has no
+              idea how much is left or where they are, and the browser's own scrollbar
+              is too coarse to answer either question. A rail down the side answers both
+              at a glance: here is the shape of the page, and here is you.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Every docs site rebuilds this by hand and most of them get the edge cases
+              wrong. Two sections visible at once, a closing section too short to ever
+              reach the activation line, a deep link that lands mid-page. Those are the
+              parts worth absorbing into a component.
+            </p>
+          </section>
+
+          <section id="ss-wiring" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Wiring it up</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              There are two moving parts and they meet at an id. The rail names the
+              sections it wants to track; the page gives those sections ids. Nothing
+              else connects them, which is why the hook works just as well on markup you
+              wrote yourself.
+            </p>
+          </section>
+
+          <section id="ss-items" class="pb-16">
+            <h3 class="text-base font-semibold">The items list</h3>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Each entry is a map with a label and a target. The target is the section
+              id without the hash. Add a children key and you get one level of nesting
+              for h3s underneath an h2, which is where the rail stops: past two levels
+              it is no longer something you can scan.
+            </p>
+          </section>
+
+          <section id="ss-targets" class="pb-16">
+            <h3 class="text-base font-semibold">The targets</h3>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Give the section elements those ids and you are done. Missing targets are
+              skipped rather than treated as an error, so a rail built from a CMS table
+              of contents degrades quietly when a section gets deleted.
+            </p>
+          </section>
+
+          <section id="ss-offset" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Clearing a fixed header</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Click a link and the browser scrolls the heading to the very top of the
+              viewport, which is exactly where a sticky site header already is. The
+              offset sets scroll-margin-top on every target so the heading parks below
+              the bar instead of behind it.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Try the dial above, then click a link in the rail. At 2rem the heading
+              tucks under the sticky bar on this page. At 12rem it lands well clear of it.
+            </p>
+          </section>
+
+          <section id="ss-motion" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Motion</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Smooth scrolling is a property of the scroll container, not of the click,
+              so the hook sets it there and puts it back the way it found it when the
+              component unmounts. The indicator bar is positioned by the hook and
+              animated by CSS, which keeps the timing in one place.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Turn on reduce motion in your OS and both go away. Jumps land instantly,
+              the bar moves without a transition, and nothing about the resting state
+              changes.
+            </p>
+          </section>
+
+          <section id="ss-a11y" class="pb-16">
+            <h2 class="text-xl font-semibold tracking-tight">Accessibility</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              The rail is a nav landmark with a label, so it can be found and skipped.
+              The active link carries aria-current="location", which is the right token
+              for "you are here within this page" and means the highlight is not colour
+              alone.
+            </p>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              Entries are plain anchors, so Tab and Enter already work and there is no
+              custom key handling to learn. Scrolling never moves focus: the hook only
+              touches classes and one attribute, so a keyboard user's place in the page
+              is theirs to lose.
+            </p>
+          </section>
+
+          <section id="ss-end" class="pb-4">
+            <h2 class="text-xl font-semibold tracking-tight">Wrapping up</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-400">
+              This last section is deliberately short. Scroll to the very bottom and it
+              still highlights, because the last entry snaps active there.
+            </p>
+          </section>
+        </article>
+
+        <.scrollspy
+          id="pg-scrollspy"
+          heading="On this page"
+          items={@ss_items}
+          offset={@scrollspy.offset}
+          indicator={@scrollspy.indicator}
+          class="self-start flex-none hidden w-56 lg:block sticky top-16"
+        />
+      </div>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-10 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{scrollspy_snippet(@scrollspy)}</code></pre>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Scrollspy, ~w(nested bare)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Scrollspy} function={:scrollspy} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Scrollspy</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
