@@ -12396,8 +12396,12 @@
     @apply inline-flex items-center;
   }
 
+  /* currentColor, not white: the submit's text colour is the solid-button
+     face token, and under the neutral primary dial the dark-mode button is
+     near-white - a white spinner vanished on it (found on an iPhone). The
+     spinner rides whatever colour the label wears. */
   .pc-questionnaire__spinner {
-    @apply inline-block h-3.5 w-3.5 rounded-full border-2 border-white/40 border-t-white;
+    @apply inline-block h-3.5 w-3.5 rounded-full border-2 border-current/40 border-t-current;
     animation: pc-chat-spin 0.6s linear infinite;
   }
 

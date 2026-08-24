@@ -4,6 +4,12 @@
 
 #### Fixed
 
+- **The questionnaire's submit spinner is visible in dark mode.** It
+  was hardcoded white on a button whose dark-mode face is near-white
+  under the neutral primary dial - the same lesson as the label, one
+  element deeper. It now rides `currentColor`, so it wears whatever
+  the solid-button face token says.
+
 - **Chat code blocks are highlighted again on newer lumis.** The
   markdown pipeline passed a bare `:html_inline` formatter and relied
   on lumis defaulting a theme - lumis 0.7 stopped, and consumers
