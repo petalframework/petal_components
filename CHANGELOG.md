@@ -3,6 +3,33 @@
 
 #### Added
 
+- **New `number_field` component: a real spinbutton for quantities,
+  prices and percentages, in place of a bare
+  `<input type="number">`.** The native number input has spinners you
+  can't style, that differ in every browser, and a value the browser
+  sanitises out from under you the moment you try to format it. This one
+  is a text input carrying `role="spinbutton"` on the existing
+  `input_group` surface, so it inherits the border, radius, focus ring
+  and error tone the rest of the form family already uses, and the
+  steppers are ours to draw. Three variants: `stacked` chevrons at the
+  inline end, `split` minus and plus with the value centred - the cart
+  quantity look - and `plain` for keyboard only. `min`, `max` and `step`
+  clamp and mirror to `aria-valuemin` / `aria-valuemax` /
+  `aria-valuenow`; `big_step` (defaulting to ten steps) rides
+  shift+arrow and page up/down; Home and End jump to the bounds.
+  `precision` rounds and pads on blur while the raw text stands while
+  you type, so `7.5` becomes `7.50` only once you're done - and the
+  moduledoc documents the `Intl.NumberFormat` pattern for currency and
+  percent display, because no formatting dependency ships with this. The
+  `PetalNumberField` hook owns the stepping, the clamping, wheel while
+  focused, and hold-to-repeat that accelerates and stops on
+  `pointerleave` as well as `pointerup`. The input is the single tab
+  stop, the buttons are labelled at `tabindex="-1"`, and a button at its
+  bound takes `aria-disabled` rather than `disabled` so it keeps its
+  name for a screen reader. `<.field type="number-field">` wires it into
+  the label/help/error machinery, and `<.field type="number">` is
+  untouched.
+
 - **New `empty` component: the empty state, standardised.** The thing a
   list, table, inbox or search renders when it has nothing to show -
   media, title, description, an actions row and an optional trailing

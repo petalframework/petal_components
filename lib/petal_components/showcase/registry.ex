@@ -40,6 +40,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Marquee,
     PetalComponents.Showcase.Meteors,
     PetalComponents.Showcase.Modal,
+    PetalComponents.Showcase.NumberField,
     PetalComponents.Showcase.NumberTicker,
     PetalComponents.Showcase.Pagination,
     PetalComponents.Showcase.Popover,

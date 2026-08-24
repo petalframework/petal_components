@@ -8537,3 +8537,85 @@
     @apply mt-4;
   }
 }
+
+/* Number field
+ *
+ * A spinbutton riding the input-group surface: the group keeps the border,
+ * radius and focus ring, so this section only paints the input density and
+ * the step buttons. Inside @layer components so a consumer's own utilities
+ * still outrank it.
+ */
+@layer components {
+  .pc-number-field .pc-number-field__input {
+    /* text-base below sm, like pc-text-input: iOS Safari zooms the viewport
+       when focusing an input under 16px, and a re-layout mid-interaction
+       makes the next tap land on stale coordinates. */
+    @apply w-full min-w-0 px-3 py-2 text-base sm:text-sm text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder:text-gray-500;
+  }
+  .pc-number-field--sm .pc-number-field__input {
+    @apply px-2.5 py-1.5 sm:text-xs;
+  }
+  .pc-number-field--lg .pc-number-field__input {
+    @apply py-2.5 sm:text-base;
+  }
+  /* Split sits the value between two buttons, so centring it is what stops
+     the field reading as lopsided. */
+  .pc-number-field--split .pc-number-field__input {
+    @apply text-center;
+  }
+
+  /* Addons holding buttons shed the text inset and wear the same 2px inset
+     frame as an input-group button chip. */
+  .pc-number-field .pc-input-group__addon:has(.pc-number-field__button) {
+    @apply gap-1 p-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--leading:has(.pc-number-field__button) {
+    @apply pl-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--trailing:has(.pc-number-field__button) {
+    @apply pr-0.5;
+  }
+
+  .pc-number-field__button {
+    @apply flex items-center justify-center shrink-0 w-7 text-gray-500 cursor-pointer select-none transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-100;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--sm .pc-number-field__button {
+    @apply w-6;
+  }
+  .pc-number-field--lg .pc-number-field__button {
+    @apply w-8;
+  }
+  /* At a bound the button keeps its place and its label (aria-disabled, not
+     disabled) but reads as spent and stops answering the pointer. */
+  .pc-number-field__button[aria-disabled="true"] {
+    @apply text-gray-300 pointer-events-none dark:text-gray-600;
+  }
+  /* Doubled selector: the icon sizing contract, same as the combobox chevron. */
+  .pc-number-field__icon.pc-number-field__icon {
+    @apply w-4! h-4!;
+  }
+  .pc-number-field--sm .pc-number-field__icon.pc-number-field__icon {
+    @apply w-3.5! h-3.5!;
+  }
+
+  /* Stacked: two half-height buttons splitting the trailing addon's height,
+     the classic spinner. */
+  .pc-number-field__stack {
+    @apply flex flex-col self-stretch gap-px;
+  }
+  .pc-number-field__stack .pc-number-field__button {
+    @apply flex-1 min-h-0;
+  }
+  .pc-number-field__stack .pc-number-field__button--inc {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px) 0 0;
+  }
+  .pc-number-field__stack .pc-number-field__button--dec {
+    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--split .pc-number-field__button {
+    @apply self-stretch;
+  }
+}
