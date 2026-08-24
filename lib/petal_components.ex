@@ -67,6 +67,7 @@ defmodule PetalComponents do
         Progress,
         QrCode,
         Rating,
+        Resizable,
         ScrollArea,
         Scrollspy,
         Separator,

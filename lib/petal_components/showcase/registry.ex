@@ -52,6 +52,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Progress,
     PetalComponents.Showcase.QrCode,
     PetalComponents.Showcase.Rating,
+    PetalComponents.Showcase.Resizable,
     PetalComponents.Showcase.ScrollArea,
     PetalComponents.Showcase.Scrollspy,
     PetalComponents.Showcase.Separator,

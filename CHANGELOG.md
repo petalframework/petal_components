@@ -4,6 +4,32 @@
 
 #### Added
 
+- **New `resizable` component family: split panes with dividers you can drag
+  and key.** `<.resizable_group>` wraps `<.resizable_panel>` and
+  `<.resizable_handle>` children into the layout primitive behind docs sites
+  with an adjustable sidebar, IDE workspaces and editor/preview splits. Panels
+  are sized as percentages of the group and rendered as `flex: <pct> 1 0px`, so
+  a window resize keeps the split proportional instead of stranding a pane at a
+  pixel width. `default_size`, `min_size`, `max_size`, `collapsible` and
+  `collapsed_size` per panel; both orientations; two-panel and n-panel groups.
+  Nested groups are first class: the `PetalResizable` hook only ever looks at
+  its own direct children, so a horizontal split inside a vertical one gets two
+  independent hooks that never fight over a panel.
+
+  Keyboard resizing is not an afterthought. Every handle is a WAI-ARIA
+  `separator` in the tab order with live `aria-valuenow`/`valuemin`/`valuemax`
+  and `aria-controls` on the panel before it. Arrows move it by 2 points (10
+  with shift), `Home` shrinks or collapses, `End` grows to max, `Enter` toggles
+  a collapsible pane, and arrows perpendicular to the separator do nothing, per
+  the pattern. Drag uses pointer capture so a fast drag cannot lose the
+  divider, and double-click resets a divider's two panes to their defaults.
+
+  Nothing is persisted for you. On release and on keyboard commit the group
+  fires a bubbling `petal:resizable-resize` DOM event with the percentages and,
+  when `on_resize` is set, pushes the same payload to your LiveView. Collapse
+  and expand fire `petal:resizable-collapse`. Store it in the session, the URL
+  or localStorage, whichever suits.
+
 - **New `filters` component: a standalone filter bar driven by
   `DataTable.State`.** Active filters render as removable chips (field,
   humanised operator, formatted value) next to an "Add filter" popover
