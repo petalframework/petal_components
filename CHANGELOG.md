@@ -4,6 +4,21 @@
 
 #### Added
 
+- **New `filters` component: a standalone filter bar driven by
+  `DataTable.State`.** Active filters render as removable chips (field,
+  humanised operator, formatted value) next to an "Add filter" popover
+  that walks field -> operator -> value in one panel, with no server
+  round trip. It speaks the same struct `<.data_table>` does, so pointing
+  both at one `State` composes with no glue: filter from the bar and the
+  table updates, filter from a column header and a chip appears. Six
+  registry types (`text`, `select`, `multi`, `number_range`,
+  `date_range`, `boolean`) each select a subset of `State.ops/0` - the
+  operator vocabulary is never forked. Both wiring modes ship: link mode
+  patches `State.to_params/1` URLs so filters are shareable and the back
+  button works, and event mode pushes the exact payloads
+  `State.handle_op/3` already parses, so a LiveView wired for an
+  event-mode data table gains a filter bar with zero new handler clauses.
+
 - **New `file_upload` component: the whole upload surface for a Phoenix
   LiveView upload.** Hand it an `@uploads.<name>` from `allow_upload/3`
   and it renders the drop zone, the file list with thumbnails and type

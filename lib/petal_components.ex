@@ -42,6 +42,7 @@ defmodule PetalComponents do
         Empty,
         Field,
         FileUpload,
+        Filters,
         Form,
         Icon,
         Input,

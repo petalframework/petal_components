@@ -55,6 +55,7 @@ defmodule PetalComponents.DataTable do
   import PetalComponents.Skeleton
   import PetalComponents.Table
 
+  alias PetalComponents.DataTable.FilterEditor
   alias PetalComponents.DataTable.State
   alias Phoenix.LiveView.JS
 
@@ -302,7 +303,7 @@ defmodule PetalComponents.DataTable do
       |> assign(:visible_cols, visible_cols)
       |> assign(:ordered_cols, ordered_cols)
       |> assign(:hidden, hidden)
-      |> assign(:op_labels, Map.merge(default_op_labels(), assigns.filter_op_labels))
+      |> assign(:op_labels, Map.merge(FilterEditor.default_op_labels(), assigns.filter_op_labels))
       |> assign(:ui_event, ui_event)
       |> selection_assigns()
       |> assign(:hooked?, hooked?)
@@ -662,10 +663,7 @@ defmodule PetalComponents.DataTable do
     end
   end
 
-  defp url_for(path, %State{} = state) do
-    query = state |> State.to_params() |> flatten_params() |> URI.encode_query()
-    join_query(path, query)
-  end
+  defp url_for(path, %State{} = state), do: FilterEditor.url_for(path, state)
 
   # pagination's :page placeholder must survive URL encoding, so the
   # template is assembled around the already-encoded rest of the query
@@ -711,37 +709,9 @@ defmodule PetalComponents.DataTable do
     join_query(path, query)
   end
 
-  # a base path may already carry a query string - join accordingly
-  defp join_query(path, ""), do: path
+  defp join_query(path, query), do: FilterEditor.join_query(path, query)
 
-  defp join_query(path, query) do
-    joiner = if String.contains?(path, "?"), do: "&", else: "?"
-    path <> joiner <> query
-  end
-
-  # filters encode as a list of maps - flatten to Phoenix-style indexed
-  # params so encode_query can carry them and from_params reads them
-  # back. Returns pairs, not a map: a list value (the :in op) needs the
-  # same key repeated ("...[value][]"), which a map cannot hold.
-  defp flatten_params(params) do
-    {filters, rest} = Map.pop(params, "filters")
-
-    Enum.sort(rest) ++
-      (filters
-       |> List.wrap()
-       |> Enum.with_index()
-       |> Enum.flat_map(fn {filter, i} ->
-         Enum.flat_map(filter, fn {k, v} -> filter_pairs("filters[#{i}][#{k}]", v) end)
-       end))
-  end
-
-  defp filter_pairs(key, values) when is_list(values),
-    do: Enum.map(values, &{"#{key}[]", &1})
-
-  defp filter_pairs(key, %{} = map),
-    do: Enum.map(map, fn {k, v} -> {"#{key}[#{k}]", v} end)
-
-  defp filter_pairs(key, value), do: [{key, value}]
+  defp flatten_params(params), do: FilterEditor.flatten_params(params)
 
   # -- selection -------------------------------------------------------------
 
@@ -896,38 +866,26 @@ defmodule PetalComponents.DataTable do
   @number_ops ~w(eq neq gt gte lt lte between is_empty is_not_empty)a
   @date_ops ~w(before on after is_empty is_not_empty)a
 
-  defp default_op_labels do
-    %{
-      contains: "contains",
-      eq: "is",
-      starts_with: "starts with",
-      not_contains: "does not contain",
-      neq: "is not",
-      gt: ">",
-      gte: "\u2265",
-      lt: "<",
-      lte: "\u2264",
-      not_in: "is none of",
-      is_empty: "is empty",
-      is_not_empty: "is not empty",
-      between: "between",
-      in: "is any of",
-      before: "before",
-      on: "on",
-      after: "after"
-    }
-  end
+  # the data table's own type vocabulary -> the shared editor's shapes
+  defp editor_shape("select"), do: {"options", [], :in}
+  defp editor_shape("number"), do: {"number", @number_ops, :eq}
+  defp editor_shape("date"), do: {"date", @date_ops, :on}
+  defp editor_shape(_text), do: {"text", @text_ops, :contains}
 
   defp filter_button(assigns) do
     col = assigns.col
     field_str = to_string(col.field)
     label = col[:label] || humanize(col.field)
     filter = Enum.find(assigns.state.filters, &(&1.field == col.field))
-    options = normalize_options(col[:options] || [])
+    options = FilterEditor.normalize_options(col[:options] || [])
     pop_id = "#{assigns.table_id}-filter-#{field_str}"
+    {shape, ops, default_op} = editor_shape(col[:filterable])
 
     assigns =
       assigns
+      |> assign(:shape, shape)
+      |> assign(:editor_ops, ops)
+      |> assign(:default_op, default_op)
       |> assign(:field_str, field_str)
       |> assign(:label, label)
       |> assign(:filter, filter)
@@ -956,7 +914,10 @@ defmodule PetalComponents.DataTable do
           ]}
         >
           <.icon :if={!@filter} name="hero-funnel" class="pc-data-table__filter-icon" />
-          <span>{(@filter && predicate_text(@label, @filter, @op_labels, @options)) || @label}</span>
+          <span>
+            {(@filter && FilterEditor.predicate_text(@label, @filter, @op_labels, @options)) ||
+              @label}
+          </span>
         </button>
         <div
           id={@pop_id}
@@ -973,8 +934,10 @@ defmodule PetalComponents.DataTable do
           >
             <input :if={@on_change} type="hidden" name="op" value="filter" />
             <input :if={@on_change} type="hidden" name="field" value={@field_str} />
-            <.filter_editor
-              type={@type}
+            <FilterEditor.filter_editor
+              type={@shape}
+              ops={@editor_ops}
+              default_op={@default_op}
               filter={@filter}
               options={@options}
               op_labels={@op_labels}
@@ -1013,185 +976,12 @@ defmodule PetalComponents.DataTable do
     """
   end
 
-  # eight or more options get a client-side filter box - a checkbox wall
-  # with no way to narrow it is where long lists go to die
-  @option_filter_threshold 8
-
-  defp filter_editor(%{type: "select"} = assigns) do
-    current = assigns.filter |> current_values() |> Enum.map(&to_string/1)
-
-    assigns =
-      assigns
-      |> assign(:current, current)
-      |> assign(:show_option_filter, length(assigns.options) >= @option_filter_threshold)
-
-    ~H"""
-    <input
-      :if={@show_option_filter}
-      type="text"
-      data-pc-dt-option-filter
-      autocomplete="off"
-      placeholder={@filter_options_placeholder}
-      aria-label={"#{@label} option filter"}
-      class="pc-text-input pc-data-table__filter-value pc-data-table__option-filter"
-    />
-    <div class="pc-data-table__filter-options" role="group" aria-label={"#{@label} options"}>
-      <label :for={{label, value} <- @options} class="pc-data-table__filter-option">
-        <input
-          type="checkbox"
-          name="values[]"
-          value={value}
-          checked={to_string(value) in @current}
-          class="pc-checkbox"
-        />
-        <span>{label}</span>
-      </label>
-    </div>
-    """
-  end
-
-  defp filter_editor(%{type: "number"} = assigns) do
-    {value, value2} = current_pair(assigns.filter)
-
-    assigns =
-      assigns
-      |> assign(:ops, @number_ops)
-      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :eq)
-      |> assign(:value, value)
-      |> assign(:value2, value2)
-
-    ~H"""
-    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
-    <input
-      type="number"
-      step="any"
-      name="value"
-      value={@value}
-      aria-label={"#{@label} lower bound"}
-      class="pc-text-input pc-data-table__filter-value"
-    />
-    <input
-      type="number"
-      step="any"
-      name="value2"
-      value={@value2}
-      class="pc-text-input pc-data-table__filter-value pc-data-table__filter-value2"
-      aria-label={"#{@label} upper bound"}
-    />
-    """
-  end
-
-  defp filter_editor(%{type: "date"} = assigns) do
-    assigns =
-      assigns
-      |> assign(:ops, @date_ops)
-      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :on)
-      |> assign(:value, (assigns.filter && to_string(assigns.filter.value)) || nil)
-
-    ~H"""
-    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
-    <input
-      type="date"
-      name="value"
-      value={@value}
-      aria-label={"#{@label} value"}
-      class="pc-text-input pc-data-table__filter-value"
-    />
-    """
-  end
-
-  defp filter_editor(assigns) do
-    assigns =
-      assigns
-      |> assign(:ops, @text_ops)
-      |> assign(:current_op, (assigns.filter && assigns.filter.op) || :contains)
-      |> assign(:value, (assigns.filter && to_string(assigns.filter.value)) || nil)
-
-    ~H"""
-    <.filter_op_select ops={@ops} current_op={@current_op} op_labels={@op_labels} label={@label} />
-    <input
-      type="text"
-      name="value"
-      value={@value}
-      aria-label={"#{@label} value"}
-      class="pc-text-input pc-data-table__filter-value"
-    />
-    """
-  end
-
-  defp filter_op_select(assigns) do
-    ~H"""
-    <select
-      name="filter_op"
-      class="pc-select pc-data-table__filter-op"
-      aria-label={"#{@label} operator"}
-    >
-      <option :for={op <- @ops} value={op} selected={op == @current_op}>
-        {op_label(@op_labels, op)}
-      </option>
-    </select>
-    """
-  end
-
   # event mode pushes the form; the hook closes the menu on submit
   defp filter_submit_js(nil, _target, _pop_id), do: nil
 
   defp filter_submit_js(event, target, _pop_id) do
     if target, do: JS.push(event, target: target), else: JS.push(event)
   end
-
-  # An op with no label is a custom one an adapter added - render the atom
-  # rather than raising mid-render, which is what Map.fetch!/2 did.
-  defp op_label(labels, op), do: Map.get(labels, op, humanize_op(op))
-
-  defp humanize_op(op), do: op |> to_string() |> String.replace("_", " ")
-
-  defp normalize_options(options) do
-    Enum.map(options, fn
-      {label, value} -> {label, value}
-      value -> {humanize(value), value}
-    end)
-  end
-
-  defp current_values(nil), do: []
-  defp current_values(%{value: value}), do: List.wrap(value)
-
-  # the engine accepts both range shapes, so both must render
-  defp current_pair(%{op: :between, value: [min, max]}), do: {min, max}
-  defp current_pair(%{op: :between, value: %{"min" => min, "max" => max}}), do: {min, max}
-  defp current_pair(%{op: :between}), do: {nil, nil}
-  defp current_pair(%{value: value}) when not is_list(value), do: {value, nil}
-  defp current_pair(_other), do: {nil, nil}
-
-  defp predicate_text(label, filter, op_labels, options) do
-    case State.valueless_op?(filter.op) do
-      true -> "#{label} #{op_label(op_labels, filter.op)}"
-      false -> "#{label} #{op_label(op_labels, filter.op)} #{display_value(filter, options)}"
-    end
-  end
-
-  defp display_value(%{op: :in, value: values}, options) do
-    labels = Map.new(options, fn {label, value} -> {to_string(value), label} end)
-    shown = values |> List.wrap() |> Enum.map(&Map.get(labels, to_string(&1), to_string(&1)))
-
-    case Enum.split(shown, 2) do
-      {first_two, []} -> Enum.join(first_two, ", ")
-      {first_two, rest} -> Enum.join(first_two, ", ") <> " +#{length(rest)}"
-    end
-  end
-
-  defp display_value(%{op: :between, value: [min, max]}, _options), do: "#{min}\u2013#{max}"
-
-  defp display_value(%{op: :between, value: %{"min" => min, "max" => max}}, _options),
-    do: "#{min}\u2013#{max}"
-
-  # hand-built states can carry shapes no editor produces - never crash
-  # the toolbar over one
-  defp display_value(%{value: value}, _options) when is_list(value),
-    do: Enum.map_join(value, ", ", &to_string/1)
-
-  defp display_value(%{value: %{} = value}, _options), do: inspect(value)
-  defp display_value(%{value: value}, _options), do: to_string(value)
 
   # Announced separately from the visible range: the visible string uses
   # an en dash, which screen readers frequently read as nothing at all

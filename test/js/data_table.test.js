@@ -194,6 +194,48 @@ describe("PetalDataTable", () => {
     expect(hook.openMenu).toBe(null);
   });
 
+  it("drives a pc-filters-shaped root: no search input, no page-size select", () => {
+    // the standalone filters bar consumes this same hook with a subset of
+    // the table anatomy - this fixture protects that consumer from
+    // table-specific regressions (e.g. assuming the search input exists)
+    const el = document.createElement("div");
+    el.id = "fb";
+    el.className = "pc-filters";
+    el.dataset.navTemplate = "/products?:filters";
+    el.innerHTML = `
+      <a data-pc-dt-nav data-phx-link="patch" data-phx-link-state="push" hidden></a>
+      <div class="pc-popover">
+        <button type="button" data-pc-menu-trigger="fb-pop" aria-expanded="false">Name</button>
+        <div id="fb-pop" class="pc-popover__panel" data-pc-menu hidden>
+          <form class="pc-data-table__filter-form" data-pc-dt-filter data-field="name">
+            <select name="filter_op"><option value="contains" selected>contains</option></select>
+            <input name="value" value="anvil" />
+          </form>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(el);
+
+    const hook = Object.create(hooks.PetalDataTable);
+    hook.el = el;
+    hook.mounted();
+    mounted.push(hook);
+
+    const patched = [];
+    el.querySelector("[data-pc-dt-nav]").addEventListener("click", (e) => {
+      e.preventDefault();
+      patched.push(e.target.getAttribute("href"));
+    });
+
+    submit(el.querySelector("form"));
+
+    expect(patched).toHaveLength(1);
+    const url = decodeURIComponent(patched[0]);
+    expect(url).toContain("filters[0][field]=name");
+    expect(url).toContain("filters[0][op]=contains");
+    expect(url).toContain("filters[0][value]=anvil");
+  });
+
   it("a select editor posts checked values as :in; none checked removes the filter", () => {
     const { patched, form } = mountWithFilter({
       navTemplate: "/orders?:filters&order_by=name",
