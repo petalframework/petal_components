@@ -551,6 +551,14 @@ defmodule PetalComponents.CssAssetsTest do
       assert css =~ ".pc-chat__markdown a:not(.pc-chat__citation)"
     end
 
+    test "the questionnaire spinner rides currentColor, not white", %{css: css} do
+      # the submit's face is the solid-button token; a hardcoded white
+      # spinner vanished on the near-white dark-mode button.
+      [rule] = Regex.run(~r/\.pc-questionnaire__spinner \{[^}]+\}/s, css)
+      assert rule =~ "border-current"
+      refute rule =~ "border-t-white"
+    end
+
     test "the questionnaire submit wears the solid-button face token", %{css: css} do
       [rule] = Regex.run(~r/\.pc-questionnaire__submit \{[^}]+\}/s, css)
       assert rule =~ "--pc-button-solid-fg"
