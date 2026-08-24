@@ -38,21 +38,36 @@ defmodule PetalComponents.Showcase.Sortable do
     description:
       "orientation=\"grid\" wraps items into a grid and teaches the arrow keys to move in two dimensions. The column count is read from the live layout, so a responsive grid steps correctly at every breakpoint." do
     ~H"""
-    <.sortable id="showcase-gallery" on_reorder="reorder_photos" orientation="grid">
-      <:item id="harbour" label="Harbour at dawn">
-        <span class="text-sm">Harbour at dawn</span>
-      </:item>
-      <:item id="ridge" label="Ridge line">
-        <span class="text-sm">Ridge line</span>
-      </:item>
-      <:item id="salt" label="Salt flats">
-        <span class="text-sm">Salt flats</span>
-      </:item>
-      <:item id="pines" label="Pines in fog">
-        <span class="text-sm">Pines in fog</span>
+    <.sortable
+      id="showcase-gallery"
+      on_reorder="reorder_photos"
+      orientation="grid"
+      class="grid-cols-2 sm:grid-cols-3"
+    >
+      <:item
+        :for={photo <- gallery()}
+        id={photo.id}
+        label={photo.title}
+        class="flex-col items-stretch gap-2 p-2"
+      >
+        <div class={["aspect-video w-full rounded-md bg-gradient-to-br", photo.tone]}></div>
+        <span class="text-sm font-medium">{photo.title}</span>
       </:item>
     </.sortable>
     """
+  end
+
+  # The gallery example's seed - examples render with `assigns = %{}`, so the
+  # tiles come from here rather than an assign.
+  defp gallery do
+    [
+      %{id: "harbour", title: "Harbour at dawn", tone: "from-sky-400 to-indigo-500"},
+      %{id: "ridge", title: "Ridge line", tone: "from-emerald-400 to-teal-600"},
+      %{id: "salt", title: "Salt flats", tone: "from-amber-300 to-orange-500"},
+      %{id: "pines", title: "Pines in fog", tone: "from-slate-400 to-slate-700"},
+      %{id: "dunes", title: "Dunes", tone: "from-rose-400 to-pink-600"},
+      %{id: "estuary", title: "Estuary", tone: "from-violet-400 to-purple-600"}
+    ]
   end
 
   example :disabled, "Disabled",
