@@ -13,6 +13,14 @@ defmodule PetalComponents.Field do
 
       <.field field={@form[:email]} type="email" />
       <.field label="Name" value="" name="name" errors={["oh no!"]} />
+
+  > #### Sliders have moved {: .info}
+  >
+  > `type="range"` and `type="range-dual"` still work and are not going
+  > anywhere in this release, but `PetalComponents.Slider.slider/1` supersedes
+  > them. It is the same native `<input type="range">` machinery with marks, a
+  > value readout, vertical orientation and sizes on top, so reach for
+  > `<.slider>` in new code.
   """
   attr :id, :any,
     default: nil,
@@ -32,7 +40,7 @@ defmodule PetalComponents.Field do
   attr :type, :string,
     default: "text",
     values:
-      ~w(checkbox checkbox-group color combobox date datetime-local email file hidden month number password
+      ~w(checkbox checkbox-group color combobox date datetime-local email file hidden month number number-field password
                range range-dual radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
 
@@ -41,11 +49,19 @@ defmodule PetalComponents.Field do
     values: ~w(xs sm md lg xl),
     doc: "the size of the switch (xs, sm, md, lg or xl) or radio card (sm, md or lg)"
 
-  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
+  attr :variant, :any,
+    default: "outline",
+    doc:
+      ~s(radio-card: outline, classic. switch: "pill" swaps the round thumb for an iOS-style capsule; the track is unchanged)
 
   attr :combo_variant, :string,
     values: ["input", "trigger"],
     doc: "combobox only: the anatomy - searchable input (default) or select-like trigger button"
+
+  attr :number_variant, :string,
+    values: ["stacked", "split", "plain"],
+    doc:
+      "number-field only: the anatomy - \"stacked\" spinner, the default, \"split\" minus/plus, or \"plain\" with no buttons"
 
   attr :indicator_position, :string,
     default: "end",
@@ -154,7 +170,8 @@ defmodule PetalComponents.Field do
     include:
       ~w(autocomplete autocorrect autocapitalize disabled form max maxlength min minlength list
     pattern placeholder readonly required size step value name multiple prompt default year month day hour minute second builder options layout cols rows wrap checked accept
-    free_text create create_label max_items count_label search_placeholder listbox_label no_results_text results_label clear_label remove_label loading_label remote_options_event_name remote_options_target form_id),
+    free_text create create_label max_items count_label search_placeholder listbox_label no_results_text results_label clear_label remove_label loading_label remote_options_event_name remote_options_target form_id
+    big_step precision decrement_label increment_label inputmode),
     doc: "All other props go on the input"
 
   def field(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
@@ -329,6 +346,50 @@ defmodule PetalComponents.Field do
     """
   end
 
+  # The spinbutton flavour of a number input. It paints its own surface (the
+  # input group), so the wrapper contributes the label, help text and the
+  # error tone that `.pc-form-field-wrapper--error .pc-input-group` picks up.
+  def field(%{type: "number-field"} = assigns) do
+    assigns =
+      assigns
+      # the field size family spans xs-xl; the number field speaks sm/md/lg
+      |> assign(
+        :number_size,
+        case assigns.size do
+          "xs" -> "sm"
+          "xl" -> "lg"
+          s -> s
+        end
+      )
+      |> assign_new(:number_variant, fn -> "stacked" end)
+      # the label's for= has to name the control that actually exists, and the
+      # number field derives its own id from the name when none is passed -
+      # so resolve it HERE, once, and hand it down.
+      |> then(fn a ->
+        assign(a, :id, PetalComponents.NumberField.resolve_id(a.id, a[:name]))
+      end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        {@label}
+      </.field_label>
+      <PetalComponents.NumberField.number_field
+        id={@id}
+        name={@name}
+        value={@value}
+        variant={@number_variant}
+        size={@number_size}
+        class={@class}
+        required={@required}
+        {@rest}
+      />
+      <.field_error :for={msg <- @errors}>{msg}</.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
   def field(%{type: "textarea"} = assigns) do
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
@@ -361,7 +422,7 @@ defmodule PetalComponents.Field do
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
       <label class={["pc-checkbox-label", @label_class]}>
         <input :if={!@rest[:disabled]} type="hidden" name={@name} value="false" />
-        <label class={["pc-switch", "pc-switch--#{@size}"]}>
+        <label class={["pc-switch", "pc-switch--#{@size}", @variant == "pill" && "pc-switch--pill"]}>
           <input
             type="checkbox"
             id={@id}
@@ -715,7 +776,7 @@ defmodule PetalComponents.Field do
         >
           <!-- Clear Icon -->
           <span class="pc-clearable-field-icon-container">
-            <.icon name="hero-x-mark-solid" class="pc-clearable-field-icon" />
+            <.icon name="hero-x-mark-mini" class="pc-clearable-field-icon" />
           </span>
         </button>
       </div>
@@ -750,9 +811,9 @@ defmodule PetalComponents.Field do
           required={@required}
           {@rest}
         />
-        <div class="pc-date-input-icon">
-          <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
-        </div>
+        <span class="pc-date-input-icon" aria-hidden="true">
+          <.icon name={@icon_name} class="pc-date-input-icon-glyph" />
+        </span>
       </div>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
       <.field_help_text help_text={@help_text} />
@@ -943,46 +1004,9 @@ defmodule PetalComponents.Field do
   defp get_icon_for_type("week"), do: "hero-calendar"
   defp get_icon_for_type("time"), do: "hero-clock"
 
-  defp translate_error({msg, opts}) do
-    config_translator = get_translator_from_config()
-
-    if config_translator do
-      config_translator.({msg, opts})
-    else
-      fallback_translate_error(msg, opts)
-    end
-  end
-
-  defp fallback_translate_error(msg, opts) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      try do
-        String.replace(acc, "%{#{key}}", to_string(value))
-      rescue
-        e ->
-          IO.warn(
-            """
-            the fallback message translator for the form_field_error function cannot handle the given value.
-
-            Hint: you can set up the `error_translator_function` to route all errors to your application helpers:
-
-              config :petal_components, :error_translator_function, {MyAppWeb.CoreComponents, :translate_error}
-
-            Given value: #{inspect(value)}
-
-            Exception: #{Exception.message(e)}
-            """,
-            __STACKTRACE__
-          )
-
-          "invalid value"
-      end
-    end)
-  end
-
-  defp get_translator_from_config do
-    case Application.get_env(:petal_components, :error_translator_function) do
-      {module, function} -> &apply(module, function, [&1])
-      nil -> nil
-    end
-  end
+  # One translator for the whole library, in PetalComponents.Helpers - see the
+  # note there on why it does not live in a blanket-imported module (this one
+  # stays private: `use PetalComponents` imports Field wholesale, and almost
+  # every Phoenix app defines its own translate_error/1).
+  defp translate_error(error), do: PetalComponents.Helpers.translate_error(error)
 end

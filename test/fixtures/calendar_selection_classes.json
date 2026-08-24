@@ -1,0 +1,218 @@
+{
+  "_comment": [
+    "THE PARITY LOCK. The date picker has two selection paths: with a select",
+    "event wired the server re-renders every click through Calendar.build_day/4,",
+    "and without one the PetalDatePicker hook paints the same classes in the",
+    "browser. They rendered different anatomies until this file existed.",
+    "",
+    "One fixture, two specs. test/petal/calendar_test.exs renders the server",
+    "against it; test/js/calendar.test.js runs the hook's painter against it.",
+    "Restyle the range and BOTH go red, which is the point - update the matrix",
+    "here first, then make each side agree with it again.",
+    "",
+    "days lists only the dates carrying selection classes. Every other day in",
+    "the grid must carry none of the vocabulary below and no aria-selected, and",
+    "both specs assert that too, so a stray class cannot hide in the gaps.",
+    "",
+    "March 2026 starting Monday runs 2026-02-23 to 2026-04-05. The scenarios",
+    "are picked for the edges: a band that ends on a week boundary (2026-03-15",
+    "is a row's last cell, 2026-03-16 the next row's first) and one that runs",
+    "across the month boundary over outside days."
+  ],
+
+  "month": "2026-03-01",
+  "starts_on": 1,
+
+  "cell_vocabulary": [
+    "pc-calendar__cell--in-range",
+    "pc-calendar__cell--range-start",
+    "pc-calendar__cell--range-end"
+  ],
+  "day_vocabulary": [
+    "pc-calendar__day--selected",
+    "pc-calendar__day--range-start",
+    "pc-calendar__day--range-end",
+    "pc-calendar__day--in-range"
+  ],
+
+  "scenarios": [
+    {
+      "name": "a single day is a plain chip",
+      "mode": "single",
+      "from": "2026-03-14",
+      "to": null,
+      "clicks": ["2026-03-14"],
+      "days": {
+        "2026-03-14": {
+          "aria_selected": true,
+          "cell": [],
+          "day": ["pc-calendar__day--selected"]
+        }
+      }
+    },
+    {
+      "name": "a half-open range is the anchor and nothing else",
+      "mode": "range",
+      "from": "2026-03-11",
+      "to": null,
+      "clicks": ["2026-03-11"],
+      "days": {
+        "2026-03-11": {
+          "aria_selected": true,
+          "cell": [],
+          "day": ["pc-calendar__day--selected"]
+        }
+      }
+    },
+    {
+      "name": "a one-day range keeps all four corners - no band to merge into",
+      "mode": "range",
+      "from": "2026-03-11",
+      "to": "2026-03-11",
+      "clicks": ["2026-03-11", "2026-03-11"],
+      "days": {
+        "2026-03-11": {
+          "aria_selected": true,
+          "cell": [],
+          "day": ["pc-calendar__day--selected"]
+        }
+      }
+    },
+    {
+      "name": "a range inside one week bands its middles and chips its ends",
+      "mode": "range",
+      "from": "2026-03-09",
+      "to": "2026-03-13",
+      "clicks": ["2026-03-09", "2026-03-13"],
+      "days": {
+        "2026-03-09": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-start"],
+          "day": [
+            "pc-calendar__day--selected",
+            "pc-calendar__day--range-start"
+          ]
+        },
+        "2026-03-10": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-11": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-12": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-13": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-end"],
+          "day": ["pc-calendar__day--selected", "pc-calendar__day--range-end"]
+        }
+      }
+    },
+    {
+      "name": "a range across a week boundary keeps one continuous vocabulary",
+      "mode": "range",
+      "from": "2026-03-09",
+      "to": "2026-03-17",
+      "clicks": ["2026-03-09", "2026-03-17"],
+      "days": {
+        "2026-03-09": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-start"],
+          "day": [
+            "pc-calendar__day--selected",
+            "pc-calendar__day--range-start"
+          ]
+        },
+        "2026-03-10": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-11": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-12": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-13": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-14": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-15": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-16": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-17": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-end"],
+          "day": ["pc-calendar__day--selected", "pc-calendar__day--range-end"]
+        }
+      }
+    },
+    {
+      "name": "a range across the month boundary bands the outside days too",
+      "mode": "range",
+      "from": "2026-02-26",
+      "to": "2026-03-03",
+      "clicks": ["2026-02-26", "2026-03-03"],
+      "days": {
+        "2026-02-26": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-start"],
+          "day": [
+            "pc-calendar__day--selected",
+            "pc-calendar__day--range-start"
+          ]
+        },
+        "2026-02-27": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-02-28": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-01": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-02": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--in-range"],
+          "day": ["pc-calendar__day--in-range"]
+        },
+        "2026-03-03": {
+          "aria_selected": true,
+          "cell": ["pc-calendar__cell--range-end"],
+          "day": ["pc-calendar__day--selected", "pc-calendar__day--range-end"]
+        }
+      }
+    }
+  ]
+}

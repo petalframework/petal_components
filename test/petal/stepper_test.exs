@@ -127,6 +127,11 @@ defmodule PetalComponents.StepperTest do
     test "correctly applies size variants" do
       assigns = %{sample_steps: @sample_steps}
 
+      html_xs =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} size="xs" />
+        """)
+
       html_sm =
         rendered_to_string(~H"""
         <.stepper steps={@sample_steps} size="sm" />
@@ -142,9 +147,77 @@ defmodule PetalComponents.StepperTest do
         <.stepper steps={@sample_steps} size="lg" />
         """)
 
+      assert html_xs =~ "pc-stepper--xs"
       assert html_sm =~ "pc-stepper--sm"
       assert html_md =~ "pc-stepper--md"
       assert html_lg =~ "pc-stepper--lg"
+    end
+
+    test "variant bars paints segments and keeps circles off by default" do
+      assigns = %{sample_steps: @sample_steps}
+
+      bars_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} variant="bars" />
+        """)
+
+      default_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} />
+        """)
+
+      assert bars_html =~ "pc-stepper--bars"
+
+      # The numerals stay in the DOM but stop being painted - a 4px segment
+      # has no room for a glyph.
+      assert bars_html =~ ~s(class="pc-stepper__number sr-only")
+
+      # ...and neither does the tick, which is disc furniture: every step
+      # carries a numeral instead, completed ones included.
+      refute bars_html =~ "hero-check-solid"
+
+      numbers = bars_html |> String.split("pc-stepper__number") |> length() |> Kernel.-(1)
+      assert numbers == length(@sample_steps)
+
+      refute default_html =~ "pc-stepper--bars"
+      refute default_html =~ "sr-only"
+      assert default_html =~ "hero-check-solid"
+    end
+
+    test "bars is horizontal only and outranks label_placement" do
+      assigns = %{sample_steps: @sample_steps}
+
+      vertical_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} orientation="vertical" variant="bars" />
+        """)
+
+      bottom_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} variant="bars" label_placement="bottom" />
+        """)
+
+      refute vertical_html =~ "pc-stepper--bars"
+      assert vertical_html =~ "hero-check-solid"
+
+      assert bottom_html =~ "pc-stepper--bars"
+      refute bottom_html =~ "pc-stepper--labels-bottom"
+    end
+
+    test "bars keeps the circles' aria and jump-target contract" do
+      assigns = %{sample_steps: @sample_steps}
+
+      bars_html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} variant="bars" />
+        """)
+
+      assert bars_html =~ "role=\"list\""
+      assert bars_html =~ "role=\"listitem\""
+      assert bars_html =~ "aria-current=\"step\""
+      assert bars_html =~ "aria-label=\"Step 1: Step 1 (completed)\""
+      assert bars_html =~ "aria-label=\"Step 3: Step 3\""
+      assert bars_html =~ "phx-click=\"step-1\""
     end
 
     test "applies custom classes" do
@@ -239,6 +312,51 @@ defmodule PetalComponents.StepperTest do
 
       assert descriptions == 0,
              "Steps without descriptions should not render description elements"
+    end
+
+    test "steps with no name and no description render no content block" do
+      nameless =
+        Enum.map(@sample_steps, fn step -> Map.drop(step, [:name, :description]) end)
+
+      assigns = %{sample_steps: nameless}
+
+      html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} />
+        """)
+
+      # No empty div sitting in the item's gap - the whole block is absent.
+      refute html =~ "pc-stepper__content"
+      refute html =~ "pc-stepper__title"
+      refute html =~ "pc-stepper__description"
+
+      # Still a stepper: circles, connectors, jump targets.
+      indicators = html |> String.split("pc-stepper__indicator") |> length() |> Kernel.-(1)
+      assert indicators == 3
+
+      # The name was the only thing that hid, so the label falls back to the
+      # count and keeps the completed state.
+      assert html =~ "aria-label=\"Step 1 (completed)\""
+      assert html =~ "aria-label=\"Step 3\""
+    end
+
+    test "a nil name is the same as no name, and a name-only step keeps its title" do
+      steps = [
+        %{name: nil, description: nil, complete?: true, active?: false},
+        %{name: "Named", complete?: false, active?: true}
+      ]
+
+      assigns = %{sample_steps: steps}
+
+      html =
+        rendered_to_string(~H"""
+        <.stepper steps={@sample_steps} />
+        """)
+
+      content_blocks = html |> String.split("pc-stepper__content") |> length() |> Kernel.-(1)
+      assert content_blocks == 1
+      assert html =~ "Named"
+      refute html =~ "pc-stepper__description"
     end
 
     test "handles steps without on_click" do
