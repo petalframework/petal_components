@@ -1,7 +1,43 @@
 # Changelog
+
 ### Unreleased
 
 #### Added
+
+- **New `tree` component: a hierarchical tree view for arbitrary-depth
+  data.** The file-explorer staple, and the gap between `menu`,
+  `navigation_menu` and `accordion` - none of which render a hierarchy.
+  Feed it a nested list of maps (`%{id:, label:, children: [...]}`) and
+  it renders itself down as far as the data goes: chevrons and
+  folder/document icons on the branches, a reserved chevron column so
+  leaf labels stay aligned, optional connecting indent guides
+  (`show_guides`), and single selection with a soft primary fill.
+  Two expansion models, both rendering identical markup and ARIA:
+  client-side by default (`default_expanded` seeds it, the chevron
+  toggles `data-expanded` with `Phoenix.LiveView.JS` and CSS animates
+  the height, zero round-trips), or server-controlled by passing
+  `expanded` plus an `on_expand` event - which is what `:lazy` branches
+  need, since their children only exist once the server has been asked.
+  Clicking anywhere on a branch row toggles it - and selects it in the
+  same click when selection is wired, the way a folder behaves in a
+  file explorer. That is `expand_on_click` and it defaults to true;
+  rows whose click already has a job, a link tree that has to navigate
+  say, set `expand_on_click={false}` and expansion goes back to the
+  chevron alone. The chevron never selects and the keyboard map is the
+  same either way.
+  A `:loading` row covers the wait, an `:empty` slot covers no data, and
+  an `:item` slot takes over the row content while the component keeps
+  the chevron, the indent and every ARIA attribute.
+  Accessibility is the WAI-ARIA TreeView pattern in full:
+  `role="tree"` / `treeitem` / `group`, computed `aria-level`,
+  `aria-setsize` and `aria-posinset`, `aria-expanded` on branches only,
+  `aria-selected`, `aria-disabled`, and the complete keyboard map
+  (up/down through visible nodes, right to expand or descend, left to
+  collapse or ascend, Home/End, Enter/Space to select, `*` to expand
+  siblings) over a roving tabindex, so the whole tree is one Tab stop.
+  The new `PetalTree` hook does the keyboard work and nothing else -
+  expansion and selection stay in JS commands and server events, so a
+  pointer user gets a working tree even if the hook never mounts.
 
 - **New `context_menu` component: right-click a region of the page and
   get a menu at the cursor.** It completes the menu family alongside

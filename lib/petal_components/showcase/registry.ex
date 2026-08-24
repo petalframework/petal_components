@@ -67,6 +67,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Toast,
     PetalComponents.Showcase.ToggleGroup,
     PetalComponents.Showcase.Tooltip,
+    PetalComponents.Showcase.Tree,
     PetalComponents.Showcase.UserDropdownMenu
   ]
 

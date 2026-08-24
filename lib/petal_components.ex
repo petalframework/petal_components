@@ -80,6 +80,7 @@ defmodule PetalComponents do
         Timeline,
         Toast,
         Tabs,
+        Tree,
         ToggleGroup,
         Tooltip,
         TextAnimation,
