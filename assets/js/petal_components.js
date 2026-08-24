@@ -6078,6 +6078,392 @@ export const PetalDataTable = {
   },
 };
 
+// Bottom-sheet drag layer for <.slide_over origin="bottom">.
+//
+// Pointer physics is the one thing CSS and LiveView.JS genuinely cannot do:
+// following a finger 1:1 and then deciding, from distance AND release
+// velocity, whether the sheet springs back or closes. Everything else about
+// the drawer (radius, safe area, handle, open/close transitions) stays in CSS
+// and JS commands, and this hook is only attached when a bottom sheet is
+// actually draggable, snapped or scaling its background.
+//
+// The maths lives in pure functions below so it can be tested without a DOM.
+// Offsets are pixels DOWN from the drawer's tallest resting position: 0 is
+// fully open, larger is further off-screen.
+
+// Above the top snap the sheet should feel anchored rather than detached, so
+// overshoot is admitted at a fraction of its real size.
+export const drawerResistance = (offset, minOffset = 0, factor = 0.15) =>
+  offset < minOffset ? minOffset + (offset - minOffset) * factor : offset;
+
+// px/ms across the last few samples. A single frame pair is too noisy to tell
+// a flick from a slow drag that happened to end with one fast frame.
+export const drawerVelocity = (samples, sampleCount = 5) => {
+  if (!Array.isArray(samples) || samples.length < 2) return 0;
+  const recent = samples.slice(-sampleCount);
+  const first = recent[0];
+  const last = recent[recent.length - 1];
+  const elapsed = last.time - first.time;
+  if (elapsed <= 0) return 0;
+  return (last.y - first.y) / elapsed;
+};
+
+// Where a release lands: dismiss, or the snap offset to settle on.
+export const drawerSettle = ({
+  offset,
+  velocity = 0,
+  height = Infinity,
+  snapOffsets = [0],
+  dismissThreshold = 0.25,
+  velocityThreshold = 0.5,
+  dismissible = true,
+}) => {
+  const points = [...snapOffsets].sort((a, b) => a - b);
+  // largest offset is the LOWEST resting position - the one you fall off
+  const lowest = points[points.length - 1];
+  const travelled = offset - lowest;
+  const flickDown = velocity >= velocityThreshold;
+  const flickUp = velocity <= -velocityThreshold;
+
+  // Only a release below the lowest snap can dismiss. Between snaps a flick
+  // just moves to the next point, which is what keeps a snapped drawer from
+  // closing every time someone shoves it downward.
+  if (
+    dismissible &&
+    travelled > 0 &&
+    (flickDown || travelled >= height * dismissThreshold)
+  ) {
+    return { type: "dismiss" };
+  }
+
+  if (points.length > 1 && (flickDown || flickUp)) {
+    const ahead = points.filter((p) => (flickDown ? p > offset : p < offset));
+    if (ahead.length) {
+      return {
+        type: "settle",
+        offset: flickDown ? Math.min(...ahead) : Math.max(...ahead),
+      };
+    }
+  }
+
+  const nearest = points.reduce(
+    (best, p) => (Math.abs(p - offset) < Math.abs(best - offset) ? p : best),
+    points[0],
+  );
+  return { type: "settle", offset: nearest };
+};
+
+export const PetalDrawer = {
+  mounted() {
+    this.dragging = false;
+    this.pointerId = null;
+    this.samples = [];
+    this.offset = 0;
+    this.height = 0;
+    this.wrapper = null;
+    this.scaled = null;
+
+    this.readConfig();
+
+    this.onPointerDown = this.onPointerDown.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
+    this.onPointerCancel = this.onPointerCancel.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onResize = this.onResize.bind(this);
+
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    // Non-passive, and on the sheet rather than the window: a touch sequence
+    // keeps targeting the element it began on, so the sheet sees every move of
+    // its own gesture, and only this sheet pays the scroll-blocking cost.
+    this.el.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    // move/up on the window, not the sheet: a fast flick outruns the element
+    // and we still need the release that happens past its edge
+    window.addEventListener("pointermove", this.onPointerMove);
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerCancel);
+    window.addEventListener("resize", this.onResize);
+
+    // scale_background has to track the panel opening and closing, which the
+    // JS commands drive by writing inline display on this element. The observer
+    // is unconditional so that flipping scale_background on in a later render
+    // starts working without a remount.
+    this.observer = new MutationObserver(() => this.syncBackground());
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    this.syncBackground();
+
+    this.reset();
+  },
+
+  updated() {
+    const previous = this.configKey;
+    this.readConfig();
+    // a re-render mid-drag must not yank the sheet out from under the finger
+    if (!this.dragging && previous !== this.configKey) this.reset();
+    else this.restore();
+    this.syncBackground();
+  },
+
+  destroyed() {
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerCancel);
+    window.removeEventListener("resize", this.onResize);
+    if (this.observer) this.observer.disconnect();
+    if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
+    clearTimeout(this.timer);
+  },
+
+  // A patch syncs the style attribute back to what the server rendered - the
+  // sheet's `height: Ndvh` and nothing else - and the only inline styles
+  // LiveView carries across a patch are its own sticky ones, which is display
+  // and not transform. So every re-render while the drawer is open drops the
+  // drag offset out of the DOM: the sheet jumps to its top rest position while
+  // this.offset still reads the old value, and the next pointermove teleports
+  // it back down to a baseline the user can no longer see. Put it back.
+  restore() {
+    if (this.dragging) this.el.style.transition = "none";
+    this.apply(this.offset);
+  },
+
+  // The offset the sheet is actually rendered at. Inline transform is written
+  // by this hook and nobody else - the open/close commands animate the
+  // translate utility, a separate property, which is why the two compose - so
+  // reading it back gives the sheet's real position, or 0 once a patch has
+  // dropped it.
+  renderedOffset() {
+    const match = /translate3d\([^,]*,\s*(-?[\d.]+)px/.exec(
+      this.el.style.transform || "",
+    );
+    return match ? parseFloat(match[1]) : 0;
+  },
+
+  readConfig() {
+    this.snapPoints = (this.el.dataset.snapPoints || "")
+      .split(",")
+      .map((n) => parseFloat(n))
+      .filter((n) => !Number.isNaN(n))
+      .sort((a, b) => a - b);
+    this.initialSnap = parseFloat(this.el.dataset.initialSnap);
+    this.dismissible = this.el.dataset.dragDismiss === "true";
+    this.configKey = this.el.dataset.snapPoints + this.el.dataset.initialSnap;
+    this.scroller = this.el.querySelector(".pc-slideover__content");
+
+    const wrapper =
+      this.el.dataset.scaleBackground === "true"
+        ? document.querySelector("[data-pc-drawer-wrapper]")
+        : null;
+
+    // Turning scale_background off has to hand the old wrapper back untouched.
+    if (wrapper !== this.wrapper) {
+      if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
+      this.wrapper = wrapper;
+      this.scaled = null;
+    }
+  },
+
+  // The sheet is sized to its tallest snap, so a point p rests (max - p)/max of
+  // the sheet's own height down from the top. Measuring the sheet rather than
+  // the viewport keeps the offsets true to the dvh-based CSS height, which
+  // drifts from innerHeight while a mobile URL bar is collapsing. Before the
+  // sheet is displayed it has no height, so fall back to the viewport.
+  sheetHeight() {
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    return this.el.offsetHeight || max * window.innerHeight;
+  },
+
+  snapOffsets() {
+    if (!this.snapPoints.length) return [0];
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    const height = this.sheetHeight();
+    return this.snapPoints.map((p) => ((max - p) / max) * height);
+  },
+
+  reset() {
+    const offsets = this.snapOffsets();
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    this.offset =
+      this.snapPoints.length && !Number.isNaN(this.initialSnap)
+        ? ((max - this.initialSnap) / max) * this.sheetHeight()
+        : offsets[0];
+    this.el.style.transition = "";
+    this.apply(this.offset);
+  },
+
+  onResize() {
+    if (!this.dragging) this.reset();
+  },
+
+  apply(offset) {
+    // An inline transform composes with the translate utility the open/close
+    // commands animate, so the drag offset and the slide can coexist.
+    this.el.style.transform = offset ? `translate3d(0, ${offset}px, 0)` : "";
+  },
+
+  isOpen() {
+    const display = this.el.style.display;
+    if (display === "none") return false;
+    if (display !== "") return true;
+    // No inline display at all: JS.show skips writing one when the element is
+    // already visible, which is exactly the case for a slide_over rendered
+    // without `hide`. Fall back to measuring, the way LiveView itself does.
+    return !!(
+      this.el.offsetWidth ||
+      this.el.offsetHeight ||
+      this.el.getClientRects().length
+    );
+  },
+
+  syncBackground() {
+    if (!this.wrapper) return;
+    // The observer fires on every [style] write, and a drag rewrites transform
+    // each pointermove, so without this the wrapper is reclassed per frame.
+    const open = this.isOpen();
+    if (open === this.scaled) return;
+    this.scaled = open;
+    this.wrapper.classList.toggle("pc-drawer-scaled", open);
+  },
+
+  reducedMotion() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  },
+
+  onPointerDown(e) {
+    if (this.dragging || e.isPrimary === false || e.button > 0) return;
+    const target = e.target;
+    if (!target || typeof target.closest !== "function") return;
+    // never swallow a tap meant for a control inside the sheet
+    if (target.closest("input, textarea, select, button, a, [contenteditable]"))
+      return;
+
+    // The vaul rule: claim the gesture only from the handle, or when the body
+    // has nothing left to scroll up. Otherwise inner scrolling stops working.
+    const onHandle = !!target.closest("[data-pc-drawer-handle]");
+    if (!onHandle && this.scroller && this.scroller.scrollTop > 0) return;
+
+    this.dragging = true;
+    this.pointerId = e.pointerId;
+    this.startY = e.clientY;
+    // Baseline the drag on where the sheet is rendered rather than on what the
+    // hook last wrote. The two only disagree when something moved the sheet
+    // behind the hook's back - a patch that landed without an updated(), a
+    // consumer clearing the style - and in that case the DOM is the truth. A
+    // drag has to start from the position the finger is touching.
+    this.offset = this.renderedOffset();
+    this.startOffset = this.offset;
+    this.height = this.el.offsetHeight || window.innerHeight;
+    this.samples = [{ y: e.clientY, time: e.timeStamp }];
+    clearTimeout(this.timer);
+    this.el.style.transition = "none";
+    this.el.classList.add("pc-slideover__box--dragging");
+  },
+
+  onPointerMove(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    if (e.cancelable) e.preventDefault();
+
+    this.samples.push({ y: e.clientY, time: e.timeStamp });
+    if (this.samples.length > 8) this.samples.shift();
+
+    const raw = this.startOffset + (e.clientY - this.startY);
+    this.offset = drawerResistance(raw, Math.min(...this.snapOffsets()));
+    this.apply(this.offset);
+  },
+
+  // preventDefault inside a pointermove handler does nothing to touch
+  // scrolling - only a non-passive touchmove can decline the gesture, and only
+  // before the browser has committed to a scroll. Direction decides: pulling
+  // the sheet down (or moving it at all when it is already displaced) is a
+  // drag, while a swipe up from a body that is at scroll-top is the user
+  // reading the content, and stealing that would break inner scrolling.
+  onTouchMove(e) {
+    if (!this.dragging || !e.cancelable) return;
+    const touch = e.touches && e.touches[0];
+    if (this.offset > 0 || (touch && touch.clientY > this.startY)) {
+      e.preventDefault();
+    }
+  },
+
+  endDrag() {
+    this.dragging = false;
+    this.pointerId = null;
+    this.el.classList.remove("pc-slideover__box--dragging");
+  },
+
+  onPointerUp(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
+
+    const result = drawerSettle({
+      offset: this.offset,
+      velocity: drawerVelocity(this.samples),
+      height: this.height,
+      snapOffsets: this.snapOffsets(),
+      dismissible: this.dismissible,
+    });
+    this.samples = [];
+
+    if (result.type === "dismiss") this.dismiss();
+    else this.settle(result.offset);
+  },
+
+  // A cancel is the browser taking the gesture away (it decided the touch was
+  // a scroll, or the pointer was captured elsewhere) - not the user letting go.
+  // Running release physics on it would let the browser close the drawer, so a
+  // cancel always springs back to the nearest snap with no velocity.
+  onPointerCancel(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
+
+    const { offset } = drawerSettle({
+      offset: this.offset,
+      velocity: 0,
+      height: this.height,
+      snapOffsets: this.snapOffsets(),
+      dismissible: false,
+    });
+    this.samples = [];
+    this.settle(offset);
+  },
+
+  settle(offset) {
+    this.offset = offset;
+    if (this.reducedMotion()) {
+      this.apply(offset);
+      this.el.style.transition = "";
+      return;
+    }
+    this.el.style.transition = "transform 320ms cubic-bezier(0.32, 0.72, 0, 1)";
+    this.apply(offset);
+    clearTimeout(this.timer);
+    // hand the transition back to the open/close classes once parked
+    this.timer = setTimeout(() => {
+      this.el.style.transition = "";
+    }, 340);
+  },
+
+  dismiss() {
+    // Leave the drag offset where it is with no inline transition: the hide
+    // command animates the translate utility 0 -> 100% on top of it, so the
+    // sheet carries on from exactly where the finger let go. Routing through
+    // data-pc-drawer-hide means a drag closes by the same path as Escape, the
+    // close button and click-away - one "close_slide_over" event either way.
+    this.el.style.transition = "";
+    const command = this.el.getAttribute("data-pc-drawer-hide");
+    if (command && this.liveSocket) this.liveSocket.execJS(this.el, command);
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.reset(), 400);
+  },
+};
+
 // Keyboard navigation for <.tree> (WAI-ARIA TreeView), and nothing else.
 //
 // Roving tabindex is the whole reason this hook exists: the tree must be a
@@ -7059,6 +7445,7 @@ export default {
   PetalComboBox,
   PetalContextMenu,
   PetalDataTable,
+  PetalDrawer,
   PetalTree,
   PetalScrollspy,
 };

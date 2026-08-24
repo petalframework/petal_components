@@ -219,4 +219,301 @@ defmodule PetalComponents.SlideOverTest do
     assert html =~ "pc-slideover__footer"
     assert html =~ "Save"
   end
+
+  describe "bottom-sheet drawer mode" do
+    test "origin=bottom shows the grab handle by default" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Filters">Body</.slide_over>
+        """)
+
+      assert html =~ "pc-slideover__handle"
+      assert html =~ "pc-slideover__handle__pill"
+      assert html =~ "data-pc-drawer-handle"
+    end
+
+    test "the handle is decorative - aria-hidden and carrying the handle class" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Filters">Body</.slide_over>
+        """)
+
+      handle =
+        html
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query(".pc-slideover__handle")
+
+      assert Enum.count(handle) == 1
+      assert LazyHTML.attribute(handle, "aria-hidden") == ["true"]
+    end
+
+    test "handle={false} removes the handle from a bottom sheet" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" handle={false} title="Filters">Body</.slide_over>
+        """)
+
+      refute html =~ "pc-slideover__handle"
+    end
+
+    test "an explicit handle={true} wins on a side sheet" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="right" handle title="Filters">Body</.slide_over>
+        """)
+
+      assert html =~ "pc-slideover__handle"
+    end
+
+    test "side and top origins get no handle by default" do
+      assigns = %{}
+
+      for origin <- ~w(left right top) do
+        assigns = Map.put(assigns, :origin, origin)
+
+        html =
+          rendered_to_string(~H"""
+          <.slide_over id="sheet" origin={@origin} title="Filters">Body</.slide_over>
+          """)
+
+        refute html =~ "pc-slideover__handle"
+      end
+    end
+
+    test "only the bottom origin gets the drawer box modifier" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Filters">Body</.slide_over>
+        """)
+
+      assert html =~ "pc-slideover__box--drawer"
+
+      for origin <- ~w(left right top) do
+        assigns = Map.put(assigns, :origin, origin)
+
+        html =
+          rendered_to_string(~H"""
+          <.slide_over id="sheet" origin={@origin} title="Filters">Body</.slide_over>
+          """)
+
+        refute html =~ "pc-slideover__box--drawer"
+      end
+    end
+
+    test "a draggable bottom sheet attaches the hook and its dismiss command" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Filters">Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "phx-hook") == ["PetalDrawer"]
+      assert LazyHTML.attribute(content, "data-drag-dismiss") == ["true"]
+      # dragging closes through the same command as escape and the close button
+      assert [command] = LazyHTML.attribute(content, "data-pc-drawer-hide")
+      assert command =~ "close_slide_over"
+    end
+
+    test "the drag dismiss command carries close_slide_over_target" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" close_slide_over_target="#lc" title="Filters">
+          Body
+        </.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+      assert [command] = LazyHTML.attribute(content, "data-pc-drawer-hide")
+      assert command =~ "#lc"
+    end
+
+    test "snap_points and initial_snap emit the hook config" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" snap_points={[0.4, 0.9]} initial_snap={0.4}>
+          Body
+        </.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "phx-hook") == ["PetalDrawer"]
+      assert LazyHTML.attribute(content, "data-snap-points") == ["0.4,0.9"]
+      assert LazyHTML.attribute(content, "data-initial-snap") == ["0.4"]
+      # the sheet is sized to its tallest snap so the hook only ever translates
+      assert LazyHTML.attribute(content, "style") == ["height: 90dvh"]
+    end
+
+    test "a fractional tallest snap keeps its decimals in the height" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" snap_points={[0.25, 0.755]}>Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "style") == ["height: 75.5dvh"]
+    end
+
+    test "snap points are sorted and initial_snap defaults to the lowest" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" snap_points={[0.9, 0.35]}>Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "data-snap-points") == ["0.35,0.9"]
+      assert LazyHTML.attribute(content, "data-initial-snap") == ["0.35"]
+    end
+
+    test "an initial_snap outside snap_points falls back to the lowest point" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" snap_points={[0.4, 0.9]} initial_snap={0.7}>
+          Body
+        </.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+      assert LazyHTML.attribute(content, "data-initial-snap") == ["0.4"]
+    end
+
+    test "a plain bottom sheet with nothing pointer-driven attaches no hook" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" drag_to_dismiss={false} title="Filters">
+          Body
+        </.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "phx-hook") == []
+      assert LazyHTML.attribute(content, "data-drag-dismiss") == []
+      assert LazyHTML.attribute(content, "data-pc-drawer-hide") == []
+      # it is still a drawer visually - just not a draggable one
+      assert html =~ "pc-slideover__box--drawer"
+      assert html =~ "pc-slideover__handle"
+    end
+
+    test "snap points alone attach the hook even with drag_to_dismiss off" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" drag_to_dismiss={false} snap_points={[0.4, 0.9]}>
+          Body
+        </.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "phx-hook") == ["PetalDrawer"]
+      assert LazyHTML.attribute(content, "data-drag-dismiss") == []
+    end
+
+    test "scale_background opts in through a data attribute" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" scale_background title="Share">Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+      assert LazyHTML.attribute(content, "data-scale-background") == ["true"]
+      assert LazyHTML.attribute(content, "phx-hook") == ["PetalDrawer"]
+    end
+
+    test "scale_background is off by default" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Share">Body</.slide_over>
+        """)
+
+      content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+      assert LazyHTML.attribute(content, "data-scale-background") == []
+    end
+
+    test "side origins never attach the hook, whatever the drawer attrs say" do
+      assigns = %{}
+
+      for origin <- ~w(left right top) do
+        assigns = Map.put(assigns, :origin, origin)
+
+        html =
+          rendered_to_string(~H"""
+          <.slide_over
+            id="sheet"
+            origin={@origin}
+            snap_points={[0.4, 0.9]}
+            initial_snap={0.4}
+            scale_background
+          >
+            Body
+          </.slide_over>
+          """)
+
+        content = html |> LazyHTML.from_fragment() |> LazyHTML.query("#sheet-content")
+
+        assert LazyHTML.attribute(content, "phx-hook") == []
+        assert LazyHTML.attribute(content, "data-snap-points") == []
+        assert LazyHTML.attribute(content, "data-initial-snap") == []
+        assert LazyHTML.attribute(content, "data-scale-background") == []
+        assert LazyHTML.attribute(content, "data-drag-dismiss") == []
+      end
+    end
+
+    test "the drawer leaves the dialog semantics exactly as they were" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over id="sheet" origin="bottom" title="Filters" description="Narrow the list">
+          Body
+          <:footer>
+            <button>Apply</button>
+          </:footer>
+        </.slide_over>
+        """)
+
+      dialog = html |> LazyHTML.from_fragment() |> LazyHTML.query("[role=dialog]")
+
+      assert LazyHTML.attribute(dialog, "aria-modal") == ["true"]
+      assert LazyHTML.attribute(dialog, "aria-labelledby") == ["sheet-title"]
+      assert LazyHTML.attribute(dialog, "aria-describedby") == ["sheet-description"]
+      assert html =~ "phx-window-keydown"
+      assert html =~ "phx-click-away"
+      assert html =~ "pc-slideover__footer"
+    end
+  end
 end

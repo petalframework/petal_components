@@ -1,4 +1,67 @@
 defmodule PetalComponents.SlideOver do
+  @moduledoc """
+  An edge-attached panel - a "sheet" - for forms and detail views that don't warrant a
+  full page. `origin` decides which edge it slides from.
+
+      <.slide_over id="profile" origin="right" title="Edit profile">
+        Body
+        <:footer>
+          <button>Save</button>
+        </:footer>
+      </.slide_over>
+
+  ## Bottom-sheet drawer mode
+
+  `origin="bottom"` is a first-class mobile drawer rather than a plain full-width panel:
+  rounded top corners, a border, `env(safe-area-inset-bottom)` padding, and a grab-handle
+  pill. The handle appears automatically - `handle` defaults to `nil`, which resolves to
+  `true` for `origin="bottom"` and `false` everywhere else. Pass it explicitly to override
+  in either direction.
+
+      <.slide_over id="filters" origin="bottom" title="Filters">
+        Body
+      </.slide_over>
+
+  Drag-to-dismiss is on by default for bottom sheets. Drag the sheet down past roughly a
+  quarter of its height, or flick it down, and it closes through the exact same path as
+  Escape, the close button and click-away - the server still receives one
+  `"close_slide_over"` event.
+
+      <.slide_over id="queue" origin="bottom" snap_points={[0.4, 0.9]} initial_snap={0.4}>
+        Body
+      </.slide_over>
+
+  `snap_points` are viewport-height fractions the drawer can rest at. It opens at
+  `initial_snap` (the first point when unset), drags between the points, and only a
+  downward release below the lowest point dismisses.
+
+  Dragging is a pointer-only enhancement layered over the dialog. Keyboard and
+  screen-reader users get exactly the behaviour they had before: `role="dialog"`,
+  `aria-modal`, focus moved into the panel on open, Escape to close. The handle is
+  `aria-hidden` because it is decorative - the drag is the interaction, not the element.
+  Snap changes are visual only and are not announced. Under `prefers-reduced-motion` the
+  drawer settles instantly instead of springing.
+
+  ## The `scale_background` trade-off
+
+  `scale_background` shrinks and rounds the page behind an open drawer. It is off by
+  default because it puts a `transform` on the page wrapper, and a transformed ancestor
+  becomes the containing block for every `position: fixed` descendant - sticky headers and
+  fixed toolbars inside the page will move with it. It also forces a full-page repaint on
+  open and close. Turn it on only when the page behind the drawer is simple, and mark the
+  wrapper it should scale:
+
+      <div data-pc-drawer-wrapper>
+        <%!-- page content --%>
+      </div>
+
+      <.slide_over id="share" origin="bottom" scale_background title="Share">
+        Body
+      </.slide_over>
+
+  Left, right and top sheets are unchanged by all of the above: no handle, no drag, no
+  hook.
+  """
   use Phoenix.Component
   alias Phoenix.LiveView.JS
   import PetalComponents.Helpers, only: [compose_js: 2]
@@ -49,6 +112,36 @@ defmodule PetalComponents.SlideOver do
     default: %JS{},
     doc: "additional JS commands to run when the slide over closes"
 
+  attr(:handle, :boolean,
+    default: nil,
+    doc:
+      ~s|show the grab-handle pill. Defaults to true when origin="bottom", false otherwise. Set explicitly to override.|
+  )
+
+  attr(:drag_to_dismiss, :boolean,
+    default: true,
+    doc:
+      ~s|for origin="bottom": drag the sheet down past a threshold (or flick with enough velocity) to dismiss. Pointer-only; Escape and the close button always work regardless. Ignored for other origins.|
+  )
+
+  attr(:snap_points, :list,
+    default: nil,
+    doc:
+      "optional list of viewport-height fractions the drawer can rest at, e.g. [0.4, 0.9]. Drag between them; a fast flick skips to the next point in the flick direction. nil means content-height with a single rest position."
+  )
+
+  attr(:initial_snap, :float,
+    default: nil,
+    doc:
+      "which snap point the drawer opens at. Must be a member of snap_points. Defaults to the first entry."
+  )
+
+  attr(:scale_background, :boolean,
+    default: false,
+    doc:
+      "scales and rounds the page behind the drawer while it is open. Off by default because it transforms the whole page (see the moduledoc for the trade-offs). Requires the consumer to mark the page wrapper with data-pc-drawer-wrapper."
+  )
+
   attr(:class, :any, default: nil, doc: "CSS class")
   attr(:hide, :boolean, default: false, doc: "slideover is hidden")
   attr(:rest, :global)
@@ -60,6 +153,8 @@ defmodule PetalComponents.SlideOver do
   )
 
   def slide_over(assigns) do
+    assigns = assign_drawer(assigns)
+
     ~H"""
     <div
       {@rest}
@@ -80,7 +175,17 @@ defmodule PetalComponents.SlideOver do
       >
         <div
           id={"#{@id}-content"}
-          class={get_classes(@max_width, @origin, @class)}
+          class={[get_classes(@max_width, @origin, @class), @drawer? && "pc-slideover__box--drawer"]}
+          style={@drawer_height}
+          phx-hook={@drawer_hook}
+          data-pc-drawer-hide={
+            @drawer_hook &&
+              compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))
+          }
+          data-drag-dismiss={@drawer? && @drag_to_dismiss && "true"}
+          data-snap-points={@snap_points_attr}
+          data-initial-snap={@initial_snap_attr}
+          data-scale-background={@drawer? && @scale_background && "true"}
           phx-click-away={
             @close_on_click_away &&
               compose_js(@on_close, hide_slide_over(@origin, @id, @close_slide_over_target))
@@ -91,6 +196,14 @@ defmodule PetalComponents.SlideOver do
           }
           phx-key="escape"
         >
+          <div
+            :if={@show_handle?}
+            class="pc-slideover__handle"
+            data-pc-drawer-handle
+            aria-hidden="true"
+          >
+            <span class="pc-slideover__handle__pill"></span>
+          </div>
           <!-- Header -->
           <div class="pc-slideover__header">
             <div class="pc-slideover__header__container">
@@ -236,6 +349,69 @@ defmodule PetalComponents.SlideOver do
 
     [slide_over_classes, max_width_class, base_classes, custom_classes]
   end
+
+  # Bottom sheets are the only origin with a drag layer, so everything the hook
+  # needs is resolved here and emitted as data attributes. Side sheets fall
+  # through with every drawer assign nil - no handle, no hook, no new markup.
+  defp assign_drawer(assigns) do
+    drawer? = assigns.origin == "bottom"
+    snaps = drawer? && normalize_snap_points(assigns.snap_points)
+
+    assigns
+    |> assign(:drawer?, drawer?)
+    |> assign(:show_handle?, resolve_handle(assigns.handle, drawer?))
+    |> assign(:drawer_hook, drawer_hook(assigns, drawer?, snaps))
+    |> assign(:snap_points_attr, snaps && Enum.map_join(snaps, ",", &to_string/1))
+    |> assign(:initial_snap_attr, snaps && to_string(resolve_initial_snap(assigns, snaps)))
+    |> assign(:drawer_height, snaps && "height: #{format_dvh(Enum.max(snaps))}dvh")
+  end
+
+  # A fraction of 0.9 is 90.0 in Elixir, and "height: 90.0dvh" is not markup
+  # anyone wants to read in devtools. Whole numbers print whole; the rest keep
+  # their decimals, rounded to kill float-multiplication noise (0.29 * 100).
+  defp format_dvh(fraction) do
+    value = Float.round(fraction * 100.0, 4)
+
+    if value == Float.floor(value) do
+      value |> trunc() |> Integer.to_string()
+    else
+      :erlang.float_to_binary(value, [:short])
+    end
+  end
+
+  # nil means "whatever suits this origin"; an explicit boolean always wins.
+  defp resolve_handle(nil, drawer?), do: drawer?
+  defp resolve_handle(handle, _drawer?), do: handle
+
+  # Only bottom sheets that actually do something pointer-driven pay for a hook.
+  # A plain non-draggable bottom sheet stays CSS + LiveView.JS only.
+  defp drawer_hook(_assigns, false, _snaps), do: nil
+
+  defp drawer_hook(assigns, true, snaps) do
+    if assigns.drag_to_dismiss || snaps || assigns.scale_background do
+      "PetalDrawer"
+    end
+  end
+
+  defp normalize_snap_points(points) when is_list(points) and points != [] do
+    points
+    |> Enum.filter(&is_number/1)
+    |> Enum.sort()
+    |> case do
+      [] -> nil
+      sorted -> sorted
+    end
+  end
+
+  defp normalize_snap_points(_points), do: nil
+
+  # An initial_snap that isn't one of the points would leave the hook resting at a
+  # position the user can never drag back to, so fall back to the lowest point.
+  defp resolve_initial_snap(%{initial_snap: initial}, snaps) when is_number(initial) do
+    if initial in snaps, do: initial, else: List.first(snaps)
+  end
+
+  defp resolve_initial_snap(_assigns, snaps), do: List.first(snaps)
 
   defp get_margin_classes(margin) do
     case margin do
