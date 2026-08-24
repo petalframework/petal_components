@@ -558,6 +558,21 @@ defmodule PetalComponents.CssAssetsTest do
       refute rule =~ ~r/@apply[^;]*text-white/
     end
 
+    test "an element-less tool body hides itself", %{css: css} do
+      # HEEx whitespace between the opening tag and a named slot counts as
+      # inner content; without this guard it renders an empty padded strip.
+      assert css =~ ".pc-chat__tool-body:not(:has(*))"
+      assert css =~ ".pc-chat__tool-error-row + .pc-chat__tool-panels"
+    end
+
+    test "chat code blocks carry an explicit lumis theme", %{css: _css} do
+      # lumis 0.7 stopped defaulting a theme for :html_inline - the formatter
+      # must name one or newer consumers render colourless code.
+      chat = File.read!("lib/petal_components/chat.ex")
+      assert chat =~ ~s|{:html_inline, theme: "onedark"}|
+      refute chat =~ ~r/formatter: :html_inline[,\]]/
+    end
+
     test "the tool panel cannot be flex-crushed in a fixed-height thread", %{css: css} do
       # overflow-hidden on a flex child zeroes its automatic minimum size;
       # without shrink-0 a short mobile chat crushes the panel to its header

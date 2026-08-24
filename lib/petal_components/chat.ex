@@ -430,7 +430,9 @@ defmodule PetalComponents.Chat do
   attr :class, :any, default: nil
   attr :rest, :global
 
-  slot :inner_block, doc: "the rendered widget / tool result. Always visible, never collapsed"
+  slot :inner_block,
+    doc:
+      "the rendered widget / tool result. Always visible, never collapsed. Wrap bare text in an element - the body hides itself when it contains no element, which is what keeps whitespace-only inner content (a formatted call whose only real content is a named slot) from rendering an empty padded strip"
 
   slot :tool_icon,
     doc:
@@ -811,7 +813,12 @@ defmodule PetalComponents.Chat do
   defp markdown_opts do
     [
       extension: [strikethrough: true, table: true, autolink: true, tasklist: true],
-      syntax_highlight: [formatter: :html_inline],
+      # The theme travels explicitly: lumis 0.6 defaulted one for a bare
+      # :html_inline, lumis 0.7 stopped - and the difference renders as
+      # structurally-correct but colourless code (found on petal.build,
+      # which resolved the newer lumis). onedark is the look the chat's
+      # code chrome was designed around, in both colour schemes.
+      syntax_highlight: [formatter: {:html_inline, theme: "onedark"}],
       sanitize: MDEx.Document.default_sanitize_options()
     ]
   end

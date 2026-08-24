@@ -4,6 +4,18 @@
 
 #### Fixed
 
+- **Chat code blocks are highlighted again on newer lumis.** The
+  markdown pipeline passed a bare `:html_inline` formatter and relied
+  on lumis defaulting a theme - lumis 0.7 stopped, and consumers
+  resolving it rendered structurally-correct but colourless code. The
+  `onedark` theme now travels explicitly, on every lumis generation.
+
+- **A tool call whose only content is a named slot no longer renders
+  an empty padded strip.** HEEx counts the whitespace before the first
+  named slot as inner content, so the widget body's slot guard passed
+  with nothing to show. An element-less body now hides itself, and
+  panels directly after the error band bring their own spacing.
+
 - **The chat tool panel no longer collapses to its header in a
   fixed-height thread.** The panel is a direct flex child of the thread
   column, and its `overflow-hidden` (there for the rounded corners)

@@ -5611,6 +5611,22 @@
     @apply border-t border-gray-100 p-3 dark:border-gray-800;
   }
 
+  /* HEEx counts the whitespace between a component's opening tag and its
+     first named slot as inner content, so a tool_call carrying only
+     error_actions still renders a "widget" body - an empty padded strip
+     between header and error row (found on petal.build's lifecycle demo).
+     No element inside means nothing to show. Bare-text widgets need a
+     wrapper element; the slot doc says so. */
+  .pc-chat__tool-body:not(:has(*)) {
+    display: none;
+  }
+
+  /* Panels normally breathe off the body's bottom padding; directly after
+     the error band there is no body, so they bring their own air. */
+  .pc-chat__tool-error-row + .pc-chat__tool-panels {
+    @apply pt-3;
+  }
+
   /* Viewport wraps the thread so the scroll-to-bottom button can sit over it. */
   .pc-chat__viewport {
     @apply relative flex min-h-0 flex-1 flex-col;
