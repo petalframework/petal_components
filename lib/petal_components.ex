@@ -44,6 +44,7 @@ defmodule PetalComponents do
         FileUpload,
         Filters,
         Form,
+        HoverCard,
         Icon,
         Input,
         Kbd,

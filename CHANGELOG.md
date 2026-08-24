@@ -4,6 +4,33 @@
 
 #### Added
 
+- **New `hover_card` component: the profile-preview pattern, with no
+  JavaScript.** Hover a username, a link, an avatar, and after a beat a
+  panel fades in with whatever you want in it - and unlike a tooltip,
+  you can click what's inside. It sits between the two components you
+  already have: `tooltip` is a text hint that opens on hover, `popover`
+  is an interactive panel that opens on click, and `hover_card` is an
+  interactive panel that opens on hover or keyboard focus. The same
+  twelve placements as `popover`, off the same offset geometry, so a
+  card and a panel anchored the same way land in the same place.
+  `open_delay` (350ms) and `close_delay` (150ms) ride on the wrapper as
+  CSS custom properties and are consumed by `transition-delay`: the
+  resting delay is the close delay, and hover or focus swaps in the open
+  one. That is the whole timing mechanism - no hook, no timers, nothing
+  to clean up on unmount. The panel is a child of the wrapper and
+  carries a transparent bridge across the placement gap, so crossing
+  from the trigger onto the card never drops the hover and the card
+  stays put while you read it or click a button in it. Keyboard opens it
+  on `focus-within` and tabbing onward reaches the card's own controls,
+  with no focus trap; Escape is not wired, because in pure CSS it can't
+  be, and moving focus away is the close path. At rest the panel is
+  `visibility: hidden`, so it's out of the accessibility tree entirely,
+  and it carries no `role` - it is neither a tooltip nor a dialog.
+  Nothing intercepts taps, so the trigger keeps working as the link it
+  is on touch, where hover does not exist. Under
+  `prefers-reduced-motion` the fade goes and the delays stay: the delay
+  is interaction design, the fade is decoration.
+
 - **New `sortable` component: drag-to-reorder lists and grids, with a
   keyboard path that is not an afterthought.** Drag a row (or only its
   grip, with `handle`) and the list reorders under your finger with the

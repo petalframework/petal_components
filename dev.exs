@@ -332,6 +332,7 @@ defmodule Dev.PlaygroundLive do
       items: [
         %{slug: "tooltip", name: "Tooltip", ready: true},
         %{slug: "popover", name: "Popover", ready: true},
+        %{slug: "hover-card", name: "Hover card", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
         %{slug: "dropdown", name: "Dropdown", ready: true},
         %{slug: "context-menu", name: "Context menu", ready: true},
@@ -998,6 +999,7 @@ defmodule Dev.PlaygroundLive do
        ticker: %{value: 1024},
        tooltip: %{placement: "top", arrow: true},
        popover: %{placement: "bottom", top_layer: false},
+       hover_card: %{placement: "bottom", open_delay: 350, close_delay: 150},
        context_menu: %{disabled: false},
        scrollspy: %{offset: "6rem", nested: false, indicator: "bar"},
        chart: %{
@@ -1905,6 +1907,20 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_popover", %{"k" => "top_layer"}, socket),
     do: {:noreply, update(socket, :popover, &%{&1 | top_layer: !&1.top_layer})}
+
+  @hover_card_placements ~w(top top-start top-end bottom bottom-start bottom-end left left-start left-end right right-start right-end)
+
+  def handle_event("ctl_hover_card", %{"k" => "placement", "v" => v}, socket)
+      when v in @hover_card_placements,
+      do: {:noreply, update(socket, :hover_card, &%{&1 | placement: v})}
+
+  def handle_event("ctl_hover_card", %{"k" => "open_delay", "v" => v}, socket)
+      when v in ~w(0 350 700),
+      do: {:noreply, update(socket, :hover_card, &%{&1 | open_delay: String.to_integer(v)})}
+
+  def handle_event("ctl_hover_card", %{"k" => "close_delay", "v" => v}, socket)
+      when v in ~w(0 150 500),
+      do: {:noreply, update(socket, :hover_card, &%{&1 | close_delay: String.to_integer(v)})}
 
   def handle_event("ctl_context_menu", %{"k" => "disabled"}, socket),
     do: {:noreply, update(socket, :context_menu, &%{&1 | disabled: !&1.disabled})}
@@ -3060,6 +3076,35 @@ defmodule Dev.PlaygroundLive do
     open <>
       ~s( trigger_class="pc-button pc-button--gray-outline pc-button--md") <>
       ">\n  <:trigger>Open popover</:trigger>\n  Panel content here.\n</.popover>"
+  end
+
+  defp hover_card_snippet(hc) do
+    attrs =
+      [
+        hc.placement != "bottom" && ~s(placement="#{hc.placement}"),
+        hc.open_delay != 350 && "open_delay={#{hc.open_delay}}",
+        hc.close_delay != 150 && "close_delay={#{hc.close_delay}}"
+      ]
+      |> Enum.filter(& &1)
+
+    Enum.join(["<.hover_card" | attrs], " ") <>
+      ">\n  <:trigger>\n    <.link navigate={~p\"/users/jane\"}>@jane</.link>\n  </:trigger>\n  <%!-- avatar, bio, stats, a follow button --%>\n</.hover_card>"
+  end
+
+  # Where to park the demo trigger inside the preview frame while the frame is
+  # too narrow to centre it (below md). The card is statically placed, so it
+  # grows in one direction only - put the trigger against the opposite side and
+  # the whole card lands inside the frame. `md:justify-center` overrides this
+  # once the frame can hold a card on both sides of a centred trigger.
+  defp hover_card_demo_justify("left" <> _), do: "justify-end"
+  defp hover_card_demo_justify("right" <> _), do: "justify-start"
+
+  defp hover_card_demo_justify(placement) do
+    cond do
+      String.ends_with?(placement, "-start") -> "justify-start"
+      String.ends_with?(placement, "-end") -> "justify-end"
+      true -> "justify-center"
+    end
   end
 
   defp otp_snippet(o) do
@@ -9482,6 +9527,180 @@ defmodule Dev.PlaygroundLive do
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         These examples render from the shared <code>PetalComponents.Showcase.ContextMenu</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "hover-card"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Hover card</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A rich preview that opens when the pointer rests on its trigger, or when
+        keyboard focus lands inside it. Interactive content, unlike a tooltip.
+        No click needed, unlike a popover. Pure CSS - the delays are custom
+        properties, not JavaScript.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <%!-- The frame clips (overflow-hidden), so the preview itself has to
+              hold the open card at every placement or the dial reads as a
+              component bug. Vertically: the card runs ~220px, so a centred
+              trigger needs two of those plus the two 8px gaps and its own
+              line - min-h-[34rem] clears that with room to spare.
+              Horizontally: below md the frame is narrower than trigger + gap +
+              two card widths, so a centred trigger would push the -start/-end
+              and side placements out through the edge. Park the trigger on the
+              side the card grows AWAY from until md, where centring fits. --%>
+        <div class={[
+          "flex items-center px-4 sm:px-6 py-16 min-h-[34rem] md:justify-center",
+          hover_card_demo_justify(@hover_card.placement)
+        ]}>
+          <%!-- stable id: dial changes patch this subtree, and without it
+                LiveView re-mints the generated id attribute every render --%>
+          <.hover_card
+            id="hover-card-hero"
+            placement={@hover_card.placement}
+            open_delay={@hover_card.open_delay}
+            close_delay={@hover_card.close_delay}
+          >
+            <:trigger>
+              <a href="#" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+                @jane
+              </a>
+            </:trigger>
+            <%!-- narrower on phones: a full-width card plus the trigger and
+                  the gap is wider than the frame at 375px --%>
+            <div class="w-56 sm:w-64">
+              <div class="flex items-start gap-3">
+                <.avatar name="Jane Doe" size="md" />
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold">Jane Doe</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">@jane</div>
+                </div>
+              </div>
+              <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                Ships Phoenix apps for a living. Maintains three things she meant to archive.
+              </p>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <span>
+                  <span class="font-semibold text-gray-900 dark:text-white">1,204</span> followers
+                </span>
+                <span>
+                  <span class="font-semibold text-gray-900 dark:text-white">183</span> following
+                </span>
+              </div>
+              <.button size="sm" color="primary" class="w-full mt-3" label="Follow" />
+            </div>
+          </.hover_card>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">placement</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Placement"
+              value={@hover_card.placement}
+              on_change="ctl_hover_card"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={
+                  pl <-
+                    ~w(top top-start top-end bottom bottom-start bottom-end left left-start left-end right right-start right-end)
+                }
+                value={pl}
+                phx-value-k="placement"
+                phx-value-v={pl}
+              >
+                {pl}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">open delay</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Open delay"
+              value={to_string(@hover_card.open_delay)}
+              on_change="ctl_hover_card"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={ms <- ~w(0 350 700)}
+                value={ms}
+                phx-value-k="open_delay"
+                phx-value-v={ms}
+              >
+                {ms}ms
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">close delay</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Close delay"
+              value={to_string(@hover_card.close_delay)}
+              on_change="ctl_hover_card"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={ms <- ~w(0 150 500)}
+                value={ms}
+                phx-value-k="close_delay"
+                phx-value-v={ms}
+              >
+                {ms}ms
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        Keyboard: tab to the handle and the card opens on focus, then tab again to
+        reach Follow inside it. Tab past the card to close it - there is no focus
+        trap and no Escape, which is the honest cost of shipping this without a hook.
+        On touch there is no hover at all, so the trigger has to stand on its own:
+        tapping the handle follows the link, exactly as it would without the card.
+      </p>
+
+      <button
+        phx-click="flip"
+        phx-value-k="show_code"
+        class="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <.icon name="hero-code-bracket" class="w-4 h-4" />
+        {if @show_code, do: "Hide code", else: "View code"}
+      </button>
+      <pre
+        :if={@show_code}
+        class="p-4 mt-2 overflow-x-auto text-sm text-gray-100 bg-gray-900 rounded-xl dark:border dark:border-gray-800"
+      ><code>{hover_card_snippet(@hover_card)}</code></pre>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.HoverCard, ~w(link_preview placement)a)}
+        class="mt-10"
+      >
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.HoverCard} function={:hover_card} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.HoverCard</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift.
       </div>
