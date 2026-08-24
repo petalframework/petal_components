@@ -2437,7 +2437,11 @@
     @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
   }
   .pc-command__input {
-    @apply h-11 w-full border-0 bg-transparent p-0 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
+    /* text-base below sm, the field-family convention (pc-text-input,
+       combobox, number-field): iOS Safari zooms the viewport when focusing
+       an input under 16px, and the palette is exactly the surface a phone
+       opens to type into. */
+    @apply h-11 w-full border-0 bg-transparent p-0 text-base sm:text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
   }
   .pc-command__input:focus {
     @apply outline-none ring-0 shadow-none border-0;
@@ -8407,6 +8411,214 @@
       transition-duration: 1ms;
     }
   }
+
+/* Empty state: media, title, description, actions, trailing line.
+   Wrapped in its own layer: appended rules after the last @layer block
+   close would otherwise be UNLAYERED, and unlayered author CSS beats every
+   layer in Tailwind v4 - breaking the pc-* utility-override contract. */
+@layer components {
+
+
+  .pc-empty {
+    @apply flex w-full flex-col items-center text-center;
+  }
+
+  .pc-empty__media {
+    @apply flex shrink-0 items-center justify-center text-gray-400 dark:text-gray-500;
+  }
+
+  /* the default treatment - a muted circle with a dashed ring */
+  .pc-empty__media--default {
+    @apply rounded-full border border-dashed border-gray-300 bg-gray-50;
+    @apply dark:border-gray-400/25 dark:bg-white/[0.04];
+  }
+
+  .pc-empty__title {
+    @apply font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-empty__description {
+    @apply max-w-md text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-empty__actions {
+    @apply flex flex-wrap items-center justify-center;
+  }
+
+  .pc-empty__footer {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /* Empty state - variants */
+
+  .pc-empty--default {
+    @apply px-6 py-12;
+  }
+
+  .pc-empty--compact {
+    @apply px-4 py-8;
+  }
+
+  .pc-empty--card {
+    @apply border border-gray-200 bg-white px-6 py-12 shadow-xs dark:border-gray-400/17 dark:bg-gray-900;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+
+  .pc-empty--dashed {
+    @apply border border-dashed border-gray-300 px-6 py-12 dark:border-gray-400/25;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
+  }
+
+  /* Empty state - sizes (media, type and spacing scale together) */
+
+  .pc-empty--sm .pc-empty__media--default {
+    @apply size-10;
+  }
+  .pc-empty--sm .pc-empty__icon {
+    @apply w-5 h-5;
+  }
+  .pc-empty--sm .pc-empty__title {
+    @apply mt-3 text-sm;
+  }
+  .pc-empty--sm .pc-empty__description {
+    @apply mt-1 text-xs;
+  }
+  .pc-empty--sm .pc-empty__actions {
+    @apply mt-3 gap-2;
+  }
+  .pc-empty--sm .pc-empty__footer {
+    @apply mt-2 text-xs;
+  }
+
+  .pc-empty--md .pc-empty__media--default {
+    @apply size-12;
+  }
+  .pc-empty--md .pc-empty__icon {
+    @apply w-6 h-6;
+  }
+  .pc-empty--md .pc-empty__title {
+    @apply mt-4 text-base;
+  }
+  .pc-empty--md .pc-empty__description {
+    @apply mt-1.5 text-sm;
+  }
+  .pc-empty--md .pc-empty__actions {
+    @apply mt-5 gap-2;
+  }
+  .pc-empty--md .pc-empty__footer {
+    @apply mt-3;
+  }
+
+  .pc-empty--lg .pc-empty__media--default {
+    @apply size-16;
+  }
+  .pc-empty--lg .pc-empty__icon {
+    @apply w-8 h-8;
+  }
+  .pc-empty--lg .pc-empty__title {
+    @apply mt-5 text-lg;
+  }
+  .pc-empty--lg .pc-empty__description {
+    @apply mt-2 text-base;
+  }
+  .pc-empty--lg .pc-empty__actions {
+    @apply mt-6 gap-3;
+  }
+  .pc-empty--lg .pc-empty__footer {
+    @apply mt-4;
+  }
+
+  /* compact runs one notch tighter than its size band asks for - it lives
+     inside a table frame or a list, where page-level air reads as a gap */
+  .pc-empty--compact .pc-empty__title {
+    @apply mt-3;
+  }
+  .pc-empty--compact .pc-empty__actions {
+    @apply mt-4;
+  }
+}
+
+/* Number field
+ *
+ * A spinbutton riding the input-group surface: the group keeps the border,
+ * radius and focus ring, so this section only paints the input density and
+ * the step buttons. Inside @layer components so a consumer's own utilities
+ * still outrank it.
+ */
+@layer components {
+  .pc-number-field .pc-number-field__input {
+    /* text-base below sm, like pc-text-input: iOS Safari zooms the viewport
+       when focusing an input under 16px, and a re-layout mid-interaction
+       makes the next tap land on stale coordinates. */
+    @apply w-full min-w-0 px-3 py-2 text-base sm:text-sm text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder:text-gray-500;
+  }
+  .pc-number-field--sm .pc-number-field__input {
+    @apply px-2.5 py-1.5 sm:text-xs;
+  }
+  .pc-number-field--lg .pc-number-field__input {
+    @apply py-2.5 sm:text-base;
+  }
+  /* Split sits the value between two buttons, so centring it is what stops
+     the field reading as lopsided. */
+  .pc-number-field--split .pc-number-field__input {
+    @apply text-center;
+  }
+
+  /* Addons holding buttons shed the text inset and wear the same 2px inset
+     frame as an input-group button chip. */
+  .pc-number-field .pc-input-group__addon:has(.pc-number-field__button) {
+    @apply gap-1 p-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--leading:has(.pc-number-field__button) {
+    @apply pl-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--trailing:has(.pc-number-field__button) {
+    @apply pr-0.5;
+  }
+
+  .pc-number-field__button {
+    @apply flex items-center justify-center shrink-0 w-7 text-gray-500 cursor-pointer select-none transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-100;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--sm .pc-number-field__button {
+    @apply w-6;
+  }
+  .pc-number-field--lg .pc-number-field__button {
+    @apply w-8;
+  }
+  /* At a bound the button keeps its place and its label (aria-disabled, not
+     disabled) but reads as spent and stops answering the pointer. */
+  .pc-number-field__button[aria-disabled="true"] {
+    @apply text-gray-300 pointer-events-none dark:text-gray-600;
+  }
+  /* Doubled selector: the icon sizing contract, same as the combobox chevron. */
+  .pc-number-field__icon.pc-number-field__icon {
+    @apply w-4! h-4!;
+  }
+  .pc-number-field--sm .pc-number-field__icon.pc-number-field__icon {
+    @apply w-3.5! h-3.5!;
+  }
+
+  /* Stacked: two half-height buttons splitting the trailing addon's height,
+     the classic spinner. */
+  .pc-number-field__stack {
+    @apply flex flex-col self-stretch gap-px;
+  }
+  .pc-number-field__stack .pc-number-field__button {
+    @apply flex-1 min-h-0;
+  }
+  .pc-number-field__stack .pc-number-field__button--inc {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px) 0 0;
+  }
+  .pc-number-field__stack .pc-number-field__button--dec {
+    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--split .pc-number-field__button {
+    @apply self-stretch;
+  }
+}
 
 /* Sidebar - the app-shell navigation rail.
  *
