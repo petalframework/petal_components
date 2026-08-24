@@ -1,4 +1,18 @@
 defmodule PetalComponents.Menu do
+  @moduledoc """
+  The vertical navigation list: menu items from plain maps, current-page
+  highlighting, groups, and nested sub-menus.
+
+  This is the list, not the chrome around it. For the app-shell furniture a nav
+  list usually lives in - the rail, the collapse to icons, the mobile sheet -
+  reach for `PetalComponents.Sidebar.sidebar_nav/1`; menu is the list it holds. The
+  two compose: a `vertical_menu/1` drops straight into a sidebar's content area.
+
+  And a menu is for pages you NAVIGATE to. Hierarchical data you explore -
+  files, folders, an org chart - belongs in `PetalComponents.Tree.tree/1`,
+  a different widget with a different keyboard grammar. The sidebar holds
+  either; they never hold each other.
+  """
   use Phoenix.Component
   import PetalComponents.Link
   import PetalComponents.Icon

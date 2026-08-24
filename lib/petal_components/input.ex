@@ -4,6 +4,14 @@ defmodule PetalComponents.Input do
 
   @moduledoc """
   Renders pure inputs (no label or errors).
+
+  > #### Sliders have moved {: .info}
+  >
+  > `type="range"` and `type="range-dual"` still work and are not going
+  > anywhere in this release, but `PetalComponents.Slider.slider/1` supersedes
+  > them. It is the same native `<input type="range">` machinery with marks, a
+  > value readout, vertical orientation and sizes on top, so reach for
+  > `<.slider>` in new code.
   """
 
   attr :id, :any, default: nil
@@ -234,7 +242,7 @@ defmodule PetalComponents.Input do
         aria-label="Clear input"
       >
         <span class="pc-clearable-field-icon-container">
-          <.icon name="hero-x-mark-solid" class="pc-clearable-field-icon" />
+          <.icon name="hero-x-mark-mini" class="pc-clearable-field-icon" />
         </span>
       </button>
     </div>
@@ -259,13 +267,9 @@ defmodule PetalComponents.Input do
         class={@class}
         {@rest}
       />
-      <button
-        type="button"
-        class="pc-date-input-icon"
-        onclick="this.previousElementSibling.showPicker()"
-      >
-        <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
-      </button>
+      <span class="pc-date-input-icon" aria-hidden="true">
+        <.icon name={@icon_name} class="pc-date-input-icon-glyph" />
+      </span>
     </div>
     """
   end
