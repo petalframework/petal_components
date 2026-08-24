@@ -54,6 +54,10 @@ defmodule PetalComponents.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:mdex, "~> 0.12", optional: true},
+      # QR encoding matrix for <.qr_code>. Optional: it is NOT installed into a
+      # consumer's dependency tree unless they add it themselves. Only the
+      # encoding matrix comes from here - the SVG, theming and rounding are ours.
+      {:eqrcode, "~> 0.2", optional: true},
       # mdex's optional syntax highlighter - present here so the dev playground
       # highlights chat code blocks; optional for consumers (chat falls back to
       # plain rendering without it).
