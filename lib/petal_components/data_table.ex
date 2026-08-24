@@ -994,7 +994,7 @@ defmodule PetalComponents.DataTable do
           class="pc-data-table__filter-clear"
           aria-label={"Clear #{@label} filter"}
         >
-          <.icon name="hero-x-mark" class="pc-data-table__filter-clear-icon" />
+          <.icon name="hero-x-mark-mini" class="pc-data-table__filter-clear-icon" />
         </.link>
         <button
           :if={@on_change}
@@ -1006,7 +1006,7 @@ defmodule PetalComponents.DataTable do
           phx-value-field={@field_str}
           aria-label={"Clear #{@label} filter"}
         >
-          <.icon name="hero-x-mark" class="pc-data-table__filter-clear-icon" />
+          <.icon name="hero-x-mark-mini" class="pc-data-table__filter-clear-icon" />
         </button>
       <% end %>
     </div>

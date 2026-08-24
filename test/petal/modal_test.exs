@@ -264,6 +264,52 @@ defmodule PetalComponents.ModalTest do
     end
   end
 
+  describe "modal/1 - footer slot" do
+    setup do
+      %{assigns: default_assigns()}
+    end
+
+    test "renders the footer band with the slot content", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal title="Modal">
+          <div>Body</div>
+          <:footer>
+            <.button label="Save" />
+          </:footer>
+        </.modal>
+        """)
+
+      assert_has_class(html, "pc-modal__footer")
+      assert html =~ "Save"
+    end
+
+    test "renders no footer band when the slot is omitted", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal title="Modal">
+          <div>Body</div>
+        </.modal>
+        """)
+
+      refute html =~ "pc-modal__footer"
+    end
+
+    test "the footer sits after the content, not inside it", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.modal title="Modal">
+          <div>Body</div>
+          <:footer>Actions</:footer>
+        </.modal>
+        """)
+
+      {content_pos, _} = :binary.match(html, "pc-modal__content")
+      {footer_pos, _} = :binary.match(html, "pc-modal__footer")
+      assert footer_pos > content_pos
+    end
+  end
+
   describe "modal/1 - accessibility" do
     setup do
       %{assigns: default_assigns()}

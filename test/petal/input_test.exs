@@ -48,6 +48,59 @@ defmodule PetalComponents.InputTest do
     assert html =~ ~s|type="week"|
   end
 
+  # Adornment contract: the calendar/clock mark is an INDICATOR, identical to
+  # the one field/2 renders. It used to be a <button> here and a <div> there,
+  # and the button's onclick could never fire (the class is pointer-events:none),
+  # so it was a focusable no-op. One element, one meaning, both files.
+  test "native date input renders the mark as a bare indicator, not a button" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    for type <- ~w(date datetime-local month week time) do
+      assigns = Map.put(assigns, :type, type)
+
+      html =
+        rendered_to_string(~H"""
+        <.form for={@form}>
+          <.input type={@type} field={@form[:when]} />
+        </.form>
+        """)
+
+      assert html =~ ~s|<span class="pc-date-input-icon" aria-hidden="true">|
+      assert html =~ "pc-date-input-icon-glyph"
+      refute html =~ "showPicker"
+      refute html =~ "<button"
+      refute html =~ ~s|class="w-5 h-5 text-gray-400"|
+    end
+  end
+
+  test "adornment actions all wear the same chip and the same 16px glyph" do
+    assigns = %{form: to_form(%{}, as: :user)}
+
+    html =
+      rendered_to_string(~H"""
+      <.form for={@form}>
+        <.input type="text" field={@form[:a]} clearable />
+        <.input type="text" field={@form[:b]} copyable />
+        <.input type="password" field={@form[:c]} viewable />
+      </.form>
+      """)
+
+    # one button per action, each carrying its shared chip class
+    assert html =~ "pc-clearable-field-button"
+    assert html =~ "pc-copyable-field-button"
+    assert html =~ "pc-password-field-toggle-button"
+
+    # the glyph classes are the only place a size is declared - never inline
+    assert html =~ "pc-clearable-field-icon"
+    assert html =~ "pc-copyable-field-icon"
+    assert html =~ "pc-password-field-toggle-icon"
+    refute html =~ "w-5 h-5"
+
+    # the clear x is the house mini glyph, matching the combobox clear
+    assert has_icon?(html, "hero-x-mark-mini")
+    refute html =~ "hero-x-mark-solid"
+  end
+
   test "input can be passed a class attribute" do
     assigns = %{form: to_form(%{}, as: :user)}
 
