@@ -11651,8 +11651,12 @@
     @apply -ml-1.5;
   }
 
+  /* Opaque fills here, unlike the favicon's usual dark alpha wash: stacked
+     tiles overlap, and a translucent tile shows the one beneath through
+     itself - double-density patches that read as smear. Only the stack
+     needs this; rows and citation cards never overlap. */
   .pc-chat__sources-favicons .pc-chat__source-favicon {
-    @apply mt-0 ring-2 ring-white dark:ring-gray-900;
+    @apply mt-0 bg-gray-100 ring-2 ring-white dark:bg-gray-800 dark:ring-gray-900;
   }
 
   .pc-chat__sources-chevron {
