@@ -159,7 +159,7 @@
   and marks itself `role="none"` so it opts out of the surrounding
   `role="menu"` and whatever you put inside keeps its own semantics. The
   new "The account panel" example on the user menu shows the whole thing:
-  orgs with avatars, keyboard hints, a colour-scheme switch inline.- **`user_dropdown_menu` has a sidebar presentation.** The component only
+  orgs with avatars, keyboard hints, a colour-scheme switch inline.
 
 - **`user_dropdown_menu` has a sidebar presentation.** The component only  ever rendered the compact navbar trigger - avatar plus chevron - so
   anyone building the app-shell sidebar it is named after had to hand-roll
