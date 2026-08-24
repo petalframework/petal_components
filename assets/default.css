@@ -10725,6 +10725,333 @@
      it every glancing pointer fires a card - the fade is decoration. */
   @media (prefers-reduced-motion: reduce) {
     .pc-hover-card__panel {
+    }
+  }
+}
+
+@layer components {
+  /* Calendar */
+
+  .pc-calendar {
+    @apply inline-block select-none text-gray-900 dark:text-gray-100;
+    /* One radius for every rounded corner a day can show - the chip, the
+       band's outer ends, the nav buttons. A single token means a lone
+       selected day and a range endpoint are the SAME shape, so completing
+       a range never visibly re-rounds the date you already picked. */
+    --pc-calendar-day-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    /* Derived from the public --pc-calendar-cell-size, never declared here:
+       read with a fallback instead, so a value set on ANY ancestor (a
+       wrapping style attribute, a class on the calendar itself) reaches the
+       grid. Declaring the default on this element would shadow a wrapper's
+       value, which is the whole point of the dial. */
+    --pc-calendar-nav-size: max(calc(var(--pc-calendar-cell-size, 2.25rem) - 0.25rem), 1.5rem);
+  }
+
+  .pc-calendar__header {
+    @apply flex items-center justify-between gap-2 pb-2;
+  }
+
+  .pc-calendar__caption {
+    @apply flex-1 text-sm font-semibold text-center;
+  }
+
+  /* Nav buttons are chrome, deliberately one step smaller than a day so the
+     header never out-weighs the grid. That one step is the whole formula, so
+     the arrows keep their proportion when the cell dial moves: 2rem against
+     the default 2.25rem day, and never below a 1.5rem tap-ish minimum. */
+  .pc-calendar__nav {
+    @apply inline-flex items-center justify-center shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/12 dark:hover:text-gray-100;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
+    border-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). */
+  .pc-calendar__nav-icon.pc-calendar__nav-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* Keeps the caption optically centred when one arrow is suppressed, which is
+     what a two-pane range picker does to the second month. */
+  .pc-calendar__nav-spacer {
+    @apply shrink-0;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
+  }
+
+  /* The caption is already in the DOM above the grid; this region exists only
+     so a month change is announced, not so it is seen twice. */
+  .pc-calendar__announcer {
+    @apply sr-only;
+  }
+
+  /* Week rows want air between them, and a <tr> is a table-row, so a margin
+     does nothing: border-spacing is the only lever. The horizontal value stays
+     0 on purpose - the range band's continuity depends on the cells inside a
+     week touching, and even one shared pixel of spacing turns the band back
+     into a row of separate chips. */
+  .pc-calendar__grid {
+    border-collapse: separate;
+    border-spacing: 0 0.25rem;
+  }
+
+  /* The header columns ride the same width as the days, so the grid stays in
+     register at any cell size. The height does not: this is a label row, not
+     a cell, and it has no business growing to 4rem because the days did. */
+  .pc-calendar__weekday {
+    @apply h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
+    width: var(--pc-calendar-cell-size, 2.25rem);
+  }
+
+  /* Cells carry the range band so it runs edge to edge between days; the day
+     button inside keeps its own rounding. */
+  .pc-calendar__cell {
+    @apply p-0 align-middle;
+  }
+
+  /* The band is the quiet half of a range: soft neutral wash, so the two ends
+     stay the thing you see first. Dark rides a gray-400 alpha rather than a
+     mixed-down white, the way every other wash in here does. */
+  .pc-calendar__cell--in-range,
+  .pc-calendar__cell--range-start,
+  .pc-calendar__cell--range-end {
+    @apply bg-gray-100 dark:bg-gray-400/12;
+  }
+
+  /* Only the outward ends of the band round; everything in between meets
+     square, which is what makes it read as one strip instead of a chain of
+     chips. Rows are spaced apart, so each week is its own strip and its first
+     and last cell round their outer edge too - without that, a band running the
+     full width of a row ends in square corners against nothing. */
+  .pc-calendar__cell--range-start,
+  .pc-calendar__cell--in-range:first-child,
+  .pc-calendar__cell--range-end:first-child {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+  }
+
+  .pc-calendar__cell--range-end,
+  .pc-calendar__cell--in-range:last-child,
+  .pc-calendar__cell--range-start:last-child {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* A day is a square whose side is --pc-calendar-cell-size (2.25rem unless
+     you say otherwise). It is the only size dial the calendar has, and it is
+     a CSS custom property rather than an attr on purpose - same contract as
+     --pc-radius, so a taller booking grid is a class on the wrapper and not a
+     new API to version.
+
+     The dot colour rides a variable set on the day button - a real element, so
+     the dark override resolves. A `dark:` variant applied straight to the
+     ::after compiles to a trailing `:where(.dark, .dark *)` that can never
+     match, which is the same trap the range input track documents. */
+  .pc-calendar__day {
+    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-cell-size, 2.25rem);
+    height: var(--pc-calendar-cell-size, 2.25rem);
+    border-radius: var(--pc-calendar-day-radius);
+    --pc-calendar-dot: var(--color-primary-500);
+  }
+
+  .pc-calendar__day--outside {
+    @apply text-gray-400 dark:text-gray-600;
+  }
+
+  /* Today is a marker, not a selection - a dot under the number, so a day that
+     is both today and selected still reads as both. */
+  .pc-calendar__day--today::after {
+    @apply absolute bottom-1 w-1 h-1 rounded-full;
+    background-color: var(--pc-calendar-dot);
+    content: "";
+  }
+
+  /* A picked day is the maximal-contrast inverse of the surface it sits on -
+     dark box and light number on white, light box and dark number on black.
+     Anything softer than that stops reading as "this one" the moment a range
+     band is on the grid next to it. */
+  .pc-calendar__day--selected,
+  .pc-calendar__day--selected:hover {
+    @apply bg-gray-900 text-white dark:bg-white dark:text-gray-900;
+  }
+
+  /* The today dot inverts with the chip it lands on, because today is very
+     often the selected day and a white dot on a white chip is no dot. Kept out
+     of the rule above on purpose: that one carries `:hover` as well, and a
+     `:hover` selector would outrank the dark override underneath it. */
+  .pc-calendar__day--selected {
+    --pc-calendar-dot: var(--color-white);
+  }
+
+  .pc-calendar__day--selected:where(.dark, .dark *) {
+    --pc-calendar-dot: var(--color-gray-900);
+  }
+
+  /* The ends of a band round outward only and square off inward, at the band's
+     radius rather than the day's, so the chip and the band share one corner
+     instead of nesting two. */
+  .pc-calendar__day--range-start {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .pc-calendar__day--range-end {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  /* An end that lands on the edge of a week row has nothing to merge into on
+     the inward side either, so it takes that corner back. */
+  .pc-calendar__cell:last-child .pc-calendar__day--range-start {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+  }
+
+  .pc-calendar__cell:first-child .pc-calendar__day--range-end {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* Days inside the band are subordinate to its ends: no chip of their own, and
+     a number one step back from full contrast. */
+  .pc-calendar__day--in-range {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  .pc-calendar__day--in-range:hover {
+    @apply bg-gray-200 dark:bg-gray-400/20;
+  }
+
+  /* A band crossing a month boundary should not promote the days it covers out
+     of the outside-day treatment. */
+  .pc-calendar__day--in-range.pc-calendar__day--outside {
+    @apply text-gray-400 dark:text-gray-600;
+  }
+
+  /* Disabled days stay in the tab-and-arrow order per the APG, so they get the
+     look of being unavailable without leaving the grid. The dark background is
+     spelled out so it outranks the dark chip on a day that is both selected and
+     out of the window. */
+  .pc-calendar__day--disabled,
+  .pc-calendar__day--disabled:hover {
+    @apply text-gray-300 bg-transparent cursor-not-allowed dark:bg-transparent dark:text-gray-600;
+  }
+
+  .pc-calendar__day--disabled::after {
+    @apply hidden;
+  }
+
+  /* Date picker */
+
+  .pc-date-picker {
+    @apply relative;
+  }
+
+  .pc-date-picker__control {
+    @apply relative;
+  }
+
+  .pc-date-picker__input {
+    @apply pr-10;
+  }
+
+  /* Trailing adornment contract - an input carrying a clear PLUS a second
+     control. The combo box is the precedent (.pc-combo-box__clear,
+     .pc-combo-box__clear-icon, .pc-combo-box__chevron); the components stay
+     separate, what travels is the measurements and the vocabulary:
+       - both glyphs come from the mini/outline weight family and share ONE
+         16px box (w-4, the combobox's clear-icon size). No solid glyph
+         beside an outline one - matched boxes at matched stroke weight is
+         what keeps their optical centres together
+       - the clear sits leftmost of the trailing group, one gap-1.5 (6px)
+         from the control to its right, which is the combobox control's gap
+       - each button keeps a 24px tap box (h-6 w-6, the combobox's clear)
+         around its 16px glyph, and the house invisible ::before extension
+         (see .pc-alert__dismiss-button) carries that box to the field's
+         full height rather than growing anything that paints
+       - at rest both read gray-400 / dark gray-500, and hover is the
+         combobox's wash plus a darker glyph */
+  .pc-date-picker__toggle,
+  .pc-date-picker__clear {
+    @apply absolute top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md;
+    @apply text-gray-400 transition-colors duration-150 cursor-pointer dark:text-gray-500;
+    @apply hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .pc-date-picker__toggle::before,
+  .pc-date-picker__clear::before {
+    content: "";
+    @apply absolute -inset-y-2 inset-x-0;
+  }
+
+  /* the toggle is the primary target, so its strip runs out to the field's
+     right edge too - the 8px inset would otherwise be dead pixels */
+  .pc-date-picker__toggle::before {
+    @apply -right-2;
+  }
+
+  .pc-date-picker__toggle {
+    @apply right-2;
+  }
+
+  /* 8px inset + the toggle's 24px box + the 6px gap */
+  .pc-date-picker__clear {
+    @apply right-9.5;
+  }
+
+  /* the hook drives the clear's visibility from the field's actual state
+     (the server can't know a client-owned value), and inline-flex above
+     would beat the UA's [hidden] rule without this */
+  .pc-date-picker__clear[hidden] {
+    display: none;
+  }
+
+  /* two 24px boxes and a gap sit in the rail, so a value long enough to
+     fill the input stops short of the clear instead of running under it -
+     scoped to a VISIBLE clear, or an empty field pads for a button that
+     is not there */
+  .pc-date-picker__control:has(.pc-date-picker__clear:not([hidden])) .pc-date-picker__input {
+    @apply pr-16;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). One box for both glyphs - the contract above. */
+  .pc-date-picker__clear-icon.pc-date-picker__clear-icon,
+  .pc-date-picker__toggle-icon.pc-date-picker__toggle-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* Clamped to the viewport the way pc-popover__panel is, just wider: two month
+     panes side by side are about 34rem, and an unclamped w-max panel anchored
+     at left-0 walks straight off a phone. */
+  .pc-date-picker__panel {
+    @apply absolute left-0 z-40 mt-2 p-3 bg-white border border-gray-200 shadow-lg w-max origin-top-left;
+    @apply max-w-[min(38rem,calc(100vw-1rem))] overflow-x-auto;
+    @apply dark:bg-gray-900 dark:border-gray-400/17;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+  }
+
+  .pc-date-picker__months--two {
+    @apply flex flex-col gap-4 sm:flex-row sm:gap-6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-calendar__day,
+    .pc-calendar__nav,
+    .pc-date-picker__toggle,
+    .pc-date-picker__clear {
       transition-duration: 1ms;
     }
   }
