@@ -178,3 +178,111 @@ describe("PetalCommandDialog scroll lock", () => {
     expect(locked()).toBe(false);
   });
 });
+
+// LiveView merges the dialog's attributes against the SERVER's render, which
+// never carries `open` - showModal() sets it client-side. Left alone, any
+// patch that re-renders the palette's subtree (a reconnect's join morph,
+// live assigns feeding the items) yanks an open palette shut with no `close`
+// event: the scroll lock never releases, and the page behind stays frozen
+// with nothing on screen to explain why.
+describe("PetalCommandDialog - surviving a LiveView patch", () => {
+  afterEach(() => {
+    mounted.splice(0).forEach(({ hook, wrap }) => {
+      hook.destroyed();
+      wrap.remove();
+    });
+    document.body.classList.remove("overflow-hidden");
+  });
+
+  // What morphdom does to this element: everything the server did not
+  // render comes off.
+  function patch(hook, el) {
+    hook.beforeUpdate();
+    el.open = false;
+    hook.updated();
+  }
+
+  it("an open palette is still open after a patch, scroll lock intact", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+
+    patch(hook, el);
+
+    expect(el.open).toBe(true);
+    expect(el.showModalCalls).toBe(2);
+    expect(locked()).toBe(true);
+  });
+
+  it("focus returns to the search input after a patch", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+    const input = el.querySelector(".pc-command__input");
+    expect(document.activeElement).toBe(input);
+
+    patch(hook, el);
+
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("focus elsewhere inside the palette is put back where the user left it", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+    const button = document.createElement("button");
+    el.querySelector(".pc-command").appendChild(button);
+    button.focus();
+
+    patch(hook, el);
+
+    expect(document.activeElement).toBe(button);
+  });
+
+  it("a focus target the patch removed falls back to the search input", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+    const button = document.createElement("button");
+    el.querySelector(".pc-command").appendChild(button);
+    button.focus();
+
+    hook.beforeUpdate();
+    button.remove();
+    el.open = false;
+    hook.updated();
+
+    expect(el.open).toBe(true);
+    expect(document.activeElement).toBe(el.querySelector(".pc-command__input"));
+  });
+
+  it("the typed query survives the patch - reset waits for a real close", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+    const input = el.querySelector(".pc-command__input");
+    input.value = "set";
+
+    patch(hook, el);
+    expect(input.value).toBe("set");
+
+    // a REAL close still resets - the patch path did not eat the behaviour
+    el.dispatchEvent(new CustomEvent("pc:command-close"));
+    expect(input.value).toBe("");
+  });
+
+  it("a patch never opens a palette that was closed", () => {
+    const { el, hook } = mount();
+
+    patch(hook, el);
+
+    expect(el.open).toBe(false);
+    expect(el.showModalCalls).toBe(0);
+    expect(locked()).toBe(false);
+  });
+
+  it("a patch that leaves the palette open on its own re-does nothing", () => {
+    const { el, hook } = mount();
+    el.dispatchEvent(new CustomEvent("pc:command-open"));
+
+    hook.beforeUpdate();
+    hook.updated();
+
+    expect(el.showModalCalls).toBe(1);
+  });
+});
