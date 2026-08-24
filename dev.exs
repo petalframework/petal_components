@@ -312,6 +312,9 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "collapsible", name: "Collapsible", ready: true},
+        %{slug: "kbd", name: "Kbd", ready: true},
+        %{slug: "separator", name: "Separator", ready: true},
         %{slug: "container", name: "Container", ready: true}
       ]
     },
@@ -792,6 +795,9 @@ defmodule Dev.PlaygroundLive do
        select: %{disabled: false, error: false, help: false},
        combo: %{disabled: false, chosen: nil},
        rich: %{labels: ~w(feat bug imp des), team: ~w(amelia jonah)},
+       kbd: %{size: "md", separator: "+"},
+       separator: %{orientation: "horizontal", label_position: "center", decorative: true},
+       collapsible: %{open: false, disabled: false},
        dt: PetalComponents.DataTable.State |> struct(page_size: 5) |> run_dt(),
        dt_selected: [],
        dt_hidden: [],
@@ -1062,6 +1068,21 @@ defmodule Dev.PlaygroundLive do
     do:
       {:noreply,
        update(socket, :input, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
+
+  def handle_event("ctl_kbd", %{"k" => k, "v" => v}, socket) when k in ~w(size separator),
+    do: {:noreply, update(socket, :kbd, &Map.put(&1, String.to_existing_atom(k), v))}
+
+  def handle_event("ctl_separator", %{"k" => k, "v" => v}, socket)
+      when k in ~w(orientation label_position),
+      do: {:noreply, update(socket, :separator, &Map.put(&1, String.to_existing_atom(k), v))}
+
+  def handle_event("ctl_separator", %{"k" => "decorative"}, socket),
+    do: {:noreply, update(socket, :separator, &%{&1 | decorative: !&1.decorative})}
+
+  def handle_event("ctl_collapsible", %{"k" => k}, socket) when k in ~w(open disabled),
+    do:
+      {:noreply,
+       update(socket, :collapsible, &Map.update!(&1, String.to_existing_atom(k), fn v -> !v end))}
 
   # Swapping shape keeps the value/colour/size dials where they are, which is
   # the point: the ring is the same component wearing a different outline.
@@ -2031,6 +2052,12 @@ defmodule Dev.PlaygroundLive do
   # component (so one registry module), but the playground splits its examples
   # across the input / select / checkbox / radio / switch pages. Raises on a
   # typo'd id so a page can't silently drop an example.
+  # The separator dial's "none" option is a real none: nil renders no
+  # separator span at all (a " " separator still rendered an aria-hidden
+  # whitespace span plus the group gap - double spacing, not none).
+  defp kbd_sep(" "), do: nil
+  defp kbd_sep(g), do: g
+
   defp examples_for(module, ids) do
     by_id = Map.new(module.examples(), &{&1.id, &1})
     Enum.map(ids, &Map.fetch!(by_id, &1))
@@ -9890,6 +9917,296 @@ defmodule Dev.PlaygroundLive do
           :navigation_menu_footer_link
         ]}
       />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "kbd"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Kbd</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        The keyboard chip you end up hand-rolling in every app. Semantic
+        <code class="pc-inline-code">&lt;kbd&gt;</code>
+        elements with a key cap treatment - known key names fold to their glyph, anything
+        else renders as you typed it. Pure HEEx and CSS, nothing to wire up.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center justify-center gap-5 px-6 py-10">
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Open the command palette
+            <.kbd keys={["cmd", "K"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
+          </div>
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Toggle the sidebar
+            <.kbd
+              keys={["ctrl", "shift", "B"]}
+              size={@kbd.size}
+              separator={kbd_sep(@kbd.separator)}
+            />
+          </div>
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            Assign to yourself
+            <.kbd keys={["A", "I"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Kbd size"
+              value={@kbd.size}
+              on_change="ctl_kbd"
+            >
+              <:item :for={z <- ~w(sm md)} value={z} phx-value-k="size" phx-value-v={z}>
+                {z}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Kbd separator"
+              value={@kbd.separator}
+              on_change="ctl_kbd"
+            >
+              <:item
+                :for={g <- ["+", "·", "then", " "]}
+                value={g}
+                phx-value-k="separator"
+                phx-value-v={g}
+              >
+                {if g == " ", do: "none", else: g}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          The command palette trigger uses the same chip
+        </div>
+        <.command_trigger dialog_id="pg-kbd-command" label="Search" kbd="⌘K" />
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Kbd, ~w(cheat_sheet menu_item)a)}
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Kbd} function={:kbd} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "separator"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Separator</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A hairline with no margin of its own, optionally labelled - app layouts already
+        control their own rhythm. Decorative by default; flip that off when the rule
+        really does divide content screen readers should hear as separate.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex items-center justify-center px-6 py-12">
+          <div :if={@separator.orientation == "horizontal"} class="w-full max-w-sm">
+            <.button label="Sign in with email" class="w-full" />
+            <.separator
+              label="OR"
+              label_position={@separator.label_position}
+              decorative={@separator.decorative}
+              class="my-5"
+            />
+            <.button variant="outline" label="Continue with GitHub" class="w-full" />
+          </div>
+          <div
+            :if={@separator.orientation == "vertical"}
+            class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-800"
+          >
+            <.button variant="ghost" size="sm" label="Bold" />
+            <.button variant="ghost" size="sm" label="Italic" />
+            <.separator orientation="vertical" decorative={@separator.decorative} class="h-6" />
+            <.button variant="ghost" size="sm" label="Link" />
+            <.button variant="ghost" size="sm" label="Code" />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Separator orientation"
+              value={@separator.orientation}
+              on_change="ctl_separator"
+            >
+              <:item
+                :for={o <- ~w(horizontal vertical)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              label position
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Label position"
+              value={@separator.label_position}
+              on_change="ctl_separator"
+            >
+              <:item
+                :for={o <- ~w(start center end)}
+                value={o}
+                phx-value-k="label_position"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">aria</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Separator aria"
+              value={if @separator.decorative, do: ["decorative"], else: []}
+              on_change="ctl_separator"
+            >
+              <:item value="decorative" phx-value-k="decorative">decorative</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div
+        :for={
+          ex <-
+            examples_for(
+              PetalComponents.Showcase.Separator,
+              ~w(label_positions activity_feed vertical)a
+            )
+        }
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Separator} function={:separator} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "collapsible"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Collapsible</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One disclosure region - the accordion without the group. Tab to the trigger and
+        press Enter or Space; it is a real button, so the keyboard works without any wiring.
+        The open dial below is the server driving it; clicking the trigger is the client
+        doing the same job without a round trip. Turn on Reduce Motion in your OS and the
+        height animation drops out while both rest states stay fully legible.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-10">
+          <div class="max-w-md mx-auto">
+            <.field
+              type="text"
+              name="pg_webhook"
+              label="Webhook URL"
+              value="https://example.com/hooks/deploy"
+            />
+            <.collapsible
+              id="pg-collapsible"
+              open={@collapsible.open}
+              disabled={@collapsible.disabled}
+            >
+              <:trigger>Advanced options</:trigger>
+              <div class="space-y-3">
+                <.field
+                  type="number"
+                  name="pg_timeout"
+                  label="Timeout (seconds)"
+                  value="30"
+                  no_margin
+                />
+                <.field type="number" name="pg_retries" label="Max retries" value="3" no_margin />
+                <.field
+                  type="checkbox"
+                  name="pg_verify"
+                  label="Verify TLS certificate"
+                  checked
+                  no_margin
+                />
+              </div>
+            </.collapsible>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
+            <.toggle_group
+              multiple
+              variant="outline"
+              size="sm"
+              aria_label="Collapsible state"
+              value={
+                for {k, on} <- [{"open", @collapsible.open}, {"disabled", @collapsible.disabled}],
+                    on,
+                    do: k
+              }
+              on_change="ctl_collapsible"
+            >
+              <:item value="open" phx-value-k="open">open</:item>
+              <:item value="disabled" phx-value-k="disabled">disabled</:item>
+            </.toggle_group>
+          </div>
+        </div>
+      </div>
+
+      <div
+        :for={ex <- examples_for(PetalComponents.Showcase.Collapsible, ~w(changelog open)a)}
+        class="mt-8"
+      >
+        <h3 class="mb-1 font-semibold text-md">{ex.title}</h3>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Collapsible} function={:collapsible} />
     </div>
     """
   end
