@@ -35,3 +35,4 @@ petal-*.tar
 
 # JS test harness (test/js) - hooks ship in the Hex package, deps do not
 node_modules/
+.t*.log
