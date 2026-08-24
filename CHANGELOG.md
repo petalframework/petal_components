@@ -4,6 +4,13 @@
 
 #### Fixed
 
+- **The chat tool panel no longer collapses to its header in a
+  fixed-height thread.** The panel is a direct flex child of the thread
+  column, and its `overflow-hidden` (there for the rounded corners)
+  zeroes the automatic minimum size that keeps every other row intact -
+  on a short mobile viewport flexbox crushed the panel and clipped the
+  body. `shrink-0` restores it.
+
 - **The number field's stepper icons are visible on consumer sites
   again.** The spin buttons built their icon class as
   `hero-\#{icon}-micro` at runtime, so the literal class names appeared

@@ -558,6 +558,15 @@ defmodule PetalComponents.CssAssetsTest do
       refute rule =~ ~r/@apply[^;]*text-white/
     end
 
+    test "the tool panel cannot be flex-crushed in a fixed-height thread", %{css: css} do
+      # overflow-hidden on a flex child zeroes its automatic minimum size;
+      # without shrink-0 a short mobile chat crushes the panel to its header
+      # and the body clips.
+      [rule] = Regex.run(~r/\.pc-chat__tool \{[^}]+\}/s, css)
+      assert rule =~ "shrink-0"
+      assert rule =~ "overflow-hidden"
+    end
+
     test "the user bubble's attachment row derives from currentColor", %{css: css} do
       assert css =~ ".pc-chat__bubble--user .pc-chat__attachment-row {"
       [rule] = Regex.run(~r/\.pc-chat__bubble--user \.pc-chat__attachment-row \{[^}]+\}/s, css)

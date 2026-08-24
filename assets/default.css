@@ -5583,8 +5583,13 @@
     @apply bg-black/5 font-semibold dark:bg-gray-400/17;
   }
   /* Tool-call card (generative-UI widgets) */
+  /* shrink-0 is load-bearing: the tool is a DIRECT flex child of the
+     thread column, and its overflow-hidden (for the rounded corners)
+     zeroes the automatic minimum size that protects every other row -
+     in a fixed-height chat on a narrow screen flexbox crushed the panel
+     to header height and the body clipped (found on an iPhone). */
   .pc-chat__tool {
-    @apply my-1 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
+    @apply my-1 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900;
   }
   .pc-chat__tool-header {
     @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300;
