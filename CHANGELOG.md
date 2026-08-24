@@ -3,6 +3,37 @@
 
 #### Added
 
+- **New `sidebar` family: the app-shell navigation almost every LiveView
+  product ends up hand-rolling.** Five components compose the whole
+  anatomy - `sidebar_shell` (the flex wrapper), `sidebar_nav` (the `<nav>`
+  landmark with header and footer slots - deliberately NOT bare
+  `sidebar/1`: `use PetalComponents` imports every component, a
+  hand-rolled `def sidebar` is the most common helper in Phoenix layout
+  modules, and the collision is a hard CompileError when the call sits
+  above the definition or a silent shadow when it sits below - the one
+  name in the family that could collide is the one that doesn't exist),
+  `sidebar_group` (a labelled,
+  optionally collapsible run of items), `sidebar_item` (icon, label,
+  badge, active state, and arbitrarily nested sub-items) and
+  `sidebar_trigger` (the rail toggle and the mobile burger). Three
+  collapse modes: `icon` for the rail, `offcanvas` to hide it, `none` to
+  pin it. `side="right"` gives you an inspector panel, and two sidebars
+  in one shell keep separate state.
+
+  Collapse is CSS-first: the trigger flips a `data-collapsed` attribute
+  with `Phoenix.LiveView.JS` and stylesheets do the rest, so there is no
+  hook and no round trip. The server still renders the initial value
+  through the `collapsed` attr, so a `live_redirect` can never flash the
+  wrong state. Below `md` the sidebar becomes an off-canvas sheet: the
+  shell's content region goes `inert`, Escape closes it, the scrim
+  closes it, and focus returns to the trigger.
+
+  Accessibility: a `<nav>` landmark with an accessible name,
+  `aria-current="page"` on the active item, the WAI-ARIA disclosure
+  pattern on collapsible groups and nested items, labels that stay in
+  the accessibility tree when the rail collapses, and transitions that
+  drop to instant under `prefers-reduced-motion`.
+
 - **New `number_field` component: a real spinbutton for quantities,
   prices and percentages, in place of a bare
   `<input type="number">`.** The native number input has spinners you
