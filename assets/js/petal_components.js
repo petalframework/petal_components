@@ -81,9 +81,15 @@ export const PetalChatComposer = {
       }
     };
     this.onInput = () => this.autogrow();
+    // Paste a screenshot straight into the composer. LiveView's upload
+    // machinery only watches the file input, so hand it the clipboard's files
+    // and fire the input event it listens for. Text pastes fall through
+    // untouched.
+    this.onPaste = (e) => this.handlePaste(e);
 
     this.textarea.addEventListener("keydown", this.onKeydown);
     this.textarea.addEventListener("input", this.onInput);
+    this.textarea.addEventListener("paste", this.onPaste);
 
     // Set the field programmatically (edit a past message, quote, clear).
     // The textarea is phx-update="ignore" so the server can't render into it;
@@ -106,6 +112,30 @@ export const PetalChatComposer = {
     if (!this.textarea) return;
     this.textarea.removeEventListener("keydown", this.onKeydown);
     this.textarea.removeEventListener("input", this.onInput);
+    this.textarea.removeEventListener("paste", this.onPaste);
+  },
+
+  handlePaste(e) {
+    // Scoped to the paperclip: the :actions slot can hold a consumer's own
+    // file input, and only the upload's live_file_input is wired to LiveView.
+    const fileInput = this.el.querySelector(
+      ".pc-chat__composer-attach input[type=file]",
+    );
+    if (!fileInput || !e.clipboardData) return;
+
+    const files = Array.from(e.clipboardData.files || []);
+    // Nothing pasted but text: leave the browser to it.
+    if (files.length === 0) return;
+
+    // No DataTransfer means no way to hand the input a FileList; degrade to a
+    // normal paste rather than throwing.
+    if (typeof DataTransfer === "undefined") return;
+
+    e.preventDefault();
+    const transfer = new DataTransfer();
+    files.forEach((file) => transfer.items.add(file));
+    fileInput.files = transfer.files;
+    fileInput.dispatchEvent(new Event("input", { bubbles: true }));
   },
 
   autogrow() {

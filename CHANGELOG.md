@@ -4,6 +4,23 @@
 
 #### Added
 
+- **Composer attachments: `prompt_input` takes an upload, and
+  `message_attachments` renders what was sent.** Hand `prompt_input` an
+  `%UploadConfig{}` from `allow_upload/3` and it grows a paperclip trigger
+  (a `<label>` around a visually hidden `live_file_input`, so the keyboard
+  still works), a chip strip for the pending entries, `phx-drop-target` on
+  the composer with a drag-over tint, and paste-a-screenshot support in the
+  existing `PetalChatComposer` hook. Image entries get a `live_img_preview`
+  thumbnail, everything else gets an icon with the name and a formatted
+  size; each chip carries a `role="progressbar"` ring driven by
+  `entry.progress` and a remove button wired to `on_cancel_upload` with the
+  entry ref. Upload errors render inline under the composer with
+  `role="alert"`, per-entry ones named with the file they belong to.
+  `message_attachments/1` is the received side: images tile into a grid
+  (one goes large, two or more tile), files are download rows, and a mixed
+  list puts the images first. With no `upload` the composer renders exactly
+  as it always has - no extra markup, no behaviour change.
+
 - **Answer grounding for the chat family: inline citation chips and a
   `chat_sources` row.** RAG answers are only trustworthy if you can see
   where they came from, and until now the chat kit rendered the prose but
@@ -22,6 +39,8 @@
   avatar, no snippet means a shorter row. Chip markup is minted server-side
   from the numeric index plus escaped source fields and spliced into the
   already-sanitized HTML outside code blocks, so model text can never reach
+  the page as live markup.
+
   the page as live markup, and only `http`/`https` urls become links - a
   source url with any other scheme renders without an `href`.
 

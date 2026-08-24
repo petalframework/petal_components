@@ -5407,6 +5407,11 @@
 
   /* Chat / AI (New) */
 
+  /* Heads up: the chat family's newer pieces (citations and the sources row,
+     composer attachments) each appended their own `@layer components` block at
+     the tail of this file rather than reflowing this section. Search for
+     "Chat —" to find them; they are all `pc-chat__*` and belong here. */
+
   .pc-chat {
     /* Theme tokens — override these to reskin without touching markup. */
     --pc-chat-radius: 1rem;
@@ -12023,6 +12028,197 @@
   @keyframes pc-alert-dialog-backdrop-out {
     to {
       opacity: 0;
+    }
+  }
+}
+
+/* Chat — composer attachments and the attachments rendered in a sent message. */
+@layer components {
+  /* Composer: paperclip trigger ------------------------------------------- */
+
+  /* A <label> wrapping the sr-only live_file_input: the input keeps the focus
+     ring and the keyboard, the label draws the paperclip. */
+  .pc-chat__composer-attach {
+    @apply flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center self-end text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__composer-attach:has(input:focus-visible) {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__composer-attach-icon.pc-chat__composer-attach-icon {
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+  }
+
+  /* Drag-over affordance. LiveView adds `phx-drop-target-active` to a
+     phx-drop-target element while a file drag is over it. */
+  .pc-chat__composer.phx-drop-target-active,
+  .pc-chat__composer--dragover {
+    @apply border-primary-400 bg-primary-50/40 dark:border-primary-500 dark:bg-primary-500/10;
+  }
+
+  /* Composer: pending attachment chips ------------------------------------ */
+
+  .pc-chat__composer-attachments {
+    @apply mb-2 flex list-none flex-wrap gap-2 p-0;
+  }
+
+  .pc-chat__attachment {
+    @apply relative flex items-center gap-2 border border-gray-200 bg-white p-1.5 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__attachment--image {
+    @apply p-0;
+  }
+
+  .pc-chat__attachment-thumb {
+    @apply h-14 w-14 object-cover;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__attachment-icon.pc-chat__attachment-icon {
+    @apply shrink-0 text-gray-400 dark:text-gray-500;
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+  }
+
+  .pc-chat__attachment-meta {
+    @apply flex min-w-0 max-w-40 flex-col;
+  }
+
+  .pc-chat__attachment-name {
+    @apply truncate font-medium;
+  }
+
+  .pc-chat__attachment-size {
+    @apply text-[0.9em] text-gray-500 dark:text-gray-400;
+  }
+
+  /* Progress: driven by --pc-attachment-progress (0-100), so the
+     server-rendered value is the only source of truth. Only rendered while an
+     upload is in flight (1-99). */
+  .pc-chat__attachment-progress {
+    @apply pointer-events-none absolute inset-0 flex items-center justify-center;
+    --pc-attachment-fill: color-mix(in oklab, var(--color-primary-500, #3b82f6) 55%, transparent);
+    --pc-attachment-track: color-mix(in oklab, var(--color-gray-900, #111827) 45%, transparent);
+    border-radius: inherit;
+    transition: background 0.2s linear;
+  }
+
+  /* A gray-900 wash is invisible on a dark chip, which is already gray-900. */
+  .dark .pc-chat__attachment-progress {
+    --pc-attachment-track: color-mix(in oklab, var(--color-gray-100, #f3f4f6) 30%, transparent);
+  }
+
+  /* Image chips have no text to obscure, so the conic sweep fills the
+     thumbnail - the clearest read of "this much is uploaded". */
+  .pc-chat__attachment--image .pc-chat__attachment-progress {
+    background: conic-gradient(
+      var(--pc-attachment-fill) calc(var(--pc-attachment-progress, 0) * 1%),
+      var(--pc-attachment-track) 0
+    );
+  }
+
+  /* File chips carry the name and the size, and a full-chip wash dims both
+     below the contrast the rest of the library holds. The same value rides a
+     bar along the bottom edge instead, leaving the text alone. */
+  .pc-chat__attachment--file .pc-chat__attachment-progress {
+    @apply top-auto;
+    height: 0.1875rem;
+    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem)
+      max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    background: linear-gradient(
+      to right,
+      var(--pc-attachment-fill) calc(var(--pc-attachment-progress, 0) * 1%),
+      var(--pc-attachment-track) 0
+    );
+  }
+
+  .pc-chat__attachment-remove {
+    @apply absolute -right-1.5 -top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100;
+  }
+
+  .pc-chat__attachment-remove:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__attachment-remove-icon.pc-chat__attachment-remove-icon {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+
+  /* Composer: inline upload errors ---------------------------------------- */
+
+  .pc-chat__composer-errors {
+    @apply mt-2 flex flex-col gap-1;
+  }
+
+  .pc-chat__composer-error {
+    @apply flex items-center gap-1.5 text-xs text-danger-600 dark:text-danger-400;
+  }
+
+  .pc-chat__composer-error-icon.pc-chat__composer-error-icon {
+    @apply shrink-0;
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+
+  /* Attachments inside a sent message ------------------------------------- */
+
+  .pc-chat__message-attachments {
+    @apply flex flex-col gap-2;
+  }
+
+  .pc-chat__message-attachments-grid {
+    @apply grid gap-2;
+  }
+
+  .pc-chat__message-attachments-grid--multi {
+    @apply grid-cols-2;
+  }
+
+  .pc-chat__attachment-image {
+    @apply block overflow-hidden border border-gray-200 dark:border-gray-700;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__attachment-image:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  /* A single image goes large but still has to sit in a bubble, so cap the
+     height and let it crop rather than push the thread around. */
+  .pc-chat__attachment-image img {
+    @apply h-full w-full max-w-full object-cover;
+    max-height: 16rem;
+  }
+
+  .pc-chat__message-attachments-grid--multi .pc-chat__attachment-image img {
+    max-height: 9rem;
+  }
+
+  .pc-chat__attachment-row {
+    @apply flex items-center gap-2 border border-gray-200 p-2 text-xs no-underline transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-400/10;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__attachment-row:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__attachment-row .pc-chat__attachment-size {
+    @apply ms-auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-chat__composer-attach,
+    .pc-chat__attachment-progress,
+    .pc-chat__attachment-remove,
+    .pc-chat__attachment-row {
+      transition-duration: 1ms;
     }
   }
 }
