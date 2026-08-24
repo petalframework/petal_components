@@ -336,6 +336,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "popover", name: "Popover", ready: true},
         %{slug: "hover-card", name: "Hover card", ready: true},
         %{slug: "modal", name: "Modal", ready: true},
+        %{slug: "alert-dialog", name: "Alert dialog", ready: true},
         %{slug: "dropdown", name: "Dropdown", ready: true},
         %{slug: "context-menu", name: "Context menu", ready: true},
         %{slug: "command", name: "Command", ready: true},
@@ -777,6 +778,9 @@ defmodule Dev.PlaygroundLive do
        tg_device: "desktop",
        tg_variant: "solid",
        tg_size: "md",
+       alert_dialog: %{variant: "default", media: "none", description: "with", length: "short"},
+       alert_dialog_result: nil,
+       alert_dialog_rows: [1, 3],
        chat: %{
          turns: [
            %{id: "m-today", role: :marker, text: "Today"},
@@ -1424,6 +1428,34 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
+
+  def handle_event("ctl_alert_dialog", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default destructive),
+      do: {:noreply, update(socket, :alert_dialog, &%{&1 | variant: v})}
+
+  def handle_event("ctl_alert_dialog", %{"k" => "media", "v" => v}, socket)
+      when v in ~w(none icon image),
+      do: {:noreply, update(socket, :alert_dialog, &%{&1 | media: v})}
+
+  def handle_event("ctl_alert_dialog", %{"k" => "description", "v" => v}, socket)
+      when v in ~w(with without),
+      do: {:noreply, update(socket, :alert_dialog, &%{&1 | description: v})}
+
+  def handle_event("ctl_alert_dialog", %{"k" => "length", "v" => v}, socket)
+      when v in ~w(short long),
+      do: {:noreply, update(socket, :alert_dialog, &%{&1 | length: v})}
+
+  def handle_event("alert_dialog_answer", %{"answer" => answer}, socket),
+    do: {:noreply, assign(socket, :alert_dialog_result, answer)}
+
+  def handle_event("alert_dialog_toggle_row", %{"row" => row}, socket) do
+    row = String.to_integer(row)
+
+    {:noreply,
+     update(socket, :alert_dialog_rows, fn rows ->
+       if row in rows, do: rows -- [row], else: Enum.sort([row | rows])
+     end)}
+  end
 
   def handle_event("ctl_scroll", %{"k" => "orientation", "v" => v}, socket)
       when v in ~w(vertical horizontal both),
@@ -4332,6 +4364,266 @@ defmodule Dev.PlaygroundLive do
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift. Select, checkbox, radio and switch are the same field surface;
         their pages render the rest of the registry.
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "alert-dialog"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Alert dialog</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One question, two answers, and no way out without picking one. Unlike
+        the modal, focus opens on Cancel, Escape cancels, and clicking the
+        backdrop does nothing - the friction is deliberate. Built on the native
+        &lt;dialog&gt;, so the top layer and the focus trap come from the browser.
+        The default treatment is calm; <code>variant="destructive"</code>
+        is the explicit opt-in to the danger wash.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
+          <.button
+            color="gray"
+            variant="outline"
+            phx-click={PetalComponents.AlertDialog.open_alert_dialog("pg-alert-dialog")}
+          >
+            Open alert dialog
+          </.button>
+
+          <p :if={@alert_dialog_result} class="text-sm text-gray-500 dark:text-gray-400">
+            You chose <span class="font-semibold">{@alert_dialog_result}</span>.
+          </p>
+          <p :if={!@alert_dialog_result} class="text-sm text-gray-400 dark:text-gray-500">
+            Open it, then Tab between the actions and hit Escape.
+          </p>
+
+          <.alert_dialog
+            id="pg-alert-dialog"
+            variant={@alert_dialog.variant}
+            title={
+              if @alert_dialog.variant == "destructive",
+                do: "Delete this workspace?",
+                else: "Publish these changes?"
+            }
+            description={
+              if @alert_dialog.description == "with",
+                do:
+                  if(@alert_dialog.variant == "destructive",
+                    do:
+                      "Everyone on the team loses access straight away, and the deployment history goes with it.",
+                    else: "The new version goes live for every visitor as soon as you confirm."
+                  ),
+                else: nil
+            }
+            confirm_label={
+              if @alert_dialog.variant == "destructive", do: "Delete workspace", else: "Publish"
+            }
+            on_confirm={JS.push("alert_dialog_answer", value: %{answer: "confirm"})}
+            on_cancel={JS.push("alert_dialog_answer", value: %{answer: "cancel"})}
+          >
+            <:media :if={@alert_dialog.media == "icon"}>
+              <.icon
+                name={
+                  if @alert_dialog.variant == "destructive",
+                    do: "hero-trash",
+                    else: "hero-rocket-launch"
+                }
+                class="pc-alert-dialog__media-icon"
+              />
+            </:media>
+            <:media :if={@alert_dialog.media == "image"}>
+              <img src="/dev-static/avatars/p32.jpg" alt="" />
+            </:media>
+            <div :if={@alert_dialog.length == "long"} class="space-y-3">
+              <p>
+                {if @alert_dialog.variant == "destructive",
+                  do: "Deleting this workspace also removes:",
+                  else: "Publishing updates:"}
+              </p>
+              <ul class="pl-4 space-y-1 list-disc marker:text-gray-400">
+                <li :for={n <- 1..12}>
+                  {if @alert_dialog.variant == "destructive",
+                    do: "Project #{n} and its #{n * 3} deployments",
+                    else: "Project #{n} and its #{n * 3} pages"}
+                </li>
+              </ul>
+              <p :if={@alert_dialog.variant == "destructive"}>
+                Billing stops at the end of the current period. Invoices already
+                issued stay in your records and are not refunded automatically.
+              </p>
+              <p :if={@alert_dialog.variant != "destructive"}>
+                Drafts stay unpublished. You can roll back to the previous
+                version from the deploy history at any time.
+              </p>
+            </div>
+          </.alert_dialog>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@alert_dialog.variant}
+              on_change="ctl_alert_dialog"
+            >
+              <:item
+                :for={v <- ~w(default destructive)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">media</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Media"
+              value={@alert_dialog.media}
+              on_change="ctl_alert_dialog"
+            >
+              <:item :for={m <- ~w(none icon image)} value={m} phx-value-k="media" phx-value-v={m}>
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">description</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Description"
+              value={@alert_dialog.description}
+              on_change="ctl_alert_dialog"
+            >
+              <:item
+                :for={d <- ~w(with without)}
+                value={d}
+                phx-value-k="description"
+                phx-value-v={d}
+              >
+                {d}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">content length</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Content length"
+              value={@alert_dialog.length}
+              on_change="ctl_alert_dialog"
+            >
+              <:item :for={l <- ~w(short long)} value={l} phx-value-k="length" phx-value-v={l}>
+                {l}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          long proves the overflow: the body scrolls, the title and the action row stay put, and the page behind never moves
+        </p>
+      </div>
+
+      <div class="p-4 mt-6 text-sm border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="font-semibold text-gray-900 dark:text-gray-100">Keyboard</div>
+        <ul class="mt-2 space-y-1 text-gray-500 dark:text-gray-400">
+          <li>
+            Open it and focus lands on <span class="font-medium">Cancel</span>, not the confirm button.
+          </li>
+          <li>
+            <span class="font-medium">Tab</span>
+            / <span class="font-medium">Shift+Tab</span>
+            cycle the two actions and never leave the dialog.
+          </li>
+          <li>
+            <span class="font-medium">Escape</span>
+            cancels, running the same on_cancel as the Cancel button.
+          </li>
+          <li>Clicking the backdrop does nothing at all.</li>
+          <li>
+            However you leave - Escape, either button, <code>close_alert_dialog/2</code>
+            - the exit runs through one funnel, so the dialog fades and scales out
+            instead of snapping. Turn on reduce-motion and it goes instantly.
+          </li>
+        </ul>
+      </div>
+
+      <div :for={ex <- PetalComponents.Showcase.AlertDialog.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <%!-- the brief's live-assign proof: the showcase macro rightly forbids
+            interpolation, so THIS example lives only here - the count in the
+            body reads a socket assign, changing as you pick rows --%>
+      <div class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">A body that reads live state</h2>
+        <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          The inner block is ordinary HEEx, so the confirmation can carry whatever the
+          socket knows - here, how many rows are ticked right now.
+        </p>
+        <div class="p-8 border border-gray-200 rounded-xl dark:border-gray-800">
+          <div class="flex flex-wrap items-center gap-4">
+            <label
+              :for={n <- 1..4}
+              class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+            >
+              <.field
+                type="checkbox"
+                name={"bulk-row-#{n}"}
+                checked={n in @alert_dialog_rows}
+                phx-click="alert_dialog_toggle_row"
+                phx-value-row={n}
+                wrapper_class="mb-0"
+              /> Invoice {n}
+            </label>
+            <.alert_dialog
+              id="pg-alert-bulk"
+              variant="destructive"
+              title="Delete selected invoices?"
+              confirm_label="Delete"
+              on_confirm={
+                Phoenix.LiveView.JS.push("alert_dialog_answer", value: %{answer: "bulk delete"})
+              }
+            >
+              <:trigger>
+                <.button
+                  color="danger"
+                  variant="outline"
+                  size="sm"
+                  disabled={@alert_dialog_rows == []}
+                >
+                  Delete selected
+                </.button>
+              </:trigger>
+              This permanently removes
+              <span class="font-semibold">{length(@alert_dialog_rows)} selected invoices</span>
+              and their payment history.
+            </.alert_dialog>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.AlertDialog} function={:alert_dialog} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.AlertDialog</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift.
       </div>
     </div>
     """

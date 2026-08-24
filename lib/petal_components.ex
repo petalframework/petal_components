@@ -21,6 +21,7 @@ defmodule PetalComponents do
       import PetalComponents.{
         Accordion,
         Alert,
+        AlertDialog,
         Avatar,
         Badge,
         Aurora,

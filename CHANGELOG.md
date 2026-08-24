@@ -4,6 +4,57 @@
 
 #### Added
 
+- **New `alert_dialog` component: the confirm/cancel question you ask
+  before something irreversible.** `<.modal>` is the general-purpose
+  overlay, and it lets you out cheaply - close button, click away, done.
+  That is the wrong behaviour when the next click deletes an account, so
+  `alert_dialog` inverts it. It carries `role="alertdialog"` so assistive
+  tech announces it as an interruption that wants a decision, opens with
+  focus on the **cancel** button rather than the first focusable, cancels
+  on Escape, and ignores backdrop clicks entirely. The friction is the
+  feature: there are two answers and you have to pick one. A `default`
+  variant is the calm confirm - primary button, no chip, nothing raising
+  its voice - and `destructive` is the explicit opt-in that moves the
+  confirm button to the danger ramp and washes the media chip in danger.
+  The `:media` slot puts a 40px chip beside the title holding an icon or
+  an image (an avatar, a thumbnail of the thing you are about to delete),
+  and it overrides the destructive variant's default warning glyph. The
+  actions sit in a footer band - border-t and a muted wash, stacked with
+  the primary action on top on mobile, right-aligned from `sm` up.
+  `description` is the one-line consequence
+  and wires itself to `aria-describedby`; the body slot composes live
+  data underneath it, so "you are about to delete 14 invoices" reads off
+  an assign instead of a hardcoded string. Long bodies scroll inside the
+  panel while the title and the action row stay put. Open it from
+  anywhere with `open_alert_dialog/2`, or drop an opener in the
+  `:trigger` slot and skip repeating the id.
+
+  Built on the native `<dialog>`, the same call `command_dialog` makes:
+  `showModal()` supplies the top layer, focus containment and focus
+  restoration to the opener for free, and a native modal dialog already
+  ignores backdrop clicks, which is exactly what this pattern wants. The
+  hook is small and only covers what `Phoenix.LiveView.JS` cannot reach -
+  `showModal()`/`close()` are DOM methods with no JS-command equivalent,
+  and Escape's native `cancel` event has to be intercepted so it runs
+  your `on_cancel` instead of quietly closing.
+
+  It also owns the exit, because `dialog.close()` is instant - the
+  element leaves the top layer in the same frame, so there is nothing
+  left for CSS to animate out of. Every way out (Escape, either button,
+  `close_alert_dialog/2`) funnels through one close-intent step: a
+  closing class goes on, the CSS plays the mirror of the entrance on the
+  box and on the `::backdrop`, and the real `close()` runs when the
+  animation ends. Under `prefers-reduced-motion: reduce` it skips
+  straight to the close. The surface and the animations themselves are
+  CSS.
+
+  The hook also keeps the dialog alive across LiveView patches.
+  `showModal()` sets `open` on the client and the server never renders
+  it, so a patch reaching the element would otherwise merge `open` away
+  and shut the dialog with no `close` event - leaving the page
+  scroll-locked. An open dialog now stays open, and an exit already
+  playing keeps playing, whatever the server pushes while it is up.
+
 - **New `calendar` and `date_picker` components.** `<.calendar>` is a month
   grid built on Elixir's own `Date` - no date dependency, no timezone
   guessing, and no DateTime anywhere. It does single, range and multiple
