@@ -875,7 +875,6 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
-       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
        timeline: %{
          variant: "default",
          orientation: "vertical",
@@ -883,6 +882,7 @@ defmodule Dev.PlaygroundLive do
          connector: "solid",
          time_placement: "top",
          states: true
+       },
        sidebar: %{
          collapsible: "icon",
          side: "left",
