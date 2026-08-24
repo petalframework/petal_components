@@ -71,6 +71,11 @@ defmodule PetalComponents.Chat do
   A marker resolves to the source whose `id` matches `N` and falls back to the
   Nth source in the list, so an id-less list still works positionally.
 
+  Only `http` and `https` urls are turned into links. A source url with any other
+  scheme still renders its chip and its row, just without an `href` — retrieval
+  output is model-adjacent text, and a `javascript:` url would otherwise become a
+  live link (the chips are spliced in after the markdown sanitizer has run).
+
   The streaming path takes the same option — `to_html/2` renders the chips into
   the HTML you push at a `format="markdown"` `streaming_text/1`. Half-arrived
   markers (`[^` with no closing bracket yet) are left alone, so nothing flashes
@@ -1041,8 +1046,11 @@ defmodule PetalComponents.Chat do
         <span class="pc-chat__attachment-name">{@entry.client_name}</span>
         <span class="pc-chat__attachment-size">{format_bytes(@entry.client_size)}</span>
       </span>
+      <%!-- Only while an upload is actually running. Without auto_upload an entry
+      sits at 0 until submit, and a 0% ring would sit over every chip from the
+      moment it is attached. --%>
       <span
-        :if={@entry.progress < 100}
+        :if={@entry.progress > 0 and @entry.progress < 100}
         role="progressbar"
         aria-valuenow={@entry.progress}
         aria-valuemin="0"
@@ -1560,12 +1568,21 @@ defmodule PetalComponents.Chat do
 
   defp format_bytes(nil), do: nil
   defp format_bytes(bytes) when bytes < 1_000, do: "#{bytes} B"
-  defp format_bytes(bytes) when bytes < 1_000_000, do: "#{Float.round(bytes / 1_000, 1)} KB"
+  defp format_bytes(bytes) when bytes < 1_000_000, do: format_size(bytes / 1_000, "KB")
+  defp format_bytes(bytes) when bytes < 1_000_000_000, do: format_size(bytes / 1_000_000, "MB")
+  defp format_bytes(bytes), do: format_size(bytes / 1_000_000_000, "GB")
 
-  defp format_bytes(bytes) when bytes < 1_000_000_000,
-    do: "#{Float.round(bytes / 1_000_000, 1)} MB"
+  # One decimal, but never a bare ".0" — "340 KB" reads like a file manager,
+  # "340.0 KB" reads like a rounding artifact.
+  defp format_size(value, unit) do
+    number =
+      value
+      |> Float.round(1)
+      |> to_string()
+      |> String.replace_suffix(".0", "")
 
-  defp format_bytes(bytes), do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
+    "#{number} #{unit}"
+  end
 
   @doc """
   A collapsible "thinking" / reasoning block for reasoning-model output. Native
@@ -1800,7 +1817,7 @@ defmodule PetalComponents.Chat do
       assign(assigns, :html, citation_html(assigns.index, normalize_source(assigns.source)))
 
     ~H"""
-    <span class={@class && ["pc-chat__citation-outer", @class]}>{Phoenix.HTML.raw(@html)}</span>
+    <span class={@class}>{Phoenix.HTML.raw(@html)}</span>
     """
   end
 
@@ -1872,12 +1889,14 @@ defmodule PetalComponents.Chat do
   attr :source, :map, required: true
 
   defp source_row(assigns) do
+    assigns = assign(assigns, :href, safe_url(assigns.source.url))
+
     ~H"""
     <li class="pc-chat__source">
       <a
-        href={@source.url}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={@href}
+        target={@href && "_blank"}
+        rel={@href && "noopener noreferrer"}
         class="pc-chat__source-link"
       >
         <.source_favicon source={@source} />
@@ -1986,8 +2005,14 @@ defmodule PetalComponents.Chat do
     title = source.title || source_domain(source) || "Source #{index}"
     domain = source_domain(source)
 
-    ~s(<span class="pc-chat__citation-wrap"><a class="pc-chat__citation" href="#{esc(source.url)}") <>
-      ~s( target="_blank" rel="noopener noreferrer" aria-label="#{esc("Source #{index}: #{title}")}">) <>
+    link =
+      case safe_url(source.url) do
+        nil -> ""
+        url -> ~s( href="#{esc(url)}" target="_blank" rel="noopener noreferrer")
+      end
+
+    ~s(<span class="pc-chat__citation-wrap"><a class="pc-chat__citation"#{link}) <>
+      ~s( aria-label="#{esc("Source #{index}: #{title}")}">) <>
       ~s(<sup class="pc-chat__citation-num">#{index}</sup></a>) <>
       ~s(<span class="pc-chat__citation-card" aria-hidden="true">) <>
       citation_card_favicon(source) <>
@@ -2040,6 +2065,23 @@ defmodule PetalComponents.Chat do
   end
 
   defp dedupe_sources(sources), do: Enum.uniq_by(sources, & &1.url)
+
+  # Source urls arrive from the host app's retrieval layer, which in a RAG chat
+  # usually means model- or document-derived text. Chips are spliced in after
+  # MDEx has sanitized the markdown, so the sanitizer never sees them: without
+  # this a `javascript:` url would render as a live link. Default-deny — only an
+  # explicit http/https scheme reaches an href, everything else (relative paths,
+  # `data:`, `javascript:`, whitespace-smuggled schemes) renders link-less.
+  defp safe_url(url) when is_binary(url) do
+    trimmed = String.trim(url)
+
+    case URI.parse(trimmed) do
+      %URI{scheme: scheme} when scheme in ["http", "https"] -> trimmed
+      _ -> nil
+    end
+  end
+
+  defp safe_url(_), do: nil
 
   defp source_domain(%{url: url}) when is_binary(url) do
     case URI.parse(url) do
