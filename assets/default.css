@@ -9083,3 +9083,441 @@
     }
   }
 }
+
+/* ==========================================================================
+   Timeline
+   A record, not a wizard - see the stepper section above for the interactive
+   sibling. The rail is a flex column (or row, when horizontal) whose connector
+   is `flex: 1`, so it always reaches the next marker no matter how tall the
+   entry's content grows. Vertical rhythm lives on the content's padding rather
+   than the <li>, so the line runs through the gap instead of stopping short.
+   ========================================================================== */
+@layer components {
+  .pc-timeline {
+    @apply m-0 list-none p-0;
+    /* How far the current entry's halo reaches past its marker. It lives here
+       rather than inline in the box-shadow because the horizontal scroller has
+       to reserve exactly this much room for it - see the padding-block down in
+       the horizontal section. Change one and the other follows. */
+    --pc-timeline-ring: 4px;
+    /* Width of the leading time column when time_placement="start". 8rem
+       clears "15 minutes ago" at this type size with room over. Set it on the
+       timeline to retune: style="--pc-timeline-time-col: 11rem". */
+    --pc-timeline-time-col: 8rem;
+  }
+
+  .pc-timeline--vertical {
+    @apply flex flex-col;
+  }
+
+  .pc-timeline__item {
+    @apply flex gap-4;
+  }
+
+  /* Rail width is fixed rather than shrink-to-fit so a timeline that mixes dot
+     and icon markers keeps one straight line and one content indent. */
+  .pc-timeline__rail {
+    @apply flex w-8 flex-none flex-col items-center;
+  }
+
+  .pc-timeline__content {
+    @apply min-w-0 flex-1 pb-6;
+  }
+
+  .pc-timeline__item--last .pc-timeline__content {
+    @apply pb-0;
+  }
+
+  /* Markers */
+  .pc-timeline__marker {
+    @apply flex flex-none items-center justify-center rounded-full;
+  }
+
+  .pc-timeline__marker--dot {
+    @apply h-2.5 w-2.5;
+  }
+
+  .pc-timeline--vertical .pc-timeline__marker--dot {
+    @apply mt-1.5;
+  }
+
+  .pc-timeline__marker--icon,
+  .pc-timeline__marker--number,
+  .pc-timeline__marker--avatar {
+    @apply h-8 w-8;
+  }
+
+  .pc-timeline__icon {
+    @apply h-4 w-4;
+  }
+
+  .pc-timeline__number {
+    @apply text-xs font-semibold;
+  }
+
+  .pc-timeline__marker--avatar {
+    @apply bg-transparent;
+  }
+
+  /* Semantic colours. Dots carry a text colour as well as a background so the
+     current-state ring (currentColor) works the same for every marker type. */
+  .pc-timeline__marker--dot.pc-timeline__marker--primary {
+    @apply bg-primary-500 text-primary-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--secondary {
+    @apply bg-secondary-500 text-secondary-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--gray {
+    @apply bg-gray-400 text-gray-400;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--info {
+    @apply bg-info-500 text-info-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--success {
+    @apply bg-success-500 text-success-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--warning {
+    @apply bg-warning-500 text-warning-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--danger {
+    @apply bg-danger-500 text-danger-500;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--primary,
+  .pc-timeline__marker--number.pc-timeline__marker--primary,
+  .pc-timeline__marker--loading.pc-timeline__marker--primary {
+    @apply bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--secondary,
+  .pc-timeline__marker--number.pc-timeline__marker--secondary,
+  .pc-timeline__marker--loading.pc-timeline__marker--secondary {
+    @apply bg-secondary-50 text-secondary-600 dark:bg-secondary-500/15 dark:text-secondary-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--gray,
+  .pc-timeline__marker--number.pc-timeline__marker--gray,
+  .pc-timeline__marker--loading.pc-timeline__marker--gray {
+    @apply bg-gray-100 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--info,
+  .pc-timeline__marker--number.pc-timeline__marker--info,
+  .pc-timeline__marker--loading.pc-timeline__marker--info {
+    @apply bg-info-50 text-info-600 dark:bg-info-500/15 dark:text-info-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--success,
+  .pc-timeline__marker--number.pc-timeline__marker--success,
+  .pc-timeline__marker--loading.pc-timeline__marker--success {
+    @apply bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--warning,
+  .pc-timeline__marker--number.pc-timeline__marker--warning,
+  .pc-timeline__marker--loading.pc-timeline__marker--warning {
+    @apply bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-300;
+  }
+
+  .pc-timeline__marker--icon.pc-timeline__marker--danger,
+  .pc-timeline__marker--number.pc-timeline__marker--danger,
+  .pc-timeline__marker--loading.pc-timeline__marker--danger {
+    @apply bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-300;
+  }
+
+  /* Avatars keep their photo (no wash), but the marker still needs the
+     semantic TEXT colour: the current-state ring below is drawn in
+     currentColor, and without these the ring on an avatar marker fell back
+     to inherited body-text gray. */
+  .pc-timeline__marker--avatar.pc-timeline__marker--primary {
+    @apply text-primary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--secondary {
+    @apply text-secondary-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--gray {
+    @apply text-gray-400;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--info {
+    @apply text-info-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--success {
+    @apply text-success-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--warning {
+    @apply text-warning-500;
+  }
+
+  .pc-timeline__marker--avatar.pc-timeline__marker--danger {
+    @apply text-danger-500;
+  }
+
+  /* States. Two classes deep so they land on top of the colour rules above
+     without an `!important` fight. */
+  .pc-timeline__marker.pc-timeline__marker--current {
+    box-shadow: 0 0 0 var(--pc-timeline-ring) color-mix(in oklab, currentColor 20%, transparent);
+  }
+
+  .pc-timeline__marker.pc-timeline__marker--upcoming {
+    @apply border-2 border-gray-300 bg-transparent text-gray-400 dark:border-gray-400/30 dark:text-gray-500;
+  }
+
+  .pc-timeline__marker--dot.pc-timeline__marker--upcoming {
+    @apply h-3 w-3;
+  }
+
+  /* Loading. The marker is always a chip here, whatever the entry's `marker`
+     is, because a 10px dot has nowhere to put a spinner - the colour rules
+     above already hand a loading marker the icon chip's wash. The dot's
+     first-line offset comes off with it, or the chip would hang low. */
+  .pc-timeline__marker--loading {
+    @apply h-8 w-8;
+  }
+
+  .pc-timeline--vertical .pc-timeline__marker--dot.pc-timeline__marker--loading {
+    @apply mt-0;
+  }
+
+  /* The button's spinner, sized for the chip. Its class carries `animate-spin`
+     and no reduced-motion guard of its own, so the guard lives here: a
+     timeline can sit on screen for minutes at a time, which is exactly the
+     case reduced-motion is asking about. Two classes deep to beat it. */
+  .pc-timeline__spinner {
+    @apply h-4 w-4 flex-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-timeline__marker .pc-timeline__spinner {
+      animation: none;
+    }
+  }
+
+  /* Connectors. No margins around the vertical line: it runs from one marker's
+     edge to the next one's, so the rail reads as a single line instead of a
+     column of stubs.
+
+     This used to be `my-1.5`, and that was a bug waiting for the right entry.
+     The run between two markers is content-driven (it's whatever is left of
+     the entry after the marker), but 12px of margin came off it whatever its
+     height, so a short entry - a title with no description - was left with a
+     5px connector sitting between 23px neighbours. min-height keeps a real
+     segment under even the shortest entry the layout can produce. */
+  .pc-timeline--vertical .pc-timeline__connector {
+    @apply w-0 min-h-3 flex-1 border-l-2 border-gray-200 dark:border-gray-400/25;
+  }
+
+  /* A dot is small, so it drops 6px to sit on the first line of text. Left
+     alone that offset is a hole in the rail, because the line above it stops
+     at the entry boundary. The entry BEFORE a dot reaches down through it. */
+  .pc-timeline--vertical
+    .pc-timeline__item:has(+ .pc-timeline__item .pc-timeline__marker--dot)
+    .pc-timeline__connector {
+    @apply -mb-1.5;
+  }
+
+  /* The line runs to 0.5rem short of the NEXT marker, not of its own item:
+     the items sit in the list's --pc-timeline-h-gap, so a symmetric margin
+     would leave gap + margin of bare rail on the right of every joint while
+     the left had margin alone (maintainer's catch: 8px vs 32px). The end
+     margin swallows the gap so both shoulders of the line measure the same
+     0.5rem. Change the list's gap only through the property, or the line
+     stops reaching. */
+  .pc-timeline--horizontal .pc-timeline__connector {
+    @apply h-0 flex-1 border-t-2 border-gray-200 dark:border-gray-400/25;
+    margin-inline: 0.5rem calc(0.5rem - var(--pc-timeline-h-gap));
+  }
+
+  .pc-timeline--dashed .pc-timeline__connector {
+    @apply border-dashed;
+  }
+
+  .pc-timeline__connector--upcoming {
+    @apply border-gray-100 dark:border-gray-400/12;
+  }
+
+  /* Content */
+  .pc-timeline__time {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__title {
+    @apply mt-0.5 text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-timeline__description {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__body {
+    @apply mt-3;
+  }
+
+  /* That top margin is separation from the description above it. An entry that
+     is only a body has nothing to separate from, and 12px of dead air at the
+     top drops its first line off its own marker. This is the case you hit the
+     moment you compose your own title row in the block - a title with badges
+     beside it, which the title attr cannot carry because it is a plain string.
+     The state label is visually hidden but still a sibling, so it needs
+     saying twice. */
+  .pc-timeline__content > .pc-timeline__body:first-child,
+  .pc-timeline__state-label + .pc-timeline__body {
+    @apply mt-0;
+  }
+
+  .pc-timeline__state-label {
+    @apply sr-only;
+  }
+
+  /* Upcoming entries read as not-yet-happened, without relying on colour: the
+     visually-hidden state label is always there for screen readers. */
+  .pc-timeline__item--upcoming .pc-timeline__title {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-timeline__item--upcoming .pc-timeline__description,
+  .pc-timeline__item--upcoming .pc-timeline__time {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+
+  /* Alternating: a centre rail with entries either side, from md up. Below
+     that it stays the default left rail, which is the only thing that fits on
+     a phone. The rail sits in the middle grid column and each entry's content
+     takes column 1 or 3 depending on its side. */
+  .pc-timeline--alternating .pc-timeline__item {
+    @apply md:grid md:grid-cols-[1fr_2rem_1fr] md:gap-0;
+  }
+
+  .pc-timeline--alternating .pc-timeline__rail {
+    @apply md:col-start-2 md:row-start-1;
+  }
+
+  .pc-timeline--alternating .pc-timeline__item--start .pc-timeline__content {
+    @apply md:col-start-3 md:row-start-1 md:pl-4;
+  }
+
+  .pc-timeline--alternating .pc-timeline__item--end .pc-timeline__content {
+    @apply md:col-start-1 md:row-start-1 md:pr-4 md:text-right;
+  }
+
+  /* Compact: activity-feed density. Marker sizes hold so avatars stay
+     legible - it's the rhythm and the type that tighten. */
+  .pc-timeline--compact .pc-timeline__item {
+    @apply gap-3;
+  }
+
+  .pc-timeline--compact .pc-timeline__content {
+    @apply pb-4;
+  }
+
+  .pc-timeline--compact .pc-timeline__title {
+    @apply mt-0 text-[13px] font-medium;
+  }
+
+  .pc-timeline--compact .pc-timeline__description {
+    @apply mt-0.5 text-xs;
+  }
+
+  .pc-timeline--compact .pc-timeline__time {
+    @apply text-[11px];
+  }
+
+  /* Leading times: the time gets a column of its own on the far side of the
+     rail, right-aligned against it, with the title and body to the right.
+
+     The entry turns into a grid for this, because the time is a sibling of the
+     rail now rather than a child of the content, and a three-item flex row
+     would put it in the wrong place. Below sm the grid is the same two tracks
+     the flex row was - a 2rem rail and the rest - with the time back on the
+     first row of column two, which is the default placement to the pixel: same
+     rail width, same 1rem gutter, and row-gap 0 so the title still sits under
+     it on its own 2px margin. Below sm a marker lands on exactly the x and y
+     it would have under the default placement, measured. From sm up the whole
+     rail translates right by the column plus the gutter, which is the point of
+     the layout, and nothing else about it moves.
+
+     Only row-gap is set here. The column gutter stays whatever the variant
+     asked for, so compact keeps its tighter 0.75rem. */
+  .pc-timeline--time-start .pc-timeline__item {
+    @apply grid gap-y-0 grid-cols-[2rem_1fr];
+    @apply sm:grid-cols-[var(--pc-timeline-time-col)_2rem_1fr];
+  }
+
+  /* Row placement is written as two longhands rather than row-span, which
+     compiles to the grid-row shorthand and would wipe the start back out. */
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__rail {
+    @apply col-start-1 row-start-1 row-end-3 sm:col-start-2 sm:row-end-2;
+  }
+
+  /* self-baseline is what lines the time up with the title rather than with
+     the top of the content box: the two type sizes differ, and they differ
+     again in compact, so a fixed nudge would be right in one variant and wrong
+     in the other. Baseline alignment needs a group, so the content opts in
+     too. */
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__time {
+    @apply col-start-2 row-start-1 sm:col-start-1 sm:self-baseline sm:text-right;
+  }
+
+  .pc-timeline--time-start .pc-timeline__item > .pc-timeline__content {
+    @apply col-start-2 row-start-2 sm:col-start-3 sm:row-start-1 sm:self-baseline;
+  }
+
+  /* Horizontal: milestones on a rail, content underneath, scrolling sideways
+     with snap points when the row outgrows its container. The list itself is
+     the scroller, so it takes focus and shows a ring - a scroll region that
+     can't be reached by keyboard is a trap for anyone not using a mouse.
+
+     Watch the vertical padding. `overflow-x: auto` against an `overflow-y`
+     of `visible` computes the y axis to `auto` as well - that is the spec, not
+     a browser quirk - so this element clips at its padding box top and bottom
+     even though nothing here ever scrolls vertically. The rail sits flush at
+     the top of that box, so with no padding-top the current marker's halo was
+     sliced off at exactly its own reach. The padding is the halo's room: it
+     grows the padding box without growing the content, so no vertical
+     scrollbar appears. */
+  .pc-timeline--horizontal {
+    /* The gap is a property because the connector's end margin has to
+       reference it (see the connector rule): the line crosses this gap to
+       land 0.5rem short of the next marker. */
+    --pc-timeline-h-gap: 1.5rem;
+    @apply flex snap-x snap-mandatory overflow-x-auto;
+    gap: var(--pc-timeline-h-gap);
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950;
+    border-radius: var(--pc-radius, 0.625rem);
+    padding-block: calc(var(--pc-timeline-ring) + 0.25rem);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-timeline--horizontal {
+      scroll-behavior: smooth;
+    }
+  }
+
+  .pc-timeline--horizontal .pc-timeline__item {
+    @apply w-56 flex-none snap-start flex-col gap-3;
+  }
+
+  /* min-h-8: the rail's height is the chip's even when it holds a smaller
+     marker. Without the floor a 10px dot's rail is 10px tall, its centre
+     rides 11px above its neighbours' and the whole entry contracts upward -
+     visible the moment one row mixes dots with icons, avatars or numbers
+     (maintainer's catch). items-center then puts every marker type on the
+     same line, which is also where every connector already draws. */
+  .pc-timeline--horizontal .pc-timeline__rail {
+    @apply min-h-8 w-full flex-row items-center;
+  }
+
+  .pc-timeline--horizontal .pc-timeline__content {
+    @apply w-full pb-0;
+  }
+}

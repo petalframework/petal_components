@@ -312,6 +312,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "timeline", name: "Timeline", ready: true},
         %{slug: "collapsible", name: "Collapsible", ready: true},
         %{slug: "kbd", name: "Kbd", ready: true},
         %{slug: "separator", name: "Separator", ready: true},
@@ -874,6 +875,14 @@ defmodule Dev.PlaygroundLive do
        page: %{current: 3, sibling: 1, boundary: 1},
        skeleton: %{animation: "pulse", loading: false},
        accordion: %{variant: "default", multiple: false, size: "md"},
+       stepper: %{orientation: "horizontal", size: "md", labels: "beside", at: 0, done: false},
+       timeline: %{
+         variant: "default",
+         orientation: "vertical",
+         marker: "icon",
+         connector: "solid",
+         time_placement: "top",
+         states: true
        sidebar: %{
          collapsible: "icon",
          side: "left",
@@ -1385,6 +1394,29 @@ defmodule Dev.PlaygroundLive do
   def handle_event("ctl_stepper", %{"k" => "labels", "v" => v}, socket)
       when v in ~w(beside bottom none),
       do: {:noreply, update(socket, :stepper, &%{&1 | labels: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "variant", "v" => v}, socket)
+      when v in ~w(default alternating compact),
+      do: {:noreply, update(socket, :timeline, &%{&1 | variant: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical horizontal),
+      do: {:noreply, update(socket, :timeline, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "marker", "v" => v}, socket)
+      when v in ~w(dot icon avatar number),
+      do: {:noreply, update(socket, :timeline, &%{&1 | marker: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "connector", "v" => v}, socket)
+      when v in ~w(solid dashed),
+      do: {:noreply, update(socket, :timeline, &%{&1 | connector: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "time_placement", "v" => v}, socket)
+      when v in ~w(top start),
+      do: {:noreply, update(socket, :timeline, &%{&1 | time_placement: v})}
+
+  def handle_event("ctl_timeline", %{"k" => "states"}, socket),
+    do: {:noreply, update(socket, :timeline, &%{&1 | states: !&1.states})}
 
   def handle_event("ctl_carousel", %{"k" => "transition", "v" => v}, socket)
       when v in ~w(fade slide),
@@ -2692,6 +2724,56 @@ defmodule Dev.PlaygroundLive do
       }
     ]
   end
+
+  # The dial demo: one release pipeline, re-dressed by whichever marker and
+  # state the dials are set to.
+  defp pg_timeline_entries(tl) do
+    [
+      %{
+        icon: "hero-code-bracket",
+        name: "Alex Chen",
+        color: "gray",
+        time: "9:41am",
+        title: "Commit pushed",
+        description: "fix: retry the webhook worker with a backoff"
+      },
+      %{
+        icon: "hero-check-circle",
+        name: "Sam Rivera",
+        color: "success",
+        time: "9:47am",
+        title: "CI passed",
+        description: "418 tests, 2m 51s"
+      },
+      %{
+        icon: "hero-rocket-launch",
+        name: "Jo Park",
+        color: "primary",
+        time: "9:52am",
+        title: "Deploying to production",
+        description: "Rolling through Sydney, Dublin and Ohio."
+      },
+      %{
+        icon: "hero-bell-alert",
+        name: "Robin Lee",
+        color: "primary",
+        time: "in a few minutes",
+        title: "Release notes published",
+        description: "Sent to everyone watching the repo."
+      }
+    ]
+    |> Enum.with_index()
+    |> Enum.map(fn {entry, i} ->
+      entry
+      |> Map.put(:marker, tl.marker)
+      |> Map.put(:state, pg_timeline_state(tl.states, i))
+    end)
+  end
+
+  defp pg_timeline_state(false, _index), do: "complete"
+  defp pg_timeline_state(true, index) when index < 2, do: "complete"
+  defp pg_timeline_state(true, 2), do: "current"
+  defp pg_timeline_state(true, _index), do: "upcoming"
 
   defp pg_step_defs do
     [
@@ -6615,6 +6697,203 @@ defmodule Dev.PlaygroundLive do
         These examples render from the shared <code>PetalComponents.Showcase.Stepper</code>
         registry - the same source petal.build renders, so the playground and the marketing
         docs can't drift. (The wizard above is playground-only - its steps push events.)
+      </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "timeline"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Timeline</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        A record of things that happened - activity feeds, deploy logs, order tracking,
+        company history. Nothing here is clickable: if the user is meant to move through
+        it, you want the stepper instead.
+      </p>
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <div class="px-6 py-8">
+          <.timeline
+            orientation={@timeline.orientation}
+            variant={@timeline.variant}
+            connector={@timeline.connector}
+            time_placement={@timeline.time_placement}
+            label="Release pipeline"
+          >
+            <:item
+              :for={e <- pg_timeline_entries(@timeline)}
+              marker={e.marker}
+              icon={e.icon}
+              name={e.name}
+              color={e.color}
+              state={e.state}
+              time={e.time}
+              title={e.title}
+              description={e.description}
+            />
+            <%!-- the local_time composition the docs promise: the time attr is a
+                  plain string (Phoenix has no nested slots), so live timestamps
+                  ride the entry BODY - this is the pattern to copy --%>
+            <:item marker="dot" color="gray" state="complete" title="Nightly build archived">
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                Completed
+                <.local_time
+                  id="timeline-nightly-time"
+                  at={DateTime.add(DateTime.utc_now(), -7, :hour)}
+                  format="relative"
+                /> on runner 4.
+              </span>
+            </:item>
+          </.timeline>
+        </div>
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@timeline.orientation}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={o <- ~w(vertical horizontal)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Variant"
+              value={@timeline.variant}
+              on_change="ctl_timeline"
+              disabled={@timeline.orientation == "horizontal"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={v <- ~w(default alternating compact)}
+                value={v}
+                phx-value-k="variant"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+            <div :if={@timeline.orientation == "horizontal"} class="mt-1.5 text-[10px] text-gray-400">
+              vertical only
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">marker</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Marker"
+              value={@timeline.marker}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={m <- ~w(dot icon avatar number)}
+                value={m}
+                phx-value-k="marker"
+                phx-value-v={m}
+              >
+                {m}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">connector</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Connector"
+              value={@timeline.connector}
+              on_change="ctl_timeline"
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item :for={c <- ~w(solid dashed)} value={c} phx-value-k="connector" phx-value-v={c}>
+                {c}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
+              time_placement
+            </div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Time placement"
+              value={@timeline.time_placement}
+              on_change="ctl_timeline"
+              disabled={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <:item
+                :for={t <- ~w(top start)}
+                value={t}
+                phx-value-k="time_placement"
+                phx-value-v={t}
+              >
+                {t}
+              </:item>
+            </.toggle_group>
+            <div
+              :if={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              vertical default and compact only
+            </div>
+            <div
+              :if={
+                @timeline.time_placement == "start" and @timeline.orientation == "vertical" and
+                  @timeline.variant != "alternating"
+              }
+              class="mt-1.5 text-[10px] text-gray-400"
+            >
+              the column shows from sm up - narrow the window and it folds back on top
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <.button
+              size="sm"
+              color="gray"
+              variant={if(@timeline.states, do: "solid", else: "outline")}
+              phx-click="ctl_timeline"
+              phx-value-k="states"
+            >
+              {if @timeline.states,
+                do: "States on: complete, current, upcoming",
+                else: "States off: everything complete"}
+            </.button>
+          </div>
+        </div>
+      </div>
+      <div :for={ex <- PetalComponents.Showcase.Timeline.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.Timeline} function={:timeline} />
+
+      <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        These examples render from the shared <code>PetalComponents.Showcase.Timeline</code>
+        registry - the same source petal.build renders, so the playground and the marketing
+        docs can't drift. (The pipeline above is playground-only - its dials push events.)
       </div>
     </div>
     """

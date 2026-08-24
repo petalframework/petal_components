@@ -3,6 +3,35 @@
 
 #### Added
 
+- **New `timeline` component: a record of things that happened, in
+  order.** Activity feeds, deploy logs, order tracking, audit trails,
+  company history - the app chrome that until now meant hand-rolling a
+  rail out of raw Tailwind. It is deliberately not a stepper: stepper is
+  interactive progress you click through, timeline is an append-only
+  display with nothing to press. The root is an `<ol>` and each entry an
+  `<li>`, so screen readers announce position and count without a single
+  ARIA role being invented. Four layouts: `default` (left rail),
+  `alternating` (entries either side of a centre rail from `md` up,
+  folding back to the left rail below), `compact` (activity-feed density)
+  and `orientation="horizontal"` for milestones, which scrolls sideways
+  with CSS scroll-snap and takes keyboard focus so the scroller isn't a
+  mouse-only region. Markers are `dot`, `icon`, `avatar` (composing
+  `<.avatar>`, initials fallback included) or `number`, which counts the
+  entries for you, each in any of the seven semantic colours. Per-entry
+  `state` of `complete`, `current` or `upcoming` rings the current
+  marker, carries `aria-current="step"`, and mutes upcoming entries along
+  with the connector running into them - and because colour alone is
+  never the signal, each of those entries also carries a
+  visually-hidden state label. Connectors come `solid` or `dashed`, and
+  each entry's inner block renders below the description, so a card, a
+  diff or an image grid drops straight in. `time_placement="start"` hands
+  the time a column of its own beside the rail, right-aligned against it,
+  which is the layout for a log you scan by when rather than by what -
+  `--pc-timeline-time-col` sets how wide, and below `sm` the time folds
+  back above the title without a marker moving. Pure CSS and HEEx: no hook,
+  nothing to wire up, and the horizontal scroller's smooth behaviour sits
+  behind a `prefers-reduced-motion` guard.
+
 - **`<.kbd>` - the keyboard chip, promoted to a real component.** The
   `.pc-kbd` class already existed, quietly powering the command palette
   trigger and input group addons, but you had to hand-write the markup
