@@ -75,6 +75,7 @@ defmodule PetalComponents do
         Slider,
         SlideOver,
         SocialButton,
+        Sortable,
         Sparkline,
         ShineBorder,
         Sidebar,
