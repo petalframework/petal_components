@@ -330,7 +330,7 @@ defmodule PetalComponents.Showcase.Field do
 
   example :sliders, "Sliders",
     description:
-      "type=\"range\" is the native input on the shared field surface - no JavaScript when plain. fill paints the track primary up to the thumb (Firefox natively, a tiny hook for webkit); leave it off for balance and pan controls, where a fill would imply a wrong zero point. step snaps the scale." do
+      "type=\"range\" is the native input on the shared field surface - no JavaScript when plain. fill paints the track primary up to the thumb (Firefox natively, a tiny hook for webkit); leave it off for balance and pan controls, where a fill would imply a wrong zero point. step snaps the scale. Superseded by <.slider>, which adds marks, a value readout, vertical orientation and sizes; this type still works and is not going anywhere in this release." do
     ~H"""
     <div class="grid w-full gap-x-10 gap-y-6 sm:grid-cols-2">
       <.field type="range" name="volume" label="Volume" value="60" min="0" max="100" fill no_margin />
@@ -353,7 +353,7 @@ defmodule PetalComponents.Showcase.Field do
 
   example :slider_dual, "Dual range",
     description:
-      "type=\"range-dual\" is two thumbs and a hook for min/max filtering - same track, thumb and focus ring as the single. min_field and max_field take form fields (in your app, @form[:min] and @form[:max]); value_prefix formats the readout and range_max_label caps the scale as open-ended." do
+      "type=\"range-dual\" is two thumbs and a hook for min/max filtering - same track, thumb and focus ring as the single. min_field and max_field take form fields (in your app, @form[:min] and @form[:max]); value_prefix formats the readout and range_max_label caps the scale as open-ended. Superseded by <.slider>, which takes the same two form fields and adds marks, a value readout, vertical orientation and sizes; this type still works and is not going anywhere in this release." do
     ~H"""
     <div class="w-full max-w-sm">
       <.field

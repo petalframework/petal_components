@@ -1,0 +1,194 @@
+defmodule PetalComponents.HoverCard do
+  @moduledoc """
+  A rich preview panel that opens when the pointer rests on its trigger, or
+  when the keyboard focus lands inside it. Think the GitHub profile preview:
+  hover a username and a card with an avatar, a bio line and a follow button
+  fades in. Pure CSS - no JavaScript, no hook.
+
+  ## Examples
+
+      <.hover_card>
+        <:trigger>
+          <.link navigate={~p"/users/jane"} class="font-medium underline">@jane</.link>
+        </:trigger>
+        <div class="flex gap-3">
+          <.avatar name="Jane Doe" size="md" />
+          <div>
+            <div class="text-sm font-semibold">Jane Doe</div>
+            <p class="text-sm text-gray-500">Ships Phoenix apps for a living.</p>
+          </div>
+        </div>
+      </.hover_card>
+
+  Placement and timing are both dials:
+
+      <.hover_card placement="right-start" open_delay={0} close_delay={500}>
+        <:trigger>...</:trigger>
+        ...
+      </.hover_card>
+
+  Placement is static: nothing flips or shifts the card to dodge an edge, so
+  pick a side with room or a trigger near the viewport edge gets its card
+  clipped.
+
+  ## Tooltip, popover or hover card?
+
+    * `tooltip/1` - a short text hint. Opens on hover or focus, is not
+      interactive, and carries `role="tooltip"`.
+    * `popover/1` - an interactive panel that opens on **click**, with light
+      dismiss and Escape. Its trigger is a real `<button>`.
+    * `hover_card/1` - an interactive panel that opens on **hover or focus**,
+      after a delay. Its trigger is whatever you put in it, usually a link.
+
+  If the content is a sentence of explanation, reach for the tooltip. If the
+  user has to click to get it, reach for the popover.
+
+  ## Delays and hover bridging
+
+  `open_delay` (default 350ms) stops the card firing while the pointer is only
+  passing over the trigger. `close_delay` (default 150ms) keeps it up long
+  enough to move onto it. Both are emitted as CSS custom properties on the
+  wrapper and consumed by `transition-delay`, so the timing costs no
+  JavaScript.
+
+  The panel is a child of the wrapper, so hovering the panel keeps the whole
+  thing open - the card stays put while you read it or click a button inside
+  it. The gap between trigger and panel is bridged by a transparent
+  `::before` on the panel, so crossing it never drops the hover. The bridge
+  extends only toward the trigger's side, but be aware it is invisible: while
+  the card is open, a pointer resting in that ~8px band between trigger and
+  panel still counts as hovering the card.
+
+  ## Inline by design, and the one gotcha
+
+  Wrapper, trigger and panel are all `<span>`s, so a hover card drops into a
+  sentence without breaking the flow. The catch is the browser's parser, not
+  this component: an open `<p>` is closed the instant it meets a `<div>`. So
+  if your card content is block-level - and a profile card usually is - the
+  surrounding prose has to be a `<div>`, or the card content gets hoisted out
+  of the paragraph and renders unstyled in the page flow.
+
+      <%!-- broken: the <div> inside the card closes the <p> --%>
+      <p>Built on <.hover_card><:trigger>...</:trigger><div>...</div></.hover_card></p>
+
+      <%!-- fine --%>
+      <div>Built on <.hover_card><:trigger>...</:trigger><div>...</div></.hover_card></div>
+
+  Keep the card content to phrasing elements (`span`, `a`, `strong`) and a
+  `<p>` is safe.
+
+  ## Accessibility
+
+  **The card is enrichment, never the only path to the information.** The
+  trigger itself must reach the full content - a link to the profile, the
+  page, the record. Pointer users who never rest on it, screen reader users,
+  and anyone on touch all get there through the trigger.
+
+    * **Keyboard.** The card opens on `focus-within`, so tabbing to a
+      focusable trigger opens it and tabbing onward moves through the card's
+      own controls. There is no focus trap - this is not a dialog. Moving
+      focus out closes it, which is the keyboard close path.
+    * **Escape does not close it.** That needs JavaScript, and this component
+      is deliberately CSS-only. Tab away instead. If you need Escape, reach
+      for `popover/1`.
+    * **The trigger must be focusable** for any of the keyboard path to work.
+      Put a link or a button in the `:trigger` slot; plain text is
+      pointer-only.
+    * **Touch.** Nothing intercepts the tap, so the trigger keeps working as
+      the link or button it is. There is no hover on touch, which is the
+      whole reason the trigger has to stand on its own.
+    * **Screen readers.** At rest the panel is `visibility: hidden`, so it is
+      out of the accessibility tree entirely. It carries no `role` - it is
+      neither a tooltip (the content is interactive) nor a dialog (it never
+      takes focus modally).
+
+  ## Reduced motion
+
+  Under `prefers-reduced-motion` the fade is dropped and the card snaps in and
+  out - but the open and close delays are kept. The delay is interaction
+  design, not decoration: without it every glancing pointer would fire a card.
+  """
+  use Phoenix.Component
+
+  @placements ~w(top top-start top-end bottom bottom-start bottom-end left left-start left-end right right-start right-end)
+
+  @doc """
+  A hover/focus-triggered preview panel anchored to its trigger.
+
+  See the module documentation for the delay and bridging model, the
+  tooltip/popover/hover-card comparison, and the accessibility contract.
+  """
+  attr :id, :string, doc: "the panel id; autogenerated if not set"
+
+  attr :placement, :string,
+    default: "bottom",
+    values: @placements,
+    doc: "which side of the trigger the card appears on, with optional -start/-end alignment"
+
+  attr :open_delay, :integer,
+    default: 350,
+    doc: "milliseconds the pointer must rest on the trigger before the card opens"
+
+  attr :close_delay, :integer,
+    default: 150,
+    doc: "milliseconds after the pointer leaves before the card closes"
+
+  attr :class, :any, default: nil, doc: "extra classes for the wrapper"
+  attr :trigger_class, :any, default: nil, doc: "extra classes for the trigger element"
+  attr :card_class, :any, default: nil, doc: "extra classes for the card panel"
+  attr :rest, :global
+
+  slot :trigger, required: true, doc: "the trigger content (a link, chip, avatar, plain text)"
+  slot :inner_block, required: true, doc: "the card content"
+
+  def hover_card(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:id, fn -> "hover_card_#{Ecto.UUID.generate()}" end)
+      |> assign_delay_style()
+
+    ~H"""
+    <span class={["pc-hover-card group/pc-hover-card", @class]} style={@style} {@rest}>
+      <span class={["pc-hover-card__trigger", @trigger_class]}>
+        {render_slot(@trigger)}
+      </span>
+      <span
+        id={@id}
+        class={["pc-hover-card__panel", placement_class(@placement), @card_class]}
+      >
+        {render_slot(@inner_block)}
+      </span>
+    </span>
+    """
+  end
+
+  # The delays ride on the wrapper as custom properties. A caller-supplied
+  # `style` is appended rather than dropped (and rather than emitted as a
+  # second `style` attribute, which the browser would ignore), so it can still
+  # override anything we set.
+  defp assign_delay_style(assigns) do
+    {caller_style, rest} = pop_style(assigns.rest)
+
+    style =
+      Enum.join(
+        [
+          "--pc-hover-card-open-delay: #{assigns.open_delay}ms;",
+          "--pc-hover-card-close-delay: #{assigns.close_delay}ms;",
+          caller_style
+        ]
+        |> Enum.reject(&(&1 in [nil, ""])),
+        " "
+      )
+
+    assigns |> assign(:style, style) |> assign(:rest, rest)
+  end
+
+  defp pop_style(rest) do
+    case Map.pop(rest, :style) do
+      {nil, rest} -> Map.pop(rest, "style")
+      {style, rest} -> {style, rest}
+    end
+  end
+
+  defp placement_class(placement), do: "pc-hover-card__panel--#{placement}"
+end

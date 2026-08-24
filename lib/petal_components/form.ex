@@ -80,6 +80,13 @@ defmodule PetalComponents.Form do
     doc: "The type of input"
   )
 
+  attr(:variant, :string,
+    default: "default",
+    values: ~w(default pill),
+    doc:
+      ~s(type="switch" only: pill swaps the round thumb for an iOS-style capsule; the track is unchanged)
+  )
+
   attr(:wrapper_classes, :string, default: "pc-form-field-wrapper", doc: "CSS class for wrapper")
 
   attr :no_margin, :boolean,
@@ -140,7 +147,7 @@ defmodule PetalComponents.Form do
   defp render_form_field_by_type(%{type: "switch"} = assigns) do
     ~H"""
     <label class="pc-checkbox-label">
-      <.switch form={@form} field={@field} {@rest} />
+      <.switch form={@form} field={@field} variant={@variant} {@rest} />
       <div class={label_classes(%{form: @form, field: @field, type: "checkbox", class: @label_class})}>
         {@label}
       </div>
@@ -627,6 +634,13 @@ defmodule PetalComponents.Form do
   attr(:label, :string, default: nil, doc: "labels your field")
   attr(:class, :any, default: nil, doc: "extra classes for the text input")
   attr(:size, :string, default: "md", values: ~w(xs sm md lg xl), doc: "the size of the switch")
+
+  attr(:variant, :string,
+    default: "default",
+    values: ~w(default pill),
+    doc: ~s(pill swaps the round thumb for an iOS-style capsule; the track is unchanged)
+  )
+
   attr(:rest, :global, include: @checkbox_form_attrs)
 
   def switch(assigns) do
@@ -634,7 +648,7 @@ defmodule PetalComponents.Form do
     assigns = assign_defaults(assigns, switch_classes(errors))
 
     ~H"""
-    <label class={["pc-switch", "pc-switch--#{@size}"]}>
+    <label class={["pc-switch", "pc-switch--#{@size}", @variant == "pill" && "pc-switch--pill"]}>
       {Form.checkbox(@form, @field, [class: @classes] ++ Map.to_list(@rest))}
       <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
       <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
