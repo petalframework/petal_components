@@ -1,5 +1,26 @@
 # Changelog
 
+### 4.15.1 - 2026-08-24
+
+#### Fixed
+
+- **The number field's stepper icons are visible on consumer sites
+  again.** The spin buttons built their icon class as
+  `hero-\#{icon}-micro` at runtime, so the literal class names appeared
+  in no source file and a consumer's Tailwind scan of this package -
+  the scan that exists precisely to catch classes like these - dropped
+  all four micro icons. Found on petal.build's new docs pages as
+  invisible steppers. The full literal name now travels from each call
+  site.
+
+#### Changed
+
+- **The sortable `:grid` showcase example is the gallery.** Text-only
+  tiles traded for six gradient cards with captions - the grid the
+  playground's page demo always had - so the playground showcase,
+  petal.build's docs page and the MCP all serve the same convincing
+  example.
+
 ### 4.15.0 - 2026-08-24
 
 #### Added
