@@ -444,6 +444,192 @@ export const PetalDualRangeSlider = {
   },
 };
 
+// Slider: keeps the geometry custom properties on the <.slider> wrapper in
+// sync while you drag, and in dual mode enforces the ordering invariant the
+// two overlaid native inputs cannot enforce themselves.
+//
+// The server renders --pc-slider-frac* inline, so the control is already
+// correct before this hook connects and stays correct with JS off; everything
+// here is the live update. Positioning stays pure CSS (fill, tooltip and every
+// tick read the same properties), so nothing is measured.
+//
+// Read from the wrapper (set server-side in slider.ex):
+//   data-pc-slider-min / data-pc-slider-max  — absolute bounds
+//   data-pc-slider-mode                      — "single" | "dual"
+//   data-value-prefix / data-value-suffix    — readout formatting
+//
+// Inner elements found by marker attributes:
+//   [data-pc-slider-input]        — the single input
+//   [data-pc-slider-input-min]    — dual lower input
+//   [data-pc-slider-input-max]    — dual upper input
+//   [data-pc-slider-display]      — inline readout / single tooltip
+//   [data-pc-slider-display-min]  — dual lower tooltip
+//   [data-pc-slider-display-max]  — dual upper tooltip
+//   [data-pc-slider-mark]         — a tick, its 0..1 fraction as the value
+export const PetalSlider = {
+  mounted() {
+    this.onInput = (event) => this.handleInput(event);
+    this.bind();
+    this.sync();
+  },
+
+  updated() {
+    // Re-read the DOM rather than trusting what the last bind() cached. A
+    // re-render can change the slider's whole shape under a constant id -
+    // single becomes dual, the bounds move, the prefix changes - and single
+    // and dual do not even share input elements (_input vs _min/_max). Keeping
+    // the old references would leave the listeners on detached nodes, so the
+    // fill would stop following the thumb and the dual ordering clamp would
+    // never run again.
+    this.bind();
+    this.sync({ emit: false });
+  },
+
+  destroyed() {
+    this.unbind();
+  },
+
+  bind() {
+    this.unbind();
+
+    this.dual = this.el.dataset.pcSliderMode === "dual";
+    this.lo = parseFloat(this.el.dataset.pcSliderMin);
+    this.hi = parseFloat(this.el.dataset.pcSliderMax);
+    if (Number.isNaN(this.lo)) this.lo = 0;
+    if (Number.isNaN(this.hi)) this.hi = 100;
+    this.prefix = this.el.dataset.valuePrefix || "";
+    this.suffix = this.el.dataset.valueSuffix || "";
+    this.marks = Array.from(this.el.querySelectorAll("[data-pc-slider-mark]"));
+
+    if (this.dual) {
+      this.input = null;
+      this.minInput = this.el.querySelector("[data-pc-slider-input-min]");
+      this.maxInput = this.el.querySelector("[data-pc-slider-input-max]");
+      this.inputs = [this.minInput, this.maxInput].filter(Boolean);
+    } else {
+      this.minInput = null;
+      this.maxInput = null;
+      this.input = this.el.querySelector("[data-pc-slider-input]");
+      this.inputs = this.input ? [this.input] : [];
+    }
+
+    this.inputs.forEach((el) => el.addEventListener("input", this.onInput));
+  },
+
+  unbind() {
+    (this.inputs || []).forEach((el) =>
+      el.removeEventListener("input", this.onInput),
+    );
+    this.inputs = [];
+  },
+
+  handleInput(event) {
+    if (this.dual) this.enforceOrder(event && event.target);
+    this.sync();
+  },
+
+  // Two overlaid inputs can cross each other. Clamp the one being dragged to
+  // the other, then lift its z-index so that when the thumbs meet the user can
+  // still drag back out - without the lift the stacking order decides which
+  // thumb answers the pointer, and one of them becomes stuck.
+  enforceOrder(target) {
+    if (!this.minInput || !this.maxInput) return;
+    let min = parseFloat(this.minInput.value);
+    let max = parseFloat(this.maxInput.value);
+    if (Number.isNaN(min) || Number.isNaN(max)) return;
+
+    if (target === this.maxInput) {
+      if (max < min) {
+        max = min;
+        this.maxInput.value = String(max);
+      }
+      this.maxInput.style.zIndex = max <= min ? "20" : "";
+      this.minInput.style.zIndex = "";
+    } else {
+      if (min > max) {
+        min = max;
+        this.minInput.value = String(min);
+      }
+      this.minInput.style.zIndex = min >= max ? "20" : "";
+      this.maxInput.style.zIndex = "";
+    }
+  },
+
+  values() {
+    if (this.dual) {
+      return [
+        this.numberFrom(this.minInput, this.lo),
+        this.numberFrom(this.maxInput, this.hi),
+      ];
+    }
+    return [this.numberFrom(this.input, this.lo)];
+  },
+
+  numberFrom(el, fallback) {
+    if (!el) return fallback;
+    const n = parseFloat(el.value);
+    return Number.isNaN(n) ? fallback : n;
+  },
+
+  // 0..1, matching the server's frac/3 - the CSS turns it into a thumb-centre
+  // offset, so a unitless fraction is what both ends have to agree on. Rounded
+  // to the same 4dp the server uses, so an awkward denominator (0..3, marks on
+  // every step) cannot leave a tick the server painted as filled failing the
+  // client's own >= comparison the moment the hook connects.
+  frac(value) {
+    const span = this.hi - this.lo;
+    if (span === 0) return 0;
+    const f = Math.max(0, Math.min(1, (value - this.lo) / span));
+    return Math.round(f * 10000) / 10000;
+  },
+
+  sync({ emit = true } = {}) {
+    const values = this.values();
+
+    if (this.dual) {
+      const [min, max] = values;
+      this.el.style.setProperty("--pc-slider-frac-min", `${this.frac(min)}`);
+      this.el.style.setProperty("--pc-slider-frac-max", `${this.frac(max)}`);
+      this.setText("[data-pc-slider-display]", `${this.fmt(min)} – ${this.fmt(max)}`);
+      this.setText("[data-pc-slider-display-min]", this.fmt(min));
+      this.setText("[data-pc-slider-display-max]", this.fmt(max));
+      this.syncMarks((f) => f >= this.frac(min) && f <= this.frac(max));
+      if (emit) this.emit({ values: [min, max] });
+    } else {
+      const [value] = values;
+      this.el.style.setProperty("--pc-slider-frac", `${this.frac(value)}`);
+      this.setText("[data-pc-slider-display]", this.fmt(value));
+      this.syncMarks((f) => f <= this.frac(value));
+      if (emit) this.emit({ value });
+    }
+  },
+
+  syncMarks(filled) {
+    this.marks.forEach((mark) => {
+      const f = parseFloat(mark.dataset.pcSliderMark);
+      if (Number.isNaN(f)) return;
+      mark.classList.toggle("pc-slider__mark--filled", filled(f));
+    });
+  },
+
+  setText(selector, text) {
+    const el = this.el.querySelector(selector);
+    if (el) el.textContent = text;
+  },
+
+  // parseFloat strips trailing zeros (50.0 -> "50"), matching the server's
+  // formatter so the readout does not jump on the first drag.
+  fmt(value) {
+    return `${this.prefix}${parseFloat(value.toFixed(10))}${this.suffix}`;
+  },
+
+  emit(detail) {
+    this.el.dispatchEvent(
+      new CustomEvent("petal:slider-change", { detail, bubbles: true }),
+    );
+  },
+};
+
 // Number ticker: counts up to data-value when the element scrolls into view,
 // and re-animates from the previous value whenever data-value changes (so a
 // LiveView assign update animates the delta). Formatting via Intl.NumberFormat.
@@ -1435,6 +1621,315 @@ export const PetalInputOTP = {
   },
 };
 
+// Number field maths, kept pure and exported so the specs can pin the rules
+// without a DOM: parsing, clamping, decimal-safe stepping and blur formatting.
+export const numberFieldMath = {
+  // "" and "abc" are both "no number yet" - a half-typed field must not
+  // resolve to 0, or every keystroke would fight the user.
+  parse(text) {
+    if (text === null || text === undefined) return null;
+    const trimmed = String(text).trim();
+    if (trimmed === "") return null;
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : null;
+  },
+
+  clamp(n, min, max) {
+    if (n === null) return null;
+    let out = n;
+    if (min !== null && out < min) out = min;
+    if (max !== null && out > max) out = max;
+    return out;
+  },
+
+  decimals(n) {
+    const s = String(n);
+    const dot = s.indexOf(".");
+    if (dot === -1 || s.includes("e") || s.includes("E")) return 0;
+    return s.length - dot - 1;
+  },
+
+  // 0.1 + 0.2 is 0.30000000000000004 in every browser. Re-round to the
+  // decimals the operands actually carry so a 0.1 step reads as 0.3.
+  add(value, delta) {
+    const places = Math.min(
+      Math.max(this.decimals(value), this.decimals(delta)),
+      12,
+    );
+    return Number((value + delta).toFixed(places));
+  },
+
+  format(n, precision) {
+    if (n === null) return "";
+    if (precision === null || precision === undefined) return String(n);
+    return n.toFixed(precision);
+  },
+};
+
+// Number field: one text input carrying role="spinbutton", plus the buttons.
+// The hook owns everything the markup can't - stepping, clamping, the keyboard
+// map, wheel, hold-to-repeat, and keeping aria-valuenow honest.
+export const PetalNumberField = {
+  mounted() {
+    this.repeatTimer = null;
+    // A variant switch swaps which buttons exist, so binding is idempotent
+    // and re-runs on every patch rather than assuming mount-time nodes.
+    this.bound = new WeakSet();
+    this.stopRepeat = () => this.cancelRepeat();
+    window.addEventListener("pointerup", this.stopRepeat);
+    window.addEventListener("blur", this.stopRepeat);
+
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  updated() {
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  bind() {
+    this.input = this.el.querySelector("[data-pc-number-input]");
+    if (!this.input) return;
+    this.buttons = Array.from(this.el.querySelectorAll("[data-pc-number-step]"));
+
+    if (!this.bound.has(this.input)) {
+      this.bound.add(this.input);
+      this.input.addEventListener("keydown", (e) => this.handleKeydown(e));
+      // passive: false or preventDefault is ignored and the page scrolls
+      // out from under the field.
+      this.input.addEventListener("wheel", (e) => this.handleWheel(e), {
+        passive: false,
+      });
+      this.input.addEventListener("blur", () => this.commitTyped());
+      this.input.addEventListener("input", () => this.syncAria());
+    }
+
+    this.buttons.forEach((btn) => {
+      if (this.bound.has(btn)) return;
+      this.bound.add(btn);
+      btn.addEventListener("pointerdown", (e) => this.startRepeat(e, btn));
+      // pointerup alone leaks a stuck repeat when the finger slides off the
+      // button before lifting.
+      ["pointerup", "pointerleave", "pointercancel"].forEach((type) =>
+        btn.addEventListener(type, this.stopRepeat),
+      );
+    });
+  },
+
+  destroyed() {
+    this.cancelRepeat();
+    if (this.stopRepeat) {
+      window.removeEventListener("pointerup", this.stopRepeat);
+      window.removeEventListener("blur", this.stopRepeat);
+    }
+  },
+
+  config() {
+    const d = this.el.dataset;
+    const step = numberFieldMath.parse(d.step);
+    const bigStep = numberFieldMath.parse(d.bigStep);
+    const precision = numberFieldMath.parse(d.precision);
+    const resolvedStep = step === null ? 1 : step;
+
+    return {
+      min: numberFieldMath.parse(d.min),
+      max: numberFieldMath.parse(d.max),
+      step: resolvedStep,
+      bigStep: bigStep === null ? resolvedStep * 10 : bigStep,
+      precision: precision === null ? null : Math.trunc(precision),
+    };
+  },
+
+  currentValue() {
+    return numberFieldMath.parse(this.input.value);
+  },
+
+  // An empty field starts from the lower bound when there is one, so the
+  // first press on a 1..99 quantity lands on 1, not 0.
+  origin(cfg) {
+    if (cfg.min !== null) return cfg.min;
+    if (cfg.max !== null && cfg.max < 0) return cfg.max;
+    return 0;
+  },
+
+  step(delta) {
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const current = this.currentValue();
+    const base = current === null ? this.origin(cfg) - delta : current;
+    const next = numberFieldMath.clamp(
+      numberFieldMath.add(base, delta),
+      cfg.min,
+      cfg.max,
+    );
+    this.write(next, cfg.precision);
+  },
+
+  // Returns whether it mutated the value, so callers can avoid firing
+  // synthetic events for writes that changed nothing.
+  write(value, precision) {
+    const text = numberFieldMath.format(value, precision);
+    if (text === this.input.value) {
+      this.syncAria();
+      return false;
+    }
+    this.input.value = text;
+    this.syncAria();
+    this.input.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  },
+
+  // Typed text is left alone until blur: clamping mid-keystroke would snap
+  // "1" to the maximum on the way to "15". The synthetic change fires ONLY
+  // when the clamp actually rewrote the value - for in-range typed input the
+  // browser's own native change already fires on blur, and dispatching a
+  // second one doubled every change handler.
+  commitTyped() {
+    const cfg = this.config();
+    const current = this.currentValue();
+    if (current === null) {
+      this.syncAria();
+      return;
+    }
+    const mutated = this.write(
+      numberFieldMath.clamp(current, cfg.min, cfg.max),
+      cfg.precision,
+    );
+    if (mutated) {
+      this.input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  },
+
+  handleKeydown(e) {
+    // Home/End write() directly, bypassing step()'s guard - and readonly
+    // inputs still receive keydown, so without this a readonly value could
+    // be rewritten from the keyboard.
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const big = e.shiftKey ? cfg.bigStep : cfg.step;
+
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        return this.step(big);
+      case "ArrowDown":
+        e.preventDefault();
+        return this.step(-big);
+      case "PageUp":
+        e.preventDefault();
+        return this.step(cfg.bigStep);
+      case "PageDown":
+        e.preventDefault();
+        return this.step(-cfg.bigStep);
+      case "Home":
+        if (cfg.min === null) return;
+        e.preventDefault();
+        return this.write(cfg.min, cfg.precision);
+      case "End":
+        if (cfg.max === null) return;
+        e.preventDefault();
+        return this.write(cfg.max, cfg.precision);
+      default:
+        return undefined;
+    }
+  },
+
+  // Only while focused, so a scroll down the page never rewrites a number
+  // the pointer happened to pass over.
+  handleWheel(e) {
+    if (document.activeElement !== this.input) return;
+    if (this.input.disabled || this.input.readOnly) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    const cfg = this.config();
+    this.step(e.deltaY < 0 ? cfg.step : -cfg.step);
+  },
+
+  startRepeat(e, btn) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+    // Mirror step()'s guard: a hold on a readonly control otherwise focuses
+    // the input and schedules a repeat timer that no-ops every tick.
+    if (this.input.disabled || this.input.readOnly) return;
+    e.preventDefault();
+    // Focusing the input is for mouse and pen: arrows and the wheel work
+    // right after a click. On TOUCH the same focus() summons the software
+    // keyboard over a control being worked with a fingertip - the
+    // maintainer's iPhone had it flashing up and away per stepper tap.
+    // React Aria's number field makes the same split. A keyboard already
+    // up stays up: the preventDefault above keeps an already-focused
+    // input focused, so stepping mid-typing remains an adjustment, not a
+    // mode switch.
+    if (e.pointerType !== "touch") this.input.focus();
+
+    const cfg = this.config();
+    const delta = btn.dataset.pcNumberStep === "inc" ? cfg.step : -cfg.step;
+    this.step(delta);
+
+    // A press is one step; a hold accelerates from a deliberate pause down
+    // to a fast repeat, the way a native spinner feels.
+    let interval = 120;
+    const tick = () => {
+      if (btn.getAttribute("aria-disabled") === "true") return;
+      this.step(delta);
+      interval = Math.max(40, interval - 12);
+      this.repeatTimer = setTimeout(tick, interval);
+    };
+    this.repeatTimer = setTimeout(tick, 400);
+  },
+
+  cancelRepeat() {
+    if (this.repeatTimer) clearTimeout(this.repeatTimer);
+    this.repeatTimer = null;
+  },
+
+  syncAria() {
+    const cfg = this.config();
+    const value = this.currentValue();
+
+    if (value === null) this.input.removeAttribute("aria-valuenow");
+    else this.input.setAttribute("aria-valuenow", String(value));
+
+    this.buttons.forEach((btn) => {
+      const inc = btn.dataset.pcNumberStep === "inc";
+      const bound = inc ? cfg.max : cfg.min;
+      const atBound =
+        value !== null &&
+        bound !== null &&
+        (inc ? value >= bound : value <= bound);
+      if (atBound) btn.setAttribute("aria-disabled", "true");
+      else btn.removeAttribute("aria-disabled");
+    });
+  },
+};
+
+// The one vertical-flip rule for a panel anchored under its trigger, so a
+// fix to the rule lands on every panel that shares it. It owns the DECISION
+// only - which side the panel opens on, and how much room that side has.
+// What each component does with the answer stays local, because that part
+// genuinely differs: the combobox marks `data-flip` and caps an inner
+// scroller, the dropdown marks `data-flip` and lets CSS do the rest.
+//
+// The rule: stay below unless the panel does not fit below AND above is
+// roomier. Ties go to below, so a panel that fits either way never moves,
+// and a viewport too cramped for both sides still picks the bigger one.
+// `gap` is the visual space between trigger and panel; it comes out of both
+// sides so the comparison is like for like.
+export const flipDecision = ({
+  triggerTop,
+  triggerBottom,
+  panelHeight,
+  viewportTop = 0,
+  viewportHeight,
+  gap = 0,
+}) => {
+  const below = viewportTop + viewportHeight - triggerBottom - gap;
+  const above = triggerTop - viewportTop - gap;
+  const flip = panelHeight > below && above > below;
+  return { flip, above, below, room: flip ? above : below };
+};
+
 // Positions a top-layer popover (<div popover>) next to its trigger.
 // The browser handles open/close and light-dismiss via the popover attribute;
 // this hook only computes fixed coordinates, flipping to the opposite side
@@ -1833,11 +2328,14 @@ export const PetalCommand = {
 };
 
 // The palette in a native <dialog>: global shortcut, open/close events,
-// autofocus, and query reset. The native element supplies the top layer,
-// focus trap, ::backdrop and Escape.
+// autofocus, query reset, and the background scroll lock. The native element
+// supplies the top layer, focus trap, ::backdrop and Escape - the scroll lock
+// is the one piece it does not, so the hook adds it.
 export const PetalCommandDialog = {
   mounted() {
     this.palette = this.el.querySelector(".pc-command");
+    this.wasOpen = false;
+    this.refocus = null;
 
     this.onShortcut = (e) => {
       const key = this.el.dataset.shortcut;
@@ -1856,7 +2354,15 @@ export const PetalCommandDialog = {
       // click on the backdrop = click whose target is the dialog itself
       if (e.target === this.el) this.close();
     };
-    this.onClose = () => this.reset();
+    // The native close event is the one funnel every close path drains
+    // through - our close(), Escape's native cancel, and Chrome's close
+    // watcher, which can fire close without any cancel we could intercept.
+    // Releasing the scroll lock here rather than beside each close() call is
+    // what makes it run exactly once per open, whoever did the closing.
+    this.onClose = () => {
+      document.body.classList.remove("overflow-hidden");
+      this.reset();
+    };
     this.onItemClick = (e) => {
       const item = e.target.closest("[data-pc-command-item]");
       if (
@@ -1876,7 +2382,37 @@ export const PetalCommandDialog = {
     this.el.addEventListener("click", this.onItemClick);
   },
 
+  // LiveView merges this element's attributes against the SERVER's render,
+  // and the server renders no `open` - showModal() sets it client-side. So
+  // any patch that re-renders the dialog's subtree (a reconnect's join
+  // morph, live assigns feeding the items) strips `open`, yanking an open
+  // palette shut with no `close` event: the scroll lock never releases and
+  // the page behind stays frozen with nothing on screen. Remember the
+  // client-owned state before the patch, put it back after.
+  beforeUpdate() {
+    this.wasOpen = this.el.open;
+    this.refocus = this.el.contains(document.activeElement)
+      ? document.activeElement
+      : null;
+  },
+
+  updated() {
+    if (this.wasOpen && !this.el.open) {
+      // Same task as the strip, so `open` never hits a style recalc off -
+      // the entrance animation does not replay.
+      this.el.showModal();
+      if (this.refocus?.isConnected) this.refocus.focus();
+      else this.focusInput();
+    }
+    this.refocus = null;
+  },
+
   destroyed() {
+    // A patch can remove an OPEN dialog, and a removed element fires no close
+    // event - never leave the page locked with nothing on screen. Guarded on
+    // `open` so tearing down a CLOSED palette can't strip a lock another
+    // overlay owns.
+    if (this.el.open) document.body.classList.remove("overflow-hidden");
     // Remove every listener mounted() registered - the document shortcut AND
     // the dialog-element handlers - so a reused dialog node can't keep stale
     // handlers that fire close/reset against a torn-down hook.
@@ -1890,7 +2426,17 @@ export const PetalCommandDialog = {
 
   open() {
     if (this.el.open) return;
+    // showModal() gives the top layer and the focus trap, but a native modal
+    // dialog does NOT stop the page behind it scrolling. Same body class the
+    // modal and slide_over use, so the treatment is one thing across the
+    // library. The `open` guard above is what keeps a second open from
+    // stacking a lock the single close would then under-release.
+    document.body.classList.add("overflow-hidden");
     this.el.showModal();
+    this.focusInput();
+  },
+
+  focusInput() {
     const input = this.el.querySelector(".pc-command__input");
     if (input) input.focus();
   },
@@ -2306,6 +2852,111 @@ export const PetalNavMenu = {
     } else if (rect.left < margin) {
       panel.style.transform = `translateX(${margin - rect.left}px)`;
     }
+  },
+};
+
+// The dropdown family - the dropdown itself, the user menu, the language
+// select, the colour-scheme menu - opens a plain absolutely-positioned
+// sibling panel through LiveView.JS alone. No JS in the open path at all,
+// which is exactly why the panel always went downward: an avatar pinned to
+// the bottom of a sidebar dropped its menu clean off the bottom of the
+// screen with nothing to scroll to.
+//
+// The hook rides the PANEL, not the container: the panel already carries
+// the id `JS.toggle` targets, so nothing new has to be minted and a
+// consumer id can't collide with it. All it does is mark `data-flip` when
+// the shared rule says up - CSS moves the panel and swaps the transform
+// origin so the open transition still scales out of the trigger.
+//
+// Opening is detected by watching the inline `style` JS.toggle writes,
+// rather than by listening on the trigger. That catches every opener,
+// including a consumer driving their own JS.toggle at the same id, and it
+// can never observe itself into a loop: this hook only writes attributes.
+export const PetalDropdown = {
+  mounted() {
+    this.gap = 8; // matches the panel's mt-2 / flipped mb-2
+
+    this.reposition = () => this.position();
+    // Live tracking, matching the combobox - plus the visual viewport,
+    // matching the data table: the mobile keyboard and pinch-zoom shrink
+    // and offset the VISIBLE region without firing window scroll or
+    // resize, so a menu measured on layout-viewport numbers alone can
+    // still open behind the keyboard.
+    this.listen = (method) => {
+      window[method]("scroll", this.reposition, true);
+      window[method]("resize", this.reposition);
+      if (window.visualViewport) {
+        window.visualViewport[method]("resize", this.reposition);
+        window.visualViewport[method]("scroll", this.reposition);
+      }
+    };
+    this.syncOpen = () => {
+      const open = this.isOpen();
+      if (open === this.open) return;
+      this.open = open;
+      if (open) {
+        this.listen("addEventListener");
+        this.position();
+      } else {
+        this.listen("removeEventListener");
+        // data-flip deliberately survives the close. The out transition
+        // scales the panel back into the trigger, and dropping it to the
+        // other side mid-fade is the jump this hook exists to prevent.
+        // Every open measures fresh anyway.
+      }
+    };
+
+    this.open = this.isOpen();
+    this.observer = new MutationObserver(this.syncOpen);
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    if (this.open) this.position();
+  },
+
+  destroyed() {
+    this.observer?.disconnect();
+    this.listen?.("removeEventListener");
+  },
+
+  // The panel ships `display: none` inline and JS.toggle rewrites it. An
+  // empty display means a stylesheet is in charge and the panel is showing.
+  isOpen() {
+    return this.el.style.display !== "none";
+  },
+
+  trigger() {
+    return this.el.parentElement?.querySelector("[data-pc-dropdown-trigger]");
+  },
+
+  position() {
+    const trigger = this.trigger();
+    if (!trigger) return;
+    // Measure with the flip cleared so natural geometry decides, the same
+    // order the combobox uses. Margins don't reach offsetHeight, so this
+    // costs nothing visually - it never paints between the two writes.
+    this.el.removeAttribute("data-flip");
+    const t = trigger.getBoundingClientRect();
+    // offsetHeight, never the rect: the open transition scales the panel
+    // to 95%, and a rect read mid-transition under-measures it into
+    // wrongly deciding it fits below.
+    const panelH = this.el.offsetHeight;
+    if (!panelH || (!t.top && !t.bottom)) return; // jsdom / unrendered
+    // The visible region, not the layout one: with the keyboard up or a
+    // pinch-zoom active only the visual viewport's band is reachable, and
+    // rects are client coordinates, which is the same space offsetTop and
+    // height describe (the data table's positioner set this precedent).
+    const vv = window.visualViewport;
+    const { flip } = flipDecision({
+      triggerTop: t.top,
+      triggerBottom: t.bottom,
+      panelHeight: panelH,
+      viewportTop: vv ? vv.offsetTop : 0,
+      viewportHeight: vv ? vv.height : window.innerHeight,
+      gap: this.gap,
+    });
+    if (flip) this.el.setAttribute("data-flip", "");
   },
 };
 
@@ -4480,10 +5131,11 @@ export const PetalComboBox = {
 
   // Open downward by default; flip above when the viewport has no room
   // below AND more room above (the bottom-of-form combobox that used to
-  // open 200px off-screen). When NEITHER side fits the whole panel, the
-  // winning side's space caps the scroll area instead - the list scrolls
-  // within what fits, so no option ever sits outside the viewport.
-  // Measured with flip and cap cleared so natural height decides.
+  // open 200px off-screen). The side is `flipDecision`'s call - shared with
+  // the dropdown family so the two can't drift. When NEITHER side fits the
+  // whole panel, the winning side's space caps the scroll area instead -
+  // the list scrolls within what fits, so no option ever sits outside the
+  // viewport. Measured with flip and cap cleared so natural height decides.
   positionPanel() {
     if (this.panel.hidden) return;
     this.panel.removeAttribute("data-flip");
@@ -4493,12 +5145,14 @@ export const PetalComboBox = {
     const control = anchor.getBoundingClientRect();
     const panelH = this.panel.offsetHeight;
     if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
-    const gap = 8;
-    const below = window.innerHeight - control.bottom - gap;
-    const above = control.top - gap;
-    const flip = panelH > below && above > below;
+    const { flip, room } = flipDecision({
+      triggerTop: control.top,
+      triggerBottom: control.bottom,
+      panelHeight: panelH,
+      viewportHeight: window.innerHeight,
+      gap: 8,
+    });
     if (flip) this.panel.setAttribute("data-flip", "");
-    const room = flip ? above : below;
     if (panelH > room) {
       // no floor: in a viewport too cramped for even one row, a sliver of
       // scrollable list still beats options rendered outside the viewport
@@ -5175,6 +5829,823 @@ export const PetalComboBox = {
   },
 };
 
+// Sortable: every order decision as a pure function.
+//
+// Drag-to-reorder is one of the few things CSS and Phoenix.LiveView.JS
+// genuinely cannot do - pointer tracking, FLIP gap animation and a keyboard
+// lift state machine all need imperative code. So the hook exists, but the
+// thinking does not live in it: the reorder maths, the arrow-key stepping,
+// the announcement strings and the whole lift state machine are pure
+// functions here, unit-tested in test/js/sortable.test.js without a DOM. The
+// hook below is only the layer that reads rects, moves nodes and talks to
+// LiveView.
+export const SortableCore = {
+  // A tap is not a drag and a scroll is not a lift. Touch waits for a long
+  // press; mouse and pen wait for real movement so a plain click still is one.
+  LONG_PRESS_MS: 250,
+  TOUCH_SLOP_PX: 8,
+  POINTER_SLOP_PX: 4,
+
+  arrayMove(list, from, to) {
+    const next = list.slice();
+    if (from < 0 || from >= next.length) return next;
+    const clamped = Math.max(0, Math.min(to, next.length - 1));
+    const [moved] = next.splice(from, 1);
+    next.splice(clamped, 0, moved);
+    return next;
+  },
+
+  // Where a pointer at (x, y) wants the dragged item, given every item's rect
+  // in current DOM order.
+  //
+  // The two orientations genuinely want different rules. A list has rows of
+  // varying height, so it uses midpoints: an item is displaced only once the
+  // pointer crosses its centre line, which is the hysteresis that stops two
+  // unequal rows flickering back and forth across one boundary. A grid has
+  // uniform cells and reflows in two dimensions, where the same rule sends an
+  // item somewhere it was never dragged (hover the bottom-left cell from the
+  // left and reading-order counting lands you top-right). So a grid uses the
+  // cell under the pointer directly. That works because the list is reordered
+  // live as you drag and these rects are SLOTS - where the items lay out, not
+  // where they happen to be painting mid-animation (see the hook's
+  // captureSlots). The cell you are over is then exactly the slot you are
+  // asking for, and once the item lands there the pointer is over the empty
+  // slot it now owns, which no other cell claims - stable, not oscillating.
+  indexFromPoint({ rects, x, y, orientation = "vertical", activeIndex = -1 }) {
+    if (orientation === "grid") {
+      // The dragged item's own rect is not part of the arrangement: it
+      // carries a pointer-tracking transform, so it sits under the pointer
+      // wherever the pointer goes. Search it and it shadows every cell after
+      // it in DOM order, and the grid only ever reorders backwards.
+      const over = rects.findIndex(
+        (r, i) =>
+          i !== activeIndex &&
+          x >= r.left &&
+          x <= r.left + r.width &&
+          y >= r.top &&
+          y <= r.top + r.height,
+      );
+
+      // Only fall through to counting when the pointer is in a gutter, over
+      // the gap the dragged item left behind, or off the end of the grid -
+      // places where no cell can answer.
+      if (over !== -1) return over;
+    }
+
+    let passed = 0;
+
+    rects.forEach((rect, i) => {
+      if (i === activeIndex) return;
+      if (SortableCore.pointerPassed(rect, x, y, orientation)) passed += 1;
+    });
+
+    return Math.max(0, Math.min(passed, rects.length - 1));
+  },
+
+  pointerPassed(rect, x, y, orientation) {
+    if (orientation === "grid") {
+      // Reading order: a whole row above the pointer is behind it, a whole
+      // row below is ahead, and within its own row it is a left/right call.
+      if (y > rect.top + rect.height) return true;
+      if (y < rect.top) return false;
+      return x > rect.left + rect.width / 2;
+    }
+
+    return y > rect.top + rect.height / 2;
+  },
+
+  // The lift/drop key, in every spelling a browser still emits for it.
+  isLiftKey(key) {
+    return key === " " || key === "Spacebar" || key === "Space";
+  },
+
+  // One arrow-key step, clamped to the list. Returns null for a key this
+  // component does not own, so the hook leaves that event alone.
+  nextKeyboardIndex({
+    index,
+    key,
+    orientation = "vertical",
+    columns = 1,
+    count,
+  }) {
+    const span = Math.max(1, columns);
+
+    const step =
+      orientation === "grid"
+        ? { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -span, ArrowDown: span }[key]
+        : { ArrowUp: -1, ArrowDown: 1 }[key];
+
+    if (step === undefined) return null;
+
+    return Math.max(0, Math.min(index + step, count - 1));
+  },
+
+  // Screen readers get no feedback from a moving box, so every transition
+  // says where the item now is. Positions are 1-based for humans.
+  announce(phase, label, index, total) {
+    const at = `position ${index + 1} of ${total}`;
+
+    switch (phase) {
+      case "lift":
+        return `Picked up ${label}, ${at}`;
+      case "move":
+        return `Moved ${label} to ${at}`;
+      case "drop":
+        return `Dropped ${label} at ${at}`;
+      case "cancel":
+        return `Reorder cancelled. ${label} returned to ${at}`;
+      default:
+        return "";
+    }
+  },
+
+  // The keyboard lift state machine, pure. `state` is null when idle.
+  // Returns the next state, what to announce, the id order the DOM should
+  // now be in (null = unchanged), the reorder event to push (null = none),
+  // and whether the key was ours to swallow.
+  keyboardReduce(state, action) {
+    const unchanged = {
+      state,
+      announcement: null,
+      order: null,
+      event: null,
+      handled: false,
+    };
+
+    switch (action.type) {
+      case "lift": {
+        // A disabled item is not liftable, and a second lift is the drop.
+        if (state || action.disabled) return unchanged;
+
+        const order = action.order.slice();
+        const from = order.indexOf(action.id);
+        if (from === -1) return unchanged;
+
+        const label = action.label || action.id;
+
+        return {
+          state: { id: action.id, label, from, index: from, order, origin: order },
+          announcement: SortableCore.announce("lift", label, from, order.length),
+          order: null,
+          event: null,
+          handled: true,
+        };
+      }
+
+      case "move": {
+        if (!state) return unchanged;
+
+        const to = SortableCore.nextKeyboardIndex({
+          index: state.index,
+          key: action.key,
+          orientation: action.orientation,
+          columns: action.columns,
+          count: state.order.length,
+        });
+
+        if (to === null) return unchanged;
+
+        // Clamped against an end of the list: ours to swallow (the page must
+        // not scroll under a lifted item) but nothing moved, so stay quiet.
+        if (to === state.index) return { ...unchanged, handled: true };
+
+        const order = SortableCore.arrayMove(state.order, state.index, to);
+
+        return {
+          state: { ...state, index: to, order },
+          announcement: SortableCore.announce(
+            "move",
+            state.label,
+            to,
+            order.length,
+          ),
+          order,
+          event: null,
+          handled: true,
+        };
+      }
+
+      case "drop": {
+        if (!state) return unchanged;
+
+        // Landing where it started is not a reorder. Announce it, but do not
+        // make the server persist a no-op.
+        const moved = state.index !== state.from;
+
+        return {
+          state: null,
+          announcement: SortableCore.announce(
+            "drop",
+            state.label,
+            state.index,
+            state.order.length,
+          ),
+          order: null,
+          event: moved
+            ? { id: state.id, from: state.from, to: state.index }
+            : null,
+          handled: true,
+        };
+      }
+
+      case "cancel": {
+        if (!state) return unchanged;
+
+        return {
+          state: null,
+          announcement: SortableCore.announce(
+            "cancel",
+            state.label,
+            state.from,
+            state.origin.length,
+          ),
+          order: state.origin,
+          event: null,
+          handled: true,
+        };
+      }
+
+      default:
+        return unchanged;
+    }
+  },
+};
+
+const SORTABLE_ITEM = ".pc-sortable__item";
+
+export const PetalSortable = {
+  mounted() {
+    this.kb = null; // keyboard lift state, owned by SortableCore.keyboardReduce
+    this.drag = null; // an in-flight pointer drag
+    this.press = null; // a press that has not earned a lift yet
+    this.slots = null; // slot geometry for the current drag, see captureSlots
+
+    this.onPointerDown = (e) => this.pointerDown(e);
+    this.onPointerMove = (e) => this.pointerMove(e);
+    this.onPointerUp = (e) => this.pointerUp(e);
+    this.onKeyDown = (e) => this.keyDown(e);
+    // iOS turns a long press into a selection callout and a context menu,
+    // which is exactly the gesture that lifts an item here.
+    this.onContextMenu = (e) => {
+      if (this.drag) e.preventDefault();
+    };
+    // Pointer events alone cannot cancel a scroll the browser has already
+    // claimed. A non-passive touchmove is the only reliable veto.
+    this.onTouchMove = (e) => {
+      if (this.drag) e.preventDefault();
+    };
+
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    this.el.addEventListener("keydown", this.onKeyDown);
+    this.el.addEventListener("contextmenu", this.onContextMenu);
+    this.el.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    window.addEventListener("pointermove", this.onPointerMove, {
+      passive: false,
+    });
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerUp);
+  },
+
+  // A patch can replace or reorder the very children this hook is holding
+  // rects for, so an in-flight pointer drag is abandoned rather than left
+  // animating a detached tree. A keyboard lift is cheaper to keep: re-resolve
+  // it by data-sortable-id, never by the index we remembered.
+  updated() {
+    if (this.press || this.drag) this.abortPointer();
+    if (!this.kb) return;
+
+    const order = this.ids();
+    const index = order.indexOf(this.kb.id);
+
+    if (index === -1) {
+      this.kb = null;
+      return;
+    }
+
+    this.kb = { ...this.kb, order, index };
+    const el = this.itemById(this.kb.id);
+    if (el) el.classList.add("pc-sortable__item--lifted");
+  },
+
+  destroyed() {
+    this.abortPointer();
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("keydown", this.onKeyDown);
+    this.el.removeEventListener("contextmenu", this.onContextMenu);
+    this.el.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerUp);
+  },
+
+  // --- reading the DOM -----------------------------------------------------
+
+  items() {
+    return Array.from(this.el.querySelectorAll(`:scope > ${SORTABLE_ITEM}`));
+  },
+
+  ids() {
+    return this.items().map((el) => el.dataset.sortableId);
+  },
+
+  itemById(id) {
+    return this.items().find((el) => el.dataset.sortableId === id) || null;
+  },
+
+  labelFor(el) {
+    return (
+      el.dataset.sortableLabel ||
+      el.textContent.trim().slice(0, 80) ||
+      el.dataset.sortableId
+    );
+  },
+
+  disabled() {
+    return this.el.dataset.disabled === "true";
+  },
+
+  orientation() {
+    return this.el.dataset.orientation === "grid" ? "grid" : "vertical";
+  },
+
+  // How many items share the first row. Read from live rects rather than a
+  // configured column count, so a responsive grid steps correctly at every
+  // breakpoint without being told what it is.
+  columns() {
+    const items = this.items();
+    if (items.length === 0) return 1;
+
+    const top = items[0].getBoundingClientRect().top;
+    let n = 0;
+
+    for (const el of items) {
+      if (Math.abs(el.getBoundingClientRect().top - top) > 1) break;
+      n += 1;
+    }
+
+    return Math.max(1, n);
+  },
+
+  // --- moving the DOM ------------------------------------------------------
+
+  // Where every item is PAINTING right now, mid-transition included. That is
+  // deliberately not the same question as "which slot does it own": it is
+  // where a FLIP has to start from if it is to look continuous.
+  measure() {
+    const map = new Map();
+    this.items().forEach((el) => map.set(el, el.getBoundingClientRect()));
+    return map;
+  },
+
+  // Where the pointer hit test reads its geometry from - and the reason it
+  // is not just `getBoundingClientRect` on every move.
+  //
+  // Mid-drag the siblings are part-way through their FLIP, so a live rect
+  // sits between two slots and several of them can cover the pointer at
+  // once. Hit-testing those answers with a different index almost every
+  // frame: the order flaps between two arrangements, each flap starts
+  // another animation, and the grid shakes for as long as the pointer is
+  // held there - even a perfectly still one.
+  //
+  // A slot is a LAYOUT position, and the layout only changes when the order
+  // does. So slots are measured at the lift and again at every reorder,
+  // both times with the transforms off, and cached for the rest of the drag.
+  // Cached relative to the container, because the page can still scroll
+  // under a drag and re-anchoring one rect per move is cheaper than
+  // re-reading every item's.
+  captureSlots(rects) {
+    const origin = this.el.getBoundingClientRect();
+
+    this.slots = this.items().map((el) => {
+      // The dragged item's own entry is a placeholder: its rect is wherever
+      // the pointer has taken it, never its slot. Both hit-test paths skip
+      // the active index, so nothing reads it.
+      const rect = rects.get(el) || el.getBoundingClientRect();
+
+      return {
+        left: rect.left - origin.left,
+        top: rect.top - origin.top,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+  },
+
+  // No preference expressed - including a host with no matchMedia at all,
+  // which is every jsdom-based test suite - means animate.
+  reducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  },
+
+  slotRects() {
+    const origin = this.el.getBoundingClientRect();
+
+    return this.slots.map((slot) => ({
+      left: slot.left + origin.left,
+      top: slot.top + origin.top,
+      width: slot.width,
+      height: slot.height,
+    }));
+  },
+
+  // FLIP: every sibling is snapped back to where it was, then released to
+  // transition home. Transform only - the transition itself lives in CSS.
+  flip(before) {
+    const active = this.drag && this.drag.el;
+    const moving = this.items().filter((el) => el !== active);
+
+    // Invert. Any transform still in flight from an earlier reorder comes
+    // off FIRST, before anything is measured: `before` is where the item was
+    // painting, so the delta has to be measured against the slot it really
+    // holds. Measure with the old transform still on and the item snaps by
+    // that much the moment the new one replaces it - which is what an
+    // interrupted animation used to do, hardest exactly when reorders come
+    // fastest.
+    moving.forEach((el) => {
+      el.style.transition = "none";
+      el.style.transform = "none";
+    });
+
+    const last = new Map();
+    moving.forEach((el) => last.set(el, el.getBoundingClientRect()));
+
+    // Nothing is mid-flight at this exact point, which makes it the one
+    // honest moment in a drag to read the new slots.
+    if (this.drag) this.captureSlots(last);
+
+    // Reduced motion keeps the reorder and drops the travel: items still
+    // land in their new slots, they just arrive instead of gliding. The
+    // stylesheet gates the transition too; this skips the work as well.
+    if (!this.reducedMotion()) {
+      moving.forEach((el) => {
+        const first = before.get(el);
+        if (!first) return;
+
+        const dx = first.left - last.get(el).left;
+        const dy = first.top - last.get(el).top;
+        if (dx === 0 && dy === 0) return;
+
+        el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      });
+
+      // One forced reflow so the inverted positions are the browser's
+      // current truth; without it the clear below is coalesced and nothing
+      // animates.
+      void this.el.offsetHeight;
+    }
+
+    // Play: back to the stylesheet's transition, home to the new slot. An
+    // item interrupted here starts from where it is on screen, because that
+    // is what the invert above was measured from.
+    moving.forEach((el) => {
+      el.style.transition = "";
+      el.style.transform = "";
+    });
+  },
+
+  moveTo(el, index) {
+    const others = this.items().filter((item) => item !== el);
+    const before = others[index];
+
+    if (before) this.el.insertBefore(el, before);
+    else this.el.appendChild(el);
+  },
+
+  // Re-sorting by appending in order: each append moves an existing node, so
+  // the list ends up in exactly `order` with no nodes created or destroyed.
+  // Focus is restored because moving a focused node drops focus in Safari.
+  applyOrder(order) {
+    const before = this.measure();
+    const focused = document.activeElement;
+
+    order.forEach((id) => {
+      const el = this.itemById(id);
+      if (el) this.el.appendChild(el);
+    });
+
+    this.flip(before);
+    if (focused && this.el.contains(focused)) focused.focus();
+  },
+
+  // --- talking to the server ----------------------------------------------
+
+  say(text) {
+    if (!text) return;
+
+    const region = document.getElementById(`${this.el.id}-live`);
+    if (!region) return;
+
+    // Re-announcing an identical string (two moves into the same slot) needs
+    // the region to actually change. Clearing and re-setting it in the same
+    // task does not: the DOM is diffed once the task ends, so the same text
+    // reads as no change at all and the announcement is skipped. Alternate
+    // an invisible zero-width space instead - a real mutation, no difference
+    // to what is spoken. Same trick as PetalComboBox.announceMax.
+    region.textContent = text === region.textContent ? `${text}\u200b` : text;
+  },
+
+  emit(id, from, to) {
+    const detail = { id, from, to };
+    const name = this.el.dataset.onReorder;
+
+    if (name) {
+      if (this.el.getAttribute("phx-target")) {
+        this.pushEventTo(this.el, name, detail);
+      } else {
+        this.pushEvent(name, detail);
+      }
+    }
+
+    // Dead views and plain-JS consumers get the same payload, mirroring
+    // petal:otp-complete on input_otp.
+    this.el.dispatchEvent(
+      new CustomEvent("petal:sortable", { bubbles: true, detail }),
+    );
+  },
+
+  // --- pointer -------------------------------------------------------------
+
+  pointerDown(e) {
+    if (this.disabled() || this.kb || this.press || this.drag) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    const el = e.target.closest(SORTABLE_ITEM);
+    if (!el || el.parentElement !== this.el) return;
+    if (el.dataset.disabled === "true") return;
+
+    // Handle mode: everything outside the grip stays interactive, so links
+    // and checkboxes inside a row keep working.
+    if (
+      this.el.dataset.handle === "true" &&
+      !e.target.closest("[data-sortable-handle]")
+    ) {
+      return;
+    }
+
+    const touch = e.pointerType === "touch";
+
+    this.press = {
+      el,
+      x: e.clientX,
+      y: e.clientY,
+      pointerId: e.pointerId,
+      touch,
+      timer: touch ? setTimeout(() => this.lift(), SortableCore.LONG_PRESS_MS) : null,
+    };
+  },
+
+  // The window listeners hear every pointer on the page, so a gesture only
+  // answers to the pointer that started it. Without this a second finger
+  // touching down anywhere drives - or, on lift-off, drops - a row it never
+  // grabbed.
+  ours(e) {
+    const gesture = this.drag || this.press;
+    return !!gesture && e.pointerId === gesture.pointerId;
+  },
+
+  pointerMove(e) {
+    if (!this.ours(e)) return;
+
+    if (this.press && !this.drag) {
+      const dist = Math.hypot(e.clientX - this.press.x, e.clientY - this.press.y);
+
+      // A finger that moves before the long press expires is scrolling the
+      // page, not lifting. A mouse that moves at all is dragging.
+      if (this.press.touch) {
+        if (dist > SortableCore.TOUCH_SLOP_PX) this.abortPointer();
+      } else if (dist > SortableCore.POINTER_SLOP_PX) {
+        this.lift();
+      }
+    }
+
+    if (!this.drag) return;
+
+    e.preventDefault();
+    this.track(e.clientX, e.clientY);
+
+    const items = this.items();
+    const activeIndex = items.indexOf(this.drag.el);
+    if (activeIndex === -1) return this.abortPointer();
+
+    const to = SortableCore.indexFromPoint({
+      rects: this.slotRects(),
+      x: e.clientX,
+      y: e.clientY,
+      orientation: this.orientation(),
+      activeIndex,
+    });
+
+    if (to === activeIndex) return;
+
+    const before = this.measure();
+    this.moveTo(this.drag.el, to);
+    this.syncHome();
+    this.track(e.clientX, e.clientY);
+    this.flip(before);
+  },
+
+  pointerUp(e) {
+    if (!this.ours(e)) return;
+    if (this.drag) return this.finishDrag();
+    this.abortPointer();
+  },
+
+  lift() {
+    const press = this.press;
+    if (!press) return;
+
+    clearTimeout(press.timer);
+    this.press = null;
+
+    const rect = press.el.getBoundingClientRect();
+
+    this.drag = {
+      el: press.el,
+      id: press.el.dataset.sortableId,
+      label: this.labelFor(press.el),
+      from: this.ids().indexOf(press.el.dataset.sortableId),
+      pointerId: press.pointerId,
+      // Where inside the item the pointer grabbed it, so it does not jump.
+      offsetX: rect.left - press.x,
+      offsetY: rect.top - press.y,
+      home: { left: rect.left, top: rect.top },
+    };
+
+    // The slots as they are before anything has moved: nothing carries a
+    // transform yet, so this is a clean read.
+    this.captureSlots(this.measure());
+
+    press.el.classList.add("pc-sortable__item--dragging");
+    this.el.classList.add("pc-sortable--dragging");
+
+    // Capture keeps the stream of pointer events coming to this node even
+    // when the pointer outruns it, and lets preventDefault veto the scroll.
+    try {
+      press.el.setPointerCapture(press.pointerId);
+    } catch {
+      /* capture is best-effort; the window listeners still fire */
+    }
+
+    this.say(
+      SortableCore.announce(
+        "lift",
+        this.drag.label,
+        this.drag.from,
+        this.items().length,
+      ),
+    );
+  },
+
+  // The dragged node is really moved through the list as you drag, so its
+  // layout position changes underneath it. Re-read that home position and
+  // the transform stays a pure pointer offset instead of accumulating drift.
+  syncHome() {
+    const el = this.drag.el;
+    const prev = el.style.transform;
+
+    el.style.transform = "none";
+    const rect = el.getBoundingClientRect();
+    el.style.transform = prev;
+
+    this.drag.home = { left: rect.left, top: rect.top };
+  },
+
+  track(x, y) {
+    const { home, offsetX, offsetY, el } = this.drag;
+    const dx = x + offsetX - home.left;
+    const dy = y + offsetY - home.top;
+
+    el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+  },
+
+  finishDrag() {
+    const drag = this.drag;
+    this.drag = null;
+    this.clearDragStyles(drag);
+
+    const to = this.ids().indexOf(drag.id);
+    if (to === -1) return;
+
+    this.say(
+      SortableCore.announce("drop", drag.label, to, this.items().length),
+    );
+
+    if (to !== drag.from) this.emit(drag.id, drag.from, to);
+  },
+
+  // Drop everything without emitting: a press that turned out to be a click,
+  // or a drag whose DOM was pulled out from under it by a patch.
+  abortPointer() {
+    if (this.press) {
+      clearTimeout(this.press.timer);
+      this.press = null;
+    }
+
+    if (this.drag) {
+      const drag = this.drag;
+      this.drag = null;
+      this.clearDragStyles(drag);
+    }
+  },
+
+  clearDragStyles(drag) {
+    // The slot cache belongs to the drag: the next one measures its own.
+    this.slots = null;
+    drag.el.style.transform = "";
+    drag.el.style.transition = "";
+    drag.el.classList.remove("pc-sortable__item--dragging");
+    this.el.classList.remove("pc-sortable--dragging");
+
+    try {
+      drag.el.releasePointerCapture(drag.pointerId);
+    } catch {
+      /* already released, or never captured */
+    }
+  },
+
+  // --- keyboard ------------------------------------------------------------
+
+  keyDown(e) {
+    if (this.disabled()) return;
+
+    const el = e.target.closest(SORTABLE_ITEM);
+    if (!el || el.parentElement !== this.el) return;
+
+    // A row is allowed to contain its own controls - the moduledoc's handle
+    // example puts a checkbox in one, and whole-item mode can too. Space and
+    // the arrows belong to whatever is focused, so only the row itself or
+    // its grip drives a lift; a key pressed inside a child control is that
+    // control's business and is neither acted on nor swallowed.
+    if (e.target !== el && !e.target.closest("[data-sortable-handle]")) return;
+
+    // Auto-repeat while the key is held would lift, drop, and lift again on
+    // one press. Swallow the repeat while something is lifted (the page must
+    // not scroll out from under it) but change nothing. Arrows deliberately
+    // keep repeating: holding one walks the item along the list.
+    if (e.repeat && SortableCore.isLiftKey(e.key)) {
+      if (this.kb) e.preventDefault();
+      return;
+    }
+
+    const action = this.actionFor(e, el);
+    if (!action) return;
+
+    const result = SortableCore.keyboardReduce(this.kb, action);
+    if (!result.handled) return;
+
+    e.preventDefault();
+
+    const lifted = this.kb;
+    this.kb = result.state;
+
+    if (result.order) this.applyOrder(result.order);
+    if (result.state) el.classList.add("pc-sortable__item--lifted");
+    if (!result.state && lifted) this.unlift(lifted.id);
+    if (result.announcement) this.say(result.announcement);
+    if (result.event) {
+      this.emit(result.event.id, result.event.from, result.event.to);
+    }
+  },
+
+  actionFor(e, el) {
+    if (SortableCore.isLiftKey(e.key)) {
+      return this.kb
+        ? { type: "drop" }
+        : {
+            type: "lift",
+            id: el.dataset.sortableId,
+            label: this.labelFor(el),
+            order: this.ids(),
+            disabled: el.dataset.disabled === "true",
+          };
+    }
+
+    if (e.key === "Escape") return { type: "cancel" };
+
+    if (e.key.startsWith("Arrow")) {
+      return {
+        type: "move",
+        key: e.key,
+        orientation: this.orientation(),
+        columns: this.orientation() === "grid" ? this.columns() : 1,
+      };
+    }
+
+    return null;
+  },
+
+  // Focus follows the item, not the slot it used to sit in - a drop that
+  // left focus behind would strand a keyboard user two rows from their work.
+  unlift(id) {
+    const el = this.itemById(id);
+    if (!el) return;
+
+    el.classList.remove("pc-sortable__item--lifted");
+    const target = el.querySelector("[data-sortable-handle]") || el;
+    target.focus();
+  },
+};
+
 // Link-mode wiring for the data table's quick search and rows-per-page
 // select. Event mode posts through plain phx-change forms and never
 // mounts this hook; link mode has no events by design (handle_params is
@@ -5674,7 +7145,2724 @@ export const PetalDataTable = {
   },
 };
 
+
+// ---------------------------------------------------------------------------
+// Resizable
+//
+// The maths lives in pure functions below the hook so it can be unit-tested
+// without a DOM (test/js/resizable.test.js). Everything is percentages of the
+// group: sizes always sum to 100, a resize only ever moves the two panels
+// either side of one handle, and their pair total is conserved - which is why
+// no operation can ever drift the whole layout.
+// ---------------------------------------------------------------------------
+
+export const RESIZABLE_STEP = 2;
+export const RESIZABLE_SHIFT_STEP = 10;
+
+const clampPct = (n, lo, hi) => Math.min(Math.max(n, lo), hi);
+
+// Floating point drift is real when you add and subtract percentages a few
+// hundred times over a drag. Six places is far below anything a layout can
+// show and keeps the "sums to 100" invariant exact enough to assert on.
+const roundPct = (n) => Math.round(n * 1e6) / 1e6;
+
+/**
+ * Read one panel's constraints off its data-* attributes.
+ * @param {HTMLElement} el
+ */
+export function resizableConstraint(el) {
+  const num = (v, fallback) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  return {
+    min: num(el.dataset.min, 10),
+    max: num(el.dataset.max, 100),
+    default: el.dataset.default === undefined ? null : num(el.dataset.default, null),
+    collapsible: el.dataset.collapsible === "true",
+    collapsedSize: num(el.dataset.collapsedSize, 0),
+  };
+}
+
+/**
+ * Initial sizes: honour every default_size, split the remainder equally
+ * between the unsized panels, then normalise so the row sums to 100.
+ * @param {Array<object>} constraints
+ * @returns {number[]}
+ */
+export function distributeSizes(constraints) {
+  const n = constraints.length;
+  if (n === 0) return [];
+
+  const sizes = constraints.map((c) =>
+    typeof c.default === "number" && Number.isFinite(c.default) ? c.default : null,
+  );
+  const knownTotal = sizes.reduce((sum, s) => (s === null ? sum : sum + s), 0);
+  const unsized = sizes.filter((s) => s === null).length;
+
+  if (unsized > 0) {
+    const share = Math.max(0, 100 - knownTotal) / unsized;
+    for (let i = 0; i < n; i++) if (sizes[i] === null) sizes[i] = share;
+  }
+
+  // Clamp to the floor as well as the ceiling: a default_size below
+  // min_size must not paint below the floor on first render (a collapsible
+  // panel's floor is its collapsed size - starting collapsed is legal).
+  const clamped = sizes.map((s, i) => {
+    const c = constraints[i];
+    const floor = c.collapsible ? Math.min(c.collapsedSize, c.min) : c.min;
+    return clampPct(s, floor, c.max);
+  });
+  const total = clamped.reduce((a, b) => a + b, 0);
+  if (total <= 0) return clamped.map(() => roundPct(100 / n));
+
+  return clamped.map((s) => roundPct((s * 100) / total));
+}
+
+// Where a collapsible panel wants to land, or null to take the normal path.
+// The threshold sits halfway between collapsed and min, so the snap in and the
+// snap out happen at the same place - no hysteresis gap to get stuck in.
+function snapTarget(c, current, desired) {
+  if (!c.collapsible) return null;
+
+  const threshold = c.collapsedSize + (c.min - c.collapsedSize) / 2;
+  const wasCollapsed = current <= c.collapsedSize + 0.001;
+
+  if (desired < threshold) {
+    return { size: c.collapsedSize, collapsed: true, changed: !wasCollapsed };
+  }
+  if (wasCollapsed) {
+    return { size: Math.max(c.min, desired), collapsed: false, changed: true };
+  }
+  return null;
+}
+
+/**
+ * Move the separator at `index` by `deltaPct`, conserving the pair total and
+ * respecting BOTH adjacent panels' min/max (and collapse, when enabled).
+ *
+ * @returns {{sizes: number[], collapse: ?{index: number, collapsed: boolean}}}
+ */
+export function resolveDrag(sizes, index, deltaPct, constraints) {
+  const next = sizes.slice();
+  const a = index;
+  const b = index + 1;
+  if (a < 0 || b >= sizes.length) return { sizes: next, collapse: null };
+
+  const ca = constraints[a];
+  const cb = constraints[b];
+  const pairTotal = sizes[a] + sizes[b];
+  const desiredA = sizes[a] + deltaPct;
+
+  let targetA = desiredA;
+  let collapse = null;
+  let snapped = false;
+
+  const snapA = snapTarget(ca, sizes[a], desiredA);
+  if (snapA) {
+    targetA = snapA.size;
+    snapped = snapA.collapsed;
+    if (snapA.changed) collapse = { index: a, collapsed: snapA.collapsed };
+  } else {
+    const snapB = snapTarget(cb, sizes[b], pairTotal - desiredA);
+    if (snapB) {
+      targetA = pairTotal - snapB.size;
+      snapped = snapB.collapsed;
+      if (snapB.changed) collapse = { index: b, collapsed: snapB.collapsed };
+    }
+  }
+
+  // A collapsed panel is allowed to sit below its own min - that is the whole
+  // point of collapsing. Every other target gets clamped by both panels.
+  if (!snapped) {
+    const lo = Math.max(ca.min, pairTotal - cb.max);
+    const hi = Math.min(ca.max, pairTotal - cb.min);
+    targetA = clampPct(targetA, Math.min(lo, hi), hi);
+  }
+
+  next[a] = roundPct(targetA);
+  next[b] = roundPct(pairTotal - targetA);
+  return { sizes: next, collapse };
+}
+
+/**
+ * Home / End on a focused separator: drive the preceding panel to its floor
+ * ("min", collapsing it when it can collapse) or its ceiling ("max").
+ */
+export function resolveEdge(sizes, index, edge, constraints) {
+  const ca = constraints[index];
+  if (!ca) return { sizes: sizes.slice(), collapse: null };
+
+  const target =
+    edge === "min" ? (ca.collapsible ? ca.collapsedSize : ca.min) : ca.max;
+
+  return resolveDrag(sizes, index, target - sizes[index], constraints);
+}
+
+/** Enter on a focused separator: collapse or restore the preceding panel. */
+export function resolveToggle(sizes, index, constraints) {
+  const ca = constraints[index];
+  if (!ca || !ca.collapsible) return { sizes: sizes.slice(), collapse: null };
+
+  const isCollapsed = sizes[index] <= ca.collapsedSize + 0.001;
+  const restore = Math.max(ca.min, ca.default ?? ca.min);
+  const target = isCollapsed ? restore : ca.collapsedSize;
+
+  return resolveDrag(sizes, index, target - sizes[index], constraints);
+}
+
+/**
+ * Double-click a separator: put its two panels back on their default_size
+ * ratio, spending only the space those two already hold.
+ */
+export function resolveReset(sizes, index, constraints) {
+  const next = sizes.slice();
+  const a = index;
+  const b = index + 1;
+  if (a < 0 || b >= sizes.length) return { sizes: next, collapse: null };
+
+  const ca = constraints[a];
+  const cb = constraints[b];
+  const pairTotal = sizes[a] + sizes[b];
+  const da = ca.default;
+  const db = cb.default;
+
+  let targetA;
+  if (da != null && db != null && da + db > 0) targetA = (da / (da + db)) * pairTotal;
+  else if (da != null) targetA = da;
+  else if (db != null) targetA = pairTotal - db;
+  else targetA = pairTotal / 2;
+
+  const lo = Math.max(ca.min, pairTotal - cb.max);
+  const hi = Math.min(ca.max, pairTotal - cb.min);
+  targetA = clampPct(targetA, Math.min(lo, hi), hi);
+
+  next[a] = roundPct(targetA);
+  next[b] = roundPct(pairTotal - targetA);
+
+  // Resetting a collapsed panel back to its default expands it, and an expand
+  // is something listeners want to hear about.
+  const wasCollapsed = ca.collapsible && sizes[a] <= ca.collapsedSize + 0.001;
+  const stillCollapsed = ca.collapsible && next[a] <= ca.collapsedSize + 0.001;
+  const collapse =
+    wasCollapsed && !stillCollapsed ? { index: a, collapsed: false } : null;
+
+  return { sizes: next, collapse };
+}
+
+/**
+ * The arrow-key step for a separator, or null when the key is perpendicular to
+ * it (a no-op, per the WAI-ARIA window splitter pattern).
+ *
+ * @param {string} key KeyboardEvent.key
+ * @param {boolean} shiftKey
+ * @param {string} orientation the GROUP's orientation
+ */
+export function keyboardDelta(key, shiftKey, orientation) {
+  const step = shiftKey ? RESIZABLE_SHIFT_STEP : RESIZABLE_STEP;
+
+  if (orientation === "vertical") {
+    if (key === "ArrowUp") return -step;
+    if (key === "ArrowDown") return step;
+    return null;
+  }
+
+  if (key === "ArrowLeft") return -step;
+  if (key === "ArrowRight") return step;
+  return null;
+}
+
+export const PetalResizable = {
+  mounted() {
+    this.dragging = null;
+    this.collect();
+    this.sizes = distributeSizes(this.constraints);
+    this.apply();
+
+    this.onPointerDown = (e) => this.startDrag(e);
+    this.onPointerMove = (e) => this.moveDrag(e);
+    this.onPointerUp = (e) => this.endDrag(e);
+    this.onKeyDown = (e) => this.keydown(e);
+    this.onDblClick = (e) => this.dblclick(e);
+
+    // Delegated on the group. A nested group's handles bubble through here, so
+    // every handler resolves the handle back to THIS group's list and bails
+    // when it is not one of ours - that is what keeps nested hooks independent.
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    this.el.addEventListener("pointermove", this.onPointerMove);
+    this.el.addEventListener("pointerup", this.onPointerUp);
+    this.el.addEventListener("pointercancel", this.onPointerUp);
+    this.el.addEventListener("lostpointercapture", this.onPointerUp);
+    this.el.addEventListener("keydown", this.onKeyDown);
+    this.el.addEventListener("dblclick", this.onDblClick);
+    // Leaving the handle ends the pointer-focus session, so the next Tab in
+    // gets its ring.
+    this.onFocusOut = (e) =>
+      e.target?.removeAttribute?.("data-pc-pointer-focus");
+    this.el.addEventListener("focusout", this.onFocusOut);
+  },
+
+  // A LiveView patch re-renders panels from the server, which restores the
+  // server's flex values and wipes the aria the hook stamped. Re-assert.
+  // Panel count can change too, so re-derive sizes when it does.
+  updated() {
+    const before = this.panels.length;
+    this.collect();
+    if (this.panels.length !== before) this.sizes = distributeSizes(this.constraints);
+    this.apply();
+  },
+
+  destroyed() {
+    this.releaseBody();
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("pointermove", this.onPointerMove);
+    this.el.removeEventListener("pointerup", this.onPointerUp);
+    this.el.removeEventListener("pointercancel", this.onPointerUp);
+    this.el.removeEventListener("lostpointercapture", this.onPointerUp);
+    this.el.removeEventListener("keydown", this.onKeyDown);
+    this.el.removeEventListener("dblclick", this.onDblClick);
+    this.el.removeEventListener("focusout", this.onFocusOut);
+  },
+
+  // :scope > … is the whole nesting story: an inner group's panels are not
+  // direct children of the outer group, so they are invisible to it.
+  collect() {
+    this.orientation = this.el.dataset.orientation === "vertical" ? "vertical" : "horizontal";
+    this.panels = Array.from(this.el.querySelectorAll(":scope > [data-pc-resizable-panel]"));
+    this.handles = Array.from(this.el.querySelectorAll(":scope > [data-pc-resizable-handle]"));
+    this.constraints = this.panels.map(resizableConstraint);
+  },
+
+  handleIndex(target) {
+    if (!target || !target.closest) return -1;
+    const handle = target.closest("[data-pc-resizable-handle]");
+    return handle ? this.handles.indexOf(handle) : -1;
+  },
+
+  apply() {
+    this.panels.forEach((panel, i) => {
+      const size = this.sizes[i];
+      if (typeof size !== "number") return;
+      panel.style.flex = `${size} 1 0px`;
+    });
+
+    this.handles.forEach((handle, i) => {
+      const c = this.constraints[i];
+      if (!c) return;
+      const panel = this.panels[i];
+      handle.setAttribute("aria-valuenow", String(Math.round(this.sizes[i])));
+      handle.setAttribute("aria-valuemin", String(c.collapsible ? c.collapsedSize : c.min));
+      handle.setAttribute("aria-valuemax", String(c.max));
+      handle.setAttribute(
+        "aria-orientation",
+        this.orientation === "horizontal" ? "vertical" : "horizontal",
+      );
+      if (panel && panel.id) handle.setAttribute("aria-controls", panel.id);
+    });
+  },
+
+  groupExtent() {
+    const rect = this.el.getBoundingClientRect();
+    const extent = this.orientation === "vertical" ? rect.height : rect.width;
+    return extent > 0 ? extent : 0;
+  },
+
+  startDrag(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+    if (e.button !== undefined && e.button !== 0) return;
+
+    const handle = this.handles[index];
+    // Pointer capture is what stops a fast drag from losing the separator the
+    // moment the cursor outruns it.
+    if (handle.setPointerCapture && e.pointerId !== undefined) {
+      try {
+        handle.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is a nicety, not a requirement */
+      }
+    }
+
+    this.dragging = {
+      index,
+      start: this.orientation === "vertical" ? e.clientY : e.clientX,
+      startSizes: this.sizes.slice(),
+      extent: this.groupExtent(),
+      moved: false,
+    };
+
+    handle.classList.add("pc-resizable__handle--dragging");
+    this.el.classList.add("pc-resizable--dragging");
+    this.holdBody();
+    // preventDefault suppresses the browser's native focus-on-pointerdown,
+    // so hand focus over explicitly - a pointer user should be able to grab
+    // a divider and immediately fine-tune with the arrow keys. But a script
+    // focus() on a modality-fresh page (nothing focused since load) matches
+    // :focus-visible in Chromium, so the very first drag after a reload wore
+    // the keyboard ring. The attribute records that THIS focus came from a
+    // pointer; the CSS keyboard affordances stand down while it is present,
+    // and the first real keystroke (keydown below) or a blur lifts it.
+    handle.focus?.();
+    handle.setAttribute("data-pc-pointer-focus", "");
+    e.preventDefault();
+  },
+
+  moveDrag(e) {
+    if (!this.dragging) return;
+    const { index, start, startSizes, extent } = this.dragging;
+    if (extent <= 0) return;
+
+    const pos = this.orientation === "vertical" ? e.clientY : e.clientX;
+    const deltaPct = ((pos - start) / extent) * 100;
+    const target = startSizes[index] + deltaPct;
+
+    const { sizes, collapse } = resolveDrag(
+      this.sizes,
+      index,
+      target - this.sizes[index],
+      this.constraints,
+    );
+
+    this.dragging.moved = true;
+    this.sizes = sizes;
+    this.apply();
+    if (collapse) this.emitCollapse(collapse);
+  },
+
+  endDrag(e) {
+    if (!this.dragging) return;
+    const { index, moved } = this.dragging;
+    const handle = this.handles[index];
+
+    if (handle) {
+      handle.classList.remove("pc-resizable__handle--dragging");
+      if (handle.releasePointerCapture && e && e.pointerId !== undefined) {
+        try {
+          handle.releasePointerCapture(e.pointerId);
+        } catch {
+          /* already released */
+        }
+      }
+    }
+
+    this.el.classList.remove("pc-resizable--dragging");
+    this.releaseBody();
+    this.dragging = null;
+    if (moved) this.commit();
+  },
+
+  keydown(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+
+    // Keys are keyboard modality by definition - restore the visible focus
+    // affordance a pointer-initiated focus had stood down (even for a no-op
+    // arrow at a hard bound: the intent is what matters).
+    this.handles[index]?.removeAttribute("data-pc-pointer-focus");
+
+    let result = null;
+
+    if (e.key === "Home") result = resolveEdge(this.sizes, index, "min", this.constraints);
+    else if (e.key === "End") result = resolveEdge(this.sizes, index, "max", this.constraints);
+    else if (e.key === "Enter") result = resolveToggle(this.sizes, index, this.constraints);
+    else {
+      const delta = keyboardDelta(e.key, e.shiftKey, this.orientation);
+      if (delta === null) return;
+      result = resolveDrag(this.sizes, index, delta, this.constraints);
+    }
+
+    // A no-op stays a no-op: Enter on a non-collapsible separator (or an
+    // arrow at a hard bound) must not eat the key, fire
+    // petal:resizable-resize, or push on_resize with unchanged sizes.
+    const changed = result.sizes.some((s, i) => s !== this.sizes[i]);
+    if (!changed && !result.collapse) return;
+
+    e.preventDefault();
+    this.sizes = result.sizes;
+    this.apply();
+    if (result.collapse) this.emitCollapse(result.collapse);
+    this.commit();
+  },
+
+  dblclick(e) {
+    const index = this.handleIndex(e.target);
+    if (index < 0 || index + 1 >= this.panels.length) return;
+
+    const { sizes, collapse } = resolveReset(this.sizes, index, this.constraints);
+    this.sizes = sizes;
+    this.apply();
+    if (collapse) this.emitCollapse(collapse);
+    this.commit();
+  },
+
+  holdBody() {
+    const body = document.body;
+    if (!body) return;
+    this.bodyCursor = body.style.cursor;
+    this.bodySelect = body.style.userSelect;
+    body.style.cursor = this.orientation === "vertical" ? "row-resize" : "col-resize";
+    body.style.userSelect = "none";
+  },
+
+  releaseBody() {
+    const body = document.body;
+    if (!body || this.bodyCursor === undefined) return;
+    body.style.cursor = this.bodyCursor;
+    body.style.userSelect = this.bodySelect;
+    this.bodyCursor = undefined;
+    this.bodySelect = undefined;
+  },
+
+  emitCollapse({ index, collapsed }) {
+    const panel = this.panels[index];
+    this.el.dispatchEvent(
+      new CustomEvent("petal:resizable-collapse", {
+        bubbles: true,
+        detail: { panel_id: panel ? panel.id || null : null, collapsed },
+      }),
+    );
+  },
+
+  // The whole persistence story: an event on release, and the same payload
+  // pushed to the LiveView when on_resize is set. The library stores nothing.
+  commit() {
+    const sizes = this.sizes.map((s) => Math.round(s * 100) / 100);
+
+    this.el.dispatchEvent(
+      new CustomEvent("petal:resizable-resize", { bubbles: true, detail: { sizes } }),
+    );
+
+    const event = this.el.dataset.onResize;
+    if (event && this.pushEvent) this.pushEvent(event, { sizes });
+  },
+};
+
+
+// Bottom-sheet drag layer for <.slide_over origin="bottom">.
+//
+// Pointer physics is the one thing CSS and LiveView.JS genuinely cannot do:
+// following a finger 1:1 and then deciding, from distance AND release
+// velocity, whether the sheet springs back or closes. Everything else about
+// the drawer (radius, safe area, handle, open/close transitions) stays in CSS
+// and JS commands, and this hook is only attached when a bottom sheet is
+// actually draggable, snapped or scaling its background.
+//
+// The maths lives in pure functions below so it can be tested without a DOM.
+// Offsets are pixels DOWN from the drawer's tallest resting position: 0 is
+// fully open, larger is further off-screen.
+
+// Above the top snap the sheet should feel anchored rather than detached, so
+// overshoot is admitted at a fraction of its real size.
+export const drawerResistance = (offset, minOffset = 0, factor = 0.15) =>
+  offset < minOffset ? minOffset + (offset - minOffset) * factor : offset;
+
+// px/ms across the last few samples. A single frame pair is too noisy to tell
+// a flick from a slow drag that happened to end with one fast frame.
+export const drawerVelocity = (samples, sampleCount = 5) => {
+  if (!Array.isArray(samples) || samples.length < 2) return 0;
+  const recent = samples.slice(-sampleCount);
+  const first = recent[0];
+  const last = recent[recent.length - 1];
+  const elapsed = last.time - first.time;
+  if (elapsed <= 0) return 0;
+  return (last.y - first.y) / elapsed;
+};
+
+// Where a release lands: dismiss, or the snap offset to settle on.
+export const drawerSettle = ({
+  offset,
+  velocity = 0,
+  height = Infinity,
+  snapOffsets = [0],
+  dismissThreshold = 0.25,
+  velocityThreshold = 0.5,
+  dismissible = true,
+}) => {
+  const points = [...snapOffsets].sort((a, b) => a - b);
+  // largest offset is the LOWEST resting position - the one you fall off
+  const lowest = points[points.length - 1];
+  const travelled = offset - lowest;
+  const flickDown = velocity >= velocityThreshold;
+  const flickUp = velocity <= -velocityThreshold;
+
+  // Only a release below the lowest snap can dismiss. Between snaps a flick
+  // just moves to the next point, which is what keeps a snapped drawer from
+  // closing every time someone shoves it downward.
+  if (
+    dismissible &&
+    travelled > 0 &&
+    (flickDown || travelled >= height * dismissThreshold)
+  ) {
+    return { type: "dismiss" };
+  }
+
+  if (points.length > 1 && (flickDown || flickUp)) {
+    const ahead = points.filter((p) => (flickDown ? p > offset : p < offset));
+    if (ahead.length) {
+      return {
+        type: "settle",
+        offset: flickDown ? Math.min(...ahead) : Math.max(...ahead),
+      };
+    }
+  }
+
+  const nearest = points.reduce(
+    (best, p) => (Math.abs(p - offset) < Math.abs(best - offset) ? p : best),
+    points[0],
+  );
+  return { type: "settle", offset: nearest };
+};
+
+export const PetalDrawer = {
+  mounted() {
+    this.dragging = false;
+    this.pointerId = null;
+    this.samples = [];
+    this.offset = 0;
+    this.height = 0;
+    this.wrapper = null;
+    this.scaled = null;
+
+    this.readConfig();
+
+    this.onPointerDown = this.onPointerDown.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
+    this.onPointerCancel = this.onPointerCancel.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onResize = this.onResize.bind(this);
+
+    this.el.addEventListener("pointerdown", this.onPointerDown);
+    // Non-passive, and on the sheet rather than the window: a touch sequence
+    // keeps targeting the element it began on, so the sheet sees every move of
+    // its own gesture, and only this sheet pays the scroll-blocking cost.
+    this.el.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    // move/up on the window, not the sheet: a fast flick outruns the element
+    // and we still need the release that happens past its edge
+    window.addEventListener("pointermove", this.onPointerMove);
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerCancel);
+    window.addEventListener("resize", this.onResize);
+
+    // scale_background has to track the panel opening and closing, which the
+    // JS commands drive by writing inline display on this element. The observer
+    // is unconditional so that flipping scale_background on in a later render
+    // starts working without a remount.
+    this.observer = new MutationObserver(() => this.syncBackground());
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    this.syncBackground();
+
+    this.reset();
+  },
+
+  updated() {
+    const previous = this.configKey;
+    this.readConfig();
+    // a re-render mid-drag must not yank the sheet out from under the finger
+    if (!this.dragging && previous !== this.configKey) this.reset();
+    else this.restore();
+    this.syncBackground();
+  },
+
+  destroyed() {
+    this.el.removeEventListener("pointerdown", this.onPointerDown);
+    this.el.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerCancel);
+    window.removeEventListener("resize", this.onResize);
+    if (this.observer) this.observer.disconnect();
+    if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
+    clearTimeout(this.timer);
+  },
+
+  // A patch syncs the style attribute back to what the server rendered - the
+  // sheet's `height: Ndvh` and nothing else - and the only inline styles
+  // LiveView carries across a patch are its own sticky ones, which is display
+  // and not transform. So every re-render while the drawer is open drops the
+  // drag offset out of the DOM: the sheet jumps to its top rest position while
+  // this.offset still reads the old value, and the next pointermove teleports
+  // it back down to a baseline the user can no longer see. Put it back.
+  restore() {
+    if (this.dragging) this.el.style.transition = "none";
+    this.apply(this.offset);
+  },
+
+  // The offset the sheet is actually rendered at. Inline transform is written
+  // by this hook and nobody else - the open/close commands animate the
+  // translate utility, a separate property, which is why the two compose - so
+  // reading it back gives the sheet's real position, or 0 once a patch has
+  // dropped it.
+  renderedOffset() {
+    const match = /translate3d\([^,]*,\s*(-?[\d.]+)px/.exec(
+      this.el.style.transform || "",
+    );
+    return match ? parseFloat(match[1]) : 0;
+  },
+
+  readConfig() {
+    this.snapPoints = (this.el.dataset.snapPoints || "")
+      .split(",")
+      .map((n) => parseFloat(n))
+      .filter((n) => !Number.isNaN(n))
+      .sort((a, b) => a - b);
+    this.initialSnap = parseFloat(this.el.dataset.initialSnap);
+    this.dismissible = this.el.dataset.dragDismiss === "true";
+    this.configKey = this.el.dataset.snapPoints + this.el.dataset.initialSnap;
+    this.scroller = this.el.querySelector(".pc-slideover__content");
+
+    const wrapper =
+      this.el.dataset.scaleBackground === "true"
+        ? document.querySelector("[data-pc-drawer-wrapper]")
+        : null;
+
+    // Turning scale_background off has to hand the old wrapper back untouched.
+    if (wrapper !== this.wrapper) {
+      if (this.wrapper) this.wrapper.classList.remove("pc-drawer-scaled");
+      this.wrapper = wrapper;
+      this.scaled = null;
+    }
+  },
+
+  // The sheet is sized to its tallest snap, so a point p rests (max - p)/max of
+  // the sheet's own height down from the top. Measuring the sheet rather than
+  // the viewport keeps the offsets true to the dvh-based CSS height, which
+  // drifts from innerHeight while a mobile URL bar is collapsing. Before the
+  // sheet is displayed it has no height, so fall back to the viewport.
+  sheetHeight() {
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    return this.el.offsetHeight || max * window.innerHeight;
+  },
+
+  snapOffsets() {
+    if (!this.snapPoints.length) return [0];
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    const height = this.sheetHeight();
+    return this.snapPoints.map((p) => ((max - p) / max) * height);
+  },
+
+  reset() {
+    const offsets = this.snapOffsets();
+    const max = this.snapPoints[this.snapPoints.length - 1];
+    this.offset =
+      this.snapPoints.length && !Number.isNaN(this.initialSnap)
+        ? ((max - this.initialSnap) / max) * this.sheetHeight()
+        : offsets[0];
+    this.el.style.transition = "";
+    this.apply(this.offset);
+  },
+
+  onResize() {
+    if (!this.dragging) this.reset();
+  },
+
+  apply(offset) {
+    // An inline transform composes with the translate utility the open/close
+    // commands animate, so the drag offset and the slide can coexist.
+    this.el.style.transform = offset ? `translate3d(0, ${offset}px, 0)` : "";
+  },
+
+  isOpen() {
+    const display = this.el.style.display;
+    if (display === "none") return false;
+    if (display !== "") return true;
+    // No inline display at all: JS.show skips writing one when the element is
+    // already visible, which is exactly the case for a slide_over rendered
+    // without `hide`. Fall back to measuring, the way LiveView itself does.
+    return !!(
+      this.el.offsetWidth ||
+      this.el.offsetHeight ||
+      this.el.getClientRects().length
+    );
+  },
+
+  syncBackground() {
+    if (!this.wrapper) return;
+    // The observer fires on every [style] write, and a drag rewrites transform
+    // each pointermove, so without this the wrapper is reclassed per frame.
+    const open = this.isOpen();
+    if (open === this.scaled) return;
+    this.scaled = open;
+    this.wrapper.classList.toggle("pc-drawer-scaled", open);
+  },
+
+  reducedMotion() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  },
+
+  onPointerDown(e) {
+    if (this.dragging || e.isPrimary === false || e.button > 0) return;
+    const target = e.target;
+    if (!target || typeof target.closest !== "function") return;
+    // never swallow a tap meant for a control inside the sheet
+    if (target.closest("input, textarea, select, button, a, [contenteditable]"))
+      return;
+
+    // The vaul rule: claim the gesture only from the handle, or when the body
+    // has nothing left to scroll up. Otherwise inner scrolling stops working.
+    const onHandle = !!target.closest("[data-pc-drawer-handle]");
+    if (!onHandle && this.scroller && this.scroller.scrollTop > 0) return;
+
+    this.dragging = true;
+    this.pointerId = e.pointerId;
+    this.startY = e.clientY;
+    // Baseline the drag on where the sheet is rendered rather than on what the
+    // hook last wrote. The two only disagree when something moved the sheet
+    // behind the hook's back - a patch that landed without an updated(), a
+    // consumer clearing the style - and in that case the DOM is the truth. A
+    // drag has to start from the position the finger is touching.
+    this.offset = this.renderedOffset();
+    this.startOffset = this.offset;
+    this.height = this.el.offsetHeight || window.innerHeight;
+    this.samples = [{ y: e.clientY, time: e.timeStamp }];
+    clearTimeout(this.timer);
+    this.el.style.transition = "none";
+    this.el.classList.add("pc-slideover__box--dragging");
+  },
+
+  onPointerMove(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    if (e.cancelable) e.preventDefault();
+
+    this.samples.push({ y: e.clientY, time: e.timeStamp });
+    if (this.samples.length > 8) this.samples.shift();
+
+    const raw = this.startOffset + (e.clientY - this.startY);
+    this.offset = drawerResistance(raw, Math.min(...this.snapOffsets()));
+    this.apply(this.offset);
+  },
+
+  // preventDefault inside a pointermove handler does nothing to touch
+  // scrolling - only a non-passive touchmove can decline the gesture, and only
+  // before the browser has committed to a scroll. Direction decides: pulling
+  // the sheet down (or moving it at all when it is already displaced) is a
+  // drag, while a swipe up from a body that is at scroll-top is the user
+  // reading the content, and stealing that would break inner scrolling.
+  onTouchMove(e) {
+    if (!this.dragging || !e.cancelable) return;
+    const touch = e.touches && e.touches[0];
+    if (this.offset > 0 || (touch && touch.clientY > this.startY)) {
+      e.preventDefault();
+    }
+  },
+
+  endDrag() {
+    this.dragging = false;
+    this.pointerId = null;
+    this.el.classList.remove("pc-slideover__box--dragging");
+  },
+
+  onPointerUp(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
+
+    const result = drawerSettle({
+      offset: this.offset,
+      velocity: drawerVelocity(this.samples),
+      height: this.height,
+      snapOffsets: this.snapOffsets(),
+      dismissible: this.dismissible,
+    });
+    this.samples = [];
+
+    if (result.type === "dismiss") this.dismiss();
+    else this.settle(result.offset);
+  },
+
+  // A cancel is the browser taking the gesture away (it decided the touch was
+  // a scroll, or the pointer was captured elsewhere) - not the user letting go.
+  // Running release physics on it would let the browser close the drawer, so a
+  // cancel always springs back to the nearest snap with no velocity.
+  onPointerCancel(e) {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
+    this.endDrag();
+
+    const { offset } = drawerSettle({
+      offset: this.offset,
+      velocity: 0,
+      height: this.height,
+      snapOffsets: this.snapOffsets(),
+      dismissible: false,
+    });
+    this.samples = [];
+    this.settle(offset);
+  },
+
+  settle(offset) {
+    this.offset = offset;
+    if (this.reducedMotion()) {
+      this.apply(offset);
+      this.el.style.transition = "";
+      return;
+    }
+    this.el.style.transition = "transform 320ms cubic-bezier(0.32, 0.72, 0, 1)";
+    this.apply(offset);
+    clearTimeout(this.timer);
+    // hand the transition back to the open/close classes once parked
+    this.timer = setTimeout(() => {
+      this.el.style.transition = "";
+    }, 340);
+  },
+
+  dismiss() {
+    // Leave the drag offset where it is with no inline transition: the hide
+    // command animates the translate utility 0 -> 100% on top of it, so the
+    // sheet carries on from exactly where the finger let go. Routing through
+    // data-pc-drawer-hide means a drag closes by the same path as Escape, the
+    // close button and click-away - one "close_slide_over" event either way.
+    this.el.style.transition = "";
+    const command = this.el.getAttribute("data-pc-drawer-hide");
+    if (command && this.liveSocket) this.liveSocket.execJS(this.el, command);
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.reset(), 400);
+  },
+};
+
+// Keyboard navigation for <.tree> (WAI-ARIA TreeView), and nothing else.
+//
+// Roving tabindex is the whole reason this hook exists: the tree must be a
+// single tab stop with exactly one treeitem carrying tabindex="0", and moving
+// DOM focus between arbitrary nodes on an arrow key is not something CSS or
+// LiveView.JS can do. Expansion and selection are deliberately NOT implemented
+// here - the hook clicks the chevron and the select trigger the component
+// already wired, so both expansion models work identically and a pointer user
+// still gets a working tree if the hook never mounts.
+export const PetalTree = {
+  mounted() {
+    this.onKeydown = this.onKeydown.bind(this);
+    this.onFocusIn = this.onFocusIn.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.el.addEventListener("keydown", this.onKeydown);
+    this.el.addEventListener("focusin", this.onFocusIn);
+    this.el.addEventListener("click", this.onClick);
+    this.syncTabIndex();
+  },
+
+  // A server patch re-renders tabindex from the server's own guess. Put the
+  // tab stop back on whichever node the user was actually on.
+  updated() {
+    this.syncTabIndex();
+  },
+
+  destroyed() {
+    this.el.removeEventListener("keydown", this.onKeydown);
+    this.el.removeEventListener("focusin", this.onFocusIn);
+    this.el.removeEventListener("click", this.onClick);
+  },
+
+  nodes() {
+    return Array.from(this.el.querySelectorAll("[data-pc-tree-node]"));
+  },
+
+  // "Visible" is an ARIA term here, not a CSS one: a node whose every ancestor
+  // branch is expanded. Collapsed subtrees stay in the DOM, so this walk is the
+  // only honest test.
+  isVisible(node) {
+    let parent =
+      node.parentElement && node.parentElement.closest("[data-pc-tree-node]");
+    while (parent) {
+      if (parent.dataset.expanded !== "true") return false;
+      parent =
+        parent.parentElement &&
+        parent.parentElement.closest("[data-pc-tree-node]");
+    }
+    return true;
+  },
+
+  visibleNodes() {
+    return this.nodes().filter((node) => this.isVisible(node));
+  },
+
+  current() {
+    const active = document.activeElement;
+    if (active && this.el.contains(active)) {
+      const node = active.closest("[data-pc-tree-node]");
+      if (node) return node;
+    }
+    return (
+      this.el.querySelector('[data-pc-tree-node][tabindex="0"]') ||
+      this.visibleNodes()[0] ||
+      null
+    );
+  },
+
+  syncTabIndex() {
+    const nodes = this.nodes();
+    if (nodes.length === 0) return;
+
+    let target =
+      this.activeId && nodes.find((n) => n.dataset.nodeId === this.activeId);
+    if (!target) {
+      target =
+        nodes.find((n) => n.getAttribute("tabindex") === "0") ||
+        this.visibleNodes()[0] ||
+        nodes[0];
+    }
+    // the branch above the tab stop may have closed under it
+    if (!this.isVisible(target)) target = this.visibleNodes()[0] || nodes[0];
+
+    this.activeId = target.dataset.nodeId;
+    nodes.forEach((node) =>
+      node.setAttribute("tabindex", node === target ? "0" : "-1"),
+    );
+  },
+
+  focusNode(node) {
+    if (!node) return;
+    this.activeId = node.dataset.nodeId;
+    this.syncTabIndex();
+    node.focus();
+  },
+
+  // :scope keeps us on this node's own row - a descendant node has a chevron
+  // and a label too, and querySelector would happily hand one of those back.
+  own(node, selector) {
+    return node.querySelector(`:scope > .pc-tree__row ${selector}`);
+  },
+
+  toggle(node) {
+    const chevron = this.own(node, "[data-pc-tree-chevron]");
+    if (chevron) chevron.click();
+  },
+
+  // data-pc-tree-select marks whichever element carries the select-ONLY
+  // command: the label row normally, a hidden trigger when the row itself
+  // expands on click. Either way Enter and Space select without expanding.
+  select(node) {
+    if (node.getAttribute("aria-disabled") === "true") return;
+    const target = this.own(node, "[data-pc-tree-select]");
+    if (target) target.click();
+  },
+
+  step(node, delta) {
+    const visible = this.visibleNodes();
+    this.focusNode(visible[visible.indexOf(node) + delta]);
+  },
+
+  expandOrDescend(node) {
+    if (node.dataset.branch !== "true") return;
+    if (node.dataset.expanded === "true") {
+      this.focusNode(node.querySelector("[data-pc-tree-node]"));
+    } else {
+      this.toggle(node);
+    }
+  },
+
+  collapseOrAscend(node) {
+    if (node.dataset.branch === "true" && node.dataset.expanded === "true") {
+      this.toggle(node);
+      return;
+    }
+    this.focusNode(
+      node.parentElement && node.parentElement.closest("[data-pc-tree-node]"),
+    );
+  },
+
+  expandSiblings(node) {
+    const container = node.parentElement;
+    if (!container) return;
+    Array.from(container.children)
+      .filter((el) => el.matches("[data-pc-tree-node]"))
+      .filter((el) => el.dataset.branch === "true" && el.dataset.expanded !== "true")
+      .forEach((el) => this.toggle(el));
+  },
+
+  onFocusIn(event) {
+    const node =
+      event.target.closest && event.target.closest("[data-pc-tree-node]");
+    if (!node) return;
+    this.activeId = node.dataset.nodeId;
+    this.syncTabIndex();
+  },
+
+  // Clicking a row does not focus anything on its own (the label is a span, on
+  // purpose - a button inside the tree would be a second tab stop), so move the
+  // roving tab stop by hand.
+  onClick(event) {
+    const node =
+      event.target.closest && event.target.closest("[data-pc-tree-node]");
+    if (node) this.focusNode(node);
+  },
+
+  onKeydown(event) {
+    // Modified keys belong to the browser and the OS (Cmd+ArrowDown is
+    // page-end, Ctrl+Home is document-start): the APG tree pattern maps
+    // unmodified keys only, so intercepting these would eat user shortcuts.
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const node = this.current();
+    if (!node) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        this.step(node, 1);
+        break;
+      case "ArrowUp":
+        this.step(node, -1);
+        break;
+      case "ArrowRight":
+        this.expandOrDescend(node);
+        break;
+      case "ArrowLeft":
+        this.collapseOrAscend(node);
+        break;
+      case "Home":
+        this.focusNode(this.visibleNodes()[0]);
+        break;
+      case "End": {
+        const visible = this.visibleNodes();
+        this.focusNode(visible[visible.length - 1]);
+        break;
+      }
+      case "Enter":
+      case " ":
+        this.select(node);
+        break;
+      case "*":
+        this.expandSiblings(node);
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  },
+};
+
+// Context menu: right-click / long-press / Shift+F10, opened at the pointer.
+//
+// The hook exists because CSS cannot read cursor coordinates. Everything
+// else here follows the machinery the library already uses: the visual
+// viewport for geometry (PetalPopover), and tap-outside-not-press-outside
+// dismiss (PetalDataTable), which is what stops a drag-to-scroll gesture
+// killing the menu the instant a finger lands.
+//
+// The panel is a native popover="manual" element, so it paints in the top
+// layer and an overflow-hidden ancestor - a card grid, a table cell, a
+// scroll pane - can never clip it. Manual, not auto: the UA's light
+// dismiss fires on pointerdown, which is the exact behaviour above that we
+// need to avoid, and auto would also close this menu whenever any other
+// popover on the page opened.
+const PC_LONG_PRESS_MS = 500;
+// Movement past this is a drag, not a press - the same slop iOS uses
+// before it commits to calling a gesture a tap.
+const PC_TAP_SLOP = 10;
+
+export const PetalContextMenu = {
+  mounted() {
+    this.open = false;
+    this.longPressTimer = null;
+    this.pressPoint = null;
+    this.returnFocusTo = null;
+
+    // Outside-tap bookkeeping, per pointer because fingers come in twos:
+    // `active` is every pointer currently down, `presses` only the ones
+    // that started outside the menu.
+    this.active = new Set();
+    this.presses = new Map();
+    this.multiTouch = false;
+
+    this.onContextMenu = (e) => {
+      if (!this.inTrigger(e.target)) {
+        // A right-click on our own panel: swallow it rather than stacking
+        // the OS menu on top of ours. Anywhere else on the page is none of
+        // this hook's business and keeps the browser default.
+        if (this.panel()?.contains(e.target)) e.preventDefault();
+        return;
+      }
+
+      e.preventDefault();
+      this.cancelLongPress();
+      this.openAt(e.clientX, e.clientY, { focusFirst: false });
+    };
+
+    // Touch has no right-click, so a held finger stands in for one. The
+    // timer is armed only on the trigger region and dies on any movement,
+    // which is how a scroll flick that starts on a card stays a scroll.
+    this.onPointerDown = (e) => {
+      this.trackPressStart(e);
+      if (e.pointerType !== "touch" || !this.inTrigger(e.target)) return;
+
+      const x = e.clientX;
+      const y = e.clientY;
+      // disarm any half-finished press before arming this one, or the
+      // reset below would wipe the point we just recorded
+      this.cancelLongPress();
+      this.pressPoint = { x, y };
+      this.longPressTimer = setTimeout(() => {
+        this.longPressTimer = null;
+        this.openAt(x, y, { focusFirst: false });
+      }, PC_LONG_PRESS_MS);
+    };
+
+    this.onPointerMove = (e) => {
+      if (!this.pressPoint) return;
+      const moved = Math.hypot(
+        e.clientX - this.pressPoint.x,
+        e.clientY - this.pressPoint.y,
+      );
+      if (moved > PC_TAP_SLOP) this.cancelLongPress();
+    };
+
+    this.onPointerUp = (e) => {
+      this.cancelLongPress();
+      this.trackPressEnd(e);
+    };
+
+    this.onPointerCancel = (e) => {
+      this.cancelLongPress();
+      this.presses.delete(e.pointerId);
+      this.active.delete(e.pointerId);
+      if (this.active.size === 0) this.multiTouch = false;
+    };
+
+    this.onKeydown = (e) => {
+      if (this.open && this.panel()?.contains(e.target)) {
+        this.onMenuKeydown(e);
+        return;
+      }
+
+      // The two ways a keyboard asks for a context menu. Opened this way
+      // there is no cursor, so the menu lands on the region itself.
+      const asked =
+        e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey && !e.ctrlKey);
+      if (!asked || !this.inTrigger(e.target)) return;
+
+      e.preventDefault();
+      const t = this.trigger().getBoundingClientRect();
+      this.openAt(t.left + 8, t.top + 8, { focusFirst: true });
+    };
+
+    // Fixed coordinates go stale the moment the page moves under them, and
+    // a menu hovering over content it no longer points at is worse than no
+    // menu. Resize only reflows the same cursor point.
+    this.onScroll = (e) => {
+      if (!this.open) return;
+      const panel = this.panel();
+      if (panel === e.target || panel?.contains(e.target)) return;
+      this.close();
+    };
+
+    this.onResize = () => {
+      if (this.open) this.position();
+    };
+
+    this.onClick = (e) => this.onItemClick(e);
+
+    this.el.addEventListener("contextmenu", this.onContextMenu);
+    this.el.addEventListener("keydown", this.onKeydown);
+    this.el.addEventListener("click", this.onClick);
+    document.addEventListener("pointerdown", this.onPointerDown, true);
+    document.addEventListener("pointermove", this.onPointerMove, true);
+    document.addEventListener("pointerup", this.onPointerUp, true);
+    document.addEventListener("pointercancel", this.onPointerCancel, true);
+    document.addEventListener("scroll", this.onScroll, true);
+    window.addEventListener("resize", this.onResize);
+  },
+
+  destroyed() {
+    this.cancelLongPress();
+    this.el.removeEventListener("contextmenu", this.onContextMenu);
+    this.el.removeEventListener("keydown", this.onKeydown);
+    this.el.removeEventListener("click", this.onClick);
+    document.removeEventListener("pointerdown", this.onPointerDown, true);
+    document.removeEventListener("pointermove", this.onPointerMove, true);
+    document.removeEventListener("pointerup", this.onPointerUp, true);
+    document.removeEventListener("pointercancel", this.onPointerCancel, true);
+    document.removeEventListener("scroll", this.onScroll, true);
+    window.removeEventListener("resize", this.onResize);
+    this.presses?.clear();
+    this.active?.clear();
+  },
+
+  // A patch re-renders the panel from the server, which drops EVERYTHING
+  // this hook owns and the server never renders: the inline coordinates,
+  // data-pc-open, and the display fallback. Re-assert the whole open state,
+  // not just position - otherwise an open menu silently vanishes after any
+  // patch in a non-popover browser.
+  updated() {
+    if (!this.open) return;
+    const panel = this.panel();
+    if (panel) this.showPanel(panel);
+    this.position();
+  },
+
+  panel() {
+    const id = this.el.dataset.pcContextMenuPanel;
+    return id ? this.el.querySelector(`[id="${id}"]`) : null;
+  },
+
+  trigger() {
+    return this.el.querySelector(".pc-context-menu__trigger");
+  },
+
+  inTrigger(target) {
+    const trigger = this.trigger();
+    // the panel is a DOM child of the wrapper, so "inside the trigger"
+    // has to exclude it explicitly
+    return (
+      !!trigger &&
+      trigger.contains(target) &&
+      !this.panel()?.contains(target)
+    );
+  },
+
+  // Enabled items only: the arrows skip disabled rows rather than parking
+  // focus on something that will not respond.
+  items() {
+    const panel = this.panel();
+    if (!panel) return [];
+
+    return Array.from(
+      panel.querySelectorAll("[data-pc-context-menu-item]"),
+    ).filter((el) => !el.disabled && el.getAttribute("aria-disabled") !== "true");
+  },
+
+  cancelLongPress() {
+    clearTimeout(this.longPressTimer);
+    this.longPressTimer = null;
+    this.pressPoint = null;
+  },
+
+  trackPressStart(e) {
+    if (!this.open) return;
+    this.active.add(e.pointerId);
+    if (this.active.size > 1) this.multiTouch = true;
+    if (this.isOutside(e.target)) {
+      this.presses.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+  },
+
+  // Dismiss on a tap outside, not a press outside: press and release must
+  // both land outside and stay put, and a pinch or two-finger scroll never
+  // counts at all.
+  trackPressEnd(e) {
+    const press = this.presses.get(e.pointerId);
+    this.presses.delete(e.pointerId);
+    this.active.delete(e.pointerId);
+
+    const gesture = this.multiTouch;
+    if (this.active.size === 0) this.multiTouch = false;
+    if (!press || gesture || !this.open) return;
+
+    const dragged =
+      Math.hypot(e.clientX - press.x, e.clientY - press.y) > PC_TAP_SLOP;
+    if (!dragged && this.isOutside(e.target)) this.close();
+  },
+
+  isOutside(target) {
+    return !this.panel()?.contains(target);
+  },
+
+  onItemClick(e) {
+    if (!this.open) return;
+    const item = e.target.closest?.("[data-pc-context-menu-item]");
+    if (!item || !this.panel()?.contains(item)) return;
+    // the item's own phx-click / navigation has already been queued; all
+    // this does is get the menu out of the way
+    this.close({ restoreFocus: true });
+  },
+
+  onMenuKeydown(e) {
+    const items = this.items();
+    const at = items.indexOf(document.activeElement);
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        // a context menu inside a modal would otherwise close both
+        e.stopPropagation();
+        this.close({ restoreFocus: true });
+        return;
+      case "Tab":
+        // focus leaves the widget: close, hand focus back to the region,
+        // and let the browser's own Tab carry on from there
+        this.close({ restoreFocus: true });
+        return;
+      case "ArrowDown":
+        e.preventDefault();
+        this.focusItem(items, at < 0 ? 0 : at + 1);
+        return;
+      case "ArrowUp":
+        e.preventDefault();
+        this.focusItem(items, at < 0 ? items.length - 1 : at - 1);
+        return;
+      case "Home":
+        e.preventDefault();
+        this.focusItem(items, 0);
+        return;
+      case "End":
+        e.preventDefault();
+        this.focusItem(items, items.length - 1);
+        return;
+      case " ":
+        // Enter activates a link or a button natively; Space only does so
+        // on buttons, and half the items here are anchors.
+        if (at >= 0) {
+          e.preventDefault();
+          items[at].click();
+        }
+        return;
+      default:
+    }
+  },
+
+  // Wrapping at both ends, which is what the APG menu pattern asks for.
+  focusItem(items, index) {
+    if (!items.length) return;
+    const wrapped = ((index % items.length) + items.length) % items.length;
+    items[wrapped].focus();
+  },
+
+  openAt(x, y, { focusFirst }) {
+    const panel = this.panel();
+    if (!panel) return;
+
+    this.point = { x, y };
+
+    if (!this.open) {
+      // Remember where the user actually was, not just the region - a
+      // right-click on a button inside the card should hand focus back to
+      // that button.
+      const active = document.activeElement;
+      this.returnFocusTo =
+        active && this.el.contains(active) && !panel.contains(active)
+          ? active
+          : this.trigger();
+      this.showPanel(panel);
+      this.open = true;
+      this.trigger()?.setAttribute("aria-expanded", "true");
+    }
+
+    // showPopover and the style writes happen in the same task, so the
+    // browser never gets a chance to paint the panel at 0,0 first.
+    this.position();
+
+    if (focusFirst) {
+      const items = this.items();
+      if (items.length) items[0].focus();
+      else panel.focus();
+    } else {
+      // Pointer opens focus the panel; the first arrow press moves in.
+      panel.focus({ preventScroll: true });
+    }
+  },
+
+  close({ restoreFocus = false } = {}) {
+    const panel = this.panel();
+    this.open = false;
+    this.point = null;
+    this.trigger()?.setAttribute("aria-expanded", "false");
+    if (panel) this.hidePanel(panel);
+    // hiding the panel blurs whatever was focused inside it, so without
+    // this the user lands on <body>
+    if (restoreFocus) this.returnFocusTo?.focus?.();
+    this.returnFocusTo = null;
+  },
+
+  // The popover API is the real mechanism; the data attribute is this
+  // hook's own record of state, and the fallback for anywhere popover is
+  // not implemented (older Safari, and jsdom under the specs).
+  showPanel(panel) {
+    panel.setAttribute("data-pc-open", "");
+    try {
+      panel.showPopover();
+    } catch {
+      panel.style.display = "block";
+    }
+  },
+
+  hidePanel(panel) {
+    panel.removeAttribute("data-pc-open");
+    panel.style.display = "";
+    try {
+      panel.hidePopover();
+    } catch {
+      /* not open, or no popover support - the attribute above is enough */
+    }
+  },
+
+  // The box the panel must stay inside, in client coordinates: the visible
+  // region when a keyboard or pinch-zoom has shrunk it, otherwise the
+  // window. Same shape PetalPopover uses.
+  viewport() {
+    const vv = window.visualViewport;
+
+    return vv
+      ? { top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height }
+      : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+  },
+
+  // Down-and-right of the cursor by default, the direction every desktop
+  // OS opens one. Near an edge it flips to the other side of the cursor
+  // rather than sliding, so the pointer never ends up sitting on top of
+  // the first item - which would arm an accidental activation.
+  position() {
+    const panel = this.panel();
+    if (!panel || !this.point) return;
+
+    const pad = 8;
+    const { x, y } = this.point;
+
+    panel.style.maxHeight = "";
+    const r = panel.getBoundingClientRect();
+    const vp = this.viewport();
+
+    const maxHeight = Math.max(vp.height - pad * 2, 0);
+    const height = Math.min(r.height, maxHeight);
+
+    let top = y;
+    if (y + height + pad > vp.top + vp.height) top = y - height;
+
+    let left = x;
+    if (x + r.width + pad > vp.left + vp.width) left = x - r.width;
+
+    // min wins when the panel is bigger than the room it has: better to
+    // overflow the far edge than to start off-screen
+    top = clamp(top, vp.top + pad, vp.top + vp.height - height - pad);
+    left = clamp(left, vp.left + pad, vp.left + vp.width - r.width - pad);
+
+    panel.style.maxHeight = `${Math.round(maxHeight)}px`;
+    panel.style.overflowY = "auto";
+    // whole pixels: sub-pixel writes shimmer against a scrolling page
+    panel.style.top = `${Math.round(top)}px`;
+    panel.style.left = `${Math.round(left)}px`;
+  },
+};
+
+// Scrollspy: highlight the nav entry for the section being read.
+//
+// The observer is only a cheap trigger - every decision is made from live
+// rects, so a section that grew, a window resize, or a LiveView patch can
+// never leave the rail describing a page that no longer exists.
+//
+// Band, not line, for the observer: rootMargin crops the viewport down to a
+// reading strip near the top, so callbacks fire when a heading arrives there
+// rather than on every pixel of scroll.
+const SCROLLSPY_ROOT_MARGIN = "-25% 0px -70% 0px";
+
+// Which section owns the activation line.
+//
+// `sections` is [{ id, top }] in document order, `top` in viewport
+// coordinates; `line` is the activation line, also in viewport coordinates.
+// The last section that has reached the line wins, which is the one nearest
+// the top of the viewport that the reader has actually got to - a new heading
+// takes over as it arrives, not when the previous section finally leaves.
+//
+// Exported for the spec: this is the whole behaviour of the hook expressed as
+// a pure function, so it can be tested without an IntersectionObserver.
+export function scrollspyActive(sections, { line = 0, atBottom = false } = {}) {
+  if (!sections.length) return null;
+  // At the very bottom there is no scroll left to bring a short final section
+  // to the line, so nothing below would ever be reachable. Snap to the last.
+  if (atBottom) return sections[sections.length - 1].id;
+
+  let active = sections[0].id;
+  // 1px of slack: sub-pixel layout means a section resting exactly on the
+  // line can measure a hair below it and flicker back to its predecessor.
+  for (const section of sections) {
+    if (section.top - line <= 1) active = section.id;
+  }
+  return active;
+}
+
+// The scrollable box the sections live in. For sections inside an overflow
+// pane (an app shell with its own scroller) this box is the frame every
+// measurement uses: the activation line, the section tops, and "am I at the
+// bottom" are all questions about the pane, not the viewport.
+function scrollspyScrollRoot(el) {
+  let node = el?.parentElement;
+  while (node && node !== document.body) {
+    const { overflowY } = getComputedStyle(node);
+    if (
+      (overflowY === "auto" || overflowY === "scroll") &&
+      node.scrollHeight > node.clientHeight + 1
+    ) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+// rootMargin's top component, resolved to viewport pixels. A negative top
+// margin crops the root downward, so the cropped edge - the activation line -
+// sits that far below the top of the viewport.
+function scrollspyLine(rootMargin, height) {
+  const top = String(rootMargin).trim().split(/\s+/)[0] || "0px";
+  const value = parseFloat(top);
+  if (Number.isNaN(value)) return 0;
+  return top.endsWith("%") ? (-value / 100) * height : -value;
+}
+
+export const PetalScrollspy = {
+  mounted() {
+    this.active = null;
+    this.frame = null;
+    this.targetStyles = new Map();
+
+    this.onHashChange = () => this.applyHash();
+    // Coalesce to one pass per frame: scroll outruns paint, and each pass
+    // reads layout.
+    this.onScroll = () => {
+      if (this.frame) return;
+      this.frame = requestAnimationFrame(() => {
+        this.frame = null;
+        this.sync();
+      });
+    };
+
+    this.scan();
+    this.enableSmoothScroll();
+    window.addEventListener("hashchange", this.onHashChange);
+    window.addEventListener("resize", this.onScroll, { passive: true });
+
+    // The OS preference can flip mid-session; follow it live rather than
+    // freezing whatever was true at mount.
+    this.motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    this.onMotionChange = () => {
+      if (this.reducedMotion()) {
+        this.restoreSmooth();
+      } else {
+        this.enableSmoothScroll();
+      }
+    };
+    this.motionQuery?.addEventListener?.("change", this.onMotionChange);
+
+    // A deep link should be right from the first paint rather than after the
+    // observer's first callback.
+    if (!this.applyHash()) this.sync();
+  },
+
+  // LiveView can replace the rail or the article wholesale; re-measure both.
+  updated() {
+    this.scan();
+    this.sync();
+  },
+
+  destroyed() {
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.observer?.disconnect();
+    window.removeEventListener("hashchange", this.onHashChange);
+    window.removeEventListener("resize", this.onScroll);
+    this.motionQuery?.removeEventListener?.("change", this.onMotionChange);
+    this.listenToScrollRoot(null);
+    this.restoreScroll();
+  },
+
+  // Re-read the links, re-resolve the targets, re-point the observer. Safe to
+  // call repeatedly - the old observer is dropped first.
+  scan() {
+    this.links = Array.from(
+      this.el.querySelectorAll("[data-scrollspy-target]"),
+    );
+    this.targets = this.links
+      .map((link) => document.getElementById(link.dataset.scrollspyTarget))
+      .filter(Boolean);
+
+    this.listenToScrollRoot(scrollspyScrollRoot(this.targets[0] || this.el));
+    // A patch can relocate the sections into a different scroller; smoothing
+    // follows the root (no-op when it hasn't moved).
+    if (this.smoothedEl) this.enableSmoothScroll();
+    this.rootMargin = this.el.dataset.threshold || SCROLLSPY_ROOT_MARGIN;
+
+    // scroll-margin-top is what keeps a fixed header off the heading you just
+    // jumped to. It belongs on the target, which the component can't reach.
+    const offset = this.el.dataset.offset;
+    if (offset) {
+      this.targets.forEach((target) => {
+        if (!this.targetStyles.has(target)) {
+          this.targetStyles.set(target, target.style.scrollMarginTop);
+        }
+        target.style.scrollMarginTop = offset;
+      });
+    }
+
+    this.observer?.disconnect();
+    if (typeof IntersectionObserver === "undefined") return;
+    // Observe within the pane when there is one, so rootMargin crops the box
+    // that actually scrolls; null = the viewport, for page-scrolled rails.
+    this.observer = new IntersectionObserver(() => this.sync(), {
+      root: this.scrollFrame().pane,
+      rootMargin: this.rootMargin,
+      threshold: 0,
+    });
+    this.targets.forEach((target) => this.observer.observe(target));
+  },
+
+  // Bottom snap can't come from the observer: a short final section may never
+  // reach the line, so no callback ever fires for it. A patch can move the
+  // sections into a different scroller, so the listener follows rather than
+  // being left on the old one. Pass null to detach.
+  listenToScrollRoot(root) {
+    if (this.scrollRoot === root) return;
+    this.scrollRoot?.removeEventListener("scroll", this.onScroll);
+    this.scrollRoot = root;
+    this.scrollRoot?.addEventListener("scroll", this.onScroll, {
+      passive: true,
+    });
+  },
+
+  reducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  },
+
+  // Clicking a link is a native anchor jump; smooth is a property of the
+  // scroller, not of the click. Under reduced motion, leave it instant.
+  // Idempotent for the same root, and migrates when a LiveView patch moves
+  // the sections into a different scroller (the old root gets its style
+  // back, the new one gets smoothed).
+  enableSmoothScroll() {
+    if (this.reducedMotion()) return;
+    if (!this.scrollRoot) return;
+    const root =
+      this.scrollRoot === document.scrollingElement ||
+      this.scrollRoot === document.documentElement
+        ? document.documentElement
+        : this.scrollRoot;
+    if (!root.dataset) return;
+    if (this.smoothedEl === root) return;
+    this.restoreSmooth();
+
+    // Several rails can share one scroller. The FIRST smoother snapshots the
+    // page's own value onto the ELEMENT and a ref-count decides who turns
+    // the lights off - instance-local snapshots restored in mount order left
+    // smooth applied forever (A saved "", B saved "smooth"; A restored "",
+    // B re-restored "smooth").
+    const count = Number(root.dataset.pcSmoothCount || 0);
+    if (count === 0) {
+      root.dataset.pcSmoothPrior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "smooth";
+    }
+    root.dataset.pcSmoothCount = String(count + 1);
+    this.smoothedEl = root;
+  },
+
+  restoreSmooth() {
+    const root = this.smoothedEl;
+    if (!root) return;
+    this.smoothedEl = null;
+    const count = Math.max(0, Number(root.dataset.pcSmoothCount || 0) - 1);
+    if (count === 0) {
+      root.style.scrollBehavior = root.dataset.pcSmoothPrior || "";
+      delete root.dataset.pcSmoothPrior;
+      delete root.dataset.pcSmoothCount;
+    } else {
+      root.dataset.pcSmoothCount = String(count);
+    }
+  },
+
+  // The page is not ours: hand back every style we borrowed.
+  restoreScroll() {
+    this.restoreSmooth();
+    this.targetStyles.forEach((prior, target) => {
+      target.style.scrollMarginTop = prior || "";
+    });
+    this.targetStyles.clear();
+  },
+
+  atBottom() {
+    const root = this.scrollRoot;
+    if (!root) return false;
+    // A page with nothing to scroll is not "at the bottom" in any sense the
+    // reader would recognise - snapping there would highlight the last entry
+    // on a short page that is entirely visible.
+    if (root.scrollHeight <= root.clientHeight + 1) return false;
+    // 2px of slack: fractional device pixels mean scrollTop rarely lands
+    // exactly on the arithmetic bottom.
+    return root.scrollTop + root.clientHeight >= root.scrollHeight - 2;
+  },
+
+  // The page-vs-pane question, answered once for both measurements. Sections
+  // in an overflow pane measure against THEIR scroller and the activation
+  // line is a fraction of the pane's height - measured against the viewport,
+  // the highlight becomes a function of where the pane happens to sit on the
+  // page (right at one page-scroll position, wrong at every other).
+  scrollFrame() {
+    const root = this.scrollRoot;
+    if (
+      !root ||
+      root === document.scrollingElement ||
+      root === document.documentElement
+    ) {
+      return { base: 0, height: window.innerHeight || 0, pane: null };
+    }
+    return {
+      base: root.getBoundingClientRect().top,
+      height: root.clientHeight,
+      pane: root,
+    };
+  },
+
+  sync() {
+    if (!this.targets?.length) return;
+
+    const { base, height } = this.scrollFrame();
+    const sections = this.targets.map((target) => ({
+      id: target.id,
+      top: target.getBoundingClientRect().top - base,
+    }));
+
+    this.setActive(
+      scrollspyActive(sections, {
+        line: scrollspyLine(this.rootMargin, height),
+        atBottom: this.atBottom(),
+      }),
+    );
+  },
+
+  // A hash beats the observer on arrival: the reader asked for that section
+  // explicitly, and the scroll that gets them there hasn't happened yet.
+  applyHash() {
+    const id = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!id || !this.targets?.some((target) => target.id === id)) return false;
+    this.setActive(id);
+    return true;
+  },
+
+  setActive(id) {
+    if (id === this.active) {
+      // Same link, but it may have moved (resize, patched rail).
+      this.moveIndicator();
+      return;
+    }
+    this.active = id;
+
+    this.links.forEach((link) => {
+      const on = link.dataset.scrollspyTarget === id;
+      link.classList.toggle("pc-scrollspy-link--active", on);
+      // aria-current is the non-visual half of the active state - without it
+      // the highlight is colour alone.
+      if (on) {
+        link.setAttribute("aria-current", "location");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    this.moveIndicator();
+  },
+
+  // The bar is positioned, not animated, by JS: transform + height here, the
+  // transition (and its reduced-motion opt-out) in CSS.
+  moveIndicator() {
+    const bar = this.el.querySelector(".pc-scrollspy__indicator");
+    if (!bar) return;
+
+    const link = this.links?.find(
+      (candidate) => candidate.dataset.scrollspyTarget === this.active,
+    );
+    if (!link) {
+      bar.style.opacity = "0";
+      return;
+    }
+
+    const navRect = this.el.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    bar.style.opacity = "";
+    bar.style.height = `${linkRect.height}px`;
+    bar.style.transform = `translateY(${linkRect.top - navRect.top}px)`;
+  },
+};
+
+// Dates as UTC midnight, always. A local-midnight Date crossing a DST boundary
+// lands on the previous day in half the world, which is exactly the class of bug
+// a calendar cannot afford. ISO strings in, ISO strings out.
+const isoToUTC = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  if (!m) return null;
+  return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+};
+
+const utcToISO = (date) => date.toISOString().slice(0, 10);
+
+const addDays = (iso, n) => {
+  const d = isoToUTC(iso);
+  if (!d) return null;
+  d.setUTCDate(d.getUTCDate() + n);
+  return utcToISO(d);
+};
+
+// Clamping to the target month's last day is what stops "31 January, page a
+// month" landing in March.
+const addMonths = (iso, n) => {
+  const d = isoToUTC(iso);
+  if (!d) return null;
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + n);
+  const lastDay = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return utcToISO(d);
+};
+
+const isoMonth = (iso) => (iso || "").slice(0, 7);
+
+// Roving tabindex plus the APG arrow-key map. CSS cannot move focus and a
+// server round trip per arrow key is not navigation, it is latency - this is
+// the one job that genuinely needs a hook. Everything else about the grid
+// (real buttons, phx-click, patch links) works with this file deleted.
+export const PetalCalendar = {
+  mounted() {
+    this.grid = this.el.querySelector('[role="grid"]');
+    if (!this.grid) return;
+
+    this.pendingFocus = null;
+    this.onKeydown = (e) => this.keydown(e);
+    this.onFocusIn = (e) => this.focusIn(e);
+    // The programmatic road to a date: the date picker dispatches this after
+    // a TYPED commit so the grid pages to the committed month. focus: false
+    // by default - the caret is in the input and must stay there; keyboard
+    // paging keeps using focusDate() directly, which does focus.
+    this.onShowDate = (e) => {
+      if (e.detail && e.detail.date) {
+        this.focusDate(e.detail.date, { focus: !!e.detail.focus });
+      }
+    };
+    this.grid.addEventListener("keydown", this.onKeydown);
+    this.grid.addEventListener("focusin", this.onFocusIn);
+    this.el.addEventListener("pc:calendar:show-date", this.onShowDate);
+  },
+
+  // A month change re-renders the whole grid, so the day we asked to land on
+  // only exists now. Without this, paging with PageDown drops focus to the body
+  // and the keyboard user is stranded.
+  updated() {
+    if (!this.pendingFocus) return;
+    const { iso, focus } = this.pendingFocus;
+    this.pendingFocus = null;
+    const target = this.dayFor(iso) || this.firstDayOfMonth();
+    if (target) {
+      this.setTabbable(target);
+      // A silent jump (typed commit) moves the month and the roving tabindex
+      // but leaves focus where it is - the input's caret survives the patch.
+      if (focus) target.focus();
+    }
+  },
+
+  destroyed() {
+    if (!this.grid) return;
+    this.grid.removeEventListener("keydown", this.onKeydown);
+    this.grid.removeEventListener("focusin", this.onFocusIn);
+    this.el.removeEventListener("pc:calendar:show-date", this.onShowDate);
+  },
+
+  days() {
+    return Array.from(this.grid.querySelectorAll("[data-date]"));
+  },
+
+  dayFor(iso) {
+    return this.days().find((d) => d.dataset.date === iso) || null;
+  },
+
+  firstDayOfMonth() {
+    return this.days().find((d) => d.dataset.outside !== "true") || null;
+  },
+
+  setTabbable(button) {
+    for (const day of this.days()) {
+      day.setAttribute("tabindex", day === button ? "0" : "-1");
+    }
+  },
+
+  focusIn(e) {
+    const day = e.target.closest && e.target.closest("[data-date]");
+    if (day) this.setTabbable(day);
+  },
+
+  // Home/End are week bounds, not month bounds, and the week starts wherever
+  // starts_on says it does.
+  weekBound(iso, edge) {
+    const startsOn = Number(this.el.dataset.startsOn || 1);
+    const d = isoToUTC(iso);
+    if (!d) return null;
+    const dow = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
+    const offset = (dow - startsOn + 7) % 7;
+    return edge === "start" ? addDays(iso, -offset) : addDays(iso, 6 - offset);
+  },
+
+  keydown(e) {
+    const current = e.target.closest && e.target.closest("[data-date]");
+    if (!current) return;
+
+    const iso = current.dataset.date;
+    let target = null;
+
+    switch (e.key) {
+      case "ArrowLeft":
+        target = addDays(iso, -1);
+        break;
+      case "ArrowRight":
+        target = addDays(iso, 1);
+        break;
+      case "ArrowUp":
+        target = addDays(iso, -7);
+        break;
+      case "ArrowDown":
+        target = addDays(iso, 7);
+        break;
+      case "Home":
+        target = this.weekBound(iso, "start");
+        break;
+      case "End":
+        target = this.weekBound(iso, "end");
+        break;
+      case "PageUp":
+        target = addMonths(iso, e.shiftKey ? -12 : -1);
+        break;
+      case "PageDown":
+        target = addMonths(iso, e.shiftKey ? 12 : 1);
+        break;
+      case "Enter":
+      case " ":
+        // A disabled day stays focusable per the APG, so swallow the activation
+        // rather than letting a native button click through.
+        if (current.dataset.disabled === "true") e.preventDefault();
+        return;
+      default:
+        return;
+    }
+
+    if (!target) return;
+    e.preventDefault();
+    this.focusDate(target);
+  },
+
+  // min/max are a hard window, so movement stops at its edges rather than
+  // paging the nav into a month where every single day is disabled - a dead end
+  // you can only leave by paging back. Days disabled by disabled_dates are not
+  // clamped: the APG wants those traversable.
+  clamp(iso) {
+    const min = this.el.dataset.min;
+    const max = this.el.dataset.max;
+    if (min && iso < min) return min;
+    if (max && iso > max) return max;
+    return iso;
+  },
+
+  focusDate(iso, { focus = true } = {}) {
+    iso = this.clamp(iso);
+
+    // Landing in another month means the month must change, even when the day
+    // happens to be painted as an outside day - the grid follows the focus.
+    if (isoMonth(iso) === isoMonth(this.el.dataset.month)) {
+      const day = this.dayFor(iso);
+      if (day) {
+        this.setTabbable(day);
+        if (focus) day.focus();
+        return;
+      }
+    }
+
+    const direction = iso < (this.el.dataset.month || "") ? "prev" : "next";
+    const nav = this.el.querySelector(`[data-pc-nav="${direction}"]`);
+    if (!nav) return;
+
+    // Clicking the arrow as-rendered only ever moves one month, so a year jump
+    // (Shift+PageUp) would land eleven months short. Retarget the arrow at the
+    // month we actually want and let LiveView read it at click time - that keeps
+    // phx-target and the patch URL intact instead of forging our own event.
+    const monthStart = `${iso.slice(0, 7)}-01`;
+    if (nav.hasAttribute("phx-value-month")) {
+      nav.setAttribute("phx-value-month", monthStart);
+    } else if (nav.hasAttribute("href")) {
+      nav.setAttribute(
+        "href",
+        nav.getAttribute("href").replace(/\d{4}-\d{2}-\d{2}/, monthStart),
+      );
+    }
+
+    this.pendingFocus = { iso, focus };
+    nav.click();
+  },
+};
+
+// Parse a human-typed date against the configured strftime format. Deliberately
+// lenient about padding and case, deliberately strict about the result: an
+// impossible date (31 February) fails the round trip and gets rejected.
+const parseFormatted = (text, format, monthNames) => {
+  const word = "([\\p{L}]+)";
+  const fields = [];
+  let pattern = "";
+
+  for (let i = 0; i < format.length; i++) {
+    const char = format[i];
+    if (char !== "%") {
+      pattern += char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      continue;
+    }
+    let directive = format[++i];
+    if (directive === "-" || directive === "0" || directive === "_") {
+      directive = format[++i];
+    }
+    switch (directive) {
+      case "Y":
+        pattern += "(\\d{4})";
+        fields.push("Y");
+        break;
+      case "y":
+        pattern += "(\\d{2})";
+        fields.push("y");
+        break;
+      case "m":
+        pattern += "\\s*(\\d{1,2})";
+        fields.push("m");
+        break;
+      case "d":
+      case "e":
+        pattern += "\\s*(\\d{1,2})";
+        fields.push("d");
+        break;
+      case "B":
+      case "b":
+      case "h":
+        pattern += word;
+        fields.push("B");
+        break;
+      // Day names carry no information we need - match and discard.
+      case "A":
+      case "a":
+        pattern += "[\\p{L}]+";
+        break;
+      case "%":
+        pattern += "%";
+        break;
+      default:
+        return null;
+    }
+  }
+
+  let match;
+  try {
+    match = new RegExp(`^\\s*${pattern}\\s*$`, "iu").exec(text);
+  } catch {
+    return null;
+  }
+  if (!match) return null;
+
+  const parts = {};
+  fields.forEach((field, index) => (parts[field] = match[index + 1]));
+
+  let year = parts.Y ? +parts.Y : parts.y ? 2000 + +parts.y : null;
+  let month = parts.m ? +parts.m : null;
+
+  if (parts.B) {
+    const needle = parts.B.toLowerCase();
+    const index = monthNames.findIndex(
+      (name) =>
+        name.toLowerCase() === needle ||
+        name.toLowerCase().slice(0, 3) === needle.slice(0, 3),
+    );
+    if (index === -1) return null;
+    month = index + 1;
+  }
+
+  const day = parts.d ? +parts.d : null;
+  if (!year || !month || !day) return null;
+
+  const iso = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const parsed = isoToUTC(iso);
+  return parsed && utcToISO(parsed) === iso ? iso : null;
+};
+
+// The picker's client half: move focus into the grid on open, parse what the
+// user types, and - when no on_select event is wired - own the value outright so
+// the component still works in a dead view.
+export const PetalDatePicker = {
+  mounted() {
+    this.input = this.el.querySelector("[data-pc-date-input]");
+    this.panel = this.el.querySelector(".pc-date-picker__panel");
+    if (!this.input || !this.panel) return;
+
+    this.lastValid = this.input.value;
+    // The value the hook has committed, remembered across patches. The hidden
+    // inputs cannot be that memory: a patch morphs them back to the server's
+    // assigns, which in a client-owned picker never learned the value.
+    this.remembered = this.committed();
+    this.seenSeeds = this.serverSeeds();
+
+    // Focus follows INTENT, not the panel. The open event's detail says who
+    // asked: the toggle button (and ArrowDown below) mean "browse", so the
+    // grid takes focus; the input's own click means "type", so the caret
+    // stays put - a grid that steals focus from a typeable input makes the
+    // input untypeable, and blur-parse then fires on half-typed text.
+    this.onOpen = (e) => {
+      if (e.detail && e.detail.focus === "grid") this.focusGrid();
+    };
+    this.onBlur = () => this.parse();
+    this.onInputKeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        // A complete selection is an answer: close the panel the same way
+        // click-away would (the data-close command), caret staying put.
+        // Partial or failed parses keep it open - mid-typing is not "done".
+        if (this.parse()) this.closePanel();
+        return;
+      }
+      // The keyboard road into the calendar: ArrowDown from the input opens
+      // the panel (via the toggle, whose command carries grid intent) or,
+      // when already open, hands focus to the grid directly.
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const toggle = document.getElementById(this.el.id + "-toggle");
+        if (this.panelHidden()) {
+          toggle?.click();
+        } else {
+          this.focusGrid();
+        }
+      }
+    };
+    this.onPanelClick = (e) => this.panelClick(e);
+    this.onClearClick = (e) => this.clearClick(e);
+    // Live preview: a complete date typed while the panel is open shows up in
+    // the grid before Enter. Debounced past any human keystroke gap; %Y needs
+    // all four digits, so nothing fires mid-year. The clear button tracks the
+    // text immediately - an X for a half-typed mess is half its job.
+    this.onType = () => {
+      this.syncClear();
+      clearTimeout(this.previewTimer);
+      this.previewTimer = setTimeout(() => this.preview(), 150);
+    };
+    // The icon button is a TOGGLE: JS commands cannot branch on panel state,
+    // so the hook does - closed runs the root's open command (which carries
+    // the grid-focus intent), open runs the close command.
+    this.onToggleClick = () => {
+      if (this.panelHidden()) {
+        const open = this.el.getAttribute("data-open");
+        if (open && this.liveSocket) this.liveSocket.execJS(this.el, open);
+      } else {
+        this.closePanel();
+      }
+    };
+
+    this.bind();
+  },
+
+  // Listeners live on nodes, and a LiveView patch is free to replace any node
+  // that is not the hook root. Re-attaching the same handler to a node that did
+  // survive is a documented no-op, so this is safe to call on every update.
+  bind() {
+    this.el.addEventListener("pc:date-picker:open", this.onOpen);
+    this.input.addEventListener("blur", this.onBlur);
+    this.input.addEventListener("keydown", this.onInputKeydown);
+    this.input.addEventListener("input", this.onType);
+    this.panel.addEventListener("click", this.onPanelClick);
+
+    this.clearButton = this.el.querySelector("[data-pc-date-clear]");
+    if (this.clearButton) {
+      this.clearButton.addEventListener("click", this.onClearClick);
+    }
+
+    this.toggleButton = this.el.querySelector("[data-pc-date-toggle]");
+    if (this.toggleButton) {
+      this.toggleButton.addEventListener("click", this.onToggleClick);
+    }
+
+    this.syncClear();
+  },
+
+  // A patch hands back everything the server painted from ITS assigns, which
+  // in a client-owned picker never learned the value - and month nav is a
+  // patch, so paging to a typed date is exactly the moment the patch wipes
+  // that date out of the hidden inputs. LiveView only shields the focused
+  // element, which is the display input, not the hiddens. So the hook's own
+  // memory is the source of truth: put the value back into the hiddens
+  // (silently - nothing changed, so no input/change events), then repaint.
+  updated() {
+    const input = this.el.querySelector("[data-pc-date-input]");
+    const panel = this.el.querySelector(".pc-date-picker__panel");
+    // Nothing was bound on mount, so there is nothing to rebind now.
+    if (!input || !panel || !this.onPanelClick) return;
+
+    this.input = input;
+    this.panel = panel;
+    this.bind();
+
+    if (this.serverOwned()) return;
+    // Unless the server actually said something new. The hook only ever sets
+    // the hiddens' value PROPERTY, so a changed value attribute - or a
+    // reconfigured picker, which swaps the hiddens out entirely - is a real
+    // re-render to adopt, not stale state to fight.
+    const seeds = this.serverSeeds();
+    if (seeds !== this.seenSeeds) {
+      this.seenSeeds = seeds;
+      this.remembered = this.committed();
+      this.lastValid = this.formatDisplay(...this.remembered);
+    }
+    const [from, to] = this.remembered || [null, null];
+    const roles = this.el.dataset.mode === "range" ? ["from", "to"] : ["value"];
+    [from, to].forEach((value, i) => {
+      const el = roles[i] && this.hidden(roles[i]);
+      if (el) el.value = value || "";
+    });
+    if (document.activeElement !== this.input) {
+      this.input.value = this.lastValid || "";
+    }
+    // After the restore, not before: bind()'s sync ran against the input the
+    // patch had just wiped, which is how a returning clear button stayed
+    // hidden over a real value.
+    this.syncClear();
+    this.paint(from, to);
+  },
+
+  // A fingerprint of what the SERVER last rendered: the mode plus each hidden
+  // input's value ATTRIBUTE. Commits write the property and leave the
+  // attribute alone, so this only moves when a re-render actually changes
+  // the picker.
+  serverSeeds() {
+    const roles = this.el.dataset.mode === "range" ? ["from", "to"] : ["value"];
+    const attrs = roles.map((role) => {
+      const el = this.hidden(role);
+      return (el && el.getAttribute("value")) || "";
+    });
+    return this.el.dataset.mode + ":" + attrs.join("|");
+  },
+
+  // The pair the hidden inputs currently hold; single mode has one input and
+  // no far end.
+  committed() {
+    const at = (role) => {
+      const el = this.hidden(role);
+      return (el && el.value) || null;
+    };
+
+    return this.el.dataset.mode === "range"
+      ? [at("from"), at("to")]
+      : [at("value"), null];
+  },
+
+  destroyed() {
+    if (!this.input || !this.panel) return;
+    this.el.removeEventListener("pc:date-picker:open", this.onOpen);
+    this.input.removeEventListener("blur", this.onBlur);
+    this.input.removeEventListener("keydown", this.onInputKeydown);
+    this.input.removeEventListener("input", this.onType);
+    this.panel.removeEventListener("click", this.onPanelClick);
+    if (this.clearButton) {
+      this.clearButton.removeEventListener("click", this.onClearClick);
+    }
+    if (this.toggleButton) {
+      this.toggleButton.removeEventListener("click", this.onToggleClick);
+    }
+    clearTimeout(this.focusTimer);
+    clearTimeout(this.previewTimer);
+  },
+
+  calendar() {
+    return this.panel.querySelector(".pc-calendar");
+  },
+
+  labels(key) {
+    const calendar = this.calendar();
+    const names = calendar && calendar.dataset[key];
+    return names ? names.split(",") : [];
+  },
+
+  monthNames() {
+    return this.labels("monthNames");
+  },
+
+  // Monday-first, matching the day_names_long attr; the ISO day number indexes
+  // it.
+  dayNamesLong() {
+    return this.labels("dayNamesLong");
+  },
+
+  // With a select event wired the server owns the value; the hook never writes
+  // it, it only tells the server what the user typed.
+  selectEvent() {
+    const calendar = this.calendar();
+    return (calendar && calendar.dataset.selectEvent) || null;
+  },
+
+  serverOwned() {
+    return !!this.selectEvent();
+  },
+
+  // A typed date has to reach handle_event or typing is decorative. Push the
+  // same event, with the same phx-target, that clicking that day would - the
+  // day buttons carry the target LiveView already resolved for us.
+  push(event, payload) {
+    if (!event) return;
+    const wired = this.panel.querySelector("[data-date][phx-target]");
+    const target = wired && wired.getAttribute("phx-target");
+
+    if (target && typeof this.pushEventTo === "function") {
+      this.pushEventTo(target, event, payload);
+    } else if (typeof this.pushEvent === "function") {
+      this.pushEvent(event, payload);
+    }
+  },
+
+  // Range mode gets one event per end, in the order two clicks would arrive,
+  // because that is the only contract an on_select handler can already have.
+  pushSelection(from, to) {
+    for (const iso of [from, to]) {
+      if (iso) this.push(this.selectEvent(), { date: iso });
+    }
+  },
+
+  hidden(role) {
+    return this.el.querySelector(`[data-pc-date-${role}]`);
+  },
+
+  panelHidden() {
+    return getComputedStyle(this.panel).display === "none";
+  },
+
+  closePanel() {
+    const close = this.el.getAttribute("data-close");
+    if (close && this.liveSocket) this.liveSocket.execJS(this.el, close);
+  },
+
+  // The server renders the clear button's first paint, but only the client
+  // knows the field's state from there - a client-owned value never reaches
+  // the server's assigns at all. Visible whenever the field holds text.
+  syncClear() {
+    if (!this.clearButton) return;
+    this.clearButton.hidden = !(this.input.value || "").length;
+  },
+
+  focusGrid() {
+    // The JS.show transition is still running when the dispatch lands, and you
+    // cannot focus a display:none button.
+    clearTimeout(this.focusTimer);
+    this.focusTimer = setTimeout(() => {
+      const days = Array.from(this.panel.querySelectorAll("[data-date]"));
+      if (!days.length) return;
+      const target =
+        days.find((d) => d.getAttribute("tabindex") === "0") || days[0];
+      target.focus();
+    }, 0);
+  },
+
+  // Returns true when the parse committed (or pushed) a COMPLETE selection -
+  // both ends in range mode, the one date in single - so Enter can know
+  // whether "done" has actually happened. Reverts and partial parses return
+  // false and the panel stays up.
+  parse() {
+    const text = (this.input.value || "").trim();
+
+    if (text === "") {
+      // Emptying the box cannot clear a value the server owns. Push on_clear if
+      // there is one, otherwise put the display back rather than leave it
+      // disagreeing with the hidden input that actually posts.
+      if (this.serverOwned()) {
+        const clear = this.el.dataset.clearEvent;
+        if (clear) this.push(clear, {});
+        else this.revert();
+        return false;
+      }
+
+      this.lastValid = "";
+      this.commit(null, null);
+      return false;
+    }
+
+    const format = this.el.dataset.format || "%Y-%m-%d";
+    const separator = this.el.dataset.rangeSeparator || " - ";
+
+    if (this.el.dataset.mode === "range") {
+      const [rawFrom, rawTo] = this.splitRange(text, separator);
+      const from = this.parseOne(rawFrom, format);
+      const to = this.parseOne(rawTo, format);
+      if (!from && !to) {
+        this.revert();
+        return false;
+      }
+      this.lastValid = this.input.value;
+      if (this.serverOwned()) this.pushSelection(from, to);
+      else this.commit(from, to);
+      return !!(from && to);
+    }
+
+    const iso = this.parseOne(text, format);
+    if (!iso) {
+      this.revert();
+      return false;
+    }
+    this.lastValid = this.input.value;
+    if (this.serverOwned()) this.pushSelection(iso, null);
+    else this.commit(iso, null);
+    return true;
+  },
+
+  // The live half of typing: while the panel is open, a text that already
+  // parses to a complete selection commits as you type - the grid pages to it
+  // and paints it without waiting for Enter, and without touching the text.
+  // Incomplete text does nothing (no reverts mid-typing), and a server-owned
+  // picker sits this out: pushing select events per keystroke would hand the
+  // consumer's handler half-states it never asked for.
+  preview() {
+    if (this.serverOwned() || this.panelHidden()) return;
+    const text = (this.input.value || "").trim();
+    if (!text) return;
+
+    const format = this.el.dataset.format || "%Y-%m-%d";
+
+    if (this.el.dataset.mode === "range") {
+      const separator = this.el.dataset.rangeSeparator || " - ";
+      const [rawFrom, rawTo] = this.splitRange(text, separator);
+      const from = this.parseOne(rawFrom, format);
+      const to = this.parseOne(rawTo, format);
+      if (from && to) this.commit(from, to, { keepText: true });
+      return;
+    }
+
+    const iso = this.parseOne(text, format);
+    if (iso) this.commit(iso, null, { keepText: true });
+  },
+
+  // Split on the separator as configured, at its first occurrence. Splitting on
+  // its trimmed remains tears "2026-03-09" apart on its own hyphens, which is
+  // exactly what the default format and the default " - " separator do
+  // together. The trimmed form is only a fallback, and only where a space sits
+  // beside it, so an ISO date can never match it.
+  splitRange(text, separator) {
+    const at = separator ? text.indexOf(separator) : -1;
+    if (at !== -1) {
+      return [text.slice(0, at), text.slice(at + separator.length)];
+    }
+
+    const trimmed = (separator || "").trim();
+    if (!trimmed) return [text, ""];
+
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const loose = new RegExp(`\\s+${escaped}\\s*|\\s*${escaped}\\s+`);
+    const found = loose.exec(text);
+    if (!found) return [text, ""];
+
+    return [
+      text.slice(0, found.index),
+      text.slice(found.index + found[0].length),
+    ];
+  },
+
+  parseOne(text, format) {
+    const trimmed = (text || "").trim();
+    if (!trimmed) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const d = isoToUTC(trimmed);
+      return d && utcToISO(d) === trimmed ? trimmed : null;
+    }
+    return parseFormatted(trimmed, format, this.monthNames());
+  },
+
+  // Reverting beats posting nothing: a half-typed date that silently cleared the
+  // field is the worst outcome of the three.
+  revert() {
+    this.input.value = this.lastValid || "";
+    this.syncClear();
+  },
+
+  panelClick(e) {
+    if (this.serverOwned()) return;
+    const day = e.target.closest && e.target.closest("[data-date]");
+    if (!day || day.dataset.disabled === "true") return;
+    e.preventDefault();
+
+    const iso = day.dataset.date;
+
+    // The same contract Enter keeps: a COMPLETE selection is an answer, so
+    // the click that completes one closes the panel and hands focus back to
+    // the input, the way Escape does. A range's anchor click is half an
+    // answer and keeps browsing.
+    if (this.el.dataset.mode !== "range") {
+      this.commit(iso, null);
+      this.closePanel();
+      this.input.focus();
+      return;
+    }
+
+    const from = this.hidden("from");
+    const to = this.hidden("to");
+    const haveFrom = from && from.value;
+    const haveTo = to && to.value;
+
+    if (!haveFrom || haveTo) {
+      this.commit(iso, null);
+    } else {
+      if (iso < from.value) {
+        this.commit(iso, from.value);
+      } else {
+        this.commit(from.value, iso);
+      }
+      this.closePanel();
+      this.input.focus();
+    }
+  },
+
+  clearClick(e) {
+    if (this.serverOwned()) return;
+    e.preventDefault();
+    this.commit(null, null);
+    this.input.focus();
+  },
+
+  commit(from, to, { keepText = false } = {}) {
+    if (this.el.dataset.mode === "range") {
+      this.write(this.hidden("from"), from);
+      this.write(this.hidden("to"), to);
+    } else {
+      this.write(this.hidden("value"), from);
+    }
+
+    this.remembered = [from, to];
+    this.lastValid = this.formatDisplay(from, to);
+    // keepText is the live-preview path: the user is mid-typing, and
+    // rewriting a field someone is typing in is the same family of theft as
+    // stealing its focus. Blur or Enter canonicalises the text later.
+    if (!keepText) this.input.value = this.lastValid;
+    this.syncClear();
+    this.paint(from, to);
+
+    // The moduledoc's other half: the calendar's month moves to the parsed
+    // date. Silently - the caret is in the input and stays there; the grid
+    // pages underneath via the calendar's own jump machinery, whichever nav
+    // wiring (evented or link) the consumer chose.
+    const anchor = from || to;
+    const calendar = this.calendar();
+    if (anchor && calendar) {
+      calendar.dispatchEvent(
+        new CustomEvent("pc:calendar:show-date", {
+          detail: { date: anchor, focus: false },
+        }),
+      );
+    }
+  },
+
+  write(el, value) {
+    if (!el) return;
+    el.value = value || "";
+    // phx-change forms and plain listeners both want to hear about this; the
+    // hidden input is the only thing that actually posts.
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  },
+
+  formatDisplay(from, to) {
+    const format = this.el.dataset.format || "%Y-%m-%d";
+    const separator = this.el.dataset.rangeSeparator || " - ";
+    const one = (iso) => (iso ? this.strftime(iso, format) : "");
+    if (this.el.dataset.mode !== "range") return one(from);
+    if (!from && !to) return "";
+    return `${one(from)}${separator}${one(to)}`;
+  },
+
+  // Only the directives the display path can produce. Anything else falls
+  // through as-is rather than guessing.
+  strftime(iso, format) {
+    const d = isoToUTC(iso);
+    if (!d) return "";
+    const names = this.monthNames();
+    const pad = (n) => String(n).padStart(2, "0");
+    const month = d.getUTCMonth();
+    const name = names[month] || "";
+    // getUTCDay is Sunday-first; day_names_long arrives Monday-first, same as
+    // the Elixir attr, so the ISO day number indexes it. The abbreviation is
+    // the first three letters, which is what Calendar.strftime/2 does for %a -
+    // same relationship %b has to %B here.
+    const isoDay = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
+    const dayLong = this.dayNamesLong()[isoDay - 1] || "";
+    const dayShort = dayLong.slice(0, 3);
+
+    return format.replace(/%[-0_]?([A-Za-z%])/g, (whole, directive) => {
+      switch (directive) {
+        case "A":
+          return dayLong || whole;
+        case "a":
+          return dayShort || whole;
+        case "Y":
+          return String(d.getUTCFullYear());
+        case "y":
+          return pad(d.getUTCFullYear() % 100);
+        case "m":
+          return whole.includes("-") ? String(month + 1) : pad(month + 1);
+        case "d":
+          return whole.includes("-") ? String(d.getUTCDate()) : pad(d.getUTCDate());
+        case "e":
+          return String(d.getUTCDate());
+        case "B":
+          return name;
+        case "b":
+        case "h":
+          return name.slice(0, 3);
+        case "%":
+          return "%";
+        default:
+          return whole;
+      }
+    });
+  },
+
+  // Client-owned selection has no server re-render to repaint the grid, so the
+  // hook keeps the visual state in step itself - which means it has to speak
+  // exactly the vocabulary Calendar.build_day/4 does. Anything else and the
+  // same range renders one way in a wired picker and another way in this one.
+  //
+  // The whole anatomy, in the order the Elixir side decides it:
+  //
+  //   band      a range with both ends in, on two different days (banded?/1)
+  //   cell      the band rides the td, so it runs edge to edge between days
+  //   chip      --selected, maximal contrast, TRUE ENDPOINTS ONLY
+  //   ends      day-level --range-start/--range-end round outward only
+  //   middles   --in-range, subordinate text, no chip of their own
+  //
+  // The class matrix both halves are held to lives in
+  // test/fixtures/calendar_selection_classes.json - test/js/calendar.test.js
+  // runs this painter against it and test/petal/calendar_test.exs renders the
+  // server against the same file, so a restyle cannot move one without the
+  // other going red.
+  paint(from, to) {
+    const range = this.el.dataset.mode === "range";
+
+    // range_position/2 sorts the pair before it compares, so a typed
+    // "17th - 9th" bands exactly the way the server would render it.
+    const [first, last] =
+      range && from && to && to < from ? [to, from] : [from, range ? to : null];
+
+    // banded?/1: a band exists only once both ends are in and they are
+    // different days. Until then the anchor is a plain chip with nothing to
+    // merge into, so it keeps all four corners.
+    const banded = !!first && !!last && first !== last;
+
+    for (const day of this.panel.querySelectorAll("[data-date]")) {
+      const iso = day.dataset.date;
+      const isStart = !!first && iso === first;
+      const isEnd = !!last && iso === last;
+      const between = !!first && !!last && iso > first && iso < last;
+      const selected = isStart || isEnd || between;
+
+      day.classList.toggle("pc-calendar__day--selected", selected && !between);
+      day.classList.toggle("pc-calendar__day--range-start", banded && isStart);
+      day.classList.toggle("pc-calendar__day--range-end", banded && isEnd);
+      day.classList.toggle("pc-calendar__day--in-range", between);
+
+      const cell = day.closest('[role="gridcell"]');
+      if (!cell) continue;
+      // A middle day is still aria-selected - it is in the selection, it just
+      // does not wear the chip.
+      if (selected) cell.setAttribute("aria-selected", "true");
+      else cell.removeAttribute("aria-selected");
+      cell.classList.toggle("pc-calendar__cell--in-range", between);
+      cell.classList.toggle("pc-calendar__cell--range-start", banded && isStart);
+      cell.classList.toggle("pc-calendar__cell--range-end", banded && isEnd);
+    }
+  },
+};
+
 export default {
+  PetalCalendar,
+  PetalDatePicker,
   PetalChart,
   PetalColorScheme,
   PetalLocalTime,
@@ -5690,20 +9878,29 @@ export default {
   PetalClearableInput,
   PetalRangeFill,
   PetalDualRangeSlider,
+  PetalSlider,
   PetalNumberTicker,
   PetalConfetti,
   PetalSpotlight,
   PetalWordRotate,
   PetalTypingEffect,
   PetalInputOTP,
+  PetalNumberField,
   PetalPopover,
   PetalCommand,
   PetalCommandTrigger,
   PetalAurora,
   PetalNavMenu,
+  PetalDropdown,
   PetalCommandDialog,
   PetalAlertDialog,
   PetalAlertDialogTrigger,
   PetalComboBox,
+  PetalContextMenu,
   PetalDataTable,
+  PetalSortable,
+  PetalResizable,
+  PetalDrawer,
+  PetalTree,
+  PetalScrollspy,
 };
