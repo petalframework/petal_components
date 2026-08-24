@@ -63,6 +63,7 @@ defmodule PetalComponents do
         Popover,
         Progress,
         Rating,
+        ScrollArea,
         Separator,
         Skeleton,
         SlideOver,

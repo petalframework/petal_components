@@ -312,6 +312,7 @@ defmodule Dev.PlaygroundLive do
         %{slug: "card", name: "Card", ready: true},
         %{slug: "carousel", name: "Carousel", ready: true},
         %{slug: "accordion", name: "Accordion", ready: true},
+        %{slug: "scroll-area", name: "Scroll area", ready: true},
         %{slug: "timeline", name: "Timeline", ready: true},
         %{slug: "collapsible", name: "Collapsible", ready: true},
         %{slug: "kbd", name: "Kbd", ready: true},
@@ -851,6 +852,7 @@ defmodule Dev.PlaygroundLive do
          glow: "outside",
          palette: "rainbow"
        },
+       scroll: %{orientation: "vertical", fade: "off", gutter: "auto", visibility: "auto"},
        shine: %{scheme: "mono", duration: "14s", width: "1px"},
        meteors: %{count: 20, angle: "215deg", color: "slate", reverse: false, seed: 0},
        rating: %{
@@ -1178,6 +1180,20 @@ defmodule Dev.PlaygroundLive do
 
   def handle_event("ctl_plasma", %{"k" => "width", "v" => v}, socket) when v in ~w(1px 2px 4px),
     do: {:noreply, update(socket, :plasma, &%{&1 | width: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "orientation", "v" => v}, socket)
+      when v in ~w(vertical horizontal both),
+      do: {:noreply, update(socket, :scroll, &%{&1 | orientation: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "fade", "v" => v}, socket) when v in ~w(off on),
+    do: {:noreply, update(socket, :scroll, &%{&1 | fade: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "gutter", "v" => v}, socket) when v in ~w(auto stable),
+    do: {:noreply, update(socket, :scroll, &%{&1 | gutter: v})}
+
+  def handle_event("ctl_scroll", %{"k" => "visibility", "v" => v}, socket)
+      when v in ~w(auto always),
+      do: {:noreply, update(socket, :scroll, &%{&1 | visibility: v})}
 
   def handle_event("ctl_beam", %{"k" => "glow"}, socket),
     do: {:noreply, update(socket, :beam, &%{&1 | glow: !&1.glow})}
@@ -3105,71 +3121,83 @@ defmodule Dev.PlaygroundLive do
             </div>
             <.color_scheme_switch id="pg-menu-scheme" variant="toggle" />
           </div>
-          <nav class="flex-1 px-6 py-6 overflow-y-auto">
-            <div :for={grp <- @nav} class="mb-10">
-              <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
-                {grp.group}
-              </div>
-              <div class="flex flex-col">
-                <button
-                  :for={it <- grp.items}
-                  phx-click="select"
-                  phx-value-slug={it.slug}
-                  class={[
-                    "flex items-center py-1.5 text-2xl font-medium text-left",
-                    (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
-                      "text-gray-600 dark:text-gray-400"
-                  ]}
-                >
-                  {it.name}
-                  <span
-                    :if={not it.ready}
-                    class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+          <%!-- tabindex="-1": every item in here is already a button, so the
+          scroll area's own tab stop would just be one more thing to tab past. --%>
+          <.scroll_area tabindex="-1" class="flex-1 px-6 py-6">
+            <nav>
+              <div :for={grp <- @nav} class="mb-10">
+                <div class="mb-3 text-sm font-medium text-gray-400 dark:text-gray-500">
+                  {grp.group}
+                </div>
+                <div class="flex flex-col">
+                  <button
+                    :for={it <- grp.items}
+                    phx-click="select"
+                    phx-value-slug={it.slug}
+                    class={[
+                      "flex items-center py-1.5 text-2xl font-medium text-left",
+                      (@active == it.slug && "text-gray-900 dark:text-gray-50") ||
+                        "text-gray-600 dark:text-gray-400"
+                    ]}
                   >
-                    soon
-                  </span>
-                </button>
+                    {it.name}
+                    <span
+                      :if={not it.ready}
+                      class="ml-3 text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                    >
+                      soon
+                    </span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </nav>
+            </nav>
+          </.scroll_area>
         </.focus_wrap>
       </div>
 
       <div inert={@nav_open} class="flex flex-1 min-h-0">
-        <nav class="hidden lg:block flex-none p-3 overflow-y-auto border-r w-52 border-gray-200 dark:border-gray-800">
-          <div :for={grp <- @nav}>
-            <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
-              {grp.group}
-            </div>
-            <button
-              :for={it <- grp.items}
-              phx-click="select"
-              phx-value-slug={it.slug}
-              class={[
-                "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
-                (@active == it.slug &&
-                   "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
-                  "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
-              ]}
-            >
-              {it.name}
-              <span
-                :if={not it.ready}
-                class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+        <%!-- tabindex="-1": the list is all buttons, so it is reachable without
+        the scroll area's own tab stop. --%>
+        <.scroll_area
+          tabindex="-1"
+          class="hidden lg:block flex-none p-3 border-r w-52 border-gray-200 dark:border-gray-800"
+        >
+          <nav>
+            <div :for={grp <- @nav}>
+              <div class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500">
+                {grp.group}
+              </div>
+              <button
+                :for={it <- grp.items}
+                phx-click="select"
+                phx-value-slug={it.slug}
+                class={[
+                  "w-full flex items-center px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
+                  (@active == it.slug &&
+                     "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50 font-medium") ||
+                    "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100"
+                ]}
               >
-                soon
-              </span>
-            </button>
-          </div>
-        </nav>
+                {it.name}
+                <span
+                  :if={not it.ready}
+                  class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800/80 text-gray-400 dark:text-gray-500"
+                >
+                  soon
+                </span>
+              </button>
+            </div>
+          </nav>
+        </.scroll_area>
 
-        <%!-- overflow-x-hidden: decorative bleed (the plasma halo's oversized
-        blur-headroom boxes reach ~116px past their panels) must clip at the
-        pane edge instead of growing phantom horizontal scroll on mobile.
-        The glow still paints to the edge; only the scroll range is fenced. --%>
-        <main class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+        <%!-- role="main" keeps the landmark that the <main> element carried.
+        The x-axis fence comes free now: pc-scroll-area--vertical clips
+        overflow-x, so the plasma halo's oversized blur-headroom boxes (up to
+        ~116px proud of their panels) still paint to the pane edge without
+        growing phantom horizontal scroll on mobile. --%>
+        <.scroll_area role="main" class="flex-1 min-w-0">
           {render_page(assigns)}
-        </main>
+        </.scroll_area>
       </div>
     </div>
     """
@@ -10486,6 +10514,154 @@ defmodule Dev.PlaygroundLive do
 
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props component={PetalComponents.Collapsible} function={:collapsible} />
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "scroll-area"} = assigns) do
+    ~H"""
+    <div class="max-w-3xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Scroll area</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        One themed treatment for every overflow region, so a scrolling panel
+        looks like it belongs to the design system instead of inheriting
+        whatever the OS decided. One div, zero JavaScript: modern
+        scrollbar-width and scrollbar-color where the engine honours them, a
+        ::-webkit-scrollbar fallback where it does not. Size the viewport with
+        classes; the component never grows sizing attrs of its own.
+      </p>
+
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+        <%!-- The border lives on the wrapper, not the scroll area: fade_edges
+        masks the whole element, border included. --%>
+        <div class="px-6 py-10">
+          <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+            <.scroll_area
+              orientation={@scroll.orientation}
+              fade_edges={@scroll.fade == "on"}
+              gutter_stable={@scroll.gutter == "stable"}
+              visibility={@scroll.visibility}
+              aria-label="Playground content"
+              class="w-full max-h-64"
+            >
+              <div class={[
+                "space-y-3 text-sm text-gray-700 dark:text-gray-300",
+                @scroll.orientation != "vertical" && "w-max"
+              ]}>
+                <p :for={n <- 1..12}>
+                  Line {n} - long enough to run past the right edge, so the horizontal scrollbar has somewhere to go and you can see both axes at once.
+                </p>
+              </div>
+            </.scroll_area>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Orientation"
+              value={@scroll.orientation}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={o <- ~w(vertical horizontal both)}
+                value={o}
+                phx-value-k="orientation"
+                phx-value-v={o}
+              >
+                {o}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">fade edges</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Fade edges"
+              value={@scroll.fade}
+              on_change="ctl_scroll"
+            >
+              <:item :for={f <- ~w(off on)} value={f} phx-value-k="fade" phx-value-v={f}>
+                {f}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">gutter</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Gutter"
+              value={@scroll.gutter}
+              on_change="ctl_scroll"
+            >
+              <:item :for={g <- ~w(auto stable)} value={g} phx-value-k="gutter" phx-value-v={g}>
+                {g}
+              </:item>
+            </.toggle_group>
+          </div>
+          <div>
+            <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">visibility</div>
+            <.toggle_group
+              variant="outline"
+              size="sm"
+              aria_label="Visibility"
+              value={@scroll.visibility}
+              on_change="ctl_scroll"
+            >
+              <:item
+                :for={v <- ~w(auto always)}
+                value={v}
+                phx-value-k="visibility"
+                phx-value-v={v}
+              >
+                {v}
+              </:item>
+            </.toggle_group>
+          </div>
+        </div>
+        <p class="px-6 pb-4 -mt-1 text-xs text-gray-400 dark:text-gray-500">
+          tab into the panel and the arrow keys, Page Up/Down, Home and End all scroll it - that is native browser behaviour, not a hook
+        </p>
+      </div>
+
+      <div class="p-4 mt-6 text-sm border rounded-xl border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+        <div class="mb-1 font-medium text-gray-900 dark:text-gray-100">
+          Scrollbars belong to the OS
+        </div>
+        <p>
+          On macOS with "Show scroll bars: Automatically" - the default - the
+          scrollbar is an overlay: it appears while you scroll, sits over the
+          content, ignores most theming and has no gutter to reserve. Most
+          mobile browsers do the same. On Windows, Linux, and macOS set to
+          "Always", you get a classic scrollbar that takes real layout space and
+          picks up the theming in full.
+        </p>
+        <p class="mt-2">
+          So <code class="font-mono text-xs">visibility="always"</code>
+          is a request, not a guarantee - WebKit honours it, Firefox has no
+          mechanism for it. <code class="font-mono text-xs">gutter_stable</code>
+          is a no-op wherever scrollbars are overlays, because there is no
+          gutter to reserve. This component themes what the platform exposes.
+          It does not fight the OS.
+        </p>
+      </div>
+
+      <%!-- the registry is the single source: View Code panels + petal.build
+            render these same examples, so the demos can never drift --%>
+      <div :for={ex <- PetalComponents.Showcase.ScrollArea.examples()} class="mt-10">
+        <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
+        <p :if={ex.description} class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          {ex.description}
+        </p>
+        <.showcase_example example={ex} />
+      </div>
+
+      <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
+      <.showcase_props component={PetalComponents.ScrollArea} function={:scroll_area} />
     </div>
     """
   end
