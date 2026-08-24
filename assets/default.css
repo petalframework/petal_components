@@ -781,15 +781,21 @@
 
   /* Badges */
 
+  /* A badge is a label, and a label does not wrap: two lines of 10px
+     semibold inside a pill reads as a rendering bug, not a paragraph.
+     `whitespace-nowrap` therefore belongs here, on the base rule, so every
+     badge answers the question the same way whatever modifiers it carries.
+     A long label overflowing is the container's problem to solve - with a
+     min-w-0 track, a truncate, or a shorter label. */
   .pc-badge {
-    @apply inline-flex items-center justify-center border focus:outline-hidden;
+    @apply inline-flex items-center justify-center whitespace-nowrap border focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
   /* Badges - with icon */
 
   .pc-badge--with-icon {
-    @apply flex items-center gap-1 whitespace-nowrap;
+    @apply flex items-center gap-1;
   }
 
   /* Badges - sizes */
@@ -902,6 +908,211 @@
   }
   .pc-badge--gray-outline {
     @apply bg-transparent text-gray-700 border-gray-300 dark:bg-gray-400/8 dark:text-gray-200 dark:border-gray-400/25;
+  }
+
+  /* Badges - status dot
+
+     A filled circle leading the label, the status-badge convention. It is
+     decorative (aria-hidden) - the colour repeats what the label already
+     says - so it only has to read as "the" colour of the badge it sits in,
+     which is the 600 stop on every ramp.
+
+     Three surfaces, three answers. `light` keeps a pale surface in BOTH
+     colour schemes (bg-100 going to bg-200 in the dark), so its dot is
+     scheme-invariant at 600. `soft` and `outline` follow their own text
+     down the ramp, so their dot rides up to 400 against a dark surface.
+     `dark` is a saturated 600 fill already, where no stop of its own ramp
+     would read, so the dot falls through to the base rule's currentColor -
+     which for primary is the --pc-button-solid-fg token that variant sets,
+     not a hardcoded white.
+
+     The gap lives on the parent and MUST stay after --with-icon's: both
+     are one class deep, so source order is the only thing that gives a
+     dot-plus-icon badge the roomier 6px. */
+
+  /* The dot is layout-neutral on purpose: whitespace is the base rule's
+     call - a badge never wraps - and no modifier restates or contradicts
+     it. The dot only needs its own geometry, and shrink-0 already guards
+     that. */
+  .pc-badge--with-dot {
+    @apply gap-1.5;
+  }
+  .pc-badge--xs.pc-badge--with-dot,
+  .pc-badge--sm.pc-badge--with-dot {
+    @apply gap-1;
+  }
+
+  .pc-badge__dot {
+    @apply w-1.5 h-1.5 shrink-0 rounded-full bg-current;
+  }
+  .pc-badge--xs .pc-badge__dot,
+  .pc-badge--sm .pc-badge__dot {
+    @apply w-1 h-1;
+  }
+  .pc-badge--xl .pc-badge__dot {
+    @apply w-2 h-2;
+  }
+
+  .pc-badge--primary-light .pc-badge__dot {
+    @apply bg-primary-600;
+  }
+  .pc-badge--primary-soft .pc-badge__dot,
+  .pc-badge--primary-outline .pc-badge__dot {
+    @apply bg-primary-600 dark:bg-primary-400;
+  }
+
+  .pc-badge--secondary-light .pc-badge__dot {
+    @apply bg-secondary-600;
+  }
+  .pc-badge--secondary-soft .pc-badge__dot,
+  .pc-badge--secondary-outline .pc-badge__dot {
+    @apply bg-secondary-600 dark:bg-secondary-400;
+  }
+
+  .pc-badge--info-light .pc-badge__dot {
+    @apply bg-info-600;
+  }
+  .pc-badge--info-soft .pc-badge__dot,
+  .pc-badge--info-outline .pc-badge__dot {
+    @apply bg-info-600 dark:bg-info-400;
+  }
+
+  .pc-badge--success-light .pc-badge__dot {
+    @apply bg-success-600;
+  }
+  .pc-badge--success-soft .pc-badge__dot,
+  .pc-badge--success-outline .pc-badge__dot {
+    @apply bg-success-600 dark:bg-success-400;
+  }
+
+  .pc-badge--warning-light .pc-badge__dot {
+    @apply bg-warning-600;
+  }
+  .pc-badge--warning-soft .pc-badge__dot,
+  .pc-badge--warning-outline .pc-badge__dot {
+    @apply bg-warning-600 dark:bg-warning-400;
+  }
+
+  .pc-badge--danger-light .pc-badge__dot {
+    @apply bg-danger-600;
+  }
+  .pc-badge--danger-soft .pc-badge__dot,
+  .pc-badge--danger-outline .pc-badge__dot {
+    @apply bg-danger-600 dark:bg-danger-400;
+  }
+
+  .pc-badge--gray-light .pc-badge__dot {
+    @apply bg-gray-600;
+  }
+  .pc-badge--gray-soft .pc-badge__dot,
+  .pc-badge--gray-outline .pc-badge__dot {
+    @apply bg-gray-600 dark:bg-gray-400;
+  }
+
+  /* Badges - dot colour override
+
+     dot_color unpins the dot from the badge. The shape it exists for is
+     the neutral chip - quiet chrome, one semantic dot, the state read off
+     the circle alone:
+
+       <.badge color="gray" variant="outline" dot dot_color="success">Production</.badge>
+
+     Every stop below MATCHES what an inherited dot of that colour shows
+     on that variant, so an override moves the hue and nothing else: the
+     green on an outline badge is the same green a success outline badge's
+     own dot is.
+
+     `dark` is the one honest divergence. Its inherited dot is currentColor
+     (see above) and no stop of another ramp can match that, so an override
+     there takes 400 - the same stop this file already reaches for whenever
+     a dot has to read against a dark surface. Two consequences worth
+     saying out loud: on `dark`, naming the badge's own colour is a visible
+     change rather than a no-op, and same-hue (a 400 dot on a 600 fill) is
+     the one combination with little to show. On `dark`, diverge the hue or
+     leave dot_color off.
+
+     Specificity is (0,2,0) - the dot class doubled - matching the
+     inherited mapping above, so ONLY source order puts the override on
+     top. This block has to stay below that one.
+
+     No `--with-dot` sibling and no geometry here on purpose: the override
+     is a colour and nothing else, so size, gap and whitespace keep the one
+     answer the rules above already gave them. */
+  .pc-badge__dot.pc-badge__dot--primary-light {
+    @apply bg-primary-600;
+  }
+  .pc-badge__dot.pc-badge__dot--primary-soft,
+  .pc-badge__dot.pc-badge__dot--primary-outline {
+    @apply bg-primary-600 dark:bg-primary-400;
+  }
+  .pc-badge__dot.pc-badge__dot--primary-dark {
+    @apply bg-primary-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--secondary-light {
+    @apply bg-secondary-600;
+  }
+  .pc-badge__dot.pc-badge__dot--secondary-soft,
+  .pc-badge__dot.pc-badge__dot--secondary-outline {
+    @apply bg-secondary-600 dark:bg-secondary-400;
+  }
+  .pc-badge__dot.pc-badge__dot--secondary-dark {
+    @apply bg-secondary-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--info-light {
+    @apply bg-info-600;
+  }
+  .pc-badge__dot.pc-badge__dot--info-soft,
+  .pc-badge__dot.pc-badge__dot--info-outline {
+    @apply bg-info-600 dark:bg-info-400;
+  }
+  .pc-badge__dot.pc-badge__dot--info-dark {
+    @apply bg-info-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--success-light {
+    @apply bg-success-600;
+  }
+  .pc-badge__dot.pc-badge__dot--success-soft,
+  .pc-badge__dot.pc-badge__dot--success-outline {
+    @apply bg-success-600 dark:bg-success-400;
+  }
+  .pc-badge__dot.pc-badge__dot--success-dark {
+    @apply bg-success-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--warning-light {
+    @apply bg-warning-600;
+  }
+  .pc-badge__dot.pc-badge__dot--warning-soft,
+  .pc-badge__dot.pc-badge__dot--warning-outline {
+    @apply bg-warning-600 dark:bg-warning-400;
+  }
+  .pc-badge__dot.pc-badge__dot--warning-dark {
+    @apply bg-warning-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--danger-light {
+    @apply bg-danger-600;
+  }
+  .pc-badge__dot.pc-badge__dot--danger-soft,
+  .pc-badge__dot.pc-badge__dot--danger-outline {
+    @apply bg-danger-600 dark:bg-danger-400;
+  }
+  .pc-badge__dot.pc-badge__dot--danger-dark {
+    @apply bg-danger-400;
+  }
+
+  .pc-badge__dot.pc-badge__dot--gray-light {
+    @apply bg-gray-600;
+  }
+  .pc-badge__dot.pc-badge__dot--gray-soft,
+  .pc-badge__dot.pc-badge__dot--gray-outline {
+    @apply bg-gray-600 dark:bg-gray-400;
+  }
+  .pc-badge__dot.pc-badge__dot--gray-dark {
+    @apply bg-gray-400;
   }
 
   /* Alerts */
@@ -1264,6 +1475,34 @@
     @apply w-7 h-7;
     @apply peer-checked:translate-x-7;
   }
+  /* variant="pill" - the iOS-style thumb. Same height as the round one,
+     wider, so rounded-full stops being a circle and reads as a capsule.
+     The track is deliberately untouched: a pill and a round switch sitting
+     in the same form should differ in the thumb and nothing else, which
+     means the 2px inset at rest and when checked has to survive. Travel is
+     therefore wrapper width minus thumb width, not the round thumb's.
+     Two classes beat the base rule's one, so these win on specificity - no
+     bang needed. */
+  .pc-switch--pill .pc-switch__fake-input-bg--xs {
+    @apply w-4 h-3;
+    @apply peer-checked:translate-x-2;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--sm {
+    @apply w-5 h-4;
+    @apply peer-checked:translate-x-3;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--md {
+    @apply w-7 h-5;
+    @apply peer-checked:translate-x-3;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--lg {
+    @apply w-8 h-6;
+    @apply peer-checked:translate-x-4;
+  }
+  .pc-switch--pill .pc-switch__fake-input-bg--xl {
+    @apply w-9 h-7;
+    @apply peer-checked:translate-x-5;
+  }
   /* Multiline surfaces clamp the radius: a full-radius theme on a
      textarea over-rounds into the text. Single-line inputs keep the
      pill option - that's a real style. */
@@ -1276,6 +1515,40 @@
     border-radius: var(--pc-radius, 0.625rem);
   }
 
+  /* ══ THE ADORNMENT CONTRACT ═════════════════════════════════════════════
+     Every glyph riding at the trailing edge of a field is one of two
+     species, and one line tells them apart:
+
+       if clicking it does something the field itself doesn't, it's an
+       ACTION (chip); if it only tells you what the field is, it's an
+       INDICATOR (bare).
+
+     ACTION - the clear x, copy, show/hide password, a picker toggle on a
+       typeable input. A real <button>: one 16px mini/outline-weight glyph
+       centred in a 24x24 rounded-md chip that takes a wash on hover, the
+       tap target grown to field height by the house invisible ::before,
+       and a focus-visible ring. .pc-combo-box__clear is the reference
+       implementation - colours and hover wash are copied from it verbatim.
+
+     INDICATOR - the combobox chevron, the marks on native date / month /
+       week inputs. Muted and bare: no chip, no wash, no button element,
+       nothing in the tab order, pointer-events:none. On the native date
+       inputs the browser's own ::-webkit-calendar-picker-indicator is the
+       real click target and it covers the whole right rail invisibly, so
+       the mark is decoration.
+
+     Glyph size: 16 (mini) is the default for both species - the chip, or
+     its absence, is what carries the meaning, never the size. ONE
+     exception, ruled by the maintainer's eye: a glyph whose artwork
+     carries little ink at 16 may run 20 for optical parity. The
+     hero-chevron-up-down is that case - its two small arrows fill a
+     fraction of the box (unlike, say, a calendar glyph, or shadcn's
+     single lucide chevron which is all ink at 16), so at 16 it reads
+     mini-fied. Judge new indicators by rendered ink, not box size. A wash
+     on an indicator makes it look clickable when it isn't, and a bare
+     action hides a target: don't "fix" a bare glyph by giving it a chip.
+     ═══════════════════════════════════════════════════════════════════ */
+
   /* Password Field Styles */
   .pc-password-field-wrapper {
     @apply relative;
@@ -1285,20 +1558,32 @@
     @apply pr-10;
   }
 
-  /* In-field action buttons (viewable / copyable / clearable) share one
-     grammar: stroke icons at gray-400 that brighten on hover (never dim),
-     a focus-visible ring, and a dial-derived rounding for the ring box. */
-  .pc-password-field-toggle-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  /* ACTION chip - viewable / copyable / clearable are one button, three
+     glyphs. Anatomy, colours and hover wash match .pc-combo-box__clear. */
+  .pc-password-field-toggle-button,
+  .pc-copyable-field-button,
+  .pc-clearable-field-button {
+    @apply absolute top-1/2 right-2 inline-flex h-6 w-6 shrink-0 -translate-y-1/2 items-center justify-center rounded-md border-none bg-transparent text-gray-400 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+  }
+
+  /* The chip stays 24x24; the tap target reaches field height through the
+     house invisible ::before, which never participates in layout. */
+  .pc-password-field-toggle-button::before,
+  .pc-copyable-field-button::before,
+  .pc-clearable-field-button::before {
+    content: "";
+    @apply absolute -inset-2;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-password-field-toggle-icon.pc-password-field-toggle-icon,
+  .pc-copyable-field-icon.pc-copyable-field-icon,
+  .pc-clearable-field-icon.pc-clearable-field-icon {
+    @apply w-4! h-4!;
   }
 
   .pc-password-field-toggle-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-password-field-toggle-icon {
-    @apply w-5 h-5;
   }
 
   /* Copyable Field Styles */
@@ -1310,17 +1595,8 @@
     @apply pr-10 cursor-text;
   }
 
-  .pc-copyable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
   .pc-copyable-field-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-copyable-field-icon {
-    @apply w-5 h-5;
   }
 
   /* Copy success: the check reads success and ignores the button's hover color */
@@ -1342,17 +1618,8 @@
     @apply pr-10;
   }
 
-  .pc-clearable-field-button {
-    @apply absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
   .pc-clearable-field-icon-container {
     @apply flex items-center;
-  }
-
-  .pc-clearable-field-icon {
-    @apply w-5 h-5;
   }
 
   /* Date and Time Field Styles */
@@ -1366,8 +1633,19 @@
     @apply relative;
   }
 
+  /* INDICATOR (see THE ADORNMENT CONTRACT above): the mark that says "this
+     is a date field". It is not a target - the browser's own invisible
+     ::-webkit-calendar-picker-indicator below covers the right rail and
+     opens the picker - so this is a bare span, out of the tab order and
+     out of the pointer's way. Same 24x24 box as the action chip so the two
+     sit on one rail; the missing wash is the entire difference. */
   .pc-date-input-icon {
-    @apply absolute inset-y-0 right-0 flex items-center mr-3 pointer-events-none text-gray-400 dark:text-gray-500;
+    @apply absolute top-1/2 right-2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center pointer-events-none text-gray-400 dark:text-gray-500;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-date-input-icon-glyph.pc-date-input-icon-glyph {
+    @apply w-4! h-4!;
   }
 
   .pc-date-picker-indicator {
@@ -1833,23 +2111,35 @@
     @apply text-base;
   }
 
+  /* Resting cards RECEDE. A selection group spends its contrast budget on
+     which member is selected, so unselected cards sit a step quieter than
+     the standard input material (gray-400/8 + /25) a lone field wears -
+     pre-filled resting cards were eating the selected card's fill shift,
+     worst on a monochrome primary where the border can't carry it alone. */
   .pc-radio-card--outline .pc-radio-card__fake-input {
-    @apply bg-transparent border border-gray-300 dark:bg-gray-400/8 dark:border-gray-400/25;
+    @apply bg-transparent border border-gray-300 dark:bg-gray-400/4 dark:border-gray-400/20;
   }
 
-  /* Hover speaks through the border, not the fill - on a selection surface
-     the fill means "selected", so a hover wash would half-lie. Checked cards
-     keep their selected border (the :not guard). */
+  /* Hover: border firms AND a neutral wash lifts the card one step - to
+     roughly where the old resting state sat, never to the selected fill.
+     The wash stays on the GRAY ramp so the primary tint keeps meaning
+     exactly one thing: selected. (This used to be border-only; receding
+     the resting state made hover's "this is clickable" job matter more.)
+     Checked cards keep their selected treatment (the :not guard). */
   .pc-radio-card--outline:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
-    @apply border-gray-400 dark:border-gray-400/40;
+    @apply border-gray-400 bg-gray-50 dark:border-gray-400/40 dark:bg-gray-400/8;
   }
 
+  /* Classic rests FILLED - that's its identity - so its whole ladder sits
+     one rung above outline's, and the same receding applies: quieter
+     resting chips leave room for the selected one to speak. Hover climbs
+     one rung (unchecked only, same guard as outline). */
   .pc-radio-card--classic .pc-radio-card__fake-input {
-    @apply bg-gray-100 border border-transparent dark:bg-gray-400/17;
+    @apply bg-gray-100 border border-transparent dark:bg-gray-400/10;
   }
 
-  .pc-radio-card--classic:hover .pc-radio-card__fake-input {
-    @apply bg-gray-200/70 dark:bg-gray-400/25;
+  .pc-radio-card--classic:hover > .pc-radio-card__input:not(:checked) ~ .pc-radio-card__fake-input {
+    @apply bg-gray-200/70 dark:bg-gray-400/17;
   }
 
   /* Checked state: the fill shift is the primary signal (alpha tints stay
@@ -1858,12 +2148,17 @@
      carries the accent. Alpha also self-calibrates the border: it softens a
      monochrome's near-white/near-black poles more than it dulls a hue. */
   .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply border-primary-500 bg-primary-600/5 dark:border-primary-500/60 dark:bg-primary-500/10;
+    @apply border-primary-500 bg-primary-600/8 dark:border-primary-500/60 dark:bg-primary-500/17;
   }
-  /* classic is already a filled chip - the alpha tint would LIGHTEN it, so
-     selection keeps its resting material and speaks through the border */
+  /* Classic's selected fill takes the same primary tint as outline, one
+     rung stronger, because its resting chip is already filled and the
+     outline-strength tint would land level with it. (The old stance -
+     "the tint would LIGHTEN the chip, so selection speaks through the
+     border alone" - was true at the previous 5% tint; it isn't at these
+     strengths, and border-only selection was exactly the monochrome
+     weakness this ladder exists to fix.) */
   .pc-radio-card--classic > .pc-radio-card__input:checked ~ .pc-radio-card__fake-input {
-    @apply bg-gray-100 dark:bg-gray-400/17;
+    @apply bg-primary-600/12 dark:bg-primary-500/25;
   }
 
   /* Keyboard focus surfaces on the card (the real input is sr-only) */
@@ -1973,6 +2268,55 @@
   .pc-dropdown__menu-items-wrapper-placement--right {
     @apply left-0 origin-top-left;
   }
+  /* Flipped: PetalDropdown measured no room below the trigger and more room
+     above, so the panel hangs off the top edge instead (the user menu at the
+     bottom of a sidebar). Same shape as the combobox's [data-flip] rule.
+     The origin has to swap with it - the open transition scales from 95%,
+     and leaving it at the top corner makes a flipped panel unfold downward,
+     away from the trigger it belongs to. */
+  .pc-dropdown__menu-items-wrapper[data-flip] {
+    @apply top-auto bottom-full mt-0 mb-2;
+  }
+  .pc-dropdown__menu-items-wrapper-placement--left[data-flip] {
+    @apply origin-bottom-right;
+  }
+  .pc-dropdown__menu-items-wrapper-placement--right[data-flip] {
+    @apply origin-bottom-left;
+  }
+  /* side="left" / side="right": the panel opens BESIDE the trigger instead of
+     under it, over whatever sits next to it - the account panel a sidebar
+     pushes out into the content area rather than laying over its own nav.
+     Same absolutely-positioned box as every other panel; only the anchor edge
+     moves. mt-0 clears the base rule's mt-2, because the gap is horizontal
+     now, and these MUST stay below the base rule in source order - both are
+     single-class selectors, so nothing but order decides the margin.
+
+     There is no [data-flip] pairing here on purpose: flipping is the vertical
+     question, and a side-out panel is not on that axis.
+
+     The transform origin is split across the two axes: the side rule owns the
+     horizontal half and hands it over in a custom property, the align rules
+     below spend it. Four corners out of two classes, no compound selectors,
+     and a consumer's own origin-* utility still outranks all of it. */
+  .pc-dropdown__menu-items-wrapper-side--left {
+    @apply right-full mt-0 mr-2;
+    --pc-dropdown-origin-x: right;
+  }
+  .pc-dropdown__menu-items-wrapper-side--right {
+    @apply left-full mt-0 ml-2;
+    --pc-dropdown-origin-x: left;
+  }
+  /* Beside the trigger, align is the VERTICAL question: tops flush or bottoms
+     flush. Bottoms is the sidebar one - the panel's last row lands level with
+     the row that opened it, which is why the corner reads as one block. */
+  .pc-dropdown__menu-items-wrapper-align--start {
+    @apply top-0;
+    transform-origin: top var(--pc-dropdown-origin-x, left);
+  }
+  .pc-dropdown__menu-items-wrapper-align--end {
+    @apply bottom-0;
+    transform-origin: bottom var(--pc-dropdown-origin-x, left);
+  }
   /* The one trigger chevron for the dropdown family - user menu,
      language select and friends share this so the colour can't drift. */
   /* THE decorative-chevron rule for the dropdown family (dropdown,
@@ -2010,6 +2354,45 @@
   }
   .pc-dropdown__label {
     @apply px-3 py-1.5 text-xs font-medium text-gray-500 select-none dark:text-gray-400;
+  }
+  /* dropdown_menu_row: a control parked in the panel (a theme switcher, a
+     plan badge). Menu-item padding and type so it lines up with the commands
+     above it, but no hover wash - nothing here is clickable as a whole. */
+  .pc-dropdown__row {
+    @apply flex items-center w-full gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300;
+  }
+
+
+  /* User menu */
+
+  /* user_dropdown_menu variant="sidebar": the full-width row that lives at
+     the bottom of a sidebar. .pc-dropdown is inline-block, so the row has to
+     dial the width up on the container as well as on the trigger button
+     inside it. This rule MUST stay below .pc-dropdown in source order - both
+     are single-class selectors, so only source order wins the display swap. */
+  .pc-user-menu--sidebar {
+    @apply block w-full;
+  }
+  /* The row IS the dropdown's own trigger button (passed through as
+     trigger_class), so every bit of button chrome lives here: the house
+     hover wash (gray-100 light, gray-400 alpha dark, same pair the dropdown
+     items and the ghost button use), the day-to-day radius, the focus ring.
+     text-left because a button centres its text and this one is a row. */
+  .pc-user-menu__row {
+    @apply flex items-center w-full gap-2 px-2 py-1.5 text-left bg-transparent transition-colors duration-200 ease-out hover:bg-gray-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:hover:bg-gray-400/17;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+  /* min-w-0 is what lets the two lines truncate: a flex item's floor is its
+     content width, so without it a long name shoves the chevron out of the
+     row instead of clipping. */
+  .pc-user-menu__identity {
+    @apply flex-1 min-w-0;
+  }
+  .pc-user-menu__name {
+    @apply block text-sm font-medium text-gray-700 truncate dark:text-gray-200;
+  }
+  .pc-user-menu__email {
+    @apply block text-xs text-gray-500 truncate dark:text-gray-400;
   }
 
 
@@ -2054,7 +2437,11 @@
     @apply h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500;
   }
   .pc-command__input {
-    @apply h-11 w-full border-0 bg-transparent p-0 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
+    /* text-base below sm, the field-family convention (pc-text-input,
+       combobox, number-field): iOS Safari zooms the viewport when focusing
+       an input under 16px, and the palette is exactly the surface a phone
+       opens to type into. */
+    @apply h-11 w-full border-0 bg-transparent p-0 text-base sm:text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-gray-100 dark:placeholder-gray-500;
   }
   .pc-command__input:focus {
     @apply outline-none ring-0 shadow-none border-0;
@@ -2168,6 +2555,13 @@
   .pc-combo-box--lg .pc-combo-box__trigger {
     @apply py-2.5 text-base;
   }
+  /* INDICATOR (see THE ADORNMENT CONTRACT in the field section): the
+     chevron says "this opens a list". It is never its own target - the
+     control or the trigger around it is - so it stays BARE: no chip, no
+     hover wash, no button. Giving it one would promise a click it does not
+     own. 20px, the contract's optical-parity exception: the
+     hero-chevron-up-down artwork carries so little ink that at the
+     default 16 it reads mini-fied next to the clear chip's solid x. */
   .pc-combo-box__chevron {
     @apply shrink-0 pointer-events-none text-gray-400 dark:text-gray-500;
   }
@@ -2328,7 +2722,13 @@
      the label yields truncation room only while a value is chosen, the
      exact grammar of the input variant's inline X. */
   .pc-combo-box__trigger-clear {
-    @apply absolute top-1/2 right-9 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply absolute top-1/2 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    /* the chip-to-chevron gap is the input variant's gap-1.5, spelled out
+       because this chip floats over the trigger instead of sharing its
+       flex row: trigger border + px-3 rail + the 20px chevron + 6px.
+       The 1.25rem term IS the chevron's width - if the chevron resizes,
+       this moves with it. */
+    right: calc(1px + 0.75rem + 1.25rem + 0.375rem);
   }
   .pc-combo-box[data-has-value] .pc-combo-box__trigger-clear {
     @apply inline-flex;
@@ -2687,9 +3087,12 @@
   .pc-data-table__filter {
     @apply flex items-center gap-1;
   }
-  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     chevrons). No margin: the icon always sits inside a pc-button, whose
+     own gap-2 spaces it - a margin here stacked on top and made the filter
+     triggers the one button family with a wider icon gap. */
   .pc-data-table__filter-icon.pc-data-table__filter-icon {
-    @apply w-3.5! h-3.5! mr-1.5;
+    @apply w-3.5! h-3.5!;
   }
   .pc-data-table__filter-form {
     @apply flex w-56 flex-col gap-2;
@@ -2735,8 +3138,13 @@
   .pc-data-table__column-move {
     @apply flex shrink-0 items-center;
   }
+  /* The action-adornment contract's colours (see the field adornments block):
+     rest gray-400/gray-500, hover wash gray-100 / gray-400/17, hover glyph
+     gray-700/gray-200, and a focus ring - this chip predated the contract. */
   .pc-data-table__column-move-btn {
-    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+    @apply flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:pointer-events-none disabled:opacity-30;
+    @apply dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-data-table__column-move-icon.pc-data-table__column-move-icon {
@@ -2748,8 +3156,11 @@
   .pc-data-table__filter-apply {
     @apply self-end;
   }
+  /* ACTION chip (see THE ADORNMENT CONTRACT in the field section): clearing
+     the filter is something the pill itself doesn't do, so it wears the
+     chip - the same box, radius, colours and wash as .pc-combo-box__clear. */
   .pc-data-table__filter-clear {
-    @apply inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-400/10 dark:hover:text-gray-300;
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
   }
   /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
   .pc-data-table__filter-clear-icon.pc-data-table__filter-clear-icon {
@@ -2916,6 +3327,103 @@
   }
   .pc-progress__inner--gray {
     @apply bg-gray-600;
+  }
+
+  /* Progress - ring
+     The circular shape of the same component. The box is sized here (the SVG
+     fills it), so a width or height utility from the caller overrides the
+     size attr and the stroke scales with the viewBox. */
+
+  .pc-progress-ring {
+    @apply relative inline-flex items-center justify-center shrink-0;
+  }
+  .pc-progress-ring__svg {
+    @apply block w-full h-full;
+  }
+
+  /* Track and arc are both stroke: currentColor, so the colour classes below
+     - and a caller's own text-* class, the sparkline convention - drive the
+     whole ring from one place. The track is that colour washed back to the
+     same 15% the linear track sits at, which is what keeps a bar and a ring
+     side by side looking like one component. */
+  .pc-progress-ring__track {
+    stroke-opacity: 0.15;
+  }
+  /* A ring stroke lays down a fraction of the ink a full-width bar track
+     does, so the same 15% reads fainter on a dark surface. Measured against
+     the linear track on gray-950, 0.2 puts the two back in the same band. */
+  .dark .pc-progress-ring__track {
+    stroke-opacity: 0.2;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-progress-ring__arc {
+      @apply transition-[stroke-dashoffset] duration-500 ease-out;
+    }
+  }
+
+  /* Readout sits in the hole, neutral rather than accent-coloured so it
+     stays legible on a warning ring. */
+  .pc-progress-ring__label {
+    @apply absolute inset-0 flex items-center justify-center font-medium leading-none text-gray-900 tabular-nums pointer-events-none dark:text-gray-100;
+  }
+
+  /* Progress ring - sizes */
+
+  .pc-progress-ring--xs {
+    @apply w-4 h-4;
+  }
+  .pc-progress-ring--sm {
+    @apply w-6 h-6;
+  }
+  .pc-progress-ring--md {
+    @apply w-10 h-10;
+  }
+  .pc-progress-ring--lg {
+    @apply w-16 h-16;
+  }
+  .pc-progress-ring--xl {
+    @apply w-24 h-24;
+  }
+
+  .pc-progress-ring__label--xs {
+    @apply text-[0.5rem];
+  }
+  .pc-progress-ring__label--sm {
+    @apply text-[0.625rem];
+  }
+  .pc-progress-ring__label--md {
+    @apply text-xs;
+  }
+  .pc-progress-ring__label--lg {
+    @apply text-sm;
+  }
+  .pc-progress-ring__label--xl {
+    @apply text-base;
+  }
+
+  /* Progress ring - colors (the bar's fill stop, so both shapes land on the
+     same hue at the same strength) */
+
+  .pc-progress-ring--primary {
+    @apply text-primary-600;
+  }
+  .pc-progress-ring--secondary {
+    @apply text-secondary-600;
+  }
+  .pc-progress-ring--info {
+    @apply text-info-600;
+  }
+  .pc-progress-ring--success {
+    @apply text-success-600;
+  }
+  .pc-progress-ring--warning {
+    @apply text-warning-600;
+  }
+  .pc-progress-ring--danger {
+    @apply text-danger-600;
+  }
+  .pc-progress-ring--gray {
+    @apply text-gray-600;
   }
 
   /* Pagination */
@@ -3499,8 +4007,13 @@
   .pc-modal__wrapper {
     @apply fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6;
   }
+  /* A column, like the slide over's box: header and footer are flex-none
+     bands and the content between them is the only part that scrolls. The
+     box itself clips rather than scrolls - a scrolling box would carry a
+     pinned footer up and out of view with it, and clipping is also what
+     keeps the footer's wash inside the rounded corners. */
   .pc-modal__box {
-    @apply w-full max-h-full overflow-auto bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
+    @apply flex w-full max-h-full flex-col overflow-hidden bg-white shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem);
   }
   .pc-modal__box--sm {
@@ -3522,7 +4035,7 @@
     @apply max-w-full;
   }
   .pc-modal__header {
-    @apply px-5 py-3 border-b border-gray-100 dark:border-gray-700;
+    @apply flex-none px-5 py-3 border-b border-gray-100 dark:border-gray-700;
   }
   /* hide_header collapses the bar to a screen-reader-only box, never
      display:none - the dialog's aria-labelledby points at the title inside
@@ -3550,7 +4063,35 @@
     @apply w-5 h-5 fill-current;
   }
   .pc-modal__content {
-    @apply p-5;
+    @apply p-5 flex-1 min-h-0 overflow-y-auto;
+  }
+
+  /* The footer band. Same idiom as the table's tfoot and the alert dialog's
+     footer: border-t, a muted wash, edge to edge. flex-none is what pins it
+     - the box is a column and the content is the only part that scrolls, so
+     a long body slides UNDER this strip instead of pushing it off. Padding
+     is the modal's own px-5, so the band lines up with the header and the
+     body; the content keeps its own pb-5, so nothing double-counts. The
+     wash pair is the house convention: gray-50 in light, a gray-400 alpha
+     in dark, so a re-themed gray dial carries both. */
+  /* flex-col-reverse with cancel FIRST in the DOM is deliberate, same as the
+     alert dialog's footer: Tab reaches the safe action first, and the mobile
+     stack puts the primary action on top under the thumb (shadcn's
+     ergonomics). Visual order and focus order diverge by design on the
+     stacked layout - a two-button confirm row is the recognised case where
+     that trade is worth it. */
+  .pc-modal__footer {
+    @apply flex flex-none flex-col-reverse gap-2 px-5 py-4;
+    @apply sm:flex-row sm:justify-end;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
+  }
+
+  /* Nested-child radius: the action buttons derive from the BOX's clamped
+     radius, not the raw token - at large user radii a raw-token button
+     out-rounds its own dialog (same recipe as the alert dialog's footer,
+     spending the modal's own 1.2x/1.25rem clamp). */
+  .pc-modal__footer .pc-button {
+    border-radius: max(calc(min(calc(var(--pc-radius, 0.625rem) * 1.2), 1.25rem) - 0.25rem), 0px);
   }
 
   /* Skeleton */
@@ -3986,6 +4527,97 @@
   .pc-slideover__overlay {
     @apply fixed inset-0 z-50 transition-opacity bg-black/50 dark:bg-black/60;
   }
+
+  /* THE PROPERTY MATTERS: these keyframes animate `translate`, not
+     `transform`, because Tailwind v4's translate-x-* utilities set the
+     `translate` property - and translate + transform COMPOSE. Keyframes on
+     transform ran alongside the utility's translate, so a coalesced
+     translate could teleport the panel partway while the transform
+     animation played on top (traced live: a +385px first-frame jump).
+     Same property = the animation overrides the utility outright while it
+     runs, and the end class takes over seamlessly at the boundary. */
+  /* Frame-coalescing guard. The show/hide JS animates via CSS transitions,
+     but a transition only fires if the browser style-recalcs the "before"
+     state - and LiveView can land the start and end classes inside ONE
+     style-recalc window (traced at 1ms apart on a 120Hz display), snapping
+     the panel with no slide. These keyframe classes ride ALONGSIDE the
+     transition classes in the JS tuples: an animation plays from keyframe
+     zero the moment its class lands, immune to coalescing; when the
+     transition does fire, the two agree frame-for-frame. Motion-gated so
+     reduced-motion users keep the instant treatment. */
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-slideover-anim-in-left {
+      animation: pc-slideover-in-left 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-right {
+      animation: pc-slideover-in-right 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-top {
+      animation: pc-slideover-in-top 300ms ease-out both;
+    }
+    .pc-slideover-anim-in-bottom {
+      animation: pc-slideover-in-bottom 300ms ease-out both;
+    }
+    .pc-slideover-anim-out-left {
+      animation: pc-slideover-out-left 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-right {
+      animation: pc-slideover-out-right 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-top {
+      animation: pc-slideover-out-top 200ms ease-in both;
+    }
+    .pc-slideover-anim-out-bottom {
+      animation: pc-slideover-out-bottom 200ms ease-in both;
+    }
+    .pc-slideover-anim-fade-in {
+      animation: pc-slideover-fade-in 300ms ease-out both;
+    }
+    .pc-slideover-anim-fade-out {
+      animation: pc-slideover-fade-out 200ms ease-in both;
+    }
+  }
+  @keyframes pc-slideover-in-left {
+    from { translate: -100% 0; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-right {
+    from { translate: 100% 0; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-top {
+    from { translate: 0 -100%; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-in-bottom {
+    from { translate: 0 100%; }
+    to { translate: 0 0; }
+  }
+  @keyframes pc-slideover-out-left {
+    from { translate: 0 0; }
+    to { translate: -100% 0; }
+  }
+  @keyframes pc-slideover-out-right {
+    from { translate: 0 0; }
+    to { translate: 100% 0; }
+  }
+  @keyframes pc-slideover-out-top {
+    from { translate: 0 0; }
+    to { translate: 0 -100%; }
+  }
+  @keyframes pc-slideover-out-bottom {
+    from { translate: 0 0; }
+    to { translate: 0 100%; }
+  }
+  @keyframes pc-slideover-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pc-slideover-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
   .pc-slideover__wrapper {
     @apply fixed inset-0 z-50 flex overflow-hidden;
   }
@@ -4036,28 +4668,71 @@
   .pc-slideover__header__close-svg {
     @apply w-5 h-5 fill-current;
   }
+  /* The footer band: the tfoot pair, same as the modal's and the alert
+     dialog's. It used to carry a bare gray-100 hairline and no wash, so a
+     slide over and a modal open on the same page disagreed about what a
+     footer looks like. */
   .pc-slideover__footer {
-    @apply flex flex-none items-center justify-end gap-2 border-t border-gray-100 px-5 py-4 dark:border-gray-400/17;
+    @apply flex flex-none items-center justify-end gap-2 px-5 py-4;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
   }
   .pc-slideover__content {
     @apply p-5 flex-1 overflow-y-auto;
   }
 
-  /* Stepper */
+  /* Stepper
+     Visual language mirrors pc-timeline - if you change one, look at the
+     other; shared extraction is deferred until timeline merges. The pairs
+     borrowed from there: the soft chip wash for a step that's been reached,
+     the hollow gray circle for one that hasn't, the currentColor halo on the
+     step you're on, and the 2px gray hairline for the line between them. What
+     stays the stepper's own is the tinted connector behind you - a timeline
+     has no progress to report, a wizard does. */
   .pc-stepper {
     @apply w-full;
+    /* How far the active step's halo reaches past its circle. Kept as a
+       property because the container reserves exactly this much room for it
+       below - change one and the other follows. */
+    --pc-stepper-ring: 4px;
   }
 
+  /* The halo needs somewhere to live. Consumers routinely put a stepper in a
+     horizontally scrolling wrapper, and an `overflow-x` of auto computes the y
+     axis to auto with it, which clips at the padding box - so the component
+     carries its own headroom rather than trusting whoever wraps it. */
   .pc-stepper__container {
-    @apply flex w-full md:gap-4;
+    @apply flex w-full gap-2 md:gap-4;
+    /* All four sides, not just block: a halo on the FIRST or LAST step
+       reaches sideways past its circle, and a wrapping overflow-x-auto
+       clips the inline axis exactly the way it clips the block one. */
+    padding: var(--pc-stepper-ring);
   }
 
+  /* Orientation is a contract: horizontal stays horizontal at every
+     width. The old silent md flip reshaped the page under the consumer
+     (and under any agent that asked for a horizontal wizard); on small
+     screens the rail now COMPRESSES instead - see the description/title
+     rules below. Vertical stays an explicit choice. */
   .pc-stepper--horizontal .pc-stepper__container {
-    @apply flex-col items-start md:flex-row md:items-center;
+    @apply flex-row items-center;
   }
 
   .pc-stepper--vertical .pc-stepper__container {
     @apply flex-col items-start;
+  }
+
+  /* The small-screen compression: descriptions go first, then every title
+     except the active step's - the circles carry the count, the active
+     label carries the context, and each step's aria-label keeps its name
+     for assistive tech. This is how the leading systems treat a mobile
+     wizard: a compact band above the form, never a tall rail pushing it
+     down. */
+  .pc-stepper--horizontal .pc-stepper__description {
+    @apply hidden md:block;
+  }
+
+  .pc-stepper--horizontal .pc-stepper__item:not(:has(.pc-stepper__node--active)) .pc-stepper__content {
+    @apply hidden sm:block;
   }
 
   /* Item */
@@ -4074,21 +4749,44 @@
     @apply flex cursor-pointer items-center gap-3 transition-all duration-200 ease-out hover:opacity-90;
   }
 
-  /* Indicator */
+  /* Indicator. A step you haven't reached is the timeline's hollow marker:
+     gray ring, no fill, muted glyph. */
   .pc-stepper__indicator {
-    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-500 transition-all duration-200 dark:border-gray-400/25 dark:text-gray-400;
+    @apply grid shrink-0 place-items-center rounded-full border-2 border-gray-300 bg-transparent text-gray-400 transition-all duration-200 dark:border-gray-400/30 dark:text-gray-500;
   }
 
+  /* Completion is the one thing a wizard reports, so a completed step is
+     SOLID - done and not-done must separate at a glance, and reui, Material
+     and Ant all fill their completed discs. (A first pass ported the
+     timeline's quiet chip wash here; the maintainer's eye caught why that
+     can't transfer: in a timeline "complete" is the resting record, in a
+     stepper it is the payload.) */
   .pc-stepper__node--complete .pc-stepper__indicator {
     @apply border-transparent bg-primary-600;
     color: var(--pc-button-solid-fg, #fff);
   }
 
+  /* The step you're on wears the timeline's chip wash: "you are here"
+     reads through the halo below, one register quieter than the solid
+     done-discs behind it. */
   .pc-stepper__node--active .pc-stepper__indicator {
-    @apply border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
+    @apply border-transparent bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300;
   }
 
-  /* Size variants for indicator */
+  /* The step you're on is ringed rather than outlined - same halo recipe as
+     the timeline's current marker, drawn in currentColor so it tracks whatever
+     the chip's ink is. */
+  .pc-stepper__node--active .pc-stepper__indicator {
+    box-shadow: 0 0 0 var(--pc-stepper-ring) color-mix(in oklab, currentColor 20%, transparent);
+  }
+
+  /* Size variants for indicator. xs is the 24px disc the compact systems
+     draw (reui's basic stepper sits at 20-24px) - small enough to run a
+     numbered rail above a form without it reading as the form's heading. */
+  .pc-stepper--xs .pc-stepper__indicator {
+    @apply h-6 w-6;
+  }
+
   .pc-stepper--sm .pc-stepper__indicator {
     @apply h-7 w-7;
   }
@@ -4106,6 +4804,10 @@
     color: inherit;
   }
 
+  .pc-stepper--xs .pc-stepper__check {
+    @apply h-3 w-3;
+  }
+
   .pc-stepper--sm .pc-stepper__check {
     @apply h-3.5 w-3.5;
   }
@@ -4118,21 +4820,30 @@
     @apply h-5 w-5;
   }
 
-  /* Number */
+  /* Number. The timeline sets a numbered marker in text-xs/semibold inside the
+     same 32px circle the md stepper uses, and text-base was reading as a
+     different component sat next to it. Each size steps down one notch. */
   .pc-stepper__number {
-    @apply font-medium;
+    @apply font-semibold;
+  }
+
+  /* xs holds sm's 11px rather than stepping down again: below that a numeral
+     inside a 2px-ringed 24px disc stops being readable, and the disc is the
+     thing that shrank, not the count. */
+  .pc-stepper--xs .pc-stepper__number {
+    @apply text-[11px];
   }
 
   .pc-stepper--sm .pc-stepper__number {
-    @apply text-xs;
+    @apply text-[11px];
   }
 
   .pc-stepper--md .pc-stepper__number {
-    @apply text-base;
+    @apply text-xs;
   }
 
   .pc-stepper--lg .pc-stepper__number {
-    @apply text-lg;
+    @apply text-sm;
   }
 
   /* Content */
@@ -4140,9 +4851,11 @@
     @apply flex flex-col w-full gap-1 text-left grow;
   }
 
-  /* Title */
+  /* Title. Same weight and colour pair as a timeline entry's title. This rule
+     had a duplicate further down the section that quietly won and set
+     font-medium; the two are merged here so there is one place to look. */
   .pc-stepper__title {
-    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+    @apply text-sm font-semibold leading-tight text-gray-900 dark:text-gray-100;
   }
 
   /* Description */
@@ -4151,6 +4864,14 @@
   }
 
   /* Labels scale with the size dial, like the circles do */
+  .pc-stepper--xs .pc-stepper__title {
+    @apply text-[11px];
+  }
+
+  .pc-stepper--xs .pc-stepper__description {
+    @apply text-[10px];
+  }
+
   .pc-stepper--sm .pc-stepper__title {
     @apply text-xs;
   }
@@ -4167,10 +4888,7 @@
     @apply text-sm;
   }
 
-  /* Labels under the circles - the classic wizard look. Applies at the
-     md+ breakpoint where the stepper is genuinely horizontal; below it
-     the stacked mobile layout keeps labels beside (which is why the
-     sibling connectors are only md:hidden, not removed).
+  /* Labels under the circles - the classic wizard look.
 
      Items share the row equally and each item after the first draws its
      own connector as an absolutely-positioned line running from the
@@ -4179,36 +4897,51 @@
      half the indicator height (top) and half the item width back plus
      the circle radius and a little air (left/right), per size. */
   .pc-stepper--labels-bottom.pc-stepper--horizontal .pc-stepper__container {
-    @apply md:items-start md:gap-0;
+    @apply items-start gap-0;
   }
 
+  /* The line colour lives here, on a real element, not on the ::before that
+     paints it - dark: variants don't compile inside pseudo-element selectors,
+     they'd silently drop (see .pc-chat__marker--separator for the same shape).
+     Same two inks as the div connector above. */
   .pc-stepper--labels-bottom .pc-stepper__item {
-    @apply md:relative md:min-w-0 md:flex-1;
+    @apply relative min-w-0 flex-1;
+    --pc-stepper-line: var(--color-gray-200, #e4e4e7);
+    @apply dark:[--pc-stepper-line:color-mix(in_oklab,var(--color-gray-400)_25%,transparent)];
   }
 
   .pc-stepper--labels-bottom .pc-stepper__item-content {
-    @apply md:w-full md:flex-col md:items-center md:gap-2;
+    @apply w-full flex-col items-center gap-2;
   }
 
   .pc-stepper--labels-bottom .pc-stepper__content {
-    @apply md:text-center;
+    @apply text-center;
   }
 
   .pc-stepper--labels-bottom .pc-stepper__connector-wrapper {
-    @apply md:hidden;
+    @apply hidden;
+  }
+
+  /* :not(:first-child) keeps this above the base declaration on the item, and
+     keeps the first step - which paints no line at all - out of it */
+  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child) {
+    --pc-stepper-line: var(--color-primary-600);
   }
 
   .pc-stepper--labels-bottom .pc-stepper__item:not(:first-child)::before {
-    @apply hidden bg-gray-200 transition-colors md:block dark:bg-gray-400/17;
+    @apply block transition-colors;
     content: "";
     position: absolute;
     height: 2px;
+    background-color: var(--pc-stepper-line);
   }
 
-  /* :not(:first-child) mirrors the base line rule's specificity, which
-     would otherwise beat this one and keep completed lines gray */
-  .pc-stepper--labels-bottom .pc-stepper__item--line-complete:not(:first-child)::before {
-    @apply bg-primary-600 dark:bg-primary-600;
+  /* Per size: top is half the indicator minus half the 2px line, and the
+     inset is the circle's radius plus 6px of air. xs: 24/2 - 1, 12 + 6. */
+  .pc-stepper--labels-bottom.pc-stepper--xs .pc-stepper__item:not(:first-child)::before {
+    top: 11px;
+    left: calc(-50% + 18px);
+    right: calc(50% + 18px);
   }
 
   .pc-stepper--labels-bottom.pc-stepper--sm .pc-stepper__item:not(:first-child)::before {
@@ -4231,55 +4964,147 @@
 
   /* Connector Wrapper */
   .pc-stepper__connector-wrapper {
-    @apply flex shrink justify-center self-start md:self-center;
+    @apply flex shrink justify-center self-center;
   }
   .pc-stepper--horizontal .pc-stepper__connector-wrapper {
-    @apply md:min-w-8 md:flex-1;
-  }
-  .pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply w-7 md:w-auto;
-  }
-  .pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply w-8 md:w-auto;
-  }
-  .pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply w-10 md:w-auto;
+    @apply min-w-6 flex-1 md:min-w-8;
   }
   .pc-stepper--vertical .pc-stepper__connector-wrapper {
-    @apply md:self-start;
+    @apply self-start;
+  }
+  .pc-stepper--vertical.pc-stepper--xs .pc-stepper__connector-wrapper {
+    @apply w-6;
   }
   .pc-stepper--vertical.pc-stepper--sm .pc-stepper__connector-wrapper {
-    @apply md:w-7;
+    @apply w-7;
   }
   .pc-stepper--vertical.pc-stepper--md .pc-stepper__connector-wrapper {
-    @apply md:w-8;
+    @apply w-8;
   }
   .pc-stepper--vertical.pc-stepper--lg .pc-stepper__connector-wrapper {
-    @apply md:w-10;
+    @apply w-10;
   }
-  .pc-stepper__title {
-    @apply text-sm font-medium leading-tight text-gray-900 dark:text-gray-100;
-  }
-
   .pc-stepper--vertical .pc-stepper__container {
-    @apply md:gap-1;
+    @apply gap-1;
   }
 
-  /* Connector */
+  /* Connector. The timeline's hairline pair, at the 2px weight both components
+     already drew.
+
+     The completed run keeps a tint, because that is the stepper's progress
+     read and a timeline has nothing to report, but it drops from primary-600
+     to primary-300. In the timeline the rail is always quieter than the
+     markers on it - the markers carry the state, the line just joins them -
+     and once the circles stopped being solid discs a full-strength line was
+     the loudest thing in the component, which put the emphasis on the ground
+     you have already covered rather than the step you are standing on. */
   .pc-stepper__connector {
-    @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/17;
+    @apply shrink bg-gray-200 transition-colors dark:bg-gray-400/25;
   }
 
+  /* Solid, matching the disc it trails: with completed steps back on solid
+     primary, a solid run underneath is hierarchy, not noise - the quieter
+     300 belonged to the washed-disc experiment. */
   .pc-stepper__connector--complete {
     @apply bg-primary-600;
   }
 
   .pc-stepper--horizontal .pc-stepper__connector {
-    @apply h-8 w-0.5 my-2 mx-auto md:h-0.5 md:w-full md:my-auto md:mx-0;
+    @apply h-0.5 w-full my-auto;
   }
 
   .pc-stepper--vertical .pc-stepper__connector {
     @apply w-0.5 h-8 mx-auto;
+  }
+
+  /* Bars - reui's progress-bar indicator.
+
+     Same markup, same aria, same jump targets; the circles just stop being
+     circles. Each step becomes a 4px segment sharing the row equally, and
+     the gap between segments IS the rail - no connectors to draw, no line
+     to tint, nothing to pin to a circle centre. Titles, when the steps
+     carry names, sit under their own segment and left-align, because a
+     segment has a left edge to align to and a circle does not.
+
+     Completed AND active both fill solid primary: in this paint the fill is
+     the entire state read (that is the same ruling as the solid completed
+     disc above, carried through), and a wash on a 4px bar reads as a
+     rendering artefact rather than a state. Unreached segments take the
+     connector's gray hairline pair, so the two paints share one ink set.
+
+     Horizontal only - a column of full-width segments is a different
+     component - which is also why the small-screen compression rules above
+     keep covering bars: they key off `--horizontal`, and bars is never
+     anything else. */
+  .pc-stepper--bars {
+    /* The ring property is really INTERACTION headroom: circles spend it
+       on the halo, bars spend it on the invisible tap overhang below. A
+       first pass zeroed it because bars draw no halo - and inside an
+       overflow-x wrapper (which clips hit areas exactly the way it clips
+       halos, per the container comment above) that clipped the 12px-per-
+       side tap growth back to a 4px target. 0.75rem = the overhang, so
+       the whole hit area stays operable inside a scroller. */
+    --pc-stepper-ring: 0.75rem;
+  }
+
+  .pc-stepper--bars .pc-stepper__container {
+    /* Flat, not the container's md bump: the gaps are the rail, and a rail
+       whose joints widen at desktop stops reading as one bar. */
+    @apply gap-2;
+  }
+
+  .pc-stepper--bars .pc-stepper__item {
+    @apply min-w-0 flex-1;
+  }
+
+  .pc-stepper--bars .pc-stepper__item-content {
+    @apply relative w-full flex-col items-start gap-2;
+  }
+
+  /* A nameless bars step is a 4px-tall button - the segment IS the whole
+     target. The invisible inset grows the hit area to 28px without
+     painting anything (the adornment chips' tap-growth idiom): 12px each
+     side clears WCAG 2.5.8's 24px minimum with margin. Titled bars get it
+     too; the reach stays inside the button's own box family, and the
+     x-axis is untouched so neighbouring steps never overlap. */
+  .pc-stepper--bars .pc-stepper__item-content::before {
+    content: "";
+    @apply absolute inset-x-0 -inset-y-3;
+  }
+
+  .pc-stepper--bars .pc-stepper__node {
+    @apply w-full;
+  }
+
+  /* The segment. h-1 at every size - the size dial moves the titles, not the
+     rail. The radius is derived, not a literal pill: at the house default the
+     browser's own clamp already rounds a 4px bar's ends completely, and a
+     squared-off theme gets squared-off segments instead of stubbornly round
+     ones. */
+  .pc-stepper--bars .pc-stepper__indicator {
+    @apply h-1 w-full border-0 bg-gray-200 dark:bg-gray-400/25;
+    border-radius: min(var(--pc-radius, 0.625rem), 0.125rem);
+  }
+
+  .pc-stepper--bars .pc-stepper__node--complete .pc-stepper__indicator,
+  .pc-stepper--bars .pc-stepper__node--active .pc-stepper__indicator {
+    @apply bg-primary-600;
+    /* No halo here. It exists to say "you are here" among identical discs;
+       among segments the fill already says it, and a ring bleeding off a 4px
+       bar just smudges the gap either side of it. */
+    box-shadow: none;
+  }
+
+  /* A step you haven't reached reads back one notch, the way its segment
+     does. */
+  .pc-stepper--bars
+    .pc-stepper__item:not(:has(.pc-stepper__node--complete, .pc-stepper__node--active))
+    .pc-stepper__title {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-stepper--bars .pc-stepper__connector-wrapper {
+    @apply hidden;
   }
 
   /* Rating */
@@ -5008,8 +5833,8 @@
 }
 
 /*
-  Hide the calendar icon added by Petal in Firefox since Firefox includes one
-  and the onclick for the Petal one doesn't work.
+  Firefox draws its own mark on date inputs, so ours would be a second one
+  saying the same thing. Drop it and give the text its padding back.
   See: https://css-tricks.com/snippets/css/css-hacks-targeting-firefox/
 */
 @-moz-document url-prefix() {
