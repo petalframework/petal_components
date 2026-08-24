@@ -444,6 +444,192 @@ export const PetalDualRangeSlider = {
   },
 };
 
+// Slider: keeps the geometry custom properties on the <.slider> wrapper in
+// sync while you drag, and in dual mode enforces the ordering invariant the
+// two overlaid native inputs cannot enforce themselves.
+//
+// The server renders --pc-slider-frac* inline, so the control is already
+// correct before this hook connects and stays correct with JS off; everything
+// here is the live update. Positioning stays pure CSS (fill, tooltip and every
+// tick read the same properties), so nothing is measured.
+//
+// Read from the wrapper (set server-side in slider.ex):
+//   data-pc-slider-min / data-pc-slider-max  — absolute bounds
+//   data-pc-slider-mode                      — "single" | "dual"
+//   data-value-prefix / data-value-suffix    — readout formatting
+//
+// Inner elements found by marker attributes:
+//   [data-pc-slider-input]        — the single input
+//   [data-pc-slider-input-min]    — dual lower input
+//   [data-pc-slider-input-max]    — dual upper input
+//   [data-pc-slider-display]      — inline readout / single tooltip
+//   [data-pc-slider-display-min]  — dual lower tooltip
+//   [data-pc-slider-display-max]  — dual upper tooltip
+//   [data-pc-slider-mark]         — a tick, its 0..1 fraction as the value
+export const PetalSlider = {
+  mounted() {
+    this.onInput = (event) => this.handleInput(event);
+    this.bind();
+    this.sync();
+  },
+
+  updated() {
+    // Re-read the DOM rather than trusting what the last bind() cached. A
+    // re-render can change the slider's whole shape under a constant id -
+    // single becomes dual, the bounds move, the prefix changes - and single
+    // and dual do not even share input elements (_input vs _min/_max). Keeping
+    // the old references would leave the listeners on detached nodes, so the
+    // fill would stop following the thumb and the dual ordering clamp would
+    // never run again.
+    this.bind();
+    this.sync({ emit: false });
+  },
+
+  destroyed() {
+    this.unbind();
+  },
+
+  bind() {
+    this.unbind();
+
+    this.dual = this.el.dataset.pcSliderMode === "dual";
+    this.lo = parseFloat(this.el.dataset.pcSliderMin);
+    this.hi = parseFloat(this.el.dataset.pcSliderMax);
+    if (Number.isNaN(this.lo)) this.lo = 0;
+    if (Number.isNaN(this.hi)) this.hi = 100;
+    this.prefix = this.el.dataset.valuePrefix || "";
+    this.suffix = this.el.dataset.valueSuffix || "";
+    this.marks = Array.from(this.el.querySelectorAll("[data-pc-slider-mark]"));
+
+    if (this.dual) {
+      this.input = null;
+      this.minInput = this.el.querySelector("[data-pc-slider-input-min]");
+      this.maxInput = this.el.querySelector("[data-pc-slider-input-max]");
+      this.inputs = [this.minInput, this.maxInput].filter(Boolean);
+    } else {
+      this.minInput = null;
+      this.maxInput = null;
+      this.input = this.el.querySelector("[data-pc-slider-input]");
+      this.inputs = this.input ? [this.input] : [];
+    }
+
+    this.inputs.forEach((el) => el.addEventListener("input", this.onInput));
+  },
+
+  unbind() {
+    (this.inputs || []).forEach((el) =>
+      el.removeEventListener("input", this.onInput),
+    );
+    this.inputs = [];
+  },
+
+  handleInput(event) {
+    if (this.dual) this.enforceOrder(event && event.target);
+    this.sync();
+  },
+
+  // Two overlaid inputs can cross each other. Clamp the one being dragged to
+  // the other, then lift its z-index so that when the thumbs meet the user can
+  // still drag back out - without the lift the stacking order decides which
+  // thumb answers the pointer, and one of them becomes stuck.
+  enforceOrder(target) {
+    if (!this.minInput || !this.maxInput) return;
+    let min = parseFloat(this.minInput.value);
+    let max = parseFloat(this.maxInput.value);
+    if (Number.isNaN(min) || Number.isNaN(max)) return;
+
+    if (target === this.maxInput) {
+      if (max < min) {
+        max = min;
+        this.maxInput.value = String(max);
+      }
+      this.maxInput.style.zIndex = max <= min ? "20" : "";
+      this.minInput.style.zIndex = "";
+    } else {
+      if (min > max) {
+        min = max;
+        this.minInput.value = String(min);
+      }
+      this.minInput.style.zIndex = min >= max ? "20" : "";
+      this.maxInput.style.zIndex = "";
+    }
+  },
+
+  values() {
+    if (this.dual) {
+      return [
+        this.numberFrom(this.minInput, this.lo),
+        this.numberFrom(this.maxInput, this.hi),
+      ];
+    }
+    return [this.numberFrom(this.input, this.lo)];
+  },
+
+  numberFrom(el, fallback) {
+    if (!el) return fallback;
+    const n = parseFloat(el.value);
+    return Number.isNaN(n) ? fallback : n;
+  },
+
+  // 0..1, matching the server's frac/3 - the CSS turns it into a thumb-centre
+  // offset, so a unitless fraction is what both ends have to agree on. Rounded
+  // to the same 4dp the server uses, so an awkward denominator (0..3, marks on
+  // every step) cannot leave a tick the server painted as filled failing the
+  // client's own >= comparison the moment the hook connects.
+  frac(value) {
+    const span = this.hi - this.lo;
+    if (span === 0) return 0;
+    const f = Math.max(0, Math.min(1, (value - this.lo) / span));
+    return Math.round(f * 10000) / 10000;
+  },
+
+  sync({ emit = true } = {}) {
+    const values = this.values();
+
+    if (this.dual) {
+      const [min, max] = values;
+      this.el.style.setProperty("--pc-slider-frac-min", `${this.frac(min)}`);
+      this.el.style.setProperty("--pc-slider-frac-max", `${this.frac(max)}`);
+      this.setText("[data-pc-slider-display]", `${this.fmt(min)} – ${this.fmt(max)}`);
+      this.setText("[data-pc-slider-display-min]", this.fmt(min));
+      this.setText("[data-pc-slider-display-max]", this.fmt(max));
+      this.syncMarks((f) => f >= this.frac(min) && f <= this.frac(max));
+      if (emit) this.emit({ values: [min, max] });
+    } else {
+      const [value] = values;
+      this.el.style.setProperty("--pc-slider-frac", `${this.frac(value)}`);
+      this.setText("[data-pc-slider-display]", this.fmt(value));
+      this.syncMarks((f) => f <= this.frac(value));
+      if (emit) this.emit({ value });
+    }
+  },
+
+  syncMarks(filled) {
+    this.marks.forEach((mark) => {
+      const f = parseFloat(mark.dataset.pcSliderMark);
+      if (Number.isNaN(f)) return;
+      mark.classList.toggle("pc-slider__mark--filled", filled(f));
+    });
+  },
+
+  setText(selector, text) {
+    const el = this.el.querySelector(selector);
+    if (el) el.textContent = text;
+  },
+
+  // parseFloat strips trailing zeros (50.0 -> "50"), matching the server's
+  // formatter so the readout does not jump on the first drag.
+  fmt(value) {
+    return `${this.prefix}${parseFloat(value.toFixed(10))}${this.suffix}`;
+  },
+
+  emit(detail) {
+    this.el.dispatchEvent(
+      new CustomEvent("petal:slider-change", { detail, bubbles: true }),
+    );
+  },
+};
+
 // Number ticker: counts up to data-value when the element scrolls into view,
 // and re-animates from the previous value whenever data-value changes (so a
 // LiveView assign update animates the delta). Formatting via Intl.NumberFormat.
@@ -6855,6 +7041,7 @@ export default {
   PetalClearableInput,
   PetalRangeFill,
   PetalDualRangeSlider,
+  PetalSlider,
   PetalNumberTicker,
   PetalConfetti,
   PetalSpotlight,

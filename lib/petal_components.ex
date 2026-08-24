@@ -69,6 +69,7 @@ defmodule PetalComponents do
         Scrollspy,
         Separator,
         Skeleton,
+        Slider,
         SlideOver,
         SocialButton,
         Sparkline,

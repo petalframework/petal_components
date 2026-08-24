@@ -10047,3 +10047,377 @@
     }
   }
 }
+
+@layer components {
+  /* ---- Slider ---------------------------------------------------------- */
+  /* A native <input type="range"> doing all the work (keyboard, ARIA, form
+     posting) with its own track and thumb painted out, and our track, fill,
+     marks and tooltip drawn as real elements underneath it. Real elements are
+     the point: `dark:` and `--pc-radius` resolve on them, which they cannot on
+     ::-webkit-slider-runnable-track (a `dark:` variant compiles to a trailing
+     :where(.dark, ...) ancestor test that a pseudo-element can never satisfy -
+     the bug that used to leave .pc-range-input's track light in dark mode).
+
+     Geometry rides three custom properties so nothing needs measuring in JS:
+       --pc-slider-track  track thickness
+       --pc-slider-thumb  thumb diameter
+       --pc-slider-frac   thumb position, 0..1 (single), or -min / -max (dual)
+     The server renders the initial fractions inline, so the control paints
+     correctly with JS off; the PetalSlider hook keeps them live while dragging.
+
+     The fraction is unitless rather than a percentage because a native thumb's
+     centre travels from thumb/2 to width - thumb/2, never edge to edge. Every
+     layer that has to line up with the thumb therefore converts it through
+     --pc-slider-anchor below instead of using the raw percentage, or the ends
+     drift by half a thumb (a tick at the minimum sitting a radius left of the
+     thumb parked on it - the thing Radix and shadcn also compensate for). */
+  .pc-slider {
+    @apply relative select-none;
+    --pc-slider-track: 0.375rem;
+    --pc-slider-thumb: 1.25rem;
+    --pc-slider-length: 11rem;
+    --pc-slider-surface: var(--color-gray-200);
+  }
+
+  .pc-slider:where(.dark, .dark *) {
+    --pc-slider-surface: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
+  }
+
+  .pc-slider--sm {
+    --pc-slider-track: 0.25rem;
+    --pc-slider-thumb: 1rem;
+  }
+
+  .pc-slider--lg {
+    --pc-slider-track: 0.5rem;
+    --pc-slider-thumb: 1.5rem;
+  }
+
+  .pc-slider--disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+
+  /* Label row: name on the left, inline readout on the right. */
+  .pc-slider__header {
+    @apply flex items-baseline justify-between gap-3 mb-1.5;
+  }
+
+  .pc-slider__label {
+    @apply mb-0;
+  }
+
+  .pc-slider__value {
+    @apply text-sm font-medium text-gray-700 tabular-nums dark:text-gray-200;
+  }
+
+  /* Stacking context for track, fill, marks and the input(s). */
+  .pc-slider__track-wrapper {
+    @apply relative flex items-center;
+    min-height: var(--pc-slider-thumb);
+  }
+
+  .pc-slider__track {
+    @apply absolute inset-x-0 rounded-full;
+    height: var(--pc-slider-track);
+    background-color: var(--pc-slider-surface);
+  }
+
+  /* Thumb-centre anchor. --pc-slider-at is the 0..1 fraction the layer follows
+     (the wrapper's for the fill and tooltip, the mark's own for a tick), and
+     --pc-slider-anchor is where that thumb's centre actually sits. Every one of
+     these layers shares a containing block exactly as wide as the track, so the
+     100% below means the same thing in all of them. */
+  .pc-slider__fill,
+  .pc-slider__mark,
+  .pc-slider__mark-label,
+  .pc-slider__tooltip {
+    --pc-slider-anchor: calc(
+      var(--pc-slider-at, 0) * (100% - var(--pc-slider-thumb)) + var(--pc-slider-thumb) / 2
+    );
+  }
+
+  /* Single fills from the start to the thumb; dual spans between the thumbs. */
+  .pc-slider__fill {
+    @apply absolute rounded-full bg-primary-500;
+    --pc-slider-at: var(--pc-slider-frac, 0);
+    height: var(--pc-slider-track);
+    left: 0;
+    right: calc(100% - var(--pc-slider-anchor));
+  }
+
+  /* Two anchors on one element, so this pair is spelled out rather than routed
+     through the shared --pc-slider-at. */
+  .pc-slider--dual .pc-slider__fill {
+    --pc-slider-anchor-min: calc(
+      var(--pc-slider-frac-min, 0) * (100% - var(--pc-slider-thumb)) + var(--pc-slider-thumb) / 2
+    );
+    --pc-slider-anchor-max: calc(
+      var(--pc-slider-frac-max, 1) * (100% - var(--pc-slider-thumb)) + var(--pc-slider-thumb) / 2
+    );
+    left: var(--pc-slider-anchor-min);
+    right: calc(100% - var(--pc-slider-anchor-max));
+  }
+
+  /* Ticks sit above the fill so a mark inside the filled span can invert. */
+  .pc-slider__marks {
+    @apply absolute inset-x-0 pointer-events-none;
+    height: var(--pc-slider-track);
+  }
+
+  .pc-slider__mark {
+    @apply absolute top-1/2 rounded-full;
+    left: var(--pc-slider-anchor);
+    width: 0.25rem;
+    height: 0.25rem;
+    transform: translate(-50%, -50%);
+    background-color: color-mix(in oklab, var(--color-gray-500) 55%, transparent);
+  }
+
+  /* On-primary treatment once the fill has swallowed the tick. */
+  .pc-slider__mark--filled {
+    background-color: color-mix(in oklab, white 70%, transparent);
+  }
+
+  /* Positioned against the track, not the outer wrapper: the wrapper also holds
+     the header row and stretches to the widest label, which put every vertical
+     label off the track. Being out of flow, the labels' row is reserved with
+     margin on the track wrapper instead (h-5 + mt-1.5). */
+  .pc-slider__mark-labels {
+    @apply absolute inset-x-0 top-full h-5 mt-1.5;
+  }
+
+  .pc-slider--mark-labels .pc-slider__track-wrapper {
+    /* h-5 + mt-1.5 above, spelled out because it is reserving that box. */
+    margin-bottom: 1.625rem;
+  }
+
+  .pc-slider__mark-label {
+    @apply absolute text-xs text-gray-500 whitespace-nowrap dark:text-gray-400 tabular-nums;
+    left: var(--pc-slider-anchor);
+    transform: translateX(-50%);
+  }
+
+  /* The native input: its own track and thumb are painted out, everything
+     visible comes from the elements above. */
+  .pc-slider__input {
+    @apply w-full bg-transparent appearance-none cursor-pointer focus:outline-hidden disabled:cursor-not-allowed;
+    height: var(--pc-slider-thumb);
+    margin: 0;
+  }
+
+  .pc-slider__input::-webkit-slider-runnable-track {
+    @apply bg-transparent;
+    height: var(--pc-slider-track);
+  }
+
+  .pc-slider__input::-moz-range-track {
+    @apply bg-transparent;
+    height: var(--pc-slider-track);
+  }
+
+  /* box-border is load-bearing: preflight's border-box reset cannot reach a
+     pseudo-element (the universal selector does not match one) and the UA
+     defaults disagree - WebKit sizes range thumbs border-box, Firefox
+     content-box - so without it Firefox draws the ring outside the diameter.
+
+     margin-top is the thumb-centring mechanism, and it is the ONLY one: WebKit
+     centres ::-webkit-slider-runnable-track in the input's content box and then
+     puts the thumb's TOP EDGE on the runnable track's top edge, so an
+     uncompensated thumb hangs (thumb - track) / 2 below the line it is meant to
+     sit on. Both modes go through this rule; nothing may reset it. (Firefox
+     centres ::-moz-range-thumb on the track itself, hence no equivalent.)
+
+     The ring is white in both schemes, the look .pc-range-input settled on:
+     it separates the thumb from a light track and a dark one alike. There is
+     deliberately no `dark:` variant here - on a pseudo-element it compiles to a
+     trailing :where(.dark, ...) ancestor test that can never match, so it would
+     read as an intention the paint never honours. A pseudo-element that really
+     needs a scheme-dependent value reads a custom property off .pc-slider
+     instead, the way --pc-slider-surface does. */
+  .pc-slider__input::-webkit-slider-thumb {
+    @apply relative appearance-none rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out;
+    width: var(--pc-slider-thumb);
+    height: var(--pc-slider-thumb);
+    margin-top: calc((var(--pc-slider-track) - var(--pc-slider-thumb)) / 2);
+  }
+
+  .pc-slider__input::-moz-range-thumb {
+    @apply rounded-full cursor-pointer bg-primary-500 border-[3px] border-white box-border shadow shadow-black/25 transition-transform duration-100 ease-out;
+    width: var(--pc-slider-thumb);
+    height: var(--pc-slider-thumb);
+  }
+
+  .pc-slider__input:hover::-webkit-slider-thumb {
+    @apply scale-110;
+  }
+
+  /* focus-visible only - a persistent :focus ring would sit on the thumb for
+     the whole of a mouse drag. */
+  .pc-slider__input:focus-visible::-webkit-slider-thumb {
+    @apply scale-110 ring-2 ring-primary-500/50;
+  }
+
+  .pc-slider__input:hover::-moz-range-thumb {
+    transform: scale(1.1);
+  }
+
+  .pc-slider__input:focus-visible::-moz-range-thumb {
+    transform: scale(1.1);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary-500) 50%, transparent);
+  }
+
+  /* Dual: two inputs stacked over the shared track. Only the thumbs take
+     pointer events, so each one stays independently draggable where they
+     overlap, and `top: auto` lets the flex parent's align-items: center
+     resolve their static position - the same alignment that places the track
+     itself, so the two cannot drift apart.
+
+     A dual input is a single input that has been taken out of flow. It keeps
+     the same box (height: var(--pc-slider-thumb), from the base rule) and the
+     same thumb, so it inherits the one thumb-centring compensation above.
+     Collapsing it to height: 0 and dropping that compensation is what used to
+     hang both thumbs (thumb - track) / 2 low: 6px at sm, 7px at md, 8px at lg. */
+  .pc-slider--dual .pc-slider__input {
+    @apply absolute w-full outline-none pointer-events-none;
+  }
+
+  .pc-slider--dual .pc-slider__input::-webkit-slider-thumb {
+    @apply pointer-events-auto;
+  }
+
+  .pc-slider--dual .pc-slider__input::-moz-range-thumb {
+    @apply pointer-events-auto;
+  }
+
+  /* Value bubble. Anchored off the same fraction the fill uses, so there is no
+     measurement JS - --pc-slider-at is aliased to the relevant fraction on the
+     element itself. */
+  .pc-slider__tooltip {
+    @apply absolute bottom-full z-10 mb-2 px-1.5 py-0.5 text-xs font-medium text-white pointer-events-none opacity-0 bg-gray-900 tabular-nums whitespace-nowrap transition-opacity duration-150 ease-out dark:bg-gray-700;
+    left: var(--pc-slider-anchor);
+    transform: translateX(-50%);
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  .pc-slider:hover .pc-slider__tooltip,
+  .pc-slider:has(.pc-slider__input:focus-visible) .pc-slider__tooltip,
+  .pc-slider:has(.pc-slider__input:active) .pc-slider__tooltip {
+    @apply opacity-100;
+  }
+
+  /* Vertical. writing-mode is the standards-track way to stand a range up
+     (Chrome 111+, Firefox 108+, Safari 15.4+); direction: rtl puts the minimum
+     at the bottom where it belongs. Rotated that way the input keeps
+     appearance: none from the base rule, so every custom rule above - the
+     painted-out runnable track, the thumb's fill, ring, radius and shadow -
+     applies exactly as it does lying down. Vertical is the same control,
+     turned; it has no styling of its own.
+
+     -webkit-appearance: slider-vertical must never come back. It is not a
+     second, harmless hint: -webkit-appearance IS `appearance`, so that
+     declaration outranked the base rule's appearance: none at higher
+     specificity and handed the whole control back to the UA - a native vertical
+     slider painted over our track and fill, with ::-webkit-slider-thumb
+     generating no box at all. The deprecated value only ever bought pre-2023
+     WebKit, which this stylesheet has already left behind (the gray surface and
+     the marks are color-mix(in oklab), Safari 16.2+). In anything older the
+     input degrades to a horizontal range inside the standing wrapper while the
+     track, fill and marks - real elements - still paint. */
+  .pc-slider--vertical .pc-slider__track-wrapper {
+    @apply flex-col justify-center w-auto;
+    height: var(--pc-slider-length);
+    min-height: 0;
+    width: var(--pc-slider-thumb);
+  }
+
+  .pc-slider--vertical .pc-slider__input {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: var(--pc-slider-thumb);
+    height: 100%;
+  }
+
+  /* Out of flow, full length, thumb-thick: the standing form of the dual rule
+     above, keeping the single input's box for the same reason. Standing up,
+     WebKit centres the thumb across the runnable track itself rather than off
+     the margin, so a collapsed cross size measured the same here as a thumb-
+     thick one - but leaving one dual rule shaped like the bug the other one
+     just had is how it grows back. */
+  .pc-slider--vertical.pc-slider--dual .pc-slider__input {
+    @apply absolute h-full;
+    width: var(--pc-slider-thumb);
+  }
+
+  .pc-slider--vertical .pc-slider__track,
+  .pc-slider--vertical .pc-slider__fill,
+  .pc-slider--vertical .pc-slider__marks {
+    @apply inset-x-auto left-1/2 h-auto;
+    width: var(--pc-slider-track);
+    transform: translateX(-50%);
+  }
+
+  .pc-slider--vertical .pc-slider__track {
+    @apply inset-y-0;
+  }
+
+  .pc-slider--vertical .pc-slider__fill {
+    @apply right-auto;
+    bottom: 0;
+    top: calc(100% - var(--pc-slider-anchor));
+  }
+
+  .pc-slider--vertical.pc-slider--dual .pc-slider__fill {
+    @apply left-1/2;
+    bottom: var(--pc-slider-anchor-min);
+    top: calc(100% - var(--pc-slider-anchor-max));
+  }
+
+  .pc-slider--vertical .pc-slider__marks {
+    @apply inset-y-0;
+  }
+
+  .pc-slider--vertical .pc-slider__mark {
+    @apply top-auto left-1/2;
+    bottom: var(--pc-slider-anchor);
+    transform: translate(-50%, 50%);
+  }
+
+  /* Vertical mark labels run beside the track rather than under it. Still
+     inside the track wrapper, so inset-y-0 is exactly the track's travel and
+     left-full is its edge - no reaching past the header row for a centre. */
+  .pc-slider--vertical .pc-slider__mark-labels {
+    @apply inset-x-auto inset-y-0 left-full h-auto mt-0 ml-2;
+  }
+
+  .pc-slider--vertical.pc-slider--mark-labels .pc-slider__track-wrapper {
+    @apply mb-0;
+  }
+
+  .pc-slider--vertical .pc-slider__mark-label {
+    @apply left-0;
+    bottom: var(--pc-slider-anchor);
+    transform: translateY(50%);
+  }
+
+  .pc-slider--vertical .pc-slider__tooltip {
+    @apply bottom-auto left-full mb-0 ml-2;
+    top: calc(100% - var(--pc-slider-anchor));
+    transform: translateY(-50%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-slider__input::-webkit-slider-thumb,
+    .pc-slider__input::-moz-range-thumb,
+    .pc-slider__tooltip {
+      transition-duration: 1ms;
+    }
+
+    .pc-slider__input:hover::-webkit-slider-thumb,
+    .pc-slider__input:focus-visible::-webkit-slider-thumb,
+    .pc-slider__input:hover::-moz-range-thumb,
+    .pc-slider__input:focus-visible::-moz-range-thumb {
+      transform: none;
+    }
+  }
+}

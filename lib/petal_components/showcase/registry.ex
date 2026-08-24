@@ -56,6 +56,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.ShineBorder,
     PetalComponents.Showcase.Sidebar,
     PetalComponents.Showcase.Skeleton,
+    PetalComponents.Showcase.Slider,
     PetalComponents.Showcase.SlideOver,
     PetalComponents.Showcase.Sparkline,
     PetalComponents.Showcase.SpotlightCard,
