@@ -211,7 +211,10 @@ defmodule PetalComponents.NumberField do
       assigns
       |> assign(:id, resolve_id(assigns.id, assigns.name))
       |> assign(:display, display)
-      |> assign(:value_now, if(rounded && is_integer(assigns.precision), do: display, else: rounded))
+      |> assign(
+        :value_now,
+        if(rounded && is_integer(assigns.precision), do: display, else: rounded)
+      )
       |> assign(:at_min, at_bound?(rounded, min, :min))
       |> assign(:at_max, at_bound?(rounded, max, :max))
       |> assign(:big_step, assigns.big_step || big_step_default(assigns.step))

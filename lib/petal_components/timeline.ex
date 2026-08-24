@@ -183,8 +183,11 @@ defmodule PetalComponents.Timeline do
 
     attr :description, :string, doc: "one-line body; use the inner block instead for rich content"
     attr :marker, :string, doc: ~s|"dot" (default), "icon", "avatar", or "number"|
+
     attr :icon, :string,
-      doc: ~s|heroicon name when marker="icon", e.g. "hero-truck". Defaults to "hero-check" when omitted|
+      doc:
+        ~s|heroicon name when marker="icon", e.g. "hero-truck". Defaults to "hero-check" when omitted|
+
     attr :src, :string, doc: ~s|image URL when marker="avatar"|
 
     attr :name, :string,
