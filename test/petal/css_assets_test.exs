@@ -536,4 +536,32 @@ defmodule PetalComponents.CssAssetsTest do
                inspect(offenders)
     end
   end
+
+  describe "chat page surface contracts" do
+    # Four maintainer-found breaks on /c/chat, each pinned so it cannot
+    # quietly regress: the markdown underline leaking onto citation chips,
+    # the questionnaire submit hardcoding white over the themable solid
+    # button face, and the attachment row painting page-level grays on the
+    # inverted user bubble.
+    setup do
+      %{css: File.read!("assets/default.css")}
+    end
+
+    test "markdown link underline excludes citation chips", %{css: css} do
+      assert css =~ ".pc-chat__markdown a:not(.pc-chat__citation)"
+    end
+
+    test "the questionnaire submit wears the solid-button face token", %{css: css} do
+      [rule] = Regex.run(~r/\.pc-questionnaire__submit \{[^}]+\}/s, css)
+      assert rule =~ "--pc-button-solid-fg"
+      # scoped to the utilities: the explanatory comment may SAY "text-white"
+      refute rule =~ ~r/@apply[^;]*text-white/
+    end
+
+    test "the user bubble's attachment row derives from currentColor", %{css: css} do
+      assert css =~ ".pc-chat__bubble--user .pc-chat__attachment-row {"
+      [rule] = Regex.run(~r/\.pc-chat__bubble--user \.pc-chat__attachment-row \{[^}]+\}/s, css)
+      assert rule =~ "currentColor"
+    end
+  end
 end

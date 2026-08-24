@@ -1617,6 +1617,10 @@ defmodule PetalComponents.ChatTest do
       html = rendered_to_string(~H|<.questionnaire spec={@spec} />|)
 
       assert html =~ "pc-radio-card"
+      # The row-with-dot layout, not the centred tile: a form question reads
+      # left-to-right with a visible control, the reference questionnaires'
+      # ergonomics (found by the maintainer against shadcn's).
+      assert html =~ "pc-radio-card--indicator"
       assert html =~ "Phoenix"
       assert html =~ "Elixir, LiveView"
     end
