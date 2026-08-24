@@ -3,6 +3,27 @@
 
 #### Added
 
+- **New `empty` component: the empty state, standardised.** The thing a
+  list, table, inbox or search renders when it has nothing to show -
+  media, title, description, an actions row and an optional trailing
+  line, centred in a column. Every app rebuilds this anatomy by hand and
+  ends up with five different versions of it; `<.empty>` makes them one.
+  Four variants: `default` is the bare centred column with page-level
+  air, `compact` tightens the padding and type for a table frame or a
+  list, `card` wraps it in the panel surface (border, radius, the same
+  formula the card uses), and `dashed` is the drop-target look - a
+  visual treatment only, no drag and drop attached. Sizes `sm`/`md`/`lg`
+  scale the media, the type and the spacing together. Without an `:icon`
+  slot a default treatment renders - a muted circle with a dashed ring
+  around a heroicon glyph, marked `aria-hidden` because it is
+  decorative - and the slot replaces it with any icon or illustration
+  you like. Every part is optional, so a title on its own renders fine.
+  The root stays a plain `div` with no landmark and no live region:
+  announcing that a result set changed is the job of whatever changed
+  it, not of static content. It drops straight into `<.data_table>`'s
+  `:empty` slot, so a table's empty state and a page's are the same
+  component. Pure markup and CSS - no JS, no hook.
+
 - **`stepper` gains `size="xs"`, `variant="bars"`, and circles that
   don't need names.** Three gaps against the reference set, closed
   together. `xs` is a 24px disc with 11px numerals, sized for a rail

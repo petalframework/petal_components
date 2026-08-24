@@ -37,6 +37,7 @@ defmodule PetalComponents do
         Confetti,
         Container,
         Dropdown,
+        Empty,
         Field,
         Form,
         Icon,
