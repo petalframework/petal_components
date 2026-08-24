@@ -5892,6 +5892,341 @@ export const PetalDataTable = {
   },
 };
 
+// Scrollspy: highlight the nav entry for the section being read.
+//
+// The observer is only a cheap trigger - every decision is made from live
+// rects, so a section that grew, a window resize, or a LiveView patch can
+// never leave the rail describing a page that no longer exists.
+//
+// Band, not line, for the observer: rootMargin crops the viewport down to a
+// reading strip near the top, so callbacks fire when a heading arrives there
+// rather than on every pixel of scroll.
+const SCROLLSPY_ROOT_MARGIN = "-25% 0px -70% 0px";
+
+// Which section owns the activation line.
+//
+// `sections` is [{ id, top }] in document order, `top` in viewport
+// coordinates; `line` is the activation line, also in viewport coordinates.
+// The last section that has reached the line wins, which is the one nearest
+// the top of the viewport that the reader has actually got to - a new heading
+// takes over as it arrives, not when the previous section finally leaves.
+//
+// Exported for the spec: this is the whole behaviour of the hook expressed as
+// a pure function, so it can be tested without an IntersectionObserver.
+export function scrollspyActive(sections, { line = 0, atBottom = false } = {}) {
+  if (!sections.length) return null;
+  // At the very bottom there is no scroll left to bring a short final section
+  // to the line, so nothing below would ever be reachable. Snap to the last.
+  if (atBottom) return sections[sections.length - 1].id;
+
+  let active = sections[0].id;
+  // 1px of slack: sub-pixel layout means a section resting exactly on the
+  // line can measure a hair below it and flicker back to its predecessor.
+  for (const section of sections) {
+    if (section.top - line <= 1) active = section.id;
+  }
+  return active;
+}
+
+// The scrollable box the sections live in. For sections inside an overflow
+// pane (an app shell with its own scroller) this box is the frame every
+// measurement uses: the activation line, the section tops, and "am I at the
+// bottom" are all questions about the pane, not the viewport.
+function scrollspyScrollRoot(el) {
+  let node = el?.parentElement;
+  while (node && node !== document.body) {
+    const { overflowY } = getComputedStyle(node);
+    if (
+      (overflowY === "auto" || overflowY === "scroll") &&
+      node.scrollHeight > node.clientHeight + 1
+    ) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+// rootMargin's top component, resolved to viewport pixels. A negative top
+// margin crops the root downward, so the cropped edge - the activation line -
+// sits that far below the top of the viewport.
+function scrollspyLine(rootMargin, height) {
+  const top = String(rootMargin).trim().split(/\s+/)[0] || "0px";
+  const value = parseFloat(top);
+  if (Number.isNaN(value)) return 0;
+  return top.endsWith("%") ? (-value / 100) * height : -value;
+}
+
+export const PetalScrollspy = {
+  mounted() {
+    this.active = null;
+    this.frame = null;
+    this.targetStyles = new Map();
+
+    this.onHashChange = () => this.applyHash();
+    // Coalesce to one pass per frame: scroll outruns paint, and each pass
+    // reads layout.
+    this.onScroll = () => {
+      if (this.frame) return;
+      this.frame = requestAnimationFrame(() => {
+        this.frame = null;
+        this.sync();
+      });
+    };
+
+    this.scan();
+    this.enableSmoothScroll();
+    window.addEventListener("hashchange", this.onHashChange);
+    window.addEventListener("resize", this.onScroll, { passive: true });
+
+    // The OS preference can flip mid-session; follow it live rather than
+    // freezing whatever was true at mount.
+    this.motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    this.onMotionChange = () => {
+      if (this.reducedMotion()) {
+        this.restoreSmooth();
+      } else {
+        this.enableSmoothScroll();
+      }
+    };
+    this.motionQuery?.addEventListener?.("change", this.onMotionChange);
+
+    // A deep link should be right from the first paint rather than after the
+    // observer's first callback.
+    if (!this.applyHash()) this.sync();
+  },
+
+  // LiveView can replace the rail or the article wholesale; re-measure both.
+  updated() {
+    this.scan();
+    this.sync();
+  },
+
+  destroyed() {
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.observer?.disconnect();
+    window.removeEventListener("hashchange", this.onHashChange);
+    window.removeEventListener("resize", this.onScroll);
+    this.motionQuery?.removeEventListener?.("change", this.onMotionChange);
+    this.listenToScrollRoot(null);
+    this.restoreScroll();
+  },
+
+  // Re-read the links, re-resolve the targets, re-point the observer. Safe to
+  // call repeatedly - the old observer is dropped first.
+  scan() {
+    this.links = Array.from(
+      this.el.querySelectorAll("[data-scrollspy-target]"),
+    );
+    this.targets = this.links
+      .map((link) => document.getElementById(link.dataset.scrollspyTarget))
+      .filter(Boolean);
+
+    this.listenToScrollRoot(scrollspyScrollRoot(this.targets[0] || this.el));
+    // A patch can relocate the sections into a different scroller; smoothing
+    // follows the root (no-op when it hasn't moved).
+    if (this.smoothedEl) this.enableSmoothScroll();
+    this.rootMargin = this.el.dataset.threshold || SCROLLSPY_ROOT_MARGIN;
+
+    // scroll-margin-top is what keeps a fixed header off the heading you just
+    // jumped to. It belongs on the target, which the component can't reach.
+    const offset = this.el.dataset.offset;
+    if (offset) {
+      this.targets.forEach((target) => {
+        if (!this.targetStyles.has(target)) {
+          this.targetStyles.set(target, target.style.scrollMarginTop);
+        }
+        target.style.scrollMarginTop = offset;
+      });
+    }
+
+    this.observer?.disconnect();
+    if (typeof IntersectionObserver === "undefined") return;
+    // Observe within the pane when there is one, so rootMargin crops the box
+    // that actually scrolls; null = the viewport, for page-scrolled rails.
+    this.observer = new IntersectionObserver(() => this.sync(), {
+      root: this.scrollFrame().pane,
+      rootMargin: this.rootMargin,
+      threshold: 0,
+    });
+    this.targets.forEach((target) => this.observer.observe(target));
+  },
+
+  // Bottom snap can't come from the observer: a short final section may never
+  // reach the line, so no callback ever fires for it. A patch can move the
+  // sections into a different scroller, so the listener follows rather than
+  // being left on the old one. Pass null to detach.
+  listenToScrollRoot(root) {
+    if (this.scrollRoot === root) return;
+    this.scrollRoot?.removeEventListener("scroll", this.onScroll);
+    this.scrollRoot = root;
+    this.scrollRoot?.addEventListener("scroll", this.onScroll, {
+      passive: true,
+    });
+  },
+
+  reducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  },
+
+  // Clicking a link is a native anchor jump; smooth is a property of the
+  // scroller, not of the click. Under reduced motion, leave it instant.
+  // Idempotent for the same root, and migrates when a LiveView patch moves
+  // the sections into a different scroller (the old root gets its style
+  // back, the new one gets smoothed).
+  enableSmoothScroll() {
+    if (this.reducedMotion()) return;
+    if (!this.scrollRoot) return;
+    const root =
+      this.scrollRoot === document.scrollingElement ||
+      this.scrollRoot === document.documentElement
+        ? document.documentElement
+        : this.scrollRoot;
+    if (!root.dataset) return;
+    if (this.smoothedEl === root) return;
+    this.restoreSmooth();
+
+    // Several rails can share one scroller. The FIRST smoother snapshots the
+    // page's own value onto the ELEMENT and a ref-count decides who turns
+    // the lights off - instance-local snapshots restored in mount order left
+    // smooth applied forever (A saved "", B saved "smooth"; A restored "",
+    // B re-restored "smooth").
+    const count = Number(root.dataset.pcSmoothCount || 0);
+    if (count === 0) {
+      root.dataset.pcSmoothPrior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "smooth";
+    }
+    root.dataset.pcSmoothCount = String(count + 1);
+    this.smoothedEl = root;
+  },
+
+  restoreSmooth() {
+    const root = this.smoothedEl;
+    if (!root) return;
+    this.smoothedEl = null;
+    const count = Math.max(0, Number(root.dataset.pcSmoothCount || 0) - 1);
+    if (count === 0) {
+      root.style.scrollBehavior = root.dataset.pcSmoothPrior || "";
+      delete root.dataset.pcSmoothPrior;
+      delete root.dataset.pcSmoothCount;
+    } else {
+      root.dataset.pcSmoothCount = String(count);
+    }
+  },
+
+  // The page is not ours: hand back every style we borrowed.
+  restoreScroll() {
+    this.restoreSmooth();
+    this.targetStyles.forEach((prior, target) => {
+      target.style.scrollMarginTop = prior || "";
+    });
+    this.targetStyles.clear();
+  },
+
+  atBottom() {
+    const root = this.scrollRoot;
+    if (!root) return false;
+    // A page with nothing to scroll is not "at the bottom" in any sense the
+    // reader would recognise - snapping there would highlight the last entry
+    // on a short page that is entirely visible.
+    if (root.scrollHeight <= root.clientHeight + 1) return false;
+    // 2px of slack: fractional device pixels mean scrollTop rarely lands
+    // exactly on the arithmetic bottom.
+    return root.scrollTop + root.clientHeight >= root.scrollHeight - 2;
+  },
+
+  // The page-vs-pane question, answered once for both measurements. Sections
+  // in an overflow pane measure against THEIR scroller and the activation
+  // line is a fraction of the pane's height - measured against the viewport,
+  // the highlight becomes a function of where the pane happens to sit on the
+  // page (right at one page-scroll position, wrong at every other).
+  scrollFrame() {
+    const root = this.scrollRoot;
+    if (
+      !root ||
+      root === document.scrollingElement ||
+      root === document.documentElement
+    ) {
+      return { base: 0, height: window.innerHeight || 0, pane: null };
+    }
+    return {
+      base: root.getBoundingClientRect().top,
+      height: root.clientHeight,
+      pane: root,
+    };
+  },
+
+  sync() {
+    if (!this.targets?.length) return;
+
+    const { base, height } = this.scrollFrame();
+    const sections = this.targets.map((target) => ({
+      id: target.id,
+      top: target.getBoundingClientRect().top - base,
+    }));
+
+    this.setActive(
+      scrollspyActive(sections, {
+        line: scrollspyLine(this.rootMargin, height),
+        atBottom: this.atBottom(),
+      }),
+    );
+  },
+
+  // A hash beats the observer on arrival: the reader asked for that section
+  // explicitly, and the scroll that gets them there hasn't happened yet.
+  applyHash() {
+    const id = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!id || !this.targets?.some((target) => target.id === id)) return false;
+    this.setActive(id);
+    return true;
+  },
+
+  setActive(id) {
+    if (id === this.active) {
+      // Same link, but it may have moved (resize, patched rail).
+      this.moveIndicator();
+      return;
+    }
+    this.active = id;
+
+    this.links.forEach((link) => {
+      const on = link.dataset.scrollspyTarget === id;
+      link.classList.toggle("pc-scrollspy-link--active", on);
+      // aria-current is the non-visual half of the active state - without it
+      // the highlight is colour alone.
+      if (on) {
+        link.setAttribute("aria-current", "location");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    this.moveIndicator();
+  },
+
+  // The bar is positioned, not animated, by JS: transform + height here, the
+  // transition (and its reduced-motion opt-out) in CSS.
+  moveIndicator() {
+    const bar = this.el.querySelector(".pc-scrollspy__indicator");
+    if (!bar) return;
+
+    const link = this.links?.find(
+      (candidate) => candidate.dataset.scrollspyTarget === this.active,
+    );
+    if (!link) {
+      bar.style.opacity = "0";
+      return;
+    }
+
+    const navRect = this.el.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    bar.style.opacity = "";
+    bar.style.height = `${linkRect.height}px`;
+    bar.style.transform = `translateY(${linkRect.top - navRect.top}px)`;
+  },
+};
+
 export default {
   PetalChart,
   PetalColorScheme,
@@ -5924,4 +6259,5 @@ export default {
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,
+  PetalScrollspy,
 };
