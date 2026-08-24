@@ -19,8 +19,54 @@ defmodule PetalComponents.Showcase.Chat do
       :chat_error,
       :chat_sources,
       :citation,
-      :message_attachments
+      :message_attachments,
+      :questionnaire
     ]
+
+  @framework_spec %{
+    id: "showcase-q-framework",
+    title: "Which framework are you targeting?",
+    description: "This picks the generators I'll reach for.",
+    fields: [
+      %{
+        id: "framework",
+        type: :single_select,
+        label: "Framework",
+        required: true,
+        options: [
+          %{value: "phoenix", label: "Phoenix", description: "Elixir, LiveView, server-rendered"},
+          %{value: "rails", label: "Rails", description: "Ruby, Hotwire, convention-first"},
+          %{value: "next", label: "Next.js", description: "React, app router, RSC"}
+        ]
+      }
+    ]
+  }
+
+  @scoping_spec %{
+    id: "showcase-q-scope",
+    title: "Before I scaffold, two things",
+    fields: [
+      %{
+        id: "features",
+        type: :multi_select,
+        label: "Which features do you need?",
+        options: [
+          %{value: "auth", label: "Auth"},
+          %{value: "billing", label: "Billing"},
+          %{value: "admin", label: "Admin panel"}
+        ]
+      },
+      %{id: "team", type: :text, label: "Team name", placeholder: "Platform"},
+      %{
+        id: "confidence",
+        type: :scale,
+        label: "How settled is this scope?",
+        min_label: "Still exploring",
+        max_label: "Locked",
+        required: true
+      }
+    ]
+  }
 
   @rag_sources [
     %{
@@ -63,6 +109,14 @@ defmodule PetalComponents.Showcase.Chat do
   defp rag_sources, do: @rag_sources
   defp shot_image, do: @shot_image
   defp logs_image, do: @logs_image
+  defp framework_spec, do: @framework_spec
+  defp scoping_spec, do: @scoping_spec
+
+  # Every example on the page renders at once, and ids inside a questionnaire
+  # derive from the spec id (title, radio-card inputs), so a spec rendered more
+  # than once needs a distinct id per copy.
+  defp framework_spec(id), do: %{@framework_spec | id: id}
+  defp scoping_spec(id), do: %{@scoping_spec | id: id}
 
   example :flagship, "A complete chat",
     description:
@@ -140,11 +194,11 @@ defmodule PetalComponents.Showcase.Chat do
 
   example :tool_call, "Tool calls",
     description:
-      "Generative UI. The model emits data, you map the tool name to a real Phoenix component. status drives the header: running spins, complete checks, error warns." do
+      "Generative UI. The model emits data, you map the tool name to a real Phoenix component and render it in the card - the widget stays visible, it never hides behind a disclosure. state drives the header; the older status attr still works and maps onto the same three values." do
     ~H"""
     <div class="w-full max-w-xl mx-auto space-y-3">
-      <.tool_call name="search_web" status={:running} label="Searching the web" />
-      <.tool_call name="get_weather" status={:complete}>
+      <.tool_call name="search_web" state={:running} label="Searching the web" />
+      <.tool_call name="get_weather" state={:complete}>
         <div class="flex items-center justify-between px-4 py-3 text-white rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600">
           <div>
             <div class="text-sm font-medium opacity-90">Tokyo</div>
@@ -153,7 +207,103 @@ defmodule PetalComponents.Showcase.Chat do
           <div class="text-4xl">☀️</div>
         </div>
       </.tool_call>
-      <.tool_call name="charge_card" status={:error} label="Payment failed" />
+      <.tool_call name="charge_card" state={:error} label="Payment failed" />
+    </div>
+    """
+  end
+
+  example :tool_call_lifecycle, "Tool call lifecycle",
+    description:
+      "The five states a streaming call moves through, stacked so you can read the progression. state is a plain assign - your LiveView patches it as the model's response arrives, and the card follows. Pending and input_streaming rest on a skeleton, running gets the activity line, complete and error settle." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto space-y-3">
+      <.tool_call name="web_search" state={:pending} icon="web_search" />
+      <.tool_call name="web_search" state={:input_streaming} icon="web_search" />
+      <.tool_call
+        name="web_search"
+        state={:running}
+        icon="web_search"
+        label="Searching the web"
+        duration="0.8s"
+      />
+      <.tool_call
+        name="web_search"
+        state={:complete}
+        icon="web_search"
+        duration="1.2s"
+        input={"{\"query\": \"phoenix liveview streams\", \"limit\": 3}"}
+        output={"{\"results\": [{\"title\": \"Phoenix.LiveView\", \"url\": \"https://hexdocs.pm/phoenix_live_view\"}], \"count\": 1}"}
+      />
+      <.tool_call
+        name="charge_card"
+        state={:error}
+        icon="hero-credit-card"
+        duration="0.3s"
+        error="Card token expired before submit."
+        input={"{\"invoice\": \"4471\", \"amount_cents\": 9900}"}
+      >
+        <:error_actions>
+          <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+        </:error_actions>
+      </.tool_call>
+    </div>
+    """
+  end
+
+  example :tool_call_burst, "Compact tool burst",
+    description:
+      "An agent that fires six tools in a row shouldn't produce six cards. compact renders one dense line per call and consecutive rows stack into a list. Settled rows are the disclosure themselves - click or press Enter on a focused row to open the panels." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto">
+      <.tool_call
+        name="read_file"
+        compact
+        state={:complete}
+        icon="code"
+        duration="0.1s"
+        input={"{\"path\": \"lib/app_web/router.ex\"}"}
+        output={"{\"lines\": 184}"}
+      />
+      <.tool_call
+        name="grep"
+        compact
+        state={:complete}
+        icon="web_search"
+        duration="0.2s"
+        input={"{\"pattern\": \"live_session\"}"}
+        output={"{\"matches\": 6}"}
+      />
+      <.tool_call
+        name="query_users"
+        compact
+        state={:error}
+        icon="database"
+        duration="0.4s"
+        error="relation users does not exist"
+        input={"{\"sql\": \"select * from users limit 5\"}"}
+      >
+        <:error_actions>
+          <button type="button" class="pc-chat__action" phx-click="noop">Retry</button>
+        </:error_actions>
+      </.tool_call>
+      <.tool_call name="run_migrations" compact state={:running} icon="database" duration="2.1s" />
+      <.tool_call name="write_file" compact state={:pending} icon="code" />
+    </div>
+    """
+  end
+
+  example :tool_call_icons, "Tool icons",
+    description:
+      "icon takes one of the presets (web_search, code, database) or any hero-* name. For a vendor logo or anything that isn't a heroicon, the tool_icon slot takes over." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto space-y-3">
+      <.tool_call name="web_search" state={:complete} icon="web_search" duration="1.2s" />
+      <.tool_call name="read_file" state={:complete} icon="code" duration="0.1s" />
+      <.tool_call name="query_users" state={:complete} icon="database" duration="0.4s" />
+      <.tool_call name="send_invoice" state={:complete} icon="hero-envelope" duration="0.6s" />
+      <.tool_call name="stripe_refund" state={:complete} duration="0.9s">
+        <:tool_icon>💳</:tool_icon>
+      </.tool_call>
     </div>
     """
   end
@@ -280,6 +430,59 @@ defmodule PetalComponents.Showcase.Chat do
       <.chat_message role="assistant">
         Thanks - the stack trace in that screenshot points at the card token
         expiring before submit. I can see the charge attempt on invoice 4471.
+      </.chat_message>
+    </.conversation>
+    """
+  end
+
+  example :questionnaire, "Questionnaire",
+    description:
+      "The model pauses to ask a structured question and the answer lands in the transcript. Server-driven: a plain phx-submit, no client state. Options with descriptions render as radio cards, plain ones as radios." do
+    ~H"""
+    <.conversation id="showcase-chat-questionnaire" class="w-full max-w-xl mx-auto">
+      <.chat_message role="user">Scaffold me a starter app.</.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire spec={framework_spec()} allow_skip />
+      </.chat_message>
+    </.conversation>
+    """
+  end
+
+  example :questionnaire_mixed, "Questionnaire - mixed fields",
+    description:
+      "All four field types in one bubble: multi-select, short text, and a 1-to-5 scale with end captions. Required fields use the native required attribute, so enforcement is the browser's." do
+    ~H"""
+    <div class="w-full max-w-xl mx-auto">
+      <.questionnaire spec={scoping_spec()} submit_label="Send answers" />
+    </div>
+    """
+  end
+
+  example :questionnaire_resolved, "Questionnaire - resolved and skipped",
+    description:
+      "Once the app has the answer, pass it back as resolved and the form becomes quiet chips - nothing focusable is left behind. :skipped renders the one-line skipped state." do
+    ~H"""
+    <.conversation id="showcase-chat-questionnaire-resolved" class="w-full max-w-xl mx-auto">
+      <.chat_message role="assistant">
+        <.questionnaire
+          spec={framework_spec("showcase-q-framework-resolved")}
+          resolved={%{"framework" => "phoenix"}}
+        />
+      </.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire
+          spec={scoping_spec("showcase-q-scope-resolved")}
+          resolved={
+            %{
+              "features" => ["auth", "billing"],
+              "team" => "Platform",
+              "confidence" => "5"
+            }
+          }
+        />
+      </.chat_message>
+      <.chat_message role="assistant">
+        <.questionnaire spec={framework_spec("showcase-q-framework-skipped")} resolved={:skipped} />
       </.chat_message>
     </.conversation>
     """

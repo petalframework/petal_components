@@ -129,7 +129,8 @@ defmodule PetalComponents.Field do
 
   attr :required, :boolean,
     default: false,
-    doc: "is this field required? is passed to the input and adds an asterisk next to the label"
+    doc:
+      "is this field required? adds an asterisk next to the label and sets `required` on the input - including every radio in a radio-group or radio-card, where the browser then demands one of the group. checkbox-group is the exception: native `required` on a checkbox demands that box specifically, so it stays marker-only and the server validates"
 
   attr :fill, :boolean,
     default: false,
@@ -524,6 +525,7 @@ defmodule PetalComponents.Field do
               type="radio"
               name={@name}
               value={value}
+              required={@required}
               checked={
                 to_string(value) == to_string(@value) || to_string(value) == to_string(@checked)
               }
@@ -581,6 +583,7 @@ defmodule PetalComponents.Field do
               name={@name}
               id={"#{@id_prefix}_#{option[:value]}"}
               value={option[:value]}
+              required={@required}
               disabled={option[:disabled]}
               checked={
                 to_string(option[:value]) == to_string(@value) ||

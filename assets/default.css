@@ -8556,408 +8556,121 @@
   }
 }
 
-/* Number field
- *
- * A spinbutton riding the input-group surface: the group keeps the border,
- * radius and focus ring, so this section only paints the input density and
- * the step buttons. Inside @layer components so a consumer's own utilities
- * still outrank it.
- */
 @layer components {
-  .pc-number-field .pc-number-field__input {
-    /* text-base below sm, like pc-text-input: iOS Safari zooms the viewport
-       when focusing an input under 16px, and a re-layout mid-interaction
-       makes the next tap land on stale coordinates. */
-    @apply w-full min-w-0 px-3 py-2 text-base sm:text-sm text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder:text-gray-500;
-  }
-  .pc-number-field--sm .pc-number-field__input {
-    @apply px-2.5 py-1.5 sm:text-xs;
-  }
-  .pc-number-field--lg .pc-number-field__input {
-    @apply py-2.5 sm:text-base;
-  }
-  /* Split sits the value between two buttons, so centring it is what stops
-     the field reading as lopsided. */
-  .pc-number-field--split .pc-number-field__input {
-    @apply text-center;
+  /* Hover Card */
+
+  .pc-hover-card {
+    @apply relative inline-block;
   }
 
-  /* Addons holding buttons shed the text inset and wear the same 2px inset
-     frame as an input-group button chip. */
-  .pc-number-field .pc-input-group__addon:has(.pc-number-field__button) {
-    @apply gap-1 p-0.5;
-  }
-  .pc-number-field .pc-input-group__addon--leading:has(.pc-number-field__button) {
-    @apply pl-0.5;
-  }
-  .pc-number-field .pc-input-group__addon--trailing:has(.pc-number-field__button) {
-    @apply pr-0.5;
+  .pc-hover-card__trigger {
+    @apply inline-block;
   }
 
-  .pc-number-field__button {
-    @apply flex items-center justify-center shrink-0 w-7 text-gray-500 cursor-pointer select-none transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-100;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
-  }
-  .pc-number-field--sm .pc-number-field__button {
-    @apply w-6;
-  }
-  .pc-number-field--lg .pc-number-field__button {
-    @apply w-8;
-  }
-  /* At a bound the button keeps its place and its label (aria-disabled, not
-     disabled) but reads as spent and stops answering the pointer. */
-  .pc-number-field__button[aria-disabled="true"] {
-    @apply text-gray-300 pointer-events-none dark:text-gray-600;
-  }
-  /* Doubled selector: the icon sizing contract, same as the combobox chevron. */
-  .pc-number-field__icon.pc-number-field__icon {
-    @apply w-4! h-4!;
-  }
-  .pc-number-field--sm .pc-number-field__icon.pc-number-field__icon {
-    @apply w-3.5! h-3.5!;
+  /* The tooltip's reveal mechanics (visibility + opacity under
+     group-hover / group-focus-within) on the popover's floating surface.
+     visibility interpolates in steps, so on the way out the panel stays
+     visible for the whole delay AND the fade, then flips hidden in one go -
+     it can never be half-faded and still clickable. On the way in it flips
+     visible immediately after the delay, so the fade is seen. */
+  .pc-hover-card__panel {
+    @apply absolute z-40 invisible w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 text-left opacity-0 border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-400/17 group-hover/pc-hover-card:visible group-hover/pc-hover-card:opacity-100 group-focus-within/pc-hover-card:visible group-focus-within/pc-hover-card:opacity-100;
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
+    transition-property: opacity, visibility;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    /* At rest is the way OUT, so the resting delay is the close delay. */
+    transition-delay: var(--pc-hover-card-close-delay, 150ms);
   }
 
-  /* Stacked: two half-height buttons splitting the trailing addon's height,
-     the classic spinner. */
-  .pc-number-field__stack {
-    @apply flex flex-col self-stretch gap-px;
-  }
-  .pc-number-field__stack .pc-number-field__button {
-    @apply flex-1 min-h-0;
-  }
-  .pc-number-field__stack .pc-number-field__button--inc {
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
-      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px) 0 0;
-  }
-  .pc-number-field__stack .pc-number-field__button--dec {
-    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
-      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
-  }
-  .pc-number-field--split .pc-number-field__button {
-    @apply self-stretch;
-  }
-}
-
-/* Sidebar - the app-shell navigation rail.
- *
- * Wrapped in its own @layer components block on purpose: everything after the
- * showcase-props section above sits OUTSIDE any cascade layer, and unlayered
- * rules outrank a consumer's utilities, which would quietly break
- * <.sidebar class="..."> overrides.
- *
- * State lives in data attributes on .pc-sidebar (data-collapsed,
- * data-mobile-open, data-collapsible, data-side) so LiveView.JS can flip them
- * with no hook and no round trip. Collapse behaviour is scoped to md and up;
- * below that the sidebar is a sheet, and none of the rail rules apply.
- */
-@layer components {
-  .pc-sidebar-shell {
-    @apply flex w-full min-h-svh bg-white dark:bg-gray-950;
+  /* ...and under hover or focus it is the way IN, so the open delay wins. */
+  .pc-hover-card:hover .pc-hover-card__panel,
+  .pc-hover-card:focus-within .pc-hover-card__panel {
+    transition-delay: var(--pc-hover-card-open-delay, 350ms);
   }
 
-  .pc-sidebar-shell__main {
-    @apply flex flex-col flex-1 min-w-0;
+  /* The hover bridge. The placement offsets leave a real gap between trigger
+     and panel; without this a pointer crossing that gap leaves the group and
+     the card starts closing under the cursor. A transparent extension spans
+     the gap so the hover chain holds. It reaches ONLY toward the trigger's
+     side - a uniform ring would silently capture hover and clicks over page
+     content 8px past the three gapless edges while the card is open
+     (Radix/shadcn bridge one side for the same reason). It sits behind the
+     panel and inherits its visibility, so it is never a hit target while
+     closed. */
+  .pc-hover-card__panel::before {
+    content: "";
+    @apply absolute inset-0 -z-10;
   }
 
-  .pc-sidebar {
-    --pc-sidebar-width: 16rem;
-    /* Wide enough for a 2rem trigger plus a 1.25rem brand mark in the header
-       without clipping, which 3.5rem was not. */
-    --pc-sidebar-icon-width: 4rem;
-    @apply relative flex-none self-stretch;
-    width: var(--pc-sidebar-width);
-    transition: width 200ms ease;
+  /* Panel above the trigger: the gap (and the bridge) is below it. */
+  .pc-hover-card__panel--top::before,
+  .pc-hover-card__panel--top-start::before,
+  .pc-hover-card__panel--top-end::before {
+    bottom: -0.5rem;
   }
 
-  .pc-sidebar[data-side="right"] {
-    @apply order-last;
+  .pc-hover-card__panel--bottom::before,
+  .pc-hover-card__panel--bottom-start::before,
+  .pc-hover-card__panel--bottom-end::before {
+    top: -0.5rem;
   }
 
-  .pc-sidebar__panel {
-    /* h-full tracks a bounded shell (a demo frame, a dashboard card); max-h-svh
-       caps it at the viewport so sticky still works under long page content. */
-    @apply sticky top-0 z-30 flex flex-col w-full h-full overflow-hidden bg-gray-50 border-gray-200 max-h-svh dark:bg-gray-900 dark:border-gray-800;
+  .pc-hover-card__panel--left::before,
+  .pc-hover-card__panel--left-start::before,
+  .pc-hover-card__panel--left-end::before {
+    right: -0.5rem;
   }
 
-  .pc-sidebar[data-side="left"] .pc-sidebar__panel {
-    @apply border-r;
+  .pc-hover-card__panel--right::before,
+  .pc-hover-card__panel--right-start::before,
+  .pc-hover-card__panel--right-end::before {
+    left: -0.5rem;
   }
 
-  .pc-sidebar[data-side="right"] .pc-sidebar__panel {
-    @apply border-l;
+  /* Placement geometry, identical to the popover panel's. */
+  .pc-hover-card__panel--top {
+    @apply bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom;
+  }
+  .pc-hover-card__panel--top-start {
+    @apply bottom-full left-0 mb-2 origin-bottom-left;
+  }
+  .pc-hover-card__panel--top-end {
+    @apply bottom-full right-0 mb-2 origin-bottom-right;
+  }
+  .pc-hover-card__panel--bottom {
+    @apply top-full left-1/2 -translate-x-1/2 mt-2 origin-top;
+  }
+  .pc-hover-card__panel--bottom-start {
+    @apply top-full left-0 mt-2 origin-top-left;
+  }
+  .pc-hover-card__panel--bottom-end {
+    @apply top-full right-0 mt-2 origin-top-right;
+  }
+  .pc-hover-card__panel--left {
+    @apply right-full top-1/2 -translate-y-1/2 mr-2 origin-right;
+  }
+  .pc-hover-card__panel--left-start {
+    @apply right-full top-0 mr-2 origin-top-right;
+  }
+  .pc-hover-card__panel--left-end {
+    @apply right-full bottom-0 mr-2 origin-bottom-right;
+  }
+  .pc-hover-card__panel--right {
+    @apply left-full top-1/2 -translate-y-1/2 ml-2 origin-left;
+  }
+  .pc-hover-card__panel--right-start {
+    @apply left-full top-0 ml-2 origin-top-left;
+  }
+  .pc-hover-card__panel--right-end {
+    @apply left-full bottom-0 ml-2 origin-bottom-left;
   }
 
-  /* No focus_wrap sentinels to manage: the panel is a plain div. LiveView's
-     focus_wrap focuses its first focusable at MOUNT whenever the element is
-     displayed, and this panel is always displayed on desktop - the trap's
-     job while the sheet is open belongs to `inert` on the shell's content
-     region instead (nothing outside the sheet is focusable), which is how
-     native dialogs contain focus too. */
-
-  .pc-sidebar__scrim {
-    @apply hidden;
-  }
-
-  .pc-sidebar__nav {
-    @apply flex flex-col flex-1 min-h-0;
-  }
-
-  .pc-sidebar__header {
-    @apply flex items-center flex-none gap-2 px-3 border-b border-gray-200 h-14 dark:border-gray-800;
-  }
-
-  .pc-sidebar__brand {
-    @apply text-sm font-semibold truncate text-gray-900 dark:text-gray-50;
-  }
-
-  .pc-sidebar__content {
-    @apply flex flex-col flex-1 gap-4 px-2 py-4 overflow-x-hidden overflow-y-auto;
-  }
-
-  .pc-sidebar__footer {
-    @apply flex-none px-2 py-3 border-t border-gray-200 dark:border-gray-800;
-  }
-
-  /* Groups */
-
-  .pc-sidebar-group {
-    @apply flex flex-col gap-1;
-  }
-
-  .pc-sidebar-group__label {
-    @apply px-2 py-1 text-xs font-medium tracking-wide truncate text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-sidebar-group__toggle {
-    @apply flex items-center w-full gap-1 text-left cursor-pointer;
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
-  .pc-sidebar-group__toggle .pc-sidebar-group__label {
-    @apply flex-1;
-  }
-
-  .pc-sidebar-group__chevron {
-    @apply flex-none w-3.5 h-3.5 mr-2 text-gray-400;
-    transition: rotate 150ms ease;
-  }
-
-  .pc-sidebar-group__toggle[aria-expanded="true"] .pc-sidebar-group__chevron {
-    rotate: 90deg;
-  }
-
-  .pc-sidebar-group__items {
-    @apply flex flex-col gap-0.5;
-  }
-
-  .pc-sidebar-group__items[data-open="false"] {
-    @apply hidden;
-  }
-
-  /* Items */
-
-  .pc-sidebar-item__parent {
-    @apply flex flex-col gap-0.5;
-  }
-
-  .pc-sidebar-item {
-    @apply flex items-center w-full gap-2.5 px-2 py-2 text-sm font-medium text-left cursor-pointer;
-    @apply text-gray-700 hover:bg-gray-200/70 hover:text-gray-900;
-    @apply dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50;
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-    transition: background-color 150ms ease, color 150ms ease;
-  }
-
-  .pc-sidebar-item--active {
-    @apply bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-50;
-  }
-
-  .pc-sidebar-item__icon {
-    @apply flex-none w-5 h-5;
-  }
-
-  .pc-sidebar-item__label {
-    @apply flex-1 truncate;
-  }
-
-  .pc-sidebar-item__badge {
-    @apply flex-none px-1.5 py-0.5 text-xs font-semibold tabular-nums text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-800;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
-  }
-
-  .pc-sidebar-item--active .pc-sidebar-item__badge {
-    @apply text-gray-900 bg-white dark:text-gray-50 dark:bg-gray-950;
-  }
-
-  .pc-sidebar-item__chevron {
-    @apply flex-none w-3.5 h-3.5 text-gray-400;
-    transition: rotate 150ms ease;
-  }
-
-  .pc-sidebar-item[aria-expanded="true"] .pc-sidebar-item__chevron {
-    rotate: 90deg;
-  }
-
-  .pc-sidebar-item__sub {
-    @apply flex flex-col gap-0.5 pl-4 ml-4 border-l border-gray-200 dark:border-gray-800;
-  }
-
-  .pc-sidebar-item__sub[data-open="false"] {
-    @apply hidden;
-  }
-
-  /* Trigger */
-
-  .pc-sidebar-trigger {
-    @apply inline-flex items-center justify-center flex-none w-8 h-8 cursor-pointer;
-    @apply text-gray-600 hover:bg-gray-200/70 hover:text-gray-900;
-    @apply dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50;
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-    transition: background-color 150ms ease, color 150ms ease;
-  }
-
-  .pc-sidebar-trigger__icon {
-    @apply w-5 h-5;
-  }
-
-  /* Desktop: the collapse rail. */
-  @media (width >= 48rem) {
-    .pc-sidebar-trigger--mobile {
-      @apply hidden;
-    }
-
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] {
-      width: var(--pc-sidebar-icon-width);
-    }
-
-    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] {
-      @apply w-0;
-    }
-
-    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] .pc-sidebar__panel {
-      @apply hidden;
-    }
-
-    /* Icon rail: labels stay in the accessibility tree, they just stop taking
-       space. The title attribute carries the same text on hover.
-       .pc-user-menu__identity is the same idea for a user_dropdown_menu
-       variant="sidebar" in the footer slot: hiding it rather than dropping it
-       is what keeps the trigger button named, since the avatar beside it goes
-       aria-hidden whenever there is a name to read. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__label,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__badge,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__label,
-    /* vertical_menu participates in the rail too - the moduledocs promise a
-       menu drops straight into the content area, and a promise the rail
-       doesn't keep is a 4rem rail with full-width labels (Pro adoption
-       audit, gap G1). Same treatment as the family's own labels. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__label,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__toggle-label,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu__menu-group__title,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__identity,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__brand {
-      @apply sr-only;
-    }
-
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__chevron,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__chevron,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__sub {
-      @apply hidden;
-    }
-
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item,
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row {
-      @apply justify-center px-0;
-    }
-
-    /* The rail's header is a centred COLUMN, so a logo and a collapse trigger
-       each get a row of their own instead of elbowing each other along one
-       4rem line. Grid rather than a flex column on purpose: the single track
-       is only as wide as the widest child, which leaves an `ml-auto` a caller
-       put on the trigger for the expanded row no free space to shove it into.
-       Resetting that margin here is not an option - @layer utilities outranks
-       @layer components, so the utility wins whatever this rule says.
-       h-14 is a one-row height; min-h-14 keeps a header holding nothing but a
-       logo exactly as tall as it was expanded, and taller ones grow. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__header {
-      @apply grid justify-center justify-items-center h-auto px-0 py-3 min-h-14;
-    }
-
-    /* The footer is a plain block, so an inline-level child - a bare trigger,
-       the pattern the collapsed-rail example ships - cannot be centred by the
-       caller at all: auto margins need a block box to work on. A flex column
-       centres it, and a full-width item still spans the rail because its own
-       width outranks align-items. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__footer {
-      @apply flex flex-col items-center;
-    }
-
-    /* The user menu's chevron admits the panel can open either way. On the
-       rail there is no room to say it, and the avatar is the whole row. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row .pc-dropdown__chevron {
-      @apply hidden;
-    }
-
-    /* A panel opened from the rail - a user menu, a workspace switcher - is
-       240px of content hanging out of a 64px box, and the panel's
-       overflow-hidden ate all but the first sliver of it. That clip exists to
-       stop labels spilling while the width animates, and on the rail the
-       labels are already sr-only, so there is nothing left for it to hold in.
-       The content region keeps its own scroller either way. */
-    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__panel {
-      @apply overflow-visible;
-    }
-  }
-
-  /* Mobile: the sheet takeover. Anything collapsible leaves the flow and slides
-     in over the shell; collapsible="none" stays pinned. */
-  @media (width < 48rem) {
-    .pc-sidebar-trigger--collapse {
-      @apply hidden;
-    }
-
-    .pc-sidebar:not([data-collapsible="none"]) {
-      @apply w-0;
-    }
-
-    .pc-sidebar:not([data-collapsible="none"]) .pc-sidebar__panel {
-      @apply fixed inset-y-0 z-50 border-0;
-      width: var(--pc-sidebar-width);
-      max-width: 85vw;
-      transition: transform 200ms ease;
-    }
-
-    .pc-sidebar:not([data-collapsible="none"])[data-side="left"] .pc-sidebar__panel {
-      @apply left-0;
-      transform: translateX(-100%);
-    }
-
-    .pc-sidebar:not([data-collapsible="none"])[data-side="right"] .pc-sidebar__panel {
-      @apply right-0;
-      transform: translateX(100%);
-    }
-
-    /* Must carry the same :not() + attribute weight as the per-side rules above,
-       or those win the specificity tie and the panel stays translated off-screen. */
-    .pc-sidebar:not([data-collapsible="none"])[data-mobile-open="true"] .pc-sidebar__panel {
-      transform: translateX(0);
-    }
-
-    .pc-sidebar[data-mobile-open="true"] .pc-sidebar__scrim {
-      @apply fixed inset-0 z-40 block bg-gray-950/50;
-    }
-  }
-
+  /* Drop the fade, KEEP the delays. The delay is interaction design - without
+     it every glancing pointer fires a card - the fade is decoration. */
   @media (prefers-reduced-motion: reduce) {
-    .pc-sidebar,
-    .pc-sidebar__panel,
-    .pc-sidebar-item,
-    .pc-sidebar-item__chevron,
-    .pc-sidebar-group__chevron,
-    .pc-sidebar-trigger {
+    .pc-hover-card__panel {
+      transition-duration: 1ms;
     }
   }
 }
@@ -9084,69 +8797,6 @@
   @media (prefers-reduced-motion: reduce) {
     .pc-collapsible__panel,
     .pc-collapsible__chevron {
-    }
-  }
-}
-
-/* Scrollspy - the "on this page" rail.
-   Layered, unlike the tail above it: unlayered rules outrank every Tailwind
-   utility, which would stop a consumer overriding these with a class. */
-@layer components {
-  .pc-scrollspy {
-    @apply relative text-sm;
-  }
-
-  .pc-scrollspy__heading {
-    @apply block mb-3 text-xs font-semibold tracking-wide uppercase text-gray-900 dark:text-white;
-  }
-
-  .pc-scrollspy__list {
-    @apply flex flex-col;
-  }
-
-  /* The rail the bar slides along. Only the bar variant draws it - with
-     indicator="none" the active state is carried by the link alone. */
-  .pc-scrollspy--bar .pc-scrollspy__list {
-    @apply border-l border-gray-200 dark:border-gray-800;
-  }
-
-  .pc-scrollspy__sublist {
-    @apply flex flex-col;
-  }
-
-  .pc-scrollspy-link {
-    @apply block py-1.5 pl-4 pr-2 text-gray-500 transition-colors dark:text-gray-400;
-    @apply hover:text-gray-900 dark:hover:text-white;
-    @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:rounded-sm;
-  }
-
-  .pc-scrollspy-link--nested {
-    @apply pl-8 text-[0.8125rem];
-  }
-
-  .pc-scrollspy-link--active {
-    @apply font-medium text-primary-600 dark:text-primary-300;
-  }
-
-  .pc-scrollspy-link--active:hover {
-    @apply text-primary-700 dark:text-primary-200;
-  }
-
-  /* Positioned by the hook (transform + height); the glide is CSS so the
-     hook never owns timing. Hidden until it has a link to sit against. */
-  .pc-scrollspy__indicator {
-    @apply absolute left-0 top-0 w-0.5 bg-primary-600 dark:bg-primary-300;
-    transition:
-      transform 200ms ease,
-      height 200ms ease;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pc-scrollspy__indicator {
-      transition: none;
-    }
-
-    .pc-scrollspy-link {
       transition: none;
     }
   }
@@ -9590,6 +9240,88 @@
   }
 }
 
+/* Number field
+ *
+ * A spinbutton riding the input-group surface: the group keeps the border,
+ * radius and focus ring, so this section only paints the input density and
+ * the step buttons. Inside @layer components so a consumer's own utilities
+ * still outrank it.
+ */
+@layer components {
+  .pc-number-field .pc-number-field__input {
+    /* text-base below sm, like pc-text-input: iOS Safari zooms the viewport
+       when focusing an input under 16px, and a re-layout mid-interaction
+       makes the next tap land on stale coordinates. */
+    @apply w-full min-w-0 px-3 py-2 text-base sm:text-sm text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder:text-gray-500;
+  }
+  .pc-number-field--sm .pc-number-field__input {
+    @apply px-2.5 py-1.5 sm:text-xs;
+  }
+  .pc-number-field--lg .pc-number-field__input {
+    @apply py-2.5 sm:text-base;
+  }
+  /* Split sits the value between two buttons, so centring it is what stops
+     the field reading as lopsided. */
+  .pc-number-field--split .pc-number-field__input {
+    @apply text-center;
+  }
+
+  /* Addons holding buttons shed the text inset and wear the same 2px inset
+     frame as an input-group button chip. */
+  .pc-number-field .pc-input-group__addon:has(.pc-number-field__button) {
+    @apply gap-1 p-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--leading:has(.pc-number-field__button) {
+    @apply pl-0.5;
+  }
+  .pc-number-field .pc-input-group__addon--trailing:has(.pc-number-field__button) {
+    @apply pr-0.5;
+  }
+
+  .pc-number-field__button {
+    @apply flex items-center justify-center shrink-0 w-7 text-gray-500 cursor-pointer select-none transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-100;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--sm .pc-number-field__button {
+    @apply w-6;
+  }
+  .pc-number-field--lg .pc-number-field__button {
+    @apply w-8;
+  }
+  /* At a bound the button keeps its place and its label (aria-disabled, not
+     disabled) but reads as spent and stops answering the pointer. */
+  .pc-number-field__button[aria-disabled="true"] {
+    @apply text-gray-300 pointer-events-none dark:text-gray-600;
+  }
+  /* Doubled selector: the icon sizing contract, same as the combobox chevron. */
+  .pc-number-field__icon.pc-number-field__icon {
+    @apply w-4! h-4!;
+  }
+  .pc-number-field--sm .pc-number-field__icon.pc-number-field__icon {
+    @apply w-3.5! h-3.5!;
+  }
+
+  /* Stacked: two half-height buttons splitting the trailing addon's height,
+     the classic spinner. */
+  .pc-number-field__stack {
+    @apply flex flex-col self-stretch gap-px;
+  }
+  .pc-number-field__stack .pc-number-field__button {
+    @apply flex-1 min-h-0;
+  }
+  .pc-number-field__stack .pc-number-field__button--inc {
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px) 0 0;
+  }
+  .pc-number-field__stack .pc-number-field__button--dec {
+    border-radius: 0 0 max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px)
+      max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
+  }
+  .pc-number-field--split .pc-number-field__button {
+    @apply self-stretch;
+  }
+}
+
 /* Scroll area - one themed treatment for every overflow region.
  *
  * CSS only, by design. `scrollbar-width` + `scrollbar-color` do the work on
@@ -9750,6 +9482,70 @@
   }
 }
 
+/* Scrollspy - the "on this page" rail.
+   Layered, unlike the tail above it: unlayered rules outrank every Tailwind
+   utility, which would stop a consumer overriding these with a class. */
+@layer components {
+  .pc-scrollspy {
+    @apply relative text-sm;
+  }
+
+  .pc-scrollspy__heading {
+    @apply block mb-3 text-xs font-semibold tracking-wide uppercase text-gray-900 dark:text-white;
+  }
+
+  .pc-scrollspy__list {
+    @apply flex flex-col;
+  }
+
+  /* The rail the bar slides along. Only the bar variant draws it - with
+     indicator="none" the active state is carried by the link alone. */
+  .pc-scrollspy--bar .pc-scrollspy__list {
+    @apply border-l border-gray-200 dark:border-gray-800;
+  }
+
+  .pc-scrollspy__sublist {
+    @apply flex flex-col;
+  }
+
+  .pc-scrollspy-link {
+    @apply block py-1.5 pl-4 pr-2 text-gray-500 transition-colors dark:text-gray-400;
+    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:rounded-sm;
+  }
+
+  .pc-scrollspy-link--nested {
+    @apply pl-8 text-[0.8125rem];
+  }
+
+  .pc-scrollspy-link--active {
+    @apply font-medium text-primary-600 dark:text-primary-300;
+  }
+
+  .pc-scrollspy-link--active:hover {
+    @apply text-primary-700 dark:text-primary-200;
+  }
+
+  /* Positioned by the hook (transform + height); the glide is CSS so the
+     hook never owns timing. Hidden until it has a link to sit against. */
+  .pc-scrollspy__indicator {
+    @apply absolute left-0 top-0 w-0.5 bg-primary-600 dark:bg-primary-300;
+    transition:
+      transform 200ms ease,
+      height 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-scrollspy__indicator {
+      transition: none;
+    }
+
+    .pc-scrollspy-link {
+      transition: none;
+    }
+  }
+}
+
 /* QR code - the SVG carries its own colour via currentColor, so this is just
    layout: behave like a block image and never overflow its container. */
 @layer components {
@@ -9856,6 +9652,7 @@
     }
 
     .pc-context-menu__item {
+      transition-duration: 1ms;
     }
   }
 }
@@ -10048,1192 +9845,215 @@
     .pc-tree__group-wrap,
     .pc-tree__chevron-icon,
     .pc-tree__row {
+      transition-duration: 1ms;
     }
   }
 }
 
+/* Alert dialog - the two-answer decision that will not let you walk away.
+   Built on the native <dialog>, so the top layer, focus containment and
+   ::backdrop come from the element. Deliberately narrower than the modal:
+   one question, one media chip, one footer band that stays put while a long
+   body scrolls under it. The default is CALM - the danger wash is what
+   variant="destructive" opts into, never the ambient state. */
+
 @layer components {
-  /* Slideover - bottom-sheet drawer mode (origin="bottom").
-     Everything here is scoped to .pc-slideover__box--drawer, a class only the
-     bottom origin gets, so left/right/top sheets are untouched. */
-
-  /* The large-panel radius rule: token x 1.2, capped, and top corners only -
-     the sheet is anchored to the bottom edge, so its bottom corners sit
-     off-screen and rounding them would just expose a sliver of overlay. */
-  .pc-slideover__box--drawer {
-    border-top-left-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
-    border-top-right-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
-    max-height: 92dvh;
-    /* the sheet is the drag surface and its body is the scroller; letting the
-       sheet itself scroll would put a second scroller under the finger */
-    overflow: hidden;
-    will-change: transform;
+  .pc-alert-dialog {
+    /* The panel needs a DEFINITE height to bound its scrolling body: a
+       percentage max-height on the panel would resolve against the dialog's
+       auto height and be ignored, so the panel would overflow and clip its
+       own header. Both carry the same explicit cap instead. */
+    --pc-alert-dialog-max-h: min(32rem, calc(100dvh - 4rem));
+    @apply fixed p-0 overflow-hidden shadow-lg;
+    inset: 0;
+    margin: auto;
+    width: min(30rem, calc(100vw - 2rem));
+    max-height: var(--pc-alert-dialog-max-h);
+    color: inherit;
+    border: 1px solid var(--color-gray-200);
+    background: var(--color-white, #fff);
+    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
 
-  /* A scroll that reaches the page under an open sheet is never wanted, and on
-     iOS chaining to the document is what triggers pull-to-refresh mid-drag. */
-  .pc-slideover__box--drawer .pc-slideover__content {
-    overscroll-behavior: contain;
+  .dark .pc-alert-dialog {
+    border-color: color-mix(in srgb, white 15%, transparent);
+    background: var(--color-gray-900);
   }
 
-  /* The two data attributes are rendered exactly when the hook is attached and
-     the sheet is really draggable. A plain drag_to_dismiss={false} sheet with
-     no snaps gets no grab cursor and does not decline browser gestures -
-     advertising a drag that does nothing is worse than no affordance.
-
-     touch-action stays on the pill rather than the whole sheet on purpose: on
-     the sheet it would also be consulted for the body's own scroll chain, so
-     `none` there costs the drawer its inner scrolling. Body drags are claimed
-     by the hook's non-passive touchmove instead, which can weigh up direction. */
-  .pc-slideover__box--drawer:is([data-drag-dismiss], [data-snap-points])
-    .pc-slideover__handle {
-    cursor: grab;
-    touch-action: none;
+  .pc-alert-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
   }
 
-  /* The pill is decorative (aria-hidden) - the drag is the interaction, not
-     this element. The hook captures pointerdown across the whole sheet head,
-     so the real drag target is far larger than the 40x4 pill. */
-  .pc-slideover__handle {
-    @apply flex flex-none items-center justify-center pt-3 pb-2;
-    min-height: 1.75rem;
+  .pc-alert-dialog__panel {
+    @apply flex flex-col;
+    max-height: var(--pc-alert-dialog-max-h);
   }
 
-  .pc-slideover__handle__pill {
-    @apply block w-10 rounded-full bg-gray-300 dark:bg-gray-600;
-    height: 0.25rem;
+  .pc-alert-dialog__header {
+    @apply flex items-start gap-3 shrink-0 px-6 pt-6;
   }
 
-  .pc-slideover__box--dragging {
-    @apply select-none;
+  /* The media chip: 40px square beside the title, holding an icon or an
+     image. Muted by default - a neutral wash that says "here is the subject
+     of the question", not "danger". */
+  .pc-alert-dialog__media {
+    @apply flex items-center justify-center shrink-0 overflow-hidden w-10 h-10 text-gray-500 dark:text-gray-400;
+    background: var(--color-gray-100);
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 0.8), 0.625rem);
   }
 
-  .pc-slideover__box--dragging .pc-slideover__handle {
-    cursor: grabbing;
+  .dark .pc-alert-dialog__media {
+    /* rides the gray ramp (not a white mix) so a re-themed gray dial
+       carries the wash with it - the house ghost recipe */
+    background: color-mix(in srgb, var(--color-gray-400) 12%, transparent);
   }
 
-  /* Home-indicator clearance on phones. env() resolves to 0 everywhere else,
-     so this costs nothing on desktop. */
-  .pc-slideover__box--drawer .pc-slideover__content {
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  .pc-alert-dialog--destructive .pc-alert-dialog__media {
+    @apply text-danger-600 dark:text-danger-400;
+    background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
   }
 
-  .pc-slideover__box--drawer .pc-slideover__footer {
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  /* An image slotted into the chip fills it; the chip's own overflow and
+     radius do the cropping, so consumers pass a bare <img>. */
+  .pc-alert-dialog__media > img {
+    @apply w-full h-full object-cover;
   }
 
-  /* A drawer with a footer already clears the home indicator there; doubling
-     it on the body would leave a dead gap above the action row. */
-  .pc-slideover__box--drawer:has(.pc-slideover__footer) .pc-slideover__content {
-    padding-bottom: 1.25rem;
+  /* Doubled selector + bang, the icon-sizing contract (see the pagination
+     chevron): this lands on a bare hero-* span, which consumer heroicon CSS
+     sizes from the utilities layer - beating any single components-layer
+     selector. */
+  .pc-alert-dialog__media-icon.pc-alert-dialog__media-icon {
+    @apply w-6! h-6!;
   }
 
-  /* scale_background: the hook toggles .pc-drawer-scaled on the consumer's
-     [data-pc-drawer-wrapper] while the drawer is open. Opt-in only - see the
-     moduledoc for why a transformed ancestor re-parents fixed descendants. */
-  [data-pc-drawer-wrapper] {
-    transition:
-      transform 300ms cubic-bezier(0.32, 0.72, 0, 1),
-      border-radius 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  /* The trigger wrapper must not impose block layout - alert-dialog
+     triggers live in toolbars and button rows. display:contents keeps the
+     hook's click listener working via bubbling. */
+  .pc-alert-dialog__trigger {
+    display: contents;
   }
 
-  .pc-drawer-scaled {
-    transform: scale(0.96);
-    transform-origin: top center;
-    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
-    overflow: hidden;
+  .pc-alert-dialog__title {
+    @apply self-center text-base font-semibold text-gray-900 dark:text-gray-100;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    [data-pc-drawer-wrapper] {
-    }
-  }
-}
-
-/* File upload - the dropzone family over Phoenix.LiveView uploads. Drag-over
- * is LiveView's own `phx-drop-target-active` class, so the highlight is plain
- * CSS and the component ships no hook. The native input stays in the tab
- * order (clipped, never display:none), and because it is invisible the zone
- * that labels it draws the focus ring on its behalf via :has(). */
-@layer components {
-  .pc-file-upload {
-    @apply flex flex-col w-full gap-3;
+  .pc-alert-dialog__body {
+    @apply flex-1 min-h-0 overflow-y-auto px-6 pt-2 pb-5;
   }
 
-  /* Clipped to nothing but still focusable: keyboard users tab to the input
-     and Enter/Space opens the native picker. `display: none` or `hidden`
-     would drop it out of the tab order and strand them. */
-  .pc-file-upload__input {
-    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
-    clip-path: inset(50%);
-  }
-
-  /* The drop surface: a label, so clicking anywhere on it opens the picker
-     and LiveView's phx-drop-target lands on the same element. */
-  .pc-file-upload__zone {
-    @apply relative flex flex-col items-center justify-center w-full gap-1 px-6 py-10 text-center cursor-pointer;
-    @apply bg-transparent border border-dashed border-gray-300 shadow-xs;
-    @apply transition-[color,background-color,border-color,box-shadow] duration-200 ease-out;
-    @apply hover:border-gray-400 hover:bg-gray-50;
-    @apply dark:bg-gray-400/8 dark:border-gray-400/25 dark:hover:border-gray-400/40 dark:hover:bg-gray-400/12;
-    border-radius: var(--pc-radius, 0.625rem);
-  }
-
-  .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible) {
-    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
-  }
-
-  .pc-file-upload__zone.phx-drop-target-active {
-    @apply border-primary-500 bg-primary-500/8 dark:bg-primary-500/12;
-  }
-
-  .pc-file-upload__heading {
-    @apply flex flex-col gap-0.5;
-  }
-
-  /* Icon geometry rides the doubled-selector + bang contract: these are bare
-     hero-* spans, and a consumer's heroicon CSS (utilities layer or unlayered)
-     beats a single-class rule of ours on order alone. The variant overrides
-     below gain a class each, so they still out-rank this base. */
-  .pc-file-upload__glyph.pc-file-upload__glyph {
-    @apply w-8! h-8! text-gray-400 dark:text-gray-500;
-  }
-
-  .pc-file-upload__label {
-    @apply text-sm font-medium text-gray-900 dark:text-gray-100;
-  }
-
-  .pc-file-upload__description {
+  .pc-alert-dialog__description {
     @apply text-sm text-gray-500 dark:text-gray-400;
   }
 
-  /* The drag hint is decorative (aria-hidden): its text is static and only the
-     opacity changes, so it is faded rather than removed purely so the fade can
-     be animated. */
-  .pc-file-upload__live {
-    @apply absolute inset-x-0 bottom-2 text-xs font-medium opacity-0 pointer-events-none;
-    @apply text-primary-600 transition-opacity duration-150 dark:text-primary-400;
+  .pc-alert-dialog__content {
+    @apply mt-3 text-sm text-gray-600 dark:text-gray-300;
   }
 
-  .pc-file-upload__zone.phx-drop-target-active .pc-file-upload__live {
-    @apply opacity-100;
+  /* The footer band. Same idiom as the table's tfoot: border-t, muted wash,
+     full-bleed. No negative margins here - this dialog puts its padding on
+     each section rather than on the panel, so the band is already edge to
+     edge and reaching for -mx-6 would double-count. The wash pair is the
+     house convention: gray-50 in light, a gray-400 alpha in dark, so a
+     re-themed gray dial carries both. */
+  .pc-alert-dialog__footer {
+    @apply flex flex-col-reverse gap-2 shrink-0 px-6 py-4;
+    @apply sm:flex-row sm:justify-end;
+    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
   }
 
-  /* File upload - entries */
-
-  .pc-file-upload__entries {
-    @apply flex flex-col gap-2 p-0 m-0 list-none;
+  /* flex-col-reverse with cancel FIRST in the DOM: Tab still reaches the safe
+     action first, and on mobile the stack puts the primary action on top
+     under the thumb (shadcn's ergonomics). sm+ unstacks to a right-aligned
+     row with confirm last. */
+  .pc-alert-dialog__footer .pc-alert-dialog__cancel,
+  .pc-alert-dialog__footer .pc-alert-dialog__confirm {
+    @apply justify-center sm:w-auto w-full;
   }
 
-  .pc-file-upload__entry {
-    @apply list-none;
+  /* Nested-child radius: the action buttons derive from the PANEL's clamped
+     radius, not the raw token - at large user radii a raw-token button
+     out-rounds its own dialog (same recipe as the modal/slideover actions). */
+  .pc-alert-dialog__footer .pc-button {
+    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
   }
 
-  .pc-file-upload__entry-inner {
-    @apply flex items-center w-full gap-3 px-3 py-2 bg-transparent border border-gray-200;
-    @apply dark:border-gray-400/20 dark:bg-gray-400/8;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
+  /* THE PROPERTY MATTERS (see the slide_over keyframes): these animate
+     `scale`, not `transform`. Tailwind v4's scale-* utilities set the
+     `scale` property, and scale + transform COMPOSE - keyframes on transform
+     would play ON TOP of a consumer's scale-95 rather than overriding it,
+     the same class of bug that made the slide_over teleport. Same property =
+     the running animation wins outright and hands back cleanly at the
+     boundary.
 
-  .pc-file-upload__entry-inner--invalid {
-    @apply border-danger-500 dark:border-danger-500/70;
-  }
+     THE EXIT IS NOT A TRANSITION. dialog.close() is instant - the element
+     leaves the top layer in the same frame - so there is no state left for
+     CSS to animate out of. The hook adds --closing, this plays, and only
+     then does the real close() run (PetalAlertDialog.requestClose). The
+     ::backdrop is a separate animation on a separate pseudo-element: it gets
+     its own in AND out keyframes, because it does not inherit the box's.
 
-  .pc-file-upload__media {
-    @apply flex items-center justify-center w-10 h-10 overflow-hidden shrink-0;
-    @apply bg-gray-100 dark:bg-gray-400/12;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
+     Reduced motion: the whole block is gated, so nothing animates and the
+     hook (reading the same query from JS) skips straight to close(). */
+  @media (prefers-reduced-motion: no-preference) {
+    .pc-alert-dialog[open] {
+      animation: pc-alert-dialog-in 0.15s ease-out;
+    }
 
-  .pc-file-upload__thumb {
-    @apply object-cover w-full h-full;
-    @apply transition-opacity duration-150 ease-out;
-  }
+    .pc-alert-dialog[open]::backdrop {
+      animation: pc-alert-dialog-backdrop-in 0.15s ease-out;
+    }
 
-  /* live_img_preview ships an <img> with no src at all and lets its hook fill
-     one in from the File the browser is holding. Two moments have no usable
-     src: every first paint, before the hook has run, and any render where the
-     File cannot be found - a preview restored without its input, a static page
-     with no LiveView behind it. LiveView's own hook assigns the null that
-     getEntryDataURL returns in that second case, and `img.src = null` becomes
-     the literal string "null", a relative URL that 404s into a broken-image
-     glyph. Hide the image in all three states and let the media placeholder
-     show through: a quiet grey square that fills in, rather than a broken one
-     that never does. */
-  .pc-file-upload__thumb:not([src]),
-  .pc-file-upload__thumb[src=""],
-  .pc-file-upload__thumb[src="null"],
-  .pc-file-upload__avatar-img:not([src]),
-  .pc-file-upload__avatar-img[src=""],
-  .pc-file-upload__avatar-img[src="null"] {
-    @apply opacity-0;
-  }
+    /* One class more specific than the entrance rules above, and later in the
+       sheet, so the exit wins while it plays. `forwards` holds the last frame
+       so the box cannot flash back to full opacity in the gap between
+       animationend and close(). */
+    .pc-alert-dialog[open].pc-alert-dialog--closing {
+      animation: pc-alert-dialog-out 0.15s ease-in forwards;
+    }
 
-  .pc-file-upload__type-icon.pc-file-upload__type-icon {
-    @apply w-5! h-5! text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-file-upload__entry-body {
-    @apply flex flex-col min-w-0 gap-1 grow;
-  }
-
-  .pc-file-upload__entry-name {
-    @apply block text-sm font-medium truncate text-gray-900 dark:text-gray-100;
-  }
-
-  .pc-file-upload__entry-meta {
-    @apply block text-xs tabular-nums text-gray-500 dark:text-gray-400;
-  }
-
-  /* File upload - progress. Mirrors pc-progress: washed track, solid fill,
-     width driven inline from entry.progress. The width transition is
-     informative, so reduced motion leaves it alone. */
-
-  .pc-file-upload__progress {
-    @apply relative flex w-full h-1 overflow-hidden rounded-full bg-primary-500/15;
-  }
-
-  .pc-file-upload__progress-bar {
-    @apply relative z-[1] block h-full rounded-full bg-primary-600;
-    @apply transition-[width] duration-500 ease-out;
-  }
-
-  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress {
-    @apply bg-danger-500/15;
-  }
-
-  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress-bar {
-    @apply bg-danger-600;
-  }
-
-  /* File upload - errors, matching the pc-form-field-error treatment */
-
-  .pc-file-upload__error {
-    @apply flex items-center gap-1.5 text-sm text-danger-600 dark:text-danger-400;
-  }
-
-  .pc-file-upload__error--entry {
-    @apply mt-1.5 text-xs;
-  }
-
-  /* The config-level error is the only <p> in the family, so it is the only
-     one that can inherit a margin from a consumer's prose/typography styles. */
-  .pc-file-upload__error--config {
-    @apply m-0;
-  }
-
-  .pc-file-upload__error-icon.pc-file-upload__error-icon {
-    @apply w-4! h-4! shrink-0;
-  }
-
-  /* File upload - cancel */
-
-  .pc-file-upload__cancel {
-    @apply flex items-center justify-center w-7 h-7 shrink-0 cursor-pointer;
-    @apply text-gray-400 transition-colors duration-150 hover:text-gray-700;
-    @apply dark:text-gray-500 dark:hover:text-gray-200;
-    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
-  .pc-file-upload__cancel-icon.pc-file-upload__cancel-icon {
-    @apply w-4! h-4!;
-  }
-
-  /* File upload - compact: a browse button, no zone */
-
-  .pc-file-upload__bar {
-    @apply flex flex-wrap items-center gap-3;
-  }
-
-  .pc-file-upload--compact .pc-file-upload__zone {
-    @apply flex-row w-auto gap-2 px-4 py-2 border-solid;
-    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
-  }
-
-  .pc-file-upload--compact .pc-file-upload__glyph.pc-file-upload__glyph {
-    @apply w-4! h-4!;
-  }
-
-  /* File upload - avatar: one circular preview with a replace overlay */
-
-  .pc-file-upload--avatar .pc-file-upload__zone {
-    @apply relative w-24 h-24 p-0 overflow-hidden rounded-full shrink-0;
-  }
-
-  .pc-file-upload__avatar-img {
-    @apply object-cover w-full h-full;
-    @apply transition-opacity duration-150 ease-out;
-  }
-
-  .pc-file-upload--avatar .pc-file-upload__glyph.pc-file-upload__glyph {
-    @apply w-10! h-10!;
-  }
-
-  .pc-file-upload__overlay {
-    @apply absolute inset-0 flex items-center justify-center text-white opacity-0;
-    @apply bg-gray-900/60 transition-opacity duration-150;
-  }
-
-  .pc-file-upload--avatar .pc-file-upload__zone:hover .pc-file-upload__overlay,
-  .pc-file-upload--avatar
-    .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible)
-    .pc-file-upload__overlay {
-    @apply opacity-100;
-  }
-
-  .pc-file-upload__overlay-icon.pc-file-upload__overlay-icon {
-    @apply w-6! h-6!;
-  }
-
-  /* File upload - gallery: preview tiles plus an add tile under max_entries */
-
-  .pc-file-upload__grid {
-    @apply grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4;
-  }
-
-  .pc-file-upload__tile {
-    @apply relative overflow-hidden aspect-square;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__tile--add {
-    @apply flex flex-col items-center justify-center w-full h-full gap-1 px-2 py-2 text-center;
-  }
-
-  /* The gallery's input is a sibling of the add tile, not a child of it - it
-     has to stay in the DOM at max_entries, where the tile does not - so the
-     :has() focus ring is scoped from the grid rather than from the zone. */
-  .pc-file-upload__grid:has(> .pc-file-upload__input:focus-visible)
-    .pc-file-upload__tile--add {
-    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
-  }
-
-  .pc-file-upload__tile-label {
-    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__glyph.pc-file-upload__glyph {
-    @apply w-6! h-6!;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__entry-inner {
-    @apply relative flex-col items-stretch h-full gap-0 p-0;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__media {
-    @apply w-full h-full rounded-none;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__entry-body {
-    @apply absolute inset-x-0 bottom-0 gap-1 p-2 bg-gray-900/70;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__entry-name {
-    @apply text-xs text-white;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__entry-meta {
-    @apply text-[10px] text-gray-300;
-  }
-
-  .pc-file-upload--gallery .pc-file-upload__cancel {
-    @apply absolute w-6 h-6 text-white top-1 right-1 bg-gray-900/70;
-    @apply hover:text-white hover:bg-gray-900/90 dark:text-white dark:hover:text-white;
-  }
-
-  /* Decorative fades only; the progress width transition stays, matching
-     pc-progress - it reports state rather than decorating it. */
-  @media (prefers-reduced-motion: reduce) {
-    .pc-file-upload__zone,
-    .pc-file-upload__overlay,
-    .pc-file-upload__live,
-    .pc-file-upload__cancel,
-    .pc-file-upload__thumb,
-    .pc-file-upload__avatar-img {
+    .pc-alert-dialog[open].pc-alert-dialog--closing::backdrop {
+      animation: pc-alert-dialog-backdrop-out 0.15s ease-in forwards;
     }
   }
-}
 
-/* Resizable - split panes with draggable, keyboard-operable separators.
- * The painted divider is a hairline; the hit area around it is much larger,
- * which is the difference between a splitter you can grab and one you hunt. */
-@layer components {
-  .pc-resizable {
-    @apply flex flex-row w-full h-full overflow-hidden;
+  /* The answer is already given - a second click during the 150ms exit would
+     run the OTHER action's on_confirm/on_cancel on the way out. */
+  .pc-alert-dialog--closing {
+    pointer-events: none;
   }
 
-  .pc-resizable--vertical {
-    @apply flex-col;
-  }
-
-  /* min-w-0/min-h-0 matter: a flex item defaults to min-size auto, which would
-   * refuse to shrink past its content and quietly break every clamp. */
-  .pc-resizable__panel {
-    @apply relative min-w-0 min-h-0 overflow-hidden;
-  }
-
-  /* The element IS the hit area (1px painted line, 11px grabbable). Negative
-   * margins pull the neighbouring panels back so the extra width costs no
-   * layout - the panels still meet on the hairline. */
-  .pc-resizable__handle {
-    @apply relative z-10 flex items-center justify-center shrink-0 self-stretch;
-    @apply w-[11px] -mx-[5px] cursor-col-resize touch-none select-none outline-none;
-    /* At rest the divider is the same structural hairline the cards and tables
-       draw with: chrome between two panes, not a line asking to be looked at. */
-    --pc-resizable-line: var(--color-gray-200);
-  }
-
-  /* The line colour rides a variable set on the HANDLE - a real element, so the
-     dark override resolves - and the ::before below only reads it. Same reason
-     as the range input's track: a `dark:` variant applied straight to a
-     pseudo-element compiles to a trailing `:where(.dark, ...)` that can never
-     match, which is why the line used to sit at its light gray in dark mode and
-     read as a white bar. Setting it here also keeps every state at one class of
-     specificity, so hover can never out-rank a live drag. */
-  .pc-resizable__handle:where(.dark, .dark *) {
-    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
-  }
-
-  /* Hover firms the hairline exactly one neutral step. Passing the mouse over a
-     divider on the way somewhere else is not an intent to resize, so it does
-     not get the accent - it just becomes a slightly more present line. */
-  .pc-resizable__handle:hover {
-    --pc-resizable-line: var(--color-gray-300);
-  }
-
-  .pc-resizable__handle:hover:where(.dark, .dark *) {
-    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
-  }
-
-  /* A drag or keyboard focus IS intent, and keeps the accent - at 60%,
-     which reads as "live" without going full ink on a monochrome ramp
-     (solid primary-500 is near-black on white and near-white on black,
-     and a 1px line at full contrast shouts). :is() so the dragging
-     modifier weighs the same as :hover above and wins on source order -
-     the pointer is sitting on the handle for the whole drag. */
-  .pc-resizable__handle:is(
-      :focus-visible:not([data-pc-pointer-focus]),
-      .pc-resizable__handle--dragging
-    ) {
-    --pc-resizable-line: color-mix(in oklab, var(--color-primary-500) 60%, transparent);
-  }
-
-  .pc-resizable--vertical > .pc-resizable__handle {
-    @apply w-auto mx-0 h-[11px] -my-[5px] cursor-row-resize;
-  }
-
-  /* The hairline itself. A pseudo-element so hover, drag and focus can tint it
-   * without touching the hit area's geometry. */
-  .pc-resizable__handle::before {
-    content: "";
-    @apply absolute w-px h-full transition-colors duration-150 ease-out;
-    background-color: var(--pc-resizable-line);
-  }
-
-  .pc-resizable--vertical > .pc-resizable__handle::before {
-    @apply w-full h-px;
-  }
-
-  /* Never a persistent :focus fill. The ring is for keyboard users only, and
-   * on a splitter it has to be unmissable - arrows do nothing until you can
-   * see which separator has focus. The :not() guard is the pointer-focus
-   * session (see the hook's startDrag): a script focus() on a modality-fresh
-   * page matches :focus-visible, and the ring on a mouse drag reads as two
-   * stray hairlines. */
-  .pc-resizable__handle:focus-visible:not([data-pc-pointer-focus]) {
-    @apply ring-2 ring-primary-500/50;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
-  }
-
-  /* The grip chip: the visible "you can drag this" affordance. A panel surface
-     sitting on the hairline, wearing the same border the inputs and radio
-     cards wear, with the muted-glyph pair on its dots. */
-  .pc-resizable__grip {
-    @apply relative z-10 flex items-center justify-center;
-    /* Note: .pc-resizable__handle--with-handle is deliberately markup-only -
-       the grip below carries all the visible styling; the modifier exists on
-       the separator as a stable override hook for consumers. */
-    @apply w-[11px] h-6 border border-gray-300 bg-white text-gray-400;
-    @apply transition-colors duration-150 ease-out;
-    @apply dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-500;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
-  }
-
-  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip {
-    @apply w-6 h-[11px];
-  }
-
-  /* Three dots, drawn with a repeating gradient so the grip needs no markup. */
-  .pc-resizable__grip::after {
-    content: "";
-    @apply block w-[2px] h-[10px];
-    background-image: repeating-linear-gradient(
-      to bottom,
-      currentColor 0 2px,
-      transparent 2px 4px
-    );
-  }
-
-  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip::after {
-    @apply w-[10px] h-[2px];
-    background-image: repeating-linear-gradient(
-      to right,
-      currentColor 0 2px,
-      transparent 2px 4px
-    );
-  }
-
-  /* Same story as the hairline: hover firms the border one step (the pair the
-     outline radio cards hover with) and darkens the dots; the accent is held
-     back for a real drag or keyboard focus. */
-  .pc-resizable__handle:hover .pc-resizable__grip {
-    @apply border-gray-400 text-gray-500 dark:border-gray-400/40 dark:text-gray-400;
-  }
-
-  .pc-resizable__handle:is(
-      :focus-visible:not([data-pc-pointer-focus]),
-      .pc-resizable__handle--dragging
-    )
-    .pc-resizable__grip {
-    @apply border-primary-500/60 text-primary-500;
-  }
-
-  /* Mid-drag the pointer belongs to the separator: no text selection, and no
-   * child element stealing the pointer stream from the captured handle. */
-  .pc-resizable--dragging {
-    @apply select-none;
-  }
-
-  .pc-resizable--dragging .pc-resizable__panel {
-    @apply pointer-events-none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pc-resizable__handle::before,
-    .pc-resizable__grip {
+  @keyframes pc-alert-dialog-in {
+    from {
+      opacity: 0;
+      scale: 0.96;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
     }
   }
-}
 
-@layer components {
-  /* Hover Card */
-
-  .pc-hover-card {
-    @apply relative inline-block;
-  }
-
-  .pc-hover-card__trigger {
-    @apply inline-block;
-  }
-
-  /* The tooltip's reveal mechanics (visibility + opacity under
-     group-hover / group-focus-within) on the popover's floating surface.
-     visibility interpolates in steps, so on the way out the panel stays
-     visible for the whole delay AND the fade, then flips hidden in one go -
-     it can never be half-faded and still clickable. On the way in it flips
-     visible immediately after the delay, so the fade is seen. */
-  .pc-hover-card__panel {
-    @apply absolute z-40 invisible w-max max-w-[min(24rem,calc(100vw-1rem))] bg-white p-4 text-left opacity-0 border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-400/17 group-hover/pc-hover-card:visible group-hover/pc-hover-card:opacity-100 group-focus-within/pc-hover-card:visible group-focus-within/pc-hover-card:opacity-100;
-    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
-    transition-property: opacity, visibility;
-    transition-duration: 150ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    /* At rest is the way OUT, so the resting delay is the close delay. */
-    transition-delay: var(--pc-hover-card-close-delay, 150ms);
-  }
-
-  /* ...and under hover or focus it is the way IN, so the open delay wins. */
-  .pc-hover-card:hover .pc-hover-card__panel,
-  .pc-hover-card:focus-within .pc-hover-card__panel {
-    transition-delay: var(--pc-hover-card-open-delay, 350ms);
-  }
-
-  /* The hover bridge. The placement offsets leave a real gap between trigger
-     and panel; without this a pointer crossing that gap leaves the group and
-     the card starts closing under the cursor. A transparent extension spans
-     the gap so the hover chain holds. It reaches ONLY toward the trigger's
-     side - a uniform ring would silently capture hover and clicks over page
-     content 8px past the three gapless edges while the card is open
-     (Radix/shadcn bridge one side for the same reason). It sits behind the
-     panel and inherits its visibility, so it is never a hit target while
-     closed. */
-  .pc-hover-card__panel::before {
-    content: "";
-    @apply absolute inset-0 -z-10;
-  }
-
-  /* Panel above the trigger: the gap (and the bridge) is below it. */
-  .pc-hover-card__panel--top::before,
-  .pc-hover-card__panel--top-start::before,
-  .pc-hover-card__panel--top-end::before {
-    bottom: -0.5rem;
-  }
-
-  .pc-hover-card__panel--bottom::before,
-  .pc-hover-card__panel--bottom-start::before,
-  .pc-hover-card__panel--bottom-end::before {
-    top: -0.5rem;
-  }
-
-  .pc-hover-card__panel--left::before,
-  .pc-hover-card__panel--left-start::before,
-  .pc-hover-card__panel--left-end::before {
-    right: -0.5rem;
-  }
-
-  .pc-hover-card__panel--right::before,
-  .pc-hover-card__panel--right-start::before,
-  .pc-hover-card__panel--right-end::before {
-    left: -0.5rem;
-  }
-
-  /* Placement geometry, identical to the popover panel's. */
-  .pc-hover-card__panel--top {
-    @apply bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom;
-  }
-  .pc-hover-card__panel--top-start {
-    @apply bottom-full left-0 mb-2 origin-bottom-left;
-  }
-  .pc-hover-card__panel--top-end {
-    @apply bottom-full right-0 mb-2 origin-bottom-right;
-  }
-  .pc-hover-card__panel--bottom {
-    @apply top-full left-1/2 -translate-x-1/2 mt-2 origin-top;
-  }
-  .pc-hover-card__panel--bottom-start {
-    @apply top-full left-0 mt-2 origin-top-left;
-  }
-  .pc-hover-card__panel--bottom-end {
-    @apply top-full right-0 mt-2 origin-top-right;
-  }
-  .pc-hover-card__panel--left {
-    @apply right-full top-1/2 -translate-y-1/2 mr-2 origin-right;
-  }
-  .pc-hover-card__panel--left-start {
-    @apply right-full top-0 mr-2 origin-top-right;
-  }
-  .pc-hover-card__panel--left-end {
-    @apply right-full bottom-0 mr-2 origin-bottom-right;
-  }
-  .pc-hover-card__panel--right {
-    @apply left-full top-1/2 -translate-y-1/2 ml-2 origin-left;
-  }
-  .pc-hover-card__panel--right-start {
-    @apply left-full top-0 ml-2 origin-top-left;
-  }
-  .pc-hover-card__panel--right-end {
-    @apply left-full bottom-0 ml-2 origin-bottom-left;
-  }
-
-  /* Drop the fade, KEEP the delays. The delay is interaction design - without
-     it every glancing pointer fires a card - the fade is decoration. */
-  @media (prefers-reduced-motion: reduce) {
-    .pc-hover-card__panel {
+  @keyframes pc-alert-dialog-out {
+    from {
+      opacity: 1;
+      scale: 1;
+    }
+    to {
+      opacity: 0;
+      scale: 0.96;
     }
   }
-}
 
-@layer components {
-  /* Calendar */
-
-  .pc-calendar {
-    @apply inline-block select-none text-gray-900 dark:text-gray-100;
-    /* One radius for every rounded corner a day can show - the chip, the
-       band's outer ends, the nav buttons. A single token means a lone
-       selected day and a range endpoint are the SAME shape, so completing
-       a range never visibly re-rounds the date you already picked. */
-    --pc-calendar-day-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-    /* Derived from the public --pc-calendar-cell-size, never declared here:
-       read with a fallback instead, so a value set on ANY ancestor (a
-       wrapping style attribute, a class on the calendar itself) reaches the
-       grid. Declaring the default on this element would shadow a wrapper's
-       value, which is the whole point of the dial. */
-    --pc-calendar-nav-size: max(calc(var(--pc-calendar-cell-size, 2.25rem) - 0.25rem), 1.5rem);
-  }
-
-  .pc-calendar__header {
-    @apply flex items-center justify-between gap-2 pb-2;
-  }
-
-  .pc-calendar__caption {
-    @apply flex-1 text-sm font-semibold text-center;
-  }
-
-  /* Nav buttons are chrome, deliberately one step smaller than a day so the
-     header never out-weighs the grid. That one step is the whole formula, so
-     the arrows keep their proportion when the cell dial moves: 2rem against
-     the default 2.25rem day, and never below a 1.5rem tap-ish minimum. */
-  .pc-calendar__nav {
-    @apply inline-flex items-center justify-center shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
-    @apply hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/12 dark:hover:text-gray-100;
-    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    width: var(--pc-calendar-nav-size);
-    height: var(--pc-calendar-nav-size);
-    border-radius: var(--pc-calendar-day-radius);
-  }
-
-  /* Doubled selector + !important: icon sizing contract (see pagination
-     previous chevron). */
-  .pc-calendar__nav-icon.pc-calendar__nav-icon {
-    @apply w-4! h-4!;
-  }
-
-  /* Keeps the caption optically centred when one arrow is suppressed, which is
-     what a two-pane range picker does to the second month. */
-  .pc-calendar__nav-spacer {
-    @apply shrink-0;
-    width: var(--pc-calendar-nav-size);
-    height: var(--pc-calendar-nav-size);
-  }
-
-  /* The caption is already in the DOM above the grid; this region exists only
-     so a month change is announced, not so it is seen twice. */
-  .pc-calendar__announcer {
-    @apply sr-only;
-  }
-
-  /* Week rows want air between them, and a <tr> is a table-row, so a margin
-     does nothing: border-spacing is the only lever. The horizontal value stays
-     0 on purpose - the range band's continuity depends on the cells inside a
-     week touching, and even one shared pixel of spacing turns the band back
-     into a row of separate chips. */
-  .pc-calendar__grid {
-    border-collapse: separate;
-    border-spacing: 0 0.25rem;
-  }
-
-  /* The header columns ride the same width as the days, so the grid stays in
-     register at any cell size. The height does not: this is a label row, not
-     a cell, and it has no business growing to 4rem because the days did. */
-  .pc-calendar__weekday {
-    @apply h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
-    width: var(--pc-calendar-cell-size, 2.25rem);
-  }
-
-  /* Cells carry the range band so it runs edge to edge between days; the day
-     button inside keeps its own rounding. */
-  .pc-calendar__cell {
-    @apply p-0 align-middle;
-  }
-
-  /* The band is the quiet half of a range: soft neutral wash, so the two ends
-     stay the thing you see first. Dark rides a gray-400 alpha rather than a
-     mixed-down white, the way every other wash in here does. */
-  .pc-calendar__cell--in-range,
-  .pc-calendar__cell--range-start,
-  .pc-calendar__cell--range-end {
-    @apply bg-gray-100 dark:bg-gray-400/12;
-  }
-
-  /* Only the outward ends of the band round; everything in between meets
-     square, which is what makes it read as one strip instead of a chain of
-     chips. Rows are spaced apart, so each week is its own strip and its first
-     and last cell round their outer edge too - without that, a band running the
-     full width of a row ends in square corners against nothing. */
-  .pc-calendar__cell--range-start,
-  .pc-calendar__cell--in-range:first-child,
-  .pc-calendar__cell--range-end:first-child {
-    border-start-start-radius: var(--pc-calendar-day-radius);
-    border-end-start-radius: var(--pc-calendar-day-radius);
-  }
-
-  .pc-calendar__cell--range-end,
-  .pc-calendar__cell--in-range:last-child,
-  .pc-calendar__cell--range-start:last-child {
-    border-start-end-radius: var(--pc-calendar-day-radius);
-    border-end-end-radius: var(--pc-calendar-day-radius);
-  }
-
-  /* A day is a square whose side is --pc-calendar-cell-size (2.25rem unless
-     you say otherwise). It is the only size dial the calendar has, and it is
-     a CSS custom property rather than an attr on purpose - same contract as
-     --pc-radius, so a taller booking grid is a class on the wrapper and not a
-     new API to version.
-
-     The dot colour rides a variable set on the day button - a real element, so
-     the dark override resolves. A `dark:` variant applied straight to the
-     ::after compiles to a trailing `:where(.dark, .dark *)` that can never
-     match, which is the same trap the range input track documents. */
-  .pc-calendar__day {
-    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
-    @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
-    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    width: var(--pc-calendar-cell-size, 2.25rem);
-    height: var(--pc-calendar-cell-size, 2.25rem);
-    border-radius: var(--pc-calendar-day-radius);
-    --pc-calendar-dot: var(--color-primary-500);
-  }
-
-  .pc-calendar__day--outside {
-    @apply text-gray-400 dark:text-gray-600;
-  }
-
-  /* Today is a marker, not a selection - a dot under the number, so a day that
-     is both today and selected still reads as both. */
-  .pc-calendar__day--today::after {
-    @apply absolute bottom-1 w-1 h-1 rounded-full;
-    background-color: var(--pc-calendar-dot);
-    content: "";
-  }
-
-  /* A picked day is the maximal-contrast inverse of the surface it sits on -
-     dark box and light number on white, light box and dark number on black.
-     Anything softer than that stops reading as "this one" the moment a range
-     band is on the grid next to it. */
-  .pc-calendar__day--selected,
-  .pc-calendar__day--selected:hover {
-    @apply bg-gray-900 text-white dark:bg-white dark:text-gray-900;
-  }
-
-  /* The today dot inverts with the chip it lands on, because today is very
-     often the selected day and a white dot on a white chip is no dot. Kept out
-     of the rule above on purpose: that one carries `:hover` as well, and a
-     `:hover` selector would outrank the dark override underneath it. */
-  .pc-calendar__day--selected {
-    --pc-calendar-dot: var(--color-white);
-  }
-
-  .pc-calendar__day--selected:where(.dark, .dark *) {
-    --pc-calendar-dot: var(--color-gray-900);
-  }
-
-  /* The ends of a band round outward only and square off inward, at the band's
-     radius rather than the day's, so the chip and the band share one corner
-     instead of nesting two. */
-  .pc-calendar__day--range-start {
-    border-start-start-radius: var(--pc-calendar-day-radius);
-    border-end-start-radius: var(--pc-calendar-day-radius);
-    border-start-end-radius: 0;
-    border-end-end-radius: 0;
-  }
-
-  .pc-calendar__day--range-end {
-    border-start-end-radius: var(--pc-calendar-day-radius);
-    border-end-end-radius: var(--pc-calendar-day-radius);
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-  }
-
-  /* An end that lands on the edge of a week row has nothing to merge into on
-     the inward side either, so it takes that corner back. */
-  .pc-calendar__cell:last-child .pc-calendar__day--range-start {
-    border-start-end-radius: var(--pc-calendar-day-radius);
-    border-end-end-radius: var(--pc-calendar-day-radius);
-  }
-
-  .pc-calendar__cell:first-child .pc-calendar__day--range-end {
-    border-start-start-radius: var(--pc-calendar-day-radius);
-    border-end-start-radius: var(--pc-calendar-day-radius);
-  }
-
-  /* Days inside the band are subordinate to its ends: no chip of their own, and
-     a number one step back from full contrast. */
-  .pc-calendar__day--in-range {
-    @apply text-gray-700 dark:text-gray-300;
-  }
-
-  .pc-calendar__day--in-range:hover {
-    @apply bg-gray-200 dark:bg-gray-400/20;
-  }
-
-  /* A band crossing a month boundary should not promote the days it covers out
-     of the outside-day treatment. */
-  .pc-calendar__day--in-range.pc-calendar__day--outside {
-    @apply text-gray-400 dark:text-gray-600;
-  }
-
-  /* Disabled days stay in the tab-and-arrow order per the APG, so they get the
-     look of being unavailable without leaving the grid. The dark background is
-     spelled out so it outranks the dark chip on a day that is both selected and
-     out of the window. */
-  .pc-calendar__day--disabled,
-  .pc-calendar__day--disabled:hover {
-    @apply text-gray-300 bg-transparent cursor-not-allowed dark:bg-transparent dark:text-gray-600;
-  }
-
-  .pc-calendar__day--disabled::after {
-    @apply hidden;
-  }
-
-  /* Date picker */
-
-  .pc-date-picker {
-    @apply relative;
-  }
-
-  .pc-date-picker__control {
-    @apply relative;
-  }
-
-  .pc-date-picker__input {
-    @apply pr-10;
-  }
-
-  /* Trailing adornment contract - an input carrying a clear PLUS a second
-     control. The combo box is the precedent (.pc-combo-box__clear,
-     .pc-combo-box__clear-icon, .pc-combo-box__chevron); the components stay
-     separate, what travels is the measurements and the vocabulary:
-       - both glyphs come from the mini/outline weight family and share ONE
-         16px box (w-4, the combobox's clear-icon size). No solid glyph
-         beside an outline one - matched boxes at matched stroke weight is
-         what keeps their optical centres together
-       - the clear sits leftmost of the trailing group, one gap-1.5 (6px)
-         from the control to its right, which is the combobox control's gap
-       - each button keeps a 24px tap box (h-6 w-6, the combobox's clear)
-         around its 16px glyph, and the house invisible ::before extension
-         (see .pc-alert__dismiss-button) carries that box to the field's
-         full height rather than growing anything that paints
-       - at rest both read gray-400 / dark gray-500, and hover is the
-         combobox's wash plus a darker glyph */
-  .pc-date-picker__toggle,
-  .pc-date-picker__clear {
-    @apply absolute top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md;
-    @apply text-gray-400 transition-colors duration-150 cursor-pointer dark:text-gray-500;
-    @apply hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
-    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
-    @apply disabled:cursor-not-allowed disabled:opacity-50;
-  }
-
-  .pc-date-picker__toggle::before,
-  .pc-date-picker__clear::before {
-    content: "";
-    @apply absolute -inset-y-2 inset-x-0;
-  }
-
-  /* the toggle is the primary target, so its strip runs out to the field's
-     right edge too - the 8px inset would otherwise be dead pixels */
-  .pc-date-picker__toggle::before {
-    @apply -right-2;
-  }
-
-  .pc-date-picker__toggle {
-    @apply right-2;
-  }
-
-  /* 8px inset + the toggle's 24px box + the 6px gap */
-  .pc-date-picker__clear {
-    @apply right-9.5;
-  }
-
-  /* the hook drives the clear's visibility from the field's actual state
-     (the server can't know a client-owned value), and inline-flex above
-     would beat the UA's [hidden] rule without this */
-  .pc-date-picker__clear[hidden] {
-    display: none;
-  }
-
-  /* two 24px boxes and a gap sit in the rail, so a value long enough to
-     fill the input stops short of the clear instead of running under it -
-     scoped to a VISIBLE clear, or an empty field pads for a button that
-     is not there */
-  .pc-date-picker__control:has(.pc-date-picker__clear:not([hidden])) .pc-date-picker__input {
-    @apply pr-16;
-  }
-
-  /* Doubled selector + !important: icon sizing contract (see pagination
-     previous chevron). One box for both glyphs - the contract above. */
-  .pc-date-picker__clear-icon.pc-date-picker__clear-icon,
-  .pc-date-picker__toggle-icon.pc-date-picker__toggle-icon {
-    @apply w-4! h-4!;
-  }
-
-  /* Clamped to the viewport the way pc-popover__panel is, just wider: two month
-     panes side by side are about 34rem, and an unclamped w-max panel anchored
-     at left-0 walks straight off a phone. */
-  .pc-date-picker__panel {
-    @apply absolute left-0 z-40 mt-2 p-3 bg-white border border-gray-200 shadow-lg w-max origin-top-left;
-    @apply max-w-[min(38rem,calc(100vw-1rem))] overflow-x-auto;
-    @apply dark:bg-gray-900 dark:border-gray-400/17;
-    border-radius: min(var(--pc-radius, 0.625rem), 1rem);
-  }
-
-  .pc-date-picker__months--two {
-    @apply flex flex-col gap-4 sm:flex-row sm:gap-6;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pc-calendar__day,
-    .pc-calendar__nav,
-    .pc-date-picker__toggle,
-    .pc-date-picker__clear {
+  @keyframes pc-alert-dialog-backdrop-in {
+    from {
+      opacity: 0;
     }
   }
-}
 
-/* Chat — answer grounding: inline citation chips + the RAG sources row. */
-@layer components {
-  /* Inline citation chip -------------------------------------------------- */
-
-  /* Positioning context for the hover/focus preview card. */
-  .pc-chat__citation-wrap {
-    @apply relative inline-block align-baseline;
-  }
-
-  .pc-chat__citation {
-    @apply inline-flex min-w-4 items-center justify-center px-1 align-super text-[0.65em] font-semibold leading-none text-gray-600 no-underline transition-colors dark:text-gray-300;
-    @apply bg-gray-100 dark:bg-gray-400/17;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.125rem);
-    padding-block: 0.15em;
-  }
-
-  .pc-chat__citation:hover {
-    @apply bg-gray-200 text-gray-900 dark:bg-gray-400/25 dark:text-gray-100;
-  }
-
-  .pc-chat__citation:focus-visible {
-    @apply ring-2 ring-primary-500/50;
-  }
-
-  /* The chip's own <sup> would double-raise it — the chip is already
-     align-super, so keep the number on the chip's baseline. */
-  .pc-chat__citation-num {
-    @apply align-baseline;
-  }
-
-  /* Centred over the chip and clamped to the viewport, so a chip near the right
-     edge of a narrow bubble spills at most half a card instead of a whole one.
-     `visibility: hidden` already keeps the closed card out of hit-testing, so no
-     pointer-events reset is needed: the open card is hoverable (WCAG 1.4.13). */
-  .pc-chat__citation-card {
-    @apply invisible absolute bottom-full left-1/2 z-20 mb-1 flex w-max flex-col gap-1 border border-gray-200 bg-white p-2 text-xs leading-snug text-gray-600 opacity-0 shadow-lg transition-opacity duration-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300;
-    border-radius: var(--pc-radius, 0.625rem);
-    max-width: min(14rem, calc(100vw - 2rem));
-    transform: translateX(-50%);
-  }
-
-  /* Bridges the 0.25rem gap between chip and card so the pointer can travel
-     into the card without the hover dropping. */
-  .pc-chat__citation-card::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    top: 100%;
-    height: 0.25rem;
-  }
-
-  .pc-chat__citation-wrap:hover .pc-chat__citation-card,
-  .pc-chat__citation-wrap:focus-within .pc-chat__citation-card {
-    @apply visible opacity-100;
-  }
-
-  .pc-chat__citation-card-title {
-    @apply font-semibold text-gray-900 dark:text-gray-100;
-  }
-
-  .pc-chat__citation-card-domain {
-    @apply text-[0.9em] text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-chat__citation-card-snippet {
-    @apply line-clamp-3 text-gray-500 dark:text-gray-400;
-  }
-
-  /* Sources row ----------------------------------------------------------- */
-
-  .pc-chat__sources {
-    @apply mt-2 text-xs;
-  }
-
-  .pc-chat__sources-row {
-    @apply inline-flex cursor-pointer list-none items-center gap-1.5 border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
-    border-radius: var(--pc-radius, 0.625rem);
-  }
-
-  .pc-chat__sources-row::-webkit-details-marker {
-    display: none;
-  }
-
-  .pc-chat__sources-row:hover {
-    @apply bg-gray-50 text-gray-700 dark:bg-gray-400/10 dark:text-gray-200;
-  }
-
-  .pc-chat__sources-row:focus-visible {
-    @apply ring-2 ring-primary-500/50;
-  }
-
-  .pc-chat__sources-favicons {
-    @apply flex items-center;
-  }
-
-  /* Stacked favicon cluster — each one overlaps the last. */
-  .pc-chat__sources-favicons > * + * {
-    @apply -ml-1.5;
-  }
-
-  .pc-chat__sources-chevron {
-    @apply shrink-0 transition-transform duration-150;
-  }
-
-  /* Doubled selector + !important: icon sizing contract (see reasoning). */
-  .pc-chat__sources-chevron.pc-chat__sources-chevron {
-    width: 0.875rem !important;
-    height: 0.875rem !important;
-  }
-
-  .pc-chat__sources[open] > .pc-chat__sources-row .pc-chat__sources-chevron {
-    @apply rotate-90;
-  }
-
-  .pc-chat__sources-list {
-    @apply mt-2 flex list-none flex-col gap-1 p-0;
-  }
-
-  .pc-chat__source-link {
-    @apply flex items-start gap-2 border border-transparent p-2 no-underline transition-colors;
-    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
-  }
-
-  .pc-chat__source-link:hover {
-    @apply border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-400/10;
-  }
-
-  .pc-chat__source-link:focus-visible {
-    @apply ring-2 ring-primary-500/50;
-  }
-
-  .pc-chat__source-favicon {
-    @apply mt-0.5 h-4 w-4 shrink-0 rounded-sm bg-gray-100 object-cover dark:bg-gray-400/17;
-  }
-
-  .pc-chat__source-favicon--letter {
-    @apply flex items-center justify-center text-[0.6rem] font-semibold text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-chat__source-text {
-    @apply flex min-w-0 flex-col gap-0.5;
-  }
-
-  .pc-chat__source-title {
-    @apply truncate font-medium text-gray-900 dark:text-gray-100;
-  }
-
-  .pc-chat__source-domain {
-    @apply truncate text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-chat__source-snippet {
-    @apply line-clamp-2 text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-chat__sources-more-summary {
-    @apply mt-1 inline-flex cursor-pointer list-none items-center px-2 py-1 font-medium text-gray-500 select-none hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200;
-  }
-
-  .pc-chat__sources-more-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .pc-chat__sources-more-summary:focus-visible {
-    @apply ring-2 ring-primary-500/50;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pc-chat__citation,
-    .pc-chat__citation-card,
-    .pc-chat__sources-chevron,
-    .pc-chat__source-link {
-      transition-duration: 1ms;
+  @keyframes pc-alert-dialog-backdrop-out {
+    to {
+      opacity: 0;
     }
   }
 }
@@ -11612,6 +10432,411 @@
   }
 }
 
+@layer components {
+  /* Slideover - bottom-sheet drawer mode (origin="bottom").
+     Everything here is scoped to .pc-slideover__box--drawer, a class only the
+     bottom origin gets, so left/right/top sheets are untouched. */
+
+  /* The large-panel radius rule: token x 1.2, capped, and top corners only -
+     the sheet is anchored to the bottom edge, so its bottom corners sit
+     off-screen and rounding them would just expose a sliver of overlay. */
+  .pc-slideover__box--drawer {
+    border-top-left-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    border-top-right-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    max-height: 92dvh;
+    /* the sheet is the drag surface and its body is the scroller; letting the
+       sheet itself scroll would put a second scroller under the finger */
+    overflow: hidden;
+    will-change: transform;
+  }
+
+  /* A scroll that reaches the page under an open sheet is never wanted, and on
+     iOS chaining to the document is what triggers pull-to-refresh mid-drag. */
+  .pc-slideover__box--drawer .pc-slideover__content {
+    overscroll-behavior: contain;
+  }
+
+  /* The two data attributes are rendered exactly when the hook is attached and
+     the sheet is really draggable. A plain drag_to_dismiss={false} sheet with
+     no snaps gets no grab cursor and does not decline browser gestures -
+     advertising a drag that does nothing is worse than no affordance.
+
+     touch-action stays on the pill rather than the whole sheet on purpose: on
+     the sheet it would also be consulted for the body's own scroll chain, so
+     `none` there costs the drawer its inner scrolling. Body drags are claimed
+     by the hook's non-passive touchmove instead, which can weigh up direction. */
+  .pc-slideover__box--drawer:is([data-drag-dismiss], [data-snap-points])
+    .pc-slideover__handle {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  /* The pill is decorative (aria-hidden) - the drag is the interaction, not
+     this element. The hook captures pointerdown across the whole sheet head,
+     so the real drag target is far larger than the 40x4 pill. */
+  .pc-slideover__handle {
+    @apply flex flex-none items-center justify-center pt-3 pb-2;
+    min-height: 1.75rem;
+  }
+
+  .pc-slideover__handle__pill {
+    @apply block w-10 rounded-full bg-gray-300 dark:bg-gray-600;
+    height: 0.25rem;
+  }
+
+  .pc-slideover__box--dragging {
+    @apply select-none;
+  }
+
+  .pc-slideover__box--dragging .pc-slideover__handle {
+    cursor: grabbing;
+  }
+
+  /* Home-indicator clearance on phones. env() resolves to 0 everywhere else,
+     so this costs nothing on desktop. */
+  .pc-slideover__box--drawer .pc-slideover__content {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pc-slideover__box--drawer .pc-slideover__footer {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* A drawer with a footer already clears the home indicator there; doubling
+     it on the body would leave a dead gap above the action row. */
+  .pc-slideover__box--drawer:has(.pc-slideover__footer) .pc-slideover__content {
+    padding-bottom: 1.25rem;
+  }
+
+  /* scale_background: the hook toggles .pc-drawer-scaled on the consumer's
+     [data-pc-drawer-wrapper] while the drawer is open. Opt-in only - see the
+     moduledoc for why a transformed ancestor re-parents fixed descendants. */
+  [data-pc-drawer-wrapper] {
+    transition:
+      transform 300ms cubic-bezier(0.32, 0.72, 0, 1),
+      border-radius 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .pc-drawer-scaled {
+    transform: scale(0.96);
+    transform-origin: top center;
+    border-radius: min(calc(var(--pc-radius, 0.625rem) * 1.2), 20px);
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-pc-drawer-wrapper] {
+      transition-duration: 1ms;
+    }
+  }
+}
+
+/* File upload - the dropzone family over Phoenix.LiveView uploads. Drag-over
+ * is LiveView's own `phx-drop-target-active` class, so the highlight is plain
+ * CSS and the component ships no hook. The native input stays in the tab
+ * order (clipped, never display:none), and because it is invisible the zone
+ * that labels it draws the focus ring on its behalf via :has(). */
+@layer components {
+  .pc-file-upload {
+    @apply flex flex-col w-full gap-3;
+  }
+
+  /* Clipped to nothing but still focusable: keyboard users tab to the input
+     and Enter/Space opens the native picker. `display: none` or `hidden`
+     would drop it out of the tab order and strand them. */
+  .pc-file-upload__input {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip-path: inset(50%);
+  }
+
+  /* The drop surface: a label, so clicking anywhere on it opens the picker
+     and LiveView's phx-drop-target lands on the same element. */
+  .pc-file-upload__zone {
+    @apply relative flex flex-col items-center justify-center w-full gap-1 px-6 py-10 text-center cursor-pointer;
+    @apply bg-transparent border border-dashed border-gray-300 shadow-xs;
+    @apply transition-[color,background-color,border-color,box-shadow] duration-200 ease-out;
+    @apply hover:border-gray-400 hover:bg-gray-50;
+    @apply dark:bg-gray-400/8 dark:border-gray-400/25 dark:hover:border-gray-400/40 dark:hover:bg-gray-400/12;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible) {
+    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
+  }
+
+  .pc-file-upload__zone.phx-drop-target-active {
+    @apply border-primary-500 bg-primary-500/8 dark:bg-primary-500/12;
+  }
+
+  .pc-file-upload__heading {
+    @apply flex flex-col gap-0.5;
+  }
+
+  /* Icon geometry rides the doubled-selector + bang contract: these are bare
+     hero-* spans, and a consumer's heroicon CSS (utilities layer or unlayered)
+     beats a single-class rule of ours on order alone. The variant overrides
+     below gain a class each, so they still out-rank this base. */
+  .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-8! h-8! text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-file-upload__label {
+    @apply text-sm font-medium text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-file-upload__description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /* The drag hint is decorative (aria-hidden): its text is static and only the
+     opacity changes, so it is faded rather than removed purely so the fade can
+     be animated. */
+  .pc-file-upload__live {
+    @apply absolute inset-x-0 bottom-2 text-xs font-medium opacity-0 pointer-events-none;
+    @apply text-primary-600 transition-opacity duration-150 dark:text-primary-400;
+  }
+
+  .pc-file-upload__zone.phx-drop-target-active .pc-file-upload__live {
+    @apply opacity-100;
+  }
+
+  /* File upload - entries */
+
+  .pc-file-upload__entries {
+    @apply flex flex-col gap-2 p-0 m-0 list-none;
+  }
+
+  .pc-file-upload__entry {
+    @apply list-none;
+  }
+
+  .pc-file-upload__entry-inner {
+    @apply flex items-center w-full gap-3 px-3 py-2 bg-transparent border border-gray-200;
+    @apply dark:border-gray-400/20 dark:bg-gray-400/8;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__entry-inner--invalid {
+    @apply border-danger-500 dark:border-danger-500/70;
+  }
+
+  .pc-file-upload__media {
+    @apply flex items-center justify-center w-10 h-10 overflow-hidden shrink-0;
+    @apply bg-gray-100 dark:bg-gray-400/12;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__thumb {
+    @apply object-cover w-full h-full;
+    @apply transition-opacity duration-150 ease-out;
+  }
+
+  /* live_img_preview ships an <img> with no src at all and lets its hook fill
+     one in from the File the browser is holding. Two moments have no usable
+     src: every first paint, before the hook has run, and any render where the
+     File cannot be found - a preview restored without its input, a static page
+     with no LiveView behind it. LiveView's own hook assigns the null that
+     getEntryDataURL returns in that second case, and `img.src = null` becomes
+     the literal string "null", a relative URL that 404s into a broken-image
+     glyph. Hide the image in all three states and let the media placeholder
+     show through: a quiet grey square that fills in, rather than a broken one
+     that never does. */
+  .pc-file-upload__thumb:not([src]),
+  .pc-file-upload__thumb[src=""],
+  .pc-file-upload__thumb[src="null"],
+  .pc-file-upload__avatar-img:not([src]),
+  .pc-file-upload__avatar-img[src=""],
+  .pc-file-upload__avatar-img[src="null"] {
+    @apply opacity-0;
+  }
+
+  .pc-file-upload__type-icon.pc-file-upload__type-icon {
+    @apply w-5! h-5! text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-file-upload__entry-body {
+    @apply flex flex-col min-w-0 gap-1 grow;
+  }
+
+  .pc-file-upload__entry-name {
+    @apply block text-sm font-medium truncate text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-file-upload__entry-meta {
+    @apply block text-xs tabular-nums text-gray-500 dark:text-gray-400;
+  }
+
+  /* File upload - progress. Mirrors pc-progress: washed track, solid fill,
+     width driven inline from entry.progress. The width transition is
+     informative, so reduced motion leaves it alone. */
+
+  .pc-file-upload__progress {
+    @apply relative flex w-full h-1 overflow-hidden rounded-full bg-primary-500/15;
+  }
+
+  .pc-file-upload__progress-bar {
+    @apply relative z-[1] block h-full rounded-full bg-primary-600;
+    @apply transition-[width] duration-500 ease-out;
+  }
+
+  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress {
+    @apply bg-danger-500/15;
+  }
+
+  .pc-file-upload__entry-inner--invalid .pc-file-upload__progress-bar {
+    @apply bg-danger-600;
+  }
+
+  /* File upload - errors, matching the pc-form-field-error treatment */
+
+  .pc-file-upload__error {
+    @apply flex items-center gap-1.5 text-sm text-danger-600 dark:text-danger-400;
+  }
+
+  .pc-file-upload__error--entry {
+    @apply mt-1.5 text-xs;
+  }
+
+  /* The config-level error is the only <p> in the family, so it is the only
+     one that can inherit a margin from a consumer's prose/typography styles. */
+  .pc-file-upload__error--config {
+    @apply m-0;
+  }
+
+  .pc-file-upload__error-icon.pc-file-upload__error-icon {
+    @apply w-4! h-4! shrink-0;
+  }
+
+  /* File upload - cancel */
+
+  .pc-file-upload__cancel {
+    @apply flex items-center justify-center w-7 h-7 shrink-0 cursor-pointer;
+    @apply text-gray-400 transition-colors duration-150 hover:text-gray-700;
+    @apply dark:text-gray-500 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload__cancel-icon.pc-file-upload__cancel-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* File upload - compact: a browse button, no zone */
+
+  .pc-file-upload__bar {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .pc-file-upload--compact .pc-file-upload__zone {
+    @apply flex-row w-auto gap-2 px-4 py-2 border-solid;
+    @apply text-sm font-medium text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-file-upload--compact .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-4! h-4!;
+  }
+
+  /* File upload - avatar: one circular preview with a replace overlay */
+
+  .pc-file-upload--avatar .pc-file-upload__zone {
+    @apply relative w-24 h-24 p-0 overflow-hidden rounded-full shrink-0;
+  }
+
+  .pc-file-upload__avatar-img {
+    @apply object-cover w-full h-full;
+    @apply transition-opacity duration-150 ease-out;
+  }
+
+  .pc-file-upload--avatar .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-10! h-10!;
+  }
+
+  .pc-file-upload__overlay {
+    @apply absolute inset-0 flex items-center justify-center text-white opacity-0;
+    @apply bg-gray-900/60 transition-opacity duration-150;
+  }
+
+  .pc-file-upload--avatar .pc-file-upload__zone:hover .pc-file-upload__overlay,
+  .pc-file-upload--avatar
+    .pc-file-upload__zone:has(.pc-file-upload__input:focus-visible)
+    .pc-file-upload__overlay {
+    @apply opacity-100;
+  }
+
+  .pc-file-upload__overlay-icon.pc-file-upload__overlay-icon {
+    @apply w-6! h-6!;
+  }
+
+  /* File upload - gallery: preview tiles plus an add tile under max_entries */
+
+  .pc-file-upload__grid {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4;
+  }
+
+  .pc-file-upload__tile {
+    @apply relative overflow-hidden aspect-square;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__tile--add {
+    @apply flex flex-col items-center justify-center w-full h-full gap-1 px-2 py-2 text-center;
+  }
+
+  /* The gallery's input is a sibling of the add tile, not a child of it - it
+     has to stay in the DOM at max_entries, where the tile does not - so the
+     :has() focus ring is scoped from the grid rather than from the zone. */
+  .pc-file-upload__grid:has(> .pc-file-upload__input:focus-visible)
+    .pc-file-upload__tile--add {
+    @apply outline-hidden border-primary-500 ring-2 ring-primary-500/50;
+  }
+
+  .pc-file-upload__tile-label {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__glyph.pc-file-upload__glyph {
+    @apply w-6! h-6!;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-inner {
+    @apply relative flex-col items-stretch h-full gap-0 p-0;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__media {
+    @apply w-full h-full rounded-none;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-body {
+    @apply absolute inset-x-0 bottom-0 gap-1 p-2 bg-gray-900/70;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-name {
+    @apply text-xs text-white;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__entry-meta {
+    @apply text-[10px] text-gray-300;
+  }
+
+  .pc-file-upload--gallery .pc-file-upload__cancel {
+    @apply absolute w-6 h-6 text-white top-1 right-1 bg-gray-900/70;
+    @apply hover:text-white hover:bg-gray-900/90 dark:text-white dark:hover:text-white;
+  }
+
+  /* Decorative fades only; the progress width transition stays, matching
+     pc-progress - it reports state rather than decorating it. */
+  @media (prefers-reduced-motion: reduce) {
+    .pc-file-upload__zone,
+    .pc-file-upload__overlay,
+    .pc-file-upload__live,
+    .pc-file-upload__cancel,
+    .pc-file-upload__thumb,
+    .pc-file-upload__avatar-img {
+      transition-duration: 1ms;
+    }
+  }
+}
+
   /* Filters: the standalone filter bar (chips + add-filter popover).
      Shares the data table's editor form styling (pc-data-table__filter-*),
      because the editor markup itself is shared - one home for the operator
@@ -11703,6 +10928,168 @@
       transition-duration: 1ms;
     }
   }
+
+/* Resizable - split panes with draggable, keyboard-operable separators.
+ * The painted divider is a hairline; the hit area around it is much larger,
+ * which is the difference between a splitter you can grab and one you hunt. */
+@layer components {
+  .pc-resizable {
+    @apply flex flex-row w-full h-full overflow-hidden;
+  }
+
+  .pc-resizable--vertical {
+    @apply flex-col;
+  }
+
+  /* min-w-0/min-h-0 matter: a flex item defaults to min-size auto, which would
+   * refuse to shrink past its content and quietly break every clamp. */
+  .pc-resizable__panel {
+    @apply relative min-w-0 min-h-0 overflow-hidden;
+  }
+
+  /* The element IS the hit area (1px painted line, 11px grabbable). Negative
+   * margins pull the neighbouring panels back so the extra width costs no
+   * layout - the panels still meet on the hairline. */
+  .pc-resizable__handle {
+    @apply relative z-10 flex items-center justify-center shrink-0 self-stretch;
+    @apply w-[11px] -mx-[5px] cursor-col-resize touch-none select-none outline-none;
+    /* At rest the divider is the same structural hairline the cards and tables
+       draw with: chrome between two panes, not a line asking to be looked at. */
+    --pc-resizable-line: var(--color-gray-200);
+  }
+
+  /* The line colour rides a variable set on the HANDLE - a real element, so the
+     dark override resolves - and the ::before below only reads it. Same reason
+     as the range input's track: a `dark:` variant applied straight to a
+     pseudo-element compiles to a trailing `:where(.dark, ...)` that can never
+     match, which is why the line used to sit at its light gray in dark mode and
+     read as a white bar. Setting it here also keeps every state at one class of
+     specificity, so hover can never out-rank a live drag. */
+  .pc-resizable__handle:where(.dark, .dark *) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 17%, transparent);
+  }
+
+  /* Hover firms the hairline exactly one neutral step. Passing the mouse over a
+     divider on the way somewhere else is not an intent to resize, so it does
+     not get the accent - it just becomes a slightly more present line. */
+  .pc-resizable__handle:hover {
+    --pc-resizable-line: var(--color-gray-300);
+  }
+
+  .pc-resizable__handle:hover:where(.dark, .dark *) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
+  }
+
+  /* A drag or keyboard focus IS intent, and keeps the accent - at 60%,
+     which reads as "live" without going full ink on a monochrome ramp
+     (solid primary-500 is near-black on white and near-white on black,
+     and a 1px line at full contrast shouts). :is() so the dragging
+     modifier weighs the same as :hover above and wins on source order -
+     the pointer is sitting on the handle for the whole drag. */
+  .pc-resizable__handle:is(
+      :focus-visible:not([data-pc-pointer-focus]),
+      .pc-resizable__handle--dragging
+    ) {
+    --pc-resizable-line: color-mix(in oklab, var(--color-primary-500) 60%, transparent);
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle {
+    @apply w-auto mx-0 h-[11px] -my-[5px] cursor-row-resize;
+  }
+
+  /* The hairline itself. A pseudo-element so hover, drag and focus can tint it
+   * without touching the hit area's geometry. */
+  .pc-resizable__handle::before {
+    content: "";
+    @apply absolute w-px h-full transition-colors duration-150 ease-out;
+    background-color: var(--pc-resizable-line);
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle::before {
+    @apply w-full h-px;
+  }
+
+  /* Never a persistent :focus fill. The ring is for keyboard users only, and
+   * on a splitter it has to be unmissable - arrows do nothing until you can
+   * see which separator has focus. The :not() guard is the pointer-focus
+   * session (see the hook's startDrag): a script focus() on a modality-fresh
+   * page matches :focus-visible, and the ring on a mouse drag reads as two
+   * stray hairlines. */
+  .pc-resizable__handle:focus-visible:not([data-pc-pointer-focus]) {
+    @apply ring-2 ring-primary-500/50;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  /* The grip chip: the visible "you can drag this" affordance. A panel surface
+     sitting on the hairline, wearing the same border the inputs and radio
+     cards wear, with the muted-glyph pair on its dots. */
+  .pc-resizable__grip {
+    @apply relative z-10 flex items-center justify-center;
+    /* Note: .pc-resizable__handle--with-handle is deliberately markup-only -
+       the grip below carries all the visible styling; the modifier exists on
+       the separator as a stable override hook for consumers. */
+    @apply w-[11px] h-6 border border-gray-300 bg-white text-gray-400;
+    @apply transition-colors duration-150 ease-out;
+    @apply dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip {
+    @apply w-6 h-[11px];
+  }
+
+  /* Three dots, drawn with a repeating gradient so the grip needs no markup. */
+  .pc-resizable__grip::after {
+    content: "";
+    @apply block w-[2px] h-[10px];
+    background-image: repeating-linear-gradient(
+      to bottom,
+      currentColor 0 2px,
+      transparent 2px 4px
+    );
+  }
+
+  .pc-resizable--vertical > .pc-resizable__handle .pc-resizable__grip::after {
+    @apply w-[10px] h-[2px];
+    background-image: repeating-linear-gradient(
+      to right,
+      currentColor 0 2px,
+      transparent 2px 4px
+    );
+  }
+
+  /* Same story as the hairline: hover firms the border one step (the pair the
+     outline radio cards hover with) and darkens the dots; the accent is held
+     back for a real drag or keyboard focus. */
+  .pc-resizable__handle:hover .pc-resizable__grip {
+    @apply border-gray-400 text-gray-500 dark:border-gray-400/40 dark:text-gray-400;
+  }
+
+  .pc-resizable__handle:is(
+      :focus-visible:not([data-pc-pointer-focus]),
+      .pc-resizable__handle--dragging
+    )
+    .pc-resizable__grip {
+    @apply border-primary-500/60 text-primary-500;
+  }
+
+  /* Mid-drag the pointer belongs to the separator: no text selection, and no
+   * child element stealing the pointer stream from the captured handle. */
+  .pc-resizable--dragging {
+    @apply select-none;
+  }
+
+  .pc-resizable--dragging .pc-resizable__panel {
+    @apply pointer-events-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-resizable__handle::before,
+    .pc-resizable__grip {
+      transition-duration: 1ms;
+    }
+  }
+}
 
 /* Sortable - drag-to-reorder lists and grids.
  * The dragged element IS the overlay: it is really moved through the list as
@@ -11824,210 +11211,507 @@
   }
 }
 
-/* Alert dialog - the two-answer decision that will not let you walk away.
-   Built on the native <dialog>, so the top layer, focus containment and
-   ::backdrop come from the element. Deliberately narrower than the modal:
-   one question, one media chip, one footer band that stays put while a long
-   body scrolls under it. The default is CALM - the danger wash is what
-   variant="destructive" opts into, never the ambient state. */
-
 @layer components {
-  .pc-alert-dialog {
-    /* The panel needs a DEFINITE height to bound its scrolling body: a
-       percentage max-height on the panel would resolve against the dialog's
-       auto height and be ignored, so the panel would overflow and clip its
-       own header. Both carry the same explicit cap instead. */
-    --pc-alert-dialog-max-h: min(32rem, calc(100dvh - 4rem));
-    @apply fixed p-0 overflow-hidden shadow-lg;
-    inset: 0;
-    margin: auto;
-    width: min(30rem, calc(100vw - 2rem));
-    max-height: var(--pc-alert-dialog-max-h);
-    color: inherit;
-    border: 1px solid var(--color-gray-200);
-    background: var(--color-white, #fff);
+  /* Calendar */
+
+  .pc-calendar {
+    @apply inline-block select-none text-gray-900 dark:text-gray-100;
+    /* One radius for every rounded corner a day can show - the chip, the
+       band's outer ends, the nav buttons. A single token means a lone
+       selected day and a range endpoint are the SAME shape, so completing
+       a range never visibly re-rounds the date you already picked. */
+    --pc-calendar-day-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    /* Derived from the public --pc-calendar-cell-size, never declared here:
+       read with a fallback instead, so a value set on ANY ancestor (a
+       wrapping style attribute, a class on the calendar itself) reaches the
+       grid. Declaring the default on this element would shadow a wrapper's
+       value, which is the whole point of the dial. */
+    --pc-calendar-nav-size: max(calc(var(--pc-calendar-cell-size, 2.25rem) - 0.25rem), 1.5rem);
+  }
+
+  .pc-calendar__header {
+    @apply flex items-center justify-between gap-2 pb-2;
+  }
+
+  .pc-calendar__caption {
+    @apply flex-1 text-sm font-semibold text-center;
+  }
+
+  /* Nav buttons are chrome, deliberately one step smaller than a day so the
+     header never out-weighs the grid. That one step is the whole formula, so
+     the arrows keep their proportion when the cell dial moves: 2rem against
+     the default 2.25rem day, and never below a 1.5rem tap-ish minimum. */
+  .pc-calendar__nav {
+    @apply inline-flex items-center justify-center shrink-0 text-gray-500 transition-colors duration-150 cursor-pointer;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-400/12 dark:hover:text-gray-100;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
+    border-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). */
+  .pc-calendar__nav-icon.pc-calendar__nav-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* Keeps the caption optically centred when one arrow is suppressed, which is
+     what a two-pane range picker does to the second month. */
+  .pc-calendar__nav-spacer {
+    @apply shrink-0;
+    width: var(--pc-calendar-nav-size);
+    height: var(--pc-calendar-nav-size);
+  }
+
+  /* The caption is already in the DOM above the grid; this region exists only
+     so a month change is announced, not so it is seen twice. */
+  .pc-calendar__announcer {
+    @apply sr-only;
+  }
+
+  /* Week rows want air between them, and a <tr> is a table-row, so a margin
+     does nothing: border-spacing is the only lever. The horizontal value stays
+     0 on purpose - the range band's continuity depends on the cells inside a
+     week touching, and even one shared pixel of spacing turns the band back
+     into a row of separate chips. */
+  .pc-calendar__grid {
+    border-collapse: separate;
+    border-spacing: 0 0.25rem;
+  }
+
+  /* The header columns ride the same width as the days, so the grid stays in
+     register at any cell size. The height does not: this is a label row, not
+     a cell, and it has no business growing to 4rem because the days did. */
+  .pc-calendar__weekday {
+    @apply h-8 text-xs font-normal text-gray-400 dark:text-gray-500;
+    width: var(--pc-calendar-cell-size, 2.25rem);
+  }
+
+  /* Cells carry the range band so it runs edge to edge between days; the day
+     button inside keeps its own rounding. */
+  .pc-calendar__cell {
+    @apply p-0 align-middle;
+  }
+
+  /* The band is the quiet half of a range: soft neutral wash, so the two ends
+     stay the thing you see first. Dark rides a gray-400 alpha rather than a
+     mixed-down white, the way every other wash in here does. */
+  .pc-calendar__cell--in-range,
+  .pc-calendar__cell--range-start,
+  .pc-calendar__cell--range-end {
+    @apply bg-gray-100 dark:bg-gray-400/12;
+  }
+
+  /* Only the outward ends of the band round; everything in between meets
+     square, which is what makes it read as one strip instead of a chain of
+     chips. Rows are spaced apart, so each week is its own strip and its first
+     and last cell round their outer edge too - without that, a band running the
+     full width of a row ends in square corners against nothing. */
+  .pc-calendar__cell--range-start,
+  .pc-calendar__cell--in-range:first-child,
+  .pc-calendar__cell--range-end:first-child {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+  }
+
+  .pc-calendar__cell--range-end,
+  .pc-calendar__cell--in-range:last-child,
+  .pc-calendar__cell--range-start:last-child {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* A day is a square whose side is --pc-calendar-cell-size (2.25rem unless
+     you say otherwise). It is the only size dial the calendar has, and it is
+     a CSS custom property rather than an attr on purpose - same contract as
+     --pc-radius, so a taller booking grid is a class on the wrapper and not a
+     new API to version.
+
+     The dot colour rides a variable set on the day button - a real element, so
+     the dark override resolves. A `dark:` variant applied straight to the
+     ::after compiles to a trailing `:where(.dark, .dark *)` that can never
+     match, which is the same trap the range input track documents. */
+  .pc-calendar__day {
+    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    width: var(--pc-calendar-cell-size, 2.25rem);
+    height: var(--pc-calendar-cell-size, 2.25rem);
+    border-radius: var(--pc-calendar-day-radius);
+    --pc-calendar-dot: var(--color-primary-500);
+  }
+
+  .pc-calendar__day--outside {
+    @apply text-gray-400 dark:text-gray-600;
+  }
+
+  /* Today is a marker, not a selection - a dot under the number, so a day that
+     is both today and selected still reads as both. */
+  .pc-calendar__day--today::after {
+    @apply absolute bottom-1 w-1 h-1 rounded-full;
+    background-color: var(--pc-calendar-dot);
+    content: "";
+  }
+
+  /* A picked day is the maximal-contrast inverse of the surface it sits on -
+     dark box and light number on white, light box and dark number on black.
+     Anything softer than that stops reading as "this one" the moment a range
+     band is on the grid next to it. */
+  .pc-calendar__day--selected,
+  .pc-calendar__day--selected:hover {
+    @apply bg-gray-900 text-white dark:bg-white dark:text-gray-900;
+  }
+
+  /* The today dot inverts with the chip it lands on, because today is very
+     often the selected day and a white dot on a white chip is no dot. Kept out
+     of the rule above on purpose: that one carries `:hover` as well, and a
+     `:hover` selector would outrank the dark override underneath it. */
+  .pc-calendar__day--selected {
+    --pc-calendar-dot: var(--color-white);
+  }
+
+  .pc-calendar__day--selected:where(.dark, .dark *) {
+    --pc-calendar-dot: var(--color-gray-900);
+  }
+
+  /* The ends of a band round outward only and square off inward, at the band's
+     radius rather than the day's, so the chip and the band share one corner
+     instead of nesting two. */
+  .pc-calendar__day--range-start {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .pc-calendar__day--range-end {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  /* An end that lands on the edge of a week row has nothing to merge into on
+     the inward side either, so it takes that corner back. */
+  .pc-calendar__cell:last-child .pc-calendar__day--range-start {
+    border-start-end-radius: var(--pc-calendar-day-radius);
+    border-end-end-radius: var(--pc-calendar-day-radius);
+  }
+
+  .pc-calendar__cell:first-child .pc-calendar__day--range-end {
+    border-start-start-radius: var(--pc-calendar-day-radius);
+    border-end-start-radius: var(--pc-calendar-day-radius);
+  }
+
+  /* Days inside the band are subordinate to its ends: no chip of their own, and
+     a number one step back from full contrast. */
+  .pc-calendar__day--in-range {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  .pc-calendar__day--in-range:hover {
+    @apply bg-gray-200 dark:bg-gray-400/20;
+  }
+
+  /* A band crossing a month boundary should not promote the days it covers out
+     of the outside-day treatment. */
+  .pc-calendar__day--in-range.pc-calendar__day--outside {
+    @apply text-gray-400 dark:text-gray-600;
+  }
+
+  /* Disabled days stay in the tab-and-arrow order per the APG, so they get the
+     look of being unavailable without leaving the grid. The dark background is
+     spelled out so it outranks the dark chip on a day that is both selected and
+     out of the window. */
+  .pc-calendar__day--disabled,
+  .pc-calendar__day--disabled:hover {
+    @apply text-gray-300 bg-transparent cursor-not-allowed dark:bg-transparent dark:text-gray-600;
+  }
+
+  .pc-calendar__day--disabled::after {
+    @apply hidden;
+  }
+
+  /* Date picker */
+
+  .pc-date-picker {
+    @apply relative;
+  }
+
+  .pc-date-picker__control {
+    @apply relative;
+  }
+
+  .pc-date-picker__input {
+    @apply pr-10;
+  }
+
+  /* Trailing adornment contract - an input carrying a clear PLUS a second
+     control. The combo box is the precedent (.pc-combo-box__clear,
+     .pc-combo-box__clear-icon, .pc-combo-box__chevron); the components stay
+     separate, what travels is the measurements and the vocabulary:
+       - both glyphs come from the mini/outline weight family and share ONE
+         16px box (w-4, the combobox's clear-icon size). No solid glyph
+         beside an outline one - matched boxes at matched stroke weight is
+         what keeps their optical centres together
+       - the clear sits leftmost of the trailing group, one gap-1.5 (6px)
+         from the control to its right, which is the combobox control's gap
+       - each button keeps a 24px tap box (h-6 w-6, the combobox's clear)
+         around its 16px glyph, and the house invisible ::before extension
+         (see .pc-alert__dismiss-button) carries that box to the field's
+         full height rather than growing anything that paints
+       - at rest both read gray-400 / dark gray-500, and hover is the
+         combobox's wash plus a darker glyph */
+  .pc-date-picker__toggle,
+  .pc-date-picker__clear {
+    @apply absolute top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md;
+    @apply text-gray-400 transition-colors duration-150 cursor-pointer dark:text-gray-500;
+    @apply hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .pc-date-picker__toggle::before,
+  .pc-date-picker__clear::before {
+    content: "";
+    @apply absolute -inset-y-2 inset-x-0;
+  }
+
+  /* the toggle is the primary target, so its strip runs out to the field's
+     right edge too - the 8px inset would otherwise be dead pixels */
+  .pc-date-picker__toggle::before {
+    @apply -right-2;
+  }
+
+  .pc-date-picker__toggle {
+    @apply right-2;
+  }
+
+  /* 8px inset + the toggle's 24px box + the 6px gap */
+  .pc-date-picker__clear {
+    @apply right-9.5;
+  }
+
+  /* the hook drives the clear's visibility from the field's actual state
+     (the server can't know a client-owned value), and inline-flex above
+     would beat the UA's [hidden] rule without this */
+  .pc-date-picker__clear[hidden] {
+    display: none;
+  }
+
+  /* two 24px boxes and a gap sit in the rail, so a value long enough to
+     fill the input stops short of the clear instead of running under it -
+     scoped to a VISIBLE clear, or an empty field pads for a button that
+     is not there */
+  .pc-date-picker__control:has(.pc-date-picker__clear:not([hidden])) .pc-date-picker__input {
+    @apply pr-16;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     previous chevron). One box for both glyphs - the contract above. */
+  .pc-date-picker__clear-icon.pc-date-picker__clear-icon,
+  .pc-date-picker__toggle-icon.pc-date-picker__toggle-icon {
+    @apply w-4! h-4!;
+  }
+
+  /* Clamped to the viewport the way pc-popover__panel is, just wider: two month
+     panes side by side are about 34rem, and an unclamped w-max panel anchored
+     at left-0 walks straight off a phone. */
+  .pc-date-picker__panel {
+    @apply absolute left-0 z-40 mt-2 p-3 bg-white border border-gray-200 shadow-lg w-max origin-top-left;
+    @apply max-w-[min(38rem,calc(100vw-1rem))] overflow-x-auto;
+    @apply dark:bg-gray-900 dark:border-gray-400/17;
     border-radius: min(var(--pc-radius, 0.625rem), 1rem);
   }
 
-  .dark .pc-alert-dialog {
-    border-color: color-mix(in srgb, white 15%, transparent);
-    background: var(--color-gray-900);
+  .pc-date-picker__months--two {
+    @apply flex flex-col gap-4 sm:flex-row sm:gap-6;
   }
 
-  .pc-alert-dialog::backdrop {
-    background: rgb(0 0 0 / 0.5);
-  }
-
-  .pc-alert-dialog__panel {
-    @apply flex flex-col;
-    max-height: var(--pc-alert-dialog-max-h);
-  }
-
-  .pc-alert-dialog__header {
-    @apply flex items-start gap-3 shrink-0 px-6 pt-6;
-  }
-
-  /* The media chip: 40px square beside the title, holding an icon or an
-     image. Muted by default - a neutral wash that says "here is the subject
-     of the question", not "danger". */
-  .pc-alert-dialog__media {
-    @apply flex items-center justify-center shrink-0 overflow-hidden w-10 h-10 text-gray-500 dark:text-gray-400;
-    background: var(--color-gray-100);
-    border-radius: min(calc(var(--pc-radius, 0.625rem) * 0.8), 0.625rem);
-  }
-
-  .dark .pc-alert-dialog__media {
-    /* rides the gray ramp (not a white mix) so a re-themed gray dial
-       carries the wash with it - the house ghost recipe */
-    background: color-mix(in srgb, var(--color-gray-400) 12%, transparent);
-  }
-
-  .pc-alert-dialog--destructive .pc-alert-dialog__media {
-    @apply text-danger-600 dark:text-danger-400;
-    background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
-  }
-
-  /* An image slotted into the chip fills it; the chip's own overflow and
-     radius do the cropping, so consumers pass a bare <img>. */
-  .pc-alert-dialog__media > img {
-    @apply w-full h-full object-cover;
-  }
-
-  /* Doubled selector + bang, the icon-sizing contract (see the pagination
-     chevron): this lands on a bare hero-* span, which consumer heroicon CSS
-     sizes from the utilities layer - beating any single components-layer
-     selector. */
-  .pc-alert-dialog__media-icon.pc-alert-dialog__media-icon {
-    @apply w-6! h-6!;
-  }
-
-  /* The trigger wrapper must not impose block layout - alert-dialog
-     triggers live in toolbars and button rows. display:contents keeps the
-     hook's click listener working via bubbling. */
-  .pc-alert-dialog__trigger {
-    display: contents;
-  }
-
-  .pc-alert-dialog__title {
-    @apply self-center text-base font-semibold text-gray-900 dark:text-gray-100;
-  }
-
-  .pc-alert-dialog__body {
-    @apply flex-1 min-h-0 overflow-y-auto px-6 pt-2 pb-5;
-  }
-
-  .pc-alert-dialog__description {
-    @apply text-sm text-gray-500 dark:text-gray-400;
-  }
-
-  .pc-alert-dialog__content {
-    @apply mt-3 text-sm text-gray-600 dark:text-gray-300;
-  }
-
-  /* The footer band. Same idiom as the table's tfoot: border-t, muted wash,
-     full-bleed. No negative margins here - this dialog puts its padding on
-     each section rather than on the panel, so the band is already edge to
-     edge and reaching for -mx-6 would double-count. The wash pair is the
-     house convention: gray-50 in light, a gray-400 alpha in dark, so a
-     re-themed gray dial carries both. */
-  .pc-alert-dialog__footer {
-    @apply flex flex-col-reverse gap-2 shrink-0 px-6 py-4;
-    @apply sm:flex-row sm:justify-end;
-    @apply border-t border-gray-200 bg-gray-50 dark:border-gray-400/17 dark:bg-gray-400/8;
-  }
-
-  /* flex-col-reverse with cancel FIRST in the DOM: Tab still reaches the safe
-     action first, and on mobile the stack puts the primary action on top
-     under the thumb (shadcn's ergonomics). sm+ unstacks to a right-aligned
-     row with confirm last. */
-  .pc-alert-dialog__footer .pc-alert-dialog__cancel,
-  .pc-alert-dialog__footer .pc-alert-dialog__confirm {
-    @apply justify-center sm:w-auto w-full;
-  }
-
-  /* Nested-child radius: the action buttons derive from the PANEL's clamped
-     radius, not the raw token - at large user radii a raw-token button
-     out-rounds its own dialog (same recipe as the modal/slideover actions). */
-  .pc-alert-dialog__footer .pc-button {
-    border-radius: max(calc(min(var(--pc-radius, 0.625rem), 1rem) - 0.25rem), 0px);
-  }
-
-  /* THE PROPERTY MATTERS (see the slide_over keyframes): these animate
-     `scale`, not `transform`. Tailwind v4's scale-* utilities set the
-     `scale` property, and scale + transform COMPOSE - keyframes on transform
-     would play ON TOP of a consumer's scale-95 rather than overriding it,
-     the same class of bug that made the slide_over teleport. Same property =
-     the running animation wins outright and hands back cleanly at the
-     boundary.
-
-     THE EXIT IS NOT A TRANSITION. dialog.close() is instant - the element
-     leaves the top layer in the same frame - so there is no state left for
-     CSS to animate out of. The hook adds --closing, this plays, and only
-     then does the real close() run (PetalAlertDialog.requestClose). The
-     ::backdrop is a separate animation on a separate pseudo-element: it gets
-     its own in AND out keyframes, because it does not inherit the box's.
-
-     Reduced motion: the whole block is gated, so nothing animates and the
-     hook (reading the same query from JS) skips straight to close(). */
-  @media (prefers-reduced-motion: no-preference) {
-    .pc-alert-dialog[open] {
-      animation: pc-alert-dialog-in 0.15s ease-out;
-    }
-
-    .pc-alert-dialog[open]::backdrop {
-      animation: pc-alert-dialog-backdrop-in 0.15s ease-out;
-    }
-
-    /* One class more specific than the entrance rules above, and later in the
-       sheet, so the exit wins while it plays. `forwards` holds the last frame
-       so the box cannot flash back to full opacity in the gap between
-       animationend and close(). */
-    .pc-alert-dialog[open].pc-alert-dialog--closing {
-      animation: pc-alert-dialog-out 0.15s ease-in forwards;
-    }
-
-    .pc-alert-dialog[open].pc-alert-dialog--closing::backdrop {
-      animation: pc-alert-dialog-backdrop-out 0.15s ease-in forwards;
+  @media (prefers-reduced-motion: reduce) {
+    .pc-calendar__day,
+    .pc-calendar__nav,
+    .pc-date-picker__toggle,
+    .pc-date-picker__clear {
+      transition-duration: 1ms;
     }
   }
+}
 
-  /* The answer is already given - a second click during the 150ms exit would
-     run the OTHER action's on_confirm/on_cancel on the way out. */
-  .pc-alert-dialog--closing {
-    pointer-events: none;
+/* Chat — answer grounding: inline citation chips + the RAG sources row. */
+@layer components {
+  /* Inline citation chip -------------------------------------------------- */
+
+  /* Positioning context for the hover/focus preview card. */
+  .pc-chat__citation-wrap {
+    @apply relative inline-block align-baseline;
   }
 
-  @keyframes pc-alert-dialog-in {
-    from {
-      opacity: 0;
-      scale: 0.96;
-    }
-    to {
-      opacity: 1;
-      scale: 1;
-    }
+  .pc-chat__citation {
+    @apply inline-flex min-w-4 items-center justify-center px-1 align-super text-[0.65em] font-semibold leading-none text-gray-600 no-underline transition-colors dark:text-gray-300;
+    @apply bg-gray-100 dark:bg-gray-400/17;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.125rem);
+    padding-block: 0.15em;
   }
 
-  @keyframes pc-alert-dialog-out {
-    from {
-      opacity: 1;
-      scale: 1;
-    }
-    to {
-      opacity: 0;
-      scale: 0.96;
-    }
+  .pc-chat__citation:hover {
+    @apply bg-gray-200 text-gray-900 dark:bg-gray-400/25 dark:text-gray-100;
   }
 
-  @keyframes pc-alert-dialog-backdrop-in {
-    from {
-      opacity: 0;
-    }
+  .pc-chat__citation:focus-visible {
+    @apply ring-2 ring-primary-500/50;
   }
 
-  @keyframes pc-alert-dialog-backdrop-out {
-    to {
-      opacity: 0;
+  /* The chip's own <sup> would double-raise it — the chip is already
+     align-super, so keep the number on the chip's baseline. */
+  .pc-chat__citation-num {
+    @apply align-baseline;
+  }
+
+  /* Centred over the chip and clamped to the viewport, so a chip near the right
+     edge of a narrow bubble spills at most half a card instead of a whole one.
+     `visibility: hidden` already keeps the closed card out of hit-testing, so no
+     pointer-events reset is needed: the open card is hoverable (WCAG 1.4.13). */
+  .pc-chat__citation-card {
+    @apply invisible absolute bottom-full left-1/2 z-20 mb-1 flex w-max flex-col gap-1 border border-gray-200 bg-white p-2 text-xs leading-snug text-gray-600 opacity-0 shadow-lg transition-opacity duration-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300;
+    border-radius: var(--pc-radius, 0.625rem);
+    max-width: min(14rem, calc(100vw - 2rem));
+    transform: translateX(-50%);
+  }
+
+  /* Bridges the 0.25rem gap between chip and card so the pointer can travel
+     into the card without the hover dropping. */
+  .pc-chat__citation-card::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 0.25rem;
+  }
+
+  .pc-chat__citation-wrap:hover .pc-chat__citation-card,
+  .pc-chat__citation-wrap:focus-within .pc-chat__citation-card {
+    @apply visible opacity-100;
+  }
+
+  .pc-chat__citation-card-title {
+    @apply font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-chat__citation-card-domain {
+    @apply text-[0.9em] text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__citation-card-snippet {
+    @apply line-clamp-3 text-gray-500 dark:text-gray-400;
+  }
+
+  /* Sources row ----------------------------------------------------------- */
+
+  .pc-chat__sources {
+    @apply mt-2 text-xs;
+  }
+
+  .pc-chat__sources-row {
+    @apply inline-flex cursor-pointer list-none items-center gap-1.5 border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  .pc-chat__sources-row::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__sources-row:hover {
+    @apply bg-gray-50 text-gray-700 dark:bg-gray-400/10 dark:text-gray-200;
+  }
+
+  .pc-chat__sources-row:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__sources-favicons {
+    @apply flex items-center;
+  }
+
+  /* Stacked favicon cluster — each one overlaps the last. */
+  .pc-chat__sources-favicons > * + * {
+    @apply -ml-1.5;
+  }
+
+  .pc-chat__sources-chevron {
+    @apply shrink-0 transition-transform duration-150;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see reasoning). */
+  .pc-chat__sources-chevron.pc-chat__sources-chevron {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+
+  .pc-chat__sources[open] > .pc-chat__sources-row .pc-chat__sources-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__sources-list {
+    @apply mt-2 flex list-none flex-col gap-1 p-0;
+  }
+
+  .pc-chat__source-link {
+    @apply flex items-start gap-2 border border-transparent p-2 no-underline transition-colors;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__source-link:hover {
+    @apply border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-400/10;
+  }
+
+  .pc-chat__source-link:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__source-favicon {
+    @apply mt-0.5 h-4 w-4 shrink-0 rounded-sm bg-gray-100 object-cover dark:bg-gray-400/17;
+  }
+
+  .pc-chat__source-favicon--letter {
+    @apply flex items-center justify-center text-[0.6rem] font-semibold text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__source-text {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .pc-chat__source-title {
+    @apply truncate font-medium text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-chat__source-domain {
+    @apply truncate text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__source-snippet {
+    @apply line-clamp-2 text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-chat__sources-more-summary {
+    @apply mt-1 inline-flex cursor-pointer list-none items-center px-2 py-1 font-medium text-gray-500 select-none hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200;
+  }
+
+  .pc-chat__sources-more-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__sources-more-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-chat__citation,
+    .pc-chat__citation-card,
+    .pc-chat__sources-chevron,
+    .pc-chat__source-link {
+      transition-duration: 1ms;
     }
   }
 }
@@ -12218,6 +11902,721 @@
     .pc-chat__attachment-progress,
     .pc-chat__attachment-remove,
     .pc-chat__attachment-row {
+      transition-duration: 1ms;
+    }
+  }
+}
+
+/* Sidebar - the app-shell navigation rail.
+ *
+ * Wrapped in its own @layer components block on purpose: everything after the
+ * showcase-props section above sits OUTSIDE any cascade layer, and unlayered
+ * rules outrank a consumer's utilities, which would quietly break
+ * <.sidebar class="..."> overrides.
+ *
+ * State lives in data attributes on .pc-sidebar (data-collapsed,
+ * data-mobile-open, data-collapsible, data-side) so LiveView.JS can flip them
+ * with no hook and no round trip. Collapse behaviour is scoped to md and up;
+ * below that the sidebar is a sheet, and none of the rail rules apply.
+ */
+@layer components {
+  .pc-sidebar-shell {
+    @apply flex w-full min-h-svh bg-white dark:bg-gray-950;
+  }
+
+  .pc-sidebar-shell__main {
+    @apply flex flex-col flex-1 min-w-0;
+  }
+
+  .pc-sidebar {
+    --pc-sidebar-width: 16rem;
+    /* Wide enough for a 2rem trigger plus a 1.25rem brand mark in the header
+       without clipping, which 3.5rem was not. */
+    --pc-sidebar-icon-width: 4rem;
+    @apply relative flex-none self-stretch;
+    width: var(--pc-sidebar-width);
+    transition: width 200ms ease;
+  }
+
+  .pc-sidebar[data-side="right"] {
+    @apply order-last;
+  }
+
+  .pc-sidebar__panel {
+    /* h-full tracks a bounded shell (a demo frame, a dashboard card); max-h-svh
+       caps it at the viewport so sticky still works under long page content. */
+    @apply sticky top-0 z-30 flex flex-col w-full h-full overflow-hidden bg-gray-50 border-gray-200 max-h-svh dark:bg-gray-900 dark:border-gray-800;
+  }
+
+  .pc-sidebar[data-side="left"] .pc-sidebar__panel {
+    @apply border-r;
+  }
+
+  .pc-sidebar[data-side="right"] .pc-sidebar__panel {
+    @apply border-l;
+  }
+
+  /* No focus_wrap sentinels to manage: the panel is a plain div. LiveView's
+     focus_wrap focuses its first focusable at MOUNT whenever the element is
+     displayed, and this panel is always displayed on desktop - the trap's
+     job while the sheet is open belongs to `inert` on the shell's content
+     region instead (nothing outside the sheet is focusable), which is how
+     native dialogs contain focus too. */
+
+  .pc-sidebar__scrim {
+    @apply hidden;
+  }
+
+  .pc-sidebar__nav {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+
+  .pc-sidebar__header {
+    @apply flex items-center flex-none gap-2 px-3 border-b border-gray-200 h-14 dark:border-gray-800;
+  }
+
+  .pc-sidebar__brand {
+    @apply text-sm font-semibold truncate text-gray-900 dark:text-gray-50;
+  }
+
+  .pc-sidebar__content {
+    @apply flex flex-col flex-1 gap-4 px-2 py-4 overflow-x-hidden overflow-y-auto;
+  }
+
+  .pc-sidebar__footer {
+    @apply flex-none px-2 py-3 border-t border-gray-200 dark:border-gray-800;
+  }
+
+  /* Groups */
+
+  .pc-sidebar-group {
+    @apply flex flex-col gap-1;
+  }
+
+  .pc-sidebar-group__label {
+    @apply px-2 py-1 text-xs font-medium tracking-wide truncate text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-sidebar-group__toggle {
+    @apply flex items-center w-full gap-1 text-left cursor-pointer;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-sidebar-group__toggle .pc-sidebar-group__label {
+    @apply flex-1;
+  }
+
+  .pc-sidebar-group__chevron {
+    @apply flex-none w-3.5 h-3.5 mr-2 text-gray-400;
+    transition: rotate 150ms ease;
+  }
+
+  .pc-sidebar-group__toggle[aria-expanded="true"] .pc-sidebar-group__chevron {
+    rotate: 90deg;
+  }
+
+  .pc-sidebar-group__items {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .pc-sidebar-group__items[data-open="false"] {
+    @apply hidden;
+  }
+
+  /* Items */
+
+  .pc-sidebar-item__parent {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .pc-sidebar-item {
+    @apply flex items-center w-full gap-2.5 px-2 py-2 text-sm font-medium text-left cursor-pointer;
+    @apply text-gray-700 hover:bg-gray-200/70 hover:text-gray-900;
+    @apply dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .pc-sidebar-item--active {
+    @apply bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-50;
+  }
+
+  .pc-sidebar-item__icon {
+    @apply flex-none w-5 h-5;
+  }
+
+  .pc-sidebar-item__label {
+    @apply flex-1 truncate;
+  }
+
+  .pc-sidebar-item__badge {
+    @apply flex-none px-1.5 py-0.5 text-xs font-semibold tabular-nums text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-800;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.375rem), 0.125rem);
+  }
+
+  .pc-sidebar-item--active .pc-sidebar-item__badge {
+    @apply text-gray-900 bg-white dark:text-gray-50 dark:bg-gray-950;
+  }
+
+  .pc-sidebar-item__chevron {
+    @apply flex-none w-3.5 h-3.5 text-gray-400;
+    transition: rotate 150ms ease;
+  }
+
+  .pc-sidebar-item[aria-expanded="true"] .pc-sidebar-item__chevron {
+    rotate: 90deg;
+  }
+
+  .pc-sidebar-item__sub {
+    @apply flex flex-col gap-0.5 pl-4 ml-4 border-l border-gray-200 dark:border-gray-800;
+  }
+
+  .pc-sidebar-item__sub[data-open="false"] {
+    @apply hidden;
+  }
+
+  /* Trigger */
+
+  .pc-sidebar-trigger {
+    @apply inline-flex items-center justify-center flex-none w-8 h-8 cursor-pointer;
+    @apply text-gray-600 hover:bg-gray-200/70 hover:text-gray-900;
+    @apply dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .pc-sidebar-trigger__icon {
+    @apply w-5 h-5;
+  }
+
+  /* Desktop: the collapse rail. */
+  @media (width >= 48rem) {
+    .pc-sidebar-trigger--mobile {
+      @apply hidden;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] {
+      width: var(--pc-sidebar-icon-width);
+    }
+
+    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] {
+      @apply w-0;
+    }
+
+    .pc-sidebar[data-collapsible="offcanvas"][data-collapsed="true"] .pc-sidebar__panel {
+      @apply hidden;
+    }
+
+    /* Icon rail: labels stay in the accessibility tree, they just stop taking
+       space. The title attribute carries the same text on hover.
+       .pc-user-menu__identity is the same idea for a user_dropdown_menu
+       variant="sidebar" in the footer slot: hiding it rather than dropping it
+       is what keeps the trigger button named, since the avatar beside it goes
+       aria-hidden whenever there is a name to read. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__badge,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__label,
+    /* vertical_menu participates in the rail too - the moduledocs promise a
+       menu drops straight into the content area, and a promise the rail
+       doesn't keep is a 4rem rail with full-width labels (Pro adoption
+       audit, gap G1). Same treatment as the family's own labels. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu-item__toggle-label,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-vertical-menu__menu-group__title,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__identity,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__brand {
+      @apply sr-only;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__chevron,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-group__chevron,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item__sub {
+      @apply hidden;
+    }
+
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar-item,
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row {
+      @apply justify-center px-0;
+    }
+
+    /* The rail's header is a centred COLUMN, so a logo and a collapse trigger
+       each get a row of their own instead of elbowing each other along one
+       4rem line. Grid rather than a flex column on purpose: the single track
+       is only as wide as the widest child, which leaves an `ml-auto` a caller
+       put on the trigger for the expanded row no free space to shove it into.
+       Resetting that margin here is not an option - @layer utilities outranks
+       @layer components, so the utility wins whatever this rule says.
+       h-14 is a one-row height; min-h-14 keeps a header holding nothing but a
+       logo exactly as tall as it was expanded, and taller ones grow. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__header {
+      @apply grid justify-center justify-items-center h-auto px-0 py-3 min-h-14;
+    }
+
+    /* The footer is a plain block, so an inline-level child - a bare trigger,
+       the pattern the collapsed-rail example ships - cannot be centred by the
+       caller at all: auto margins need a block box to work on. A flex column
+       centres it, and a full-width item still spans the rail because its own
+       width outranks align-items. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__footer {
+      @apply flex flex-col items-center;
+    }
+
+    /* The user menu's chevron admits the panel can open either way. On the
+       rail there is no room to say it, and the avatar is the whole row. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-user-menu__row .pc-dropdown__chevron {
+      @apply hidden;
+    }
+
+    /* A panel opened from the rail - a user menu, a workspace switcher - is
+       240px of content hanging out of a 64px box, and the panel's
+       overflow-hidden ate all but the first sliver of it. That clip exists to
+       stop labels spilling while the width animates, and on the rail the
+       labels are already sr-only, so there is nothing left for it to hold in.
+       The content region keeps its own scroller either way. */
+    .pc-sidebar[data-collapsible="icon"][data-collapsed="true"] .pc-sidebar__panel {
+      @apply overflow-visible;
+    }
+  }
+
+  /* Mobile: the sheet takeover. Anything collapsible leaves the flow and slides
+     in over the shell; collapsible="none" stays pinned. */
+  @media (width < 48rem) {
+    .pc-sidebar-trigger--collapse {
+      @apply hidden;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"]) {
+      @apply w-0;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"]) .pc-sidebar__panel {
+      @apply fixed inset-y-0 z-50 border-0;
+      width: var(--pc-sidebar-width);
+      max-width: 85vw;
+      transition: transform 200ms ease;
+    }
+
+    .pc-sidebar:not([data-collapsible="none"])[data-side="left"] .pc-sidebar__panel {
+      @apply left-0;
+      transform: translateX(-100%);
+    }
+
+    .pc-sidebar:not([data-collapsible="none"])[data-side="right"] .pc-sidebar__panel {
+      @apply right-0;
+      transform: translateX(100%);
+    }
+
+    /* Must carry the same :not() + attribute weight as the per-side rules above,
+       or those win the specificity tie and the panel stays translated off-screen. */
+    .pc-sidebar:not([data-collapsible="none"])[data-mobile-open="true"] .pc-sidebar__panel {
+      transform: translateX(0);
+    }
+
+    .pc-sidebar[data-mobile-open="true"] .pc-sidebar__scrim {
+      @apply fixed inset-0 z-40 block bg-gray-950/50;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-sidebar,
+    .pc-sidebar__panel,
+    .pc-sidebar-item,
+    .pc-sidebar-item__chevron,
+    .pc-sidebar-group__chevron,
+    .pc-sidebar-trigger {
+      transition: none;
+    }
+  }
+}
+
+/* Chat questionnaire — structured human-in-the-loop input in the transcript. */
+@layer components {
+  .pc-questionnaire {
+    @apply flex flex-col gap-3 border border-gray-200 bg-white p-4 text-sm dark:border-gray-700 dark:bg-gray-900;
+    border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* Resolved and skipped read as transcript history, not as live controls. */
+  .pc-questionnaire--resolved,
+  .pc-questionnaire--skipped {
+    @apply gap-2 border-gray-200 bg-transparent dark:border-gray-700;
+  }
+
+  .pc-questionnaire__header {
+    @apply flex flex-col gap-1;
+  }
+
+  .pc-questionnaire__title {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .pc-questionnaire--resolved .pc-questionnaire__title,
+  .pc-questionnaire--skipped .pc-questionnaire__title {
+    @apply font-medium text-gray-600 dark:text-gray-400;
+  }
+
+  .pc-questionnaire__description {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-questionnaire__form {
+    @apply flex flex-col gap-4;
+  }
+
+  /* Reset the browser's fieldset chrome; the field primitives own the look. */
+  .pc-questionnaire__field {
+    @apply m-0 border-0 p-0;
+  }
+
+  /* The 1-to-5 segmented row. Real radios, visually hidden, so arrow keys move
+     between the steps natively. */
+  .pc-questionnaire__scale {
+    @apply mt-1 flex w-full overflow-hidden border border-gray-200 dark:border-gray-700;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-questionnaire__scale-step {
+    @apply flex flex-1 cursor-pointer items-center justify-center border-e border-gray-200 py-2 text-sm font-medium text-gray-600 transition-colors last:border-e-0 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-400/10;
+  }
+
+  /* primary-600 is the house solid fill (pc-button primary, the user bubble,
+     a checked pc-checkbox) and it holds white text at AA. */
+  .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:checked) {
+    @apply bg-primary-600 text-white dark:text-white;
+  }
+
+  /* The step is flush against its neighbours inside a clipped row, so the
+     house ring goes inset rather than being cut off by the overflow. */
+  .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:focus-visible) {
+    @apply ring-2 ring-primary-500/50 ring-inset;
+  }
+
+  .pc-questionnaire__scale-step:has(.pc-questionnaire__scale-input:disabled) {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .pc-questionnaire__scale-captions {
+    @apply mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-questionnaire__actions {
+    @apply flex items-center gap-2;
+  }
+
+  .pc-questionnaire__submit {
+    @apply inline-flex items-center gap-2 bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-questionnaire__skip {
+    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-gray-400/17 dark:hover:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-questionnaire__submit:focus-visible,
+  .pc-questionnaire__skip:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-questionnaire__spinner-wrap {
+    @apply inline-flex items-center;
+  }
+
+  .pc-questionnaire__spinner {
+    @apply inline-block h-3.5 w-3.5 rounded-full border-2 border-white/40 border-t-white;
+    animation: pc-chat-spin 0.6s linear infinite;
+  }
+
+  /* Resolved summary ------------------------------------------------------- */
+
+  .pc-questionnaire__summary {
+    @apply m-0 flex flex-col gap-2;
+  }
+
+  .pc-questionnaire__answer {
+    @apply flex flex-col gap-1;
+  }
+
+  .pc-questionnaire__answer-label {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+  }
+
+  .pc-questionnaire__answer-value {
+    @apply m-0 flex flex-wrap gap-1;
+  }
+
+  .pc-questionnaire__chip {
+    @apply inline-flex items-center border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-400/10 dark:text-gray-200;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-questionnaire__skipped-note {
+    @apply text-xs text-gray-500 italic dark:text-gray-400;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-questionnaire__spinner {
+      animation: none;
+    }
+
+    .pc-questionnaire__scale-step,
+    .pc-questionnaire__submit,
+    .pc-questionnaire__skip {
+      transition-duration: 1ms;
+    }
+  }
+}
+
+/* Chat tool_call — the lifecycle chrome on top of the base card above:
+   progressive states, icon presets, expandable payload panels and the
+   compact burst row. The base .pc-chat__tool rules are left alone so cards
+   written against the pre-state API render exactly as they did. */
+@layer components {
+  /* Not settled yet: a quiet wash so a run of cards reads as "these three are
+     still cooking" without shouting. */
+  .pc-chat__tool--pending,
+  .pc-chat__tool--input-streaming {
+    @apply bg-gray-50 dark:bg-gray-400/8;
+  }
+
+  /* The typing dots stand in for the state glyph while the arguments arrive -
+     the thread's own waiting idiom, not a second one. */
+  .pc-chat__tool-typing {
+    @apply w-3.5 shrink-0 justify-center;
+  }
+
+  .pc-chat__tool-args {
+    @apply flex flex-col gap-2 px-3 pb-3;
+  }
+
+  .pc-chat__tool-args-label {
+    @apply text-[11px] font-medium tracking-wide text-gray-400 dark:text-gray-500;
+  }
+
+  .pc-chat__tool-skeleton {
+    @apply flex flex-col gap-1.5;
+  }
+
+  /* Running: an indeterminate hairline under the header. The colour lives in a
+     custom property on the card because dark: variants don't compile inside
+     pseudo-element selectors - they'd silently drop. */
+  .pc-chat__tool--running {
+    --pc-chat-tool-activity: var(--color-gray-400, #9ca3af);
+  }
+
+  .pc-chat__tool--running .pc-chat__tool-header {
+    @apply relative;
+  }
+
+  .pc-chat__tool--running .pc-chat__tool-header::after {
+    content: "";
+    @apply absolute inset-x-0 bottom-0 h-px;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--pc-chat-tool-activity),
+      transparent
+    );
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    animation: pc-chat-tool-activity 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pc-chat-tool-activity {
+    0% {
+      background-position: -40% 0;
+    }
+    100% {
+      background-position: 140% 0;
+    }
+  }
+
+  /* Error rides the danger ramp end to end - border, header text and the
+     badge - so the card never signals failure by one stray accent. */
+  .pc-chat__tool--error {
+    @apply border-danger-200 dark:border-danger-500/40;
+  }
+
+  .pc-chat__tool--error .pc-chat__tool-header {
+    @apply text-danger-700 dark:text-danger-300;
+  }
+
+  .pc-chat__tool--error .pc-chat__tool-error {
+    @apply bg-danger-600;
+  }
+
+  .pc-chat__tool-error-row {
+    @apply flex flex-wrap items-center gap-2 border-t border-danger-200 bg-danger-50 px-3 py-2 text-xs text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-300;
+  }
+
+  .pc-chat__tool-error-message {
+    @apply m-0 min-w-0 flex-1;
+  }
+
+  .pc-chat__tool-error-actions {
+    @apply flex shrink-0 items-center gap-1;
+  }
+
+  /* On a collapsed compact row the message rides in the row itself, so a
+     failure is readable without opening anything. */
+  .pc-chat__tool-error-inline {
+    @apply min-w-0 flex-1 truncate font-normal text-danger-600 dark:text-danger-400;
+  }
+
+  .pc-chat__tool-duration {
+    @apply ms-auto shrink-0 font-normal tabular-nums text-gray-400 dark:text-gray-500;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-chat__tool-icon.pc-chat__tool-icon {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+
+  .pc-chat__tool-glyph {
+    @apply inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center overflow-hidden text-[0.875rem] leading-none;
+  }
+
+  .pc-chat__tool-glyph :is(img, svg) {
+    @apply h-full w-full object-contain;
+  }
+
+  .pc-chat__tool-chevron {
+    @apply shrink-0 transition-transform duration-150;
+  }
+
+  /* Doubled selector + !important: icon sizing contract (see pagination chevrons). */
+  .pc-chat__tool-chevron.pc-chat__tool-chevron {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+
+  /* Payload panels ---------------------------------------------------------
+
+     Native <details>, matching reasoning/1 and chat_sources/1: the browser
+     owns the disclosure semantics and the keyboard, so there is no JS and no
+     hand-written aria-expanded to go stale. */
+  .pc-chat__tool-panels {
+    @apply flex flex-col gap-1.5 px-3 pb-3;
+  }
+
+  .pc-chat__tool-panel {
+    --pc-chat-panel-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    @apply border border-gray-200 dark:border-gray-700;
+    border-radius: var(--pc-chat-panel-radius);
+  }
+
+  /* Nested interactive children clamp off the panel's own radius. */
+  .pc-chat__tool-panel-summary {
+    @apply flex cursor-pointer list-none items-center gap-1 px-2 py-1.5 text-[11px] font-medium text-gray-500 select-none dark:text-gray-400;
+    border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+  }
+
+  .pc-chat__tool-panel-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__tool-panel-summary:hover {
+    @apply text-gray-700 dark:text-gray-200;
+  }
+
+  .pc-chat__tool-panel-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__tool-panel[open] > .pc-chat__tool-panel-summary .pc-chat__tool-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__tool-panel-body {
+    @apply px-2 pb-2;
+  }
+
+  /* Pretty-printed JSON. Same geometry as the markdown code block, but with an
+     explicit ground: there is no highlighter theme painting behind this one. */
+  .pc-chat__tool-code {
+    @apply m-0 overflow-x-auto bg-gray-50 p-2 font-mono text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
+    border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+  }
+
+  .pc-chat__tool-code code {
+    @apply font-mono;
+  }
+
+  /* Compact bursts ---------------------------------------------------------
+
+     One dense line per call, no box, hairlines between consecutive rows so a
+     six-tool agent run reads as a list instead of six cards. */
+  .pc-chat__tool--compact {
+    @apply my-0 rounded-none border-0 bg-transparent;
+  }
+
+  .pc-chat__tool--compact + .pc-chat__tool--compact {
+    @apply border-t border-gray-100 dark:border-t-gray-400/17;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-header {
+    @apply px-2 py-1.5;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-name {
+    @apply truncate;
+  }
+
+  .pc-chat__tool-summary {
+    @apply cursor-pointer list-none select-none;
+    border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+  }
+
+  .pc-chat__tool-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pc-chat__tool-summary:hover {
+    @apply bg-gray-50 dark:bg-gray-400/8;
+  }
+
+  .pc-chat__tool-summary:focus-visible {
+    @apply ring-2 ring-primary-500/50;
+  }
+
+  .pc-chat__tool--compact[open] > .pc-chat__tool-summary .pc-chat__tool-chevron {
+    @apply rotate-90;
+  }
+
+  .pc-chat__tool-reveal {
+    @apply pb-1;
+  }
+
+  .pc-chat__tool--compact .pc-chat__tool-body,
+  .pc-chat__tool--compact .pc-chat__tool-error-row {
+    @apply border-t-0;
+  }
+
+  /* HEEx hands any component written with an explicit closing tag a default
+     slot, even when the caller only passed named slots - so reaching for
+     <:error_actions> or <:tool_icon> alone leaves a body holding nothing but
+     whitespace, which would draw a separator and 12px of nothing. Drop the
+     separator and the block padding when the body has no element in it:
+     whitespace collapses to zero height, and the rare text-only body still
+     reads, just tight to the header. */
+  .pc-chat__tool-body:not(:has(*)) {
+    @apply border-t-0 py-0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* The activity line rests as a full-width hairline: still reads as "this
+       one is working", just without the sweep. */
+    .pc-chat__tool--running .pc-chat__tool-header::after {
+      animation: none;
+      background-size: 100% 100%;
+      opacity: 0.4;
+    }
+
+    .pc-chat__tool-chevron {
       transition-duration: 1ms;
     }
   }
