@@ -1336,6 +1336,8 @@ defmodule PetalComponents.Chat do
             required={@field.required}
             disabled={@submitting}
             group_layout="col"
+            indicator
+            indicator_position="start"
             no_margin
           />
           <PetalComponents.Field.field

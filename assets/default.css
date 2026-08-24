@@ -5553,7 +5553,10 @@
   .pc-chat__markdown ol {
     @apply my-2 list-decimal space-y-1 ps-5;
   }
-  .pc-chat__markdown a {
+  /* Citation chips are spliced into the markdown as <a>, but they are
+     footnote furniture, not prose links - the underline reads as a stray
+     hairline under a 10px number. */
+  .pc-chat__markdown a:not(.pc-chat__citation) {
     @apply font-medium underline underline-offset-2;
   }
   .pc-chat__markdown blockquote {
@@ -11555,6 +11558,17 @@
     padding-block: 0.15em;
   }
 
+  /* The chip is the superscript: it already raises (align-super) and
+     shrinks (0.65em). The UA's <sup> styles inside would raise and shrink
+     AGAIN - a 6.8px number floating off the pill. */
+  .pc-chat__citation-num {
+    position: static;
+    font-size: 1em;
+    line-height: 1;
+    vertical-align: baseline;
+    top: 0;
+  }
+
   .pc-chat__citation:hover {
     @apply bg-gray-200 text-gray-900 dark:bg-gray-400/25 dark:text-gray-100;
   }
@@ -11565,10 +11579,6 @@
 
   /* The chip's own <sup> would double-raise it — the chip is already
      align-super, so keep the number on the chip's baseline. */
-  .pc-chat__citation-num {
-    @apply align-baseline;
-  }
-
   /* Centred over the chip and clamped to the viewport, so a chip near the right
      edge of a narrow bubble spills at most half a card instead of a whole one.
      `visibility: hidden` already keeps the closed card out of hit-testing, so no
@@ -11634,9 +11644,15 @@
     @apply flex items-center;
   }
 
-  /* Stacked favicon cluster — each one overlaps the last. */
+  /* Stacked favicon cluster — each one overlaps the last, with a ring in
+     the surface tone so the overlap reads as a stack instead of a smear.
+     mt-0 undoes the row-alignment nudge the favicon carries in source rows. */
   .pc-chat__sources-favicons > * + * {
     @apply -ml-1.5;
+  }
+
+  .pc-chat__sources-favicons .pc-chat__source-favicon {
+    @apply mt-0 ring-2 ring-white dark:ring-gray-900;
   }
 
   .pc-chat__sources-chevron {
@@ -11675,7 +11691,7 @@
   }
 
   .pc-chat__source-favicon--letter {
-    @apply flex items-center justify-center text-[0.6rem] font-semibold text-gray-500 dark:text-gray-400;
+    @apply flex items-center justify-center text-[0.6rem] font-semibold text-gray-600 dark:text-gray-300;
   }
 
   .pc-chat__source-text {
@@ -11891,6 +11907,23 @@
 
   .pc-chat__attachment-row:focus-visible {
     @apply ring-2 ring-primary-500/50;
+  }
+
+  /* The user bubble is the inverted surface: page-level grays read
+     backwards on it - a gray-50 hover under the bubble's near-white text
+     erased the filename. On that surface everything the row paints derives
+     from currentColor, so it holds in both modes and under any recolor. */
+  .pc-chat__bubble--user .pc-chat__attachment-row {
+    border-color: color-mix(in srgb, currentColor 30%, transparent);
+  }
+
+  .pc-chat__bubble--user .pc-chat__attachment-row:hover {
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .pc-chat__bubble--user .pc-chat__attachment-icon.pc-chat__attachment-icon,
+  .pc-chat__bubble--user .pc-chat__attachment-size {
+    color: color-mix(in srgb, currentColor 70%, transparent);
   }
 
   .pc-chat__attachment-row .pc-chat__attachment-size {
@@ -12303,12 +12336,16 @@
   }
 
   .pc-questionnaire__actions {
-    @apply flex items-center gap-2;
+    @apply flex flex-row-reverse items-center justify-start gap-2;
   }
 
   .pc-questionnaire__submit {
-    @apply inline-flex items-center gap-2 bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center gap-2 bg-primary-600 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);
+    /* The solid-button contract, not text-white: under the neutral primary
+       dial the dark-mode 600 stop is near-white, and the token is what
+       keeps the label legible on it (see the badge dot's dark variant). */
+    color: var(--pc-button-solid-fg, #fff);
   }
 
   .pc-questionnaire__skip {
