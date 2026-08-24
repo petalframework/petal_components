@@ -240,7 +240,7 @@ defmodule PetalComponents.NumberField do
         <.spin_button
           :if={@show_buttons and @variant == "split"}
           direction="dec"
-          icon="minus"
+          icon="hero-minus-micro"
           label={@decrement_label}
           disabled={@disabled}
           at_bound={@at_min}
@@ -268,14 +268,14 @@ defmodule PetalComponents.NumberField do
         <div :if={@show_buttons and @variant == "stacked"} class="pc-number-field__stack">
           <.spin_button
             direction="inc"
-            icon="chevron-up"
+            icon="hero-chevron-up-micro"
             label={@increment_label}
             disabled={@disabled}
             at_bound={@at_max}
           />
           <.spin_button
             direction="dec"
-            icon="chevron-down"
+            icon="hero-chevron-down-micro"
             label={@decrement_label}
             disabled={@disabled}
             at_bound={@at_min}
@@ -284,7 +284,7 @@ defmodule PetalComponents.NumberField do
         <.spin_button
           :if={@show_buttons and @variant == "split"}
           direction="inc"
-          icon="plus"
+          icon="hero-plus-micro"
           label={@increment_label}
           disabled={@disabled}
           at_bound={@at_max}
@@ -311,7 +311,11 @@ defmodule PetalComponents.NumberField do
       disabled={@disabled}
       data-pc-number-step={@direction}
     >
-      <PetalComponents.Icon.icon name={"hero-#{@icon}-micro"} class="pc-number-field__icon" />
+      <%!-- The FULL literal class name travels from the call site: a consumer's
+      Tailwind scan reads this file, and an interpolated "hero-#{...}-micro"
+      appears in no source anywhere, so the scanner would drop the icons
+      (found on petal.build: invisible steppers). --%>
+      <PetalComponents.Icon.icon name={@icon} class="pc-number-field__icon" />
     </button>
     """
   end
