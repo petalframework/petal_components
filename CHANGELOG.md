@@ -1,5 +1,6 @@
 # Changelog
-### Unreleased
+
+### 4.15.0 - 2026-08-24
 
 #### Added
 
@@ -90,6 +91,7 @@
   circle. It composes with `with_icon` (dot, then icon, then text), and
   `dot` defaults to false, where the badge renders byte for byte what it
   always did.
+
 - **The dropdown places its panel with `side` and `align`.** Two attrs
   that were three answers to two questions. `side` is which side of the
   trigger the panel opens on: `"bottom"`, `"top"`, or `"left"` / `"right"`
@@ -113,6 +115,7 @@
   `side="bottom"`, `direction="auto"` is naming no side at all. Pass both
   spellings and the new one wins. `user_dropdown_menu` passes `side` and
   `align` through like the rest.
+
 - **The badge's dot can carry a different colour to the badge.** A dot in
   the badge's own colour is right when the state is the message. It is the
   wrong shape for the other convention, the one reui uses: a quiet chip
@@ -142,12 +145,14 @@
   passes `direction` through, alongside the new `menu_items_wrapper_class`,
   so a sidebar account menu can be `direction="up"` with the panel pinned
   to the sidebar's width.
+
 - **`user_dropdown_menu` accepts its own panel.** The component built the
   menu from a `user_menu_items` list of maps, which is right up until the
   menu wants an org switcher, a group label or a theme row - none of which
   fit in a `%{path:, icon:, label:}`. Pass content in the inner block
   instead and it replaces the generated list; the trigger, including
   `variant="sidebar"`, is untouched. `user_menu_items` is now optional.
+
 - **`dropdown_menu_row` parks a control in the panel.** A theme switcher or
   a plan badge is not a command, so it should not be a menu item pretending
   to be one. The row carries menu-item padding and type with no hover wash,
@@ -155,23 +160,7 @@
   `role="menu"` and whatever you put inside keeps its own semantics. The
   new "The account panel" example on the user menu shows the whole thing:
   orgs with avatars, keyboard hints, a colour-scheme switch inline.- **`user_dropdown_menu` has a sidebar presentation.** The component only
-- **`badge` takes a status dot.** Every app that shows state ends up
-  writing the same span by hand - a 6px filled circle in front of the
-  label - because that is how a status reads at a glance in a table of
-  forty rows. `dot` renders it. The dot takes the badge's own colour at
-  the strength that ramp reads as "the" colour, so a success badge gets a
-  green dot and a danger badge a red one with nothing else to pass: the
-  600 stop on `light`, `soft` and `outline`, rising to 400 in the dark
-  where soft and outline go translucent, and `currentColor` on `dark`,
-  where a saturated fill leaves no stop of its own ramp visible (that also
-  means it picks up the `--pc-button-solid-fg` token rather than a
-  hardcoded white). It scales with `size`, from 4px at `xs` to 8px at
-  `xl`, and sits `shrink-0` so it stays a circle next to a long label. The
-  dot is `aria-hidden` on purpose - the colour only repeats what the label
-  already says, so a screen reader gets "Failed", not "Failed" and a
-  circle. It composes with `with_icon` (dot, then icon, then text), and
-  `dot` defaults to false, where the badge renders byte for byte what it
-  always did.
+
 - **`user_dropdown_menu` has a sidebar presentation.** The component only  ever rendered the compact navbar trigger - avatar plus chevron - so
   anyone building the app-shell sidebar it is named after had to hand-roll
   the rest of the row beside it: a name span, an email span, the truncation,
@@ -185,6 +174,7 @@
   `variant="sidebar"` with `placement="right"` at the bottom of a left-hand
   sidebar opens up and to the right. `variant` defaults to `"icon"`, which
   renders byte for byte what it always did.
+
 - **`progress_ring` draws determinate progress as a circle.** Every other
   library in this space ships one and we didn't, so a quota meter in a
   table cell had to be a bar squeezed into a column where five stacked
@@ -201,6 +191,7 @@
   showcase demonstrates. Pass a slot and the middle takes a count or an
   icon instead, at any size. Same ARIA contract as the bar, down to
   `aria-valuetext`.
+
 - **`user_dropdown_menu` takes a `placement`.** It always rendered its
   dropdown at the default `"left"` placement (panel hangs leftward, right
   edges aligned), which is exactly wrong for the component's most common
@@ -208,9 +199,551 @@
   rightward into the viewport. `placement` now passes straight through to
   the dropdown, and together with the viewport flip that means a
   sidebar-bottom user menu opens up and to the right instead of off-screen.
-### Unreleased
 
-#### Added
+- **`<.kbd>` - the keyboard chip, promoted to a real component.** The
+  `.pc-kbd` class already existed, quietly powering the command palette
+  trigger and input group addons, but you had to hand-write the markup
+  and remember which glyph goes with which modifier. Now
+  `<.kbd keys={["cmd", "K"]} />` renders one semantic `<kbd>` per key
+  with the separator between them, folding known names (cmd, shift,
+  alt, ctrl, enter, esc, tab, backspace, the arrows) to their symbol
+  case-insensitively and passing anything else through verbatim. The
+  separator is `aria-hidden`, because the keys already say what the
+  shortcut is. Two sizes: `md` matches the existing chips, `sm` is for
+  table rows and menu items. The shared rule picked up a key cap
+  treatment at the same time - an inset border with a heavier bottom
+  edge - so the command trigger and input group chips read as
+  something you can press without either of them changing size.
+
+- **`<.separator>` - the divider for app UI.** A hairline with no
+  margin of its own, because app layouts already control their own
+  rhythm and a component that quietly adds `my-8` is a component you
+  spend the afternoon overriding. `label` (or the default slot for
+  rich content) gives you the OR divider and the date row in an
+  activity feed, positioned `start`, `center` or `end`. Vertical mode
+  is a `w-px` rule that stretches to its flex parent, for toolbars.
+  `decorative` defaults to true and matches Radix: `aria-hidden`, no
+  role, no announcement. Flip it to false and you get
+  `role="separator"` plus `aria-orientation` when it is vertical.
+  `Typography.hr/1` is untouched and stays the rule for prose.
+
+- **`<.collapsible>` - one disclosure region.** The accordion without
+  the group: nothing closes when it opens, and there is no entries
+  list. The trigger is a real `<button>`, so Enter and Space work and
+  focus stays put, and it carries `aria-expanded` plus `aria-controls`
+  pointing at a `role="region"` content panel that is `inert` while
+  collapsed rather than an invisible tab trap. Toggling is
+  `Phoenix.LiveView.JS`, so it costs no round trip, and the `open`
+  attr is the server-rendered state, so LiveView can drive it too.
+  `on_toggle` composes your own commands ahead of the component's.
+  The height animation is the `grid-template-rows: 0fr -> 1fr` trick,
+  which means content of any height animates with nothing measured in
+  JavaScript, and it drops out under `prefers-reduced-motion` with
+  both rest states fully legible.
+
+- **New `timeline` component: a record of things that happened, in
+  order.** Activity feeds, deploy logs, order tracking, audit trails,
+  company history - the app chrome that until now meant hand-rolling a
+  rail out of raw Tailwind. It is deliberately not a stepper: stepper is
+  interactive progress you click through, timeline is an append-only
+  display with nothing to press. The root is an `<ol>` and each entry an
+  `<li>`, so screen readers announce position and count without a single
+  ARIA role being invented. Four layouts: `default` (left rail),
+  `alternating` (entries either side of a centre rail from `md` up,
+  folding back to the left rail below), `compact` (activity-feed density)
+  and `orientation="horizontal"` for milestones, which scrolls sideways
+  with CSS scroll-snap and takes keyboard focus so the scroller isn't a
+  mouse-only region. Markers are `dot`, `icon`, `avatar` (composing
+  `<.avatar>`, initials fallback included) or `number`, which counts the
+  entries for you, each in any of the seven semantic colours. Per-entry
+  `state` of `complete`, `current` or `upcoming` rings the current
+  marker, carries `aria-current="step"`, and mutes upcoming entries along
+  with the connector running into them - and because colour alone is
+  never the signal, each of those entries also carries a
+  visually-hidden state label. Connectors come `solid` or `dashed`, and
+  each entry's inner block renders below the description, so a card, a
+  diff or an image grid drops straight in. `time_placement="start"` hands
+  the time a column of its own beside the rail, right-aligned against it,
+  which is the layout for a log you scan by when rather than by what -
+  `--pc-timeline-time-col` sets how wide, and below `sm` the time folds
+  back above the title without a marker moving. Pure CSS and HEEx: no hook,
+  nothing to wire up, and the horizontal scroller's smooth behaviour sits
+  behind a `prefers-reduced-motion` guard.
+
+- **New `number_field` component: a real spinbutton for quantities,
+  prices and percentages, in place of a bare
+  `<input type="number">`.** The native number input has spinners you
+  can't style, that differ in every browser, and a value the browser
+  sanitises out from under you the moment you try to format it. This one
+  is a text input carrying `role="spinbutton"` on the existing
+  `input_group` surface, so it inherits the border, radius, focus ring
+  and error tone the rest of the form family already uses, and the
+  steppers are ours to draw. Three variants: `stacked` chevrons at the
+  inline end, `split` minus and plus with the value centred - the cart
+  quantity look - and `plain` for keyboard only. `min`, `max` and `step`
+  clamp and mirror to `aria-valuemin` / `aria-valuemax` /
+  `aria-valuenow`; `big_step` (defaulting to ten steps) rides
+  shift+arrow and page up/down; Home and End jump to the bounds.
+  `precision` rounds and pads on blur while the raw text stands while
+  you type, so `7.5` becomes `7.50` only once you're done - and the
+  moduledoc documents the `Intl.NumberFormat` pattern for currency and
+  percent display, because no formatting dependency ships with this. The
+  `PetalNumberField` hook owns the stepping, the clamping, wheel while
+  focused, and hold-to-repeat that accelerates and stops on
+  `pointerleave` as well as `pointerup`. The input is the single tab
+  stop, the buttons are labelled at `tabindex="-1"`, and a button at its
+  bound takes `aria-disabled` rather than `disabled` so it keeps its
+  name for a screen reader. `<.field type="number-field">` wires it into
+  the label/help/error machinery, and `<.field type="number">` is
+  untouched.
+
+- **New `scroll_area` component: one themed treatment for every overflow
+  region, in one div and zero JavaScript.** The library already had eight
+  hand-rolled scroll regions, each styling overflow slightly differently -
+  this is the canonical version they can all adopt. `scrollbar-width` and
+  `scrollbar-color` do the work on Chrome 121+ and Firefox, a
+  `::-webkit-scrollbar` block covers Safari and older Chromium, and the two
+  never fight because an engine that honours the modern properties ignores
+  the webkit pseudo-elements outright. The thumb rides the gray ramp in
+  light and dark and steps one shade toward the foreground on hover.
+  `orientation` picks the axis (vertical, horizontal or both, with the off
+  axis clipped rather than left scrollable by accident), `fade_edges` masks
+  the scrolling axis so content dissolves at the clip instead of being cut,
+  and `gutter_stable` reserves the scrollbar's space so content does not
+  shift the moment it appears. Sizing is deliberately class-driven, so
+  there is no second sizing vocabulary sitting next to Tailwind's. Unlike
+  the Radix-style approach we do not reimplement the scrollbar in JS: you
+  keep native momentum scrolling, native keyboard handling and native
+  assistive-tech behaviour for free, and the trade is that we theme what
+  the platform exposes rather than overriding it - `visibility="always"` is
+  a request WebKit honours and Firefox cannot, and `gutter_stable` is a
+  no-op wherever scrollbars are overlays. The moduledoc says so in plain
+  language. The container is focusable by default (`tabindex="0"`), which
+  is what makes arrow keys and Page Up/Down work at all, and it only takes
+  `role="region"` when you give it a name - an unnamed landmark is noise,
+  not a service.
+
+- **New `scrollspy` component: the "on this page" rail that follows the
+  reader down a long article.** Pass the sections as `items` and the
+  `PetalScrollspy` hook takes it from there, watching them with an
+  IntersectionObserver and sliding an indicator bar to whichever one is
+  at reading position. The fiddly parts are the point: when several
+  sections are on screen the one that most recently reached the
+  activation line wins, a closing section too short to ever reach that
+  line still highlights once you hit the bottom of the scroll, and a
+  `#hash` in the URL activates immediately on load instead of waiting
+  for the first observer callback. `offset` sets `scroll-margin-top` on
+  the targets so a fixed site header stops covering the heading you just
+  jumped to, `threshold` moves the activation line, `indicator="none"`
+  drops the bar for a colour-only active state, and one level of
+  nesting handles h2/h3 structure. The hook is not tied to the renderer:
+  put `phx-hook="PetalScrollspy"` on any container whose links carry
+  `data-scrollspy-target` and it drives your own markup, setting
+  `aria-current="location"` and `pc-scrollspy-link--active` on the active
+  link. Smooth scrolling and the indicator transition both drop out under
+  `prefers-reduced-motion`, and scrolling never moves focus.
+
+- **`<.qr_code>` - a QR code as pure server-rendered SVG.** No JavaScript,
+  crisp at any size, prints, and every dark module lands in a single
+  `<path>` so a dense code is one DOM node instead of eight hundred.
+  `currentColor` theming (`class="size-40 text-gray-900 dark:text-white"`),
+  the spec's 4-module quiet zone, all four error correction levels, `rounded`
+  from square modules to full dots, explicit `color`/`background`, optional
+  pixel `size`, and a `:logo` slot that knocks a hole in the middle and forces
+  error correction to `:h` so the code still scans. `role="img"` with a
+  `label` that never leaks the encoded value - a TOTP URI is a secret. The
+  moduledoc documents the dark-surface inversion rule.
+
+  The encoding matrix comes from [`eqrcode`](https://hex.pm/packages/eqrcode),
+  declared **optional** - it is not installed into your app unless you add
+  `{:eqrcode, "~> 0.2"}` yourself, and `<.qr_code>` raises with those
+  instructions if it is missing. Every other component is unaffected.
+
+- **New `context_menu` component: right-click a region of the page and
+  get a menu at the cursor.** It completes the menu family alongside
+  `dropdown` - same floating panel, same item anatomy, different
+  invocation. Wrap anything in the `:trigger` slot (a card, a table row,
+  a paragraph) and fill the inner block with `context_menu_item`,
+  `context_menu_label` and `context_menu_separator`. Items take icons,
+  a right-aligned `kbd` hint, `variant="danger"` for the destructive
+  one, `disabled`, and all four `link_type` values. `disabled` on the
+  component itself drops the wiring so right-click falls straight
+  through to the browser's own menu.
+  Touch gets the same menu from a half-second long press, and keyboard
+  users tab to the region and press Shift+F10 or the Menu key - the
+  panel then opens with the first item focused, arrows move and skip
+  disabled rows, Home and End jump to the ends, Escape closes and hands
+  focus back. The panel is a native `popover="manual"` element, so an
+  overflow-hidden ancestor can never clip it, and dismiss is the
+  library's own tap-outside rule rather than the UA's press-outside
+  one - a drag that starts on the page is a scroll, not a dismissal.
+  The `PetalContextMenu` hook exists for the one thing CSS cannot do:
+  read cursor coordinates and clamp the panel inside the viewport.
+
+- **New `tree` component: a hierarchical tree view for arbitrary-depth
+  data.** The file-explorer staple, and the gap between `menu`,
+  `navigation_menu` and `accordion` - none of which render a hierarchy.
+  Feed it a nested list of maps (`%{id:, label:, children: [...]}`) and
+  it renders itself down as far as the data goes: chevrons and
+  folder/document icons on the branches, a reserved chevron column so
+  leaf labels stay aligned, optional connecting indent guides
+  (`show_guides`), and single selection with a soft primary fill.
+  Two expansion models, both rendering identical markup and ARIA:
+  client-side by default (`default_expanded` seeds it, the chevron
+  toggles `data-expanded` with `Phoenix.LiveView.JS` and CSS animates
+  the height, zero round-trips), or server-controlled by passing
+  `expanded` plus an `on_expand` event - which is what `:lazy` branches
+  need, since their children only exist once the server has been asked.
+  Clicking anywhere on a branch row toggles it - and selects it in the
+  same click when selection is wired, the way a folder behaves in a
+  file explorer. That is `expand_on_click` and it defaults to true;
+  rows whose click already has a job, a link tree that has to navigate
+  say, set `expand_on_click={false}` and expansion goes back to the
+  chevron alone. The chevron never selects and the keyboard map is the
+  same either way.
+  A `:loading` row covers the wait, an `:empty` slot covers no data, and
+  an `:item` slot takes over the row content while the component keeps
+  the chevron, the indent and every ARIA attribute.
+  Accessibility is the WAI-ARIA TreeView pattern in full:
+  `role="tree"` / `treeitem` / `group`, computed `aria-level`,
+  `aria-setsize` and `aria-posinset`, `aria-expanded` on branches only,
+  `aria-selected`, `aria-disabled`, and the complete keyboard map
+  (up/down through visible nodes, right to expand or descend, left to
+  collapse or ascend, Home/End, Enter/Space to select, `*` to expand
+  siblings) over a roving tabindex, so the whole tree is one Tab stop.
+  The new `PetalTree` hook does the keyboard work and nothing else -
+  expansion and selection stay in JS commands and server events, so a
+  pointer user gets a working tree even if the hook never mounts.
+
+- **New `alert_dialog` component: the confirm/cancel question you ask
+  before something irreversible.** `<.modal>` is the general-purpose
+  overlay, and it lets you out cheaply - close button, click away, done.
+  That is the wrong behaviour when the next click deletes an account, so
+  `alert_dialog` inverts it. It carries `role="alertdialog"` so assistive
+  tech announces it as an interruption that wants a decision, opens with
+  focus on the **cancel** button rather than the first focusable, cancels
+  on Escape, and ignores backdrop clicks entirely. The friction is the
+  feature: there are two answers and you have to pick one. A `default`
+  variant is the calm confirm - primary button, no chip, nothing raising
+  its voice - and `destructive` is the explicit opt-in that moves the
+  confirm button to the danger ramp and washes the media chip in danger.
+  The `:media` slot puts a 40px chip beside the title holding an icon or
+  an image (an avatar, a thumbnail of the thing you are about to delete),
+  and it overrides the destructive variant's default warning glyph. The
+  actions sit in a footer band - border-t and a muted wash, stacked with
+  the primary action on top on mobile, right-aligned from `sm` up.
+  `description` is the one-line consequence
+  and wires itself to `aria-describedby`; the body slot composes live
+  data underneath it, so "you are about to delete 14 invoices" reads off
+  an assign instead of a hardcoded string. Long bodies scroll inside the
+  panel while the title and the action row stay put. Open it from
+  anywhere with `open_alert_dialog/2`, or drop an opener in the
+  `:trigger` slot and skip repeating the id.
+
+  Built on the native `<dialog>`, the same call `command_dialog` makes:
+  `showModal()` supplies the top layer, focus containment and focus
+  restoration to the opener for free, and a native modal dialog already
+  ignores backdrop clicks, which is exactly what this pattern wants. The
+  hook is small and only covers what `Phoenix.LiveView.JS` cannot reach -
+  `showModal()`/`close()` are DOM methods with no JS-command equivalent,
+  and Escape's native `cancel` event has to be intercepted so it runs
+  your `on_cancel` instead of quietly closing.
+
+  It also owns the exit, because `dialog.close()` is instant - the
+  element leaves the top layer in the same frame, so there is nothing
+  left for CSS to animate out of. Every way out (Escape, either button,
+  `close_alert_dialog/2`) funnels through one close-intent step: a
+  closing class goes on, the CSS plays the mirror of the entrance on the
+  box and on the `::backdrop`, and the real `close()` runs when the
+  animation ends. Under `prefers-reduced-motion: reduce` it skips
+  straight to the close. The surface and the animations themselves are
+  CSS.
+
+  The hook also keeps the dialog alive across LiveView patches.
+  `showModal()` sets `open` on the client and the server never renders
+  it, so a patch reaching the element would otherwise merge `open` away
+  and shut the dialog with no `close` event - leaving the page
+  scroll-locked. An open dialog now stays open, and an exit already
+  playing keeps playing, whatever the server pushes while it is up.
+
+- **New `slider` component: a range slider with one thumb or two, marks, a
+  value readout, sizes and vertical orientation.** It is a native
+  `<input type="range">` underneath, so the arrow / Home / End / PageUp /
+  PageDown keyboard map, the `role="slider"` and `aria-valuemin`/`valuemax`/
+  `valuenow` announcement, touch handling and form posting all come from the
+  browser rather than being re-implemented. What the library adds is paint: a
+  track and fill that ride the gray and primary ramps in both schemes, tick
+  marks that invert once the fill swallows them, and a value bubble or inline
+  readout with a prefix and suffix.
+
+  Dual mode is two overlaid inputs posting two form fields, so a price filter
+  is a plain `phx-change` with no JavaScript in your app:
+
+  ```heex
+  <.slider min_field={@form[:min]} max_field={@form[:max]} min={0} max={1000} step={50} label="Price" value_prefix="$" show_value="inline" />
+  ```
+
+  Geometry rides CSS custom properties that the server renders inline, so the
+  control paints correctly before the `PetalSlider` hook connects and with JS
+  off entirely. The hook only does what the client alone can know: keeping
+  those fractions live while you drag, enforcing the thumb ordering two native
+  inputs cannot enforce themselves, and emitting a bubbling
+  `petal:slider-change` event for apps that want the value without a form.
+
+#### Deprecated
+
+- `<.field type="range">` and `<.field type="range-dual">` are superseded by
+  `<.slider>`. Both still work and nothing is being removed in this release -
+  the docs now point at the slider for new code.
+
+- **`slide_over` gains a bottom-sheet drawer mode.** `origin="bottom"`
+  already existed, but it slid a plain full-width panel up with the same
+  chrome as a side sheet. It is now a proper mobile drawer: rounded top
+  corners on the large-panel radius rule, a grab-handle pill, a border,
+  `env(safe-area-inset-bottom)` padding under the body and footer, and
+  drag-to-dismiss. Pull the sheet down past about a quarter of its height,
+  or flick it, and it closes - through the same `hide_slide_over` path and
+  the same single `"close_slide_over"` event as escape, click-away and the
+  close button, `close_slide_over_target` included.
+
+  Five new attrs, all on the existing `slide_over/1`: `handle` (defaults to
+  `nil`, which resolves to on for bottom sheets and off everywhere else, so
+  `<.slide_over origin="bottom">` gets the pill for free), `drag_to_dismiss`,
+  `snap_points` (viewport-height fractions the drawer can rest at, e.g.
+  `[0.4, 0.9]`), `initial_snap`, and `scale_background` (off by default -
+  it transforms the page wrapper, which re-parents `position: fixed`
+  descendants; see the moduledoc).
+
+  The drag is a pointer-only enhancement layered on the dialog. Keyboard and
+  screen-reader users get exactly what they had: `role="dialog"`,
+  `aria-modal`, focus into the panel, escape to close. The handle is
+  `aria-hidden` because it is decorative, snap changes are not announced, and
+  under `prefers-reduced-motion` the sheet settles instantly instead of
+  springing. The new `PetalDrawer` hook only attaches to bottom sheets that
+  are actually draggable, snapped or scaling their background - a plain
+  bottom sheet stays CSS and `LiveView.JS` only.
+
+  Left, right and top sheets are unchanged: no handle, no hook, no new
+  markup, and every existing attr default is the same.
+
+- **New `file_upload` component: the whole upload surface for a Phoenix
+  LiveView upload.** Hand it an `@uploads.<name>` from `allow_upload/3`
+  and it renders the drop zone, the file list with thumbnails and type
+  icons, per-entry progress, cancel buttons and the errors from
+  `upload_errors/1` and `upload_errors/2` in plain English. It sits on
+  top of LiveView's upload machinery rather than beside it: drag and
+  drop is `phx-drop-target`, previews are `live_img_preview`, progress
+  is `entry.progress`. No hook, no JS, no new dependencies.
+  Four variants - `dropzone`, `compact`, `avatar` and `gallery` - plus
+  an `:entry` slot when you want to render the rows yourself. An
+  `:existing` slot covers the edit form: photos already saved come in
+  by URL and render as plain images beside the ones still uploading,
+  with your own remove event rather than `cancel_upload/3`. The hint
+  line ("PNG or JPG, up to 8 MB, max 4 files") is derived from the
+  config, so it cannot drift from what the server will actually accept.
+  Requires a LiveView; `<.field type="file">` is still the static
+  option and is unchanged.
+
+- **New `filters` component: a standalone filter bar driven by
+  `DataTable.State`.** Active filters render as removable chips (field,
+  humanised operator, formatted value) next to an "Add filter" popover
+  that walks field -> operator -> value in one panel, with no server
+  round trip. It speaks the same struct `<.data_table>` does, so pointing
+  both at one `State` composes with no glue: filter from the bar and the
+  table updates, filter from a column header and a chip appears. Six
+  registry types (`text`, `select`, `multi`, `number_range`,
+  `date_range`, `boolean`) each select a subset of `State.ops/0` - the
+  operator vocabulary is never forked. Both wiring modes ship: link mode
+  patches `State.to_params/1` URLs so filters are shareable and the back
+  button works, and event mode pushes the exact payloads
+  `State.handle_op/3` already parses, so a LiveView wired for an
+  event-mode data table gains a filter bar with zero new handler clauses.
+
+- **New `resizable` component family: split panes with dividers you can drag
+  and key.** `<.resizable_group>` wraps `<.resizable_panel>` and
+  `<.resizable_handle>` children into the layout primitive behind docs sites
+  with an adjustable sidebar, IDE workspaces and editor/preview splits. Panels
+  are sized as percentages of the group and rendered as `flex: <pct> 1 0px`, so
+  a window resize keeps the split proportional instead of stranding a pane at a
+  pixel width. `default_size`, `min_size`, `max_size`, `collapsible` and
+  `collapsed_size` per panel; both orientations; two-panel and n-panel groups.
+  Nested groups are first class: the `PetalResizable` hook only ever looks at
+  its own direct children, so a horizontal split inside a vertical one gets two
+  independent hooks that never fight over a panel.
+
+  Keyboard resizing is not an afterthought. Every handle is a WAI-ARIA
+  `separator` in the tab order with live `aria-valuenow`/`valuemin`/`valuemax`
+  and `aria-controls` on the panel before it. Arrows move it by 2 points (10
+  with shift), `Home` shrinks or collapses, `End` grows to max, `Enter` toggles
+  a collapsible pane, and arrows perpendicular to the separator do nothing, per
+  the pattern. Drag uses pointer capture so a fast drag cannot lose the
+  divider, and double-click resets a divider's two panes to their defaults.
+
+  Nothing is persisted for you. On release and on keyboard commit the group
+  fires a bubbling `petal:resizable-resize` DOM event with the percentages and,
+  when `on_resize` is set, pushes the same payload to your LiveView. Collapse
+  and expand fire `petal:resizable-collapse`. Store it in the session, the URL
+  or localStorage, whichever suits.
+
+- **New `sortable` component: drag-to-reorder lists and grids, with a
+  keyboard path that is not an afterthought.** Drag a row (or only its
+  grip, with `handle`) and the list reorders under your finger with the
+  gaps animating into place; on drop it pushes ONE `on_reorder` event
+  carrying `%{"id", "from", "to"}` so your `handle_event` can persist the
+  order. LiveView stays the source of truth: the DOM has already moved,
+  so the patch is a visual no-op, and a server that says no snaps the
+  items back. `orientation="grid"` wraps items into a grid and teaches
+  the arrow keys to move in two dimensions, reading the column count off
+  the live layout so a responsive grid steps correctly at every
+  breakpoint. Works with LiveView streams - pass `phx-update="stream"`
+  through and give items a `dom_id`; reconciliation is by
+  `data-sortable-id`, never by index.
+
+  Keyboard reorder is a first-class path, not a fallback: Space lifts,
+  the arrows move, Space drops, Escape cancels, and every transition is
+  announced through a visually hidden `aria-live` region ("Picked up
+  Discovery call, position 1 of 5"). Focus follows the item it moved.
+  On touch a long press lifts, so a tap or a scroll still does what it
+  always did.
+
+  One `PetalSortable` hook, zero npm dependencies - pointer events,
+  `setPointerCapture` and hand-rolled FLIP transforms. All the order
+  maths and the whole lift state machine are pure functions, so they are
+  unit-tested without a DOM. There is no cloned drag overlay: the real
+  element moves through the list, which keeps the accessible order equal
+  to the DOM order at every instant and keeps form state and media
+  inside a row intact.
+
+- **New `calendar` and `date_picker` components.** `<.calendar>` is a month
+  grid built on Elixir's own `Date` - no date dependency, no timezone
+  guessing, and no DateTime anywhere. It does single, range and multiple
+  selection, `min`/`max` windows, `disabled_dates` as a list or a function,
+  any of the seven week starts, outside days, and fixed six-row height.
+  Month navigation works two ways: push events in a LiveView, or plain
+  query-param patch links in a dead view. Day and month names are plain
+  attrs, so gettext wiring is a recipe rather than a dependency.
+
+- `<.date_picker>` puts that grid in a panel under a text input. The input
+  shows a strftime-formatted date you can type into; a hidden input posts
+  ISO 8601 regardless. Parse on blur tries ISO first, then the configured
+  format, and reverts rather than silently clearing. Range mode posts
+  `from`/`to` sub-fields and can show two months side by side. Form field,
+  errors, help text, required marker and clearable all match `<.field>`.
+
+- Both follow the WAI-ARIA grid pattern: `role="grid"` with column headers,
+  `aria-selected` on the selected cells, `aria-disabled` on blacked-out days
+  that stay focusable, a polite live region for month changes, and a roving
+  tabindex so exactly one day sits in the tab order. The `PetalCalendar`
+  hook adds the arrow-key map (day, week, month with PageUp/PageDown, year
+  with Shift, week bounds with Home/End); every day is a real `<button>`, so
+  Tab and Enter work with the hook deleted.
+
+- **`Chat.tool_call/1` renders the whole lifecycle of a call, not one static
+  row.** The new `state` attr (`:pending`, `:input_streaming`, `:running`,
+  `:complete`, `:error`) is server-driven end to end: the parent LiveView
+  patches one assign as the model's response streams and the card moves. No
+  client state, no new hook. Pending and streaming-input rest on a shimmer
+  skeleton (still under `prefers-reduced-motion`), running gets a spinner and
+  an indeterminate hairline, complete settles into a summary row with the
+  arguments and the result behind expandable panels, and error rides the
+  danger ramp with the message inline and your retry button in the new
+  `:error_actions` slot. `input` and `output` take the JSON string you already
+  have when a function call streams back - pretty-printed server-side into a
+  code block, shown verbatim when it is not valid JSON, and overridable with
+  the `:input_panel` / `:output_panel` slots. `icon` takes a preset
+  (`"web_search"`, `"code"`, `"database"`) or any `hero-*` name, with the
+  `:tool_icon` slot for anything else. `compact` collapses a multi-tool burst
+  into one dense line per call, stacked as a list, each finished row a native
+  `<details>` disclosure. `duration` prints a time you format. In-progress
+  cards carry `role="status"` and every state is spelled out in a
+  visually-hidden word, so the state never lands as colour alone. The older
+  `status` attr still works unchanged and drives the same three treatments.
+
+- **`Chat.questionnaire/1`: structured human-in-the-loop input in the
+  transcript.** When the model needs a decision rather than a sentence, it
+  emits a question spec and this renders it as a form inside the thread -
+  single-select, multi-select, short text and a 1-to-5 scale. Submit is a
+  plain `phx-submit` your LiveView forwards to the model; there is no
+  client form engine and no client state. Pass the answers back as
+  `resolved` and the form is replaced by quiet chips so the transcript
+  stays honest about what was asked and answered, with nothing focusable
+  left behind; `:skipped` renders the skipped line. It composes the
+  existing `field/1` primitives - radio-cards when the options carry
+  descriptions, plain radios when they don't, checkbox groups for
+  multi-select - so required markers, labels and error scaffolding come
+  for free. Only the scale is new markup: five real radios in a segmented
+  row, so arrow keys move between steps natively. Every question is a
+  `<fieldset>` with a `<legend>`, the form is `aria-labelledby` the title,
+  and the scale's end captions are tied in with `aria-describedby`.
+
+- **Composer attachments: `prompt_input` takes an upload, and
+  `message_attachments` renders what was sent.** Hand `prompt_input` an
+  `%UploadConfig{}` from `allow_upload/3` and it grows a paperclip trigger
+  (a `<label>` around a visually hidden `live_file_input`, so the keyboard
+  still works), a chip strip for the pending entries, `phx-drop-target` on
+  the composer with a drag-over tint, and paste-a-screenshot support in the
+  existing `PetalChatComposer` hook. Image entries get a `live_img_preview`
+  thumbnail, everything else gets an icon with the name and a formatted
+  size; each chip carries a `role="progressbar"` ring driven by
+  `entry.progress` and a remove button wired to `on_cancel_upload` with the
+  entry ref. Upload errors render inline under the composer with
+  `role="alert"`, per-entry ones named with the file they belong to.
+  `message_attachments/1` is the received side: images tile into a grid
+  (one goes large, two or more tile), files are download rows, and a mixed
+  list puts the images first. With no `upload` the composer renders exactly
+  as it always has - no extra markup, no behaviour change.
+
+- **Answer grounding for the chat family: inline citation chips and a
+  `chat_sources` row.** RAG answers are only trustworthy if you can see
+  where they came from, and until now the chat kit rendered the prose but
+  not the receipts. Prompt the model to cite as `[^N]` and hand the same
+  source maps to `markdown/1`: every complete marker turns into a numbered
+  chip that opens the source in a new tab, with a preview card (title,
+  domain, snippet) on hover or focus. `chat_sources/1` renders the deduped
+  list underneath - a native `<details>`, no JS, with `expanded` to open it
+  on render and `max_visible` to cap the list behind a "Show all" reveal.
+  `citation/1` is the chip on its own for prose you assemble yourself.
+  The streaming path takes the same option: `to_html/2` accepts
+  `sources:`, so chips light up as their markers complete and a
+  half-arrived `[^` never flashes broken output. Sources are plain maps
+  (`%{id, url, title, snippet, favicon_url}`) with string or atom keys;
+  everything but `url` is optional and degrades - no favicon means a letter
+  avatar, no snippet means a shorter row. Chip markup is minted server-side
+  from the numeric index plus escaped source fields and spliced into the
+  already-sanitized HTML outside code blocks, so model text can never reach
+  the page as live markup, and only `http`/`https` urls become links - a
+  source url with any other scheme renders without an `href`.
+
+- **New `sidebar` family: the app-shell navigation almost every LiveView
+  product ends up hand-rolling.** Five components compose the whole
+  anatomy - `sidebar_shell` (the flex wrapper), `sidebar_nav` (the `<nav>`
+  landmark with header and footer slots - deliberately NOT bare
+  `sidebar/1`: `use PetalComponents` imports every component, a
+  hand-rolled `def sidebar` is the most common helper in Phoenix layout
+  modules, and the collision is a hard CompileError when the call sits
+  above the definition or a silent shadow when it sits below - the one
+  name in the family that could collide is the one that doesn't exist),
+  `sidebar_group` (a labelled,
+  optionally collapsible run of items), `sidebar_item` (icon, label,
+  badge, active state, and arbitrarily nested sub-items) and
+  `sidebar_trigger` (the rail toggle and the mobile burger). Three
+  collapse modes: `icon` for the rail, `offcanvas` to hide it, `none` to
+  pin it. `side="right"` gives you an inspector panel, and two sidebars
+  in one shell keep separate state.
+
+  Collapse is CSS-first: the trigger flips a `data-collapsed` attribute
+  with `Phoenix.LiveView.JS` and stylesheets do the rest, so there is no
+  hook and no round trip. The server still renders the initial value
+  through the `collapsed` attr, so a `live_redirect` can never flash the
+  wrong state. Below `md` the sidebar becomes an off-canvas sheet: the
+  shell's content region goes `inert`, Escape closes it, the scrim
+  closes it, and focus returns to the trigger.
+
+  Accessibility: a `<nav>` landmark with an accessible name,
+  `aria-current="page"` on the active item, the WAI-ARIA disclosure
+  pattern on collapsible groups and nested items, labels that stay in
+  the accessibility tree when the rail collapses, and transitions that
+  drop to instant under `prefers-reduced-motion`.
 
 #### Changed
 
@@ -351,625 +884,6 @@
   `language_select` and the `color_scheme_switch` dropdown variant.
   Register the bundled hooks (see the README) to get it - without them
   the panel keeps its previous always-downward behaviour.
-### Unreleased
-
-#### Added
-
-- **`<.kbd>` - the keyboard chip, promoted to a real component.** The
-  `.pc-kbd` class already existed, quietly powering the command palette
-  trigger and input group addons, but you had to hand-write the markup
-  and remember which glyph goes with which modifier. Now
-  `<.kbd keys={["cmd", "K"]} />` renders one semantic `<kbd>` per key
-  with the separator between them, folding known names (cmd, shift,
-  alt, ctrl, enter, esc, tab, backspace, the arrows) to their symbol
-  case-insensitively and passing anything else through verbatim. The
-  separator is `aria-hidden`, because the keys already say what the
-  shortcut is. Two sizes: `md` matches the existing chips, `sm` is for
-  table rows and menu items. The shared rule picked up a key cap
-  treatment at the same time - an inset border with a heavier bottom
-  edge - so the command trigger and input group chips read as
-  something you can press without either of them changing size.
-- **`<.separator>` - the divider for app UI.** A hairline with no
-  margin of its own, because app layouts already control their own
-  rhythm and a component that quietly adds `my-8` is a component you
-  spend the afternoon overriding. `label` (or the default slot for
-  rich content) gives you the OR divider and the date row in an
-  activity feed, positioned `start`, `center` or `end`. Vertical mode
-  is a `w-px` rule that stretches to its flex parent, for toolbars.
-  `decorative` defaults to true and matches Radix: `aria-hidden`, no
-  role, no announcement. Flip it to false and you get
-  `role="separator"` plus `aria-orientation` when it is vertical.
-  `Typography.hr/1` is untouched and stays the rule for prose.
-- **`<.collapsible>` - one disclosure region.** The accordion without
-  the group: nothing closes when it opens, and there is no entries
-  list. The trigger is a real `<button>`, so Enter and Space work and
-  focus stays put, and it carries `aria-expanded` plus `aria-controls`
-  pointing at a `role="region"` content panel that is `inert` while
-  collapsed rather than an invisible tab trap. Toggling is
-  `Phoenix.LiveView.JS`, so it costs no round trip, and the `open`
-  attr is the server-rendered state, so LiveView can drive it too.
-  `on_toggle` composes your own commands ahead of the component's.
-  The height animation is the `grid-template-rows: 0fr -> 1fr` trick,
-  which means content of any height animates with nothing measured in
-  JavaScript, and it drops out under `prefers-reduced-motion` with
-  both rest states fully legible.
-
-### Unreleased
-
-#### Added
-
-- **New `timeline` component: a record of things that happened, in
-  order.** Activity feeds, deploy logs, order tracking, audit trails,
-  company history - the app chrome that until now meant hand-rolling a
-  rail out of raw Tailwind. It is deliberately not a stepper: stepper is
-  interactive progress you click through, timeline is an append-only
-  display with nothing to press. The root is an `<ol>` and each entry an
-  `<li>`, so screen readers announce position and count without a single
-  ARIA role being invented. Four layouts: `default` (left rail),
-  `alternating` (entries either side of a centre rail from `md` up,
-  folding back to the left rail below), `compact` (activity-feed density)
-  and `orientation="horizontal"` for milestones, which scrolls sideways
-  with CSS scroll-snap and takes keyboard focus so the scroller isn't a
-  mouse-only region. Markers are `dot`, `icon`, `avatar` (composing
-  `<.avatar>`, initials fallback included) or `number`, which counts the
-  entries for you, each in any of the seven semantic colours. Per-entry
-  `state` of `complete`, `current` or `upcoming` rings the current
-  marker, carries `aria-current="step"`, and mutes upcoming entries along
-  with the connector running into them - and because colour alone is
-  never the signal, each of those entries also carries a
-  visually-hidden state label. Connectors come `solid` or `dashed`, and
-  each entry's inner block renders below the description, so a card, a
-  diff or an image grid drops straight in. `time_placement="start"` hands
-  the time a column of its own beside the rail, right-aligned against it,
-  which is the layout for a log you scan by when rather than by what -
-  `--pc-timeline-time-col` sets how wide, and below `sm` the time folds
-  back above the title without a marker moving. Pure CSS and HEEx: no hook,
-  nothing to wire up, and the horizontal scroller's smooth behaviour sits
-  behind a `prefers-reduced-motion` guard.
-
-### Unreleased
-
-#### Added
-
-- **New `number_field` component: a real spinbutton for quantities,
-  prices and percentages, in place of a bare
-  `<input type="number">`.** The native number input has spinners you
-  can't style, that differ in every browser, and a value the browser
-  sanitises out from under you the moment you try to format it. This one
-  is a text input carrying `role="spinbutton"` on the existing
-  `input_group` surface, so it inherits the border, radius, focus ring
-  and error tone the rest of the form family already uses, and the
-  steppers are ours to draw. Three variants: `stacked` chevrons at the
-  inline end, `split` minus and plus with the value centred - the cart
-  quantity look - and `plain` for keyboard only. `min`, `max` and `step`
-  clamp and mirror to `aria-valuemin` / `aria-valuemax` /
-  `aria-valuenow`; `big_step` (defaulting to ten steps) rides
-  shift+arrow and page up/down; Home and End jump to the bounds.
-  `precision` rounds and pads on blur while the raw text stands while
-  you type, so `7.5` becomes `7.50` only once you're done - and the
-  moduledoc documents the `Intl.NumberFormat` pattern for currency and
-  percent display, because no formatting dependency ships with this. The
-  `PetalNumberField` hook owns the stepping, the clamping, wheel while
-  focused, and hold-to-repeat that accelerates and stops on
-  `pointerleave` as well as `pointerup`. The input is the single tab
-  stop, the buttons are labelled at `tabindex="-1"`, and a button at its
-  bound takes `aria-disabled` rather than `disabled` so it keeps its
-  name for a screen reader. `<.field type="number-field">` wires it into
-  the label/help/error machinery, and `<.field type="number">` is
-  untouched.
-
-### Unreleased
-
-#### Added
-
-- **New `scroll_area` component: one themed treatment for every overflow
-  region, in one div and zero JavaScript.** The library already had eight
-  hand-rolled scroll regions, each styling overflow slightly differently -
-  this is the canonical version they can all adopt. `scrollbar-width` and
-  `scrollbar-color` do the work on Chrome 121+ and Firefox, a
-  `::-webkit-scrollbar` block covers Safari and older Chromium, and the two
-  never fight because an engine that honours the modern properties ignores
-  the webkit pseudo-elements outright. The thumb rides the gray ramp in
-  light and dark and steps one shade toward the foreground on hover.
-  `orientation` picks the axis (vertical, horizontal or both, with the off
-  axis clipped rather than left scrollable by accident), `fade_edges` masks
-  the scrolling axis so content dissolves at the clip instead of being cut,
-  and `gutter_stable` reserves the scrollbar's space so content does not
-  shift the moment it appears. Sizing is deliberately class-driven, so
-  there is no second sizing vocabulary sitting next to Tailwind's. Unlike
-  the Radix-style approach we do not reimplement the scrollbar in JS: you
-  keep native momentum scrolling, native keyboard handling and native
-  assistive-tech behaviour for free, and the trade is that we theme what
-  the platform exposes rather than overriding it - `visibility="always"` is
-  a request WebKit honours and Firefox cannot, and `gutter_stable` is a
-  no-op wherever scrollbars are overlays. The moduledoc says so in plain
-  language. The container is focusable by default (`tabindex="0"`), which
-  is what makes arrow keys and Page Up/Down work at all, and it only takes
-  `role="region"` when you give it a name - an unnamed landmark is noise,
-  not a service.
-
-### Unreleased
-
-#### Added
-
-- **New `scrollspy` component: the "on this page" rail that follows the
-  reader down a long article.** Pass the sections as `items` and the
-  `PetalScrollspy` hook takes it from there, watching them with an
-  IntersectionObserver and sliding an indicator bar to whichever one is
-  at reading position. The fiddly parts are the point: when several
-  sections are on screen the one that most recently reached the
-  activation line wins, a closing section too short to ever reach that
-  line still highlights once you hit the bottom of the scroll, and a
-  `#hash` in the URL activates immediately on load instead of waiting
-  for the first observer callback. `offset` sets `scroll-margin-top` on
-  the targets so a fixed site header stops covering the heading you just
-  jumped to, `threshold` moves the activation line, `indicator="none"`
-  drops the bar for a colour-only active state, and one level of
-  nesting handles h2/h3 structure. The hook is not tied to the renderer:
-  put `phx-hook="PetalScrollspy"` on any container whose links carry
-  `data-scrollspy-target` and it drives your own markup, setting
-  `aria-current="location"` and `pc-scrollspy-link--active` on the active
-  link. Smooth scrolling and the indicator transition both drop out under
-  `prefers-reduced-motion`, and scrolling never moves focus.
-
-### Unreleased
-
-#### Added
-
-- **`<.qr_code>` - a QR code as pure server-rendered SVG.** No JavaScript,
-  crisp at any size, prints, and every dark module lands in a single
-  `<path>` so a dense code is one DOM node instead of eight hundred.
-  `currentColor` theming (`class="size-40 text-gray-900 dark:text-white"`),
-  the spec's 4-module quiet zone, all four error correction levels, `rounded`
-  from square modules to full dots, explicit `color`/`background`, optional
-  pixel `size`, and a `:logo` slot that knocks a hole in the middle and forces
-  error correction to `:h` so the code still scans. `role="img"` with a
-  `label` that never leaks the encoded value - a TOTP URI is a secret. The
-  moduledoc documents the dark-surface inversion rule.
-
-  The encoding matrix comes from [`eqrcode`](https://hex.pm/packages/eqrcode),
-  declared **optional** - it is not installed into your app unless you add
-  `{:eqrcode, "~> 0.2"}` yourself, and `<.qr_code>` raises with those
-  instructions if it is missing. Every other component is unaffected.
-
-### Unreleased
-
-#### Added
-
-- **New `context_menu` component: right-click a region of the page and
-  get a menu at the cursor.** It completes the menu family alongside
-  `dropdown` - same floating panel, same item anatomy, different
-  invocation. Wrap anything in the `:trigger` slot (a card, a table row,
-  a paragraph) and fill the inner block with `context_menu_item`,
-  `context_menu_label` and `context_menu_separator`. Items take icons,
-  a right-aligned `kbd` hint, `variant="danger"` for the destructive
-  one, `disabled`, and all four `link_type` values. `disabled` on the
-  component itself drops the wiring so right-click falls straight
-  through to the browser's own menu.
-  Touch gets the same menu from a half-second long press, and keyboard
-  users tab to the region and press Shift+F10 or the Menu key - the
-  panel then opens with the first item focused, arrows move and skip
-  disabled rows, Home and End jump to the ends, Escape closes and hands
-  focus back. The panel is a native `popover="manual"` element, so an
-  overflow-hidden ancestor can never clip it, and dismiss is the
-  library's own tap-outside rule rather than the UA's press-outside
-  one - a drag that starts on the page is a scroll, not a dismissal.
-  The `PetalContextMenu` hook exists for the one thing CSS cannot do:
-  read cursor coordinates and clamp the panel inside the viewport.
-
-
-### Unreleased
-
-#### Added
-
-- **New `tree` component: a hierarchical tree view for arbitrary-depth
-  data.** The file-explorer staple, and the gap between `menu`,
-  `navigation_menu` and `accordion` - none of which render a hierarchy.
-  Feed it a nested list of maps (`%{id:, label:, children: [...]}`) and
-  it renders itself down as far as the data goes: chevrons and
-  folder/document icons on the branches, a reserved chevron column so
-  leaf labels stay aligned, optional connecting indent guides
-  (`show_guides`), and single selection with a soft primary fill.
-  Two expansion models, both rendering identical markup and ARIA:
-  client-side by default (`default_expanded` seeds it, the chevron
-  toggles `data-expanded` with `Phoenix.LiveView.JS` and CSS animates
-  the height, zero round-trips), or server-controlled by passing
-  `expanded` plus an `on_expand` event - which is what `:lazy` branches
-  need, since their children only exist once the server has been asked.
-  Clicking anywhere on a branch row toggles it - and selects it in the
-  same click when selection is wired, the way a folder behaves in a
-  file explorer. That is `expand_on_click` and it defaults to true;
-  rows whose click already has a job, a link tree that has to navigate
-  say, set `expand_on_click={false}` and expansion goes back to the
-  chevron alone. The chevron never selects and the keyboard map is the
-  same either way.
-  A `:loading` row covers the wait, an `:empty` slot covers no data, and
-  an `:item` slot takes over the row content while the component keeps
-  the chevron, the indent and every ARIA attribute.
-  Accessibility is the WAI-ARIA TreeView pattern in full:
-  `role="tree"` / `treeitem` / `group`, computed `aria-level`,
-  `aria-setsize` and `aria-posinset`, `aria-expanded` on branches only,
-  `aria-selected`, `aria-disabled`, and the complete keyboard map
-  (up/down through visible nodes, right to expand or descend, left to
-  collapse or ascend, Home/End, Enter/Space to select, `*` to expand
-  siblings) over a roving tabindex, so the whole tree is one Tab stop.
-  The new `PetalTree` hook does the keyboard work and nothing else -
-  expansion and selection stay in JS commands and server events, so a
-  pointer user gets a working tree even if the hook never mounts.
-
-### Unreleased
-
-#### Added
-
-- **New `alert_dialog` component: the confirm/cancel question you ask
-  before something irreversible.** `<.modal>` is the general-purpose
-  overlay, and it lets you out cheaply - close button, click away, done.
-  That is the wrong behaviour when the next click deletes an account, so
-  `alert_dialog` inverts it. It carries `role="alertdialog"` so assistive
-  tech announces it as an interruption that wants a decision, opens with
-  focus on the **cancel** button rather than the first focusable, cancels
-  on Escape, and ignores backdrop clicks entirely. The friction is the
-  feature: there are two answers and you have to pick one. A `default`
-  variant is the calm confirm - primary button, no chip, nothing raising
-  its voice - and `destructive` is the explicit opt-in that moves the
-  confirm button to the danger ramp and washes the media chip in danger.
-  The `:media` slot puts a 40px chip beside the title holding an icon or
-  an image (an avatar, a thumbnail of the thing you are about to delete),
-  and it overrides the destructive variant's default warning glyph. The
-  actions sit in a footer band - border-t and a muted wash, stacked with
-  the primary action on top on mobile, right-aligned from `sm` up.
-  `description` is the one-line consequence
-  and wires itself to `aria-describedby`; the body slot composes live
-  data underneath it, so "you are about to delete 14 invoices" reads off
-  an assign instead of a hardcoded string. Long bodies scroll inside the
-  panel while the title and the action row stay put. Open it from
-  anywhere with `open_alert_dialog/2`, or drop an opener in the
-  `:trigger` slot and skip repeating the id.
-
-  Built on the native `<dialog>`, the same call `command_dialog` makes:
-  `showModal()` supplies the top layer, focus containment and focus
-  restoration to the opener for free, and a native modal dialog already
-  ignores backdrop clicks, which is exactly what this pattern wants. The
-  hook is small and only covers what `Phoenix.LiveView.JS` cannot reach -
-  `showModal()`/`close()` are DOM methods with no JS-command equivalent,
-  and Escape's native `cancel` event has to be intercepted so it runs
-  your `on_cancel` instead of quietly closing.
-
-  It also owns the exit, because `dialog.close()` is instant - the
-  element leaves the top layer in the same frame, so there is nothing
-  left for CSS to animate out of. Every way out (Escape, either button,
-  `close_alert_dialog/2`) funnels through one close-intent step: a
-  closing class goes on, the CSS plays the mirror of the entrance on the
-  box and on the `::backdrop`, and the real `close()` runs when the
-  animation ends. Under `prefers-reduced-motion: reduce` it skips
-  straight to the close. The surface and the animations themselves are
-  CSS.
-
-  The hook also keeps the dialog alive across LiveView patches.
-  `showModal()` sets `open` on the client and the server never renders
-  it, so a patch reaching the element would otherwise merge `open` away
-  and shut the dialog with no `close` event - leaving the page
-  scroll-locked. An open dialog now stays open, and an exit already
-  playing keeps playing, whatever the server pushes while it is up.
-
-
-### Unreleased
-
-#### Added
-
-- **New `slider` component: a range slider with one thumb or two, marks, a
-  value readout, sizes and vertical orientation.** It is a native
-  `<input type="range">` underneath, so the arrow / Home / End / PageUp /
-  PageDown keyboard map, the `role="slider"` and `aria-valuemin`/`valuemax`/
-  `valuenow` announcement, touch handling and form posting all come from the
-  browser rather than being re-implemented. What the library adds is paint: a
-  track and fill that ride the gray and primary ramps in both schemes, tick
-  marks that invert once the fill swallows them, and a value bubble or inline
-  readout with a prefix and suffix.
-
-  Dual mode is two overlaid inputs posting two form fields, so a price filter
-  is a plain `phx-change` with no JavaScript in your app:
-
-  ```heex
-  <.slider min_field={@form[:min]} max_field={@form[:max]} min={0} max={1000} step={50} label="Price" value_prefix="$" show_value="inline" />
-  ```
-
-  Geometry rides CSS custom properties that the server renders inline, so the
-  control paints correctly before the `PetalSlider` hook connects and with JS
-  off entirely. The hook only does what the client alone can know: keeping
-  those fractions live while you drag, enforcing the thumb ordering two native
-  inputs cannot enforce themselves, and emitting a bubbling
-  `petal:slider-change` event for apps that want the value without a form.
-
-#### Deprecated
-
-- `<.field type="range">` and `<.field type="range-dual">` are superseded by
-  `<.slider>`. Both still work and nothing is being removed in this release -
-  the docs now point at the slider for new code.
-
-### Unreleased
-
-#### Added
-
-- **`slide_over` gains a bottom-sheet drawer mode.** `origin="bottom"`
-  already existed, but it slid a plain full-width panel up with the same
-  chrome as a side sheet. It is now a proper mobile drawer: rounded top
-  corners on the large-panel radius rule, a grab-handle pill, a border,
-  `env(safe-area-inset-bottom)` padding under the body and footer, and
-  drag-to-dismiss. Pull the sheet down past about a quarter of its height,
-  or flick it, and it closes - through the same `hide_slide_over` path and
-  the same single `"close_slide_over"` event as escape, click-away and the
-  close button, `close_slide_over_target` included.
-
-  Five new attrs, all on the existing `slide_over/1`: `handle` (defaults to
-  `nil`, which resolves to on for bottom sheets and off everywhere else, so
-  `<.slide_over origin="bottom">` gets the pill for free), `drag_to_dismiss`,
-  `snap_points` (viewport-height fractions the drawer can rest at, e.g.
-  `[0.4, 0.9]`), `initial_snap`, and `scale_background` (off by default -
-  it transforms the page wrapper, which re-parents `position: fixed`
-  descendants; see the moduledoc).
-
-  The drag is a pointer-only enhancement layered on the dialog. Keyboard and
-  screen-reader users get exactly what they had: `role="dialog"`,
-  `aria-modal`, focus into the panel, escape to close. The handle is
-  `aria-hidden` because it is decorative, snap changes are not announced, and
-  under `prefers-reduced-motion` the sheet settles instantly instead of
-  springing. The new `PetalDrawer` hook only attaches to bottom sheets that
-  are actually draggable, snapped or scaling their background - a plain
-  bottom sheet stays CSS and `LiveView.JS` only.
-
-  Left, right and top sheets are unchanged: no handle, no hook, no new
-  markup, and every existing attr default is the same.
-
-
-### Unreleased
-
-#### Added
-
-- **New `file_upload` component: the whole upload surface for a Phoenix
-  LiveView upload.** Hand it an `@uploads.<name>` from `allow_upload/3`
-  and it renders the drop zone, the file list with thumbnails and type
-  icons, per-entry progress, cancel buttons and the errors from
-  `upload_errors/1` and `upload_errors/2` in plain English. It sits on
-  top of LiveView's upload machinery rather than beside it: drag and
-  drop is `phx-drop-target`, previews are `live_img_preview`, progress
-  is `entry.progress`. No hook, no JS, no new dependencies.
-  Four variants - `dropzone`, `compact`, `avatar` and `gallery` - plus
-  an `:entry` slot when you want to render the rows yourself. An
-  `:existing` slot covers the edit form: photos already saved come in
-  by URL and render as plain images beside the ones still uploading,
-  with your own remove event rather than `cancel_upload/3`. The hint
-  line ("PNG or JPG, up to 8 MB, max 4 files") is derived from the
-  config, so it cannot drift from what the server will actually accept.
-  Requires a LiveView; `<.field type="file">` is still the static
-  option and is unchanged.
-
-
-### Unreleased
-
-#### Added
-
-- **New `filters` component: a standalone filter bar driven by
-  `DataTable.State`.** Active filters render as removable chips (field,
-  humanised operator, formatted value) next to an "Add filter" popover
-  that walks field -> operator -> value in one panel, with no server
-  round trip. It speaks the same struct `<.data_table>` does, so pointing
-  both at one `State` composes with no glue: filter from the bar and the
-  table updates, filter from a column header and a chip appears. Six
-  registry types (`text`, `select`, `multi`, `number_range`,
-  `date_range`, `boolean`) each select a subset of `State.ops/0` - the
-  operator vocabulary is never forked. Both wiring modes ship: link mode
-  patches `State.to_params/1` URLs so filters are shareable and the back
-  button works, and event mode pushes the exact payloads
-  `State.handle_op/3` already parses, so a LiveView wired for an
-  event-mode data table gains a filter bar with zero new handler clauses.
-
-### Unreleased
-
-#### Added
-
-- **New `resizable` component family: split panes with dividers you can drag
-  and key.** `<.resizable_group>` wraps `<.resizable_panel>` and
-  `<.resizable_handle>` children into the layout primitive behind docs sites
-  with an adjustable sidebar, IDE workspaces and editor/preview splits. Panels
-  are sized as percentages of the group and rendered as `flex: <pct> 1 0px`, so
-  a window resize keeps the split proportional instead of stranding a pane at a
-  pixel width. `default_size`, `min_size`, `max_size`, `collapsible` and
-  `collapsed_size` per panel; both orientations; two-panel and n-panel groups.
-  Nested groups are first class: the `PetalResizable` hook only ever looks at
-  its own direct children, so a horizontal split inside a vertical one gets two
-  independent hooks that never fight over a panel.
-
-  Keyboard resizing is not an afterthought. Every handle is a WAI-ARIA
-  `separator` in the tab order with live `aria-valuenow`/`valuemin`/`valuemax`
-  and `aria-controls` on the panel before it. Arrows move it by 2 points (10
-  with shift), `Home` shrinks or collapses, `End` grows to max, `Enter` toggles
-  a collapsible pane, and arrows perpendicular to the separator do nothing, per
-  the pattern. Drag uses pointer capture so a fast drag cannot lose the
-  divider, and double-click resets a divider's two panes to their defaults.
-
-  Nothing is persisted for you. On release and on keyboard commit the group
-  fires a bubbling `petal:resizable-resize` DOM event with the percentages and,
-  when `on_resize` is set, pushes the same payload to your LiveView. Collapse
-  and expand fire `petal:resizable-collapse`. Store it in the session, the URL
-  or localStorage, whichever suits.
-
-
-### Unreleased
-
-#### Added
-
-- **New `sortable` component: drag-to-reorder lists and grids, with a
-  keyboard path that is not an afterthought.** Drag a row (or only its
-  grip, with `handle`) and the list reorders under your finger with the
-  gaps animating into place; on drop it pushes ONE `on_reorder` event
-  carrying `%{"id", "from", "to"}` so your `handle_event` can persist the
-  order. LiveView stays the source of truth: the DOM has already moved,
-  so the patch is a visual no-op, and a server that says no snaps the
-  items back. `orientation="grid"` wraps items into a grid and teaches
-  the arrow keys to move in two dimensions, reading the column count off
-  the live layout so a responsive grid steps correctly at every
-  breakpoint. Works with LiveView streams - pass `phx-update="stream"`
-  through and give items a `dom_id`; reconciliation is by
-  `data-sortable-id`, never by index.
-
-  Keyboard reorder is a first-class path, not a fallback: Space lifts,
-  the arrows move, Space drops, Escape cancels, and every transition is
-  announced through a visually hidden `aria-live` region ("Picked up
-  Discovery call, position 1 of 5"). Focus follows the item it moved.
-  On touch a long press lifts, so a tap or a scroll still does what it
-  always did.
-
-  One `PetalSortable` hook, zero npm dependencies - pointer events,
-  `setPointerCapture` and hand-rolled FLIP transforms. All the order
-  maths and the whole lift state machine are pure functions, so they are
-  unit-tested without a DOM. There is no cloned drag overlay: the real
-  element moves through the list, which keeps the accessible order equal
-  to the DOM order at every instant and keeps form state and media
-  inside a row intact.
-
-
-### Unreleased
-
-#### Added
-
-- **New `calendar` and `date_picker` components.** `<.calendar>` is a month
-  grid built on Elixir's own `Date` - no date dependency, no timezone
-  guessing, and no DateTime anywhere. It does single, range and multiple
-  selection, `min`/`max` windows, `disabled_dates` as a list or a function,
-  any of the seven week starts, outside days, and fixed six-row height.
-  Month navigation works two ways: push events in a LiveView, or plain
-  query-param patch links in a dead view. Day and month names are plain
-  attrs, so gettext wiring is a recipe rather than a dependency.
-- `<.date_picker>` puts that grid in a panel under a text input. The input
-  shows a strftime-formatted date you can type into; a hidden input posts
-  ISO 8601 regardless. Parse on blur tries ISO first, then the configured
-  format, and reverts rather than silently clearing. Range mode posts
-  `from`/`to` sub-fields and can show two months side by side. Form field,
-  errors, help text, required marker and clearable all match `<.field>`.
-- Both follow the WAI-ARIA grid pattern: `role="grid"` with column headers,
-  `aria-selected` on the selected cells, `aria-disabled` on blacked-out days
-  that stay focusable, a polite live region for month changes, and a roving
-  tabindex so exactly one day sits in the tab order. The `PetalCalendar`
-  hook adds the arrow-key map (day, week, month with PageUp/PageDown, year
-  with Shift, week bounds with Home/End); every day is a real `<button>`, so
-  Tab and Enter work with the hook deleted.
-
-
-### Unreleased
-
-#### Added
-
-- **`Chat.tool_call/1` renders the whole lifecycle of a call, not one static
-  row.** The new `state` attr (`:pending`, `:input_streaming`, `:running`,
-  `:complete`, `:error`) is server-driven end to end: the parent LiveView
-  patches one assign as the model's response streams and the card moves. No
-  client state, no new hook. Pending and streaming-input rest on a shimmer
-  skeleton (still under `prefers-reduced-motion`), running gets a spinner and
-  an indeterminate hairline, complete settles into a summary row with the
-  arguments and the result behind expandable panels, and error rides the
-  danger ramp with the message inline and your retry button in the new
-  `:error_actions` slot. `input` and `output` take the JSON string you already
-  have when a function call streams back - pretty-printed server-side into a
-  code block, shown verbatim when it is not valid JSON, and overridable with
-  the `:input_panel` / `:output_panel` slots. `icon` takes a preset
-  (`"web_search"`, `"code"`, `"database"`) or any `hero-*` name, with the
-  `:tool_icon` slot for anything else. `compact` collapses a multi-tool burst
-  into one dense line per call, stacked as a list, each finished row a native
-  `<details>` disclosure. `duration` prints a time you format. In-progress
-  cards carry `role="status"` and every state is spelled out in a
-  visually-hidden word, so the state never lands as colour alone. The older
-  `status` attr still works unchanged and drives the same three treatments.
-
-- **`Chat.questionnaire/1`: structured human-in-the-loop input in the
-  transcript.** When the model needs a decision rather than a sentence, it
-  emits a question spec and this renders it as a form inside the thread -
-  single-select, multi-select, short text and a 1-to-5 scale. Submit is a
-  plain `phx-submit` your LiveView forwards to the model; there is no
-  client form engine and no client state. Pass the answers back as
-  `resolved` and the form is replaced by quiet chips so the transcript
-  stays honest about what was asked and answered, with nothing focusable
-  left behind; `:skipped` renders the skipped line. It composes the
-  existing `field/1` primitives - radio-cards when the options carry
-  descriptions, plain radios when they don't, checkbox groups for
-  multi-select - so required markers, labels and error scaffolding come
-  for free. Only the scale is new markup: five real radios in a segmented
-  row, so arrow keys move between steps natively. Every question is a
-  `<fieldset>` with a `<legend>`, the form is `aria-labelledby` the title,
-  and the scale's end captions are tied in with `aria-describedby`.
-
-- **Composer attachments: `prompt_input` takes an upload, and
-  `message_attachments` renders what was sent.** Hand `prompt_input` an
-  `%UploadConfig{}` from `allow_upload/3` and it grows a paperclip trigger
-  (a `<label>` around a visually hidden `live_file_input`, so the keyboard
-  still works), a chip strip for the pending entries, `phx-drop-target` on
-  the composer with a drag-over tint, and paste-a-screenshot support in the
-  existing `PetalChatComposer` hook. Image entries get a `live_img_preview`
-  thumbnail, everything else gets an icon with the name and a formatted
-  size; each chip carries a `role="progressbar"` ring driven by
-  `entry.progress` and a remove button wired to `on_cancel_upload` with the
-  entry ref. Upload errors render inline under the composer with
-  `role="alert"`, per-entry ones named with the file they belong to.
-  `message_attachments/1` is the received side: images tile into a grid
-  (one goes large, two or more tile), files are download rows, and a mixed
-  list puts the images first. With no `upload` the composer renders exactly
-  as it always has - no extra markup, no behaviour change.
-
-- **Answer grounding for the chat family: inline citation chips and a
-  `chat_sources` row.** RAG answers are only trustworthy if you can see
-  where they came from, and until now the chat kit rendered the prose but
-  not the receipts. Prompt the model to cite as `[^N]` and hand the same
-  source maps to `markdown/1`: every complete marker turns into a numbered
-  chip that opens the source in a new tab, with a preview card (title,
-  domain, snippet) on hover or focus. `chat_sources/1` renders the deduped
-  list underneath - a native `<details>`, no JS, with `expanded` to open it
-  on render and `max_visible` to cap the list behind a "Show all" reveal.
-  `citation/1` is the chip on its own for prose you assemble yourself.
-  The streaming path takes the same option: `to_html/2` accepts
-  `sources:`, so chips light up as their markers complete and a
-  half-arrived `[^` never flashes broken output. Sources are plain maps
-  (`%{id, url, title, snippet, favicon_url}`) with string or atom keys;
-  everything but `url` is optional and degrades - no favicon means a letter
-  avatar, no snippet means a shorter row. Chip markup is minted server-side
-  from the numeric index plus escaped source fields and spliced into the
-  already-sanitized HTML outside code blocks, so model text can never reach
-  the page as live markup, and only `http`/`https` urls become links - a
-  source url with any other scheme renders without an `href`.
-
-### Unreleased
-
-#### Added
-
-- **New `sidebar` family: the app-shell navigation almost every LiveView
-  product ends up hand-rolling.** Five components compose the whole
-  anatomy - `sidebar_shell` (the flex wrapper), `sidebar_nav` (the `<nav>`
-  landmark with header and footer slots - deliberately NOT bare
-  `sidebar/1`: `use PetalComponents` imports every component, a
-  hand-rolled `def sidebar` is the most common helper in Phoenix layout
-  modules, and the collision is a hard CompileError when the call sits
-  above the definition or a silent shadow when it sits below - the one
-  name in the family that could collide is the one that doesn't exist),
-  `sidebar_group` (a labelled,
-  optionally collapsible run of items), `sidebar_item` (icon, label,
-  badge, active state, and arbitrarily nested sub-items) and
-  `sidebar_trigger` (the rail toggle and the mobile burger). Three
-  collapse modes: `icon` for the rail, `offcanvas` to hide it, `none` to
-  pin it. `side="right"` gives you an inspector panel, and two sidebars
-  in one shell keep separate state.
-
-  Collapse is CSS-first: the trigger flips a `data-collapsed` attribute
-  with `Phoenix.LiveView.JS` and stylesheets do the rest, so there is no
-  hook and no round trip. The server still renders the initial value
-  through the `collapsed` attr, so a `live_redirect` can never flash the
-  wrong state. Below `md` the sidebar becomes an off-canvas sheet: the
-  shell's content region goes `inert`, Escape closes it, the scrim
-  closes it, and focus returns to the trigger.
-
-  Accessibility: a `<nav>` landmark with an accessible name,
-  `aria-current="page"` on the active item, the WAI-ARIA disclosure
-  pattern on collapsible groups and nested items, labels that stay in
-  the accessibility tree when the rail collapses, and transitions that
-  drop to instant under `prefers-reduced-motion`.
 
 ### 4.14.0 - 2026-08-11
 
