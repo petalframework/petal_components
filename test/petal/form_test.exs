@@ -614,6 +614,54 @@ defmodule PetalComponents.FormTest do
     assert html =~ "Something else"
   end
 
+  test "switch pill variant" do
+    assigns = %{}
+
+    default =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:user}>
+        <.switch form={f} field={:notify} />
+      </.form>
+      """)
+
+    refute_has_class(default, "pc-switch--pill")
+    assert default =~ ~s(class="pc-switch pc-switch--md")
+
+    pill =
+      rendered_to_string(~H"""
+      <.form :let={f} for={%{}} as={:user}>
+        <.switch form={f} field={:notify} variant="pill" size="lg" />
+      </.form>
+      """)
+
+    assert pill =~ "pc-switch pc-switch--lg pc-switch--pill"
+    # The track keeps its own size class - only the thumb changes shape.
+    assert pill =~ ~s(class="pc-switch__fake-input pc-switch__fake-input--lg")
+    assert pill =~ "pc-switch__fake-input-bg--lg"
+  end
+
+  test "form_field switch threads the pill variant through" do
+    assigns = %{}
+
+    default =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} />
+      </.form>
+      """)
+
+    refute_has_class(default, "pc-switch--pill")
+
+    pill =
+      rendered_to_string(~H"""
+      <.form :let={f} as={:user} for={%Ecto.Changeset{action: :update, data: %{name: ""}}}>
+        <.form_field type="switch" form={f} field={:name} variant="pill" />
+      </.form>
+      """)
+
+    assert_has_class(pill, "pc-switch--pill")
+  end
+
   test "number_input" do
     assigns = %{}
 
