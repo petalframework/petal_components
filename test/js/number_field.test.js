@@ -372,6 +372,33 @@ describe("PetalNumberField buttons", () => {
     expect(input.value).toBe("5");
   });
 
+  it("a touch press steps without dragging focus into the input", () => {
+    // On iOS, focusing the input summons the software keyboard - a stepper
+    // tap must not (React Aria's split). Mouse keeps the focus so arrows
+    // and the wheel work right after a click; touch with the input ALREADY
+    // focused keeps it (preventDefault holds the keyboard up).
+    const { input, inc } = mount({ value: "5", step: 1 });
+
+    const touch = pointer("pointerdown");
+    Object.defineProperty(touch, "pointerType", { value: "touch" });
+    inc.dispatchEvent(touch);
+    inc.dispatchEvent(pointer("pointerup"));
+    expect(input.value).toBe("6");
+    expect(document.activeElement).not.toBe(input);
+
+    inc.dispatchEvent(pointer("pointerdown"));
+    inc.dispatchEvent(pointer("pointerup"));
+    expect(input.value).toBe("7");
+    expect(document.activeElement).toBe(input);
+
+    const touch2 = pointer("pointerdown");
+    Object.defineProperty(touch2, "pointerType", { value: "touch" });
+    inc.dispatchEvent(touch2);
+    inc.dispatchEvent(pointer("pointerup"));
+    expect(input.value).toBe("8");
+    expect(document.activeElement).toBe(input);
+  });
+
   it("a right-click is not a step", () => {
     const { input, inc } = mount({ value: "5" });
 

@@ -1667,7 +1667,15 @@ export const PetalNumberField = {
     // the input and schedules a repeat timer that no-ops every tick.
     if (this.input.disabled || this.input.readOnly) return;
     e.preventDefault();
-    this.input.focus();
+    // Focusing the input is for mouse and pen: arrows and the wheel work
+    // right after a click. On TOUCH the same focus() summons the software
+    // keyboard over a control being worked with a fingertip - the
+    // maintainer's iPhone had it flashing up and away per stepper tap.
+    // React Aria's number field makes the same split. A keyboard already
+    // up stays up: the preventDefault above keeps an already-focused
+    // input focused, so stepping mid-typing remains an adjustment, not a
+    // mode switch.
+    if (e.pointerType !== "touch") this.input.focus();
 
     const cfg = this.config();
     const delta = btn.dataset.pcNumberStep === "inc" ? cfg.step : -cfg.step;
