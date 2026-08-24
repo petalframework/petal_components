@@ -250,18 +250,29 @@ defmodule PetalComponents.SlideOver do
   def show_slide_over(js, origin, id) do
     {start_class, end_class} = get_transition_classes(origin)
 
+    # The pc-slideover-anim-* class rides ALONGSIDE the transition: a CSS
+    # transition only animates when the browser style-recalcs the "before"
+    # state, and LiveView can land start and end classes inside one frame
+    # (observed 1ms apart on 120Hz displays) - the panel then SNAPS with no
+    # slide. A keyframe animation plays from zero the moment its class
+    # lands, so the motion survives frame coalescing; where the transition
+    # does fire, the two agree and nothing changes visually.
     js
     |> JS.show(to: "##{id}")
     |> JS.show(
       to: "##{id}-overlay",
       time: 300,
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+      transition:
+        {"transition-all transform ease-out duration-300 pc-slideover-anim-fade-in", "opacity-0",
+         "opacity-100"}
     )
     |> JS.show(
       to: "##{id}-content",
       time: 300,
       display: "flex",
-      transition: {"transition-all transform ease-out duration-300", start_class, end_class}
+      transition:
+        {"transition-all transform ease-out duration-300 pc-slideover-anim-in-#{origin}",
+         start_class, end_class}
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
@@ -274,14 +285,19 @@ defmodule PetalComponents.SlideOver do
   def hide_slide_over(origin, id \\ "slide-over", close_slide_over_target \\ nil) do
     {end_class, start_class} = get_transition_classes(origin)
 
+    # Same frame-coalescing guard as show_slide_over/3: the keyframe class
+    # guarantees the slide-out plays even when the transition's before/after
+    # classes land in a single style-recalc window.
     js =
       JS.remove_class("overflow-hidden", to: "body")
       |> JS.hide(
-        transition: {"ease-in duration-200", "opacity-100", "opacity-0"},
+        transition:
+          {"ease-in duration-200 pc-slideover-anim-fade-out", "opacity-100", "opacity-0"},
         to: "##{id}-overlay"
       )
       |> JS.hide(
-        transition: {"ease-in duration-200", start_class, end_class},
+        transition:
+          {"ease-in duration-200 pc-slideover-anim-out-#{origin}", start_class, end_class},
         to: "##{id}-content"
       )
       |> JS.hide(to: "##{id}", transition: {"duration-200", "", ""})
