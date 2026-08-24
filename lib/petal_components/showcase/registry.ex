@@ -47,6 +47,7 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.Pagination,
     PetalComponents.Showcase.Popover,
     PetalComponents.Showcase.Progress,
+    PetalComponents.Showcase.QrCode,
     PetalComponents.Showcase.Rating,
     PetalComponents.Showcase.ScrollArea,
     PetalComponents.Showcase.Scrollspy,
