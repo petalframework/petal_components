@@ -12335,8 +12335,13 @@
     @apply mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400;
   }
 
+  /* Actions read right with Submit outermost. Real DOM order, not
+     row-reverse: focus order must match reading order (Greptile caught the
+     reversed traversal), and Enter still submits because Skip is
+     type="button" - the form's one submit button is the default wherever
+     it sits. */
   .pc-questionnaire__actions {
-    @apply flex flex-row-reverse items-center justify-start gap-2;
+    @apply flex items-center justify-end gap-2;
   }
 
   .pc-questionnaire__submit {

@@ -1280,6 +1280,16 @@ defmodule PetalComponents.Chat do
             />
             <div class="pc-questionnaire__actions">
               <button
+                :if={@allow_skip}
+                type="button"
+                phx-click={@on_skip}
+                phx-value-id={@spec.id}
+                disabled={@submitting}
+                class="pc-questionnaire__skip"
+              >
+                Skip
+              </button>
+              <button
                 type="submit"
                 disabled={@submitting}
                 class="pc-questionnaire__submit"
@@ -1289,16 +1299,6 @@ defmodule PetalComponents.Chat do
                   <span class="sr-only">Submitting</span>
                 </span>
                 {@submit_label}
-              </button>
-              <button
-                :if={@allow_skip}
-                type="button"
-                phx-click={@on_skip}
-                phx-value-id={@spec.id}
-                disabled={@submitting}
-                class="pc-questionnaire__skip"
-              >
-                Skip
               </button>
             </div>
           </form>
