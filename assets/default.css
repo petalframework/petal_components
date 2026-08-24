@@ -5740,11 +5740,12 @@
   .pc-chat__suggestions {
     @apply flex flex-wrap gap-2;
   }
-  /* text-left is for the wrap case: buttons centre their text by UA
+  /* text-start is for the wrap case: buttons centre their text by UA
      default, which reads fine on one line and funky the moment a chip
-     wraps on a narrow screen (found on an iPhone). */
+     wraps on a narrow screen (found on an iPhone). The logical property,
+     so RTL locales keep their reading direction too. */
   .pc-chat__suggestion {
-    @apply rounded-full border border-gray-300 px-3 py-1.5 text-left text-sm text-gray-700 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800;
+    @apply rounded-full border border-gray-300 px-3 py-1.5 text-start text-sm text-gray-700 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800;
   }
 
   /* Error notice */
