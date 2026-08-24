@@ -1435,6 +1435,315 @@ export const PetalInputOTP = {
   },
 };
 
+// Number field maths, kept pure and exported so the specs can pin the rules
+// without a DOM: parsing, clamping, decimal-safe stepping and blur formatting.
+export const numberFieldMath = {
+  // "" and "abc" are both "no number yet" - a half-typed field must not
+  // resolve to 0, or every keystroke would fight the user.
+  parse(text) {
+    if (text === null || text === undefined) return null;
+    const trimmed = String(text).trim();
+    if (trimmed === "") return null;
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : null;
+  },
+
+  clamp(n, min, max) {
+    if (n === null) return null;
+    let out = n;
+    if (min !== null && out < min) out = min;
+    if (max !== null && out > max) out = max;
+    return out;
+  },
+
+  decimals(n) {
+    const s = String(n);
+    const dot = s.indexOf(".");
+    if (dot === -1 || s.includes("e") || s.includes("E")) return 0;
+    return s.length - dot - 1;
+  },
+
+  // 0.1 + 0.2 is 0.30000000000000004 in every browser. Re-round to the
+  // decimals the operands actually carry so a 0.1 step reads as 0.3.
+  add(value, delta) {
+    const places = Math.min(
+      Math.max(this.decimals(value), this.decimals(delta)),
+      12,
+    );
+    return Number((value + delta).toFixed(places));
+  },
+
+  format(n, precision) {
+    if (n === null) return "";
+    if (precision === null || precision === undefined) return String(n);
+    return n.toFixed(precision);
+  },
+};
+
+// Number field: one text input carrying role="spinbutton", plus the buttons.
+// The hook owns everything the markup can't - stepping, clamping, the keyboard
+// map, wheel, hold-to-repeat, and keeping aria-valuenow honest.
+export const PetalNumberField = {
+  mounted() {
+    this.repeatTimer = null;
+    // A variant switch swaps which buttons exist, so binding is idempotent
+    // and re-runs on every patch rather than assuming mount-time nodes.
+    this.bound = new WeakSet();
+    this.stopRepeat = () => this.cancelRepeat();
+    window.addEventListener("pointerup", this.stopRepeat);
+    window.addEventListener("blur", this.stopRepeat);
+
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  updated() {
+    this.bind();
+    if (this.input) this.syncAria();
+  },
+
+  bind() {
+    this.input = this.el.querySelector("[data-pc-number-input]");
+    if (!this.input) return;
+    this.buttons = Array.from(this.el.querySelectorAll("[data-pc-number-step]"));
+
+    if (!this.bound.has(this.input)) {
+      this.bound.add(this.input);
+      this.input.addEventListener("keydown", (e) => this.handleKeydown(e));
+      // passive: false or preventDefault is ignored and the page scrolls
+      // out from under the field.
+      this.input.addEventListener("wheel", (e) => this.handleWheel(e), {
+        passive: false,
+      });
+      this.input.addEventListener("blur", () => this.commitTyped());
+      this.input.addEventListener("input", () => this.syncAria());
+    }
+
+    this.buttons.forEach((btn) => {
+      if (this.bound.has(btn)) return;
+      this.bound.add(btn);
+      btn.addEventListener("pointerdown", (e) => this.startRepeat(e, btn));
+      // pointerup alone leaks a stuck repeat when the finger slides off the
+      // button before lifting.
+      ["pointerup", "pointerleave", "pointercancel"].forEach((type) =>
+        btn.addEventListener(type, this.stopRepeat),
+      );
+    });
+  },
+
+  destroyed() {
+    this.cancelRepeat();
+    if (this.stopRepeat) {
+      window.removeEventListener("pointerup", this.stopRepeat);
+      window.removeEventListener("blur", this.stopRepeat);
+    }
+  },
+
+  config() {
+    const d = this.el.dataset;
+    const step = numberFieldMath.parse(d.step);
+    const bigStep = numberFieldMath.parse(d.bigStep);
+    const precision = numberFieldMath.parse(d.precision);
+    const resolvedStep = step === null ? 1 : step;
+
+    return {
+      min: numberFieldMath.parse(d.min),
+      max: numberFieldMath.parse(d.max),
+      step: resolvedStep,
+      bigStep: bigStep === null ? resolvedStep * 10 : bigStep,
+      precision: precision === null ? null : Math.trunc(precision),
+    };
+  },
+
+  currentValue() {
+    return numberFieldMath.parse(this.input.value);
+  },
+
+  // An empty field starts from the lower bound when there is one, so the
+  // first press on a 1..99 quantity lands on 1, not 0.
+  origin(cfg) {
+    if (cfg.min !== null) return cfg.min;
+    if (cfg.max !== null && cfg.max < 0) return cfg.max;
+    return 0;
+  },
+
+  step(delta) {
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const current = this.currentValue();
+    const base = current === null ? this.origin(cfg) - delta : current;
+    const next = numberFieldMath.clamp(
+      numberFieldMath.add(base, delta),
+      cfg.min,
+      cfg.max,
+    );
+    this.write(next, cfg.precision);
+  },
+
+  // Returns whether it mutated the value, so callers can avoid firing
+  // synthetic events for writes that changed nothing.
+  write(value, precision) {
+    const text = numberFieldMath.format(value, precision);
+    if (text === this.input.value) {
+      this.syncAria();
+      return false;
+    }
+    this.input.value = text;
+    this.syncAria();
+    this.input.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  },
+
+  // Typed text is left alone until blur: clamping mid-keystroke would snap
+  // "1" to the maximum on the way to "15". The synthetic change fires ONLY
+  // when the clamp actually rewrote the value - for in-range typed input the
+  // browser's own native change already fires on blur, and dispatching a
+  // second one doubled every change handler.
+  commitTyped() {
+    const cfg = this.config();
+    const current = this.currentValue();
+    if (current === null) {
+      this.syncAria();
+      return;
+    }
+    const mutated = this.write(
+      numberFieldMath.clamp(current, cfg.min, cfg.max),
+      cfg.precision,
+    );
+    if (mutated) {
+      this.input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  },
+
+  handleKeydown(e) {
+    // Home/End write() directly, bypassing step()'s guard - and readonly
+    // inputs still receive keydown, so without this a readonly value could
+    // be rewritten from the keyboard.
+    if (this.input.disabled || this.input.readOnly) return;
+    const cfg = this.config();
+    const big = e.shiftKey ? cfg.bigStep : cfg.step;
+
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        return this.step(big);
+      case "ArrowDown":
+        e.preventDefault();
+        return this.step(-big);
+      case "PageUp":
+        e.preventDefault();
+        return this.step(cfg.bigStep);
+      case "PageDown":
+        e.preventDefault();
+        return this.step(-cfg.bigStep);
+      case "Home":
+        if (cfg.min === null) return;
+        e.preventDefault();
+        return this.write(cfg.min, cfg.precision);
+      case "End":
+        if (cfg.max === null) return;
+        e.preventDefault();
+        return this.write(cfg.max, cfg.precision);
+      default:
+        return undefined;
+    }
+  },
+
+  // Only while focused, so a scroll down the page never rewrites a number
+  // the pointer happened to pass over.
+  handleWheel(e) {
+    if (document.activeElement !== this.input) return;
+    if (this.input.disabled || this.input.readOnly) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    const cfg = this.config();
+    this.step(e.deltaY < 0 ? cfg.step : -cfg.step);
+  },
+
+  startRepeat(e, btn) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+    // Mirror step()'s guard: a hold on a readonly control otherwise focuses
+    // the input and schedules a repeat timer that no-ops every tick.
+    if (this.input.disabled || this.input.readOnly) return;
+    e.preventDefault();
+    // Focusing the input is for mouse and pen: arrows and the wheel work
+    // right after a click. On TOUCH the same focus() summons the software
+    // keyboard over a control being worked with a fingertip - the
+    // maintainer's iPhone had it flashing up and away per stepper tap.
+    // React Aria's number field makes the same split. A keyboard already
+    // up stays up: the preventDefault above keeps an already-focused
+    // input focused, so stepping mid-typing remains an adjustment, not a
+    // mode switch.
+    if (e.pointerType !== "touch") this.input.focus();
+
+    const cfg = this.config();
+    const delta = btn.dataset.pcNumberStep === "inc" ? cfg.step : -cfg.step;
+    this.step(delta);
+
+    // A press is one step; a hold accelerates from a deliberate pause down
+    // to a fast repeat, the way a native spinner feels.
+    let interval = 120;
+    const tick = () => {
+      if (btn.getAttribute("aria-disabled") === "true") return;
+      this.step(delta);
+      interval = Math.max(40, interval - 12);
+      this.repeatTimer = setTimeout(tick, interval);
+    };
+    this.repeatTimer = setTimeout(tick, 400);
+  },
+
+  cancelRepeat() {
+    if (this.repeatTimer) clearTimeout(this.repeatTimer);
+    this.repeatTimer = null;
+  },
+
+  syncAria() {
+    const cfg = this.config();
+    const value = this.currentValue();
+
+    if (value === null) this.input.removeAttribute("aria-valuenow");
+    else this.input.setAttribute("aria-valuenow", String(value));
+
+    this.buttons.forEach((btn) => {
+      const inc = btn.dataset.pcNumberStep === "inc";
+      const bound = inc ? cfg.max : cfg.min;
+      const atBound =
+        value !== null &&
+        bound !== null &&
+        (inc ? value >= bound : value <= bound);
+      if (atBound) btn.setAttribute("aria-disabled", "true");
+      else btn.removeAttribute("aria-disabled");
+    });
+  },
+};
+
+// The one vertical-flip rule for a panel anchored under its trigger, so a
+// fix to the rule lands on every panel that shares it. It owns the DECISION
+// only - which side the panel opens on, and how much room that side has.
+// What each component does with the answer stays local, because that part
+// genuinely differs: the combobox marks `data-flip` and caps an inner
+// scroller, the dropdown marks `data-flip` and lets CSS do the rest.
+//
+// The rule: stay below unless the panel does not fit below AND above is
+// roomier. Ties go to below, so a panel that fits either way never moves,
+// and a viewport too cramped for both sides still picks the bigger one.
+// `gap` is the visual space between trigger and panel; it comes out of both
+// sides so the comparison is like for like.
+export const flipDecision = ({
+  triggerTop,
+  triggerBottom,
+  panelHeight,
+  viewportTop = 0,
+  viewportHeight,
+  gap = 0,
+}) => {
+  const below = viewportTop + viewportHeight - triggerBottom - gap;
+  const above = triggerTop - viewportTop - gap;
+  const flip = panelHeight > below && above > below;
+  return { flip, above, below, room: flip ? above : below };
+};
+
 // Positions a top-layer popover (<div popover>) next to its trigger.
 // The browser handles open/close and light-dismiss via the popover attribute;
 // this hook only computes fixed coordinates, flipping to the opposite side
@@ -1833,11 +2142,14 @@ export const PetalCommand = {
 };
 
 // The palette in a native <dialog>: global shortcut, open/close events,
-// autofocus, and query reset. The native element supplies the top layer,
-// focus trap, ::backdrop and Escape.
+// autofocus, query reset, and the background scroll lock. The native element
+// supplies the top layer, focus trap, ::backdrop and Escape - the scroll lock
+// is the one piece it does not, so the hook adds it.
 export const PetalCommandDialog = {
   mounted() {
     this.palette = this.el.querySelector(".pc-command");
+    this.wasOpen = false;
+    this.refocus = null;
 
     this.onShortcut = (e) => {
       const key = this.el.dataset.shortcut;
@@ -1856,7 +2168,15 @@ export const PetalCommandDialog = {
       // click on the backdrop = click whose target is the dialog itself
       if (e.target === this.el) this.close();
     };
-    this.onClose = () => this.reset();
+    // The native close event is the one funnel every close path drains
+    // through - our close(), Escape's native cancel, and Chrome's close
+    // watcher, which can fire close without any cancel we could intercept.
+    // Releasing the scroll lock here rather than beside each close() call is
+    // what makes it run exactly once per open, whoever did the closing.
+    this.onClose = () => {
+      document.body.classList.remove("overflow-hidden");
+      this.reset();
+    };
     this.onItemClick = (e) => {
       const item = e.target.closest("[data-pc-command-item]");
       if (
@@ -1876,7 +2196,37 @@ export const PetalCommandDialog = {
     this.el.addEventListener("click", this.onItemClick);
   },
 
+  // LiveView merges this element's attributes against the SERVER's render,
+  // and the server renders no `open` - showModal() sets it client-side. So
+  // any patch that re-renders the dialog's subtree (a reconnect's join
+  // morph, live assigns feeding the items) strips `open`, yanking an open
+  // palette shut with no `close` event: the scroll lock never releases and
+  // the page behind stays frozen with nothing on screen. Remember the
+  // client-owned state before the patch, put it back after.
+  beforeUpdate() {
+    this.wasOpen = this.el.open;
+    this.refocus = this.el.contains(document.activeElement)
+      ? document.activeElement
+      : null;
+  },
+
+  updated() {
+    if (this.wasOpen && !this.el.open) {
+      // Same task as the strip, so `open` never hits a style recalc off -
+      // the entrance animation does not replay.
+      this.el.showModal();
+      if (this.refocus?.isConnected) this.refocus.focus();
+      else this.focusInput();
+    }
+    this.refocus = null;
+  },
+
   destroyed() {
+    // A patch can remove an OPEN dialog, and a removed element fires no close
+    // event - never leave the page locked with nothing on screen. Guarded on
+    // `open` so tearing down a CLOSED palette can't strip a lock another
+    // overlay owns.
+    if (this.el.open) document.body.classList.remove("overflow-hidden");
     // Remove every listener mounted() registered - the document shortcut AND
     // the dialog-element handlers - so a reused dialog node can't keep stale
     // handlers that fire close/reset against a torn-down hook.
@@ -1890,7 +2240,17 @@ export const PetalCommandDialog = {
 
   open() {
     if (this.el.open) return;
+    // showModal() gives the top layer and the focus trap, but a native modal
+    // dialog does NOT stop the page behind it scrolling. Same body class the
+    // modal and slide_over use, so the treatment is one thing across the
+    // library. The `open` guard above is what keeps a second open from
+    // stacking a lock the single close would then under-release.
+    document.body.classList.add("overflow-hidden");
     this.el.showModal();
+    this.focusInput();
+  },
+
+  focusInput() {
     const input = this.el.querySelector(".pc-command__input");
     if (input) input.focus();
   },
@@ -2056,6 +2416,111 @@ export const PetalNavMenu = {
     } else if (rect.left < margin) {
       panel.style.transform = `translateX(${margin - rect.left}px)`;
     }
+  },
+};
+
+// The dropdown family - the dropdown itself, the user menu, the language
+// select, the colour-scheme menu - opens a plain absolutely-positioned
+// sibling panel through LiveView.JS alone. No JS in the open path at all,
+// which is exactly why the panel always went downward: an avatar pinned to
+// the bottom of a sidebar dropped its menu clean off the bottom of the
+// screen with nothing to scroll to.
+//
+// The hook rides the PANEL, not the container: the panel already carries
+// the id `JS.toggle` targets, so nothing new has to be minted and a
+// consumer id can't collide with it. All it does is mark `data-flip` when
+// the shared rule says up - CSS moves the panel and swaps the transform
+// origin so the open transition still scales out of the trigger.
+//
+// Opening is detected by watching the inline `style` JS.toggle writes,
+// rather than by listening on the trigger. That catches every opener,
+// including a consumer driving their own JS.toggle at the same id, and it
+// can never observe itself into a loop: this hook only writes attributes.
+export const PetalDropdown = {
+  mounted() {
+    this.gap = 8; // matches the panel's mt-2 / flipped mb-2
+
+    this.reposition = () => this.position();
+    // Live tracking, matching the combobox - plus the visual viewport,
+    // matching the data table: the mobile keyboard and pinch-zoom shrink
+    // and offset the VISIBLE region without firing window scroll or
+    // resize, so a menu measured on layout-viewport numbers alone can
+    // still open behind the keyboard.
+    this.listen = (method) => {
+      window[method]("scroll", this.reposition, true);
+      window[method]("resize", this.reposition);
+      if (window.visualViewport) {
+        window.visualViewport[method]("resize", this.reposition);
+        window.visualViewport[method]("scroll", this.reposition);
+      }
+    };
+    this.syncOpen = () => {
+      const open = this.isOpen();
+      if (open === this.open) return;
+      this.open = open;
+      if (open) {
+        this.listen("addEventListener");
+        this.position();
+      } else {
+        this.listen("removeEventListener");
+        // data-flip deliberately survives the close. The out transition
+        // scales the panel back into the trigger, and dropping it to the
+        // other side mid-fade is the jump this hook exists to prevent.
+        // Every open measures fresh anyway.
+      }
+    };
+
+    this.open = this.isOpen();
+    this.observer = new MutationObserver(this.syncOpen);
+    this.observer.observe(this.el, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+    if (this.open) this.position();
+  },
+
+  destroyed() {
+    this.observer?.disconnect();
+    this.listen?.("removeEventListener");
+  },
+
+  // The panel ships `display: none` inline and JS.toggle rewrites it. An
+  // empty display means a stylesheet is in charge and the panel is showing.
+  isOpen() {
+    return this.el.style.display !== "none";
+  },
+
+  trigger() {
+    return this.el.parentElement?.querySelector("[data-pc-dropdown-trigger]");
+  },
+
+  position() {
+    const trigger = this.trigger();
+    if (!trigger) return;
+    // Measure with the flip cleared so natural geometry decides, the same
+    // order the combobox uses. Margins don't reach offsetHeight, so this
+    // costs nothing visually - it never paints between the two writes.
+    this.el.removeAttribute("data-flip");
+    const t = trigger.getBoundingClientRect();
+    // offsetHeight, never the rect: the open transition scales the panel
+    // to 95%, and a rect read mid-transition under-measures it into
+    // wrongly deciding it fits below.
+    const panelH = this.el.offsetHeight;
+    if (!panelH || (!t.top && !t.bottom)) return; // jsdom / unrendered
+    // The visible region, not the layout one: with the keyboard up or a
+    // pinch-zoom active only the visual viewport's band is reachable, and
+    // rects are client coordinates, which is the same space offsetTop and
+    // height describe (the data table's positioner set this precedent).
+    const vv = window.visualViewport;
+    const { flip } = flipDecision({
+      triggerTop: t.top,
+      triggerBottom: t.bottom,
+      panelHeight: panelH,
+      viewportTop: vv ? vv.offsetTop : 0,
+      viewportHeight: vv ? vv.height : window.innerHeight,
+      gap: this.gap,
+    });
+    if (flip) this.el.setAttribute("data-flip", "");
   },
 };
 
@@ -4230,10 +4695,11 @@ export const PetalComboBox = {
 
   // Open downward by default; flip above when the viewport has no room
   // below AND more room above (the bottom-of-form combobox that used to
-  // open 200px off-screen). When NEITHER side fits the whole panel, the
-  // winning side's space caps the scroll area instead - the list scrolls
-  // within what fits, so no option ever sits outside the viewport.
-  // Measured with flip and cap cleared so natural height decides.
+  // open 200px off-screen). The side is `flipDecision`'s call - shared with
+  // the dropdown family so the two can't drift. When NEITHER side fits the
+  // whole panel, the winning side's space caps the scroll area instead -
+  // the list scrolls within what fits, so no option ever sits outside the
+  // viewport. Measured with flip and cap cleared so natural height decides.
   positionPanel() {
     if (this.panel.hidden) return;
     this.panel.removeAttribute("data-flip");
@@ -4243,12 +4709,14 @@ export const PetalComboBox = {
     const control = anchor.getBoundingClientRect();
     const panelH = this.panel.offsetHeight;
     if (!panelH || (!control.top && !control.bottom)) return; // jsdom / unrendered
-    const gap = 8;
-    const below = window.innerHeight - control.bottom - gap;
-    const above = control.top - gap;
-    const flip = panelH > below && above > below;
+    const { flip, room } = flipDecision({
+      triggerTop: control.top,
+      triggerBottom: control.bottom,
+      panelHeight: panelH,
+      viewportHeight: window.innerHeight,
+      gap: 8,
+    });
     if (flip) this.panel.setAttribute("data-flip", "");
-    const room = flip ? above : below;
     if (panelH > room) {
       // no floor: in a viewport too cramped for even one row, a sliver of
       // scrollable list still beats options rendered outside the viewport
@@ -5781,11 +6249,13 @@ export default {
   PetalWordRotate,
   PetalTypingEffect,
   PetalInputOTP,
+  PetalNumberField,
   PetalPopover,
   PetalCommand,
   PetalCommandTrigger,
   PetalAurora,
   PetalNavMenu,
+  PetalDropdown,
   PetalCommandDialog,
   PetalComboBox,
   PetalDataTable,
