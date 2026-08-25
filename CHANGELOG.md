@@ -1,5 +1,18 @@
 # Changelog
 
+### Unreleased
+
+#### Added
+
+- **`vertical_menu` joins the showcase registry.** The one pre-registry
+  component the wave left behind: its playground page carried the
+  Northwind shell flagship (vertical_menu composed inside sidebar_nav
+  with a workspace switcher and a user menu) as page-local code no
+  other surface could reach. Both that flagship and a standalone
+  grouped-menu example now live in `Showcase.VerticalMenu`, the
+  playground page renders from the registry, and petal.build and the
+  MCP inherit the same demos at the next sync.
+
 ### 4.15.1 - 2026-08-24
 
 #### Fixed
