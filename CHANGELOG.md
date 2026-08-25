@@ -1,5 +1,36 @@
 # Changelog
 
+### 4.15.3 - 2026-08-25
+
+#### Added
+
+- **`two_months` works in single mode.** The attr doc claimed range
+  only, but a single-date picker earns the second pane the same way
+  flight one-way searches do - next month visible before you page.
+  The component never actually gated the pane on mode; the doc and
+  the playground dial now agree, and a test pins it.
+
+#### Fixed
+
+- **Button icons keep their declared size in every consumer app.** The
+  spinner/icon sizing rules now use the doubled-selector + `!important`
+  icon contract. The old parent-scoped rules lived in the components
+  layer, and apps whose heroicons plugin emits the mask's own `w-6`
+  into the utilities layer (the standard Phoenix setup) saw that width
+  win regardless of specificity - a `size="md"` button icon rendered
+  24px wide instead of 20px.
+- **Long-pressing a context menu region on iOS no longer starts text
+  selection.** The trigger suppresses `user-select` under
+  `(hover: none) and (pointer: coarse)` - true touch devices - so the
+  hold reads purely as the menu gesture there while mouse and trackpad
+  users can still select the region's content.
+- **The dropdown panel's attributes render in a stable order.** They
+  came from a map, and Erlang's small-map iteration order is a
+  compile-time property - a clean rebuild could swap `style` and
+  `phx-hook` on its own, which is how CI went red on an untouched
+  test. The attributes are now a keyword list rendered in the order
+  written, so the HTML is byte-stable across builds.
+
 ### 4.15.2 - 2026-08-25
 
 #### Added
@@ -12,6 +43,9 @@
   grouped-menu example now live in `Showcase.VerticalMenu`, the
   playground page renders from the registry, and petal.build and the
   MCP inherit the same demos at the next sync.
+- **The avatar showcase teaches the full size ladder.** The sizes
+  example starts at `2xs` (new in 4.15.0) and explains where the dense
+  step earns its keep - table cells and compact activity feeds.
 
 ### 4.15.1 - 2026-08-24
 

@@ -314,15 +314,15 @@ defmodule PetalComponents.Dropdown do
         )
       )
 
-    %{
+    [
       "phx-click-away": hide,
       "phx-window-keydown": hide,
       "phx-key": "Escape"
-    }
+    ]
   end
 
   defp js_attributes("button", options_container_id, _on_close) do
-    %{
+    [
       "phx-click":
         JS.toggle(
           to: "##{options_container_id}",
@@ -330,16 +330,16 @@ defmodule PetalComponents.Dropdown do
           in: {@transition_in_base, @transition_in_start, @transition_in_end},
           out: {@transition_out_base, @transition_out_start, @transition_out_end}
         )
-    }
+    ]
   end
 
-  # One merged map, not a second `{...}` interpolation on the panel: attribute
-  # order inside one map is at least a single decision, where two adjacent
-  # interpolations pin phx-hook after style whatever the map does. (Erlang's
-  # small-map iteration order is not something to lean on either way - a clean
-  # rebuild of an untouched tree reorders these attributes on its own.)
+  # Keyword lists, not maps: LiveView renders a keyword interpolation in the
+  # order written, where a map renders in Erlang's small-map iteration order -
+  # which is a compile-time property of the literal pool, so a clean rebuild
+  # of an untouched tree can reorder the attributes on its own. Rendered HTML
+  # should be byte-stable across builds (people diff it, and a test pins it).
   defp js_attributes("options_container", _options_container_id, side) do
-    Map.merge(%{style: "display: none;"}, side_attributes(side))
+    [style: "display: none;"] ++ side_attributes(side)
   end
 
   # PetalDropdown measures on open and marks the panel `data-flip` when
@@ -347,22 +347,22 @@ defmodule PetalComponents.Dropdown do
   # bottom of a sidebar opens upward instead of off-screen. Register the
   # bundled hooks (see README) to get it; without them the panel keeps
   # its old always-downward behaviour rather than breaking.
-  defp side_attributes(:auto), do: %{"phx-hook": "PetalDropdown"}
+  defp side_attributes(:auto), do: ["phx-hook": "PetalDropdown"]
 
   # An explicit side is already the answer, so there is nothing to measure.
   # The hook never attaches: no scroll/resize listeners, no MutationObserver,
   # and for "top" no first frame rendered downward before the measurement
   # lands. "top" is simply the flipped state, held open - the same
   # `data-flip` the hook would have written, only it never comes off.
-  defp side_attributes("top"), do: %{"data-flip": ""}
-  defp side_attributes("bottom"), do: %{}
+  defp side_attributes("top"), do: ["data-flip": ""]
+  defp side_attributes("bottom"), do: []
 
   # A panel beside the trigger has no vertical flip to measure - it isn't
   # sitting on the axis the flip is about. If it runs off the bottom of a
   # short viewport that is the placement the caller chose, and the honest
   # fix is the other side, not a second measuring pass. (One could come
   # later; there is nothing here to migrate when it does.)
-  defp side_attributes(side) when side in ["left", "right"], do: %{}
+  defp side_attributes(side) when side in ["left", "right"], do: []
 
   # Above or below, align is the horizontal question, and the two classes
   # that answer it are the ones placement has always emitted: --left is
