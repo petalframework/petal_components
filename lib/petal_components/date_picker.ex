@@ -140,7 +140,8 @@ defmodule PetalComponents.DatePicker do
 
   attr :two_months, :boolean,
     default: false,
-    doc: "range mode only: render two month panes side by side"
+    doc:
+      ~s|render two month panes side by side. A range reads naturally across the pair, and single mode earns it too - the flight-search pattern, where seeing next month saves a page before the date you are really after|
 
   attr :disabled, :boolean, default: false, doc: "disable the input and the panel"
   attr :required, :boolean, default: false, doc: "mark the field required"

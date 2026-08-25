@@ -15219,7 +15219,7 @@ defmodule Dev.PlaygroundLive do
               mode={@picker.mode}
               label="Check in and out"
               format="%d %b %Y"
-              two_months={@picker.mode == "range" && @picker.two_months}
+              two_months={@picker.two_months}
               clearable={@picker.clearable}
               value={if @picker.mode == "range", do: @pick_stay, else: @pick_single}
               month={@pick_month}
