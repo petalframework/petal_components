@@ -67,11 +67,14 @@ defmodule PetalComponents.SlideOver do
   import PetalComponents.Helpers, only: [compose_js: 2]
   import PetalComponents.Icon
 
+  @origins ["left", "right", "top", "bottom"]
+  @default_origin "right"
+
   attr :id, :string, default: "slide-over"
 
   attr(:origin, :string,
-    default: "right",
-    values: ["left", "right", "top", "bottom"],
+    default: @default_origin,
+    values: @origins,
     doc: "slideover point of origin"
   )
 
@@ -153,7 +156,10 @@ defmodule PetalComponents.SlideOver do
   )
 
   def slide_over(assigns) do
-    assigns = assign_drawer(assigns)
+    assigns =
+      assigns
+      |> assign(:origin, normalize_origin(assigns.origin))
+      |> assign_drawer()
 
     ~H"""
     <div
@@ -248,6 +254,7 @@ defmodule PetalComponents.SlideOver do
     do: show_slide_over(%JS{}, origin, "slide-over")
 
   def show_slide_over(js, origin, id) do
+    origin = normalize_origin(origin)
     {start_class, end_class} = get_transition_classes(origin)
 
     # The pc-slideover-anim-* class rides ALONGSIDE the transition: a CSS
@@ -283,6 +290,7 @@ defmodule PetalComponents.SlideOver do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
   def hide_slide_over(origin, id \\ "slide-over", close_slide_over_target \\ nil) do
+    origin = normalize_origin(origin)
     {end_class, start_class} = get_transition_classes(origin)
 
     # Same frame-coalescing guard as show_slide_over/3: the keyframe class
@@ -308,6 +316,14 @@ defmodule PetalComponents.SlideOver do
       JS.push(js, "close_slide_over")
     end
   end
+
+  # The attr `values:` check only sees origins written as literals in the
+  # template - a runtime value (variable, nil, typo) reaches the case
+  # expressions below unvalidated and used to raise CaseClauseError,
+  # crashing the whole LiveView. A slide direction should degrade, not
+  # crash, so anything unknown renders as the default origin.
+  defp normalize_origin(origin) when origin in @origins, do: origin
+  defp normalize_origin(_origin), do: @default_origin
 
   defp get_transition_classes(origin) do
     case origin do

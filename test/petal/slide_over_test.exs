@@ -516,4 +516,66 @@ defmodule PetalComponents.SlideOverTest do
       assert html =~ "pc-slideover__footer"
     end
   end
+
+  describe "unknown origin fallback" do
+    # The attr values: check only covers literal origins, so a runtime
+    # value sails through - these pin that it degrades to the default
+    # direction (right) instead of raising CaseClauseError.
+    test "a runtime origin outside the known values renders as the default" do
+      assigns = %{origin: "sideways"}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over origin={@origin} title="SlideOver">
+          Body
+        </.slide_over>
+        """)
+
+      assert html =~ "fixed right-0 inset-y-0"
+      assert html =~ "ml-10"
+      assert html =~ "pc-slideover-anim-in-right"
+      refute html =~ "sideways"
+    end
+
+    test "an explicit nil origin renders as the default" do
+      assigns = %{origin: nil}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over origin={@origin} title="SlideOver">
+          Body
+        </.slide_over>
+        """)
+
+      assert html =~ "fixed right-0 inset-y-0"
+    end
+
+    test "an unknown origin never opts into drawer mode" do
+      assigns = %{origin: "bototm"}
+
+      html =
+        rendered_to_string(~H"""
+        <.slide_over origin={@origin} title="SlideOver" snap_points={[0.4, 0.9]}>
+          Body
+        </.slide_over>
+        """)
+
+      refute html =~ "pc-slideover__handle"
+      refute html =~ "phx-hook"
+    end
+
+    test "show_slide_over and hide_slide_over accept unknown origins" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.button label="toggle" phx-click={PetalComponents.SlideOver.show_slide_over("diagonal")} />
+        <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over("diagonal")} />
+        """)
+
+      assert html =~ "pc-slideover-anim-in-right"
+      assert html =~ "pc-slideover-anim-out-right"
+      assert html =~ "translate-x-full"
+    end
+  end
 end
