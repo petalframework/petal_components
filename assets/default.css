@@ -9611,9 +9611,10 @@
 
   /* On touch, the long press IS the menu gesture, so it must not double as
      a selection gesture - iOS Safari starts marking the trigger's text
-     mid-hold otherwise. Coarse-pointer scoped so mouse users keep normal
-     text selection inside the region. */
-  @media (pointer: coarse) {
+     mid-hold otherwise. Guarded the same way as the data table's mobile
+     font sizing: hover:none + pointer:coarse means a true touch device,
+     so desktops (touchscreen laptops included) keep normal selection. */
+  @media (hover: none) and (pointer: coarse) {
     .pc-context-menu__trigger {
       -webkit-user-select: none;
       user-select: none;

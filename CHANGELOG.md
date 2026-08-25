@@ -24,9 +24,9 @@
   24px wide instead of 20px.
 - **Long-pressing a context menu region on iOS no longer starts text
   selection.** The trigger suppresses `user-select` under
-  `(pointer: coarse)` only, so the hold reads purely as the menu
-  gesture on touch while mouse users can still select the region's
-  content.
+  `(hover: none) and (pointer: coarse)` - true touch devices - so the
+  hold reads purely as the menu gesture there while mouse and trackpad
+  users can still select the region's content.
 
 ### 4.15.1 - 2026-08-24
 
