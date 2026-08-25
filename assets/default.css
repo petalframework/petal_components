@@ -378,22 +378,24 @@
     @apply animate-spin;
   }
 
-  /* Parent-scoped so the size wins over the heroicon mask's own
-     width/height defaults regardless of stylesheet order. */
-  .pc-button .pc-button__spinner-icon--xs {
-    @apply w-3 h-3;
+  /* Doubled selector + !important: icon sizing contract (see pagination
+     chevrons). Specificity alone is not enough here - consumer heroicons
+     plugins emit the mask's own width into @layer utilities, which outranks
+     this file's components layer no matter how specific the selector is. */
+  .pc-button .pc-button__spinner-icon--xs.pc-button__spinner-icon--xs {
+    @apply w-3! h-3!;
   }
-  .pc-button .pc-button__spinner-icon--sm {
-    @apply w-4 h-4;
+  .pc-button .pc-button__spinner-icon--sm.pc-button__spinner-icon--sm {
+    @apply w-4! h-4!;
   }
-  .pc-button .pc-button__spinner-icon--md {
-    @apply w-5 h-5;
+  .pc-button .pc-button__spinner-icon--md.pc-button__spinner-icon--md {
+    @apply w-5! h-5!;
   }
-  .pc-button .pc-button__spinner-icon--lg {
-    @apply w-5 h-5;
+  .pc-button .pc-button__spinner-icon--lg.pc-button__spinner-icon--lg {
+    @apply w-5! h-5!;
   }
-  .pc-button .pc-button__spinner-icon--xl {
-    @apply w-6 h-6;
+  .pc-button .pc-button__spinner-icon--xl.pc-button__spinner-icon--xl {
+    @apply w-6! h-6!;
   }
 
   /* Buttons - with icon */
@@ -9605,6 +9607,17 @@
     @apply block focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
     -webkit-touch-callout: none;
     border-radius: var(--pc-radius, 0.625rem);
+  }
+
+  /* On touch, the long press IS the menu gesture, so it must not double as
+     a selection gesture - iOS Safari starts marking the trigger's text
+     mid-hold otherwise. Coarse-pointer scoped so mouse users keep normal
+     text selection inside the region. */
+  @media (pointer: coarse) {
+    .pc-context-menu__trigger {
+      -webkit-user-select: none;
+      user-select: none;
+    }
   }
 
   /* Same floating surface as the dropdown menu, painted in the top layer

@@ -13,6 +13,21 @@
   playground page renders from the registry, and petal.build and the
   MCP inherit the same demos at the next sync.
 
+#### Fixed
+
+- **Button icons keep their declared size in every consumer app.** The
+  spinner/icon sizing rules now use the doubled-selector + `!important`
+  icon contract. The old parent-scoped rules lived in the components
+  layer, and apps whose heroicons plugin emits the mask's own `w-6`
+  into the utilities layer (the standard Phoenix setup) saw that width
+  win regardless of specificity - a `size="md"` button icon rendered
+  24px wide instead of 20px.
+- **Long-pressing a context menu region on iOS no longer starts text
+  selection.** The trigger suppresses `user-select` under
+  `(pointer: coarse)` only, so the hold reads purely as the menu
+  gesture on touch while mouse users can still select the region's
+  content.
+
 ### 4.15.1 - 2026-08-24
 
 #### Fixed
