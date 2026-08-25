@@ -77,7 +77,8 @@ defmodule PetalComponents.Showcase.Registry do
     PetalComponents.Showcase.ToggleGroup,
     PetalComponents.Showcase.Tooltip,
     PetalComponents.Showcase.Tree,
-    PetalComponents.Showcase.UserDropdownMenu
+    PetalComponents.Showcase.UserDropdownMenu,
+    PetalComponents.Showcase.VerticalMenu
   ]
 
   @doc "Every showcase module, sorted by title."
