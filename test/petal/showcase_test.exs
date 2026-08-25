@@ -125,6 +125,41 @@ defmodule PetalComponents.ShowcaseTest do
              |> Enum.count() == 0
     end
 
+    test "inert examples carry the static-preview badge; live ones don't" do
+      inert_ex = Enum.find(PetalComponents.Showcase.ToggleGroup.examples(), &(&1.id == :single))
+      assigns = %{example: inert_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      assert html =~ "Static preview"
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query(".pc-showcase__static")
+             |> Enum.count() == 1
+
+      live_ex = hd(PetalComponents.Showcase.Command.examples())
+      assigns = %{example: live_ex}
+      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+
+      refute html =~ "Static preview"
+    end
+
+    # The badge exists for people who cannot discover a dead button by clicking
+    # it, and `inert` removes its whole subtree from the accessibility tree.
+    # Nesting the badge inside the preview would therefore hide it from exactly
+    # that audience - so assert it is a sibling, not a descendant.
+    test "the static-preview badge sits outside the inert subtree" do
+      inert_ex = Enum.find(PetalComponents.Showcase.ToggleGroup.examples(), &(&1.id == :single))
+      assigns = %{example: inert_ex}
+
+      doc =
+        rendered_to_string(~H"<.showcase_example example={@example} />")
+        |> LazyHTML.from_fragment()
+
+      assert doc |> LazyHTML.query(".pc-showcase > .pc-showcase__static") |> Enum.count() == 1
+      assert doc |> LazyHTML.query(".pc-showcase__preview .pc-showcase__static") |> Enum.empty?()
+    end
+
     test "frame ids are deterministic across renders (stable under LV patches)" do
       assigns = %{example: hd(PetalComponents.Showcase.Command.examples())}
 
