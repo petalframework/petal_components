@@ -1,5 +1,22 @@
 # Changelog
 
+### Unreleased
+
+#### Fixed
+
+- **Dynamic attribute helpers render in a stable order everywhere.** The
+  sweep #696's dropdown fix called for: every component helper whose
+  result is splatted into a tag as attributes now returns a keyword
+  list instead of a map. Erlang's small-map iteration order is a
+  compile-time property of the literal pool, so a clean rebuild could
+  reorder a map-backed splat's attributes on its own - accordion's
+  button and content panel were carrying the same latent hazard that
+  broke CI via the dropdown. Accordion, vertical menu, and separator
+  now render their dynamic attributes in the order written;
+  toggle_group's slot passthrough and pagination's `phx-value-*` set,
+  whose keys arrive as maps from the caller, are sorted so their order
+  is deterministic across builds too.
+
 ### 4.15.4 - 2026-08-27
 
 #### Added

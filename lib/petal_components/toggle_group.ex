@@ -192,5 +192,9 @@ defmodule PetalComponents.ToggleGroup do
 
   @slot_keys [:value, :disabled, :class, :inner_block, :__slot__]
 
-  defp item_rest(item), do: Map.drop(item, @slot_keys)
+  # Sorted keyword list, not a map: a map interpolation renders in Erlang's
+  # small-map iteration order, which a clean rebuild can change. The slot's
+  # extra attrs have no authored order to preserve, so term order it is -
+  # deterministic across builds either way.
+  defp item_rest(item), do: item |> Map.drop(@slot_keys) |> Enum.sort()
 end

@@ -338,8 +338,12 @@ defmodule PetalComponents.Menu do
 
   defp find_item(_, _), do: nil
 
+  # Keyword lists, not maps: a keyword interpolation renders in the order
+  # written, where a multi-key map renders in Erlang's small-map iteration
+  # order - which a clean rebuild can change. These clauses are all single
+  # attributes today; lists keep them order-stable if they ever grow.
   defp js_attributes("container", _args) do
-    %{}
+    []
   end
 
   defp js_attributes("button", %{
@@ -365,9 +369,9 @@ defmodule PetalComponents.Menu do
         |> JS.focus_first(to: "##{submenu_id}")
       )
 
-    %{
+    [
       "phx-click": click
-    }
+    ]
   end
 
   defp js_attributes("icon", %{
@@ -378,9 +382,9 @@ defmodule PetalComponents.Menu do
        }) do
     rotate = if menu_item_active?(name, current_page, menu_items), do: "rotate-90"
 
-    %{
+    [
       class: [class, rotate]
-    }
+    ]
   end
 
   defp js_attributes("submenu", %{
@@ -390,8 +394,8 @@ defmodule PetalComponents.Menu do
        }) do
     display = if menu_item_active?(name, current_page, menu_items), do: "block", else: "none"
 
-    %{
+    [
       style: "display: #{display};"
-    }
+    ]
   end
 end

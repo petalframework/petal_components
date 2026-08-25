@@ -174,13 +174,18 @@ defmodule PetalComponents.Accordion do
     """
   end
 
+  # Keyword lists, not maps: LiveView renders a keyword interpolation in the
+  # order written, where a map renders in Erlang's small-map iteration order -
+  # a compile-time property of the literal pool, so a clean rebuild of an
+  # untouched tree can reorder the attributes on its own. Rendered HTML
+  # should be byte-stable across builds (people diff it, and tests pin it).
   defp js_attributes(type, container_id, i, l, open, variant, multiple, on_toggle \\ %JS{}) do
     case type do
       "container" ->
-        %{"phx-update": "ignore"}
+        ["phx-update": "ignore"]
 
       "item" ->
-        %{}
+        []
 
       "button" ->
         detail =
@@ -197,32 +202,32 @@ defmodule PetalComponents.Accordion do
             )
           )
 
-        %{
+        [
           "phx-click": click,
           "aria-controls": content_panel_id(container_id, i),
           "aria-expanded": "#{open}"
-        }
+        ]
 
       "content_container" ->
-        %{
+        [
           id: content_panel_id(container_id, i),
           role: "region",
           "aria-labelledby": content_panel_header_id(container_id, i),
           style: if(open, do: "display: block;", else: "display: none;")
-        }
+        ]
 
       "icon" ->
         if variant == "ghost" do
-          %{class: if(open, do: "hidden")}
+          [class: if(open, do: "hidden")]
         else
-          %{class: if(open, do: "rotate-180")}
+          [class: if(open, do: "rotate-180")]
         end
 
       "icon_minus" ->
-        %{class: if(open, do: "", else: "hidden")}
+        [class: if(open, do: "", else: "hidden")]
 
       _ ->
-        %{}
+        []
     end
   end
 
