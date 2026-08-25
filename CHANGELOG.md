@@ -1,17 +1,6 @@
 # Changelog
 
-### 4.15.2 - 2026-08-25
-
-#### Added
-
-- **`vertical_menu` joins the showcase registry.** The one pre-registry
-  component the wave left behind: its playground page carried the
-  Northwind shell flagship (vertical_menu composed inside sidebar_nav
-  with a workspace switcher and a user menu) as page-local code no
-  other surface could reach. Both that flagship and a standalone
-  grouped-menu example now live in `Showcase.VerticalMenu`, the
-  playground page renders from the registry, and petal.build and the
-  MCP inherit the same demos at the next sync.
+### 4.15.3 - 2026-08-25
 
 #### Fixed
 
@@ -27,6 +16,22 @@
   `(hover: none) and (pointer: coarse)` - true touch devices - so the
   hold reads purely as the menu gesture there while mouse and trackpad
   users can still select the region's content.
+
+### 4.15.2 - 2026-08-25
+
+#### Added
+
+- **`vertical_menu` joins the showcase registry.** The one pre-registry
+  component the wave left behind: its playground page carried the
+  Northwind shell flagship (vertical_menu composed inside sidebar_nav
+  with a workspace switcher and a user menu) as page-local code no
+  other surface could reach. Both that flagship and a standalone
+  grouped-menu example now live in `Showcase.VerticalMenu`, the
+  playground page renders from the registry, and petal.build and the
+  MCP inherit the same demos at the next sync.
+- **The avatar showcase teaches the full size ladder.** The sizes
+  example starts at `2xs` (new in 4.15.0) and explains where the dense
+  step earns its keep - table cells and compact activity feeds.
 
 ### 4.15.1 - 2026-08-24
 
