@@ -2,6 +2,14 @@
 
 ### 4.15.3 - 2026-08-25
 
+#### Added
+
+- **`two_months` works in single mode.** The attr doc claimed range
+  only, but a single-date picker earns the second pane the same way
+  flight one-way searches do - next month visible before you page.
+  The component never actually gated the pane on mode; the doc and
+  the playground dial now agree, and a test pins it.
+
 #### Fixed
 
 - **Button icons keep their declared size in every consumer app.** The
