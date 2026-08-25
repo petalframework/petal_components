@@ -16,6 +16,12 @@
   `(hover: none) and (pointer: coarse)` - true touch devices - so the
   hold reads purely as the menu gesture there while mouse and trackpad
   users can still select the region's content.
+- **The dropdown panel's attributes render in a stable order.** They
+  came from a map, and Erlang's small-map iteration order is a
+  compile-time property - a clean rebuild could swap `style` and
+  `phx-hook` on its own, which is how CI went red on an untouched
+  test. The attributes are now a keyword list rendered in the order
+  written, so the HTML is byte-stable across builds.
 
 ### 4.15.2 - 2026-08-25
 
