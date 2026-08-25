@@ -30,12 +30,13 @@ defmodule PetalComponents.Showcase.Avatar do
     """
   end
 
-  example :sizes_and_presence, "Five sizes, four presence states",
+  example :sizes_and_presence, "Six sizes, four presence states",
     description:
-      "The size ladder from xs to xl, and the status dot - online, busy, away, offline - ringed so it reads against any image or placeholder. Presence works on every avatar form." do
+      "The size ladder from 2xs to xl - 2xs is for dense rows: a table cell, a compact activity feed - and the status dot: online, busy, away, offline, ringed so it reads against any image or placeholder. Presence works on every avatar form." do
     ~H"""
     <div class="flex flex-col items-center gap-6">
       <div class="flex flex-wrap items-end justify-center gap-3">
+        <.avatar name="Sarah Chen" size="2xs" random_color />
         <.avatar name="Sarah Chen" size="xs" random_color />
         <.avatar name="Sarah Chen" size="sm" random_color />
         <.avatar name="Sarah Chen" size="md" random_color />
