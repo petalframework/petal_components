@@ -299,6 +299,28 @@ defmodule PetalComponents.DatePickerTest do
       assert Enum.empty?(query(html, "#dp-calendar-2 [data-pc-nav]"))
     end
 
+    # two_months is not a range-mode privilege: a single-date picker earns the
+    # second pane the same way flight searches do - next month visible before
+    # you page. The playground dial once implied otherwise; this is the pin.
+    test "two_months renders both panes in single mode too" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.date_picker id="dp" name="d" mode="single" two_months month={~D[2026-12-01]} />
+        """)
+
+      assert Enum.count(query(html, ".pc-calendar")) == 2
+      assert html =~ "pc-date-picker__months--two"
+
+      # Both panes carry single mode, so a click in either commits one date
+      assert attr_of(html, "#dp-calendar", "data-mode") == "single"
+      assert attr_of(html, "#dp-calendar-2", "data-mode") == "single"
+
+      # The second pane still defers its nav to the first
+      assert Enum.empty?(query(html, "#dp-calendar-2 [data-pc-nav]"))
+    end
+
     # Two panes are two grids, and roving tabindex is per composite widget, so
     # each keeps its own single tab stop rather than the dialog having one
     # between them. The cost is one extra Tab; the alternative is a right pane
