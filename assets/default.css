@@ -7749,6 +7749,25 @@
     @apply flex flex-wrap items-center justify-center;
   }
 
+  /* Inert previews render a fixed state that cannot answer a click. Two jobs
+     here: stop every descendant promising a click the browser has already
+     blocked (buttons ship cursor-pointer, and inert does not undo CSS), and
+     carry the badge that says so. Deliberately NO z-index - .pc-showcase
+     creates no stacking context on purpose (see the note above) and neither
+     may this, or overlay examples would be trapped behind it. */
+  .pc-showcase__preview[inert],
+  .pc-showcase__preview[inert] * {
+    @apply cursor-default;
+  }
+
+  /* Hit-testable on purpose (no pointer-events-none): the full explanation
+     lives in the badge's title attribute, and a badge that ignores the pointer
+     can never show its own tooltip. It overlaps only the inert preview corner,
+     so it steals no interaction. cursor-help signals there is more to read. */
+  .pc-showcase__static {
+    @apply absolute inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium tracking-wide text-gray-500 uppercase border border-gray-200 rounded-md cursor-help top-2 right-2 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/70 dark:border-gray-400/17;
+  }
+
   .pc-showcase-code {
     @apply relative overflow-hidden border-t border-gray-200 rounded-b-xl dark:border-gray-400/17;
     background-color: #282c34;

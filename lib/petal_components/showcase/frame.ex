@@ -18,6 +18,11 @@ defmodule PetalComponents.Showcase.Frame do
 
   alias PetalComponents.Showcase.Example
 
+  # Shown on `inert` previews. These examples render a fixed state that cannot
+  # answer a click, so the frame says so rather than letting a live-looking
+  # button swallow it silently.
+  @static_hint "This preview renders a fixed state, so its controls do not respond. The code below is the real, working markup."
+
   attr :example, Example, required: true
 
   attr :id, :string,
@@ -49,6 +54,7 @@ defmodule PetalComponents.Showcase.Frame do
       |> assign(:frame_id, assigns.id || "pcsx-#{assigns.example.id}")
       |> assign(:collapsible, collapsible?(assigns.example.code))
       |> assign(:code_html, code_html(assigns.example))
+      |> assign(:static_hint, @static_hint)
 
     ~H"""
     <div id={@frame_id} class={["pc-showcase not-prose", @class]}>
@@ -58,6 +64,16 @@ defmodule PetalComponents.Showcase.Frame do
       >
         {@example.render.(assigns)}
       </div>
+
+      <%!-- Deliberately a SIBLING of the inert div, not a child: `inert` strips
+      its whole subtree from the accessibility tree, so a badge nested inside
+      the preview would be invisible to exactly the readers who cannot discover
+      "nothing happens when I click" by clicking. --%>
+      <span :if={@example.inert} class="pc-showcase__static" title={@static_hint}>
+        <.icon name="hero-eye" class="w-3 h-3" aria-hidden="true" />
+        <span>Static preview</span>
+        <span class="sr-only">- {@static_hint}</span>
+      </span>
 
       <%!-- phx-update="ignore": the panel is static content and the checkbox
       holds client-side UI state (expanded/collapsed). Without this, any
