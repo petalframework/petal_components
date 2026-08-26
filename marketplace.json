@@ -1,0 +1,21 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace-v1.json",
+  "name": "petal",
+  "version": "0.1.0",
+  "owner": {
+    "name": "Petal Framework",
+    "url": "https://petal.build"
+  },
+  "description": "Petal Components skills for AI coding agents",
+  "plugins": [
+    {
+      "name": "petal-design",
+      "displayName": "Petal Design",
+      "description": "Design doctrine for Phoenix apps using petal_components - build, review, and theme UI that stays on the design system. Pairs with the Petal MCP (mcp.petal.build).",
+      "source": "./",
+      "version": "0.1.0",
+      "author": { "name": "Petal Framework" },
+      "keywords": ["phoenix", "liveview", "design-system", "petal", "tailwind", "heex"]
+    }
+  ]
+}
