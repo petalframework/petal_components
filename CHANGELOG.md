@@ -1,5 +1,18 @@
 # Changelog
 
+### 4.15.4 - 2026-08-27
+
+#### Added
+
+- **Inert showcase previews are labelled "Static preview".** Fifteen
+  registry examples across filters, data table, pagination and toggle
+  group render with the HTML `inert` attribute because their fixed state
+  cannot answer a click - and nothing said so. The frame now carries a
+  badge on those examples (a sibling of the inert subtree, so screen
+  readers can still reach it) and drops the pointer cursor across the
+  preview, so the page stops promising an interaction the browser has
+  already blocked. Hover the badge for the full explanation.
+
 ### 4.15.3 - 2026-08-25
 
 #### Added
