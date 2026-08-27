@@ -31,22 +31,86 @@
   cursor: wait;
 }
 
-/* Design Lab (dev-only page): before/after compare chrome */
-.lab-layer { min-height: 320px; }
+/* Design Lab (dev-only page): before/after compare chrome.
+   Deliberately dial-independent fixed colors: this chrome must read
+   identically under every playground theme, including the neutral primary. */
+.lab-layer { min-height: 340px; }
+
 .lab-chip {
   position: absolute;
   z-index: 10;
-  padding: 2px 6px;
+  padding: 2px 7px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
+  white-space: nowrap;
   color: #1c1917;
   background: #fbbf24;
   border-radius: 3px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
   pointer-events: none;
 }
-.lab-chip--improved {
-  color: #052e16;
-  background: #4ade80;
+/* connector line to the content the chip names */
+.lab-chip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 2.25rem;
+  height: 1px;
+  background: #fbbf24;
+}
+.lab-chip--improved { color: #052e16; background: #4ade80; }
+.lab-chip--improved::after { background: #4ade80; }
+/* right-gutter chips point left instead */
+.lab-chip--point-left::after { left: auto; right: 100%; }
+
+.lab-side-label {
+  position: absolute;
+  z-index: 20;
+  top: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.lab-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 2px;
+  margin-left: -1px;
+  background: #2dd4bf;
+  pointer-events: none;
+}
+.lab-handle {
+  position: absolute;
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid #2dd4bf;
+  border-radius: 9999px;
+  background: rgb(3 7 18 / 0.9);
+  color: #5eead4;
+  font-size: 14px;
+  pointer-events: none;
+}
+.lab-range {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
 }

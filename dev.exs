@@ -15361,19 +15361,24 @@ defmodule Dev.PlaygroundLive do
   end
 
   # -- Design Lab: before/after proof for the petal-design skill ------------
-  # Pairs 1 and 2 are VERBATIM outputs from the three-arm skill eval
-  # (skills/eval/demo-script.md): before = the MCP-only arm / the task fixture,
-  # after = the skill arm. Pair 3 is an authored doctrine illustration.
-  # The slider is Impeccable-style: two stacked layers, the after layer clipped
-  # to inset(0 0 0 var(--pos)); the range input moves the divider.
+  # Public proof surface for bet 003. Pairs 1 and 2 are VERBATIM outputs from
+  # the three-arm skill eval (skills/eval/demo-script.md): before = the
+  # MCP-only arm / the task fixture, after = the skill arm (wrappers for
+  # centering are presentation, the class strings are untouched). Pair 3 is an
+  # authored doctrine illustration - original copy, generic AI-slop tells.
+  #
+  # The compare frame is dial-independent on purpose: it pins data-primary/
+  # data-gray on the container so fixtures render identically under any
+  # playground theme (chrome that dies under the neutral dial would violate
+  # the very doctrine this page demonstrates).
   defp render_page(%{active: "design-lab"} = assigns) do
     ~H"""
     <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">Design Lab</h1>
       <p class="mt-2 mb-8 text-gray-600 dark:text-gray-300">
-        Before/after runs from the <code class="text-sm">petal-design</code> agent skill eval.
-        Drag each slider. The first two pairs are verbatim agent output from the
-        three-arm eval (same prompt, one attempt) - not mockups.
+        What the <code class="text-sm">petal-design</code> agent skill changes, shown as
+        before/after. Drag each divider. The first two pairs are verbatim agent output from
+        the three-arm eval (same prompt, one attempt) - not mockups.
       </p>
 
       <.lab_compare
@@ -15383,29 +15388,33 @@ defmodule Dev.PlaygroundLive do
         note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the gray-400 ghost ladder exactly."
       >
         <:before_panel>
-          <div class="dark"><div class="p-8 bg-gray-950">
-            <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
               <h3 class="font-semibold text-gray-900 dark:text-gray-100">API keys</h3>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
               <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500" placeholder="sk-..." />
               <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
             </div>
-            <span class="lab-chip" style="top: 2.75rem; left: 2.5rem;">opaque gray-800 panel</span>
-            <span class="lab-chip" style="top: 10.5rem; left: 2.5rem;">gray-600 input border</span>
           </div></div>
         </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 18%; left: 3%;">opaque gray-800 panel</span>
+          <span class="lab-chip" style="top: 45%; left: 3%;">gray-600 input border</span>
+        </:before_chips>
         <:after_panel>
-          <div class="dark"><div class="p-8 bg-gray-950">
-            <div class="rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
               <h3 class="font-semibold text-gray-900 dark:text-white">API keys</h3>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
               <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 dark:border-gray-400/25 dark:bg-gray-400/8 p-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="sk-..." />
               <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
             </div>
-            <span class="lab-chip lab-chip--improved" style="top: 2.75rem; right: 2.5rem;">dark:bg-gray-900 panel</span>
-            <span class="lab-chip lab-chip--improved" style="top: 10.5rem; right: 2.5rem;">ghost input /8 + /25</span>
           </div></div>
         </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 18%; right: 3%;">dark:bg-gray-900 panel</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 45%; right: 3%;">ghost input /8 + /25</span>
+        </:after_chips>
       </.lab_compare>
 
       <.lab_compare
@@ -15415,99 +15424,111 @@ defmodule Dev.PlaygroundLive do
         note="Task: convert a hand-rolled invoices view. Before: the fixture - literal zinc palette, raw table, hand-rolled fixed inset-0 modal, hover:opacity on a solid. After: the skill arm's conversion - table, soft badge, and the confirm becomes a real alert_dialog."
       >
         <:before_panel>
-          <div class="p-6 bg-white dark:bg-gray-950">
-            <h2 class="text-xl font-bold text-zinc-800 mb-4 dark:text-zinc-100">Invoices</h2>
-            <table class="w-full border border-zinc-200 rounded-lg dark:border-zinc-700">
-              <thead>
-                <tr class="bg-zinc-100 text-left dark:bg-zinc-800">
-                  <th class="px-4 py-2 text-sm text-zinc-500">Date</th>
-                  <th class="px-4 py-2 text-sm text-zinc-500">Amount</th>
-                  <th class="px-4 py-2 text-sm text-zinc-500">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr :for={inv <- lab_invoices()} class="border-t border-zinc-200 dark:border-zinc-700">
-                  <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.date}</td>
-                  <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.amount}</td>
-                  <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">{inv.status}</span></td>
-                </tr>
-              </tbody>
-            </table>
-            <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 focus:outline-none">Delete all</button>
-            <span class="lab-chip" style="top: 3rem; left: 9rem;">literal zinc palette</span>
-            <span class="lab-chip" style="bottom: 1.25rem; left: 10rem;">hover:opacity on a solid</span>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg">
+              <h2 class="text-xl font-bold text-zinc-800 mb-4 dark:text-zinc-100">Invoices</h2>
+              <table class="w-full border border-zinc-200 rounded-lg dark:border-zinc-700">
+                <thead>
+                  <tr class="bg-zinc-100 text-left dark:bg-zinc-800">
+                    <th class="px-4 py-2 text-sm text-zinc-500">Date</th>
+                    <th class="px-4 py-2 text-sm text-zinc-500">Amount</th>
+                    <th class="px-4 py-2 text-sm text-zinc-500">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr :for={inv <- lab_invoices()} class="border-t border-zinc-200 dark:border-zinc-700">
+                    <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.date}</td>
+                    <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.amount}</td>
+                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">{inv.status}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 focus:outline-none">Delete all</button>
+            </div>
           </div>
         </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 16%; left: 3%;">literal zinc palette</span>
+          <span class="lab-chip" style="top: 78%; left: 3%;">hover:opacity on a solid</span>
+        </:before_chips>
         <:after_panel>
-          <div class="p-6 bg-white dark:bg-gray-950">
-            <.h2>Invoices</.h2>
-            <div class="max-w-full overflow-x-auto">
-              <.table rows={lab_invoices()}>
-                <:col :let={inv} label="Date">{inv.date}</:col>
-                <:col :let={inv} label="Amount">{inv.amount}</:col>
-                <:col :let={inv} label="Status">
-                  <.badge color="success" variant="soft" size="sm" label={inv.status} />
-                </:col>
-              </.table>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg">
+              <.h2>Invoices</.h2>
+              <div class="max-w-full overflow-x-auto">
+                <.table rows={lab_invoices()}>
+                  <:col :let={inv} label="Date">{inv.date}</:col>
+                  <:col :let={inv} label="Amount">{inv.amount}</:col>
+                  <:col :let={inv} label="Status">
+                    <.badge color="success" variant="soft" size="sm" label={inv.status} />
+                  </:col>
+                </.table>
+              </div>
+              <div class="mt-4">
+                <.alert_dialog
+                  id="lab-confirm"
+                  variant="destructive"
+                  title="Are you sure?"
+                  description="This cannot be undone."
+                  confirm_label="Delete all"
+                >
+                  <:trigger>
+                    <.button color="danger">Delete all</.button>
+                  </:trigger>
+                </.alert_dialog>
+              </div>
             </div>
-            <div class="mt-4">
-              <.alert_dialog
-                id="lab-confirm"
-                variant="destructive"
-                title="Are you sure?"
-                description="This cannot be undone."
-                confirm_label="Delete all"
-              >
-                <:trigger>
-                  <.button color="danger">Delete all</.button>
-                </:trigger>
-              </.alert_dialog>
-            </div>
-            <span class="lab-chip lab-chip--improved" style="top: 3rem; right: 2rem;">gray dial + soft badge</span>
-            <span class="lab-chip lab-chip--improved" style="bottom: 1.25rem; right: 2rem;">real alert_dialog</span>
           </div>
         </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 16%; right: 3%;">gray dial + soft badge</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 78%; right: 3%;">real alert_dialog</span>
+        </:after_chips>
       </.lab_compare>
 
       <.lab_compare
         id="lab-polish"
         title="The polish pass"
         badge="doctrine illustration"
-        note="The AI-slop tells the review playbook hunts: side-tab border, kicker, hardcoded radius, off-system beige. After: the same card on the system - token surface, one accent, house focus and radius."
+        note="The AI-slop tells the review playbook hunts: kicker caps, italic display serif, side-tab border, off-system cream, hardcoded radius. After: the same content on the system - token surface, house type, one accent."
       >
         <:before_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <div class="border-l-4 border-indigo-400 bg-[#f6f1e7] rounded-2xl p-6 max-w-md w-full">
-              <div class="text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold">Release planning</div>
-              <p class="mt-2 text-2xl text-stone-800" style="font-family: Georgia, serif;">Ship the <em>launch plan</em> by Friday.</p>
-              <p class="mt-2 text-sm text-stone-500">Owners, dependencies, and decisions in one view.</p>
-              <div class="mt-4 h-1.5 rounded-full bg-stone-200"><div class="h-1.5 w-2/3 rounded-full bg-green-400"></div></div>
+            <div class="w-full max-w-md border-l-4 border-violet-400 bg-[#f4efe4] rounded-2xl p-6">
+              <div class="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-semibold">Usage &amp; limits</div>
+              <p class="mt-2 text-2xl text-stone-800" style="font-family: Georgia, serif;">Your team is <em>almost</em> out of seats.</p>
+              <p class="mt-2 text-sm text-stone-500">9 of 10 member seats are in use across two workspaces.</p>
+              <div class="mt-4 h-1.5 rounded-full bg-stone-200"><div class="h-1.5 w-[90%] rounded-full bg-emerald-400"></div></div>
               <div class="mt-3 flex items-center justify-between text-sm">
-                <span class="text-stone-500">8 of 11 decisions closed</span>
-                <a href="#" class="font-semibold text-stone-800">Review plan &rarr;</a>
+                <span class="text-stone-500">Renews 1 Oct</span>
+                <a href="#" class="font-semibold text-stone-800">Add seats &rarr;</a>
               </div>
             </div>
-            <span class="lab-chip" style="top: 4rem; left: 8rem;">side-tab border</span>
-            <span class="lab-chip" style="top: 3.5rem; left: 11rem;">AI kicker + beige</span>
-            <span class="lab-chip" style="top: 7.5rem; left: 2rem;">italic serif</span>
           </div>
         </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 14%; left: 3%;">kicker caps</span>
+          <span class="lab-chip" style="top: 34%; left: 3%;">italic display serif</span>
+          <span class="lab-chip" style="top: 58%; left: 3%;">side-tab + cream</span>
+        </:before_chips>
         <:after_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
             <.card class="w-full max-w-md">
-              <.card_header title="Ship the launch plan by Friday" description="Owners, dependencies, and decisions in one view." />
+              <.card_header title="Your team is almost out of seats" description="9 of 10 member seats are in use across two workspaces." />
               <.card_content>
-                <.progress size="sm" color="primary" value={8} max={11} />
+                <.progress size="sm" color="primary" value={9} max={10} />
                 <div class="mt-3 flex items-center justify-between text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">8 of 11 decisions closed</span>
-                  <.button variant="ghost" size="sm" color="primary" label="Review plan" />
+                  <span class="text-gray-500 dark:text-gray-400">Renews 1 Oct</span>
+                  <.button variant="ghost" size="sm" color="primary" label="Add seats" />
                 </div>
               </.card_content>
             </.card>
-            <span class="lab-chip lab-chip--improved" style="top: 4rem; right: 6rem;">token surface + radius knob</span>
-            <span class="lab-chip lab-chip--improved" style="bottom: 3.5rem; right: 7rem;">system type, one accent</span>
           </div>
         </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 14%; right: 3%;">token surface + radius knob</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 58%; right: 3%;">system type, one accent</span>
+        </:after_chips>
       </.lab_compare>
 
       <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -15525,10 +15546,14 @@ defmodule Dev.PlaygroundLive do
   attr(:note, :string, required: true)
   slot(:before_panel, required: true)
   slot(:after_panel, required: true)
+  slot(:before_chips, required: false)
+  slot(:after_chips, required: false)
 
-  # Two stacked layers; the after layer is clipped to the right of --pos and the
-  # range input drives --pos. Inline oninput is fine here - this is the dev
-  # playground, not a shipped app.
+  # The compare frame. Two stacked layers; the after layer (and its chips) clip
+  # to the right of --pos, the before chips clip to the LEFT of --pos so they
+  # dismiss as the divider crosses them. The range input is invisible and spans
+  # the whole panel (ew-resize cursor); a round grab handle rides the seam.
+  # data-primary/data-gray are pinned so fixtures render the same under any dial.
   defp lab_compare(assigns) do
     ~H"""
     <section id={@id} class="mt-10">
@@ -15541,19 +15566,30 @@ defmodule Dev.PlaygroundLive do
         class="relative overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
         style="--pos: 55%"
         data-lab-compare
+        data-primary="blue"
+        data-gray="zinc"
       >
         <div class="lab-layer">{render_slot(@before_panel)}</div>
-        <div class="absolute inset-0 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">{render_slot(@after_panel)}</div>
-        <div class="absolute inset-y-0 z-20 w-0.5 bg-primary-500 pointer-events-none" style="left: var(--pos)"></div>
-        <span class="absolute z-20 top-2 left-2 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded bg-gray-950/70 text-white">Before</span>
-        <span class="absolute z-20 top-2 right-2 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded bg-primary-600/90 text-white">After</span>
+        <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none" style="clip-path: inset(0 calc(100% - var(--pos)) 0 0)">
+          {render_slot(@before_chips)}
+        </div>
+        <div class="absolute inset-0 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
+          {render_slot(@after_panel)}
+          <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
+            {render_slot(@after_chips)}
+          </div>
+        </div>
+        <span class="lab-side-label" style="left: 1rem;">Before</span>
+        <span class="lab-side-label" style="right: 1rem;">After</span>
+        <div class="lab-seam" style="left: var(--pos)"></div>
+        <div class="lab-handle" style="left: var(--pos)">&harr;</div>
         <input
           type="range"
           min="8"
           max="92"
           value="55"
           aria-label="Reveal the after state"
-          class="absolute z-30 w-48 -translate-x-1/2 bottom-3 left-1/2 accent-primary-600"
+          class="lab-range"
           oninput="this.closest('[data-lab-compare]').style.setProperty('--pos', this.value + '%')"
         />
       </div>
