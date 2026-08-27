@@ -15398,8 +15398,8 @@ defmodule Dev.PlaygroundLive do
           </div></div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 18%; left: 3%;">opaque gray-800 panel</span>
-          <span class="lab-chip" style="top: 45%; left: 3%;">gray-600 input border</span>
+          <span class="lab-chip" style="top: 0.9rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
+          <span class="lab-chip" style="top: 5.4rem; right: calc(100% + 1.25rem);">gray-600 border</span>
         </:before_chips>
         <:after_panel>
           <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
@@ -15412,8 +15412,8 @@ defmodule Dev.PlaygroundLive do
           </div></div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 18%; right: 3%;">dark:bg-gray-900 panel</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 45%; right: 3%;">ghost input /8 + /25</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.9rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.4rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15425,7 +15425,7 @@ defmodule Dev.PlaygroundLive do
       >
         <:before_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <div class="w-full max-w-lg">
+            <div class="w-full max-w-lg pb-4">
               <h2 class="text-xl font-bold text-zinc-800 mb-4 dark:text-zinc-100">Invoices</h2>
               <table class="w-full border border-zinc-200 rounded-lg dark:border-zinc-700">
                 <thead>
@@ -15448,12 +15448,12 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 16%; left: 3%;">literal zinc palette</span>
-          <span class="lab-chip" style="top: 78%; left: 3%;">hover:opacity on a solid</span>
+          <span class="lab-chip" style="top: 3.4rem; right: calc(100% + 1.25rem);">zinc palette</span>
+          <span class="lab-chip" style="top: 16.4rem; right: calc(100% + 1.25rem);">hover:opacity</span>
         </:before_chips>
         <:after_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <div class="w-full max-w-lg">
+            <div class="w-full max-w-lg pb-4">
               <.h2>Invoices</.h2>
               <div class="max-w-full overflow-x-auto">
                 <.table rows={lab_invoices()}>
@@ -15481,8 +15481,8 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 16%; right: 3%;">gray dial + soft badge</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 78%; right: 3%;">real alert_dialog</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 3.4rem; left: calc(100% + 1.25rem);">soft badge</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 16.4rem; left: calc(100% + 1.25rem);">alert_dialog</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15494,7 +15494,7 @@ defmodule Dev.PlaygroundLive do
       >
         <:before_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <div class="w-full max-w-md border-l-4 border-violet-400 bg-[#f4efe4] rounded-2xl p-6">
+            <div class="w-full max-w-lg border-l-4 border-violet-400 bg-[#f4efe4] rounded-2xl p-6">
               <div class="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-semibold">Usage &amp; limits</div>
               <p class="mt-2 text-2xl text-stone-800" style="font-family: Georgia, serif;">Your team is <em>almost</em> out of seats.</p>
               <p class="mt-2 text-sm text-stone-500">9 of 10 member seats are in use across two workspaces.</p>
@@ -15507,13 +15507,13 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 14%; left: 3%;">kicker caps</span>
-          <span class="lab-chip" style="top: 34%; left: 3%;">italic display serif</span>
-          <span class="lab-chip" style="top: 58%; left: 3%;">side-tab + cream</span>
+          <span class="lab-chip" style="top: 1.5rem; right: calc(100% + 1.25rem);">kicker caps</span>
+          <span class="lab-chip" style="top: 3.6rem; right: calc(100% + 1.25rem);">display serif</span>
+          <span class="lab-chip" style="top: 7.4rem; right: calc(100% + 1.25rem);">side-tab + cream</span>
         </:before_chips>
         <:after_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <.card class="w-full max-w-md">
+            <.card class="w-full max-w-lg">
               <.card_header title="Your team is almost out of seats" description="9 of 10 member seats are in use across two workspaces." />
               <.card_content>
                 <.progress size="sm" color="primary" value={9} max={10} />
@@ -15526,8 +15526,8 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 14%; right: 3%;">token surface + radius knob</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 58%; right: 3%;">system type, one accent</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">token surface</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 7.4rem; left: calc(100% + 1.25rem);">one accent</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15571,12 +15571,16 @@ defmodule Dev.PlaygroundLive do
       >
         <div class="lab-layer">{render_slot(@before_panel)}</div>
         <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none" style="clip-path: inset(0 calc(100% - var(--pos)) 0 0)">
-          {render_slot(@before_chips)}
+          <div class="flex justify-center h-full p-8">
+            <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
+          </div>
         </div>
         <div class="absolute inset-0 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
           {render_slot(@after_panel)}
           <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
-            {render_slot(@after_chips)}
+            <div class="flex justify-center h-full p-8">
+              <div class="relative w-full max-w-lg">{render_slot(@after_chips)}</div>
+            </div>
           </div>
         </div>
         <span class="lab-side-label" style="left: 1rem;">Before</span>
@@ -15585,8 +15589,8 @@ defmodule Dev.PlaygroundLive do
         <div class="lab-handle" style="left: var(--pos)">&harr;</div>
         <input
           type="range"
-          min="8"
-          max="92"
+          min="0"
+          max="100"
           value="55"
           aria-label="Reveal the after state"
           class="lab-range"

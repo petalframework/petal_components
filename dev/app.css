@@ -34,7 +34,7 @@
 /* Design Lab (dev-only page): before/after compare chrome.
    Deliberately dial-independent fixed colors: this chrome must read
    identically under every playground theme, including the neutral primary. */
-.lab-layer { min-height: 340px; }
+/* layers size to their content; both sides share identical wrappers so heights match */
 
 .lab-chip {
   position: absolute;
@@ -56,7 +56,7 @@
   position: absolute;
   top: 50%;
   left: 100%;
-  width: 2.25rem;
+  width: 1.1rem;
   height: 1px;
   background: #fbbf24;
 }
@@ -94,7 +94,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
+  width: 1.1rem;
   height: 2.25rem;
   transform: translate(-50%, -50%);
   border: 2px solid #2dd4bf;
