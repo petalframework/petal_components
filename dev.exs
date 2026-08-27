@@ -15589,8 +15589,8 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
-          <span class="lab-chip lab-chip--improved" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15627,12 +15627,15 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
       <div
         class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
-        style="--pos: 55%"
+        style="--pos: 55%; --pos-n: 55"
         data-lab-compare
         data-primary="blue"
         data-gray="zinc"
       >
-        <div class="col-start-1 row-start-1 lab-layer">{render_slot(@before_panel)}</div>
+        <div class="relative col-start-1 row-start-1 lab-layer">
+          {render_slot(@before_panel)}
+          <span class="lab-side-label lab-side-label--before" style="left: 1rem;">Before</span>
+        </div>
         <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none" style="clip-path: inset(0 calc(100% - var(--pos)) 0 0)">
           <div class="flex justify-center h-full p-8">
             <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
@@ -15640,14 +15643,13 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="relative col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
           {render_slot(@after_panel)}
+          <span class="lab-side-label lab-side-label--after" style="right: 1rem;">After</span>
           <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
             <div class="flex justify-center h-full p-8">
               <div class="relative w-full max-w-lg">{render_slot(@after_chips)}</div>
             </div>
           </div>
         </div>
-        <span class="lab-side-label" style="left: 1rem;">Before</span>
-        <span class="lab-side-label" style="right: 1rem;">After</span>
         <div class="lab-seam" style="left: var(--pos)"></div>
         <div class="lab-handle" style="left: var(--pos)">&harr;</div>
         <input
@@ -15657,7 +15659,7 @@ defmodule Dev.PlaygroundLive do
           value="55"
           aria-label="Reveal the after state"
           class="lab-range"
-          oninput="this.closest('[data-lab-compare]').style.setProperty('--pos', this.value + '%')"
+          oninput="const f = this.closest('[data-lab-compare]'); f.style.setProperty('--pos', this.value + '%'); f.style.setProperty('--pos-n', this.value)"
         />
       </div>
     </section>

@@ -75,7 +75,13 @@
   text-transform: uppercase;
   color: #9ca3af;
   pointer-events: none;
+  transition: opacity 150ms ease-out;
 }
+/* Each label follows what you are mostly viewing: BEFORE fades out as the
+   divider sweeps left past ~20%, AFTER as it sweeps right past ~80%.
+   --pos-n is the unitless twin of --pos (CSS cannot divide a percentage). */
+.lab-side-label--before { opacity: clamp(0, calc((var(--pos-n, 55) - 12) / 10), 1); }
+.lab-side-label--after { opacity: clamp(0, calc((88 - var(--pos-n, 55)) / 10), 1); }
 
 .lab-seam {
   position: absolute;
@@ -118,4 +124,11 @@
   margin: 0;
   opacity: 0;
   cursor: ew-resize;
+}
+
+/* The gutters the chips live in do not exist on narrow screens - the card
+   column is the full viewport. The note under each pair names every tell in
+   prose, so mobile loses annotation, not information. */
+@media (max-width: 767px) {
+  .lab-chip { display: none; }
 }
