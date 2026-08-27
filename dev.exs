@@ -389,6 +389,7 @@ defmodule Dev.PlaygroundLive do
     %{
       group: "Foundations",
       items: [
+        %{slug: "design-lab", name: "Design Lab", ready: true},
         %{slug: "typography", name: "Typography", ready: true},
         %{slug: "colors", name: "Colours", ready: true},
         %{slug: "links", name: "Links", ready: true},
@@ -15357,6 +15358,215 @@ defmodule Dev.PlaygroundLive do
       </div>
     </div>
     """
+  end
+
+  # -- Design Lab: before/after proof for the petal-design skill ------------
+  # Pairs 1 and 2 are VERBATIM outputs from the three-arm skill eval
+  # (skills/eval/demo-script.md): before = the MCP-only arm / the task fixture,
+  # after = the skill arm. Pair 3 is an authored doctrine illustration.
+  # The slider is Impeccable-style: two stacked layers, the after layer clipped
+  # to inset(0 0 0 var(--pos)); the range input moves the divider.
+  defp render_page(%{active: "design-lab"} = assigns) do
+    ~H"""
+    <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">Design Lab</h1>
+      <p class="mt-2 mb-8 text-gray-600 dark:text-gray-300">
+        Before/after runs from the <code class="text-sm">petal-design</code> agent skill eval.
+        Drag each slider. The first two pairs are verbatim agent output from the
+        three-arm eval (same prompt, one attempt) - not mockups.
+      </p>
+
+      <.lab_compare
+        id="lab-dark"
+        title="Dark mode: the ghost ladder vs mechanical inversion"
+        badge="verbatim eval output"
+        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the gray-400 ghost ladder exactly."
+      >
+        <:before_panel>
+          <div class="dark"><div class="p-8 bg-gray-950">
+            <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
+            </div>
+            <span class="lab-chip" style="top: 2.75rem; left: 2.5rem;">opaque gray-800 panel</span>
+            <span class="lab-chip" style="top: 10.5rem; left: 2.5rem;">gray-600 input border</span>
+          </div></div>
+        </:before_panel>
+        <:after_panel>
+          <div class="dark"><div class="p-8 bg-gray-950">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
+              <h3 class="font-semibold text-gray-900 dark:text-white">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 dark:border-gray-400/25 dark:bg-gray-400/8 p-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
+            </div>
+            <span class="lab-chip lab-chip--improved" style="top: 2.75rem; right: 2.5rem;">dark:bg-gray-900 panel</span>
+            <span class="lab-chip lab-chip--improved" style="top: 10.5rem; right: 2.5rem;">ghost input /8 + /25</span>
+          </div></div>
+        </:after_panel>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-soup"
+        title="Tailwind soup to the system"
+        badge="verbatim eval output"
+        note="Task: convert a hand-rolled invoices view. Before: the fixture - literal zinc palette, raw table, hand-rolled fixed inset-0 modal, hover:opacity on a solid. After: the skill arm's conversion - table, soft badge, and the confirm becomes a real alert_dialog."
+      >
+        <:before_panel>
+          <div class="p-6 bg-white dark:bg-gray-950">
+            <h2 class="text-xl font-bold text-zinc-800 mb-4 dark:text-zinc-100">Invoices</h2>
+            <table class="w-full border border-zinc-200 rounded-lg dark:border-zinc-700">
+              <thead>
+                <tr class="bg-zinc-100 text-left dark:bg-zinc-800">
+                  <th class="px-4 py-2 text-sm text-zinc-500">Date</th>
+                  <th class="px-4 py-2 text-sm text-zinc-500">Amount</th>
+                  <th class="px-4 py-2 text-sm text-zinc-500">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr :for={inv <- lab_invoices()} class="border-t border-zinc-200 dark:border-zinc-700">
+                  <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.date}</td>
+                  <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.amount}</td>
+                  <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">{inv.status}</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 focus:outline-none">Delete all</button>
+            <span class="lab-chip" style="top: 3rem; left: 9rem;">literal zinc palette</span>
+            <span class="lab-chip" style="bottom: 1.25rem; left: 10rem;">hover:opacity on a solid</span>
+          </div>
+        </:before_panel>
+        <:after_panel>
+          <div class="p-6 bg-white dark:bg-gray-950">
+            <.h2>Invoices</.h2>
+            <div class="max-w-full overflow-x-auto">
+              <.table rows={lab_invoices()}>
+                <:col :let={inv} label="Date">{inv.date}</:col>
+                <:col :let={inv} label="Amount">{inv.amount}</:col>
+                <:col :let={inv} label="Status">
+                  <.badge color="success" variant="soft" size="sm" label={inv.status} />
+                </:col>
+              </.table>
+            </div>
+            <div class="mt-4">
+              <.alert_dialog
+                id="lab-confirm"
+                variant="destructive"
+                title="Are you sure?"
+                description="This cannot be undone."
+                confirm_label="Delete all"
+              >
+                <:trigger>
+                  <.button color="danger">Delete all</.button>
+                </:trigger>
+              </.alert_dialog>
+            </div>
+            <span class="lab-chip lab-chip--improved" style="top: 3rem; right: 2rem;">gray dial + soft badge</span>
+            <span class="lab-chip lab-chip--improved" style="bottom: 1.25rem; right: 2rem;">real alert_dialog</span>
+          </div>
+        </:after_panel>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-polish"
+        title="The polish pass"
+        badge="doctrine illustration"
+        note="The AI-slop tells the review playbook hunts: side-tab border, kicker, hardcoded radius, off-system beige. After: the same card on the system - token surface, one accent, house focus and radius."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="border-l-4 border-indigo-400 bg-[#f6f1e7] rounded-2xl p-6 max-w-md w-full">
+              <div class="text-[10px] uppercase tracking-[0.2em] text-stone-400 font-semibold">Release planning</div>
+              <p class="mt-2 text-2xl text-stone-800" style="font-family: Georgia, serif;">Ship the <em>launch plan</em> by Friday.</p>
+              <p class="mt-2 text-sm text-stone-500">Owners, dependencies, and decisions in one view.</p>
+              <div class="mt-4 h-1.5 rounded-full bg-stone-200"><div class="h-1.5 w-2/3 rounded-full bg-green-400"></div></div>
+              <div class="mt-3 flex items-center justify-between text-sm">
+                <span class="text-stone-500">8 of 11 decisions closed</span>
+                <a href="#" class="font-semibold text-stone-800">Review plan &rarr;</a>
+              </div>
+            </div>
+            <span class="lab-chip" style="top: 4rem; left: 8rem;">side-tab border</span>
+            <span class="lab-chip" style="top: 3.5rem; left: 11rem;">AI kicker + beige</span>
+            <span class="lab-chip" style="top: 7.5rem; left: 2rem;">italic serif</span>
+          </div>
+        </:before_panel>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <.card class="w-full max-w-md">
+              <.card_header title="Ship the launch plan by Friday" description="Owners, dependencies, and decisions in one view." />
+              <.card_content>
+                <.progress size="sm" color="primary" value={8} max={11} />
+                <div class="mt-3 flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">8 of 11 decisions closed</span>
+                  <.button variant="ghost" size="sm" color="primary" label="Review plan" />
+                </div>
+              </.card_content>
+            </.card>
+            <span class="lab-chip lab-chip--improved" style="top: 4rem; right: 6rem;">token surface + radius knob</span>
+            <span class="lab-chip lab-chip--improved" style="bottom: 3.5rem; right: 7rem;">system type, one accent</span>
+          </div>
+        </:after_panel>
+      </.lab_compare>
+
+      <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Methodology: <code>skills/eval/demo-script.md</code> in the repo. The skill is
+        <code>skills/petal-design/</code> - nine files, no executable code; it routes build,
+        review, and theme requests and resolves every schema through the MCP ladder.
+      </div>
+    </div>
+    """
+  end
+
+  attr(:id, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:badge, :string, required: true)
+  attr(:note, :string, required: true)
+  slot(:before_panel, required: true)
+  slot(:after_panel, required: true)
+
+  # Two stacked layers; the after layer is clipped to the right of --pos and the
+  # range input drives --pos. Inline oninput is fine here - this is the dev
+  # playground, not a shipped app.
+  defp lab_compare(assigns) do
+    ~H"""
+    <section id={@id} class="mt-10">
+      <div class="flex items-center gap-3">
+        <h2 class="text-lg font-semibold">{@title}</h2>
+        <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
+      </div>
+      <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
+      <div
+        class="relative overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
+        style="--pos: 55%"
+        data-lab-compare
+      >
+        <div class="lab-layer">{render_slot(@before_panel)}</div>
+        <div class="absolute inset-0 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">{render_slot(@after_panel)}</div>
+        <div class="absolute inset-y-0 z-20 w-0.5 bg-primary-500 pointer-events-none" style="left: var(--pos)"></div>
+        <span class="absolute z-20 top-2 left-2 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded bg-gray-950/70 text-white">Before</span>
+        <span class="absolute z-20 top-2 right-2 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-widest rounded bg-primary-600/90 text-white">After</span>
+        <input
+          type="range"
+          min="8"
+          max="92"
+          value="55"
+          aria-label="Reveal the after state"
+          class="absolute z-30 w-48 -translate-x-1/2 bottom-3 left-1/2 accent-primary-600"
+          oninput="this.closest('[data-lab-compare]').style.setProperty('--pos', this.value + '%')"
+        />
+      </div>
+    </section>
+    """
+  end
+
+  defp lab_invoices do
+    [
+      %{date: "2026-08-01", amount: "$29.00", status: "paid"},
+      %{date: "2026-07-01", amount: "$29.00", status: "paid"},
+      %{date: "2026-06-01", amount: "$29.00", status: "paid"}
+    ]
   end
 
   defp render_page(assigns) do

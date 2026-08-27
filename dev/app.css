@@ -30,3 +30,23 @@
 @utility phx-loading {
   cursor: wait;
 }
+
+/* Design Lab (dev-only page): before/after compare chrome */
+.lab-layer { min-height: 320px; }
+.lab-chip {
+  position: absolute;
+  z-index: 10;
+  padding: 2px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #1c1917;
+  background: #fbbf24;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+}
+.lab-chip--improved {
+  color: #052e16;
+  background: #4ade80;
+}
