@@ -15575,7 +15575,7 @@ defmodule Dev.PlaygroundLive do
         id="lab-dark"
         title="Dark mode: the ghost ladder vs mechanical inversion"
         badge="verbatim eval output"
-        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the gray-400 ghost ladder exactly."
+        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the ghost ladder exactly - dark chrome as alpha-of-gray-400 (/8 surface, /17 hairline, /25 input border), so the ghost carries the gray dial's hue. Both sides render forced-dark on purpose: the task under eval is dark mode, so the playground's theme toggle deliberately does not affect this pair."
       >
         <:before_panel>
           <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
