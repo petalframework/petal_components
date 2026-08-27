@@ -132,3 +132,10 @@
 @media (max-width: 767px) {
   .lab-chip { display: none; }
 }
+
+/* Chip groups fade with the view, same curves as the side labels - no more
+   hard-slicing a chip at the seam. Connectors ride along: they are ::after
+   pseudos, and opacity on the group covers them. */
+.lab-chips { transition: opacity 150ms ease-out; }
+.lab-chips--before { opacity: clamp(0, calc((var(--pos-n, 55) - 12) / 10), 1); }
+.lab-chips--after { opacity: clamp(0, calc((88 - var(--pos-n, 55)) / 10), 1); }

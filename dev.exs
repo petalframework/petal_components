@@ -15640,7 +15640,7 @@ defmodule Dev.PlaygroundLive do
           {render_slot(@before_panel)}
           <span class="lab-side-label lab-side-label--before" style="left: 1rem;">Before</span>
         </div>
-        <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none" style="clip-path: inset(0 calc(100% - var(--pos)) 0 0)">
+        <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none lab-chips lab-chips--before">
           <div class="flex justify-center h-full p-8">
             <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
           </div>
@@ -15648,10 +15648,10 @@ defmodule Dev.PlaygroundLive do
         <div class="relative isolate col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
           {render_slot(@after_panel)}
           <span class="lab-side-label lab-side-label--after" style="right: 1rem;">After</span>
-          <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
-            <div class="flex justify-center h-full p-8">
-              <div class="relative w-full max-w-lg">{render_slot(@after_chips)}</div>
-            </div>
+        </div>
+        <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none lab-chips lab-chips--after">
+          <div class="flex justify-center h-full p-8">
+            <div class="relative w-full max-w-lg">{render_slot(@after_chips)}</div>
           </div>
         </div>
         <div class="lab-seam" style="left: var(--pos)"></div>
