@@ -15714,13 +15714,45 @@ end
 
 defmodule Dev.Reloader do
   # phoenix_playground's reloader re-evaluates this whole file on every
-  # request. Two concurrent requests (e.g. a HEAD + GET from tooling like curl
-  # or browser prefetch) race the compiler and crash with "module is currently
-  # being defined", so serialize reloads behind a global lock.
+  # request, unconditionally - no mtime check (see its CodeReloader.reload/2).
+  # That cost ~12s when first measured and ~24s after the 4.15 wave doubled
+  # the file, which made dev mode feel broken next to the deployed playground
+  # (deploy mode compiles once, hence prod's 1s loads).
+  #
+  # Two fixes layered here:
+  #   1. mtime gate - skip the re-eval entirely while dev.exs is unchanged,
+  #      so only the first request after an edit pays the compile. The gate
+  #      state lives in :persistent_term because this very module is replaced
+  #      by each reload.
+  #   2. global lock (pre-existing) - two concurrent requests race the
+  #      compiler and crash with "module is currently being defined";
+  #      re-check the gate inside the lock so the loser of the race skips.
   def reload(endpoint, opts) do
-    :global.trans({__MODULE__, self()}, fn ->
-      PhoenixPlayground.CodeReloader.reload(endpoint, opts)
-    end)
+    path = Application.get_env(:phoenix_playground, :file)
+
+    if is_nil(path) or stale?(path) do
+      :global.trans({__MODULE__, self()}, fn ->
+        if is_nil(path) or stale?(path) do
+          result = PhoenixPlayground.CodeReloader.reload(endpoint, opts)
+          path && :persistent_term.put({Dev.Reloader, :mtime}, mtime(path))
+          result
+        else
+          :ok
+        end
+      end)
+    else
+      :ok
+    end
+  end
+
+  defp stale?(path), do: :persistent_term.get({Dev.Reloader, :mtime}, nil) != mtime(path)
+
+  defp mtime(path) do
+    case File.stat(path) do
+      {:ok, %{mtime: t}} -> t
+      # fs blip (vim save dance): treat as changed, the reload path re-reads
+      {:error, _} -> :unknown
+    end
   end
 end
 
@@ -15750,7 +15782,8 @@ defmodule Dev.Endpoint do
   # Phoenix.CodeReloader re-evaluates this ENTIRE file on every request
   # (~12s each measured) - live_reload: false alone does not disable it,
   # because these plugs are hardcoded here, not derived from that option.
-  if System.get_env("PLAYGROUND_DEPLOY") != "true" do
+  if System.get_env("PLAYGROUND_DEPLOY") != "true" and
+       System.get_env("PLAYGROUND_RELOAD", "true") != "false" do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader, reloader: &Dev.Reloader.reload/2
@@ -15874,10 +15907,10 @@ PhoenixPlayground.start(
   # websocket silently fail on the ::1 pick (dead render, URL params ignored).
   # (Fly's proxy also reaches the app over the v6 private network.)
   ip: {0, 0, 0, 0, 0, 0, 0, 0},
-  # PLAYGROUND_RELOAD=false: dev everything (debug errors, no SECRET_KEY_BASE
-  # dance) but compile ONCE - pages go from ~24s to instant. The reloader
-  # recompiles this entire file on EVERY request, changed or not, and the file
-  # is 15k lines; use the toggle when browsing, the default when editing.
+  # PLAYGROUND_RELOAD=false compiles out the reload machinery entirely (this
+  # option AND the hardcoded endpoint plugs below - both must be gated).
+  # Rarely needed now: Dev.Reloader's mtime gate makes default dev mode fast
+  # on unchanged requests; only the first request after an edit pays ~24s.
   live_reload: not deploy? and System.get_env("PLAYGROUND_RELOAD", "true") != "false",
   endpoint_options:
     deploy_endpoint_options ++
