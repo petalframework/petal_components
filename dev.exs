@@ -15632,7 +15632,11 @@ defmodule Dev.PlaygroundLive do
         data-primary="blue"
         data-gray="zinc"
       >
-        <div class="relative col-start-1 row-start-1 lab-layer">
+        <%!-- isolate: pc components carry internal z-indexes (progress fill is
+        z-[1]); without a stacking context per layer, the BEFORE side's fill
+        escapes and paints over the AFTER layer - blue bar over amber, found
+        the hard way on the theme pair. --%>
+        <div class="relative isolate col-start-1 row-start-1 lab-layer">
           {render_slot(@before_panel)}
           <span class="lab-side-label lab-side-label--before" style="left: 1rem;">Before</span>
         </div>
@@ -15641,7 +15645,7 @@ defmodule Dev.PlaygroundLive do
             <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
           </div>
         </div>
-        <div class="relative col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
+        <div class="relative isolate col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
           {render_slot(@after_panel)}
           <span class="lab-side-label lab-side-label--after" style="right: 1rem;">After</span>
           <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
