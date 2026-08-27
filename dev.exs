@@ -39,8 +39,16 @@ defmodule Dev.Layouts do
   # refreshed an iPhone repeatedly and kept testing a build from BEFORE the
   # deploy. A boot-stamped rev on both asset URLs makes every deploy its own
   # cache key; unchanged files still answer 304 via the ETag.
-  @asset_rev System.system_time(:second) |> Integer.to_string()
-  defp asset_rev, do: @asset_rev
+  # Runtime css mtime, not compile-time: the module only recompiles when
+  # dev.exs changes, so a compile-stamped rev left CSS-ONLY edits serving
+  # stale sheets out of browser caches (found via a probe browser insisting
+  # freshly-shipped rules did not exist).
+  defp asset_rev do
+    case File.stat(Path.expand("priv/static/assets/app.css", __DIR__)) do
+      {:ok, %{mtime: t}} -> t |> :calendar.datetime_to_gregorian_seconds() |> Integer.to_string()
+      {:error, _} -> "0"
+    end
+  end
 
   def root(assigns) do
     ~H"""
@@ -15503,7 +15511,10 @@ defmodule Dev.PlaygroundLive do
         </:after_panel>
         <:after_chips>
           <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.92rem; left: calc(100% + 1.25rem);">soft badge</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 17.28rem; left: calc(100% + 1.25rem);">alert_dialog</span>
+          <%!-- lab-chip--reveal-30: this chip sits beside the danger button, in the
+          region the BEFORE layer covers at rest - so it only fades in once the
+          divider sweeps left far enough to actually reveal that button. --%>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left lab-chip--reveal-30" style="top: 17.22rem; left: 7.1rem;">alert_dialog</span>
         </:after_chips>
       </.lab_compare>
 

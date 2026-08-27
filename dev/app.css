@@ -139,3 +139,10 @@
 .lab-chips { transition: opacity 150ms ease-out; }
 .lab-chips--before { opacity: clamp(0, calc((var(--pos-n, 55) - 12) / 10), 1); }
 .lab-chips--after { opacity: clamp(0, calc((88 - var(--pos-n, 55)) / 10), 1); }
+
+/* A chip placed over the card itself (not in a gutter) shows only when the
+   divider has swept far enough left to reveal the element it names. */
+.lab-chip--reveal-30 {
+  opacity: clamp(0, calc((34 - var(--pos-n, 55)) / 8), 1);
+  transition: opacity 150ms ease-out;
+}
