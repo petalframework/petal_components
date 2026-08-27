@@ -94,15 +94,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.1rem;
+  width: 2.25rem;
   height: 2.25rem;
   transform: translate(-50%, -50%);
-  border: 2px solid #2dd4bf;
+  border: 2px solid #14b8a6;
   border-radius: 9999px;
-  background: rgb(3 7 18 / 0.9);
-  color: #5eead4;
+  background: #ffffff;
+  color: #0f766e;
   font-size: 14px;
   pointer-events: none;
+}
+.dark .lab-handle {
+  border-color: #2dd4bf;
+  background: rgb(3 7 18 / 0.9);
+  color: #5eead4;
 }
 .lab-range {
   position: absolute;

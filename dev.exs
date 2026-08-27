@@ -389,7 +389,7 @@ defmodule Dev.PlaygroundLive do
     %{
       group: "Foundations",
       items: [
-        %{slug: "design-lab", name: "Design Lab", ready: true},
+        %{slug: "agent-skill", name: "Agent skill", ready: true},
         %{slug: "typography", name: "Typography", ready: true},
         %{slug: "colors", name: "Colours", ready: true},
         %{slug: "links", name: "Links", ready: true},
@@ -15371,15 +15371,36 @@ defmodule Dev.PlaygroundLive do
   # data-gray on the container so fixtures render identically under any
   # playground theme (chrome that dies under the neutral dial would violate
   # the very doctrine this page demonstrates).
-  defp render_page(%{active: "design-lab"} = assigns) do
+  defp render_page(%{active: "agent-skill"} = assigns) do
     ~H"""
     <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
-      <h1 class="text-3xl font-bold tracking-tight">Design Lab</h1>
-      <p class="mt-2 mb-8 text-gray-600 dark:text-gray-300">
-        What the <code class="text-sm">petal-design</code> agent skill changes, shown as
-        before/after. Drag each divider. The first two pairs are verbatim agent output from
-        the three-arm eval (same prompt, one attempt) - not mockups.
+      <h1 class="text-3xl font-bold tracking-tight">The petal-design skill</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">
+        An agent skill that carries this design system's doctrine - so AI coding agents
+        build, review, and theme Petal UI the way the library intends. Below: what it
+        changes, as before/after. Drag each divider. Previews are static captures - the
+        live components are on their own playground pages.
       </p>
+
+      <div class="p-5 mt-6 mb-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
+        <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
+          <li>
+            <strong>Install once</strong> - <code>claude plugin install petal-design</code>, or copy
+            <code>deps/petal_components/skills/petal-design</code> into your project's <code>.claude/skills/</code>.
+          </li>
+          <li>
+            <strong>Then just work</strong> - the skill triggers itself. Ask your agent to build a page,
+            review a diff, or rebrand, and it loads the right doctrine before writing HEEx. There is no
+            command to remember and no setup interview: Petal ships the design system, so the skill
+            already knows it.
+          </li>
+          <li>
+            <strong>Pairs with the MCP</strong> - component schemas resolve live via
+            <code>mcp.petal.build</code> when connected, falling back to the skill's bundled snapshot.
+          </li>
+        </ol>
+      </div>
 
       <.lab_compare
         id="lab-dark"
@@ -15398,8 +15419,8 @@ defmodule Dev.PlaygroundLive do
           </div></div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 0.9rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
-          <span class="lab-chip" style="top: 5.4rem; right: calc(100% + 1.25rem);">gray-600 border</span>
+          <span class="lab-chip" style="top: 0.4rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
+          <span class="lab-chip" style="top: 6.25rem; right: calc(100% + 1.25rem);">gray-600 border</span>
         </:before_chips>
         <:after_panel>
           <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
@@ -15412,8 +15433,8 @@ defmodule Dev.PlaygroundLive do
           </div></div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.9rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.4rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.4rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.25rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15448,8 +15469,8 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 3.4rem; right: calc(100% + 1.25rem);">zinc palette</span>
-          <span class="lab-chip" style="top: 16.4rem; right: calc(100% + 1.25rem);">hover:opacity</span>
+          <span class="lab-chip" style="top: 3.31rem; right: calc(100% + 1.25rem);">zinc palette</span>
+          <span class="lab-chip" style="top: 14.44rem; right: calc(100% + 1.25rem);">hover:opacity</span>
         </:before_chips>
         <:after_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
@@ -15481,8 +15502,8 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 3.4rem; left: calc(100% + 1.25rem);">soft badge</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 16.4rem; left: calc(100% + 1.25rem);">alert_dialog</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.92rem; left: calc(100% + 1.25rem);">soft badge</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 17.28rem; left: calc(100% + 1.25rem);">alert_dialog</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15507,9 +15528,9 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:before_panel>
         <:before_chips>
-          <span class="lab-chip" style="top: 1.5rem; right: calc(100% + 1.25rem);">kicker caps</span>
-          <span class="lab-chip" style="top: 3.6rem; right: calc(100% + 1.25rem);">display serif</span>
-          <span class="lab-chip" style="top: 7.4rem; right: calc(100% + 1.25rem);">side-tab + cream</span>
+          <span class="lab-chip" style="top: 1.34rem; right: calc(100% + 1.25rem);">kicker caps</span>
+          <span class="lab-chip" style="top: 3.31rem; right: calc(100% + 1.25rem);">display serif</span>
+          <span class="lab-chip" style="top: 5.16rem; right: calc(100% + 1.25rem);">side-tab + cream</span>
         </:before_chips>
         <:after_panel>
           <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
@@ -15527,7 +15548,49 @@ defmodule Dev.PlaygroundLive do
         </:after_panel>
         <:after_chips>
           <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">token surface</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 7.4rem; left: calc(100% + 1.25rem);">one accent</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 7.38rem; left: calc(100% + 1.25rem);">one accent</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-theme"
+        title="Theme mode: the same markup, made yours"
+        badge="doctrine illustration"
+        note="Both sides are identical HEEx. The after side sits inside one wrapper carrying the amber primary, the stone gray dial, and --pc-radius: 0 - in an app that is a single @theme block, and the skill's theme mode writes it for you. Retro, corporate, brutalist: the dials do not care."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <.card class="w-full max-w-lg">
+              <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+              <.card_content>
+                <.progress size="sm" color="primary" value={7} max={10} />
+                <div class="mt-3 flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                  <.button size="sm" color="primary" label="View pipeline" />
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </:before_panel>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg font-mono" data-primary="amber" data-gray="stone" style="--pc-radius: 0">
+              <.card class="w-full">
+                <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+                <.card_content>
+                  <.progress size="sm" color="primary" value={7} max={10} />
+                  <div class="mt-3 flex items-center justify-between text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                    <.button size="sm" color="primary" label="View pipeline" />
+                  </div>
+                </.card_content>
+              </.card>
+            </div>
+          </div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
+          <span class="lab-chip lab-chip--improved" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15563,19 +15626,19 @@ defmodule Dev.PlaygroundLive do
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
       <div
-        class="relative overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
+        class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
         style="--pos: 55%"
         data-lab-compare
         data-primary="blue"
         data-gray="zinc"
       >
-        <div class="lab-layer">{render_slot(@before_panel)}</div>
+        <div class="col-start-1 row-start-1 lab-layer">{render_slot(@before_panel)}</div>
         <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none" style="clip-path: inset(0 calc(100% - var(--pos)) 0 0)">
           <div class="flex justify-center h-full p-8">
             <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
           </div>
         </div>
-        <div class="absolute inset-0 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
+        <div class="relative col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
           {render_slot(@after_panel)}
           <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none">
             <div class="flex justify-center h-full p-8">
@@ -15811,7 +15874,11 @@ PhoenixPlayground.start(
   # websocket silently fail on the ::1 pick (dead render, URL params ignored).
   # (Fly's proxy also reaches the app over the v6 private network.)
   ip: {0, 0, 0, 0, 0, 0, 0, 0},
-  live_reload: not deploy?,
+  # PLAYGROUND_RELOAD=false: dev everything (debug errors, no SECRET_KEY_BASE
+  # dance) but compile ONCE - pages go from ~24s to instant. The reloader
+  # recompiles this entire file on EVERY request, changed or not, and the file
+  # is 15k lines; use the toggle when browsing, the default when editing.
+  live_reload: not deploy? and System.get_env("PLAYGROUND_RELOAD", "true") != "false",
   endpoint_options:
     deploy_endpoint_options ++
       [
