@@ -15386,7 +15386,9 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-2 text-gray-600 dark:text-gray-300">
         An agent skill that carries this design system's doctrine - so AI coding agents
         build, review, and theme Petal UI the way the library intends. Below: what it
-        changes, as before/after. Drag each divider. Previews are static captures - the
+        changes, as before/after. Drag each divider. Pairs badged "verbatim eval output"
+        are untouched agent output from the three-arm eval (same prompt, one attempt);
+        the rest are labelled doctrine illustrations. Previews are static captures - the
         live components are on their own playground pages.
       </p>
 
@@ -15409,42 +15411,6 @@ defmodule Dev.PlaygroundLive do
           </li>
         </ol>
       </div>
-
-      <.lab_compare
-        id="lab-dark"
-        title="Dark mode: the ghost ladder vs mechanical inversion"
-        badge="verbatim eval output"
-        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the gray-400 ghost ladder exactly."
-      >
-        <:before_panel>
-          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
-            <div class="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-100">API keys</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
-              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500" placeholder="sk-..." />
-              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
-            </div>
-          </div></div>
-        </:before_panel>
-        <:before_chips>
-          <span class="lab-chip" style="top: 0.4rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
-          <span class="lab-chip" style="top: 6.25rem; right: calc(100% + 1.25rem);">gray-600 border</span>
-        </:before_chips>
-        <:after_panel>
-          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
-            <div class="w-full max-w-lg rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
-              <h3 class="font-semibold text-gray-900 dark:text-white">API keys</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
-              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 dark:border-gray-400/25 dark:bg-gray-400/8 p-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="sk-..." />
-              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
-            </div>
-          </div></div>
-        </:after_panel>
-        <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.4rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.25rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
-        </:after_chips>
-      </.lab_compare>
 
       <.lab_compare
         id="lab-soup"
@@ -15510,11 +15476,53 @@ defmodule Dev.PlaygroundLive do
           </div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.92rem; left: calc(100% + 1.25rem);">soft badge</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.85rem; left: 27.85rem;">soft badge</span>
           <%!-- lab-chip--reveal-30: this chip sits beside the danger button, in the
           region the BEFORE layer covers at rest - so it only fades in once the
           divider sweeps left far enough to actually reveal that button. --%>
           <span class="lab-chip lab-chip--improved lab-chip--point-left lab-chip--reveal-30" style="top: 17.22rem; left: 7.1rem;">alert_dialog</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-theme"
+        title="Theme mode: the same markup, made yours"
+        badge="doctrine illustration"
+        note="Both sides are identical HEEx. The after side sits inside one wrapper carrying the amber primary, the stone gray dial, and --pc-radius: 0 - in an app that is a single @theme block, and the skill's theme mode writes it for you. Retro, corporate, brutalist: the dials do not care."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <.card class="w-full max-w-lg">
+              <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+              <.card_content>
+                <.progress size="sm" color="primary" value={7} max={10} />
+                <div class="mt-3 flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                  <.button size="sm" color="primary" label="View pipeline" />
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </:before_panel>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg font-mono" data-primary="amber" data-gray="stone" style="--pc-radius: 0">
+              <.card class="w-full">
+                <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+                <.card_content>
+                  <.progress size="sm" color="primary" value={7} max={10} />
+                  <div class="mt-3 flex items-center justify-between text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                    <.button size="sm" color="primary" label="View pipeline" />
+                  </div>
+                </.card_content>
+              </.card>
+            </div>
+          </div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
         </:after_chips>
       </.lab_compare>
 
@@ -15564,44 +15572,38 @@ defmodule Dev.PlaygroundLive do
       </.lab_compare>
 
       <.lab_compare
-        id="lab-theme"
-        title="Theme mode: the same markup, made yours"
-        badge="doctrine illustration"
-        note="Both sides are identical HEEx. The after side sits inside one wrapper carrying the amber primary, the stone gray dial, and --pc-radius: 0 - in an app that is a single @theme block, and the skill's theme mode writes it for you. Retro, corporate, brutalist: the dials do not care."
+        id="lab-dark"
+        title="Dark mode: the ghost ladder vs mechanical inversion"
+        badge="verbatim eval output"
+        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the gray-400 ghost ladder exactly."
       >
         <:before_panel>
-          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <.card class="w-full max-w-lg">
-              <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
-              <.card_content>
-                <.progress size="sm" color="primary" value={7} max={10} />
-                <div class="mt-3 flex items-center justify-between text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
-                  <.button size="sm" color="primary" label="View pipeline" />
-                </div>
-              </.card_content>
-            </.card>
-          </div>
-        </:before_panel>
-        <:after_panel>
-          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
-            <div class="w-full max-w-lg font-mono" data-primary="amber" data-gray="stone" style="--pc-radius: 0">
-              <.card class="w-full">
-                <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
-                <.card_content>
-                  <.progress size="sm" color="primary" value={7} max={10} />
-                  <div class="mt-3 flex items-center justify-between text-sm">
-                    <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
-                    <.button size="sm" color="primary" label="View pipeline" />
-                  </div>
-                </.card_content>
-              </.card>
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
             </div>
-          </div>
+          </div></div>
+        </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 0.4rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
+          <span class="lab-chip" style="top: 6.25rem; right: calc(100% + 1.25rem);">gray-600 border</span>
+        </:before_chips>
+        <:after_panel>
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
+              <h3 class="font-semibold text-gray-900 dark:text-white">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 dark:border-gray-400/25 dark:bg-gray-400/8 p-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
+            </div>
+          </div></div>
         </:after_panel>
         <:after_chips>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
-          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.4rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.25rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
         </:after_chips>
       </.lab_compare>
 
