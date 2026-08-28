@@ -15387,8 +15387,9 @@ defmodule Dev.PlaygroundLive do
         An agent skill that carries this design system's doctrine - so AI coding agents
         build, review, and theme Petal UI the way the library intends. Below: what it
         changes, as before/after. Drag each divider. Pairs badged "verbatim eval output"
-        are untouched agent output from the three-arm eval (same prompt, one attempt);
-        the rest are labelled doctrine illustrations. Previews are static captures - the
+        show the three-arm eval's real material untouched - each pair's note says exactly
+        what its two sides are (a task fixture, or a named arm's output); the rest are
+        labelled doctrine illustrations. Previews are static captures - the
         live components are on their own playground pages.
       </p>
 
