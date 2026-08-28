@@ -15390,207 +15390,249 @@ defmodule Dev.PlaygroundLive do
   # playground theme (chrome that dies under the neutral dial would violate
   # the very doctrine this page demonstrates).
   # Dev-only (see the gated nav entry): the skill arm's settings-page output,
-  # VERBATIM, rendered as a plain app page. Screenshot source for the
+  # VERBATIM (rev-2 prompt, 2026-08-28 - see skills/eval/demo-script.md),
+  # rendered as a plain app page. Screenshot source for the
   # cold-start pair's after side.
   defp render_page(%{active: "eval-t1"} = assigns) do
     ~H"""
-    <div id="eval-t1-page" class="min-h-screen py-10 bg-white dark:bg-gray-950">
-      <% user = %{name: "Sarah Chen", email: "sarah@petal.build"} %>
-      <% prefs = [
+    <div id="eval-t1-page">
+    <%
+      user = %{name: "Sarah Chen", email: "sarah.chen@example.com"}
+
+      notifications = [
         %{
-          id: "product_updates",
+          id: "notif-product-updates",
+          name: "notifications[product_updates]",
           label: "Product updates",
-          help: "New features and improvements, about once a month.",
+          description: "New features and improvements, as they ship.",
           enabled: true
         },
         %{
-          id: "security_alerts",
+          id: "notif-security-alerts",
+          name: "notifications[security_alerts]",
           label: "Security alerts",
-          help: "Sign-ins from new devices and password changes.",
+          description: "Sign-ins from new devices and other important account activity.",
           enabled: true
         },
         %{
-          id: "billing_emails",
+          id: "notif-billing-emails",
+          name: "notifications[billing_emails]",
           label: "Billing emails",
-          help: "Receipts, invoices and payment reminders.",
+          description: "Receipts, upcoming renewals and payment reminders.",
           enabled: true
         },
         %{
-          id: "weekly_digest",
+          id: "notif-weekly-digest",
+          name: "notifications[weekly_digest]",
           label: "Weekly digest",
-          help: "A summary of your workspace activity every Monday.",
+          description: "A Monday morning summary of activity in your workspace.",
           enabled: false
         },
         %{
-          id: "tips_offers",
+          id: "notif-tips-offers",
+          name: "notifications[tips_offers]",
           label: "Tips and offers",
-          help: "Occasional guides and discounts. Never more than one a week.",
+          description: "Occasional product tips and partner offers.",
           enabled: false
         }
-      ] %>
-      <% invoices = [
-        %{number: "INV-2026-0081", date: "Aug 1, 2026", amount: "$29.00", status: "Pending", pdf: "/billing/invoices/INV-2026-0081.pdf"},
-        %{number: "INV-2026-0074", date: "Jul 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0074.pdf"},
-        %{number: "INV-2026-0066", date: "Jun 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0066.pdf"},
-        %{number: "INV-2026-0059", date: "May 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0059.pdf"},
-        %{number: "INV-2026-0051", date: "Apr 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0051.pdf"},
-        %{number: "INV-2026-0043", date: "Mar 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0043.pdf"},
-        %{number: "INV-2026-0035", date: "Feb 1, 2026", amount: "$29.00", status: "Failed", pdf: "/billing/invoices/INV-2026-0035.pdf"},
-        %{number: "INV-2026-0028", date: "Jan 1, 2026", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0028.pdf"},
-        %{number: "INV-2025-0221", date: "Dec 1, 2025", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2025-0221.pdf"},
-        %{number: "INV-2025-0210", date: "Nov 1, 2025", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2025-0210.pdf"}
-      ] %>
+      ]
 
-      <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-        <.h2 no_margin>Settings</.h2>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          Manage your profile, notifications and billing.
-        </p>
+      plan = %{name: "Pro", price: "$29", renews_on: "Sep 1, 2026", seats_used: 4, seats_total: 5}
+      seats_left = plan.seats_total - plan.seats_used
 
-        <div class="mt-8 flex flex-col gap-8">
-          <.card>
-            <.card_header title="Profile" description="How you appear to the rest of your workspace." />
-            <.card_content>
-              <div class="flex items-center gap-4">
-                <.avatar name={user.name} size="xl" art="mesh" initials />
-                <div class="flex flex-col items-start gap-2">
-                  <div class="flex flex-wrap gap-2">
-                    <.button
-                      variant="outline"
-                      color="gray"
-                      size="sm"
-                      icon="hero-arrow-up-tray"
-                      phx-click="change_avatar"
-                    >
-                      Change photo
-                    </.button>
-                    <.button variant="ghost" color="gray" size="sm" phx-click="remove_avatar">
-                      Remove
-                    </.button>
+      invoices = [
+        %{date: "Aug 1, 2026", amount: "$29.00", status: "Pending", pdf: "/invoices/nimbus-2026-08.pdf"},
+        %{date: "Jul 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-07.pdf"},
+        %{date: "Jun 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-06.pdf"},
+        %{date: "May 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-05.pdf"},
+        %{date: "Apr 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-04.pdf"},
+        %{date: "Mar 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-03.pdf"},
+        %{date: "Feb 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-02.pdf"},
+        %{date: "Jan 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-01.pdf"},
+        %{date: "Dec 1, 2025", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2025-12.pdf"},
+        %{date: "Nov 1, 2025", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2025-11.pdf"}
+      ]
+    %>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header class="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-400/17 dark:bg-gray-900">
+        <.container max_width="md" class="flex h-16 items-center justify-between gap-4">
+          <a
+            href="/"
+            class="flex items-center gap-2.5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50"
+            style="border-radius: var(--pc-radius, 0.625rem);"
+          >
+            <span
+              class="flex h-8 w-8 items-center justify-center bg-primary-600"
+              style="border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);"
+            >
+              <.icon name="hero-cloud-solid" class="h-5 w-5" style="color: var(--pc-button-solid-fg, #fff);" />
+            </span>
+            <span class="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+              Nimbus
+            </span>
+          </a>
+
+          <.color_scheme_switch id="nimbus-color-scheme" variant="segmented" />
+        </.container>
+      </header>
+
+      <main>
+        <.container max_width="sm" class="py-10">
+          <div class="mb-8">
+            <.h2 no_margin>Settings</.h2>
+            <.text_muted class="mt-1.5">
+              Manage your profile, notifications and billing.
+            </.text_muted>
+          </div>
+
+          <div class="space-y-8">
+            <.card variant="basic">
+              <.card_header title="Profile" description="How you appear across Nimbus." />
+              <.card_content>
+                <div class="flex items-center gap-4">
+                  <.avatar name={user.name} size="xl" />
+                  <div class="min-w-0">
+                    <div class="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                      {user.name}
+                    </div>
+                    <div class="truncate text-sm text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </div>
                   </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">JPG, GIF or PNG. 1&nbsp;MB max.</p>
                 </div>
-              </div>
 
-              <div class="mt-6">
-                <.field
-                  type="text"
-                  name="user[name]"
-                  value={user.name}
-                  label="Name"
-                  placeholder="Your full name"
-                />
-                <.field
-                  type="email"
-                  name="user[email]"
-                  value={user.email}
-                  label="Email"
-                  help_text="We send receipts and sign-in links here."
-                  no_margin
-                />
-              </div>
-            </.card_content>
-            <.card_footer class="justify-end">
-              <.button variant="ghost" color="gray" phx-click="cancel_profile">Cancel</.button>
-              <.button phx-click="save_profile">Save changes</.button>
-            </.card_footer>
-          </.card>
-
-          <.card>
-            <.card_header title="Notifications" description="Choose what you hear about. Changes apply immediately." />
-            <.card_content>
-              <div class="divide-y divide-gray-200 dark:divide-gray-400/17">
-                <div
-                  :for={pref <- prefs}
-                  class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
-                >
-                  <div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-gray-200">{pref.label}</p>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{pref.help}</p>
-                  </div>
+                <div class="mt-6 grid gap-6 sm:grid-cols-2">
                   <.field
-                    type="switch"
-                    name={"notifications[#{pref.id}]"}
-                    label={pref.label}
-                    label_class="sr-only"
-                    checked={pref.enabled}
+                    type="text"
+                    id="profile-name"
+                    name="profile[name]"
+                    label="Full name"
+                    value={user.name}
                     no_margin
-                    phx-click="toggle_notification"
-                    phx-value-pref={pref.id}
+                  />
+                  <.field
+                    type="email"
+                    id="profile-email"
+                    name="profile[email]"
+                    label="Email address"
+                    value={user.email}
+                    no_margin
                   />
                 </div>
-              </div>
-            </.card_content>
-          </.card>
+              </.card_content>
+              <.card_footer class="flex justify-end">
+                <.button label="Save changes" color="primary" phx-click="save_profile" />
+              </.card_footer>
+            </.card>
 
-          <.card>
-            <.card_header title="Plan" description="Your subscription and renewal details.">
-              <:action>
-                <.badge color="primary" variant="soft" size="sm" label="Current plan" />
-              </:action>
-            </.card_header>
-            <.card_content>
-              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <p class="text-lg font-semibold text-gray-900 dark:text-white">Pro</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">$29 per month, billed monthly</p>
-              </div>
-              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Renews on Sep 1, 2026. 4 of 5 seats in use.
-              </p>
-            </.card_content>
-            <.card_footer class="justify-end">
-              <.button variant="ghost" color="gray" link_type="a" to="/billing/portal">
-                Manage billing
-              </.button>
-              <.button icon="hero-arrow-up-circle" phx-click="upgrade_plan">Upgrade to Team</.button>
-            </.card_footer>
-          </.card>
-
-          <.card>
-            <.card_header title="Billing history" description="Your last 10 invoices." />
-            <.card_content>
-              <div class="overflow-x-auto">
-                <.table id="invoices-table" rows={invoices}>
-                  <:col :let={inv} label="Date">{inv.date}</:col>
-                  <:col :let={inv} label="Amount">
-                    <span class="tabular-nums">{inv.amount}</span>
-                  </:col>
-                  <:col :let={inv} label="Status">
-                    <.badge
-                      dot
-                      variant="soft"
-                      size="sm"
-                      color={
-                        case inv.status do
-                          "Paid" -> "success"
-                          "Pending" -> "warning"
-                          "Failed" -> "danger"
-                          _ -> "gray"
-                        end
-                      }
-                      label={inv.status}
+            <.card variant="basic">
+              <.card_header title="Notifications" description="Choose what lands in your inbox." />
+              <.card_content>
+                <div class="divide-y divide-gray-200 dark:divide-gray-400/17">
+                  <div
+                    :for={notification <- notifications}
+                    class="flex items-center justify-between gap-6 py-4 first:pt-0 last:pb-0"
+                  >
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                        {notification.label}
+                      </div>
+                      <div class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                        {notification.description}
+                      </div>
+                    </div>
+                    <.field
+                      type="switch"
+                      id={notification.id}
+                      name={notification.name}
+                      label={notification.label}
+                      label_class="sr-only"
+                      checked={notification.enabled}
+                      no_margin
                     />
-                  </:col>
-                  <:col :let={inv} label="PDF">
-                    <.button
-                      link_type="a"
-                      to={inv.pdf}
-                      variant="ghost"
-                      color="gray"
-                      size="sm"
-                      icon="hero-arrow-down-tray"
-                      download
-                      aria-label={"Download invoice #{inv.number} as PDF"}
-                    >
-                      PDF
-                    </.button>
-                  </:col>
-                </.table>
-              </div>
-            </.card_content>
-          </.card>
-        </div>
-      </div>
+                  </div>
+                </div>
+              </.card_content>
+            </.card>
+
+            <.card variant="basic">
+              <.card_header title="Plan" description="Billing for your Nimbus workspace.">
+                <:action>
+                  <.badge color="primary" variant="soft" size="sm" label={plan.name} />
+                </:action>
+              </.card_header>
+              <.card_content>
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span class="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    {plan.price}
+                  </span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    per month &middot; renews {plan.renews_on}
+                  </span>
+                </div>
+
+                <div class="mt-6">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="font-medium text-gray-900 dark:text-gray-200">Seats</span>
+                    <span class="text-gray-500 dark:text-gray-400">
+                      {plan.seats_used} of {plan.seats_total} used
+                    </span>
+                  </div>
+                  <.progress
+                    value={plan.seats_used}
+                    max={plan.seats_total}
+                    color="primary"
+                    size="sm"
+                    class="mt-2"
+                  />
+                  <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    {seats_left} seat remaining on the {plan.name} plan.
+                  </p>
+                </div>
+              </.card_content>
+              <.card_footer class="flex items-center justify-end gap-2">
+                <.button label="Manage billing" color="gray" variant="outline" phx-click="manage_billing" />
+                <.button label="Upgrade plan" color="primary" phx-click="upgrade_plan" />
+              </.card_footer>
+            </.card>
+
+            <.card variant="basic">
+              <.card_header title="Invoices" description="Your last 10 invoices." />
+              <.card_content>
+                <div class="max-w-full overflow-x-auto">
+                  <.table rows={invoices} variant="ghost">
+                    <:col :let={invoice} label="Date">
+                      <span class="font-medium text-gray-900 dark:text-gray-100">{invoice.date}</span>
+                    </:col>
+                    <:col :let={invoice} label="Amount" class="text-right" row_class="text-right tabular-nums">
+                      {invoice.amount}
+                    </:col>
+                    <:col :let={invoice} label="Status">
+                      <.badge
+                        color={if invoice.status == "Paid", do: "success", else: "warning"}
+                        variant="soft"
+                        size="sm"
+                        label={invoice.status}
+                      />
+                    </:col>
+                    <:col :let={invoice} label="Invoice" class="text-right" row_class="text-right">
+                      <.a
+                        to={invoice.pdf}
+                        class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 transition-colors duration-200 ease-out"
+                        style="border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);"
+                      >
+                        <.icon name="hero-arrow-down-tray-micro" class="h-4 w-4" />
+                        <span>PDF</span>
+                      </.a>
+                    </:col>
+                  </.table>
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </.container>
+      </main>
+    </div>
     </div>
     """
   end
