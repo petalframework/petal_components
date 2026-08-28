@@ -1578,4 +1578,26 @@ defmodule PetalComponents.FieldTest do
       end
     end
   end
+
+  describe "switch label_class placement" do
+    # label_class="sr-only" is the standard way to hide the text label when a
+    # settings row carries its own visible label. It must style the TEXT node
+    # only - on the outer label it clips the entire switch control to an
+    # invisible 1px box (geometry intact, zero paint; five verbatim eval
+    # switches shipped as ghosts before this pinned it).
+    test "label_class lands on the text node, never the control wrapper" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.field type="switch" name="n" label="Notify me" label_class="sr-only" checked />
+        """)
+
+      doc = LazyHTML.from_fragment(html)
+
+      assert doc |> LazyHTML.query("label.pc-checkbox-label.sr-only") |> Enum.empty?()
+      assert doc |> LazyHTML.query("div.sr-only") |> Enum.count() == 1
+      assert doc |> LazyHTML.query("label.pc-switch .pc-switch__fake-input") |> Enum.count() == 1
+    end
+  end
 end

@@ -521,6 +521,16 @@ defmodule Dev.PlaygroundLive do
     }
   ]
 
+  # Dev-only: renders the skill-arm eval artifact with the full stylesheet for
+  # honest screenshot material (the boilerplate harness once rendered it with a
+  # partial sheet and the broken screenshots nearly shipped). Gated out of
+  # deploy builds - visitors never see this entry.
+  @nav (if System.get_env("PLAYGROUND_DEPLOY") == "true" do
+          @nav
+        else
+          @nav ++ [%{group: "Dev", items: [%{slug: "eval-t1", name: "Eval T1 artifact", ready: true}]}]
+        end)
+
   @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
   # the whitelist both filter-bar demos decode against - link mode's
   # from_params and event mode's handle_op take the same list
@@ -15379,6 +15389,212 @@ defmodule Dev.PlaygroundLive do
   # data-gray on the container so fixtures render identically under any
   # playground theme (chrome that dies under the neutral dial would violate
   # the very doctrine this page demonstrates).
+  # Dev-only (see the gated nav entry): the skill arm's settings-page output,
+  # VERBATIM, rendered as a plain app page. Screenshot source for the
+  # cold-start pair's after side.
+  defp render_page(%{active: "eval-t1"} = assigns) do
+    ~H"""
+    <div id="eval-t1-page" class="min-h-screen py-10 bg-white dark:bg-gray-950">
+      <% user = %{name: "Sarah Chen", email: "sarah@petal.build"} %>
+      <% prefs = [
+        %{
+          id: "product_updates",
+          label: "Product updates",
+          help: "New features and improvements, about once a month.",
+          enabled: true
+        },
+        %{
+          id: "security_alerts",
+          label: "Security alerts",
+          help: "Sign-ins from new devices and password changes.",
+          enabled: true
+        },
+        %{
+          id: "billing_emails",
+          label: "Billing emails",
+          help: "Receipts, invoices and payment reminders.",
+          enabled: true
+        },
+        %{
+          id: "weekly_digest",
+          label: "Weekly digest",
+          help: "A summary of your workspace activity every Monday.",
+          enabled: false
+        },
+        %{
+          id: "tips_offers",
+          label: "Tips and offers",
+          help: "Occasional guides and discounts. Never more than one a week.",
+          enabled: false
+        }
+      ] %>
+      <% invoices = [
+        %{number: "INV-2026-0081", date: "Aug 1, 2026", amount: "$29.00", status: "Pending", pdf: "/billing/invoices/INV-2026-0081.pdf"},
+        %{number: "INV-2026-0074", date: "Jul 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0074.pdf"},
+        %{number: "INV-2026-0066", date: "Jun 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0066.pdf"},
+        %{number: "INV-2026-0059", date: "May 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0059.pdf"},
+        %{number: "INV-2026-0051", date: "Apr 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0051.pdf"},
+        %{number: "INV-2026-0043", date: "Mar 1, 2026", amount: "$29.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0043.pdf"},
+        %{number: "INV-2026-0035", date: "Feb 1, 2026", amount: "$29.00", status: "Failed", pdf: "/billing/invoices/INV-2026-0035.pdf"},
+        %{number: "INV-2026-0028", date: "Jan 1, 2026", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2026-0028.pdf"},
+        %{number: "INV-2025-0221", date: "Dec 1, 2025", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2025-0221.pdf"},
+        %{number: "INV-2025-0210", date: "Nov 1, 2025", amount: "$19.00", status: "Paid", pdf: "/billing/invoices/INV-2025-0210.pdf"}
+      ] %>
+
+      <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <.h2 no_margin>Settings</.h2>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Manage your profile, notifications and billing.
+        </p>
+
+        <div class="mt-8 flex flex-col gap-8">
+          <.card>
+            <.card_header title="Profile" description="How you appear to the rest of your workspace." />
+            <.card_content>
+              <div class="flex items-center gap-4">
+                <.avatar name={user.name} size="xl" art="mesh" initials />
+                <div class="flex flex-col items-start gap-2">
+                  <div class="flex flex-wrap gap-2">
+                    <.button
+                      variant="outline"
+                      color="gray"
+                      size="sm"
+                      icon="hero-arrow-up-tray"
+                      phx-click="change_avatar"
+                    >
+                      Change photo
+                    </.button>
+                    <.button variant="ghost" color="gray" size="sm" phx-click="remove_avatar">
+                      Remove
+                    </.button>
+                  </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">JPG, GIF or PNG. 1&nbsp;MB max.</p>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <.field
+                  type="text"
+                  name="user[name]"
+                  value={user.name}
+                  label="Name"
+                  placeholder="Your full name"
+                />
+                <.field
+                  type="email"
+                  name="user[email]"
+                  value={user.email}
+                  label="Email"
+                  help_text="We send receipts and sign-in links here."
+                  no_margin
+                />
+              </div>
+            </.card_content>
+            <.card_footer class="justify-end">
+              <.button variant="ghost" color="gray" phx-click="cancel_profile">Cancel</.button>
+              <.button phx-click="save_profile">Save changes</.button>
+            </.card_footer>
+          </.card>
+
+          <.card>
+            <.card_header title="Notifications" description="Choose what you hear about. Changes apply immediately." />
+            <.card_content>
+              <div class="divide-y divide-gray-200 dark:divide-gray-400/17">
+                <div
+                  :for={pref <- prefs}
+                  class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+                >
+                  <div>
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-200">{pref.label}</p>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{pref.help}</p>
+                  </div>
+                  <.field
+                    type="switch"
+                    name={"notifications[#{pref.id}]"}
+                    label={pref.label}
+                    label_class="sr-only"
+                    checked={pref.enabled}
+                    no_margin
+                    phx-click="toggle_notification"
+                    phx-value-pref={pref.id}
+                  />
+                </div>
+              </div>
+            </.card_content>
+          </.card>
+
+          <.card>
+            <.card_header title="Plan" description="Your subscription and renewal details.">
+              <:action>
+                <.badge color="primary" variant="soft" size="sm" label="Current plan" />
+              </:action>
+            </.card_header>
+            <.card_content>
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">Pro</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">$29 per month, billed monthly</p>
+              </div>
+              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Renews on Sep 1, 2026. 4 of 5 seats in use.
+              </p>
+            </.card_content>
+            <.card_footer class="justify-end">
+              <.button variant="ghost" color="gray" link_type="a" to="/billing/portal">
+                Manage billing
+              </.button>
+              <.button icon="hero-arrow-up-circle" phx-click="upgrade_plan">Upgrade to Team</.button>
+            </.card_footer>
+          </.card>
+
+          <.card>
+            <.card_header title="Billing history" description="Your last 10 invoices." />
+            <.card_content>
+              <div class="overflow-x-auto">
+                <.table id="invoices-table" rows={invoices}>
+                  <:col :let={inv} label="Date">{inv.date}</:col>
+                  <:col :let={inv} label="Amount">
+                    <span class="tabular-nums">{inv.amount}</span>
+                  </:col>
+                  <:col :let={inv} label="Status">
+                    <.badge
+                      dot
+                      variant="soft"
+                      size="sm"
+                      color={
+                        case inv.status do
+                          "Paid" -> "success"
+                          "Pending" -> "warning"
+                          "Failed" -> "danger"
+                          _ -> "gray"
+                        end
+                      }
+                      label={inv.status}
+                    />
+                  </:col>
+                  <:col :let={inv} label="PDF">
+                    <.button
+                      link_type="a"
+                      to={inv.pdf}
+                      variant="ghost"
+                      color="gray"
+                      size="sm"
+                      icon="hero-arrow-down-tray"
+                      download
+                      aria-label={"Download invoice #{inv.number} as PDF"}
+                    >
+                      PDF
+                    </.button>
+                  </:col>
+                </.table>
+              </div>
+            </.card_content>
+          </.card>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   defp render_page(%{active: "agent-skill"} = assigns) do
     ~H"""
     <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
