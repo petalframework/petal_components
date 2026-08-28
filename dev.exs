@@ -15637,10 +15637,15 @@ defmodule Dev.PlaygroundLive do
         note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
       >
         <:before_panel>
-          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full" />
+          <%!-- each side ships light and dark captures (both apps rendered in
+          their own native theme machinery) and class-swaps with the page - so
+          this image pair follows the theme toggle like the live-DOM pairs. --%>
+          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-before-dark.png" alt="Settings page built by an agent in a fresh Phoenix app, dark mode" class="hidden w-full dark:block" />
         </:before_panel>
         <:after_panel>
-          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full" />
+          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-after-dark.png" alt="Settings page built by the skill agent in a Petal app, dark mode" class="hidden w-full dark:block" />
         </:after_panel>
       </.lab_compare>
 
