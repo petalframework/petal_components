@@ -146,3 +146,12 @@
   opacity: clamp(0, calc((34 - var(--pos-n, 55)) / 8), 1);
   transition: opacity 150ms ease-out;
 }
+
+/* Image pairs: the side labels sit over arbitrary screenshot content, so they
+   get a backdrop for legibility (scoped - live-DOM pairs keep the quiet look). */
+#lab-cold .lab-side-label {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgb(3 7 18 / 0.55);
+  color: #f9fafb;
+}

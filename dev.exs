@@ -15414,9 +15414,25 @@ defmodule Dev.PlaygroundLive do
       </div>
 
       <.lab_compare
+        id="lab-cold"
+        title="Cold start: fresh Phoenix vs the Petal stack"
+        badge="verbatim eval output"
+        construction="fresh phx.new → Petal + MCP + skill"
+        note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
+      >
+        <:before_panel>
+          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full" />
+        </:before_panel>
+        <:after_panel>
+          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full" />
+        </:after_panel>
+      </.lab_compare>
+
+      <.lab_compare
         id="lab-soup"
         title="Tailwind soup to the system"
         badge="verbatim eval output"
+        construction="task fixture → MCP + skill"
         note="Task: convert a hand-rolled invoices view. Before: the fixture - literal zinc palette, raw table, hand-rolled fixed inset-0 modal, hover:opacity on a solid. After: the skill arm's conversion - table, soft badge, and the confirm becomes a real alert_dialog."
       >
         <:before_panel>
@@ -15489,6 +15505,7 @@ defmodule Dev.PlaygroundLive do
         id="lab-theme"
         title="Theme mode: the same markup, made yours"
         badge="doctrine illustration"
+        construction="identical HEEx, dials only"
         note="Both sides are identical HEEx. The after side sits inside one wrapper carrying the amber primary, the stone gray dial, and --pc-radius: 0 - in an app that is a single @theme block, and the skill's theme mode writes it for you. Retro, corporate, brutalist: the dials do not care."
       >
         <:before_panel>
@@ -15531,6 +15548,7 @@ defmodule Dev.PlaygroundLive do
         id="lab-polish"
         title="The polish pass"
         badge="doctrine illustration"
+        construction="authored slop → on the system"
         note="The AI-slop tells the review playbook hunts: kicker caps, italic display serif, side-tab border, off-system cream, hardcoded radius. After: the same content on the system - token surface, house type, one accent."
       >
         <:before_panel>
@@ -15576,6 +15594,7 @@ defmodule Dev.PlaygroundLive do
         id="lab-dark"
         title="Dark mode: the ghost ladder vs mechanical inversion"
         badge="verbatim eval output"
+        construction="MCP-only → MCP + skill"
         note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the ghost ladder exactly - dark chrome as alpha-of-gray-400 (/8 surface, /17 hairline, /25 input border), so the ghost carries the gray dial's hue. Both sides render forced-dark on purpose: the task under eval is dark mode, so the playground's theme toggle deliberately does not affect this pair."
       >
         <:before_panel>
@@ -15620,6 +15639,7 @@ defmodule Dev.PlaygroundLive do
   attr(:id, :string, required: true)
   attr(:title, :string, required: true)
   attr(:badge, :string, required: true)
+  attr(:construction, :string, required: true)
   attr(:note, :string, required: true)
   slot(:before_panel, required: true)
   slot(:after_panel, required: true)
@@ -15636,6 +15656,7 @@ defmodule Dev.PlaygroundLive do
     <section id={@id} class="mt-10">
       <div class="flex items-center gap-3">
         <h2 class="text-lg font-semibold">{@title}</h2>
+        <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded-md bg-teal-600 text-white">{@construction}</span>
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
