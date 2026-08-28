@@ -155,3 +155,9 @@
   background: rgb(3 7 18 / 0.55);
   color: #f9fafb;
 }
+
+/* prompt disclosure: rotate the caret when open (hand rule - the playground
+   CSS build does not emit the group-open: variant) */
+details[open] > summary .lab-prompt-caret {
+  rotate: 90deg;
+}

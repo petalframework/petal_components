@@ -15676,6 +15676,7 @@ defmodule Dev.PlaygroundLive do
         title="Cold start: fresh Phoenix vs the Petal stack"
         badge="verbatim eval output"
         construction="fresh phx.new → Petal + MCP + skill"
+        prompt="Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode."
         note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
       >
         <:before_panel>
@@ -15904,6 +15905,7 @@ defmodule Dev.PlaygroundLive do
   attr(:badge, :string, required: true)
   attr(:construction, :string, required: true)
   attr(:note, :string, required: true)
+  attr(:prompt, :string, default: nil)
   slot(:before_panel, required: true)
   slot(:after_panel, required: true)
   slot(:before_chips, required: false)
@@ -15923,6 +15925,12 @@ defmodule Dev.PlaygroundLive do
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
+      <details :if={@prompt} class="group -mt-2 mb-3">
+        <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
+          <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
+        </summary>
+        <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
+      </details>
       <div
         class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
         style="--pos: 55%; --pos-n: 55"
