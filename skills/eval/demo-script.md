@@ -18,7 +18,7 @@ One fresh Phoenix app with petal_components installed per rules.md, at the same 
 
 ### Cold-start pair (flagship marketing pair)
 
-Two arms, not three: **cold** - a fresh `phx.new` 1.8 app, no petal_components, no MCP, no skill - vs **skill** - petal_components installed, schema data available, petal-design skill installed. Same task prompt verbatim, same pinned seed data, one attempt each, no steering. This is the "not in the Petal ecosystem yet" comparison on the playground's /c/agent-skill page.
+Two arms, not three: **cold** - a fresh `phx.new` 1.8 app, no petal_components, no MCP, no skill - vs **skill** - petal_components installed, schema data available, petal-design skill installed. Same task prompt verbatim, same pinned seed data, one attempt each, no steering. This is the "not in the Petal ecosystem yet" comparison on the playground's /c/design-skill page.
 
 **T1-cold prompt (rev 2 - 2026-08-28):** `Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode.`
 

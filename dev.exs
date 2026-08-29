@@ -397,7 +397,7 @@ defmodule Dev.PlaygroundLive do
     %{
       group: "AI",
       items: [
-        %{slug: "agent-skill", name: "Agent skill", ready: true}
+        %{slug: "design-skill", name: "Design skill", ready: true}
       ]
     },
     %{
@@ -15635,7 +15635,7 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
-  defp render_page(%{active: "agent-skill"} = assigns) do
+  defp render_page(%{active: "design-skill"} = assigns) do
     ~H"""
     <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
       <h1 class="text-3xl font-bold tracking-tight">The petal-design skill</h1>
