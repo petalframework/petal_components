@@ -395,9 +395,14 @@ defmodule Dev.PlaygroundLive do
 
   @nav [
     %{
+      group: "AI",
+      items: [
+        %{slug: "agent-skill", name: "Agent skill", ready: true}
+      ]
+    },
+    %{
       group: "Foundations",
       items: [
-        %{slug: "agent-skill", name: "Agent skill", ready: true},
         %{slug: "typography", name: "Typography", ready: true},
         %{slug: "colors", name: "Colours", ready: true},
         %{slug: "links", name: "Links", ready: true},
@@ -15956,6 +15961,15 @@ defmodule Dev.PlaygroundLive do
         <h2 class="text-lg font-semibold">{@title}</h2>
         <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded-md bg-teal-600 text-white">{@construction}</span>
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
+      </div>
+      <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
+      <div :if={@prompt || @live_href} class="flex items-start justify-between gap-4 -mt-2 mb-2">
+        <details :if={@prompt} class="group min-w-0 flex-1">
+          <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
+            <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
+          </summary>
+          <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
+        </details>
         <.button
           :if={@live_href}
           link_type="a"
@@ -15964,20 +15978,11 @@ defmodule Dev.PlaygroundLive do
           rel="noopener"
           size="xs"
           color="primary"
-          class="ml-auto"
+          class="ml-auto shrink-0"
         >
           {@live_label}
           <.icon name="hero-arrow-top-right-on-square-micro" class="w-3.5 h-3.5" />
         </.button>
-      </div>
-      <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
-      <div :if={@prompt} class="-mt-2 mb-3">
-        <details class="group">
-          <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
-            <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
-          </summary>
-          <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
-        </details>
       </div>
       <div
         class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
