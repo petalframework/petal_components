@@ -531,7 +531,9 @@ defmodule Dev.PlaygroundLive do
           @nav ++ [%{group: "Dev", items: [%{slug: "eval-t1", name: "Eval T1 artifact", ready: true}]}]
         end)
 
-  @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+  # eval-t1 stays out of deploy nav but must stay routable there - the
+  # cold-start pair's "view the after side live" link points at it.
+  @slugs Enum.uniq(Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end) ++ ["eval-t1"])
   # the whitelist both filter-bar demos decode against - link mode's
   # from_params and event mode's handle_op take the same list
   @filters_fields [:name, :category, :price, :in_stock, :added_on]
@@ -15651,7 +15653,7 @@ defmodule Dev.PlaygroundLive do
         live components are on their own playground pages.
       </p>
 
-      <div class="p-5 mt-6 mb-10 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="p-5 mt-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
         <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
           <li>
@@ -15671,11 +15673,51 @@ defmodule Dev.PlaygroundLive do
         </ol>
       </div>
 
+      <div class="p-5 mt-6 mb-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Under the hood</h2>
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+          One skill, no command palette: nine markdown files, zero executable code. A request routes
+          by its shape into one of three modes, and each mode loads only the doctrine it needs.
+        </p>
+        <div class="grid gap-5 mt-4 sm:grid-cols-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Build</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Writes HEEx to the craft floor - components over raw tags, the gray dial,
+              a dark pair on every colour, radius from the one knob.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Add a billing settings page"</p>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Review</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Audits a diff - a written design judgment first, then a 13-row grep table and
+              schema spot-checks, reported as P0-P3 findings.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Review this diff for design drift"</p>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Theme</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Rebrands through the token layer - primary ramp, gray remap, the radius knob,
+              the dark ghost material. Never per-element edits.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Make it warm amber, sharp corners"</p>
+          </div>
+        </div>
+        <p class="pt-4 mt-5 text-sm text-gray-600 border-t border-gray-200 dark:border-gray-800 dark:text-gray-300">
+          Before any non-default attr is written it resolves down one ladder: the petal MCP if
+          connected, else the bundled schema snapshot, else the dep source. Trained memory is never
+          trusted - this library ships too fast for it.
+        </p>
+      </div>
+
       <.lab_compare
         id="lab-cold"
         title="Cold start: fresh Phoenix vs the Petal stack"
         badge="verbatim eval output"
         construction="fresh phx.new → Petal + MCP + skill"
+        live_href="/c/eval-t1"
         prompt="Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode."
         note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
       >
@@ -15906,6 +15948,8 @@ defmodule Dev.PlaygroundLive do
   attr(:construction, :string, required: true)
   attr(:note, :string, required: true)
   attr(:prompt, :string, default: nil)
+  attr(:live_href, :string, default: nil)
+  attr(:live_label, :string, default: "View the after side live")
   slot(:before_panel, required: true)
   slot(:after_panel, required: true)
   slot(:before_chips, required: false)
@@ -15925,12 +15969,21 @@ defmodule Dev.PlaygroundLive do
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
-      <details :if={@prompt} class="group -mt-2 mb-3">
-        <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
-          <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
-        </summary>
-        <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
-      </details>
+      <div :if={@prompt || @live_href} class="-mt-2 mb-3 space-y-1.5">
+        <details :if={@prompt} class="group">
+          <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
+            <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
+          </summary>
+          <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
+        </details>
+        <a
+          :if={@live_href}
+          href={@live_href}
+          class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors duration-200 ease-out hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          {@live_label} →
+        </a>
+      </div>
       <div
         class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
         style="--pos: 55%; --pos-n: 55"
