@@ -66,24 +66,27 @@ Function names have NO pc_ prefix; pc- is the CSS class prefix only.
 - `<.chart>` - 8 attrs, 0 slots · required: id, option
 
 ## Chat
-- `<.action_button>` - 4 attrs, 0 slots · required: icon, label
-- `<.chat_error>` - 3 attrs, 1 slots · required slots: inner_block
-- `<.chat_message>` - 3 attrs, 3 slots · required slots: inner_block
-- `<.chat_sources>` - 6 attrs, 0 slots · required: sources
-- `<.citation>` - 3 attrs, 0 slots · required: index, source
-- `<.conversation>` - 4 attrs, 2 slots · required slots: inner_block
-- `<.copy_button>` - 5 attrs, 0 slots · required: id, text
-- `<.markdown>` - 4 attrs, 0 slots · required: content
-- `<.marker>` - 5 attrs, 1 slots · required slots: inner_block
-- `<.message_actions>` - 2 attrs, 1 slots · required slots: inner_block
-- `<.message_attachments>` - 3 attrs, 0 slots · required: attachments
-- `<.prompt_input>` - 16 attrs, 1 slots
-- `<.questionnaire>` - 9 attrs, 0 slots · required: spec
-- `<.reasoning>` - 3 attrs, 1 slots · required slots: inner_block
-- `<.rich_text>` - 3 attrs, 0 slots · required: content
-- `<.streaming_text>` - 4 attrs, 0 slots · required: id
-- `<.suggestions>` - 3 attrs, 0 slots · required: items
-- `<.tool_call>` - 12 attrs, 5 slots · required: name
+
+NOT imported by `use PetalComponents` - `alias PetalComponents.Chat`, then call
+namespaced exactly as listed below. Bare dot-calls without the namespace will not compile.
+- `<Chat.action_button>` - 4 attrs, 0 slots · required: icon, label
+- `<Chat.chat_error>` - 3 attrs, 1 slots · required slots: inner_block
+- `<Chat.chat_message>` - 3 attrs, 3 slots · required slots: inner_block
+- `<Chat.chat_sources>` - 6 attrs, 0 slots · required: sources
+- `<Chat.citation>` - 3 attrs, 0 slots · required: index, source
+- `<Chat.conversation>` - 4 attrs, 2 slots · required slots: inner_block
+- `<Chat.copy_button>` - 5 attrs, 0 slots · required: id, text
+- `<Chat.markdown>` - 4 attrs, 0 slots · required: content
+- `<Chat.marker>` - 5 attrs, 1 slots · required slots: inner_block
+- `<Chat.message_actions>` - 2 attrs, 1 slots · required slots: inner_block
+- `<Chat.message_attachments>` - 3 attrs, 0 slots · required: attachments
+- `<Chat.prompt_input>` - 16 attrs, 1 slots
+- `<Chat.questionnaire>` - 9 attrs, 0 slots · required: spec
+- `<Chat.reasoning>` - 3 attrs, 1 slots · required slots: inner_block
+- `<Chat.rich_text>` - 3 attrs, 0 slots · required: content
+- `<Chat.streaming_text>` - 4 attrs, 0 slots · required: id
+- `<Chat.suggestions>` - 3 attrs, 0 slots · required: items
+- `<Chat.tool_call>` - 12 attrs, 5 slots · required: name
 
 ## Collapsible
 - `<.collapsible>` - 6 attrs, 2 slots · required slots: inner_block, trigger

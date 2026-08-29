@@ -24,6 +24,66 @@ defmodule PetalComponents.SkillSnapshotTest do
     assert inventory =~ "petal_components v#{@version}"
   end
 
+  test "the snapshot's attrs and slots match the live modules" do
+    # Version labels alone can lie: the file can carry the right version while
+    # its content drifted from the code. Introspect every component the
+    # snapshot claims and diff attr/slot name sets against __components__/0.
+    %{"components" => components} =
+      @skill |> Path.join("data/schemas.json") |> File.read!() |> Jason.decode!()
+
+    for %{"module" => mod_string, "name" => name} = snap <- components do
+      module = Module.concat([mod_string])
+
+      case Enum.find(module.__components__(), fn {key, _} -> to_string(key) == name end) do
+        nil ->
+          # A few components are plain wrapper functions with no attr/slot
+          # declarations of their own (<.icon> wraps the declared :heroicon).
+          # Those have no introspectable schema to diff - but the function
+          # itself disappearing means the snapshot ships a dead component.
+          assert function_exported?(module, String.to_atom(name), 1),
+                 "#{mod_string}.#{name} no longer exists - snapshot drifted, regenerate it"
+
+        {_key, live} ->
+          live_attrs = MapSet.new(live.attrs, &to_string(&1.name))
+          snap_attrs = MapSet.new(snap["attrs"] || [], & &1["name"])
+
+          assert MapSet.equal?(live_attrs, snap_attrs),
+                 "#{mod_string}.#{name} attrs drifted from data/schemas.json - regenerate the snapshot. " <>
+                   "live-only: #{inspect(MapSet.difference(live_attrs, snap_attrs) |> Enum.sort())}, " <>
+                   "snapshot-only: #{inspect(MapSet.difference(snap_attrs, live_attrs) |> Enum.sort())}"
+
+          live_slots = MapSet.new(live.slots, &to_string(&1.name))
+          snap_slots = MapSet.new(snap["slots"] || [], & &1["name"])
+
+          assert MapSet.equal?(live_slots, snap_slots),
+                 "#{mod_string}.#{name} slots drifted from data/schemas.json - regenerate the snapshot"
+      end
+    end
+  end
+
+  test "chat-family calls are namespaced in the inventory and snapshot examples" do
+    # The Chat family is NOT imported by `use PetalComponents` - an agent that
+    # copies a bare `<.conversation>` from the inventory or an example ships
+    # code that does not compile. Regeneration must keep these namespaced.
+    %{"components" => components} =
+      @skill |> Path.join("data/schemas.json") |> File.read!() |> Jason.decode!()
+
+    chat = Enum.filter(components, &String.ends_with?(&1["module"], ".Chat"))
+    assert chat != [], "no Chat components in the snapshot - did the module move?"
+
+    bare = ~r/<\.(#{Enum.map_join(chat, "|", & &1["name"])})\b/
+
+    inventory = @skill |> Path.join("references/components.md") |> File.read!()
+    [chat_section] = Regex.run(~r/^## Chat\n.*?(?=\n## )/ms, inventory)
+    refute chat_section =~ bare, "components.md lists bare chat calls - render them as <Chat.name>"
+    assert chat_section =~ "<Chat.", "components.md chat section lost its namespacing"
+
+    for %{"module" => mod, "name" => name, "examples" => examples} <- chat, %{"code" => code} <- examples || [] do
+      refute code =~ bare,
+             "#{mod}.#{name} example uses a bare chat call - namespace it as <Chat....>"
+    end
+  end
+
   test "every reference file SKILL.md names exists" do
     skill_md = @skill |> Path.join("SKILL.md") |> File.read!()
 
