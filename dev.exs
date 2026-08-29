@@ -15956,13 +15956,19 @@ defmodule Dev.PlaygroundLive do
         <h2 class="text-lg font-semibold">{@title}</h2>
         <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded-md bg-teal-600 text-white">{@construction}</span>
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
-        <a
+        <.button
           :if={@live_href}
-          href={@live_href}
-          class="ml-auto text-xs font-medium text-primary-600 transition-colors duration-200 ease-out hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+          link_type="a"
+          to={@live_href}
+          target="_blank"
+          rel="noopener"
+          size="xs"
+          color="primary"
+          class="ml-auto"
         >
-          {@live_label} →
-        </a>
+          {@live_label}
+          <.icon name="hero-arrow-top-right-on-square-micro" class="w-3.5 h-3.5" />
+        </.button>
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
       <div :if={@prompt} class="-mt-2 mb-3">
