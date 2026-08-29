@@ -522,15 +522,6 @@ defmodule Dev.PlaygroundLive do
   ]
 
   # Dev-only: renders the skill-arm eval artifact with the full stylesheet for
-  # honest screenshot material (the boilerplate harness once rendered it with a
-  # partial sheet and the broken screenshots nearly shipped). Gated out of
-  # deploy builds - visitors never see this entry.
-  @nav (if System.get_env("PLAYGROUND_DEPLOY") == "true" do
-          @nav
-        else
-          @nav ++ [%{group: "Dev", items: [%{slug: "eval-t1", name: "Eval T1 artifact", ready: true}]}]
-        end)
-
   # eval-t1 stays out of deploy nav but must stay routable there - the
   # cold-start pair's "view the after side live" link points at it.
   @slugs Enum.uniq(Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end) ++ ["eval-t1"])
@@ -15391,7 +15382,7 @@ defmodule Dev.PlaygroundLive do
   # data-gray on the container so fixtures render identically under any
   # playground theme (chrome that dies under the neutral dial would violate
   # the very doctrine this page demonstrates).
-  # Dev-only (see the gated nav entry): the skill arm's settings-page output,
+  # Reachable by URL only (slug whitelisted, no nav entry): the skill arm's settings-page output,
   # VERBATIM (rev-2 prompt, 2026-08-28 - see skills/eval/demo-script.md),
   # rendered as a plain app page. Screenshot source for the
   # cold-start pair's after side.
@@ -15645,15 +15636,35 @@ defmodule Dev.PlaygroundLive do
       <h1 class="text-3xl font-bold tracking-tight">The petal-design skill</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">
         An agent skill that carries this design system's doctrine - so AI coding agents
-        build, review, and theme Petal UI the way the library intends. Below: what it
-        changes, as before/after. Drag each divider. Pairs badged "verbatim eval output"
-        show the three-arm eval's real material untouched - each pair's note says exactly
-        what its two sides are (a task fixture, or a named arm's output); the rest are
-        labelled doctrine illustrations. Previews are static captures - the
-        live components are on their own playground pages.
+        build, review, and theme Petal UI the way the library intends. Drag each divider.
+        Pairs badged "verbatim eval output" are real eval material, untouched; the rest are
+        labelled doctrine illustrations. Panels are display fixtures - the interactive
+        components live on their own playground pages.
       </p>
 
-      <div class="p-5 mt-6 border border-gray-200 rounded-xl dark:border-gray-800">
+      <.lab_compare
+        id="lab-cold"
+        title="Cold start: fresh Phoenix vs the Petal stack"
+        badge="verbatim eval output"
+        construction="fresh phx.new → Petal + MCP + skill"
+        live_href="/c/eval-t1"
+        prompt="Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode."
+        note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
+      >
+        <:before_panel>
+          <%!-- each side ships light and dark captures (both apps rendered in
+          their own native theme machinery) and class-swaps with the page - so
+          this image pair follows the theme toggle like the live-DOM pairs. --%>
+          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-before-dark.png" alt="Settings page built by an agent in a fresh Phoenix app, dark mode" class="hidden w-full dark:block" />
+        </:before_panel>
+        <:after_panel>
+          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-after-dark.png" alt="Settings page built by the skill agent in a Petal app, dark mode" class="hidden w-full dark:block" />
+        </:after_panel>
+      </.lab_compare>
+
+      <div class="p-5 mt-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
         <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
           <li>
@@ -15673,7 +15684,7 @@ defmodule Dev.PlaygroundLive do
         </ol>
       </div>
 
-      <div class="p-5 mt-6 mb-10 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="p-5 mt-6 border border-gray-200 rounded-xl dark:border-gray-800">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Under the hood</h2>
         <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
           One skill, no command palette: nine markdown files, zero executable code. A request routes
@@ -15711,28 +15722,6 @@ defmodule Dev.PlaygroundLive do
           trusted - this library ships too fast for it.
         </p>
       </div>
-
-      <.lab_compare
-        id="lab-cold"
-        title="Cold start: fresh Phoenix vs the Petal stack"
-        badge="verbatim eval output"
-        construction="fresh phx.new → Petal + MCP + skill"
-        live_href="/c/eval-t1"
-        prompt="Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode."
-        note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
-      >
-        <:before_panel>
-          <%!-- each side ships light and dark captures (both apps rendered in
-          their own native theme machinery) and class-swaps with the page - so
-          this image pair follows the theme toggle like the live-DOM pairs. --%>
-          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full dark:hidden" />
-          <img src="/dev-static/lab-coldstart-before-dark.png" alt="Settings page built by an agent in a fresh Phoenix app, dark mode" class="hidden w-full dark:block" />
-        </:before_panel>
-        <:after_panel>
-          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full dark:hidden" />
-          <img src="/dev-static/lab-coldstart-after-dark.png" alt="Settings page built by the skill agent in a Petal app, dark mode" class="hidden w-full dark:block" />
-        </:after_panel>
-      </.lab_compare>
 
       <.lab_compare
         id="lab-soup"
@@ -15963,26 +15952,26 @@ defmodule Dev.PlaygroundLive do
   defp lab_compare(assigns) do
     ~H"""
     <section id={@id} class="mt-10">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <h2 class="text-lg font-semibold">{@title}</h2>
         <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded-md bg-teal-600 text-white">{@construction}</span>
         <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
+        <a
+          :if={@live_href}
+          href={@live_href}
+          class="ml-auto text-xs font-medium text-primary-600 transition-colors duration-200 ease-out hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          {@live_label} →
+        </a>
       </div>
       <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
-      <div :if={@prompt || @live_href} class="-mt-2 mb-3 space-y-1.5">
-        <details :if={@prompt} class="group">
+      <div :if={@prompt} class="-mt-2 mb-3">
+        <details class="group">
           <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
             <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
           </summary>
           <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
         </details>
-        <a
-          :if={@live_href}
-          href={@live_href}
-          class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors duration-200 ease-out hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          {@live_label} →
-        </a>
       </div>
       <div
         class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
