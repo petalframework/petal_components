@@ -161,3 +161,43 @@
 details[open] > summary .lab-prompt-caret {
   rotate: 90deg;
 }
+
+/* --- design-stack figure (the design-skill page) ---
+   The diagram's whole claim is that one token layer feeds everything, so it
+   obeys that layer itself: accent = the primary dial, neutrals = the gray
+   dial. Drag either dial and the figure moves with the rest of the page. */
+.dstack {
+  --d-surface: #fff;
+  --d-line: var(--color-gray-300);
+  --d-ink: var(--color-gray-900);
+  --d-muted: var(--color-gray-500);
+  --d-accent: var(--color-primary-600);
+  --d-accent-soft: color-mix(in oklab, var(--color-primary-600) 9%, transparent);
+}
+
+.dark .dstack {
+  --d-surface: var(--color-gray-900);
+  --d-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
+  --d-ink: #fff;
+  --d-muted: var(--color-gray-400);
+  /* primary-600, not 400: under the neutral dial the ramp inverts in dark, so
+     600 is the near-white end (the same token that makes CTAs white there).
+     400 lands mid-gray on gray-900 and the band disappears. */
+  --d-accent: var(--color-primary-600);
+  --d-accent-soft: color-mix(in oklab, var(--color-primary-600) 13%, transparent);
+}
+
+.dstack svg { display: block; width: 100%; height: auto; }
+.dstack-box { fill: var(--d-surface); stroke: var(--d-line); stroke-width: 1.5; }
+.dstack-guard { fill: var(--d-surface); stroke: var(--d-accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.dstack-band { fill: var(--d-accent-soft); stroke: var(--d-accent); stroke-width: 1.5; }
+.dstack-flow { stroke: var(--d-line); stroke-width: 1.6; fill: none; }
+.dstack-flow-a { stroke: var(--d-accent); stroke-width: 1.6; fill: none; }
+.dstack-arrow { fill: var(--d-line); }
+.dstack-arrow-a { fill: var(--d-accent); }
+.dstack-title { font-size: 15px; font-weight: 600; fill: var(--d-ink); }
+.dstack-sub { font-size: 12px; fill: var(--d-muted); }
+.dstack-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; fill: var(--d-accent); }
+.dstack-eyebrow { font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; fill: var(--d-accent); }
+.dstack-edge { font-size: 11px; fill: var(--d-muted); }
+.dstack-band-label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; fill: var(--d-accent); }

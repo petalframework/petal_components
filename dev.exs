@@ -15669,6 +15669,86 @@ defmodule Dev.PlaygroundLive do
         </:after_panel>
       </.lab_compare>
 
+      <%!-- The layer diagram: what each of the three pieces guards, and why the
+      output coheres. Portrait layout on purpose - the wide version reads at
+      ~10px type in this column. Colours come off the dials (see .dstack in
+      app.css), so the figure demonstrates the token layer it describes. --%>
+      <figure class="dstack p-5 mt-10 mb-0 border border-gray-200 rounded-xl dark:border-gray-800">
+        <svg
+          viewBox="0 0 900 674"
+          role="img"
+          aria-label="A prompt goes to an AI agent, which writes two kinds of code: component calls, guarded by the MCP server that resolves schemas, and custom markup, guarded by the petal-design skill that applies doctrine. Both pass through one shared token layer and converge into a single cohesive UI."
+        >
+          <defs>
+            <marker id="dstack-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="dstack-arrow" d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+            <marker id="dstack-ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="dstack-arrow-a" d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+          </defs>
+
+          <rect class="dstack-box" x="340" y="16" width="220" height="60" rx="10" />
+          <text class="dstack-eyebrow" x="450" y="40" text-anchor="middle">YOUR PROMPT</text>
+          <text class="dstack-sub" x="450" y="60" text-anchor="middle">“Build a settings page”</text>
+          <line class="dstack-flow" x1="450" y1="76" x2="450" y2="92" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-box" x="355" y="96" width="190" height="76" rx="10" />
+          <text class="dstack-title" x="450" y="130" text-anchor="middle">AI agent</text>
+          <text class="dstack-sub" x="450" y="152" text-anchor="middle">writes HEEx</text>
+
+          <path class="dstack-flow" d="M 438 172 C 415 236, 415 367, 384 367" marker-end="url(#dstack-ar)" />
+          <path class="dstack-flow" d="M 462 172 C 485 236, 485 367, 516 367" marker-end="url(#dstack-ar)" />
+          <text class="dstack-edge" x="424" y="188" text-anchor="end">calls</text>
+          <text class="dstack-edge" x="476" y="188">writes</text>
+
+          <rect class="dstack-guard" x="40" y="196" width="340" height="88" rx="10" />
+          <text class="dstack-eyebrow" x="210" y="222" text-anchor="middle">SCHEMA TRUTH</text>
+          <text class="dstack-title" x="210" y="246" text-anchor="middle">MCP server</text>
+          <text class="dstack-sub" x="210" y="268" text-anchor="middle">mcp.petal.build</text>
+          <line class="dstack-flow-a" x1="210" y1="284" x2="210" y2="304" marker-end="url(#dstack-ar-a)" />
+          <text class="dstack-edge" x="222" y="300">resolves attrs, slots, enums</text>
+
+          <rect class="dstack-guard" x="520" y="196" width="340" height="88" rx="10" />
+          <text class="dstack-eyebrow" x="690" y="222" text-anchor="middle">DESIGN DOCTRINE</text>
+          <text class="dstack-title" x="690" y="246" text-anchor="middle">petal-design skill</text>
+          <text class="dstack-sub" x="690" y="268" text-anchor="middle">ghost ladder · dark pairs · focus ring</text>
+          <line class="dstack-flow-a" x1="690" y1="284" x2="690" y2="304" marker-end="url(#dstack-ar-a)" />
+          <text class="dstack-edge" x="702" y="300">applies the doctrine</text>
+
+          <rect class="dstack-box" x="40" y="308" width="340" height="118" rx="10" />
+          <text class="dstack-title" x="210" y="342" text-anchor="middle">Component calls</text>
+          <text class="dstack-mono" x="210" y="368" text-anchor="middle">&lt;.card&gt; &lt;.field&gt; &lt;.table&gt;</text>
+          <text class="dstack-sub" x="210" y="394" text-anchor="middle">213 surfaces, already styled</text>
+
+          <rect class="dstack-box" x="520" y="308" width="340" height="118" rx="10" />
+          <text class="dstack-title" x="690" y="342" text-anchor="middle">Custom markup</text>
+          <text class="dstack-sub" x="690" y="368" text-anchor="middle">layout, wrappers, one-offs</text>
+          <text class="dstack-sub" x="690" y="392" text-anchor="middle">no library ships this part</text>
+
+          <line class="dstack-flow" x1="210" y1="426" x2="210" y2="462" marker-end="url(#dstack-ar)" />
+          <line class="dstack-flow" x1="690" y1="426" x2="690" y2="462" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-band" x="40" y="466" width="820" height="68" rx="12" />
+          <text class="dstack-band-label" x="450" y="496" text-anchor="middle">TOKEN LAYER</text>
+          <text class="dstack-sub" x="450" y="518" text-anchor="middle">@theme ramps · the gray dial · --pc-radius · the dark ghost material</text>
+
+          <line class="dstack-flow" x1="450" y1="534" x2="450" y2="562" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-box" x="310" y="566" width="280" height="92" rx="10" />
+          <text class="dstack-title" x="450" y="602" text-anchor="middle">One cohesive UI</text>
+          <text class="dstack-sub" x="450" y="626" text-anchor="middle">light and dark, on brand</text>
+        </svg>
+        <figcaption class="pt-4 mt-5 text-sm text-gray-600 border-t border-gray-200 dark:border-gray-800 dark:text-gray-300">
+          An agent writes two kinds of code, and each gets a different guard: the MCP resolves every
+          attr against the installed version, the skill governs the markup no library ships. Both then
+          read the same tokens, which is why the result coheres instead of being two styles glued
+          together - change the primary ramp, the gray dial or <code>--pc-radius</code> once and the
+          shipped components and the hand-written markup move together. Including, right now, this
+          diagram: it is drawn in the dials above.
+        </figcaption>
+      </figure>
+
       <div class="p-5 mt-10 border border-gray-200 rounded-xl dark:border-gray-800">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
         <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
@@ -15681,10 +15761,6 @@ defmodule Dev.PlaygroundLive do
             review a diff, or rebrand, and it loads the right doctrine before writing HEEx. There is no
             command to remember and no setup interview: Petal ships the design system, so the skill
             already knows it.
-          </li>
-          <li>
-            <strong>Pairs with the MCP</strong> - component schemas resolve live via
-            <code>mcp.petal.build</code> when connected, falling back to the skill's bundled snapshot.
           </li>
         </ol>
       </div>
@@ -15721,11 +15797,6 @@ defmodule Dev.PlaygroundLive do
             <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Make it warm amber, sharp corners"</p>
           </div>
         </div>
-        <p class="pt-4 mt-5 text-sm text-gray-600 border-t border-gray-200 dark:border-gray-800 dark:text-gray-300">
-          Before any non-default attr is written it resolves down one ladder: the petal MCP if
-          connected, else the bundled schema snapshot, else the dep source. Trained memory is never
-          trusted - this library ships too fast for it.
-        </p>
       </div>
 
       <.lab_compare
