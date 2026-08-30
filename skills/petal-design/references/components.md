@@ -1,7 +1,7 @@
 # Component inventory - petal_components v4.15.4
 
 GENERATED from data/schemas.json - do not hand-edit. Regenerated each release
-alongside the MCP schema sync (see the release runbook).
+by `mix petal.gen.skill_snapshot`, alongside the MCP schema sync.
 
 One line per public function component, grouped by module - use this to PICK a
 component. To USE one, resolve its full schema via the MCP ladder in SKILL.md
