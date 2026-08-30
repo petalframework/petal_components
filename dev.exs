@@ -15669,11 +15669,20 @@ defmodule Dev.PlaygroundLive do
         </:after_panel>
       </.lab_compare>
 
+      <%!-- Section break: the pair above is the outcome, everything below is the
+      mechanism. Without a heading the two visuals run together. --%>
+      <div class="mt-12">
+        <h2 class="text-lg font-semibold">How it works</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          The library, the MCP and the skill each cover a different part of what an agent writes.
+        </p>
+      </div>
+
       <%!-- The layer diagram: what each of the three pieces guards, and why the
       output coheres. Portrait layout on purpose - the wide version reads at
       ~10px type in this column. Colours come off the dials (see .dstack in
       app.css), so the figure demonstrates the token layer it describes. --%>
-      <figure class="dstack p-5 mt-10 mb-0 border border-gray-200 rounded-xl dark:border-gray-800">
+      <figure class="dstack p-5 mt-4 mb-0 border border-gray-200 rounded-xl dark:border-gray-800">
         <svg
           viewBox="0 0 900 674"
           role="img"
