@@ -10,7 +10,8 @@ defmodule PetalComponents.SkillSnapshotTest do
   @version Mix.Project.config()[:version]
 
   test "the bundled schema snapshot matches the package version" do
-    %{"version" => v} = @skill |> Path.join("data/schemas.json") |> File.read!() |> Jason.decode!()
+    %{"version" => v} =
+      @skill |> Path.join("data/schemas.json") |> File.read!() |> Jason.decode!()
 
     assert v == @version,
            "skills/petal-design/data/schemas.json is v#{v} but the package is v#{@version} - regenerate it (see the release runbook)"
@@ -44,19 +45,66 @@ defmodule PetalComponents.SkillSnapshotTest do
                  "#{mod_string}.#{name} no longer exists - snapshot drifted, regenerate it"
 
         {_key, live} ->
-          live_attrs = MapSet.new(live.attrs, &to_string(&1.name))
-          snap_attrs = MapSet.new(snap["attrs"] || [], & &1["name"])
+          # Names alone are not the contract: a type, enum, default, or
+          # required flag can change under an unchanged name and the snapshot
+          # would still advertise the obsolete schema. Compare the full shape
+          # the extractor serializes (type/default via inspect, values
+          # normalized to strings). Doc text is deliberately not compared.
+          live_attrs = Map.new(live.attrs, &{to_string(&1.name), &1})
+          snap_attrs = Map.new(snap["attrs"] || [], &{&1["name"], &1})
 
-          assert MapSet.equal?(live_attrs, snap_attrs),
-                 "#{mod_string}.#{name} attrs drifted from data/schemas.json - regenerate the snapshot. " <>
-                   "live-only: #{inspect(MapSet.difference(live_attrs, snap_attrs) |> Enum.sort())}, " <>
-                   "snapshot-only: #{inspect(MapSet.difference(snap_attrs, live_attrs) |> Enum.sort())}"
+          assert Enum.sort(Map.keys(live_attrs)) == Enum.sort(Map.keys(snap_attrs)),
+                 "#{mod_string}.#{name} attr names drifted from data/schemas.json - regenerate. " <>
+                   "live-only: #{inspect(Map.keys(live_attrs) -- Map.keys(snap_attrs))}, " <>
+                   "snapshot-only: #{inspect(Map.keys(snap_attrs) -- Map.keys(live_attrs))}"
 
-          live_slots = MapSet.new(live.slots, &to_string(&1.name))
-          snap_slots = MapSet.new(snap["slots"] || [], & &1["name"])
+          for {attr_name, la} <- live_attrs do
+            sa = snap_attrs[attr_name]
+            where = "#{mod_string}.#{name} attr #{attr_name}"
 
-          assert MapSet.equal?(live_slots, snap_slots),
-                 "#{mod_string}.#{name} slots drifted from data/schemas.json - regenerate the snapshot"
+            assert inspect(la.type) == sa["type"],
+                   "#{where} type drifted (live #{inspect(la.type)}, snapshot #{sa["type"]}) - regenerate the snapshot"
+
+            assert la.required == (sa["required"] || false),
+                   "#{where} required flag drifted - regenerate the snapshot"
+
+            # the extractor serializes an explicit nil default as JSON null,
+            # indistinguishable from no default - mirror that here
+            live_default =
+              if Keyword.has_key?(la.opts, :default) and la.opts[:default] != nil,
+                do: inspect(la.opts[:default])
+
+            assert live_default == sa["default"],
+                   "#{where} default drifted (live #{inspect(live_default)}, snapshot #{inspect(sa["default"])}) - regenerate the snapshot"
+
+            live_values = la.opts[:values] && Enum.map(la.opts[:values], &to_string/1)
+            snap_values = sa["values"] && Enum.map(sa["values"], &to_string/1)
+
+            assert live_values == snap_values,
+                   "#{where} values enum drifted (live #{inspect(live_values)}, snapshot #{inspect(snap_values)}) - regenerate the snapshot"
+          end
+
+          live_slots = Map.new(live.slots, &{to_string(&1.name), &1})
+          snap_slots = Map.new(snap["slots"] || [], &{&1["name"], &1})
+
+          assert Enum.sort(Map.keys(live_slots)) == Enum.sort(Map.keys(snap_slots)),
+                 "#{mod_string}.#{name} slot names drifted from data/schemas.json - regenerate the snapshot"
+
+          for {slot_name, ls} <- live_slots do
+            ss = snap_slots[slot_name]
+            where = "#{mod_string}.#{name} slot #{slot_name}"
+
+            assert (ls[:required] || false) == (ss["required"] || false),
+                   "#{where} required flag drifted - regenerate the snapshot"
+
+            live_slot_attrs =
+              ls |> Map.get(:attrs, []) |> Enum.map(&to_string(&1.name)) |> Enum.sort()
+
+            snap_slot_attrs = (ss["attrs"] || []) |> Enum.map(& &1["name"]) |> Enum.sort()
+
+            assert live_slot_attrs == snap_slot_attrs,
+                   "#{where} nested attrs drifted (live #{inspect(live_slot_attrs)}, snapshot #{inspect(snap_slot_attrs)}) - regenerate the snapshot"
+          end
       end
     end
   end
@@ -75,10 +123,14 @@ defmodule PetalComponents.SkillSnapshotTest do
 
     inventory = @skill |> Path.join("references/components.md") |> File.read!()
     [chat_section] = Regex.run(~r/^## Chat\n.*?(?=\n## )/ms, inventory)
-    refute chat_section =~ bare, "components.md lists bare chat calls - render them as <Chat.name>"
+
+    refute chat_section =~ bare,
+           "components.md lists bare chat calls - render them as <Chat.name>"
+
     assert chat_section =~ "<Chat.", "components.md chat section lost its namespacing"
 
-    for %{"module" => mod, "name" => name, "examples" => examples} <- chat, %{"code" => code} <- examples || [] do
+    for %{"module" => mod, "name" => name, "examples" => examples} <- chat,
+        %{"code" => code} <- examples || [] do
       refute code =~ bare,
              "#{mod}.#{name} example uses a bare chat call - namespace it as <Chat....>"
     end
@@ -87,7 +139,10 @@ defmodule PetalComponents.SkillSnapshotTest do
   test "every reference file SKILL.md names exists" do
     skill_md = @skill |> Path.join("SKILL.md") |> File.read!()
 
-    for ref <- Regex.scan(~r/`(references\/[a-z_-]+\.md|data\/[a-z_.]+\.json)`/, skill_md, capture: :all_but_first),
+    for ref <-
+          Regex.scan(~r/`(references\/[a-z_-]+\.md|data\/[a-z_.]+\.json)`/, skill_md,
+            capture: :all_but_first
+          ),
         [path] = ref do
       assert File.exists?(Path.join(@skill, path)), "SKILL.md references missing file: #{path}"
     end
