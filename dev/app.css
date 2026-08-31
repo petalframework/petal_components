@@ -30,3 +30,174 @@
 @utility phx-loading {
   cursor: wait;
 }
+
+/* Design Lab (dev-only page): before/after compare chrome.
+   Deliberately dial-independent fixed colors: this chrome must read
+   identically under every playground theme, including the neutral primary. */
+/* layers size to their content; both sides share identical wrappers so heights match */
+
+.lab-chip {
+  position: absolute;
+  z-index: 10;
+  padding: 2px 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: #1c1917;
+  background: #fbbf24;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+}
+/* connector line to the content the chip names */
+.lab-chip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 1.1rem;
+  height: 1px;
+  background: #fbbf24;
+}
+.lab-chip--improved { color: #052e16; background: #4ade80; }
+.lab-chip--improved::after { background: #4ade80; }
+/* right-gutter chips point left instead */
+.lab-chip--point-left::after { left: auto; right: 100%; }
+
+.lab-side-label {
+  position: absolute;
+  z-index: 20;
+  top: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: opacity 150ms ease-out;
+}
+/* Each label follows what you are mostly viewing: BEFORE fades out as the
+   divider sweeps left past ~20%, AFTER as it sweeps right past ~80%.
+   --pos-n is the unitless twin of --pos (CSS cannot divide a percentage). */
+.lab-side-label--before { opacity: clamp(0, calc((var(--pos-n, 55) - 12) / 10), 1); }
+.lab-side-label--after { opacity: clamp(0, calc((88 - var(--pos-n, 55)) / 10), 1); }
+
+.lab-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 2px;
+  margin-left: -1px;
+  background: #2dd4bf;
+  pointer-events: none;
+}
+.lab-handle {
+  position: absolute;
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid #14b8a6;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0f766e;
+  font-size: 14px;
+  pointer-events: none;
+}
+.dark .lab-handle {
+  border-color: #2dd4bf;
+  background: rgb(3 7 18 / 0.9);
+  color: #5eead4;
+}
+.lab-range {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+/* The gutters the chips live in do not exist on narrow screens - the card
+   column is the full viewport. The note under each pair names every tell in
+   prose, so mobile loses annotation, not information. */
+@media (max-width: 767px) {
+  .lab-chip { display: none; }
+}
+
+/* Chip groups fade with the view, same curves as the side labels - no more
+   hard-slicing a chip at the seam. Connectors ride along: they are ::after
+   pseudos, and opacity on the group covers them. */
+.lab-chips { transition: opacity 150ms ease-out; }
+.lab-chips--before { opacity: clamp(0, calc((var(--pos-n, 55) - 12) / 10), 1); }
+.lab-chips--after { opacity: clamp(0, calc((88 - var(--pos-n, 55)) / 10), 1); }
+
+/* A chip placed over the card itself (not in a gutter) shows only when the
+   divider has swept far enough left to reveal the element it names. */
+.lab-chip--reveal-30 {
+  opacity: clamp(0, calc((34 - var(--pos-n, 55)) / 8), 1);
+  transition: opacity 150ms ease-out;
+}
+
+/* Image pairs: the side labels sit over arbitrary screenshot content, so they
+   get a backdrop for legibility (scoped - live-DOM pairs keep the quiet look). */
+#lab-cold .lab-side-label {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgb(3 7 18 / 0.55);
+  color: #f9fafb;
+}
+
+/* prompt disclosure: rotate the caret when open (hand rule - the playground
+   CSS build does not emit the group-open: variant) */
+details[open] > summary .lab-prompt-caret {
+  rotate: 90deg;
+}
+
+/* --- design-stack figure (the design-skill page) ---
+   The diagram's whole claim is that one token layer feeds everything, so it
+   obeys that layer itself: accent = the primary dial, neutrals = the gray
+   dial. Drag either dial and the figure moves with the rest of the page. */
+.dstack {
+  --d-surface: #fff;
+  --d-line: var(--color-gray-300);
+  --d-ink: var(--color-gray-900);
+  --d-muted: var(--color-gray-500);
+  --d-accent: var(--color-primary-600);
+  --d-accent-soft: color-mix(in oklab, var(--color-primary-600) 9%, transparent);
+}
+
+.dark .dstack {
+  --d-surface: var(--color-gray-900);
+  --d-line: color-mix(in oklab, var(--color-gray-400) 25%, transparent);
+  --d-ink: #fff;
+  --d-muted: var(--color-gray-400);
+  /* primary-600, not 400: under the neutral dial the ramp inverts in dark, so
+     600 is the near-white end (the same token that makes CTAs white there).
+     400 lands mid-gray on gray-900 and the band disappears. */
+  --d-accent: var(--color-primary-600);
+  --d-accent-soft: color-mix(in oklab, var(--color-primary-600) 13%, transparent);
+}
+
+.dstack svg { display: block; width: 100%; height: auto; }
+.dstack-box { fill: var(--d-surface); stroke: var(--d-line); stroke-width: 1.5; }
+.dstack-guard { fill: var(--d-surface); stroke: var(--d-accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.dstack-band { fill: var(--d-accent-soft); stroke: var(--d-accent); stroke-width: 1.5; }
+.dstack-flow { stroke: var(--d-line); stroke-width: 1.6; fill: none; }
+.dstack-flow-a { stroke: var(--d-accent); stroke-width: 1.6; fill: none; }
+.dstack-arrow { fill: var(--d-line); }
+.dstack-arrow-a { fill: var(--d-accent); }
+.dstack-title { font-size: 15px; font-weight: 600; fill: var(--d-ink); }
+.dstack-sub { font-size: 12px; fill: var(--d-muted); }
+.dstack-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; fill: var(--d-accent); }
+.dstack-eyebrow { font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; fill: var(--d-accent); }
+.dstack-edge { font-size: 11px; fill: var(--d-muted); }
+.dstack-band-label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; fill: var(--d-accent); }

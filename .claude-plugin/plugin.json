@@ -1,0 +1,9 @@
+{
+  "name": "petal-design",
+  "description": "Design doctrine for Phoenix apps using petal_components - build, review, and theme UI that stays on the design system.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Petal Framework",
+    "url": "https://petal.build"
+  }
+}

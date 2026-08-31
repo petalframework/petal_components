@@ -421,7 +421,13 @@ defmodule PetalComponents.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class} no_margin={@no_margin}>
-      <label class={["pc-checkbox-label", @label_class]}>
+      <%!-- @label_class styles the label TEXT node below, as on every other
+      field type. It must never land on this outer label: that wraps the visual
+      control too, so label_class="sr-only" (hiding the text when a settings row
+      carries its own label) would clip the entire switch to an invisible 1px
+      box - found the hard way when five verbatim eval switches rendered as
+      ghosts. --%>
+      <label class="pc-checkbox-label">
         <input :if={!@rest[:disabled]} type="hidden" name={@name} value="false" />
         <label class={["pc-switch", "pc-switch--#{@size}", @variant == "pill" && "pc-switch--pill"]}>
           <input
@@ -438,7 +444,7 @@ defmodule PetalComponents.Field do
           <span class={["pc-switch__fake-input", "pc-switch__fake-input--#{@size}"]}></span>
           <span class={["pc-switch__fake-input-bg", "pc-switch__fake-input-bg--#{@size}"]}></span>
         </label>
-        <div class={[@required && "pc-label--required"]}>{@label}</div>
+        <div class={[@required && "pc-label--required", @label_class]}>{@label}</div>
       </label>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
       <.field_help_text help_text={@help_text} />

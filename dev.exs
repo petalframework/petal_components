@@ -39,8 +39,16 @@ defmodule Dev.Layouts do
   # refreshed an iPhone repeatedly and kept testing a build from BEFORE the
   # deploy. A boot-stamped rev on both asset URLs makes every deploy its own
   # cache key; unchanged files still answer 304 via the ETag.
-  @asset_rev System.system_time(:second) |> Integer.to_string()
-  defp asset_rev, do: @asset_rev
+  # Runtime css mtime, not compile-time: the module only recompiles when
+  # dev.exs changes, so a compile-stamped rev left CSS-ONLY edits serving
+  # stale sheets out of browser caches (found via a probe browser insisting
+  # freshly-shipped rules did not exist).
+  defp asset_rev do
+    case File.stat(Path.expand("priv/static/assets/app.css", __DIR__)) do
+      {:ok, %{mtime: t}} -> t |> :calendar.datetime_to_gregorian_seconds() |> Integer.to_string()
+      {:error, _} -> "0"
+    end
+  end
 
   def root(assigns) do
     ~H"""
@@ -387,6 +395,12 @@ defmodule Dev.PlaygroundLive do
 
   @nav [
     %{
+      group: "AI",
+      items: [
+        %{slug: "design-skill", name: "Design skill", ready: true}
+      ]
+    },
+    %{
       group: "Foundations",
       items: [
         %{slug: "typography", name: "Typography", ready: true},
@@ -512,7 +526,10 @@ defmodule Dev.PlaygroundLive do
     }
   ]
 
-  @slugs Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end)
+  # Dev-only: renders the skill-arm eval artifact with the full stylesheet for
+  # eval-t1 stays out of deploy nav but must stay routable there - the
+  # cold-start pair's "view the after side live" link points at it.
+  @slugs Enum.uniq(Enum.flat_map(@nav, fn g -> Enum.map(g.items, & &1.slug) end) ++ ["eval-t1"])
   # the whitelist both filter-bar demos decode against - link mode's
   # from_params and event mode's handle_op take the same list
   @filters_fields [:name, :category, :price, :in_stock, :added_on]
@@ -15359,6 +15376,747 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  # -- Design Lab: before/after proof for the petal-design skill ------------
+  # Public proof surface for bet 003. Pairs 1 and 2 are VERBATIM outputs from
+  # the three-arm skill eval (skills/eval/demo-script.md): before = the
+  # MCP-only arm / the task fixture, after = the skill arm (wrappers for
+  # centering are presentation, the class strings are untouched). Pair 3 is an
+  # authored doctrine illustration - original copy, generic AI-slop tells.
+  #
+  # The compare frame is dial-independent on purpose: it pins data-primary/
+  # data-gray on the container so fixtures render identically under any
+  # playground theme (chrome that dies under the neutral dial would violate
+  # the very doctrine this page demonstrates).
+  # Reachable by URL only (slug whitelisted, no nav entry): the skill arm's settings-page output,
+  # VERBATIM (rev-2 prompt, 2026-08-28 - see skills/eval/demo-script.md),
+  # rendered as a plain app page. Screenshot source for the
+  # cold-start pair's after side.
+  defp render_page(%{active: "eval-t1"} = assigns) do
+    ~H"""
+    <div id="eval-t1-page">
+    <%
+      user = %{name: "Sarah Chen", email: "sarah.chen@example.com"}
+
+      notifications = [
+        %{
+          id: "notif-product-updates",
+          name: "notifications[product_updates]",
+          label: "Product updates",
+          description: "New features and improvements, as they ship.",
+          enabled: true
+        },
+        %{
+          id: "notif-security-alerts",
+          name: "notifications[security_alerts]",
+          label: "Security alerts",
+          description: "Sign-ins from new devices and other important account activity.",
+          enabled: true
+        },
+        %{
+          id: "notif-billing-emails",
+          name: "notifications[billing_emails]",
+          label: "Billing emails",
+          description: "Receipts, upcoming renewals and payment reminders.",
+          enabled: true
+        },
+        %{
+          id: "notif-weekly-digest",
+          name: "notifications[weekly_digest]",
+          label: "Weekly digest",
+          description: "A Monday morning summary of activity in your workspace.",
+          enabled: false
+        },
+        %{
+          id: "notif-tips-offers",
+          name: "notifications[tips_offers]",
+          label: "Tips and offers",
+          description: "Occasional product tips and partner offers.",
+          enabled: false
+        }
+      ]
+
+      plan = %{name: "Pro", price: "$29", renews_on: "Sep 1, 2026", seats_used: 4, seats_total: 5}
+      seats_left = plan.seats_total - plan.seats_used
+
+      invoices = [
+        %{date: "Aug 1, 2026", amount: "$29.00", status: "Pending", pdf: "/invoices/nimbus-2026-08.pdf"},
+        %{date: "Jul 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-07.pdf"},
+        %{date: "Jun 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-06.pdf"},
+        %{date: "May 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-05.pdf"},
+        %{date: "Apr 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-04.pdf"},
+        %{date: "Mar 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-03.pdf"},
+        %{date: "Feb 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-02.pdf"},
+        %{date: "Jan 1, 2026", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2026-01.pdf"},
+        %{date: "Dec 1, 2025", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2025-12.pdf"},
+        %{date: "Nov 1, 2025", amount: "$29.00", status: "Paid", pdf: "/invoices/nimbus-2025-11.pdf"}
+      ]
+    %>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header class="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-400/17 dark:bg-gray-900">
+        <.container max_width="md" class="flex h-16 items-center justify-between gap-4">
+          <a
+            href="/"
+            class="flex items-center gap-2.5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50"
+            style="border-radius: var(--pc-radius, 0.625rem);"
+          >
+            <span
+              class="flex h-8 w-8 items-center justify-center bg-primary-600"
+              style="border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);"
+            >
+              <.icon name="hero-cloud-solid" class="h-5 w-5" style="color: var(--pc-button-solid-fg, #fff);" />
+            </span>
+            <span class="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+              Nimbus
+            </span>
+          </a>
+
+          <.color_scheme_switch id="nimbus-color-scheme" variant="segmented" />
+        </.container>
+      </header>
+
+      <main>
+        <.container max_width="sm" class="py-10">
+          <div class="mb-8">
+            <.h2 no_margin>Settings</.h2>
+            <.text_muted class="mt-1.5">
+              Manage your profile, notifications and billing.
+            </.text_muted>
+          </div>
+
+          <div class="space-y-8">
+            <.card variant="basic">
+              <.card_header title="Profile" description="How you appear across Nimbus." />
+              <.card_content>
+                <div class="flex items-center gap-4">
+                  <.avatar name={user.name} size="xl" />
+                  <div class="min-w-0">
+                    <div class="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                      {user.name}
+                    </div>
+                    <div class="truncate text-sm text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 grid gap-6 sm:grid-cols-2">
+                  <.field
+                    type="text"
+                    id="profile-name"
+                    name="profile[name]"
+                    label="Full name"
+                    value={user.name}
+                    no_margin
+                  />
+                  <.field
+                    type="email"
+                    id="profile-email"
+                    name="profile[email]"
+                    label="Email address"
+                    value={user.email}
+                    no_margin
+                  />
+                </div>
+              </.card_content>
+              <.card_footer class="flex justify-end">
+                <.button label="Save changes" color="primary" phx-click="save_profile" />
+              </.card_footer>
+            </.card>
+
+            <.card variant="basic">
+              <.card_header title="Notifications" description="Choose what lands in your inbox." />
+              <.card_content>
+                <div class="divide-y divide-gray-200 dark:divide-gray-400/17">
+                  <div
+                    :for={notification <- notifications}
+                    class="flex items-center justify-between gap-6 py-4 first:pt-0 last:pb-0"
+                  >
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                        {notification.label}
+                      </div>
+                      <div class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                        {notification.description}
+                      </div>
+                    </div>
+                    <.field
+                      type="switch"
+                      id={notification.id}
+                      name={notification.name}
+                      label={notification.label}
+                      label_class="sr-only"
+                      checked={notification.enabled}
+                      no_margin
+                    />
+                  </div>
+                </div>
+              </.card_content>
+            </.card>
+
+            <.card variant="basic">
+              <.card_header title="Plan" description="Billing for your Nimbus workspace.">
+                <:action>
+                  <.badge color="primary" variant="soft" size="sm" label={plan.name} />
+                </:action>
+              </.card_header>
+              <.card_content>
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span class="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    {plan.price}
+                  </span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    per month &middot; renews {plan.renews_on}
+                  </span>
+                </div>
+
+                <div class="mt-6">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="font-medium text-gray-900 dark:text-gray-200">Seats</span>
+                    <span class="text-gray-500 dark:text-gray-400">
+                      {plan.seats_used} of {plan.seats_total} used
+                    </span>
+                  </div>
+                  <.progress
+                    value={plan.seats_used}
+                    max={plan.seats_total}
+                    color="primary"
+                    size="sm"
+                    class="mt-2"
+                  />
+                  <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    {seats_left} seat remaining on the {plan.name} plan.
+                  </p>
+                </div>
+              </.card_content>
+              <.card_footer class="flex items-center justify-end gap-2">
+                <.button label="Manage billing" color="gray" variant="outline" phx-click="manage_billing" />
+                <.button label="Upgrade plan" color="primary" phx-click="upgrade_plan" />
+              </.card_footer>
+            </.card>
+
+            <.card variant="basic">
+              <.card_header title="Invoices" description="Your last 10 invoices." />
+              <.card_content>
+                <div class="max-w-full overflow-x-auto">
+                  <.table rows={invoices} variant="ghost">
+                    <:col :let={invoice} label="Date">
+                      <span class="font-medium text-gray-900 dark:text-gray-100">{invoice.date}</span>
+                    </:col>
+                    <:col :let={invoice} label="Amount" class="text-right" row_class="text-right tabular-nums">
+                      {invoice.amount}
+                    </:col>
+                    <:col :let={invoice} label="Status">
+                      <.badge
+                        color={if invoice.status == "Paid", do: "success", else: "warning"}
+                        variant="soft"
+                        size="sm"
+                        label={invoice.status}
+                      />
+                    </:col>
+                    <:col :let={invoice} label="Invoice" class="text-right" row_class="text-right">
+                      <.a
+                        to={invoice.pdf}
+                        class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50 transition-colors duration-200 ease-out"
+                        style="border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.25rem), 0.25rem);"
+                      >
+                        <.icon name="hero-arrow-down-tray-micro" class="h-4 w-4" />
+                        <span>PDF</span>
+                      </.a>
+                    </:col>
+                  </.table>
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </.container>
+      </main>
+    </div>
+    </div>
+    """
+  end
+
+  defp render_page(%{active: "design-skill"} = assigns) do
+    ~H"""
+    <div class="max-w-4xl px-4 py-8 mx-auto sm:px-8 sm:py-10">
+      <h1 class="text-3xl font-bold tracking-tight">The petal-design skill</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">
+        An agent skill that carries this design system's doctrine - so AI coding agents
+        build, review, and theme Petal UI the way the library intends. Drag each divider.
+        Pairs badged "verbatim eval output" are real eval material, untouched; the rest are
+        labelled doctrine illustrations. Panels are display fixtures - the interactive
+        components live on their own playground pages.
+      </p>
+
+      <.lab_compare
+        id="lab-cold"
+        title="Cold start: fresh Phoenix vs the Petal stack"
+        badge="verbatim eval output"
+        construction="fresh phx.new → Petal + MCP + skill"
+        live_href="/c/eval-t1"
+        prompt="Build a settings LiveView at /settings: app navbar with the product logo on the left and a theme switcher on the right (System / Light / Dark segmented control); profile section (name, email, avatar); notification toggles; and a billing section with a table of the last 10 invoices (date, amount, status, PDF link) plus a plan card showing seat usage (4 of 5 seats) with a usage progress bar and an upgrade button. Support light and dark mode."
+        note="Same settings-page prompt, one attempt each, screenshots untouched. Before: an agent in a just-generated Phoenix 1.8 app - it gets the stock daisyUI look, a different system with different opinions. After: the skill arm in a Petal app. This pair is two screenshots, not one DOM: the two sides are different apps by construction."
+      >
+        <:before_panel>
+          <%!-- each side ships light and dark captures (both apps rendered in
+          their own native theme machinery) and class-swaps with the page - so
+          this image pair follows the theme toggle like the live-DOM pairs. --%>
+          <img src="/dev-static/lab-coldstart-before.png" alt="Settings page built by an agent in a fresh Phoenix app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-before-dark.png" alt="Settings page built by an agent in a fresh Phoenix app, dark mode" class="hidden w-full dark:block" />
+        </:before_panel>
+        <:after_panel>
+          <img src="/dev-static/lab-coldstart-after.png" alt="Settings page built by the skill agent in a Petal app" class="block w-full dark:hidden" />
+          <img src="/dev-static/lab-coldstart-after-dark.png" alt="Settings page built by the skill agent in a Petal app, dark mode" class="hidden w-full dark:block" />
+        </:after_panel>
+      </.lab_compare>
+
+      <%!-- Section break: the pair above is the outcome, everything below is the
+      mechanism. Without a heading the two visuals run together. --%>
+      <div class="mt-12">
+        <h2 class="text-lg font-semibold">How it works</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          The library, the MCP and the skill each cover a different part of what an agent writes.
+        </p>
+      </div>
+
+      <%!-- The layer diagram: what each of the three pieces guards, and why the
+      output coheres. Portrait layout on purpose - the wide version reads at
+      ~10px type in this column. Colours come off the dials (see .dstack in
+      app.css), so the figure demonstrates the token layer it describes. --%>
+      <figure class="dstack p-5 mt-4 mb-0 border border-gray-200 rounded-xl dark:border-gray-800">
+        <svg
+          viewBox="0 0 900 674"
+          role="img"
+          aria-label="A prompt goes to an AI agent, which writes two kinds of code: component calls, guarded by the MCP server that resolves schemas, and custom markup, guarded by the petal-design skill that applies doctrine. Both pass through one shared token layer and converge into a single cohesive UI."
+        >
+          <defs>
+            <marker id="dstack-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="dstack-arrow" d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+            <marker id="dstack-ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="dstack-arrow-a" d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+          </defs>
+
+          <rect class="dstack-box" x="340" y="16" width="220" height="60" rx="10" />
+          <text class="dstack-eyebrow" x="450" y="40" text-anchor="middle">YOUR PROMPT</text>
+          <text class="dstack-sub" x="450" y="60" text-anchor="middle">“Build a settings page”</text>
+          <line class="dstack-flow" x1="450" y1="76" x2="450" y2="92" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-box" x="355" y="96" width="190" height="76" rx="10" />
+          <text class="dstack-title" x="450" y="130" text-anchor="middle">AI agent</text>
+          <text class="dstack-sub" x="450" y="152" text-anchor="middle">writes HEEx</text>
+
+          <path class="dstack-flow" d="M 438 172 C 415 236, 415 367, 384 367" marker-end="url(#dstack-ar)" />
+          <path class="dstack-flow" d="M 462 172 C 485 236, 485 367, 516 367" marker-end="url(#dstack-ar)" />
+          <text class="dstack-edge" x="424" y="188" text-anchor="end">calls</text>
+          <text class="dstack-edge" x="476" y="188">writes</text>
+
+          <rect class="dstack-guard" x="40" y="196" width="340" height="88" rx="10" />
+          <text class="dstack-eyebrow" x="210" y="222" text-anchor="middle">SCHEMA TRUTH</text>
+          <text class="dstack-title" x="210" y="246" text-anchor="middle">MCP server</text>
+          <text class="dstack-sub" x="210" y="268" text-anchor="middle">mcp.petal.build</text>
+          <line class="dstack-flow-a" x1="210" y1="284" x2="210" y2="304" marker-end="url(#dstack-ar-a)" />
+          <text class="dstack-edge" x="222" y="300">resolves attrs, slots, enums</text>
+
+          <rect class="dstack-guard" x="520" y="196" width="340" height="88" rx="10" />
+          <text class="dstack-eyebrow" x="690" y="222" text-anchor="middle">DESIGN DOCTRINE</text>
+          <text class="dstack-title" x="690" y="246" text-anchor="middle">petal-design skill</text>
+          <text class="dstack-sub" x="690" y="268" text-anchor="middle">ghost ladder · dark pairs · focus ring</text>
+          <line class="dstack-flow-a" x1="690" y1="284" x2="690" y2="304" marker-end="url(#dstack-ar-a)" />
+          <text class="dstack-edge" x="702" y="300">applies the doctrine</text>
+
+          <rect class="dstack-box" x="40" y="308" width="340" height="118" rx="10" />
+          <text class="dstack-title" x="210" y="342" text-anchor="middle">Component calls</text>
+          <text class="dstack-mono" x="210" y="368" text-anchor="middle">&lt;.card&gt; &lt;.field&gt; &lt;.table&gt;</text>
+          <text class="dstack-sub" x="210" y="394" text-anchor="middle">213 surfaces, already styled</text>
+
+          <rect class="dstack-box" x="520" y="308" width="340" height="118" rx="10" />
+          <text class="dstack-title" x="690" y="342" text-anchor="middle">Custom markup</text>
+          <text class="dstack-sub" x="690" y="368" text-anchor="middle">layout, wrappers, one-offs</text>
+          <text class="dstack-sub" x="690" y="392" text-anchor="middle">no library ships this part</text>
+
+          <line class="dstack-flow" x1="210" y1="426" x2="210" y2="462" marker-end="url(#dstack-ar)" />
+          <line class="dstack-flow" x1="690" y1="426" x2="690" y2="462" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-band" x="40" y="466" width="820" height="68" rx="12" />
+          <text class="dstack-band-label" x="450" y="496" text-anchor="middle">TOKEN LAYER</text>
+          <text class="dstack-sub" x="450" y="518" text-anchor="middle">@theme ramps · the gray dial · --pc-radius · the dark ghost material</text>
+
+          <line class="dstack-flow" x1="450" y1="534" x2="450" y2="562" marker-end="url(#dstack-ar)" />
+
+          <rect class="dstack-box" x="310" y="566" width="280" height="92" rx="10" />
+          <text class="dstack-title" x="450" y="602" text-anchor="middle">One cohesive UI</text>
+          <text class="dstack-sub" x="450" y="626" text-anchor="middle">light and dark, on brand</text>
+        </svg>
+        <figcaption class="pt-4 mt-5 text-sm text-gray-600 border-t border-gray-200 dark:border-gray-800 dark:text-gray-300">
+          An agent writes two kinds of code, and each gets a different guard: the MCP resolves every
+          attr against the installed version, the skill governs the markup no library ships. Both then
+          read the same tokens, which is why the result coheres instead of being two styles glued
+          together - change the primary ramp, the gray dial or <code>--pc-radius</code> once and the
+          shipped components and the hand-written markup move together. Including, right now, this
+          diagram: it is drawn in the dials above.
+        </figcaption>
+      </figure>
+
+      <div class="p-5 mt-10 border border-gray-200 rounded-xl dark:border-gray-800">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
+        <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
+          <li>
+            <strong>Install once</strong> - <code>claude plugin install petal-design</code>, or copy
+            <code>deps/petal_components/skills/petal-design</code> into your project's <code>.claude/skills/</code>.
+          </li>
+          <li>
+            <strong>Then just work</strong> - the skill triggers itself. Ask your agent to build a page,
+            review a diff, or rebrand, and it loads the right doctrine before writing HEEx. There is no
+            command to remember and no setup interview: Petal ships the design system, so the skill
+            already knows it.
+          </li>
+        </ol>
+      </div>
+
+      <div class="p-5 mt-6 border border-gray-200 rounded-xl dark:border-gray-800">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Under the hood</h2>
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+          One skill, no command palette: nine markdown files, zero executable code. A request routes
+          by its shape into one of three modes, and each mode loads only the doctrine it needs.
+        </p>
+        <div class="grid gap-5 mt-4 sm:grid-cols-3">
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Build</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Writes HEEx to the craft floor - components over raw tags, the gray dial,
+              a dark pair on every colour, radius from the one knob.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Add a billing settings page"</p>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Review</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Audits a diff - a written design judgment first, then a 13-row grep table and
+              schema spot-checks, reported as P0-P3 findings.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Review this diff for design drift"</p>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Theme</div>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              Rebrands through the token layer - primary ramp, gray remap, the radius knob,
+              the dark ghost material. Never per-element edits.
+            </p>
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">"Make it warm amber, sharp corners"</p>
+          </div>
+        </div>
+      </div>
+
+      <.lab_compare
+        id="lab-soup"
+        title="Tailwind soup to the system"
+        badge="verbatim eval output"
+        construction="task fixture → MCP + skill"
+        note="Task: convert a hand-rolled invoices view. Before: the fixture - literal zinc palette, raw table, hand-rolled fixed inset-0 modal, hover:opacity on a solid. After: the skill arm's conversion - table, soft badge, and the confirm becomes a real alert_dialog."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg pb-4">
+              <h2 class="text-xl font-bold text-zinc-800 mb-4 dark:text-zinc-100">Invoices</h2>
+              <table class="w-full border border-zinc-200 rounded-lg dark:border-zinc-700">
+                <thead>
+                  <tr class="bg-zinc-100 text-left dark:bg-zinc-800">
+                    <th class="px-4 py-2 text-sm text-zinc-500">Date</th>
+                    <th class="px-4 py-2 text-sm text-zinc-500">Amount</th>
+                    <th class="px-4 py-2 text-sm text-zinc-500">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr :for={inv <- lab_invoices()} class="border-t border-zinc-200 dark:border-zinc-700">
+                    <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.date}</td>
+                    <td class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">{inv.amount}</td>
+                    <td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">{inv.status}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 focus:outline-none">Delete all</button>
+            </div>
+          </div>
+        </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 3.31rem; right: calc(100% + 1.25rem);">zinc palette</span>
+          <span class="lab-chip" style="top: 14.44rem; right: calc(100% + 1.25rem);">hover:opacity</span>
+        </:before_chips>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg pb-4">
+              <.h2>Invoices</.h2>
+              <div class="max-w-full overflow-x-auto">
+                <.table rows={lab_invoices()}>
+                  <:col :let={inv} label="Date">{inv.date}</:col>
+                  <:col :let={inv} label="Amount">{inv.amount}</:col>
+                  <:col :let={inv} label="Status">
+                    <.badge color="success" variant="soft" size="sm" label={inv.status} />
+                  </:col>
+                </.table>
+              </div>
+              <div class="mt-4">
+                <.alert_dialog
+                  id="lab-confirm"
+                  variant="destructive"
+                  title="Are you sure?"
+                  description="This cannot be undone."
+                  confirm_label="Delete all"
+                >
+                  <:trigger>
+                    <.button color="danger">Delete all</.button>
+                  </:trigger>
+                </.alert_dialog>
+              </div>
+            </div>
+          </div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.85rem; left: 27.85rem;">soft badge</span>
+          <%!-- lab-chip--reveal-30: this chip sits beside the danger button, in the
+          region the BEFORE layer covers at rest - so it only fades in once the
+          divider sweeps left far enough to actually reveal that button. --%>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left lab-chip--reveal-30" style="top: 17.22rem; left: 7.1rem;">alert_dialog</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-theme"
+        title="Theme mode: the same markup, made yours"
+        badge="doctrine illustration"
+        construction="identical HEEx, dials only"
+        note="Both sides are identical HEEx. The after side sits inside one wrapper carrying the amber primary, the stone gray dial, and --pc-radius: 0 - in an app that is a single @theme block, and the skill's theme mode writes it for you. Retro, corporate, brutalist: the dials do not care."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <.card class="w-full max-w-lg">
+              <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+              <.card_content>
+                <.progress size="sm" color="primary" value={7} max={10} />
+                <div class="mt-3 flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                  <.button size="sm" color="primary" label="View pipeline" />
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </:before_panel>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg font-mono" data-primary="amber" data-gray="stone" style="--pc-radius: 0">
+              <.card class="w-full">
+                <.card_header title="Nightly build" description="Deploys automatically when the suite is green." />
+                <.card_content>
+                  <.progress size="sm" color="primary" value={7} max={10} />
+                  <div class="mt-3 flex items-center justify-between text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">7 of 10 checks passed</span>
+                    <.button size="sm" color="primary" label="View pipeline" />
+                  </div>
+                </.card_content>
+              </.card>
+            </div>
+          </div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">amber + stone dials</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 5.31rem; left: calc(100% + 1.25rem);">--pc-radius: 0</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-polish"
+        title="The polish pass"
+        badge="doctrine illustration"
+        construction="authored slop → on the system"
+        note="The AI-slop tells the review playbook hunts: kicker caps, italic display serif, side-tab border, off-system cream, hardcoded radius. After: the same content on the system - token surface, house type, one accent."
+      >
+        <:before_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <div class="w-full max-w-lg border-l-4 border-violet-400 bg-[#f4efe4] rounded-2xl p-6">
+              <div class="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-semibold">Usage &amp; limits</div>
+              <p class="mt-2 text-2xl text-stone-800" style="font-family: Georgia, serif;">Your team is <em>almost</em> out of seats.</p>
+              <p class="mt-2 text-sm text-stone-500">9 of 10 member seats are in use across two workspaces.</p>
+              <div class="mt-4 h-1.5 rounded-full bg-stone-200"><div class="h-1.5 w-[90%] rounded-full bg-emerald-400"></div></div>
+              <div class="mt-3 flex items-center justify-between text-sm">
+                <span class="text-stone-500">Renews 1 Oct</span>
+                <a href="#" class="font-semibold text-stone-800">Add seats &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 1.34rem; right: calc(100% + 1.25rem);">kicker caps</span>
+          <span class="lab-chip" style="top: 3.31rem; right: calc(100% + 1.25rem);">display serif</span>
+          <span class="lab-chip" style="top: 5.16rem; right: calc(100% + 1.25rem);">side-tab + cream</span>
+        </:before_chips>
+        <:after_panel>
+          <div class="flex justify-center p-8 bg-white dark:bg-gray-950">
+            <.card class="w-full max-w-lg">
+              <.card_header title="Your team is almost out of seats" description="9 of 10 member seats are in use across two workspaces." />
+              <.card_content>
+                <.progress size="sm" color="primary" value={9} max={10} />
+                <div class="mt-3 flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">Renews 1 Oct</span>
+                  <.button variant="ghost" size="sm" color="primary" label="Add seats" />
+                </div>
+              </.card_content>
+            </.card>
+          </div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 1.5rem; left: calc(100% + 1.25rem);">token surface</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 7.38rem; left: calc(100% + 1.25rem);">one accent</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <.lab_compare
+        id="lab-dark"
+        title="Dark mode: the ghost ladder vs mechanical inversion"
+        badge="verbatim eval output"
+        construction="MCP-only → MCP + skill"
+        note="Task: add dark mode to a light-only card. Before: the MCP-only arm - schema access carries no styling doctrine, so it inverts to opaque gray-800/gray-600. After: the skill arm lands the ghost ladder exactly - dark chrome as alpha-of-gray-400 (/8 surface, /17 hairline, /25 input border), so the ghost carries the gray dial's hue. Both sides render forced-dark on purpose: the task under eval is dark mode, so the playground's theme toggle deliberately does not affect this pair."
+      >
+        <:before_panel>
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
+            </div>
+          </div></div>
+        </:before_panel>
+        <:before_chips>
+          <span class="lab-chip" style="top: 0.4rem; right: calc(100% + 1.25rem);">opaque gray-800</span>
+          <span class="lab-chip" style="top: 6.25rem; right: calc(100% + 1.25rem);">gray-600 border</span>
+        </:before_chips>
+        <:after_panel>
+          <div class="dark"><div class="flex justify-center p-8 bg-gray-950">
+            <div class="w-full max-w-lg rounded-lg border border-gray-200 dark:border-gray-400/17 bg-white dark:bg-gray-900 p-6 shadow-xs">
+              <h3 class="font-semibold text-gray-900 dark:text-white">API keys</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rotate keys regularly.</p>
+              <input type="text" class="mt-4 block w-full rounded-lg border border-gray-300 dark:border-gray-400/25 dark:bg-gray-400/8 p-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="sk-..." />
+              <button class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">Rotate</button>
+            </div>
+          </div></div>
+        </:after_panel>
+        <:after_chips>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 0.4rem; left: calc(100% + 1.25rem);">gray-900 panel</span>
+          <span class="lab-chip lab-chip--improved lab-chip--point-left" style="top: 6.25rem; left: calc(100% + 1.25rem);">ghost /8 + /25</span>
+        </:after_chips>
+      </.lab_compare>
+
+      <div class="p-4 mt-8 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
+        Methodology: <code>skills/eval/demo-script.md</code> in the repo. The skill is
+        <code>skills/petal-design/</code> - nine files, no executable code; it routes build,
+        review, and theme requests and resolves every schema through the MCP ladder.
+      </div>
+    </div>
+    """
+  end
+
+  attr(:id, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:badge, :string, required: true)
+  attr(:construction, :string, required: true)
+  attr(:note, :string, required: true)
+  attr(:prompt, :string, default: nil)
+  attr(:live_href, :string, default: nil)
+  attr(:live_label, :string, default: "View the after side live")
+  slot(:before_panel, required: true)
+  slot(:after_panel, required: true)
+  slot(:before_chips, required: false)
+  slot(:after_chips, required: false)
+
+  # The compare frame. Two stacked layers; the after layer (and its chips) clip
+  # to the right of --pos, the before chips clip to the LEFT of --pos so they
+  # dismiss as the divider crosses them. The range input is invisible and spans
+  # the whole panel (ew-resize cursor); a round grab handle rides the seam.
+  # data-primary/data-gray are pinned so fixtures render the same under any dial.
+  defp lab_compare(assigns) do
+    ~H"""
+    <section id={@id} class="mt-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <h2 class="text-lg font-semibold">{@title}</h2>
+        <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded-md bg-teal-600 text-white">{@construction}</span>
+        <span class="px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded-md border border-gray-200 text-gray-500 dark:border-gray-400/17 dark:text-gray-400">{@badge}</span>
+      </div>
+      <p class="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">{@note}</p>
+      <div :if={@prompt || @live_href} class="flex items-start justify-between gap-4 -mt-2 mb-2">
+        <details :if={@prompt} class="group min-w-0 flex-1">
+          <summary class="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-200 ease-out hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200">
+            <span class="lab-prompt-caret transition-transform duration-200">▸</span> The exact prompt both agents received
+          </summary>
+          <p class="mt-2 max-w-3xl rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-400/17 dark:bg-gray-400/8 dark:text-gray-300">{@prompt}</p>
+        </details>
+        <.button
+          :if={@live_href}
+          link_type="a"
+          to={@live_href}
+          target="_blank"
+          rel="noopener"
+          size="xs"
+          color="primary"
+          class="ml-auto shrink-0"
+        >
+          {@live_label}
+          <.icon name="hero-arrow-top-right-on-square-micro" class="w-3.5 h-3.5" />
+        </.button>
+      </div>
+      <div
+        class="relative grid overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800"
+        style="--pos: 55%; --pos-n: 55"
+        data-lab-compare
+        data-primary="blue"
+        data-gray="zinc"
+      >
+        <%!-- isolate: pc components carry internal z-indexes (progress fill is
+        z-[1]); without a stacking context per layer, the BEFORE side's fill
+        escapes and paints over the AFTER layer - blue bar over amber, found
+        the hard way on the theme pair. --%>
+        <div class="relative isolate col-start-1 row-start-1 lab-layer">
+          {render_slot(@before_panel)}
+          <span class="lab-side-label lab-side-label--before" style="left: 1rem;">Before</span>
+        </div>
+        <div :if={@before_chips != []} class="absolute inset-0 z-10 pointer-events-none lab-chips lab-chips--before">
+          <div class="flex justify-center h-full p-8">
+            <div class="relative w-full max-w-lg">{render_slot(@before_chips)}</div>
+          </div>
+        </div>
+        <div class="relative isolate col-start-1 row-start-1 lab-layer" style="clip-path: inset(0 0 0 var(--pos))">
+          {render_slot(@after_panel)}
+          <span class="lab-side-label lab-side-label--after" style="right: 1rem;">After</span>
+        </div>
+        <div :if={@after_chips != []} class="absolute inset-0 z-10 pointer-events-none lab-chips lab-chips--after">
+          <div class="flex justify-center h-full p-8">
+            <div class="relative w-full max-w-lg">{render_slot(@after_chips)}</div>
+          </div>
+        </div>
+        <div class="lab-seam" style="left: var(--pos)"></div>
+        <div class="lab-handle" style="left: var(--pos)">&harr;</div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value="55"
+          aria-label="Reveal the after state"
+          class="lab-range"
+          oninput="const f = this.closest('[data-lab-compare]'); f.style.setProperty('--pos', this.value + '%'); f.style.setProperty('--pos-n', this.value)"
+        />
+      </div>
+    </section>
+    """
+  end
+
+  defp lab_invoices do
+    [
+      %{date: "2026-08-01", amount: "$29.00", status: "paid"},
+      %{date: "2026-07-01", amount: "$29.00", status: "paid"},
+      %{date: "2026-06-01", amount: "$29.00", status: "paid"}
+    ]
+  end
+
   defp render_page(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-full px-8 text-center">
@@ -15401,13 +16159,45 @@ end
 
 defmodule Dev.Reloader do
   # phoenix_playground's reloader re-evaluates this whole file on every
-  # request. Two concurrent requests (e.g. a HEAD + GET from tooling like curl
-  # or browser prefetch) race the compiler and crash with "module is currently
-  # being defined", so serialize reloads behind a global lock.
+  # request, unconditionally - no mtime check (see its CodeReloader.reload/2).
+  # That cost ~12s when first measured and ~24s after the 4.15 wave doubled
+  # the file, which made dev mode feel broken next to the deployed playground
+  # (deploy mode compiles once, hence prod's 1s loads).
+  #
+  # Two fixes layered here:
+  #   1. mtime gate - skip the re-eval entirely while dev.exs is unchanged,
+  #      so only the first request after an edit pays the compile. The gate
+  #      state lives in :persistent_term because this very module is replaced
+  #      by each reload.
+  #   2. global lock (pre-existing) - two concurrent requests race the
+  #      compiler and crash with "module is currently being defined";
+  #      re-check the gate inside the lock so the loser of the race skips.
   def reload(endpoint, opts) do
-    :global.trans({__MODULE__, self()}, fn ->
-      PhoenixPlayground.CodeReloader.reload(endpoint, opts)
-    end)
+    path = Application.get_env(:phoenix_playground, :file)
+
+    if is_nil(path) or stale?(path) do
+      :global.trans({__MODULE__, self()}, fn ->
+        if is_nil(path) or stale?(path) do
+          result = PhoenixPlayground.CodeReloader.reload(endpoint, opts)
+          path && :persistent_term.put({Dev.Reloader, :mtime}, mtime(path))
+          result
+        else
+          :ok
+        end
+      end)
+    else
+      :ok
+    end
+  end
+
+  defp stale?(path), do: :persistent_term.get({Dev.Reloader, :mtime}, nil) != mtime(path)
+
+  defp mtime(path) do
+    case File.stat(path) do
+      {:ok, %{mtime: t}} -> t
+      # fs blip (vim save dance): treat as changed, the reload path re-reads
+      {:error, _} -> :unknown
+    end
   end
 end
 
@@ -15437,7 +16227,8 @@ defmodule Dev.Endpoint do
   # Phoenix.CodeReloader re-evaluates this ENTIRE file on every request
   # (~12s each measured) - live_reload: false alone does not disable it,
   # because these plugs are hardcoded here, not derived from that option.
-  if System.get_env("PLAYGROUND_DEPLOY") != "true" do
+  if System.get_env("PLAYGROUND_DEPLOY") != "true" and
+       System.get_env("PLAYGROUND_RELOAD", "true") != "false" do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader, reloader: &Dev.Reloader.reload/2
@@ -15561,7 +16352,11 @@ PhoenixPlayground.start(
   # websocket silently fail on the ::1 pick (dead render, URL params ignored).
   # (Fly's proxy also reaches the app over the v6 private network.)
   ip: {0, 0, 0, 0, 0, 0, 0, 0},
-  live_reload: not deploy?,
+  # PLAYGROUND_RELOAD=false compiles out the reload machinery entirely (this
+  # option AND the hardcoded endpoint plugs below - both must be gated).
+  # Rarely needed now: Dev.Reloader's mtime gate makes default dev mode fast
+  # on unchanged requests; only the first request after an edit pays ~24s.
+  live_reload: not deploy? and System.get_env("PLAYGROUND_RELOAD", "true") != "false",
   endpoint_options:
     deploy_endpoint_options ++
       [
