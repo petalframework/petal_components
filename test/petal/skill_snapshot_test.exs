@@ -59,29 +59,11 @@ defmodule PetalComponents.SkillSnapshotTest do
                    "snapshot-only: #{inspect(Map.keys(snap_attrs) -- Map.keys(live_attrs))}"
 
           for {attr_name, la} <- live_attrs do
-            sa = snap_attrs[attr_name]
-            where = "#{mod_string}.#{name} attr #{attr_name}"
-
-            assert inspect(la.type) == sa["type"],
-                   "#{where} type drifted (live #{inspect(la.type)}, snapshot #{sa["type"]}) - regenerate the snapshot"
-
-            assert la.required == (sa["required"] || false),
-                   "#{where} required flag drifted - regenerate the snapshot"
-
-            # the extractor serializes an explicit nil default as JSON null,
-            # indistinguishable from no default - mirror that here
-            live_default =
-              if Keyword.has_key?(la.opts, :default) and la.opts[:default] != nil,
-                do: inspect(la.opts[:default])
-
-            assert live_default == sa["default"],
-                   "#{where} default drifted (live #{inspect(live_default)}, snapshot #{inspect(sa["default"])}) - regenerate the snapshot"
-
-            live_values = la.opts[:values] && Enum.map(la.opts[:values], &to_string/1)
-            snap_values = sa["values"] && Enum.map(sa["values"], &to_string/1)
-
-            assert live_values == snap_values,
-                   "#{where} values enum drifted (live #{inspect(live_values)}, snapshot #{inspect(snap_values)}) - regenerate the snapshot"
+            assert_attr_shape(
+              la,
+              snap_attrs[attr_name],
+              "#{mod_string}.#{name} attr #{attr_name}"
+            )
           end
 
           live_slots = Map.new(live.slots, &{to_string(&1.name), &1})
@@ -97,13 +79,19 @@ defmodule PetalComponents.SkillSnapshotTest do
             assert (ls[:required] || false) == (ss["required"] || false),
                    "#{where} required flag drifted - regenerate the snapshot"
 
-            live_slot_attrs =
-              ls |> Map.get(:attrs, []) |> Enum.map(&to_string(&1.name)) |> Enum.sort()
+            live_slot_attrs = Map.new(Map.get(ls, :attrs, []), &{to_string(&1.name), &1})
+            snap_slot_attrs = Map.new(ss["attrs"] || [], &{&1["name"], &1})
 
-            snap_slot_attrs = (ss["attrs"] || []) |> Enum.map(& &1["name"]) |> Enum.sort()
+            assert Enum.sort(Map.keys(live_slot_attrs)) == Enum.sort(Map.keys(snap_slot_attrs)),
+                   "#{where} nested attr names drifted - regenerate the snapshot"
 
-            assert live_slot_attrs == snap_slot_attrs,
-                   "#{where} nested attrs drifted (live #{inspect(live_slot_attrs)}, snapshot #{inspect(snap_slot_attrs)}) - regenerate the snapshot"
+            for {nested_name, nla} <- live_slot_attrs do
+              assert_attr_shape(
+                nla,
+                snap_slot_attrs[nested_name],
+                "#{where} nested attr #{nested_name}"
+              )
+            end
           end
       end
     end
@@ -134,6 +122,32 @@ defmodule PetalComponents.SkillSnapshotTest do
       refute code =~ bare,
              "#{mod}.#{name} example uses a bare chat call - namespace it as <Chat....>"
     end
+  end
+
+  # One attr's full serialized contract - shared by top-level and nested slot
+  # attrs, so a nested attr's type/default/required/values cannot drift under
+  # an unchanged name either. Types and defaults compare via inspect (the
+  # extractor's format); an explicit nil default folds to absent, matching
+  # the JSON null the extractor emits.
+  defp assert_attr_shape(live, snap, where) do
+    assert inspect(live.type) == snap["type"],
+           "#{where} type drifted (live #{inspect(live.type)}, snapshot #{snap["type"]}) - regenerate the snapshot"
+
+    assert live.required == (snap["required"] || false),
+           "#{where} required flag drifted - regenerate the snapshot"
+
+    live_default =
+      if Keyword.has_key?(live.opts, :default) and live.opts[:default] != nil,
+        do: inspect(live.opts[:default])
+
+    assert live_default == snap["default"],
+           "#{where} default drifted (live #{inspect(live_default)}, snapshot #{inspect(snap["default"])}) - regenerate the snapshot"
+
+    live_values = live.opts[:values] && Enum.map(live.opts[:values], &to_string/1)
+    snap_values = snap["values"] && Enum.map(snap["values"], &to_string/1)
+
+    assert live_values == snap_values,
+           "#{where} values enum drifted (live #{inspect(live_values)}, snapshot #{inspect(snap_values)}) - regenerate the snapshot"
   end
 
   test "every reference file SKILL.md names exists" do
