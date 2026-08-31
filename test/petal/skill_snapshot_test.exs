@@ -97,6 +97,23 @@ defmodule PetalComponents.SkillSnapshotTest do
     end
   end
 
+  test "every live public component appears in the snapshot" do
+    # The drift test walks snapshot -> live, so a component ADDED to the
+    # library without regenerating would never enter that loop and CI would
+    # stay green while the snapshot omits the new API. Walk the other
+    # direction using the generator's own enumeration.
+    %{"components" => components} =
+      @skill |> Path.join("data/schemas.json") |> File.read!() |> Jason.decode!()
+
+    snap = MapSet.new(components, &{&1["module"], &1["name"]})
+    live = Mix.Tasks.Petal.Gen.SkillSnapshot.live_component_names()
+    missing = MapSet.difference(live, snap)
+
+    assert MapSet.size(missing) == 0,
+           "live components missing from data/schemas.json - run mix petal.gen.skill_snapshot: " <>
+             inspect(Enum.sort(missing))
+  end
+
   test "chat-family calls are namespaced in the inventory and snapshot examples" do
     # The Chat family is NOT imported by `use PetalComponents` - an agent that
     # copies a bare `<.conversation>` from the inventory or an example ships

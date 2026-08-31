@@ -83,6 +83,24 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
     |> Enum.sort_by(&{&1.name, &1.module})
   end
 
+  @doc """
+  Every {module, component} pair the snapshot must cover, as inspect/string
+  pairs. Shared with test/petal/skill_snapshot_test.exs so the completeness
+  guard and the generator can never disagree about what "all components" means.
+  """
+  def live_component_names do
+    {:ok, modules} = :application.get_key(:petal_components, :modules)
+
+    for module <- modules,
+        petal_module?(module),
+        module not in @skip_modules,
+        function_exported?(module, :__components__, 0),
+        {name, _meta} <- Map.new(module.__components__(), &published_entry(module, &1)),
+        into: MapSet.new() do
+      {inspect(module), to_string(name)}
+    end
+  end
+
   defp petal_module?(module) do
     case Module.split(module) do
       # The Showcase namespace is docs tooling (the example gallery + its
