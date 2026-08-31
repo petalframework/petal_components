@@ -94,6 +94,9 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
     for module <- modules,
         petal_module?(module),
         module not in @skip_modules,
+        # ensure_loaded first: function_exported?/3 is false for compiled but
+        # not-yet-loaded modules, which would silently shrink the live set
+        Code.ensure_loaded?(module),
         function_exported?(module, :__components__, 0),
         {name, _meta} <- Map.new(module.__components__(), &published_entry(module, &1)),
         into: MapSet.new() do
@@ -113,7 +116,7 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
   end
 
   defp module_components(module, examples) do
-    if function_exported?(module, :__components__, 0) do
+    if Code.ensure_loaded?(module) and function_exported?(module, :__components__, 0) do
       components = Map.new(module.__components__(), &published_entry(module, &1))
       siblings = Map.keys(components)
 
