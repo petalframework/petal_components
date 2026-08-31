@@ -1,5 +1,21 @@
 # Changelog
 
+### Unreleased
+
+#### Fixed
+
+- **Light button variants no longer invert against the dark ground.**
+  `variant="light"` used to keep its pale color-200 chip with color-800
+  text in dark mode - a bright block with dark text, backwards against
+  every neighbouring control. Dark mode now renders the tonal shape
+  instead: a deep color-950 chip with color-300 text, hover stepping
+  950 -> 900 -> 800, uniformly across primary, secondary, info,
+  success, warning and danger. Gray is special-cased: gray-950 would
+  sink into the dark ground, so `gray` + `light` wears the gray-400
+  ghost ladder (/8 resting, /17 hover, /25 active) like the other gray
+  chrome. Light mode is untouched, and badges keep their documented
+  light-stays-light doctrine - this is buttons only.
+
 ### 4.15.4 - 2026-08-27
 
 #### Added

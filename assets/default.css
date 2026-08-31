@@ -178,14 +178,20 @@
     @apply rounded-full;
   }
 
-  /* Buttons - colors */
+  /* Buttons - colors
+
+     light and soft share a pale chip in light mode but split in dark:
+     soft goes translucent (color-500 alpha), light goes tonal - a deep
+     color-950 chip with color-300 text, hover stepping 950 -> 900 -> 800.
+     gray-light is the exception: gray-950 would sink into the dark
+     ground, so it wears the gray-400 ghost ladder (/8, /17, /25). */
 
   .pc-button--primary {
     @apply border-transparent bg-primary-600 hover:bg-primary-700 active:bg-primary-800 shadow-xs;
     color: var(--pc-button-solid-fg, #fff);
   }
   .pc-button--primary-light {
-    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-200 dark:text-primary-800 dark:hover:brightness-95 dark:active:brightness-90;
+    @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-950 dark:text-primary-300 dark:hover:bg-primary-900 dark:active:bg-primary-800;
   }
   .pc-button--primary-soft {
     @apply bg-primary-100 text-primary-800 border-transparent hover:bg-primary-200 active:bg-primary-300 shadow-xs dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/25 dark:active:bg-primary-500/30;
@@ -206,7 +212,7 @@
     @apply text-white border-transparent bg-secondary-600 hover:bg-secondary-700 active:bg-secondary-800 shadow-xs;
   }
   .pc-button--secondary-light {
-    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-200 dark:text-secondary-800 dark:hover:brightness-95 dark:active:brightness-90;
+    @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-950 dark:text-secondary-300 dark:hover:bg-secondary-900 dark:active:bg-secondary-800;
   }
   .pc-button--secondary-soft {
     @apply bg-secondary-100 text-secondary-800 border-transparent hover:bg-secondary-200 active:bg-secondary-300 shadow-xs dark:bg-secondary-500/15 dark:text-secondary-300 dark:hover:bg-secondary-500/25 dark:active:bg-secondary-500/30;
@@ -242,7 +248,7 @@
     @apply text-white border-transparent bg-info-600 hover:bg-info-700 active:bg-info-800 shadow-xs;
   }
   .pc-button--info-light {
-    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-200 dark:text-info-800 dark:hover:bg-info-300 dark:active:bg-info-400;
+    @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-950 dark:text-info-300 dark:hover:bg-info-900 dark:active:bg-info-800;
   }
   .pc-button--info-soft {
     @apply bg-info-100 text-info-800 border-transparent hover:bg-info-200 active:bg-info-300 shadow-xs dark:bg-info-500/15 dark:text-info-300 dark:hover:bg-info-500/25 dark:active:bg-info-500/30;
@@ -263,7 +269,7 @@
     @apply text-white border-transparent bg-success-600 hover:bg-success-700 active:bg-success-800 shadow-xs;
   }
   .pc-button--success-light {
-    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-200 dark:text-success-800 dark:hover:bg-success-300 dark:active:bg-success-400;
+    @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-950 dark:text-success-300 dark:hover:bg-success-900 dark:active:bg-success-800;
   }
   .pc-button--success-soft {
     @apply bg-success-100 text-success-800 border-transparent hover:bg-success-200 active:bg-success-300 shadow-xs dark:bg-success-500/15 dark:text-success-300 dark:hover:bg-success-500/25 dark:active:bg-success-500/30;
@@ -284,7 +290,7 @@
     @apply text-white border-transparent bg-warning-600 hover:bg-warning-700 active:bg-warning-800 shadow-xs;
   }
   .pc-button--warning-light {
-    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-200 dark:text-warning-800 dark:hover:bg-warning-300 dark:active:bg-warning-400;
+    @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-950 dark:text-warning-300 dark:hover:bg-warning-900 dark:active:bg-warning-800;
   }
   .pc-button--warning-soft {
     @apply bg-warning-100 text-warning-800 border-transparent hover:bg-warning-200 active:bg-warning-300 shadow-xs dark:bg-warning-500/15 dark:text-warning-300 dark:hover:bg-warning-500/25 dark:active:bg-warning-500/30;
@@ -305,7 +311,7 @@
     @apply text-white border-transparent bg-danger-600 hover:bg-danger-700 active:bg-danger-800 shadow-xs;
   }
   .pc-button--danger-light {
-    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-200 dark:text-danger-800 dark:hover:bg-danger-300 dark:active:bg-danger-400;
+    @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-950 dark:text-danger-300 dark:hover:bg-danger-900 dark:active:bg-danger-800;
   }
   .pc-button--danger-soft {
     @apply bg-danger-100 text-danger-800 border-transparent hover:bg-danger-200 active:bg-danger-300 shadow-xs dark:bg-danger-500/15 dark:text-danger-300 dark:hover:bg-danger-500/25 dark:active:bg-danger-500/30;
@@ -326,7 +332,7 @@
     @apply text-white border-transparent bg-gray-600 hover:bg-gray-700 active:bg-gray-800 shadow-xs;
   }
   .pc-button--gray-light {
-    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:active:bg-gray-400;
+    @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-400/8 dark:text-gray-300 dark:hover:bg-gray-400/17 dark:active:bg-gray-400/25;
   }
   .pc-button--gray-soft {
     @apply bg-gray-100 text-gray-800 border-transparent hover:bg-gray-200 active:bg-gray-300 shadow-xs dark:bg-gray-500/15 dark:text-gray-300 dark:hover:bg-gray-500/25 dark:active:bg-gray-500/30;

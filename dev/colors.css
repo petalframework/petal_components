@@ -323,6 +323,26 @@
   background-color: var(--pg-gray-900);
 }
 
+/* Neutral accent, dark mode: the light variant's tonal chip reads the
+   950/900/800 stops, which this inverted ramp maps to near-white - a light
+   chip with light text. A monochrome primary IS gray, so give it the same
+   answer gray-light uses: the gray-400 ghost ladder (/8, /17, /25).
+   Unlayered, so it outranks the @layer components utilities including
+   their hover/active steps - hence explicit :hover/:active rungs. */
+.dark [data-primary="neutral"] .pc-button--primary-light,
+.dark[data-primary="neutral"] .pc-button--primary-light {
+  background-color: color-mix(in oklab, var(--pg-gray-400) 8%, transparent);
+  color: var(--pg-gray-300);
+}
+.dark [data-primary="neutral"] .pc-button--primary-light:hover,
+.dark[data-primary="neutral"] .pc-button--primary-light:hover {
+  background-color: color-mix(in oklab, var(--pg-gray-400) 17%, transparent);
+}
+.dark [data-primary="neutral"] .pc-button--primary-light:active,
+.dark[data-primary="neutral"] .pc-button--primary-light:active {
+  background-color: color-mix(in oklab, var(--pg-gray-400) 25%, transparent);
+}
+
 /* Raw-var bridge: components that read var(--color-primary-*) directly
  * (chat bubbles via --pc-chat-user-bg, any token defaults) must track the
  * dials too. @theme inline only rewires UTILITIES - it never emits the

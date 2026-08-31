@@ -144,6 +144,41 @@ defmodule PetalComponents.ButtonTest do
 
       assert_has_class(html, button_class("primary", "soft"))
     end
+
+    test "light variant goes tonal in dark mode, never a pale chip on the dark ground" do
+      # In light mode `light` is a pale color-100 chip with color-800 text.
+      # Carrying that same pair into dark mode renders a light chip with
+      # dark text - inverted against the ground - so dark flips to the
+      # tonal shape: color-950 chip, color-300 text, hover stepping
+      # 950 -> 900 -> 800. gray is the exception: gray-950 would sink
+      # into the dark ground, so it wears the gray-400 ghost ladder.
+      css = File.read!(Path.expand("../../assets/default.css", __DIR__))
+
+      for color <- colors() do
+        [rule] = Regex.run(~r/\.pc-button--#{color}-light\s*\{[^}]*\}/, css)
+
+        refute rule =~ ~r/dark:bg-#{color}-[12]00/,
+               "#{color}-light must not keep a pale 100/200 surface in dark mode"
+
+        refute rule =~ ~r/dark:text-#{color}-[78]00/,
+               "#{color}-light must not keep dark 700/800 text in dark mode"
+
+        refute rule =~ "dark:hover:brightness",
+               "#{color}-light dark hover steps via bg stops, not brightness filters"
+
+        if color == "gray" do
+          assert rule =~ "dark:bg-gray-400/8"
+          assert rule =~ "dark:text-gray-300"
+          assert rule =~ "dark:hover:bg-gray-400/17"
+          assert rule =~ "dark:active:bg-gray-400/25"
+        else
+          assert rule =~ "dark:bg-#{color}-950"
+          assert rule =~ "dark:text-#{color}-300"
+          assert rule =~ "dark:hover:bg-#{color}-900"
+          assert rule =~ "dark:active:bg-#{color}-800"
+        end
+      end
+    end
   end
 
   describe "button/1 - states and modifiers" do

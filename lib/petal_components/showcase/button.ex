@@ -7,7 +7,7 @@ defmodule PetalComponents.Showcase.Button do
 
   example :variants, "Variants",
     description:
-      "Five fill styles, one per action weight: solid carries the primary action, soft and light tint the surface (soft adapts its tint to dark mode, light stays light in both), outline and ghost recede to chrome. inverted and shadow still render but are legacy - prefer outline." do
+      "Five fill styles, one per action weight: solid carries the primary action, soft and light tint the surface (both adapt to dark mode - soft as a translucent tint, light as a deep tonal chip), outline and ghost recede to chrome. inverted and shadow still render but are legacy - prefer outline." do
     ~H"""
     <div class="flex flex-wrap items-center justify-center gap-3">
       <.button>Solid</.button>
