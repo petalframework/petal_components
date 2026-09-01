@@ -117,14 +117,18 @@ defmodule PetalComponents.Separator do
   defp labelled?(%{label: label}) when is_binary(label) and label != "", do: true
   defp labelled?(_), do: false
 
-  defp aria(true, _orientation), do: %{"aria-hidden": "true"}
-  defp aria(false, "vertical"), do: %{role: "separator", "aria-orientation": "vertical"}
-  defp aria(false, _horizontal), do: %{role: "separator"}
+  # Keyword lists, not maps: a keyword interpolation renders in the order
+  # written, where a multi-key map renders in Erlang's small-map iteration
+  # order - a compile-time property of the literal pool, so a clean rebuild
+  # can reorder the attributes on its own.
+  defp aria(true, _orientation), do: ["aria-hidden": "true"]
+  defp aria(false, "vertical"), do: [role: "separator", "aria-orientation": "vertical"]
+  defp aria(false, _horizontal), do: [role: "separator"]
 
   # Decorative + labelled: no aria at all - the lines are hidden, the label
   # reads as plain text. Semantic + labelled: the aria-label carries the text
   # role="separator" swallows; rich slot content should pass the label attr
   # alongside for this reason.
-  defp labelled_aria(true, _label), do: %{}
-  defp labelled_aria(false, label), do: %{role: "separator", "aria-label": label}
+  defp labelled_aria(true, _label), do: []
+  defp labelled_aria(false, label), do: [role: "separator", "aria-label": label]
 end
