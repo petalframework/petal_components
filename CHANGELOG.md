@@ -1,9 +1,45 @@
 # Changelog
 
-### Unreleased
+### 4.16.0 - 2026-09-01
+
+#### Added
+
+- **Typeset: three font tokens the package reads but never defines.**
+  `--pc-font-heading`, `--pc-font-body` and `--pc-font-mono` follow the
+  `--pc-radius` contract - read at point of use, fallback chains ending
+  in `inherit` or the exact value each surface already consumed, so an
+  app that sets nothing keeps its own stack. Heading falls back through
+  body (one token restyles everything), kbd deliberately tracks body,
+  chat headings stay on the bubble's dense scale, and prose binds at
+  zero specificity so the host's typography plugin always wins. The
+  playground grew its third dial group to drive it - colour, radius,
+  now type - a labelled Typeset panel over a curated catalogue of 24
+  open faces, and a Get Code panel that emits the whole start story:
+  install lines, theme block, self-hosted font files with real
+  per-family weight ranges, and a prompt to hand your coding agent.
+- **Charts follow your fonts.** ECharts paints text into canvas, where
+  CSS cannot reach - the chart theme now copies the container's
+  computed font into every text style and re-derives when it changes,
+  so `@theme { --font-sans: ... }` reskins axis labels and tooltips too.
+- **UI counters keep uniform digits under any face.** Component-owned
+  numeric chrome - badge counts, pagination, calendar days, OTP slots,
+  the avatar-group overflow chip, tab pills, stepper numbers, progress
+  readouts, slider values, chat source counts - carries `lining-nums`:
+  fonts whose default digits are old-style figures vary height by
+  design, which reads as mis-centred in a chip. A no-op everywhere
+  else, and slot or user content is never imposed on.
 
 #### Fixed
 
+- **Input-group inner controls shed their error ring.** Rings live in
+  `--tw-ring-shadow`, which the group's `shadow-none` strip never
+  reset - so an errored number field painted a square danger halo past
+  its own corners at large radii until focus hid it. The group alone
+  carries the field surface - border, radius, focus ring and error
+  ring - in every state.
+- **Unknown slide_over origins fall back to the default direction.**
+  A runtime origin outside the declared set normalises to the right
+  edge instead of crashing the LiveView.
 - **Dynamic attribute helpers render in a stable order everywhere.** The
   sweep #696's dropdown fix called for: every component helper whose
   result is splatted into a tag as attributes now returns a keyword

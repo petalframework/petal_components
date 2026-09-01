@@ -1,7 +1,7 @@
 ---
 name: petal-design
 description: Design doctrine for Phoenix apps using petal_components. Use whenever you build, edit, review, or theme UI in a Phoenix or LiveView project - writing or changing HEEx templates, composing pages from <.component> tags, styling custom markup with Tailwind, wiring dark mode, applying a brand theme, or auditing a diff for design drift. Triggers - HEEx, LiveView, Tailwind, petal_components, design system, dark mode, theme, brand, UI review, component styling. Not for backend-only work.
-petal_components_version: 4.15.4
+petal_components_version: 4.16.0
 ---
 
 # petal-design
