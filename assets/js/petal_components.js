@@ -694,8 +694,12 @@ export const PetalChart = {
       clearTimeout(this.rethemeTimer);
       this.rethemeTimer = setTimeout(() => this.rethemeIfChanged(), 120);
     };
+    // "style" included because inline custom properties are how wrapper-level
+    // theming writes the type tokens (and radius) - a font dial change lands
+    // as a style-attribute mutation, not a class or data-* one.
     const themeAttrs = [
       "class",
+      "style",
       "data-theme",
       "data-primary",
       "data-secondary",
@@ -1005,8 +1009,17 @@ export const PetalChart = {
       "|" +
       this.resolveColor("var(--color-gray-500)") +
       "|" +
+      this.chartFont() +
+      "|" +
       this.isDark()
     );
+  },
+
+  // Canvas text can't inherit CSS, so the theme copies the container's
+  // computed font instead - which already resolves the host's --font-sans
+  // and any --pc-font-body scoped above the chart.
+  chartFont() {
+    return getComputedStyle(this.el).fontFamily || "sans-serif";
   },
 
   alpha(expression, pct) {
@@ -1017,6 +1030,7 @@ export const PetalChart = {
 
   buildTheme() {
     const dark = this.isDark();
+    const fontFamily = this.chartFont();
     const gray = (stop) => this.resolveColor(`var(--color-gray-${stop})`);
     const text = dark ? gray(400) : gray(500);
     const strongText = dark ? gray(100) : gray(900);
@@ -1030,7 +1044,7 @@ export const PetalChart = {
     const axisStyles = {
       axisLine: { show: false, lineStyle: { color: axisLine } },
       axisTick: { show: false, lineStyle: { color: axisLine } },
-      axisLabel: { color: text, margin: 10, fontSize: 12 },
+      axisLabel: { color: text, margin: 10, fontSize: 12, fontFamily },
       splitLine: { lineStyle: { color: splitLine } },
       splitArea: { show: false },
     };
@@ -1038,13 +1052,13 @@ export const PetalChart = {
     return {
       color: this.palette(),
       backgroundColor: "transparent",
-      textStyle: { color: text },
+      textStyle: { color: text, fontFamily },
       title: {
-        textStyle: { color: strongText },
-        subtextStyle: { color: text },
+        textStyle: { color: strongText, fontFamily },
+        subtextStyle: { color: text, fontFamily },
       },
       legend: {
-        textStyle: { color: text },
+        textStyle: { color: text, fontFamily },
         inactiveColor: dark
           ? this.alpha("var(--color-gray-400)", 35)
           : gray(300),
@@ -1061,7 +1075,7 @@ export const PetalChart = {
       tooltip: {
         backgroundColor: dark ? gray(900) : "#ffffff",
         borderColor: dark ? this.alpha(gray(400), 25) : gray(200),
-        textStyle: { color: dark ? gray(100) : gray(700), fontSize: 12 },
+        textStyle: { color: dark ? gray(100) : gray(700), fontSize: 12, fontFamily },
         axisPointer: {
           lineStyle: { color: dark ? this.alpha(gray(400), 30) : gray(300) },
           crossStyle: { color: dark ? this.alpha(gray(400), 30) : gray(300) },

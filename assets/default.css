@@ -765,8 +765,9 @@
     @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-inline-code {
-    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-gray-400/17 dark:text-gray-100;
+    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] text-sm font-semibold text-gray-700 dark:bg-gray-400/17 dark:text-gray-100;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-text-muted {
     @apply text-sm text-gray-500 dark:text-gray-400;
@@ -781,6 +782,34 @@
     @apply my-8 border-gray-200 dark:border-gray-800;
   }
 
+  /* Type tokens - the Typeset dials. Never DEFINED here: like --pc-radius,
+     the package only reads these, so an app that sets nothing keeps
+     inheriting the host's stack - every chain below ends in `inherit` or
+     the value the surface already used. --pc-font-heading falls back
+     through --pc-font-body, so setting body alone moves headings too.
+     Scope doctrine: --pc-font-body binds READING surfaces only (typography,
+     prose, chat); app chrome keeps inheriting from the host html - a whole-
+     app face is the host's `@theme { --font-sans: ... }`, not ours. */
+  :is(.pc-h1, .pc-h2, .pc-h3, .pc-h4, .pc-h5) {
+    font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
+  }
+  :is(.pc-text, .pc-lead, .pc-blockquote, .pc-text-muted, .pc-text-large, .pc-text-small) {
+    font-family: var(--pc-font-body, inherit);
+  }
+  /* <.prose> is otherwise styled entirely by the host's typography plugin;
+     these zero-specificity rules stay inert without it and lose to any
+     host override. Prose kbd is untouched (the plugin sets it to inherit,
+     and kbd tracks body by doctrine). */
+  .prose {
+    font-family: var(--pc-font-body, inherit);
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
+  }
+  .prose :where(pre, code) {
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
+  }
+
   /* Badges */
 
   /* A badge is a label, and a label does not wrap: two lines of 10px
@@ -790,7 +819,13 @@
      A long label overflowing is the container's problem to solve - with a
      min-w-0 track, a truncate, or a shorter label. */
   .pc-badge {
-    @apply inline-flex items-center justify-center whitespace-nowrap border focus:outline-hidden;
+    /* lining-nums across component-owned numeric chrome (badge counters,
+       pagination, calendar days, OTP, avatar overflow, tab pills): fonts
+       whose default digits are old-style figures vary height by design,
+       which reads as mis-centred in a chip. A no-op in fonts without the
+       feature - and slot/user content is never imposed on; callers opt
+       their own digits in with the `lining-nums` utility. */
+    @apply inline-flex items-center justify-center whitespace-nowrap lining-nums border focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -1703,7 +1738,13 @@
     @apply flex items-stretch w-full;
   }
   .pc-input-group :is(input, select, textarea) {
-    @apply flex-1 min-w-0 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent;
+    /* ring-0 as well as shadow-none: rings live in --tw-ring-shadow, which
+       shadow-none does not reset - without it the generic error rule's
+       ring-2 paints a SQUARE halo around the stripped (radius-0) inner
+       input, sticking out past the group's own corners at large radii.
+       The group carries the field surface - border, radius, focus ring
+       AND error ring - in every state; inner controls never do. */
+    @apply flex-1 min-w-0 border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 dark:bg-transparent;
     border-radius: 0;
   }
 
@@ -1757,7 +1798,11 @@
      trigger, input group addons) - only how they read. The heavier bottom
      edge is what makes it look like a key you can press. */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
-    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    /* Kbd tracks the BODY face (never mono - see kbd.ex): this chain
+       resolves to the same var(--font-sans) the old `font-sans` utility
+       compiled to when no --pc-font-body is set. */
+    font-family: var(--pc-font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"));
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
     box-shadow:
       inset 0 0 0 1px var(--color-gray-200, #e4e4e7),
@@ -1795,7 +1840,7 @@
     @apply flex items-center;
   }
   .pc-otp__slot {
-    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
+    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium lining-nums bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-otp__group .pc-otp__slot + .pc-otp__slot {
     @apply -ml-px;
@@ -2995,7 +3040,7 @@
      opaque where the placeholder's ghost alpha would let the photo
      bleed through. */
   .pc-avatar-group__overflow {
-    @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
+    @apply bg-gray-100 font-medium lining-nums text-gray-600 dark:bg-gray-800 dark:text-gray-300;
   }
 
   /* Generative art placeholders (art="mesh" | "dither"); the flex/type
@@ -3252,7 +3297,7 @@
     @apply font-medium text-gray-900 dark:text-gray-100;
   }
   .pc-progress__value {
-    @apply text-gray-500 tabular-nums dark:text-gray-400;
+    @apply text-gray-500 tabular-nums dark:text-gray-400 lining-nums;
   }
   /* Status line under the bar - help-text rhythm and tone */
   .pc-progress__status {
@@ -3271,7 +3316,7 @@
      light text on the fill, wiping as the bar grows - legible at any
      percentage, not white-on-light until the fill catches up. */
   .pc-progress__label {
-    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium whitespace-nowrap pointer-events-none;
+    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium lining-nums whitespace-nowrap pointer-events-none;
   }
   .pc-progress__label--track {
     @apply z-0 text-gray-700 dark:text-gray-200;
@@ -3450,7 +3495,7 @@
     @apply inline-flex items-center gap-1 text-sm font-medium;
   }
   .pc-pagination__item {
-    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 transition-colors;
+    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 lining-nums transition-colors;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item--is-current {
@@ -3591,7 +3636,15 @@
   /* Tabs - Number */
 
   .pc-tab__number {
-    @apply whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal;
+    /* A counter pill must hold its digit centred under ANY body face
+       (found with Playfair Display via the Typeset dials). Two font
+       realities handled: flex + leading-none centres the em box instead
+       of the line box (display-metric faces ride low otherwise), and
+       lining-nums asks fonts whose DEFAULT digits are old-style figures
+       - varying height by design, so 5 and 7 hang below 8 and 9 - for
+       their uniform UI numerals instead (a no-op where unavailable).
+       h-5 preserves the exact height the old line box + py-0.5 made. */
+    @apply whitespace-nowrap ml-2 h-5 px-2 inline-flex items-center justify-center leading-none lining-nums rounded-full text-xs font-normal;
   }
 
   /* Tabs - Pill with number */
@@ -4839,7 +4892,7 @@
      same 32px circle the md stepper uses, and text-base was reading as a
      different component sat next to it. Each size steps down one notch. */
   .pc-stepper__number {
-    @apply font-semibold;
+    @apply font-semibold lining-nums;
   }
 
   /* xs holds sm's 11px rather than stepping down again: below that a numeral
@@ -5460,6 +5513,14 @@
     border-radius: var(--pc-chat-radius);
     /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
     overflow-wrap: anywhere;
+    /* Chat is a reading surface, so it follows the body dial - but chat
+       markdown HEADINGS stay on the body face too (no --pc-font-heading
+       here): a display face at the bubble's dense text-sm scale reads as
+       a glitch, not a heading. */
+    font-family: var(--pc-font-body, inherit);
+  }
+  .pc-chat__markdown {
+    font-family: var(--pc-font-body, inherit);
   }
   /* Preserve newlines ONLY on leaf text nodes — never on the bubble itself, or
      structural whitespace (and dev HEEx debug comments) renders as blank lines
@@ -5566,7 +5627,8 @@
   }
   /* Inline code (code blocks carry their own theme colours from the highlighter). */
   .pc-chat__markdown :not(pre) > code {
-    @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-gray-400/17;
+    @apply rounded bg-black/5 px-1 py-0.5 text-[0.85em] dark:bg-gray-400/17;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-chat__markdown pre {
     @apply relative my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
@@ -5597,7 +5659,7 @@
     @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300;
   }
   .pc-chat__tool-name {
-    @apply font-mono;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-chat__tool-check {
     @apply text-green-600 dark:text-green-400;
@@ -7863,7 +7925,8 @@
   }
 
   .pc-showcase-props__fn {
-    @apply px-4 py-2 font-mono text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-gray-400/8 dark:border-gray-400/17;
+    @apply px-4 py-2 text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-gray-400/8 dark:border-gray-400/17;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__table {
@@ -7883,15 +7946,18 @@
   }
 
   .pc-showcase-props__name {
-    @apply font-mono text-xs font-semibold text-gray-900 dark:text-white;
+    @apply text-xs font-semibold text-gray-900 dark:text-white;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__type {
-    @apply font-mono text-xs text-primary-600 dark:text-primary-400;
+    @apply text-xs text-primary-600 dark:text-primary-400;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__default {
-    @apply font-mono text-xs text-gray-500 dark:text-gray-400;
+    @apply text-xs text-gray-500 dark:text-gray-400;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__req {
@@ -10178,7 +10244,7 @@
   }
 
   .pc-slider__value {
-    @apply text-sm font-medium text-gray-700 tabular-nums dark:text-gray-200;
+    @apply text-sm font-medium text-gray-700 tabular-nums lining-nums dark:text-gray-200;
   }
 
   /* Stacking context for track, fill, marks and the input(s). */
@@ -11394,7 +11460,7 @@
      ::after compiles to a trailing `:where(.dark, .dark *)` that can never
      match, which is the same trap the range input track documents. */
   .pc-calendar__day {
-    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply relative flex items-center justify-center mx-auto text-sm font-normal lining-nums cursor-pointer transition-colors duration-150;
     @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
     width: var(--pc-calendar-cell-size, 2.25rem);
@@ -11682,7 +11748,11 @@
   }
 
   .pc-chat__sources-row {
-    @apply inline-flex cursor-pointer list-none items-center gap-1.5 border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
+    /* leading-none so the label's ink centres against the favicon circles
+       under any body face, and lining-nums so the count digit keeps a
+       uniform height in fonts whose default numerals are old-style
+       figures (found with Playfair Display via the Typeset dials). */
+    @apply inline-flex cursor-pointer list-none items-center gap-1.5 leading-none lining-nums border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -12646,12 +12716,13 @@
   /* Pretty-printed JSON. Same geometry as the markdown code block, but with an
      explicit ground: there is no highlighter theme painting behind this one. */
   .pc-chat__tool-code {
-    @apply m-0 overflow-x-auto bg-gray-50 p-2 font-mono text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
+    @apply m-0 overflow-x-auto bg-gray-50 p-2 text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
     border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-chat__tool-code code {
-    @apply font-mono;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   /* Compact bursts ---------------------------------------------------------

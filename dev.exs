@@ -901,6 +901,96 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
+  # The control-rail chrome, in ONE place: the strip's radius rail and every
+  # per-page dial rail read this. The lining-nums episode is why - 155
+  # verbatim copies were only sweepable en masse because none had drifted
+  # yet; the first drifted rail would silently miss every future sweep.
+  # (A wrapper component would have to forward toggle_group's :item slot,
+  # which Phoenix components don't do cleanly - the shared attr is the fix.)
+  @rail_class "max-w-full lining-nums overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+
+  # Type dials - the Typeset curated set, {slug, label, css_stack}. Every
+  # stack ends in the matching system tail so the preview renders exactly
+  # what Get Code emits. "system" is the shipped default and writes no
+  # token at all (the URL elides it, like every other dial default).
+  # Faces are vendored in dev/static/fonts (see dev/fetch_fonts.sh).
+  @sans_tail ~s(ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji")
+  @serif_tail ~s(ui-serif, Georgia, Cambria, "Times New Roman", Times, serif)
+  @mono_tail ~s(ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace)
+
+  # The curated set, grouped the way the selects present it. slug == the
+  # Fontsource id for every pick (the classic gotcha - Geist Sans is `geist`,
+  # not `geist-sans` - holds), and weight ranges are per-family reality
+  # verified via api.fontsource.org, consumed by Get Code's @font-face
+  # emission - a blanket "100 900" lies for half of them. dev/fetch_fonts.sh
+  # and dev/fonts.css are generated from this table; keep the three in sync.
+  @font_groups [
+    {"Sans", @sans_tail,
+     [
+       {"inter", "Inter", "100 900"},
+       {"geist", "Geist", "100 900"},
+       {"manrope", "Manrope", "200 800"},
+       {"space-grotesk", "Space Grotesk", "300 700"},
+       {"dm-sans", "DM Sans", "100 1000"},
+       {"figtree", "Figtree", "300 900"},
+       {"outfit", "Outfit", "100 900"},
+       {"public-sans", "Public Sans", "100 900"},
+       {"nunito-sans", "Nunito Sans", "200 1000"},
+       {"montserrat", "Montserrat", "100 900"},
+       {"ibm-plex-sans", "IBM Plex Sans", "100 700"},
+       {"source-sans-3", "Source Sans 3", "200 900"}
+     ]},
+    {"Serif", @serif_tail,
+     [
+       {"fraunces", "Fraunces", "100 900"},
+       {"source-serif-4", "Source Serif 4", "200 900"},
+       {"lora", "Lora", "400 700"},
+       {"merriweather", "Merriweather", "300 900"},
+       {"newsreader", "Newsreader", "200 800"},
+       {"playfair-display", "Playfair Display", "400 900"},
+       {"roboto-slab", "Roboto Slab", "100 900"}
+     ]},
+    {"Mono", @mono_tail,
+     [
+       {"jetbrains-mono", "JetBrains Mono", "100 800"},
+       {"geist-mono", "Geist Mono", "100 900"},
+       {"fira-code", "Fira Code", "300 700"},
+       {"source-code-pro", "Source Code Pro", "200 900"},
+       {"roboto-mono", "Roboto Mono", "100 700"}
+     ]}
+  ]
+
+  # Every role offers the whole catalogue (a mono heading is a legitimate
+  # look); shuffle draws from tasteful pools instead - heading/body from
+  # sans + serif, mono from mono - so the dice stay kind while hand-picking
+  # stays free. System sits in every pool: an honest shuffle can land on
+  # "what if we just didn't".
+  @font_select_options [
+    {"System", "system"}
+    | Enum.map(@font_groups, fn {group, _tail, fonts} ->
+        {group, Enum.map(fonts, fn {slug, label, _w} -> {label, slug} end)}
+      end)
+  ]
+
+  @font_stacks Map.new(
+                 for {_g, tail, fonts} <- @font_groups, {slug, label, _w} <- fonts,
+                   do: {slug, ~s("#{label}", ) <> tail}
+               )
+  @font_labels Map.new(
+                 for {_g, _t, fonts} <- @font_groups, {slug, label, _w} <- fonts, do: {slug, label}
+               )
+  @font_weights Map.new(
+                  for {_g, _t, fonts} <- @font_groups, {slug, _l, wght} <- fonts, do: {slug, wght}
+                )
+  @font_names ["system" | Map.keys(@font_labels)]
+  @shuffle_text_pool [
+    "system"
+    | for({g, _t, fonts} <- @font_groups, g != "Mono", {slug, _l, _w} <- fonts, do: slug)
+  ]
+  @shuffle_mono_pool [
+    "system" | for({g, _t, fonts} <- @font_groups, g == "Mono", {slug, _l, _w} <- fonts, do: slug)
+  ]
+
   @input_types ~w(text email password search date time select textarea file color)
 
   @qr_presets ~w(url totp wifi custom)
@@ -924,6 +1014,10 @@ defmodule Dev.PlaygroundLive do
        secondaries: @secondaries,
        tw_palette: @tw_palette,
        radii: @radii,
+       font_select_options: @font_select_options,
+       # @ in HEEx reads assigns, not module attributes - bridge the rail
+       # chrome through here so templates can say class={@rail_class}.
+       rail_class: @rail_class,
        stars: @stars,
        nav_open: false,
        variant: "outline",
@@ -1314,11 +1408,15 @@ defmodule Dev.PlaygroundLive do
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:font_heading, allow(params["heading"], @font_names, "system"))
+      |> assign(:font_body, allow(params["body"], @font_names, "system"))
+      |> assign(:font_mono, allow(params["mono"], @font_names, "system"))
       |> assign(:lang, allow(params["locale"], @locale_codes, "en"))
       |> assign(:dark, false)
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
       |> assign(:nav_open, false)
+      |> assign_base_url(uri)
       |> maybe_run_dt_link(params, uri)
       |> maybe_run_filters_link(params, uri)
 
@@ -1391,6 +1489,26 @@ defmodule Dev.PlaygroundLive do
     do: patch_theme(socket, %{secondary: x})
 
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
+
+  def handle_event("set_font_heading", %{"heading" => v}, socket),
+    do: patch_theme(socket, %{font_heading: v})
+
+  def handle_event("set_font_body", %{"body" => v}, socket),
+    do: patch_theme(socket, %{font_body: v})
+
+  def handle_event("set_font_mono", %{"mono" => v}, socket),
+    do: patch_theme(socket, %{font_mono: v})
+
+  def handle_event("font_shuffle", _params, socket) do
+    patch_theme(socket, %{
+      font_heading: Enum.random(@shuffle_text_pool),
+      font_body: Enum.random(@shuffle_text_pool),
+      font_mono: Enum.random(@shuffle_mono_pool)
+    })
+  end
+
+  def handle_event("font_reset", _params, socket),
+    do: patch_theme(socket, %{font_heading: "system", font_body: "system", font_mono: "system"})
 
   def handle_event("toggle_nav", _params, socket),
     do: {:noreply, assign(socket, nav_open: !socket.assigns.nav_open)}
@@ -3078,7 +3196,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :primary, :secondary, :gray, :radius])
+      |> Map.take([:active, :primary, :secondary, :gray, :radius, :font_heading, :font_body, :font_mono])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -3091,6 +3209,9 @@ defmodule Dev.PlaygroundLive do
     base = if t.active == "button", do: "/", else: "/c/#{t.active}"
 
     []
+    |> then(&if t.font_mono != "system", do: [{"mono", t.font_mono} | &1], else: &1)
+    |> then(&if t.font_body != "system", do: [{"body", t.font_body} | &1], else: &1)
+    |> then(&if t.font_heading != "system", do: [{"heading", t.font_heading} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
@@ -3102,6 +3223,277 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
+
+  # Get Code's agent prompt carries a real shareable URL - the deployed host
+  # in production, localhost in dev - taken from the uri handle_params
+  # already receives.
+  defp assign_base_url(socket, uri) do
+    %URI{scheme: scheme, host: host, port: port} = URI.parse(uri)
+
+    base =
+      if (scheme == "https" and port == 443) or (scheme == "http" and port == 80),
+        do: "#{scheme}://#{host}",
+        else: "#{scheme}://#{host}:#{port}"
+
+    assign(socket, :base_url, base)
+  end
+
+  # ---- Get Code: the dialed look as a paste-ready start story --------------
+  #
+  # Emission rule everywhere: only what differs from PACKAGE stock (blue
+  # primary, pink secondary, zinc gray, 0.625rem radius, host fonts). The
+  # playground's neutral-primary DEFAULT therefore emits a block - that
+  # look is not stock, it's the light-dark() monochrome accent.
+
+  defp get_code_sections(a) do
+    theme = theme_code(a)
+    fonts = font_code(a)
+
+    [
+      {"Install", install_code()},
+      theme && {"Theme - assets/css/app.css", theme},
+      fonts && {"Fonts - self-hosted", fonts},
+      {"Hand it to your agent", agent_code(a, theme, fonts)}
+    ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  # Derived from the running package, so the deployed playground always emits
+  # the requirement matching what is actually on Hex at deploy time (deploys
+  # follow the release commit) - never a version ahead of the published one.
+  defp pc_requirement do
+    [maj, min | _] = Application.spec(:petal_components, :vsn) |> to_string() |> String.split(".")
+    "~> #{maj}.#{min}"
+  end
+
+  defp install_code do
+    """
+    # 1. mix.exs
+    {:petal_components, "#{pc_requirement()}"}
+
+    # 2. mix deps.get
+
+    # 3. assets/css/app.css - under @import "tailwindcss";
+    @source "../deps/petal_components/**/*.*ex";
+    @source not "../deps/petal_components/lib/petal_components/showcase";
+    @import "../deps/petal_components/assets/default.css";
+
+    # 4. lib/<your_app>_web.ex - inside `def html`'s quote block
+    use PetalComponents
+
+    # 5. assets/js/app.js - spread the bundled hooks into your LiveSocket
+    import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
+    hooks: { ...PetalComponents }\
+    """
+  end
+
+  defp theme_code(a) do
+    blocks =
+      [primary_code(a.primary), secondary_code(a.secondary), gray_code(a.gray), radius_code(a.radius)]
+      |> Enum.reject(&is_nil/1)
+
+    if blocks != [], do: Enum.join(blocks, "\n\n")
+  end
+
+  # Stock is blue. Neutral is the playground's monochrome accent: near-black
+  # action colour in light, near-white in dark, derived from the gray ramp -
+  # light-dark() needs color-scheme wired to the dark class to resolve.
+  defp primary_code("blue"), do: nil
+
+  defp primary_code("neutral") do
+    """
+    :root { color-scheme: light; }
+    .dark { color-scheme: dark; }
+
+    @theme inline {
+    #{neutral_ramp_lines()}
+    }
+
+    :root {
+      --pc-button-solid-fg: light-dark(#ffffff, var(--color-gray-900));
+    }\
+    """
+  end
+
+  defp primary_code(hue), do: ramp_remap("primary", hue)
+
+  defp neutral_ramp_lines do
+    # The exact ramp the playground's neutral dial paints (dev/colors.css),
+    # with --color-gray-* in place of the pg mirrors: light stop -> dark stop.
+    [
+      {"50", "50", "900"},
+      {"100", "100", "700"},
+      {"200", "200", "800"},
+      {"300", "300", "300"},
+      {"400", "400", "600"},
+      {"500", "600", "400"},
+      {"600", "900", "50"},
+      {"700", "800", "200"},
+      {"800", "700", "300"},
+      {"900", "900", "100"},
+      {"950", "950", "50"}
+    ]
+    |> Enum.map_join("\n", fn {stop, l, d} ->
+      "  --color-primary-#{stop}: light-dark(var(--color-gray-#{l}), var(--color-gray-#{d}));"
+    end)
+  end
+
+  defp secondary_code("pink"), do: nil
+  defp secondary_code(hue), do: ramp_remap("secondary", hue)
+
+  defp gray_code("zinc"), do: nil
+
+  # Tailwind's own gray is the one ramp a var() can't reach (petal ships
+  # zinc under the gray name) - restoring it is the one-line import.
+  defp gray_code("gray") do
+    """
+    /* after the default.css import */
+    @import "../deps/petal_components/assets/tailwind-gray.css";\
+    """
+  end
+
+  defp gray_code(ramp), do: ramp_remap("gray", ramp)
+
+  defp ramp_remap(role, ramp) do
+    stops = ~w(50 100 200 300 400 500 600 700 800 900 950)
+
+    lines =
+      Enum.map_join(stops, "\n", fn stop ->
+        "  --color-#{role}-#{stop}: var(--color-#{ramp}-#{stop});"
+      end)
+
+    "@theme inline {\n#{lines}\n}"
+  end
+
+  defp radius_code("10"), do: nil
+
+  defp radius_code(r) do
+    """
+    :root {
+      --pc-radius: #{radius_css(r)};
+    }\
+    """
+  end
+
+  defp font_code(a) do
+    picks =
+      [heading: a.font_heading, body: a.font_body, mono: a.font_mono]
+      |> Enum.reject(fn {_role, slug} -> slug == "system" end)
+
+    if picks != [] do
+      families = picks |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
+
+      curls =
+        Enum.map_join(families, "\n", fn slug ->
+          "curl -o priv/static/fonts/#{slug}-latin-wght-normal.woff2 \\\n" <>
+            "  https://cdn.jsdelivr.net/npm/@fontsource-variable/#{slug}@5.3.0/files/#{slug}-latin-wght-normal.woff2"
+        end)
+
+      faces =
+        Enum.map_join(families, "\n\n", fn slug ->
+          """
+          @font-face {
+            font-family: "#{@font_labels[slug]}";
+            font-style: normal;
+            font-weight: #{@font_weights[slug]};
+            font-display: swap;
+            src: url("/fonts/#{slug}-latin-wght-normal.woff2") format("woff2-variations");
+          }\
+          """
+        end)
+
+      body_slug = a.font_body
+      mono_slug = a.font_mono
+      heading_slug = a.font_heading
+
+      theme_lines =
+        [
+          body_slug != "system" && "  --font-sans: #{@font_stacks[body_slug]};",
+          mono_slug != "system" && "  --font-mono: #{@font_stacks[mono_slug]};"
+        ]
+        |> Enum.filter(& &1)
+
+      theme_block =
+        if theme_lines != [],
+          do: "/* body -> --font-sans reskins the whole app via preflight;\n   mono -> --font-mono reaches every pc mono surface */\n@theme {\n#{Enum.join(theme_lines, "\n")}\n}",
+          else: nil
+
+      heading_block =
+        if heading_slug != "system" and heading_slug != body_slug,
+          do:
+            ":root {\n  --pc-font-heading: #{@font_stacks[heading_slug]};\n}\n\n" <>
+              "/* optional: raw h1-h6 outside <.h1>..<.h5> follow the heading face too */\n" <>
+              "h1, h2, h3, h4, h5, h6 {\n  font-family: var(--pc-font-heading, inherit);\n}",
+          else: nil
+
+      preload =
+        if body_slug != "system" do
+          "<%!-- root.html.heex, before the CSS link - preload the body face only --%>\n" <>
+            ~s|<link rel="preload" href={~p"/fonts/#{body_slug}-latin-wght-normal.woff2"} as="font" type="font/woff2" crossorigin="anonymous" />|
+        end
+
+      [
+        "# fetch once, commit the files (Phoenix static_paths already serves /fonts;\n# mix phx.digest fingerprints them; italics render synthetic)\n" <> curls,
+        "/* assets/css/app.css */\n" <> faces,
+        theme_block,
+        heading_block,
+        preload
+      ]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join("\n\n")
+    end
+  end
+
+  defp agent_code(a, theme, fonts) do
+    url =
+      a.base_url <>
+        theme_path(
+          Map.take(a, [:active, :primary, :secondary, :gray, :radius, :font_heading, :font_body, :font_mono])
+        )
+
+    steps =
+      [
+        "1. Install petal_components per https://petal.build/petal-components/rules.md (hex dep, the @source/@import lines in assets/css/app.css, `use PetalComponents` in the web module, spread the bundled JS hooks).",
+        theme && "2. Add this to assets/css/app.css:\n\n#{theme}",
+        fonts && "#{if theme, do: 3, else: 2}. Self-host these fonts:\n\n#{fonts}"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    Set up petal_components in this Phoenix + Tailwind v4 app with the look I dialed in at #{url}
+
+    #{Enum.join(steps, "\n\n")}
+
+    Then start the server and confirm headings, body text and code render in the chosen look.\
+    """
+  end
+
+  # The trigger says what's dialed without opening the panel: the first
+  # non-system face by role priority, "+N" when more dials are set, or
+  # System when none are.
+  defp typeset_trigger_label(a) do
+    set = Enum.reject([a.font_heading, a.font_body, a.font_mono], &(&1 == "system"))
+
+    case set do
+      [] -> "System"
+      [only] -> @font_labels[only]
+      [first | rest] -> "#{@font_labels[first]} +#{length(rest)}"
+    end
+  end
+
+  # Inline custom properties on the page wrapper, exactly like --pc-radius:
+  # they re-resolve per subtree, so pinned fixtures can reset them (see the
+  # base-layer pin in dev/app.css). System writes nothing - the token stays
+  # unset and every pc chain falls through to inherit.
+  defp font_style(a) do
+    [
+      {"--pc-font-heading", a.font_heading},
+      {"--pc-font-body", a.font_body},
+      {"--pc-font-mono", a.font_mono}
+    ]
+    |> Enum.reject(fn {_token, slug} -> slug == "system" end)
+    |> Enum.map_join(fn {token, slug} -> "; #{token}: #{@font_stacks[slug]}" end)
+  end
 
   defp radius_title("0"), do: "Square corners"
   defp radius_title("10"), do: "10px — the shipped default"
@@ -4218,7 +4610,7 @@ defmodule Dev.PlaygroundLive do
       data-primary={@primary}
       data-gray={@gray}
       data-secondary={@secondary}
-      style={"--pc-radius: #{radius_css(@radius)}"}
+      style={"--pc-radius: #{radius_css(@radius)}" <> font_style(assigns)}
     >
       <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
       <%!-- inert while the menu is open: complete background isolation for
@@ -4366,13 +4758,17 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">radius</span>
+          <%!-- lining-nums is the caller opt-in: toggle_group items are slot
+          content, so the component never imposes figure style - but these
+          items ARE digits, and old-style figures would ride low under a
+          display body face. --%>
           <.toggle_group
             variant="outline"
             size="sm"
             aria_label="Corner radius"
             value={@radius}
             on_change="set_radius"
-            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            class={@rail_class}
           >
             <:item
               :for={{label, _value} <- @radii}
@@ -4384,10 +4780,133 @@ defmodule Dev.PlaygroundLive do
             </:item>
           </.toggle_group>
         </div>
-        <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-gray-600 sm:block">
-          theme is in the URL, share the look
-        </span>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">type</span>
+          <%!-- The three role dials live behind one labelled panel: bare
+          selects in the strip couldn't say which face they steered. Top-layer
+          popover because the strip is overflow-x-auto - an anchored panel
+          would clip (the tooltip lesson). The Aa previews the dialed heading
+          face live; row labels in the panel do the same per role. --%>
+          <.popover
+            id="pg-typeset"
+            top_layer
+            placement="bottom-start"
+            class="shrink-0"
+            trigger_class="flex items-center gap-1.5 h-7 px-2 text-xs font-medium lining-nums border rounded-md border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
+          >
+            <:trigger>
+              <span
+                class="text-sm leading-none"
+                style="font-family: var(--pc-font-heading, var(--pc-font-body, inherit))"
+                aria-hidden="true"
+              >
+                Aa
+              </span>
+              {typeset_trigger_label(assigns)}
+              <.icon name="hero-chevron-down-mini" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+            </:trigger>
+
+            <div class="w-60">
+              <div class="flex items-center justify-between mb-2.5">
+                <div class="text-xs font-semibold text-gray-700 dark:text-gray-200">Typeset</div>
+                <div class="flex items-center gap-1">
+                  <button
+                    phx-click="font_shuffle"
+                    aria-label="Shuffle fonts"
+                    title="Shuffle fonts"
+                    class="flex items-center justify-center rounded-md w-6 h-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
+                  >
+                    <.icon name="hero-arrow-path-mini" class="w-4 h-4" />
+                  </button>
+                  <%!-- Always rendered: unmounting on click dropped keyboard
+                  focus, and disabled-at-system reads as an affordance. --%>
+                  <button
+                    phx-click="font_reset"
+                    aria-label="Reset fonts to system"
+                    title="Reset fonts to system"
+                    disabled={
+                      @font_heading == "system" and @font_body == "system" and @font_mono == "system"
+                    }
+                    class="flex items-center justify-center rounded-md w-6 h-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <.icon name="hero-x-mark-mini" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <%!-- Native selects, not toggle groups: fifteen faces, and
+              select options render in the system stack, so opening one
+              fetches nothing (labels in their own faces would pull all
+              ~276 KB). Row labels preview each role's CURRENT face - the
+              answer to "which dropdown affects what", live. --%>
+              <div class="flex flex-col gap-2">
+                <div
+                  :for={
+                    {event, name, value, label, preview} <- [
+                      {"set_font_heading", "heading", @font_heading, "Heading",
+                       "var(--pc-font-heading, var(--pc-font-body, inherit))"},
+                      {"set_font_body", "body", @font_body, "Body", "var(--pc-font-body, inherit)"},
+                      {"set_font_mono", "mono", @font_mono, "Mono",
+                       "var(--pc-font-mono, var(--font-mono, ui-monospace, monospace))"}
+                    ]
+                  }
+                  class="flex items-center justify-between gap-3"
+                >
+                  <label
+                    for={"pg-typeset-" <> name}
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                    style={"font-family: #{preview}"}
+                  >
+                    {label}
+                  </label>
+                  <form phx-change={event}>
+                    <select
+                      id={"pg-typeset-" <> name}
+                      name={name}
+                      class="h-7 w-36 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500"
+                    >
+                      {Phoenix.HTML.Form.options_for_select(@font_select_options, value)}
+                    </select>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </.popover>
+        </div>
+        <div class="flex items-center gap-3 ml-auto shrink-0">
+          <span class="hidden text-[11px] text-gray-400 dark:text-gray-600 sm:block">
+            theme is in the URL, share the look
+          </span>
+          <.button size="xs" color="gray" variant="outline" phx-click={show_modal("pg-get-code")}>
+            <.icon name="hero-code-bracket-mini" class="w-3.5 h-3.5" /> Get code
+          </.button>
+        </div>
       </div>
+
+      <%!-- Get Code: the dialed look as a paste-ready start story. Content is
+      recomputed from the live assigns, so it always matches the strip. --%>
+      <.modal id="pg-get-code" hide title="Get code" max_width="lg">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Your dialed-in look, ready to paste: install petal_components, apply
+          the theme, self-host the faces - or hand the whole thing to your
+          coding agent.
+        </p>
+        <div :for={{{title, snippet}, i} <- Enum.with_index(get_code_sections(assigns))} class="mt-5">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="text-xs font-medium text-gray-400 dark:text-gray-500">{title}</div>
+            <button
+              id={"pg-get-code-copy-#{i}"}
+              phx-hook="PetalCopy"
+              data-copy-text={snippet}
+              class="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            >
+              <span data-pc-copy-default>Copy</span>
+              <span data-pc-copy-done class="hidden text-success-600 dark:text-success-400">Copied</span>
+            </button>
+          </div>
+          <pre class="p-3 overflow-x-auto text-xs leading-relaxed text-gray-100 bg-gray-900 rounded-lg dark:border dark:border-gray-800"><code>{snippet}</code></pre>
+        </div>
+      </.modal>
 
       <.command_dialog id="pg-cmdk" loop>
         <.command_input placeholder="Search components and actions..." />
@@ -4559,7 +5078,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Color"
               value={@color}
               on_change="ctl_color"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
@@ -4578,7 +5097,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@variant}
               on_change="ctl_variant"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(solid soft light outline ghost)} value={v} phx-value-v={v}>
                 {v}
@@ -4593,7 +5112,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@size}
               on_change="ctl_size"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={s <- ~w(xs sm md lg xl)} value={s} phx-value-v={s}>{s}</:item>
             </.toggle_group>
@@ -4606,7 +5125,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Icon"
               value={@icon || "off"}
               on_change="ctl_icon"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="off" phx-value-v="off">off</:item>
               <:item value="left" phx-value-v="left">left</:item>
@@ -4622,7 +5141,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="State"
               value={for {k, on} <- [{"loading", @loading}, {"disabled", @disabled}], on, do: k}
               on_change="flip"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="loading" phx-value-k="loading">loading</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
@@ -4730,7 +5249,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Type"
               value={@input.type}
               on_change="ctl_input"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={t <- ~w(text email password search date time select textarea file color)}
@@ -4759,7 +5278,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_input"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="help" phx-value-k="help">help</:item>
               <:item value="error" phx-value-k="error">error</:item>
@@ -5115,7 +5634,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Mode"
               value={@plasma.mode}
               on_change="ctl_plasma"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={m <- ~w(pulse rotate)} value={m} phx-value-k="mode" phx-value-v={m}>
                 {m}
@@ -5130,7 +5649,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Intensity"
               value={@plasma.intensity}
               on_change="ctl_plasma"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={i <- ~w(subtle medium strong)}
@@ -5150,7 +5669,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Duration"
               value={@plasma.duration}
               on_change="ctl_plasma"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={d <- ~w(2.3s 4s 6s)} value={d} phx-value-k="duration" phx-value-v={d}>
                 {d}
@@ -5165,7 +5684,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Glow"
               value={@plasma.glow}
               on_change="ctl_plasma"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={g <- ~w(outside inside both)} value={g} phx-value-k="glow" phx-value-v={g}>
                 {g}
@@ -5180,7 +5699,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Palette"
               value={@plasma.palette}
               on_change="ctl_plasma"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={p <- ~w(rainbow brand mono ocean sunset)}
@@ -5321,7 +5840,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Duration"
               value={@beam.duration}
               on_change="ctl_beam"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={d <- ~w(4s 8s 12s)} value={d} phx-value-k="duration" phx-value-v={d}>
                 {d}
@@ -5336,7 +5855,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Beams"
               value={@beam.beams}
               on_change="ctl_beam"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={n <- ~w(1 2 3)} value={n} phx-value-k="beams" phx-value-v={n}>{n}</:item>
             </.toggle_group>
@@ -5349,7 +5868,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Length"
               value={@beam.size}
               on_change="ctl_beam"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={{lbl, v} <- [{"sm", "40px"}, {"md", "60px"}, {"lg", "160px"}]}
@@ -5369,7 +5888,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Easing"
               value={@beam.easing}
               on_change="ctl_beam"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={e <- ~w(linear spring)} value={e} phx-value-k="easing" phx-value-v={e}>
                 {e}
@@ -5385,7 +5904,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"glow", @beam.glow}, {"reverse", @beam.reverse}], on, do: k}
               on_change="ctl_beam"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="glow" phx-value-k="glow">glow</:item>
               <:item value="reverse" phx-value-k="reverse">reverse</:item>
@@ -5539,7 +6058,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Scheme"
               value={@shine.scheme}
               on_change="ctl_shine"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={c <- ~w(mono blend)} value={c} phx-value-k="scheme" phx-value-v={c}>
                 {c}
@@ -5554,7 +6073,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Sweep"
               value={@shine.duration}
               on_change="ctl_shine"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={{lbl, v} <- [{"fast", "6s"}, {"med", "14s"}, {"slow", "24s"}]}
@@ -5574,7 +6093,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Width"
               value={@shine.width}
               on_change="ctl_shine"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={w <- ~w(1px 2px 3px)} value={w} phx-value-k="width" phx-value-v={w}>
                 {w}
@@ -5647,7 +6166,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Type"
               value={@chart.type}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={t <- ~w(line bar)} value={t} phx-value-k="type" phx-value-v={t}>{t}</:item>
             </.toggle_group>
@@ -5660,7 +6179,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Series"
               value={(@chart.two_series && "two") || "one"}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="one" phx-value-k="two_series" phx-value-v="one">one</:item>
               <:item value="two" phx-value-k="two_series" phx-value-v="two">two</:item>
@@ -5674,7 +6193,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Points"
               value={@chart.points}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={p <- ~w(7 14 30)} value={p} phx-value-k="points" phx-value-v={p}>
                 {p}
@@ -5689,7 +6208,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Gap"
               value={@chart.gap}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={g <- ~w(cozy tight)} value={g} phx-value-k="gap" phx-value-v={g}>
                 {g}
@@ -5704,7 +6223,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Area"
               value={@chart.area}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={a <- ~w(fade solid none)} value={a} phx-value-k="area" phx-value-v={a}>
                 {a}
@@ -5719,7 +6238,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Shape"
               value={@chart.shape}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={s <- ~w(smooth linear step)} value={s} phx-value-k="shape" phx-value-v={s}>
                 {s}
@@ -5734,7 +6253,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Dots"
               value={(@chart.dots && "on") || "off"}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="on" phx-value-k="dots" phx-value-v="on">on</:item>
               <:item value="off" phx-value-k="dots" phx-value-v="off">off</:item>
@@ -5748,7 +6267,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Chrome"
               value={@chart.chrome}
               on_change="ctl_chart"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={c <- ~w(full x off)} value={c} phx-value-k="chrome" phx-value-v={c}>
                 {c}
@@ -5949,7 +6468,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Transition"
               value={@car.transition}
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={t <- ~w(fade slide)} value={t} phx-value-k="transition" phx-value-v={t}>
                 {t}
@@ -5964,7 +6483,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Buttons"
               value={@car.buttons}
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={b <- ~w(overlay below outside none)}
@@ -5984,7 +6503,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Indicators"
               value={@car.indicators}
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={i <- ~w(bars dots off)} value={i} phx-value-k="indicators" phx-value-v={i}>
                 {i}
@@ -5999,7 +6518,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Ind pos"
               value={@car.ind_pos}
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={ip <- ~w(overlay below)} value={ip} phx-value-k="ind_pos" phx-value-v={ip}>
                 {ip}
@@ -6014,7 +6533,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Orientation"
               value={@car.orientation}
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(horizontal vertical)}
@@ -6043,7 +6562,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_carousel"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="loop" phx-value-k="loop">loop</:item>
               <:item value="autoplay" phx-value-k="autoplay">autoplay</:item>
@@ -6234,7 +6753,7 @@ defmodule Dev.PlaygroundLive do
           aria_label="Pos"
           value={@toast.pos}
           on_change="ctl_toast"
-          class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          class={@rail_class}
         >
           <:item
             :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
@@ -6332,7 +6851,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Content preset"
               value={@qr.preset}
               on_change="ctl_qr"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={p <- ~w(url totp wifi)} value={p} phx-value-k="preset" phx-value-v={p}>
                 {p}
@@ -6347,7 +6866,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@qr.size}
               on_change="ctl_qr"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={s <- ~w(sm md lg xl)} value={s} phx-value-k="size" phx-value-v={s}>
                 {s}
@@ -6364,7 +6883,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Error correction"
               value={@qr.ec}
               on_change="ctl_qr"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={e <- ~w(l m q h)} value={e} phx-value-k="ec" phx-value-v={e}>
                 {e}
@@ -6379,7 +6898,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Module rounding"
               value={@qr.rounded}
               on_change="ctl_qr"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="0" phx-value-k="rounded" phx-value-v="0">square</:item>
               <:item value="0.5" phx-value-k="rounded" phx-value-v="0.5">soft</:item>
@@ -6394,7 +6913,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Surface"
               value={@qr.surface}
               on_change="ctl_qr"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="light" phx-value-k="surface" phx-value-v="light">white card</:item>
               <:item value="dark" phx-value-k="surface" phx-value-v="dark">inverted</:item>
@@ -6642,7 +7161,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Count"
               value={@meteors.count}
               on_change="ctl_meteors"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={n <- ~w(10 20 40)} value={n} phx-value-k="count" phx-value-v={n}>
                 {n}
@@ -6657,7 +7176,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Angle"
               value={@meteors.angle}
               on_change="ctl_meteors"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={{lbl, v} <- [{"shallow", "200deg"}, {"default", "215deg"}, {"steep", "235deg"}]}
@@ -6677,7 +7196,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Color"
               value={@meteors.color}
               on_change="ctl_meteors"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={c <- ~w(slate sky violet)} value={c} phx-value-k="color" phx-value-v={c}>
                 {c}
@@ -6693,7 +7212,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"reverse", @meteors.reverse}], on, do: k}
               on_change="ctl_meteors"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="reverse" phx-value-k="reverse">reverse</:item>
               <:item value="shuffle" phx-value-k="shuffle">shuffle</:item>
@@ -6744,7 +7263,22 @@ defmodule Dev.PlaygroundLive do
         headings, and a three-tier emphasis system that holds in both modes.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Headings</div>
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Type tokens</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.p>
+          Everything on this page follows the <strong>type</strong>
+          dials in the strip above: three opt-in tokens
+          (<.inline_code>--pc-font-heading</.inline_code>, <.inline_code>--pc-font-body</.inline_code>,
+          <.inline_code>--pc-font-mono</.inline_code>) that the library reads but never defines,
+          so an app that sets nothing keeps its own stack. Heading falls back through body,
+          so one body token restyles everything.
+        </.p>
+        <.text_muted>
+          Dial in a look, then share the URL - the theme travels in the query string.
+        </.text_muted>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Headings</div>
       <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.h1>The quick brown fox</.h1>
         <.h2>The quick brown fox</.h2>
@@ -7130,7 +7664,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Max width"
               value={@modal.max_width}
               on_change="ctl_modal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={w <- ~w(sm md lg xl 2xl full)}
@@ -7150,7 +7684,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Footer"
               value={@modal.footer}
               on_change="ctl_modal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={f <- ~w(none actions)} value={f} phx-value-k="footer" phx-value-v={f}>
                 {f}
@@ -7165,7 +7699,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Content"
               value={@modal.content}
               on_change="ctl_modal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={c <- ~w(short long)} value={c} phx-value-k="content" phx-value-v={c}>
                 {c}
@@ -7189,7 +7723,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_modal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="header" phx-value-k="header">header</:item>
               <:item value="close" phx-value-k="close">close button</:item>
@@ -7513,7 +8047,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Shape"
               value={@progress.shape}
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={s <- ~w(bar ring)} value={s} phx-value-k="shape" phx-value-v={s}>
                 {s}
@@ -7531,7 +8065,7 @@ defmodule Dev.PlaygroundLive do
                 for {k, on} <- [{"live", @progress.live}, {"status", @progress.status}], on, do: k
               }
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="live" phx-value-k="live">live</:item>
               <:item value="status" phx-value-k="status">status</:item>
@@ -7545,7 +8079,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Value"
               value={@progress.value}
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(15 40 60 85 100)} value={v} phx-value-k="value" phx-value-v={v}>
                 {v}
@@ -7560,7 +8094,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Color"
               value={@progress.color}
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
@@ -7580,7 +8114,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@progress.size}
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
@@ -7599,7 +8133,7 @@ defmodule Dev.PlaygroundLive do
               }
               value={@progress.label}
               on_change="ctl_progress"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={l <- ~w(none inside top)}
@@ -7716,7 +8250,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Icon"
               value={@rating.icon}
               on_change="ctl_rating"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={i <- ~w(star heart face)} value={i} phx-value-k="icon" phx-value-v={i}>
                 {i}
@@ -7731,7 +8265,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@rating.size}
               on_change="ctl_rating"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={sz <- ~w(sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
@@ -7746,7 +8280,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Step"
               value={@rating.step}
               on_change="ctl_rating"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="whole" phx-value-k="step" phx-value-v="whole">1</:item>
               <:item
@@ -7770,7 +8304,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Label"
               value={@rating.label}
               on_change="ctl_rating"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={l <- ~w(none right bottom)} value={l} phx-value-k="label" phx-value-v={l}>
                 {l}
@@ -7846,7 +8380,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Origin"
               value={@slideover.origin}
               on_change="ctl_slideover"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(left right top bottom)}
@@ -7868,7 +8402,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Width"
               value={@slideover.width}
               on_change="ctl_slideover"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={w <- ~w(sm md lg)} value={w} phx-value-k="width" phx-value-v={w}>
                 {w}
@@ -7936,7 +8470,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Handle"
               value={(@drawer.handle && "on") || "off"}
               on_change="ctl_drawer"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="on" phx-value-k="handle" phx-value-v="on">on</:item>
               <:item value="off" phx-value-k="handle" phx-value-v="off">off</:item>
@@ -7952,7 +8486,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Drag to dismiss"
               value={(@drawer.drag && "on") || "off"}
               on_change="ctl_drawer"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="on" phx-value-k="drag" phx-value-v="on">on</:item>
               <:item value="off" phx-value-k="drag" phx-value-v="off">off</:item>
@@ -7966,7 +8500,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Snap points"
               value={@drawer.snaps}
               on_change="ctl_drawer"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="off" phx-value-k="snaps" phx-value-v="off">off</:item>
               <:item value="0.4-0.9" phx-value-k="snaps" phx-value-v="0.4-0.9">
@@ -7984,7 +8518,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Scale background"
               value={(@drawer.scale && "on") || "off"}
               on_change="ctl_drawer"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="on" phx-value-k="scale" phx-value-v="on">on</:item>
               <:item value="off" phx-value-k="scale" phx-value-v="off">off</:item>
@@ -8217,7 +8751,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Animation"
               value={@skeleton.animation}
               on_change="ctl_skeleton"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={a <- ~w(pulse shimmer none)}
@@ -8531,7 +9065,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Separator"
               value={@crumbs.separator}
               on_change="ctl_crumbs"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={sp <- ~w(chevron slash)}
@@ -8716,7 +9250,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Orientation"
               value={@stepper.orientation}
               on_change="ctl_stepper"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(horizontal vertical)}
@@ -8736,7 +9270,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@stepper.size}
               on_change="ctl_stepper"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={sz <- ~w(xs sm md lg)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {sz}
@@ -8752,7 +9286,7 @@ defmodule Dev.PlaygroundLive do
               value={@stepper.variant}
               on_change="ctl_stepper"
               disabled={@stepper.orientation == "vertical"}
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(circles bars)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
@@ -8770,7 +9304,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Labels"
               value={@stepper.labels}
               on_change="ctl_stepper"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={lp <- ~w(beside bottom none)}
@@ -8875,7 +9409,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Orientation"
               value={@timeline.orientation}
               on_change="ctl_timeline"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(vertical horizontal)}
@@ -8896,7 +9430,7 @@ defmodule Dev.PlaygroundLive do
               value={@timeline.variant}
               on_change="ctl_timeline"
               disabled={@timeline.orientation == "horizontal"}
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(default alternating compact)}
@@ -8919,7 +9453,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Marker"
               value={@timeline.marker}
               on_change="ctl_timeline"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={m <- ~w(dot icon avatar number)}
@@ -8939,7 +9473,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Connector"
               value={@timeline.connector}
               on_change="ctl_timeline"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={c <- ~w(solid dashed)} value={c} phx-value-k="connector" phx-value-v={c}>
                 {c}
@@ -8957,7 +9491,7 @@ defmodule Dev.PlaygroundLive do
               value={@timeline.time_placement}
               on_change="ctl_timeline"
               disabled={@timeline.orientation == "horizontal" or @timeline.variant == "alternating"}
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={t <- ~w(top start)}
@@ -9392,7 +9926,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Collapse mode"
               value={@sidebar.collapsible}
               on_change="ctl_sidebar"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(icon offcanvas none)}
@@ -9412,7 +9946,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Side"
               value={@sidebar.side}
               on_change="ctl_sidebar"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(left right)} value={v} phx-value-k="side" phx-value-v={v}>
                 {v}
@@ -9432,7 +9966,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_sidebar"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="collapsed" phx-value-k="collapsed">collapsed on first paint</:item>
               <:item value="badges" phx-value-k="badges">badges</:item>
@@ -9517,7 +10051,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@accordion.variant}
               on_change="ctl_accordion"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(default bordered)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
@@ -9532,7 +10066,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@accordion.size}
               on_change="ctl_accordion"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={sz <- ~w(md sm)} value={sz} phx-value-k="size" phx-value-v={sz}>
                 {if sz == "sm", do: "compact", else: "default"}
@@ -9548,7 +10082,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"multiple", @accordion.multiple}], on, do: k}
               on_change="ctl_accordion"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="multiple" phx-value-k="multiple">allow multiple open</:item>
             </.toggle_group>
@@ -9629,7 +10163,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_marquee"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="reverse" phx-value-k="reverse">reverse</:item>
               <:item value="vertical" phx-value-k="vertical">vertical</:item>
@@ -9833,7 +10367,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@tabs.variant}
               on_change="ctl_tabs"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(segmented underline pill)}
@@ -9854,7 +10388,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"number", @tabs.number}], on, do: k}
               on_change="ctl_tabs"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="number" phx-value-k="number">number badge</:item>
             </.toggle_group>
@@ -9914,7 +10448,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Sibling"
               value={@page.sibling}
               on_change="ctl_page"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={n <- ~w(0 1 2)} value={n} phx-value-k="sibling" phx-value-v={n}>{n}</:item>
             </.toggle_group>
@@ -9927,7 +10461,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Boundary"
               value={@page.boundary}
               on_change="ctl_page"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={n <- ~w(1 2)} value={n} phx-value-k="boundary" phx-value-v={n}>{n}</:item>
             </.toggle_group>
@@ -10010,7 +10544,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Density"
               value={@table.density}
               on_change="ctl_table"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={d <- ~w(comfortable compact)}
@@ -10030,7 +10564,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@table.variant}
               on_change="ctl_table"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(basic ghost)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
@@ -10046,7 +10580,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"striped", @table.striped}, {"empty", @table.empty}], on, do: k}
               on_change="ctl_table"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="striped" phx-value-k="striped">striped</:item>
               <:item value="empty" phx-value-k="empty">empty state</:item>
@@ -10112,7 +10646,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Placement"
               value={@tooltip.placement}
               on_change="ctl_tooltip"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={pl <- ~w(top bottom left right)}
@@ -10133,7 +10667,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"arrow", @tooltip.arrow}], on, do: k}
               on_change="ctl_tooltip"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="arrow" phx-value-k="arrow">arrow</:item>
             </.toggle_group>
@@ -10212,7 +10746,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Placement"
               value={@popover.placement}
               on_change="ctl_popover"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={pl <- ~w(top bottom left right)}
@@ -10233,7 +10767,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"top_layer", @popover.top_layer}], on, do: k}
               on_change="ctl_popover"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="top_layer" phx-value-k="top_layer">top_layer</:item>
             </.toggle_group>
@@ -10349,7 +10883,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Placement"
               value={@hover_card.placement}
               on_change="ctl_hover_card"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={
@@ -10372,7 +10906,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Open delay"
               value={to_string(@hover_card.open_delay)}
               on_change="ctl_hover_card"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={ms <- ~w(0 350 700)}
@@ -10392,7 +10926,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Close delay"
               value={to_string(@hover_card.close_delay)}
               on_change="ctl_hover_card"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={ms <- ~w(0 150 500)}
@@ -10541,7 +11075,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="State"
               value={for {k, on} <- [{"disabled", @context_menu.disabled}], on, do: k}
               on_change="ctl_context_menu"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
             </.toggle_group>
@@ -10605,7 +11139,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Length"
               value={@otp.length}
               on_change="ctl_otp"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={l <- ~w(4 6)} value={l} phx-value-k="length" phx-value-v={l}>{l}</:item>
             </.toggle_group>
@@ -10618,7 +11152,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Pattern"
               value={@otp.pattern}
               on_change="ctl_otp"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={pt <- ~w(numeric alphanumeric)}
@@ -10641,7 +11175,7 @@ defmodule Dev.PlaygroundLive do
                 for {k, on} <- [{"grouped", @otp.grouped}, {"disabled", @otp.disabled}], on, do: k
               }
               on_change="ctl_otp"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="grouped" phx-value-k="grouped">grouped</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
@@ -10823,7 +11357,7 @@ defmodule Dev.PlaygroundLive do
             aria_label="Opens"
             value={@user_menu_opens}
             on_change="ctl_usermenu"
-            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            class={@rail_class}
           >
             <:item :for={o <- ~w(up beside)} value={o} phx-value-k="opens" phx-value-v={o}>
               {o}
@@ -10904,7 +11438,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Mode"
               value={@slider.mode}
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={m <- ~w(single dual)} value={m} phx-value-k="mode" phx-value-v={m}>
                 {m}
@@ -10919,7 +11453,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Show value"
               value={@slider.show_value}
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(none tooltip inline)}
@@ -10939,7 +11473,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Orientation"
               value={@slider.orientation}
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(horizontal vertical)}
@@ -10959,7 +11493,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Step"
               value={to_string(@slider.step)}
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={s <- ~w(1 5 25)} value={s} phx-value-k="step" phx-value-v={s}>
                 {s}
@@ -10974,7 +11508,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@slider.size}
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
@@ -10994,7 +11528,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_slider"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="marks" phx-value-k="marks">marks</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
@@ -11165,7 +11699,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@number.variant}
               on_change="ctl_number"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(stacked split plain)}
@@ -11185,7 +11719,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@number.size}
               on_change="ctl_number"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>{z}</:item>
             </.toggle_group>
@@ -11198,7 +11732,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Bounds"
               value={@number.bounds}
               on_change="ctl_number"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={b <- ~w(qty pct free)} value={b} phx-value-k="bounds" phx-value-v={b}>
                 {number_bounds(b).label}
@@ -11214,7 +11748,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="State"
               value={if @number.disabled, do: ["disabled"], else: []}
               on_change="ctl_number"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
             </.toggle_group>
@@ -11479,7 +12013,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@switch.size}
               on_change="ctl_switch"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
@@ -11494,7 +12028,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Thumb"
               value={@switch.variant}
               on_change="ctl_switch"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={t <- ~w(default pill)} value={t} phx-value-k="variant" phx-value-v={t}>
                 {t}
@@ -11512,7 +12046,7 @@ defmodule Dev.PlaygroundLive do
                 for {k, on} <- [{"error", @switch.error}, {"disabled", @switch.disabled}], on, do: k
               }
               on_change="ctl_switch"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="error" phx-value-k="error">error</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
@@ -11671,7 +12205,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Style"
               value={@radio.style}
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={st <- ~w(cards plain)} value={st} phx-value-k="style" phx-value-v={st}>
                 {st}
@@ -11686,7 +12220,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@radio.variant}
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(outline classic)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
@@ -11701,7 +12235,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@radio.size}
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(sm md lg)} value={z} phx-value-k="size" phx-value-v={z}>{z}</:item>
             </.toggle_group>
@@ -11714,7 +12248,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Layout"
               value={@radio.layout}
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={l <- ~w(row col)} value={l} phx-value-k="layout" phx-value-v={l}>
                 {l}
@@ -11734,7 +12268,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :if={@radio.style == "cards"} value="indicator" phx-value-k="indicator">
                 indicator
@@ -11752,7 +12286,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Ind pos"
               value={@radio.ind_pos}
               on_change="ctl_radio"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={p <- ~w(end corner start)} value={p} phx-value-k="ind_pos" phx-value-v={p}>
                 {p}
@@ -11886,7 +12420,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_select"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="help" phx-value-k="help">help</:item>
               <:item value="error" phx-value-k="error">error</:item>
@@ -12036,7 +12570,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Orientation"
               value={@rsz.orientation}
               on_change="ctl_rsz"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={o <- ~w(horizontal vertical)}
@@ -12064,7 +12598,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_rsz"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="with_handle" phx-value-k="with_handle">with handle</:item>
               <:item value="collapsible" phx-value-k="collapsible">collapsible sidebar</:item>
@@ -12388,7 +12922,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Field types"
               value={@filters_types}
               on_change="pg_filters_types"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={t <- ~w(text select number_range boolean date_range)}
@@ -12779,7 +13313,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Layout"
               value={@checkbox.layout}
               on_change="ctl_checkbox"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={l <- ~w(row col)} value={l} phx-value-k="layout" phx-value-v={l}>
                 {l}
@@ -12799,7 +13333,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_checkbox"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="error" phx-value-k="error">error</:item>
               <:item value="disabled" phx-value-k="disabled">disabled</:item>
@@ -13185,7 +13719,7 @@ defmodule Dev.PlaygroundLive do
             aria_label="Trigger"
             value={@nav_trigger}
             on_change="ctl_navmenu"
-            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            class={@rail_class}
           >
             <:item :for={t <- ~w(hover click)} value={t} phx-value-k="trigger" phx-value-v={t}>
               {t}
@@ -13820,7 +14354,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@chat.variant}
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(plain bubbles)} value={v} phx-value-k="variant" phx-value-v={v}>
                 {v}
@@ -13835,7 +14369,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Actions"
               value={@chat.actions}
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(always hover)} value={v} phx-value-k="actions" phx-value-v={v}>
                 {v}
@@ -13852,7 +14386,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Sources expanded"
               value={if @chat.sources_expanded, do: "open", else: "closed"}
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(closed open)}
@@ -13876,7 +14410,7 @@ defmodule Dev.PlaygroundLive do
                   else: to_string(@chat.sources_max)
               }
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(2 5 all)} value={v} phx-value-k="sources_max" phx-value-v={v}>
                 {v}
@@ -13891,7 +14425,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Accept hint"
               value={if @chat.attach_hint, do: "on", else: "off"}
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(off on)} value={v} phx-value-k="attach_hint" phx-value-v={v}>
                 {v}
@@ -13906,7 +14440,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Upload size limit"
               value={@chat.attach_limit}
               on_change="ctl_chat"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(5mb tiny)}
@@ -14054,7 +14588,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Tool call state"
               value={to_string(@tool.state)}
               on_change="ctl_tool"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(pending input_streaming running complete error)}
@@ -14074,7 +14608,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Compact"
               value={if @tool.compact, do: "on", else: "off"}
               on_change="ctl_tool"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(off on)} value={v} phx-value-k="compact" phx-value-v={v}>
                 {v}
@@ -14089,7 +14623,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Tool icon"
               value={@tool.icon || "none"}
               on_change="ctl_tool"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(web_search code database none)}
@@ -14174,7 +14708,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Field type"
               value={@quiz.field}
               on_change="ctl_quiz"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(single_cards single_buttons multi text scale)}
@@ -14194,7 +14728,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Allow skip"
               value={if @quiz.allow_skip, do: "on", else: "off"}
               on_change="ctl_quiz"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(off on)} value={v} phx-value-k="allow_skip" phx-value-v={v}>
                 {v}
@@ -14209,7 +14743,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Questionnaire state"
               value={@quiz.state}
               on_change="ctl_quiz"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(pending submitting resolved skipped)}
@@ -14408,7 +14942,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Color"
               value={@alert.color}
               on_change="ctl_alert"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={c <- ~w(gray info success warning danger)}
@@ -14428,7 +14962,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@alert.variant}
               on_change="ctl_alert"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(light soft dark outline callout)}
@@ -14458,7 +14992,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_alert"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="icon" phx-value-k="icon">icon</:item>
               <:item value="heading" phx-value-k="heading">heading</:item>
@@ -14535,7 +15069,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Color"
               value={@badge.color}
               on_change="ctl_badge"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={c <- ~w(primary secondary info success warning danger gray)}
@@ -14555,7 +15089,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Variant"
               value={@badge.variant}
               on_change="ctl_badge"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={v <- ~w(light soft dark outline)}
@@ -14575,7 +15109,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Size"
               value={@badge.size}
               on_change="ctl_badge"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={z <- ~w(xs sm md lg xl)} value={z} phx-value-k="size" phx-value-v={z}>
                 {z}
@@ -14591,7 +15125,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"icon", @badge.icon}, {"dot", @badge.dot}], on, do: k}
               on_change="ctl_badge"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="icon" phx-value-k="icon">icon</:item>
               <:item value="dot" phx-value-k="dot">dot</:item>
@@ -14606,7 +15140,7 @@ defmodule Dev.PlaygroundLive do
               value={@badge.dot_color || "inherit"}
               on_change="ctl_badge"
               disabled={!@badge.dot}
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="inherit" phx-value-k="dot_color" phx-value-v="inherit">inherit</:item>
               <:item
@@ -14914,7 +15448,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Expanded at render"
               value={@tree.expand}
               on_change="ctl_tree"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={v <- ~w(none first all)} value={v} phx-value-k="expand" phx-value-v={v}>
                 {v}
@@ -14934,7 +15468,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_tree"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="guides" phx-value-k="guides">show_guides</:item>
               <:item value="row_expand" phx-value-k="row_expand">expand_on_click</:item>
@@ -15116,7 +15650,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Mode"
               value={@cal.mode}
               on_change="ctl_cal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={m <- ~w(single range multiple)}
@@ -15136,7 +15670,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Week starts"
               value={to_string(@cal.starts_on)}
               on_change="ctl_cal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="1" phx-value-k="starts_on" phx-value-v="1">Monday</:item>
               <:item value="7" phx-value-k="starts_on" phx-value-v="7">Sunday</:item>
@@ -15150,7 +15684,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Cell size"
               value={@cal.size}
               on_change="ctl_cal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item
                 :for={s <- ~w(2rem 2.25rem 3rem 4rem)}
@@ -15171,7 +15705,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Extras"
               value={for {k, on} <- [{"outside", @cal.outside}, {"window", @cal.window}], on, do: k}
               on_change="ctl_cal"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="outside" phx-value-k="outside">outside days</:item>
               <:item value="window" phx-value-k="window">next 30 days only</:item>
@@ -15255,7 +15789,7 @@ defmodule Dev.PlaygroundLive do
               aria_label="Mode"
               value={@picker.mode}
               on_change="ctl_picker"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item :for={m <- ~w(single range)} value={m} phx-value-k="mode" phx-value-v={m}>
                 {m}
@@ -15278,7 +15812,7 @@ defmodule Dev.PlaygroundLive do
                     do: k
               }
               on_change="ctl_picker"
-              class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              class={@rail_class}
             >
               <:item value="two_months" phx-value-k="two_months">two months</:item>
               <:item value="clearable" phx-value-k="clearable">clearable</:item>

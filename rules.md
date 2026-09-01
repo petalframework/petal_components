@@ -112,6 +112,26 @@ One deliberate choice to know about: the `gray` role ships Tailwind's **zinc** v
 @import "../deps/petal_components/assets/tailwind-gray.css";
 ```
 
+### 8. Type (optional)
+
+Components inherit the host app's font stack - that is the default and it stays. Three opt-in tokens exist for when a design wants distinct faces; the package only READS them (never defines them), so an app that sets nothing changes nothing:
+
+- `--pc-font-heading` - the heading components (`<.h1>`..`<.h5>`) and prose headings. Falls back through `--pc-font-body`, then `inherit`, so setting body alone moves headings too.
+- `--pc-font-body` - the reading surfaces: the typography components, `<.prose>`, chat. Falls back to `inherit`. Kbd chips follow this token as well - they are deliberately never mono.
+- `--pc-font-mono` - inline code, tool output, and every other pc mono surface. Falls back through Tailwind's `--font-mono`.
+
+For a whole-app face, do not reach for these: set Tailwind's own theme font and preflight reskins everything, pc components included:
+
+```css
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+The pc tokens cover what `--font-sans` cannot express: a heading face distinct from body (`:root { --pc-font-heading: "Fraunces", ui-serif, Georgia, serif; }`), or scoping faces to a subtree (set the token on any wrapper - custom properties re-resolve per subtree, useful for multi-brand areas). Only `<.h1>`..`<.h5>` and prose headings bind the heading token; raw `<h1>`-`<h6>` markup that should follow it needs one extra line: `h1, h2, h3, h4, h5, h6 { font-family: var(--pc-font-heading, inherit); }`.
+
+Self-hosting a face in Phoenix: fetch the variable woff2 into `priv/static/fonts/` (already served by the generated `static_paths`), add an `@font-face` with `font-display: swap` and `format("woff2-variations")` to `app.css`, and `<link rel="preload">` the body face in the root layout with `crossorigin="anonymous"`. The playground's Get Code button emits this whole story - install lines, theme block, font files, preload - for any look dialed in at https://playground.petal.build.
+
 ### Installation rules of thumb for AI agents
 
 - Read each file before editing. Do not blind-patch.
