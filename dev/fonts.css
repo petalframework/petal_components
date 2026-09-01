@@ -1,14 +1,8 @@
-/* The Typeset dial's curated faces - dev/playground only (dev/ never ships
-   in the Hex package; consumers get the self-hosting snippet from Get Code
-   instead). Files are vendored in dev/static/fonts (see fetch_fonts.sh) so
-   local dev stays offline and phones nothing home.
-
-   No preloads on purpose: the default dial is System, and @font-face is
-   lazy by spec - picking a face fetches exactly that one file. Weight
-   ranges are each family's real variable range, not a blanket 100 900.
-   format("woff2-variations"), never tech(variations) - the tech() syntax
-   breaks older Safari. If a file ever changes, rename it: /dev-static has
-   no cache busting and Safari caches heuristically. */
+/* Generated to match the catalogue in dev.exs (@font_groups) - one
+ * variable @font-face per curated playground font. Real per-family weight
+ * ranges (verified via api.fontsource.org, not blanket 100 900), lazy by
+ * spec (a face is fetched only when a dial first uses it), and
+ * woff2-variations - never tech(variations), which breaks older Safari. */
 
 @font-face {
   font-family: "Inter";
@@ -43,6 +37,70 @@
 }
 
 @font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url("/dev-static/fonts/dm-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/figtree-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/outfit-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/public-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Nunito Sans";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("/dev-static/fonts/nunito-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/montserrat-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("/dev-static/fonts/ibm-plex-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/source-sans-3-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
   font-family: "Fraunces";
   font-style: normal;
   font-weight: 100 900;
@@ -59,6 +117,46 @@
 }
 
 @font-face {
+  font-family: "Lora";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/dev-static/fonts/lora-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/merriweather-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/dev-static/fonts/newsreader-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/playfair-display-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Roboto Slab";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/roboto-slab-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
   font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 100 800;
@@ -72,4 +170,28 @@
   font-weight: 100 900;
   font-display: swap;
   src: url("/dev-static/fonts/geist-mono-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Fira Code";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/dev-static/fonts/fira-code-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Source Code Pro";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/source-code-pro-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("/dev-static/fonts/roboto-mono-latin-wght-normal.woff2") format("woff2-variations");
 }

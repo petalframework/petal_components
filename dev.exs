@@ -910,49 +910,78 @@ defmodule Dev.PlaygroundLive do
   @serif_tail ~s(ui-serif, Georgia, Cambria, "Times New Roman", Times, serif)
   @mono_tail ~s(ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace)
 
-  @font_headings [
-    {"system", "System", nil},
-    {"inter", "Inter", ~s("Inter", ) <> @sans_tail},
-    {"geist", "Geist", ~s("Geist", ) <> @sans_tail},
-    {"manrope", "Manrope", ~s("Manrope", ) <> @sans_tail},
-    {"space-grotesk", "Space Grotesk", ~s("Space Grotesk", ) <> @sans_tail},
-    {"fraunces", "Fraunces", ~s("Fraunces", ) <> @serif_tail},
-    {"source-serif-4", "Source Serif 4", ~s("Source Serif 4", ) <> @serif_tail}
+  # The curated set, grouped the way the selects present it. slug == the
+  # Fontsource id for every pick (the classic gotcha - Geist Sans is `geist`,
+  # not `geist-sans` - holds), and weight ranges are per-family reality
+  # verified via api.fontsource.org, consumed by Get Code's @font-face
+  # emission - a blanket "100 900" lies for half of them. dev/fetch_fonts.sh
+  # and dev/fonts.css are generated from this table; keep the three in sync.
+  @font_groups [
+    {"Sans", @sans_tail,
+     [
+       {"inter", "Inter", "100 900"},
+       {"geist", "Geist", "100 900"},
+       {"manrope", "Manrope", "200 800"},
+       {"space-grotesk", "Space Grotesk", "300 700"},
+       {"dm-sans", "DM Sans", "100 1000"},
+       {"figtree", "Figtree", "300 900"},
+       {"outfit", "Outfit", "100 900"},
+       {"public-sans", "Public Sans", "100 900"},
+       {"nunito-sans", "Nunito Sans", "200 1000"},
+       {"montserrat", "Montserrat", "100 900"},
+       {"ibm-plex-sans", "IBM Plex Sans", "100 700"},
+       {"source-sans-3", "Source Sans 3", "200 900"}
+     ]},
+    {"Serif", @serif_tail,
+     [
+       {"fraunces", "Fraunces", "100 900"},
+       {"source-serif-4", "Source Serif 4", "200 900"},
+       {"lora", "Lora", "400 700"},
+       {"merriweather", "Merriweather", "300 900"},
+       {"newsreader", "Newsreader", "200 800"},
+       {"playfair-display", "Playfair Display", "400 900"},
+       {"roboto-slab", "Roboto Slab", "100 900"}
+     ]},
+    {"Mono", @mono_tail,
+     [
+       {"jetbrains-mono", "JetBrains Mono", "100 800"},
+       {"geist-mono", "Geist Mono", "100 900"},
+       {"fira-code", "Fira Code", "300 700"},
+       {"source-code-pro", "Source Code Pro", "200 900"},
+       {"roboto-mono", "Roboto Mono", "100 700"}
+     ]}
   ]
 
-  @font_bodies [
-    {"system", "System", nil},
-    {"inter", "Inter", ~s("Inter", ) <> @sans_tail},
-    {"geist", "Geist", ~s("Geist", ) <> @sans_tail},
-    {"manrope", "Manrope", ~s("Manrope", ) <> @sans_tail},
-    {"source-serif-4", "Source Serif 4", ~s("Source Serif 4", ) <> @serif_tail}
+  # Every role offers the whole catalogue (a mono heading is a legitimate
+  # look); shuffle draws from tasteful pools instead - heading/body from
+  # sans + serif, mono from mono - so the dice stay kind while hand-picking
+  # stays free. System sits in every pool: an honest shuffle can land on
+  # "what if we just didn't".
+  @font_select_options [
+    {"System", "system"}
+    | Enum.map(@font_groups, fn {group, _tail, fonts} ->
+        {group, Enum.map(fonts, fn {slug, label, _w} -> {label, slug} end)}
+      end)
   ]
 
-  @font_monos [
-    {"system", "System", nil},
-    {"jetbrains-mono", "JetBrains Mono", ~s("JetBrains Mono", ) <> @mono_tail},
-    {"geist-mono", "Geist Mono", ~s("Geist Mono", ) <> @mono_tail}
+  @font_stacks Map.new(
+                 for {_g, tail, fonts} <- @font_groups, {slug, label, _w} <- fonts,
+                   do: {slug, ~s("#{label}", ) <> tail}
+               )
+  @font_labels Map.new(
+                 for {_g, _t, fonts} <- @font_groups, {slug, label, _w} <- fonts, do: {slug, label}
+               )
+  @font_weights Map.new(
+                  for {_g, _t, fonts} <- @font_groups, {slug, _l, wght} <- fonts, do: {slug, wght}
+                )
+  @font_names ["system" | Map.keys(@font_labels)]
+  @shuffle_text_pool [
+    "system"
+    | for({g, _t, fonts} <- @font_groups, g != "Mono", {slug, _l, _w} <- fonts, do: slug)
   ]
-
-  @font_heading_names Enum.map(@font_headings, &elem(&1, 0))
-  @font_body_names Enum.map(@font_bodies, &elem(&1, 0))
-  @font_mono_names Enum.map(@font_monos, &elem(&1, 0))
-  @font_stacks Map.new(@font_headings ++ @font_bodies ++ @font_monos, fn {slug, _l, stack} -> {slug, stack} end)
-
-  # Get Code needs the self-hosting facts per face: the family name the
-  # @font-face declares, the Fontsource id the curl line fetches (gotcha:
-  # Geist Sans is `geist`, not `geist-sans`), and each family's REAL
-  # variable weight range - a blanket "100 900" lies for half of them.
-  @font_meta %{
-    "inter" => {"Inter", "inter", "100 900"},
-    "geist" => {"Geist", "geist", "100 900"},
-    "manrope" => {"Manrope", "manrope", "200 800"},
-    "space-grotesk" => {"Space Grotesk", "space-grotesk", "300 700"},
-    "fraunces" => {"Fraunces", "fraunces", "100 900"},
-    "source-serif-4" => {"Source Serif 4", "source-serif-4", "200 900"},
-    "jetbrains-mono" => {"JetBrains Mono", "jetbrains-mono", "100 800"},
-    "geist-mono" => {"Geist Mono", "geist-mono", "100 900"}
-  }
+  @shuffle_mono_pool [
+    "system" | for({g, _t, fonts} <- @font_groups, g == "Mono", {slug, _l, _w} <- fonts, do: slug)
+  ]
 
   @input_types ~w(text email password search date time select textarea file color)
 
@@ -977,9 +1006,7 @@ defmodule Dev.PlaygroundLive do
        secondaries: @secondaries,
        tw_palette: @tw_palette,
        radii: @radii,
-       font_headings: @font_headings,
-       font_bodies: @font_bodies,
-       font_monos: @font_monos,
+       font_select_options: @font_select_options,
        stars: @stars,
        nav_open: false,
        variant: "outline",
@@ -1370,9 +1397,9 @@ defmodule Dev.PlaygroundLive do
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
-      |> assign(:font_heading, allow(params["heading"], @font_heading_names, "system"))
-      |> assign(:font_body, allow(params["body"], @font_body_names, "system"))
-      |> assign(:font_mono, allow(params["mono"], @font_mono_names, "system"))
+      |> assign(:font_heading, allow(params["heading"], @font_names, "system"))
+      |> assign(:font_body, allow(params["body"], @font_names, "system"))
+      |> assign(:font_mono, allow(params["mono"], @font_names, "system"))
       |> assign(:lang, allow(params["locale"], @locale_codes, "en"))
       |> assign(:dark, false)
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
@@ -1461,13 +1488,11 @@ defmodule Dev.PlaygroundLive do
   def handle_event("set_font_mono", %{"mono" => v}, socket),
     do: patch_theme(socket, %{font_mono: v})
 
-  # System stays in the pool on purpose - an honest shuffle can land on
-  # the default, same as a designer trying "what if we just didn't".
   def handle_event("font_shuffle", _params, socket) do
     patch_theme(socket, %{
-      font_heading: Enum.random(@font_heading_names),
-      font_body: Enum.random(@font_body_names),
-      font_mono: Enum.random(@font_mono_names)
+      font_heading: Enum.random(@shuffle_text_pool),
+      font_body: Enum.random(@shuffle_text_pool),
+      font_mono: Enum.random(@shuffle_mono_pool)
     })
   end
 
@@ -3349,23 +3374,19 @@ defmodule Dev.PlaygroundLive do
 
       curls =
         Enum.map_join(families, "\n", fn slug ->
-          {_family, id, _weights} = @font_meta[slug]
-
-          "curl -o priv/static/fonts/#{id}-latin-wght-normal.woff2 \\\n" <>
-            "  https://cdn.jsdelivr.net/npm/@fontsource-variable/#{id}@5.3.0/files/#{id}-latin-wght-normal.woff2"
+          "curl -o priv/static/fonts/#{slug}-latin-wght-normal.woff2 \\\n" <>
+            "  https://cdn.jsdelivr.net/npm/@fontsource-variable/#{slug}@5.3.0/files/#{slug}-latin-wght-normal.woff2"
         end)
 
       faces =
         Enum.map_join(families, "\n\n", fn slug ->
-          {family, id, weights} = @font_meta[slug]
-
           """
           @font-face {
-            font-family: "#{family}";
+            font-family: "#{@font_labels[slug]}";
             font-style: normal;
-            font-weight: #{weights};
+            font-weight: #{@font_weights[slug]};
             font-display: swap;
-            src: url("/fonts/#{id}-latin-wght-normal.woff2") format("woff2-variations");
+            src: url("/fonts/#{slug}-latin-wght-normal.woff2") format("woff2-variations");
           }\
           """
         end)
@@ -3393,10 +3414,8 @@ defmodule Dev.PlaygroundLive do
 
       preload =
         if body_slug != "system" do
-          {_f, id, _w} = @font_meta[body_slug]
-
           "<%!-- root.html.heex, before the CSS link - preload the body face only --%>\n" <>
-            ~s|<link rel="preload" href={~p"/fonts/#{id}-latin-wght-normal.woff2"} as="font" type="font/woff2" crossorigin="anonymous" />|
+            ~s|<link rel="preload" href={~p"/fonts/#{body_slug}-latin-wght-normal.woff2"} as="font" type="font/woff2" crossorigin="anonymous" />|
         end
 
       [
@@ -3439,13 +3458,12 @@ defmodule Dev.PlaygroundLive do
   # non-system face by role priority, "+N" when more dials are set, or
   # System when none are.
   defp typeset_trigger_label(a) do
-    labels = Map.new(@font_headings ++ @font_bodies ++ @font_monos, fn {slug, label, _} -> {slug, label} end)
     set = Enum.reject([a.font_heading, a.font_body, a.font_mono], &(&1 == "system"))
 
-    case Enum.uniq(set) do
+    case set do
       [] -> "System"
-      [first | rest] when rest == [] and length(set) == 1 -> labels[first]
-      [first | _] -> "#{labels[first]} +#{length(set) - 1}"
+      [only] -> @font_labels[only]
+      [first | rest] -> "#{@font_labels[first]} +#{length(rest)}"
     end
   end
 
@@ -4806,12 +4824,11 @@ defmodule Dev.PlaygroundLive do
               <div class="flex flex-col gap-2">
                 <div
                   :for={
-                    {event, name, value, options, label, preview} <- [
-                      {"set_font_heading", "heading", @font_heading, @font_headings, "Heading",
+                    {event, name, value, label, preview} <- [
+                      {"set_font_heading", "heading", @font_heading, "Heading",
                        "var(--pc-font-heading, var(--pc-font-body, inherit))"},
-                      {"set_font_body", "body", @font_body, @font_bodies, "Body",
-                       "var(--pc-font-body, inherit)"},
-                      {"set_font_mono", "mono", @font_mono, @font_monos, "Mono",
+                      {"set_font_body", "body", @font_body, "Body", "var(--pc-font-body, inherit)"},
+                      {"set_font_mono", "mono", @font_mono, "Mono",
                        "var(--pc-font-mono, var(--font-mono, ui-monospace, monospace))"}
                     ]
                   }
@@ -4830,10 +4847,7 @@ defmodule Dev.PlaygroundLive do
                       name={name}
                       class="h-7 w-36 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500"
                     >
-                      {Phoenix.HTML.Form.options_for_select(
-                        Enum.map(options, fn {slug, opt_label, _stack} -> {opt_label, slug} end),
-                        value
-                      )}
+                      {Phoenix.HTML.Form.options_for_select(@font_select_options, value)}
                     </select>
                   </form>
                 </div>
