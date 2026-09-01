@@ -1738,7 +1738,13 @@
     @apply flex items-stretch w-full;
   }
   .pc-input-group :is(input, select, textarea) {
-    @apply flex-1 min-w-0 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent;
+    /* ring-0 as well as shadow-none: rings live in --tw-ring-shadow, which
+       shadow-none does not reset - without it the generic error rule's
+       ring-2 paints a SQUARE halo around the stripped (radius-0) inner
+       input, sticking out past the group's own corners at large radii.
+       The group carries the field surface - border, radius, focus ring
+       AND error ring - in every state; inner controls never do. */
+    @apply flex-1 min-w-0 border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 dark:bg-transparent;
     border-radius: 0;
   }
 
@@ -3310,7 +3316,7 @@
      light text on the fill, wiping as the bar grows - legible at any
      percentage, not white-on-light until the fill catches up. */
   .pc-progress__label {
-    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium whitespace-nowrap pointer-events-none;
+    @apply absolute inset-0 flex items-center justify-center px-4 text-xs font-medium lining-nums whitespace-nowrap pointer-events-none;
   }
   .pc-progress__label--track {
     @apply z-0 text-gray-700 dark:text-gray-200;
@@ -4886,7 +4892,7 @@
      same 32px circle the md stepper uses, and text-base was reading as a
      different component sat next to it. Each size steps down one notch. */
   .pc-stepper__number {
-    @apply font-semibold;
+    @apply font-semibold lining-nums;
   }
 
   /* xs holds sm's 11px rather than stepping down again: below that a numeral
@@ -10238,7 +10244,7 @@
   }
 
   .pc-slider__value {
-    @apply text-sm font-medium text-gray-700 tabular-nums dark:text-gray-200;
+    @apply text-sm font-medium text-gray-700 tabular-nums lining-nums dark:text-gray-200;
   }
 
   /* Stacking context for track, fill, marks and the input(s). */
