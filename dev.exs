@@ -4781,7 +4781,7 @@ defmodule Dev.PlaygroundLive do
             top_layer
             placement="bottom-start"
             class="shrink-0"
-            trigger_class="flex items-center gap-1.5 h-7 px-2 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
+            trigger_class="flex items-center gap-1.5 h-7 px-2 text-xs font-medium lining-nums border rounded-md border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
           >
             <:trigger>
               <span
