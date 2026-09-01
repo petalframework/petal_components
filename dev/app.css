@@ -4,6 +4,7 @@
 @source "../dev.exs";
 @import "../assets/default.css";
 @import "./colors.css";
+@import "./fonts.css";
 /* layer(base) so component/utility sizing can override the mask defaults */
 @import "./heroicons.css" layer(base);
 
@@ -19,6 +20,30 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+
+  /* The body dial reaches ALL playground chrome by inheritance. Host apps
+     get whole-app type via `@theme { --font-sans: ... }` - but preflight
+     consumes that at the html element, which a wrapper-scoped override
+     can't reach, so the playground re-anchors font-family at the page
+     wrapper (the element the dial writes tokens onto). Unset dial ->
+     inherit -> today's rendering. */
+  [data-primary] {
+    font-family: var(--pc-font-body, inherit);
+  }
+
+  /* Fixture pin: frames that pin their own colors (nested data-primary,
+     the before/after compare panels) also pin type, or their screenshots
+     drift with the type rail. `initial` on a custom property is the
+     var() reset - every pc chain inside falls back to system - and the
+     font-family re-anchor breaks inheritance of the dialed face from the
+     page wrapper. Layer base on purpose: an authored utility on a
+     fixture (the mono compare arm) still wins. */
+  [data-primary] [data-primary] {
+    --pc-font-heading: initial;
+    --pc-font-body: initial;
+    --pc-font-mono: initial;
+    font-family: var(--font-sans);
   }
 }
 

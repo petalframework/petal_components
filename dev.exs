@@ -901,6 +901,44 @@ defmodule Dev.PlaygroundLive do
   ]
   @radius_labels Enum.map(@radii, &elem(&1, 0))
 
+  # Type dials - the Typeset curated set, {slug, label, css_stack}. Every
+  # stack ends in the matching system tail so the preview renders exactly
+  # what Get Code emits. "system" is the shipped default and writes no
+  # token at all (the URL elides it, like every other dial default).
+  # Faces are vendored in dev/static/fonts (see dev/fetch_fonts.sh).
+  @sans_tail ~s(ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji")
+  @serif_tail ~s(ui-serif, Georgia, Cambria, "Times New Roman", Times, serif)
+  @mono_tail ~s(ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace)
+
+  @font_headings [
+    {"system", "System", nil},
+    {"inter", "Inter", ~s("Inter", ) <> @sans_tail},
+    {"geist", "Geist", ~s("Geist", ) <> @sans_tail},
+    {"manrope", "Manrope", ~s("Manrope", ) <> @sans_tail},
+    {"space-grotesk", "Space Grotesk", ~s("Space Grotesk", ) <> @sans_tail},
+    {"fraunces", "Fraunces", ~s("Fraunces", ) <> @serif_tail},
+    {"source-serif-4", "Source Serif 4", ~s("Source Serif 4", ) <> @serif_tail}
+  ]
+
+  @font_bodies [
+    {"system", "System", nil},
+    {"inter", "Inter", ~s("Inter", ) <> @sans_tail},
+    {"geist", "Geist", ~s("Geist", ) <> @sans_tail},
+    {"manrope", "Manrope", ~s("Manrope", ) <> @sans_tail},
+    {"source-serif-4", "Source Serif 4", ~s("Source Serif 4", ) <> @serif_tail}
+  ]
+
+  @font_monos [
+    {"system", "System", nil},
+    {"jetbrains-mono", "JetBrains Mono", ~s("JetBrains Mono", ) <> @mono_tail},
+    {"geist-mono", "Geist Mono", ~s("Geist Mono", ) <> @mono_tail}
+  ]
+
+  @font_heading_names Enum.map(@font_headings, &elem(&1, 0))
+  @font_body_names Enum.map(@font_bodies, &elem(&1, 0))
+  @font_mono_names Enum.map(@font_monos, &elem(&1, 0))
+  @font_stacks Map.new(@font_headings ++ @font_bodies ++ @font_monos, fn {slug, _l, stack} -> {slug, stack} end)
+
   @input_types ~w(text email password search date time select textarea file color)
 
   @qr_presets ~w(url totp wifi custom)
@@ -924,6 +962,9 @@ defmodule Dev.PlaygroundLive do
        secondaries: @secondaries,
        tw_palette: @tw_palette,
        radii: @radii,
+       font_headings: @font_headings,
+       font_bodies: @font_bodies,
+       font_monos: @font_monos,
        stars: @stars,
        nav_open: false,
        variant: "outline",
@@ -1314,6 +1355,9 @@ defmodule Dev.PlaygroundLive do
       |> assign(:gray, allow(params["gray"], @gray_names, "zinc"))
       |> assign(:secondary, allow(params["secondary"], @secondary_names, "pink"))
       |> assign(:radius, allow(params["radius"], @radius_labels, "10"))
+      |> assign(:font_heading, allow(params["heading"], @font_heading_names, "system"))
+      |> assign(:font_body, allow(params["body"], @font_body_names, "system"))
+      |> assign(:font_mono, allow(params["mono"], @font_mono_names, "system"))
       |> assign(:lang, allow(params["locale"], @locale_codes, "en"))
       |> assign(:dark, false)
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
@@ -1391,6 +1435,28 @@ defmodule Dev.PlaygroundLive do
     do: patch_theme(socket, %{secondary: x})
 
   def handle_event("set_radius", %{"radius" => r}, socket), do: patch_theme(socket, %{radius: r})
+
+  def handle_event("set_font_heading", %{"heading" => v}, socket),
+    do: patch_theme(socket, %{font_heading: v})
+
+  def handle_event("set_font_body", %{"body" => v}, socket),
+    do: patch_theme(socket, %{font_body: v})
+
+  def handle_event("set_font_mono", %{"mono" => v}, socket),
+    do: patch_theme(socket, %{font_mono: v})
+
+  # System stays in the pool on purpose - an honest shuffle can land on
+  # the default, same as a designer trying "what if we just didn't".
+  def handle_event("font_shuffle", _params, socket) do
+    patch_theme(socket, %{
+      font_heading: Enum.random(@font_heading_names),
+      font_body: Enum.random(@font_body_names),
+      font_mono: Enum.random(@font_mono_names)
+    })
+  end
+
+  def handle_event("font_reset", _params, socket),
+    do: patch_theme(socket, %{font_heading: "system", font_body: "system", font_mono: "system"})
 
   def handle_event("toggle_nav", _params, socket),
     do: {:noreply, assign(socket, nav_open: !socket.assigns.nav_open)}
@@ -3078,7 +3144,7 @@ defmodule Dev.PlaygroundLive do
   defp patch_theme(socket, delta) do
     theme =
       socket.assigns
-      |> Map.take([:active, :primary, :secondary, :gray, :radius])
+      |> Map.take([:active, :primary, :secondary, :gray, :radius, :font_heading, :font_body, :font_mono])
       |> Map.merge(delta)
 
     {:noreply, push_patch(socket, to: theme_path(theme))}
@@ -3091,6 +3157,9 @@ defmodule Dev.PlaygroundLive do
     base = if t.active == "button", do: "/", else: "/c/#{t.active}"
 
     []
+    |> then(&if t.font_mono != "system", do: [{"mono", t.font_mono} | &1], else: &1)
+    |> then(&if t.font_body != "system", do: [{"body", t.font_body} | &1], else: &1)
+    |> then(&if t.font_heading != "system", do: [{"heading", t.font_heading} | &1], else: &1)
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
@@ -3102,6 +3171,20 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
+
+  # Inline custom properties on the page wrapper, exactly like --pc-radius:
+  # they re-resolve per subtree, so pinned fixtures can reset them (see the
+  # base-layer pin in dev/app.css). System writes nothing - the token stays
+  # unset and every pc chain falls through to inherit.
+  defp font_style(a) do
+    [
+      {"--pc-font-heading", a.font_heading},
+      {"--pc-font-body", a.font_body},
+      {"--pc-font-mono", a.font_mono}
+    ]
+    |> Enum.reject(fn {_token, slug} -> slug == "system" end)
+    |> Enum.map_join(fn {token, slug} -> "; #{token}: #{@font_stacks[slug]}" end)
+  end
 
   defp radius_title("0"), do: "Square corners"
   defp radius_title("10"), do: "10px — the shipped default"
@@ -4218,7 +4301,7 @@ defmodule Dev.PlaygroundLive do
       data-primary={@primary}
       data-gray={@gray}
       data-secondary={@secondary}
-      style={"--pc-radius: #{radius_css(@radius)}"}
+      style={"--pc-radius: #{radius_css(@radius)}" <> font_style(assigns)}
     >
       <.toast_group id="pg-toasts" position={@toast.pos} flash={@flash} />
       <%!-- inert while the menu is open: complete background isolation for
@@ -4383,6 +4466,48 @@ defmodule Dev.PlaygroundLive do
               {label}
             </:item>
           </.toggle_group>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">type</span>
+          <%!-- Native selects, not toggle groups: fifteen faces don't fit the
+          strip, and select options render in the system stack, so opening one
+          fetches nothing (labels in their own faces would pull all ~276 KB). --%>
+          <form :for={
+            {event, name, value, options, label} <- [
+              {"set_font_heading", "heading", @font_heading, @font_headings, "Heading font"},
+              {"set_font_body", "body", @font_body, @font_bodies, "Body font"},
+              {"set_font_mono", "mono", @font_mono, @font_monos, "Mono font"}
+            ]
+          } phx-change={event} class="shrink-0">
+            <select
+              name={name}
+              aria-label={label}
+              title={label}
+              class="h-7 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-gray-400 focus:ring-0 dark:focus:border-gray-500"
+            >
+              {Phoenix.HTML.Form.options_for_select(
+                Enum.map(options, fn {slug, opt_label, _stack} -> {opt_label, slug} end),
+                value
+              )}
+            </select>
+          </form>
+          <button
+            phx-click="font_shuffle"
+            aria-label="Shuffle fonts"
+            title="Shuffle fonts"
+            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <.icon name="hero-arrow-path-mini" class="w-4 h-4" />
+          </button>
+          <button
+            :if={@font_heading != "system" or @font_body != "system" or @font_mono != "system"}
+            phx-click="font_reset"
+            aria-label="Reset fonts to system"
+            title="Reset fonts to system"
+            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <.icon name="hero-x-mark-mini" class="w-4 h-4" />
+          </button>
         </div>
         <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-gray-600 sm:block">
           theme is in the URL, share the look
@@ -6744,7 +6869,22 @@ defmodule Dev.PlaygroundLive do
         headings, and a three-tier emphasis system that holds in both modes.
       </p>
 
-      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Headings</div>
+      <div class="mt-8 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Type tokens</div>
+      <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
+        <.p>
+          Everything on this page follows the <strong>type</strong>
+          dials in the strip above: three opt-in tokens
+          (<.inline_code>--pc-font-heading</.inline_code>, <.inline_code>--pc-font-body</.inline_code>,
+          <.inline_code>--pc-font-mono</.inline_code>) that the library reads but never defines,
+          so an app that sets nothing keeps its own stack. Heading falls back through body,
+          so one body token restyles everything.
+        </.p>
+        <.text_muted>
+          Dial in a look, then share the URL - the theme travels in the query string.
+        </.text_muted>
+      </div>
+
+      <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">Headings</div>
       <div class="px-8 py-8 border border-gray-200 rounded-xl dark:border-gray-800">
         <.h1>The quick brown fox</.h1>
         <.h2>The quick brown fox</.h2>

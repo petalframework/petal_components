@@ -1,0 +1,75 @@
+/* The Typeset dial's curated faces - dev/playground only (dev/ never ships
+   in the Hex package; consumers get the self-hosting snippet from Get Code
+   instead). Files are vendored in dev/static/fonts (see fetch_fonts.sh) so
+   local dev stays offline and phones nothing home.
+
+   No preloads on purpose: the default dial is System, and @font-face is
+   lazy by spec - picking a face fetches exactly that one file. Weight
+   ranges are each family's real variable range, not a blanket 100 900.
+   format("woff2-variations"), never tech(variations) - the tech() syntax
+   breaks older Safari. If a file ever changes, rename it: /dev-static has
+   no cache busting and Safari caches heuristically. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/geist-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/dev-static/fonts/manrope-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/dev-static/fonts/space-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/source-serif-4-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/dev-static/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/dev-static/fonts/geist-mono-latin-wght-normal.woff2") format("woff2-variations");
+}
