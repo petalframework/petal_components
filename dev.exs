@@ -3435,6 +3435,20 @@ defmodule Dev.PlaygroundLive do
     """
   end
 
+  # The trigger says what's dialed without opening the panel: the first
+  # non-system face by role priority, "+N" when more dials are set, or
+  # System when none are.
+  defp typeset_trigger_label(a) do
+    labels = Map.new(@font_headings ++ @font_bodies ++ @font_monos, fn {slug, label, _} -> {slug, label} end)
+    set = Enum.reject([a.font_heading, a.font_body, a.font_mono], &(&1 == "system"))
+
+    case Enum.uniq(set) do
+      [] -> "System"
+      [first | rest] when rest == [] and length(set) == 1 -> labels[first]
+      [first | _] -> "#{labels[first]} +#{length(set) - 1}"
+    end
+  end
+
   # Inline custom properties on the page wrapper, exactly like --pc-radius:
   # they re-resolve per subtree, so pinned fixtures can reset them (see the
   # base-layer pin in dev/app.css). System writes nothing - the token stays
@@ -4732,48 +4746,100 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">type</span>
-          <%!-- Native selects, not toggle groups: fifteen faces don't fit the
-          strip, and select options render in the system stack, so opening one
-          fetches nothing (labels in their own faces would pull all ~276 KB). --%>
-          <form :for={
-            {event, name, value, options, label} <- [
-              {"set_font_heading", "heading", @font_heading, @font_headings, "Heading font"},
-              {"set_font_body", "body", @font_body, @font_bodies, "Body font"},
-              {"set_font_mono", "mono", @font_mono, @font_monos, "Mono font"}
-            ]
-          } phx-change={event} class="shrink-0">
-            <select
-              name={name}
-              aria-label={label}
-              title={label}
-              class="h-7 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500"
-            >
-              {Phoenix.HTML.Form.options_for_select(
-                Enum.map(options, fn {slug, opt_label, _stack} -> {opt_label, slug} end),
-                value
-              )}
-            </select>
-          </form>
-          <button
-            phx-click="font_shuffle"
-            aria-label="Shuffle fonts"
-            title="Shuffle fonts"
-            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
+          <%!-- The three role dials live behind one labelled panel: bare
+          selects in the strip couldn't say which face they steered. Top-layer
+          popover because the strip is overflow-x-auto - an anchored panel
+          would clip (the tooltip lesson). The Aa previews the dialed heading
+          face live; row labels in the panel do the same per role. --%>
+          <.popover
+            id="pg-typeset"
+            top_layer
+            placement="bottom-start"
+            class="shrink-0"
+            trigger_class="flex items-center gap-1.5 h-7 px-2 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
           >
-            <.icon name="hero-arrow-path-mini" class="w-4 h-4" />
-          </button>
-          <%!-- Always rendered: unmounting on click dropped keyboard focus to
-          body and shifted the strip. Disabled-at-system keeps the layout and
-          reads as an affordance. --%>
-          <button
-            phx-click="font_reset"
-            aria-label="Reset fonts to system"
-            title="Reset fonts to system"
-            disabled={@font_heading == "system" and @font_body == "system" and @font_mono == "system"}
-            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
-          >
-            <.icon name="hero-x-mark-mini" class="w-4 h-4" />
-          </button>
+            <:trigger>
+              <span
+                class="text-sm leading-none"
+                style="font-family: var(--pc-font-heading, var(--pc-font-body, inherit))"
+                aria-hidden="true"
+              >
+                Aa
+              </span>
+              {typeset_trigger_label(assigns)}
+              <.icon name="hero-chevron-down-mini" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+            </:trigger>
+
+            <div class="w-60">
+              <div class="flex items-center justify-between mb-2.5">
+                <div class="text-xs font-semibold text-gray-700 dark:text-gray-200">Typeset</div>
+                <div class="flex items-center gap-1">
+                  <button
+                    phx-click="font_shuffle"
+                    aria-label="Shuffle fonts"
+                    title="Shuffle fonts"
+                    class="flex items-center justify-center rounded-md w-6 h-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
+                  >
+                    <.icon name="hero-arrow-path-mini" class="w-4 h-4" />
+                  </button>
+                  <%!-- Always rendered: unmounting on click dropped keyboard
+                  focus, and disabled-at-system reads as an affordance. --%>
+                  <button
+                    phx-click="font_reset"
+                    aria-label="Reset fonts to system"
+                    title="Reset fonts to system"
+                    disabled={
+                      @font_heading == "system" and @font_body == "system" and @font_mono == "system"
+                    }
+                    class="flex items-center justify-center rounded-md w-6 h-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <.icon name="hero-x-mark-mini" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <%!-- Native selects, not toggle groups: fifteen faces, and
+              select options render in the system stack, so opening one
+              fetches nothing (labels in their own faces would pull all
+              ~276 KB). Row labels preview each role's CURRENT face - the
+              answer to "which dropdown affects what", live. --%>
+              <div class="flex flex-col gap-2">
+                <div
+                  :for={
+                    {event, name, value, options, label, preview} <- [
+                      {"set_font_heading", "heading", @font_heading, @font_headings, "Heading",
+                       "var(--pc-font-heading, var(--pc-font-body, inherit))"},
+                      {"set_font_body", "body", @font_body, @font_bodies, "Body",
+                       "var(--pc-font-body, inherit)"},
+                      {"set_font_mono", "mono", @font_mono, @font_monos, "Mono",
+                       "var(--pc-font-mono, var(--font-mono, ui-monospace, monospace))"}
+                    ]
+                  }
+                  class="flex items-center justify-between gap-3"
+                >
+                  <label
+                    for={"pg-typeset-" <> name}
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                    style={"font-family: #{preview}"}
+                  >
+                    {label}
+                  </label>
+                  <form phx-change={event}>
+                    <select
+                      id={"pg-typeset-" <> name}
+                      name={name}
+                      class="h-7 w-36 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500"
+                    >
+                      {Phoenix.HTML.Form.options_for_select(
+                        Enum.map(options, fn {slug, opt_label, _stack} -> {opt_label, slug} end),
+                        value
+                      )}
+                    </select>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </.popover>
         </div>
         <div class="flex items-center gap-3 ml-auto shrink-0">
           <span class="hidden text-[11px] text-gray-400 dark:text-gray-600 sm:block">
