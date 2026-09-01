@@ -23,9 +23,9 @@ Route by request. Propose and confirm - never auto-run work the user did not ask
 - **Review** - "review / audit / critique this UI", or a diff to check.
   Load `references/review.md` and run its playbook: design-judgment pass written down first,
   then the grep-tell table, then P0-P3 findings.
-- **Theme** - "brand / theme / dark mode / make it ours".
+- **Theme** - "brand / theme / dark mode / fonts / make it ours".
   Load `references/tokens.md` and apply its `@theme` section: primary ramp, gray dial remap,
-  `--pc-radius`, dark ghost material.
+  `--pc-radius`, the `--pc-font-*` type knobs, dark ghost material.
 
 When picking which component to reach for, scan `references/components.md` - the generated
 inventory, one line per component. A run loads this file plus at most two reference files.

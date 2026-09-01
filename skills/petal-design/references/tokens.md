@@ -45,6 +45,18 @@ The clamp keeps `full` meaning "pill" for one-line controls and stops it meaning
 
 One more public hook: `--pc-button-solid-fg` (fallback `#fff`) - the text color on solid primary fills. Text on a custom solid-primary surface is `color: var(--pc-button-solid-fg, #fff)`, never hardcoded `text-white`, so a light brand primary can flip its button text dark.
 
+### The type knobs: `--pc-font-heading` / `--pc-font-body` / `--pc-font-mono`
+
+Like `--pc-radius`, the package only READS these - never defines them - and every fallback chain ends in `inherit` or the value the surface consumed before the tokens existed, so an app that sets nothing keeps its own stack. The chains (copied from `default.css`):
+
+| Token | Read as | Bound to |
+|---|---|---|
+| `--pc-font-heading` | `var(--pc-font-heading, var(--pc-font-body, inherit))` | `pc-h1`..`pc-h5`, prose headings |
+| `--pc-font-body` | `var(--pc-font-body, inherit)` | typography reading surfaces, `.prose`, chat bubble/markdown |
+| `--pc-font-mono` | `var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace))` | inline code, chat code, tool output, showcase props tables |
+
+Doctrine for custom markup: a Petal-adjacent heading in custom markup reads `font-family: var(--pc-font-heading, var(--pc-font-body, inherit))`; custom mono reads the full mono chain above. Kbd deliberately tracks BODY (`var(--pc-font-body, var(--font-sans, ...))`) - never bind a key cap to the mono token. Chat markdown headings stay on the body face (dense scale; a display face at `text-sm` reads as a glitch). A whole-app face is NOT these tokens: that is the host's `@theme { --font-sans: ... }`, which preflight applies at `html`. Type-scale (size/leading/measure) tokens do not exist - demand-gated, same call as the field density family.
+
 ## 3. Dark mode: the gray-400 ghost material
 
 Dark mode is class-based (`.dark` ancestor, `dark:` variant). Light chrome is opaque; dark translucent chrome is always alpha-of-gray-400 - never alpha-of-white, never opaque 800/700 fills on chrome. gray-400 is the ramp's chroma peak, so the ghost carries the dial's hue (slate ghost looks slate, zinc looks zinc); white-alpha only works when the neutral is colourless.

@@ -939,6 +939,21 @@ defmodule Dev.PlaygroundLive do
   @font_mono_names Enum.map(@font_monos, &elem(&1, 0))
   @font_stacks Map.new(@font_headings ++ @font_bodies ++ @font_monos, fn {slug, _l, stack} -> {slug, stack} end)
 
+  # Get Code needs the self-hosting facts per face: the family name the
+  # @font-face declares, the Fontsource id the curl line fetches (gotcha:
+  # Geist Sans is `geist`, not `geist-sans`), and each family's REAL
+  # variable weight range - a blanket "100 900" lies for half of them.
+  @font_meta %{
+    "inter" => {"Inter", "inter", "100 900"},
+    "geist" => {"Geist", "geist", "100 900"},
+    "manrope" => {"Manrope", "manrope", "200 800"},
+    "space-grotesk" => {"Space Grotesk", "space-grotesk", "300 700"},
+    "fraunces" => {"Fraunces", "fraunces", "100 900"},
+    "source-serif-4" => {"Source Serif 4", "source-serif-4", "200 900"},
+    "jetbrains-mono" => {"JetBrains Mono", "jetbrains-mono", "100 800"},
+    "geist-mono" => {"Geist Mono", "geist-mono", "100 900"}
+  }
+
   @input_types ~w(text email password search date time select textarea file color)
 
   @qr_presets ~w(url totp wifi custom)
@@ -1363,6 +1378,7 @@ defmodule Dev.PlaygroundLive do
       # Any navigation (sidebar, overlay menu, cmdk) lands here - close the
       # mobile menu so picking a component reveals it immediately.
       |> assign(:nav_open, false)
+      |> assign_base_url(uri)
       |> maybe_run_dt_link(params, uri)
       |> maybe_run_filters_link(params, uri)
 
@@ -3172,6 +3188,245 @@ defmodule Dev.PlaygroundLive do
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
 
+  # Get Code's agent prompt carries a real shareable URL - the deployed host
+  # in production, localhost in dev - taken from the uri handle_params
+  # already receives.
+  defp assign_base_url(socket, uri) do
+    %URI{scheme: scheme, host: host, port: port} = URI.parse(uri)
+
+    base =
+      if (scheme == "https" and port == 443) or (scheme == "http" and port == 80),
+        do: "#{scheme}://#{host}",
+        else: "#{scheme}://#{host}:#{port}"
+
+    assign(socket, :base_url, base)
+  end
+
+  # ---- Get Code: the dialed look as a paste-ready start story --------------
+  #
+  # Emission rule everywhere: only what differs from PACKAGE stock (blue
+  # primary, pink secondary, zinc gray, 0.625rem radius, host fonts). The
+  # playground's neutral-primary DEFAULT therefore emits a block - that
+  # look is not stock, it's the light-dark() monochrome accent.
+
+  defp get_code_sections(a) do
+    theme = theme_code(a)
+    fonts = font_code(a)
+
+    [
+      {"Install", install_code()},
+      theme && {"Theme - assets/css/app.css", theme},
+      fonts && {"Fonts - self-hosted", fonts},
+      {"Hand it to your agent", agent_code(a, theme, fonts)}
+    ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp install_code do
+    """
+    # 1. mix.exs
+    {:petal_components, "~> 4.16"}
+
+    # 2. mix deps.get
+
+    # 3. assets/css/app.css - under @import "tailwindcss";
+    @source "../deps/petal_components/**/*.*ex";
+    @source not "../deps/petal_components/lib/petal_components/showcase";
+    @import "../deps/petal_components/assets/default.css";
+
+    # 4. lib/<your_app>_web.ex - inside `def html`'s quote block
+    use PetalComponents
+
+    # 5. assets/js/app.js - spread the bundled hooks into your LiveSocket
+    import PetalComponents from "../../deps/petal_components/assets/js/petal_components"
+    hooks: { ...PetalComponents }\
+    """
+  end
+
+  defp theme_code(a) do
+    blocks =
+      [primary_code(a.primary), secondary_code(a.secondary), gray_code(a.gray), radius_code(a.radius)]
+      |> Enum.reject(&is_nil/1)
+
+    if blocks != [], do: Enum.join(blocks, "\n\n")
+  end
+
+  # Stock is blue. Neutral is the playground's monochrome accent: near-black
+  # action colour in light, near-white in dark, derived from the gray ramp -
+  # light-dark() needs color-scheme wired to the dark class to resolve.
+  defp primary_code("blue"), do: nil
+
+  defp primary_code("neutral") do
+    """
+    :root { color-scheme: light; }
+    .dark { color-scheme: dark; }
+
+    @theme inline {
+    #{neutral_ramp_lines()}
+    }
+
+    :root {
+      --pc-button-solid-fg: light-dark(#ffffff, var(--color-gray-900));
+    }\
+    """
+  end
+
+  defp primary_code(hue), do: ramp_remap("primary", hue)
+
+  defp neutral_ramp_lines do
+    # The exact ramp the playground's neutral dial paints (dev/colors.css),
+    # with --color-gray-* in place of the pg mirrors: light stop -> dark stop.
+    [
+      {"50", "50", "900"},
+      {"100", "100", "700"},
+      {"200", "200", "800"},
+      {"300", "300", "300"},
+      {"400", "400", "600"},
+      {"500", "600", "400"},
+      {"600", "900", "50"},
+      {"700", "800", "200"},
+      {"800", "700", "300"},
+      {"900", "900", "100"},
+      {"950", "950", "50"}
+    ]
+    |> Enum.map_join("\n", fn {stop, l, d} ->
+      "  --color-primary-#{stop}: light-dark(var(--color-gray-#{l}), var(--color-gray-#{d}));"
+    end)
+  end
+
+  defp secondary_code("pink"), do: nil
+  defp secondary_code(hue), do: ramp_remap("secondary", hue)
+
+  defp gray_code("zinc"), do: nil
+
+  # Tailwind's own gray is the one ramp a var() can't reach (petal ships
+  # zinc under the gray name) - restoring it is the one-line import.
+  defp gray_code("gray") do
+    """
+    /* after the default.css import */
+    @import "../deps/petal_components/assets/tailwind-gray.css";\
+    """
+  end
+
+  defp gray_code(ramp), do: ramp_remap("gray", ramp)
+
+  defp ramp_remap(role, ramp) do
+    stops = ~w(50 100 200 300 400 500 600 700 800 900 950)
+
+    lines =
+      Enum.map_join(stops, "\n", fn stop ->
+        "  --color-#{role}-#{stop}: var(--color-#{ramp}-#{stop});"
+      end)
+
+    "@theme inline {\n#{lines}\n}"
+  end
+
+  defp radius_code("10"), do: nil
+
+  defp radius_code(r) do
+    """
+    :root {
+      --pc-radius: #{radius_css(r)};
+    }\
+    """
+  end
+
+  defp font_code(a) do
+    picks =
+      [heading: a.font_heading, body: a.font_body, mono: a.font_mono]
+      |> Enum.reject(fn {_role, slug} -> slug == "system" end)
+
+    if picks != [] do
+      families = picks |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
+
+      curls =
+        Enum.map_join(families, "\n", fn slug ->
+          {_family, id, _weights} = @font_meta[slug]
+
+          "curl -o priv/static/fonts/#{id}-latin-wght-normal.woff2 \\\n" <>
+            "  https://cdn.jsdelivr.net/npm/@fontsource-variable/#{id}@5.3.0/files/#{id}-latin-wght-normal.woff2"
+        end)
+
+      faces =
+        Enum.map_join(families, "\n\n", fn slug ->
+          {family, id, weights} = @font_meta[slug]
+
+          """
+          @font-face {
+            font-family: "#{family}";
+            font-style: normal;
+            font-weight: #{weights};
+            font-display: swap;
+            src: url("/fonts/#{id}-latin-wght-normal.woff2") format("woff2-variations");
+          }\
+          """
+        end)
+
+      body_slug = a.font_body
+      mono_slug = a.font_mono
+      heading_slug = a.font_heading
+
+      theme_lines =
+        [
+          body_slug != "system" && "  --font-sans: #{@font_stacks[body_slug]};",
+          mono_slug != "system" && "  --font-mono: #{@font_stacks[mono_slug]};"
+        ]
+        |> Enum.filter(& &1)
+
+      theme_block =
+        if theme_lines != [],
+          do: "/* body -> --font-sans reskins the whole app via preflight;\n   mono -> --font-mono reaches every pc mono surface */\n@theme {\n#{Enum.join(theme_lines, "\n")}\n}",
+          else: nil
+
+      heading_block =
+        if heading_slug != "system" and heading_slug != body_slug,
+          do: ":root {\n  --pc-font-heading: #{@font_stacks[heading_slug]};\n}",
+          else: nil
+
+      preload =
+        if body_slug != "system" do
+          {_f, id, _w} = @font_meta[body_slug]
+
+          "<%!-- root.html.heex, before the CSS link - preload the body face only --%>\n" <>
+            ~s|<link rel="preload" href={~p"/fonts/#{id}-latin-wght-normal.woff2"} as="font" type="font/woff2" crossorigin="anonymous" />|
+        end
+
+      [
+        "# fetch once, commit the files (Phoenix static_paths already serves /fonts;\n# mix phx.digest fingerprints them; italics render synthetic)\n" <> curls,
+        "/* assets/css/app.css */\n" <> faces,
+        theme_block,
+        heading_block,
+        preload
+      ]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join("\n\n")
+    end
+  end
+
+  defp agent_code(a, theme, fonts) do
+    url =
+      a.base_url <>
+        theme_path(
+          Map.take(a, [:active, :primary, :secondary, :gray, :radius, :font_heading, :font_body, :font_mono])
+        )
+
+    steps =
+      [
+        "1. Install petal_components per https://petal.build/petal-components/rules.md (hex dep, the @source/@import lines in assets/css/app.css, `use PetalComponents` in the web module, spread the bundled JS hooks).",
+        theme && "2. Add this to assets/css/app.css:\n\n#{theme}",
+        fonts && "#{if theme, do: 3, else: 2}. Self-host these fonts:\n\n#{fonts}"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    Set up petal_components in this Phoenix + Tailwind v4 app with the look I dialed in at #{url}
+
+    #{Enum.join(steps, "\n\n")}
+
+    Then start the server and confirm headings, body text and code render in the chosen look.\
+    """
+  end
+
   # Inline custom properties on the page wrapper, exactly like --pc-radius:
   # they re-resolve per subtree, so pinned fixtures can reset them (see the
   # base-layer pin in dev/app.css). System writes nothing - the token stays
@@ -4509,10 +4764,40 @@ defmodule Dev.PlaygroundLive do
             <.icon name="hero-x-mark-mini" class="w-4 h-4" />
           </button>
         </div>
-        <span class="hidden ml-auto text-[11px] text-gray-400 dark:text-gray-600 sm:block">
-          theme is in the URL, share the look
-        </span>
+        <div class="flex items-center gap-3 ml-auto shrink-0">
+          <span class="hidden text-[11px] text-gray-400 dark:text-gray-600 sm:block">
+            theme is in the URL, share the look
+          </span>
+          <.button size="xs" color="gray" variant="outline" phx-click={show_modal("pg-get-code")}>
+            <.icon name="hero-code-bracket-mini" class="w-3.5 h-3.5" /> Get code
+          </.button>
+        </div>
       </div>
+
+      <%!-- Get Code: the dialed look as a paste-ready start story. Content is
+      recomputed from the live assigns, so it always matches the strip. --%>
+      <.modal id="pg-get-code" hide title="Get code" max_width="lg">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Your dialed-in look, ready to paste: install petal_components, apply
+          the theme, self-host the faces - or hand the whole thing to your
+          coding agent.
+        </p>
+        <div :for={{{title, snippet}, i} <- Enum.with_index(get_code_sections(assigns))} class="mt-5">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="text-xs font-medium text-gray-400 dark:text-gray-500">{title}</div>
+            <button
+              id={"pg-get-code-copy-#{i}"}
+              phx-hook="PetalCopy"
+              data-copy-text={snippet}
+              class="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            >
+              <span data-pc-copy-default>Copy</span>
+              <span data-pc-copy-done class="hidden text-green-600 dark:text-green-400">Copied</span>
+            </button>
+          </div>
+          <pre class="p-3 overflow-x-auto text-xs leading-relaxed text-gray-100 bg-gray-900 rounded-lg dark:border dark:border-gray-800"><code>{snippet}</code></pre>
+        </div>
+      </.modal>
 
       <.command_dialog id="pg-cmdk" loop>
         <.command_input placeholder="Search components and actions..." />
