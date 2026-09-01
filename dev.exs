@@ -3409,7 +3409,10 @@ defmodule Dev.PlaygroundLive do
 
       heading_block =
         if heading_slug != "system" and heading_slug != body_slug,
-          do: ":root {\n  --pc-font-heading: #{@font_stacks[heading_slug]};\n}",
+          do:
+            ":root {\n  --pc-font-heading: #{@font_stacks[heading_slug]};\n}\n\n" <>
+              "/* optional: raw h1-h6 outside <.h1>..<.h5> follow the heading face too */\n" <>
+              "h1, h2, h3, h4, h5, h6 {\n  font-family: var(--pc-font-heading, inherit);\n}",
           else: nil
 
       preload =

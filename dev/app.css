@@ -32,6 +32,18 @@
     font-family: var(--pc-font-body, inherit);
   }
 
+  /* Raw headings follow the heading dial too. In a host app only
+     <.h1>..<.h5> and prose bind the token - but the preview's job is the
+     whole look, and the page titles here are raw h1s (a user flipping the
+     Heading dial expects the biggest heading on screen to answer). A host
+     wanting the same writes this exact one-liner; Get Code emits it.
+     Pinned fixtures hold without extra rules: their tokens are
+     initial-reset at the frame root, so this read falls through inherit
+     to the frame's re-anchored face. */
+  [data-primary] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
+  }
+
   /* Fixture pin: frames that pin their own colors (nested data-primary,
      the before/after compare panels) also pin type, or their screenshots
      drift with the type rail. `initial` on a custom property is the

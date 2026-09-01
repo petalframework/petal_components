@@ -128,7 +128,7 @@ For a whole-app face, do not reach for these: set Tailwind's own theme font and 
 }
 ```
 
-The pc tokens cover what `--font-sans` cannot express: a heading face distinct from body (`:root { --pc-font-heading: "Fraunces", ui-serif, Georgia, serif; }`), or scoping faces to a subtree (set the token on any wrapper - custom properties re-resolve per subtree, useful for multi-brand areas).
+The pc tokens cover what `--font-sans` cannot express: a heading face distinct from body (`:root { --pc-font-heading: "Fraunces", ui-serif, Georgia, serif; }`), or scoping faces to a subtree (set the token on any wrapper - custom properties re-resolve per subtree, useful for multi-brand areas). Only `<.h1>`..`<.h5>` and prose headings bind the heading token; raw `<h1>`-`<h6>` markup that should follow it needs one extra line: `h1, h2, h3, h4, h5, h6 { font-family: var(--pc-font-heading, inherit); }`.
 
 Self-hosting a face in Phoenix: fetch the variable woff2 into `priv/static/fonts/` (already served by the generated `static_paths`), add an `@font-face` with `font-display: swap` and `format("woff2-variations")` to `app.css`, and `<link rel="preload">` the body face in the root layout with `crossorigin="anonymous"`. The playground's Get Code button emits this whole story - install lines, theme block, font files, preload - for any look dialed in at https://playground.petal.build.
 
