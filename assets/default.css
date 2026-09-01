@@ -3624,7 +3624,15 @@
   /* Tabs - Number */
 
   .pc-tab__number {
-    @apply whitespace-nowrap ml-2 py-0.5 px-2 rounded-full text-xs font-normal;
+    /* A counter pill must hold its digit centred under ANY body face
+       (found with Playfair Display via the Typeset dials). Two font
+       realities handled: flex + leading-none centres the em box instead
+       of the line box (display-metric faces ride low otherwise), and
+       lining-nums asks fonts whose DEFAULT digits are old-style figures
+       - varying height by design, so 5 and 7 hang below 8 and 9 - for
+       their uniform UI numerals instead (a no-op where unavailable).
+       h-5 preserves the exact height the old line box + py-0.5 made. */
+    @apply whitespace-nowrap ml-2 h-5 px-2 inline-flex items-center justify-center leading-none lining-nums rounded-full text-xs font-normal;
   }
 
   /* Tabs - Pill with number */
@@ -11728,7 +11736,11 @@
   }
 
   .pc-chat__sources-row {
-    @apply inline-flex cursor-pointer list-none items-center gap-1.5 border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
+    /* leading-none so the label's ink centres against the favicon circles
+       under any body face, and lining-nums so the count digit keeps a
+       uniform height in fonts whose default numerals are old-style
+       figures (found with Playfair Display via the Typeset dials). */
+    @apply inline-flex cursor-pointer list-none items-center gap-1.5 leading-none lining-nums border border-gray-200 px-2 py-1 font-medium text-gray-500 select-none dark:border-gray-700 dark:text-gray-400;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
