@@ -44,6 +44,21 @@
     font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
   }
 
+  /* The mono dial reaches every raw code surface - in a host app the mono
+     pick ships as `@theme { --font-mono: ... }`, which preflight applies
+     to pre/code/kbd/samp app-wide, so the preview mirrors that (View-code
+     panels, chat code blocks, the Get Code wells all answer the dial).
+     pc components keep their own bindings regardless - components layer
+     beats base - so <.kbd> stays on the body face per its doctrine.
+     Fixture pin holds: tokens are initial-reset at pinned frames, falling
+     through to the frame's default mono. */
+  [data-primary] :is(pre, code, kbd, samp) {
+    font-family: var(
+      --pc-font-mono,
+      var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace)
+    );
+  }
+
   /* Fixture pin: frames that pin their own colors (nested data-primary,
      the before/after compare panels) also pin type, or their screenshots
      drift with the type rail. `initial` on a custom property is the
