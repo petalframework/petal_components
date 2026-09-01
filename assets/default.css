@@ -765,8 +765,9 @@
     @apply my-6 border-l-2 border-gray-300 pl-6 italic text-gray-700 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-inline-code {
-    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-700 dark:bg-gray-400/17 dark:text-gray-100;
+    @apply bg-gray-100 px-[0.4rem] py-[0.2rem] text-sm font-semibold text-gray-700 dark:bg-gray-400/17 dark:text-gray-100;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-text-muted {
     @apply text-sm text-gray-500 dark:text-gray-400;
@@ -779,6 +780,34 @@
   }
   .pc-hr {
     @apply my-8 border-gray-200 dark:border-gray-800;
+  }
+
+  /* Type tokens - the Typeset dials. Never DEFINED here: like --pc-radius,
+     the package only reads these, so an app that sets nothing keeps
+     inheriting the host's stack - every chain below ends in `inherit` or
+     the value the surface already used. --pc-font-heading falls back
+     through --pc-font-body, so setting body alone moves headings too.
+     Scope doctrine: --pc-font-body binds READING surfaces only (typography,
+     prose, chat); app chrome keeps inheriting from the host html - a whole-
+     app face is the host's `@theme { --font-sans: ... }`, not ours. */
+  :is(.pc-h1, .pc-h2, .pc-h3, .pc-h4, .pc-h5) {
+    font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
+  }
+  :is(.pc-text, .pc-lead, .pc-blockquote, .pc-text-muted, .pc-text-large, .pc-text-small) {
+    font-family: var(--pc-font-body, inherit);
+  }
+  /* <.prose> is otherwise styled entirely by the host's typography plugin;
+     these zero-specificity rules stay inert without it and lose to any
+     host override. Prose kbd is untouched (the plugin sets it to inherit,
+     and kbd tracks body by doctrine). */
+  .prose {
+    font-family: var(--pc-font-body, inherit);
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--pc-font-heading, var(--pc-font-body, inherit));
+  }
+  .prose :where(pre, code) {
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   /* Badges */
@@ -1757,7 +1786,11 @@
      trigger, input group addons) - only how they read. The heavier bottom
      edge is what makes it look like a key you can press. */
   :is(.pc-kbd, .pc-input-group__addon kbd) {
-    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 font-sans text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    @apply inline-flex items-center justify-center gap-0.5 h-5 min-w-5 px-1 text-xs font-medium bg-gray-100 text-gray-500 pointer-events-none select-none dark:bg-gray-400/17 dark:text-gray-400;
+    /* Kbd tracks the BODY face (never mono - see kbd.ex): this chain
+       resolves to the same var(--font-sans) the old `font-sans` utility
+       compiled to when no --pc-font-body is set. */
+    font-family: var(--pc-font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"));
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.3125rem), 0.125rem);
     box-shadow:
       inset 0 0 0 1px var(--color-gray-200, #e4e4e7),
@@ -5460,6 +5493,14 @@
     border-radius: var(--pc-chat-radius);
     /* Long URLs / unbroken tokens wrap instead of blowing out the bubble. */
     overflow-wrap: anywhere;
+    /* Chat is a reading surface, so it follows the body dial - but chat
+       markdown HEADINGS stay on the body face too (no --pc-font-heading
+       here): a display face at the bubble's dense text-sm scale reads as
+       a glitch, not a heading. */
+    font-family: var(--pc-font-body, inherit);
+  }
+  .pc-chat__markdown {
+    font-family: var(--pc-font-body, inherit);
   }
   /* Preserve newlines ONLY on leaf text nodes — never on the bubble itself, or
      structural whitespace (and dev HEEx debug comments) renders as blank lines
@@ -5566,7 +5607,8 @@
   }
   /* Inline code (code blocks carry their own theme colours from the highlighter). */
   .pc-chat__markdown :not(pre) > code {
-    @apply rounded bg-black/5 px-1 py-0.5 font-mono text-[0.85em] dark:bg-gray-400/17;
+    @apply rounded bg-black/5 px-1 py-0.5 text-[0.85em] dark:bg-gray-400/17;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-chat__markdown pre {
     @apply relative my-2 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed;
@@ -5597,7 +5639,7 @@
     @apply flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300;
   }
   .pc-chat__tool-name {
-    @apply font-mono;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
   .pc-chat__tool-check {
     @apply text-green-600 dark:text-green-400;
@@ -7863,7 +7905,8 @@
   }
 
   .pc-showcase-props__fn {
-    @apply px-4 py-2 font-mono text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-gray-400/8 dark:border-gray-400/17;
+    @apply px-4 py-2 text-xs font-semibold text-gray-900 border-b border-gray-200 bg-gray-50 dark:text-white dark:bg-gray-400/8 dark:border-gray-400/17;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__table {
@@ -7883,15 +7926,18 @@
   }
 
   .pc-showcase-props__name {
-    @apply font-mono text-xs font-semibold text-gray-900 dark:text-white;
+    @apply text-xs font-semibold text-gray-900 dark:text-white;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__type {
-    @apply font-mono text-xs text-primary-600 dark:text-primary-400;
+    @apply text-xs text-primary-600 dark:text-primary-400;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__default {
-    @apply font-mono text-xs text-gray-500 dark:text-gray-400;
+    @apply text-xs text-gray-500 dark:text-gray-400;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-showcase-props__req {
@@ -12646,12 +12692,13 @@
   /* Pretty-printed JSON. Same geometry as the markdown code block, but with an
      explicit ground: there is no highlighter theme painting behind this one. */
   .pc-chat__tool-code {
-    @apply m-0 overflow-x-auto bg-gray-50 p-2 font-mono text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
+    @apply m-0 overflow-x-auto bg-gray-50 p-2 text-[11px] leading-relaxed text-gray-700 dark:bg-gray-400/8 dark:text-gray-200;
     border-radius: max(calc(var(--pc-chat-panel-radius) - 0.125rem), 0.125rem);
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   .pc-chat__tool-code code {
-    @apply font-mono;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
   }
 
   /* Compact bursts ---------------------------------------------------------
