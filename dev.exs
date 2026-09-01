@@ -4747,13 +4747,17 @@ defmodule Dev.PlaygroundLive do
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
           <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500">radius</span>
+          <%!-- lining-nums is the caller opt-in: toggle_group items are slot
+          content, so the component never imposes figure style - but these
+          items ARE digits, and old-style figures would ride low under a
+          display body face. --%>
           <.toggle_group
             variant="outline"
             size="sm"
             aria_label="Corner radius"
             value={@radius}
             on_change="set_radius"
-            class="max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            class="max-w-full lining-nums overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <:item
               :for={{label, _value} <- @radii}

@@ -819,7 +819,13 @@
      A long label overflowing is the container's problem to solve - with a
      min-w-0 track, a truncate, or a shorter label. */
   .pc-badge {
-    @apply inline-flex items-center justify-center whitespace-nowrap border focus:outline-hidden;
+    /* lining-nums across component-owned numeric chrome (badge counters,
+       pagination, calendar days, OTP, avatar overflow, tab pills): fonts
+       whose default digits are old-style figures vary height by design,
+       which reads as mis-centred in a chip. A no-op in fonts without the
+       feature - and slot/user content is never imposed on; callers opt
+       their own digits in with the `lining-nums` utility. */
+    @apply inline-flex items-center justify-center whitespace-nowrap lining-nums border focus:outline-hidden;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -1828,7 +1834,7 @@
     @apply flex items-center;
   }
   .pc-otp__slot {
-    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
+    @apply relative flex items-center justify-center w-10 h-12 text-lg font-medium lining-nums bg-transparent border border-gray-300 text-gray-900 shadow-xs transition-[color,box-shadow] duration-200 ease-out dark:bg-gray-400/8 dark:border-gray-400/25 dark:text-gray-100;
   }
   .pc-otp__group .pc-otp__slot + .pc-otp__slot {
     @apply -ml-px;
@@ -3028,7 +3034,7 @@
      opaque where the placeholder's ghost alpha would let the photo
      bleed through. */
   .pc-avatar-group__overflow {
-    @apply bg-gray-100 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300;
+    @apply bg-gray-100 font-medium lining-nums text-gray-600 dark:bg-gray-800 dark:text-gray-300;
   }
 
   /* Generative art placeholders (art="mesh" | "dither"); the flex/type
@@ -3483,7 +3489,7 @@
     @apply inline-flex items-center gap-1 text-sm font-medium;
   }
   .pc-pagination__item {
-    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 transition-colors;
+    @apply inline-flex h-9 min-w-9 items-center justify-center px-2 lining-nums transition-colors;
     border-radius: max(calc(var(--pc-radius, 0.625rem) - 0.125rem), 0px);
   }
   .pc-pagination__item--is-current {
@@ -11448,7 +11454,7 @@
      ::after compiles to a trailing `:where(.dark, .dark *)` that can never
      match, which is the same trap the range input track documents. */
   .pc-calendar__day {
-    @apply relative flex items-center justify-center mx-auto text-sm font-normal cursor-pointer transition-colors duration-150;
+    @apply relative flex items-center justify-center mx-auto text-sm font-normal lining-nums cursor-pointer transition-colors duration-150;
     @apply hover:bg-gray-100 dark:hover:bg-gray-400/12;
     @apply focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50;
     width: var(--pc-calendar-cell-size, 2.25rem);
