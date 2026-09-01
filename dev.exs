@@ -3222,10 +3222,18 @@ defmodule Dev.PlaygroundLive do
     |> Enum.reject(&is_nil/1)
   end
 
+  # Derived from the running package, so the deployed playground always emits
+  # the requirement matching what is actually on Hex at deploy time (deploys
+  # follow the release commit) - never a version ahead of the published one.
+  defp pc_requirement do
+    [maj, min | _] = Application.spec(:petal_components, :vsn) |> to_string() |> String.split(".")
+    "~> #{maj}.#{min}"
+  end
+
   defp install_code do
     """
     # 1. mix.exs
-    {:petal_components, "~> 4.16"}
+    {:petal_components, "#{pc_requirement()}"}
 
     # 2. mix deps.get
 
@@ -4738,7 +4746,7 @@ defmodule Dev.PlaygroundLive do
               name={name}
               aria-label={label}
               title={label}
-              class="h-7 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-gray-400 focus:ring-0 dark:focus:border-gray-500"
+              class="h-7 py-0 pl-2 pr-7 text-xs font-medium border rounded-md border-gray-300 bg-white text-gray-600 dark:border-gray-400/25 dark:bg-gray-900 dark:text-gray-300 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:border-primary-500"
             >
               {Phoenix.HTML.Form.options_for_select(
                 Enum.map(options, fn {slug, opt_label, _stack} -> {opt_label, slug} end),
@@ -4750,16 +4758,19 @@ defmodule Dev.PlaygroundLive do
             phx-click="font_shuffle"
             aria-label="Shuffle fonts"
             title="Shuffle fonts"
-            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none"
           >
             <.icon name="hero-arrow-path-mini" class="w-4 h-4" />
           </button>
+          <%!-- Always rendered: unmounting on click dropped keyboard focus to
+          body and shifted the strip. Disabled-at-system keeps the layout and
+          reads as an affordance. --%>
           <button
-            :if={@font_heading != "system" or @font_body != "system" or @font_mono != "system"}
             phx-click="font_reset"
             aria-label="Reset fonts to system"
             title="Reset fonts to system"
-            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+            disabled={@font_heading == "system" and @font_body == "system" and @font_mono == "system"}
+            class="flex items-center justify-center rounded-md w-7 h-7 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:outline-none disabled:opacity-30 disabled:pointer-events-none"
           >
             <.icon name="hero-x-mark-mini" class="w-4 h-4" />
           </button>
@@ -4792,7 +4803,7 @@ defmodule Dev.PlaygroundLive do
               class="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             >
               <span data-pc-copy-default>Copy</span>
-              <span data-pc-copy-done class="hidden text-green-600 dark:text-green-400">Copied</span>
+              <span data-pc-copy-done class="hidden text-success-600 dark:text-success-400">Copied</span>
             </button>
           </div>
           <pre class="p-3 overflow-x-auto text-xs leading-relaxed text-gray-100 bg-gray-900 rounded-lg dark:border dark:border-gray-800"><code>{snippet}</code></pre>
