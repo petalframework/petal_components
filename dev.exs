@@ -1403,8 +1403,7 @@ defmodule Dev.PlaygroundLive do
     # which never sees the connected state). Decode the query from uri and
     # let params win, so the dials are right on first paint; on connected
     # patches params already carry the query and the merge is a no-op.
-    query = uri |> URI.parse() |> Map.get(:query) || ""
-    params = Map.merge(Plug.Conn.Query.decode(query), params)
+    params = Map.merge(query_params(uri), params)
 
     # /c/data-table-link folded into /c/data-table (Aug 2026). Old shared
     # links keep working: same page, and the State query params decode as
@@ -1446,8 +1445,7 @@ defmodule Dev.PlaygroundLive do
     # claim the link-mode demo exists to make. Plug's decoder, not URI's,
     # because filters use bracket-indexed params. On connected patches
     # params already carries the query and the merge is a no-op.
-    query = uri |> URI.parse() |> Map.get(:query) || ""
-    params = Map.merge(Plug.Conn.Query.decode(query), params)
+    params = Map.merge(query_params(uri), params)
 
     state = State.from_params(params, fields: [:name, :email, :status, :amount])
     assign(socket, :dt_link, run_dt(state))
@@ -1462,8 +1460,7 @@ defmodule Dev.PlaygroundLive do
   defp maybe_run_filters_link(%{assigns: %{active: "filters"}} = socket, params, uri) do
     alias PetalComponents.DataTable.State
 
-    query = uri |> URI.parse() |> Map.get(:query) || ""
-    params = Map.merge(Plug.Conn.Query.decode(query), params)
+    params = Map.merge(query_params(uri), params)
     state = State.from_params(params, fields: @filters_fields)
 
     socket
@@ -3233,6 +3230,18 @@ defmodule Dev.PlaygroundLive do
   end
 
   defp allow(value, allowed, default), do: if(value in allowed, do: value, else: default)
+
+  # PhoenixPlayground's dead render hands handle_params only the path
+  # params; the query string arrives solely in uri, so every decoder here
+  # reads it from there. Malformed percent-encoding makes Plug's decoder
+  # raise, and a garbage query string must degrade to "no dials set",
+  # never to a 500 on every route.
+  defp query_params(uri) do
+    query = uri |> URI.parse() |> Map.get(:query) || ""
+    Plug.Conn.Query.decode(query)
+  rescue
+    _ -> %{}
+  end
 
   # Get Code's agent prompt carries a real shareable URL - the deployed host
   # in production, localhost in dev - taken from the uri handle_params
