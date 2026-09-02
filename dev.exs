@@ -3218,10 +3218,16 @@ defmodule Dev.PlaygroundLive do
     # strings, which for the dials is exactly right).
     base = if t.active == "button", do: "/", else: "/c/#{t.active}"
 
+    # The link-mode pages build partial theme maps by hand; an absent font
+    # key means "system", which is elided - never a KeyError.
+    font = fn key -> Map.get(t, key, "system") end
+
     []
-    |> then(&if t.font_mono != "system", do: [{"mono", t.font_mono} | &1], else: &1)
-    |> then(&if t.font_body != "system", do: [{"body", t.font_body} | &1], else: &1)
-    |> then(&if t.font_heading != "system", do: [{"heading", t.font_heading} | &1], else: &1)
+    |> then(&if font.(:font_mono) != "system", do: [{"mono", font.(:font_mono)} | &1], else: &1)
+    |> then(&if font.(:font_body) != "system", do: [{"body", font.(:font_body)} | &1], else: &1)
+    |> then(
+      &if font.(:font_heading) != "system", do: [{"heading", font.(:font_heading)} | &1], else: &1
+    )
     |> then(&if t.radius != "10", do: [{"radius", t.radius} | &1], else: &1)
     |> then(&if t.secondary != "pink", do: [{"secondary", t.secondary} | &1], else: &1)
     |> then(&if t.gray != "zinc", do: [{"gray", t.gray} | &1], else: &1)
@@ -12806,7 +12812,10 @@ defmodule Dev.PlaygroundLive do
               primary: @primary,
               secondary: @secondary,
               gray: @gray,
-              radius: @radius
+              radius: @radius,
+              font_heading: @font_heading,
+              font_body: @font_body,
+              font_mono: @font_mono
             })
           }
           striped
@@ -13020,7 +13029,10 @@ defmodule Dev.PlaygroundLive do
               primary: @primary,
               secondary: @secondary,
               gray: @gray,
-              radius: @radius
+              radius: @radius,
+              font_heading: @font_heading,
+              font_body: @font_body,
+              font_mono: @font_mono
             })
           }
         >
