@@ -1,4 +1,4 @@
-# Component inventory - petal_components v4.16.0
+# Component inventory - petal_components v4.16.1
 
 GENERATED from data/schemas.json - do not hand-edit. Regenerated each release
 by `mix petal.gen.skill_snapshot`, alongside the MCP schema sync.
