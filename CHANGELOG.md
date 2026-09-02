@@ -1,5 +1,23 @@
 # Changelog
 
+### Unreleased
+
+#### Fixed
+
+- **Scheme switches no longer squeeze in tight flex rows.** The toggle
+  is a fixed w-9 square, but a specified width does not protect a flex
+  item - its automatic minimum is its content's min-content, the w-5
+  icon - so a crowded row compressed it to icon width while the height
+  held, and the hover wash painted as a skinny vertical pill. Every
+  scheme-switch root now wears `shrink-0`: the toggle square (the
+  dropdown trigger reuses it), the segmented rail (whose
+  `minmax(0,1fr)` tracks collapse the same way), and the dropdown
+  wrapper. The command palette's icon trigger shares the compact-square
+  grammar and gets the same hardening, and so do the social button's
+  icon-only squares - provider chips live in exactly the compact rows
+  that squeeze. The pill trigger needs none -
+  `whitespace-nowrap` already makes its min-content the full label.
+
 ### 4.16.0 - 2026-09-01
 
 #### Added
