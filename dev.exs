@@ -1460,6 +1460,9 @@ defmodule Dev.PlaygroundLive do
   defp maybe_run_filters_link(%{assigns: %{active: "filters"}} = socket, params, uri) do
     alias PetalComponents.DataTable.State
 
+    # The raw query string is also state here: it is what the page shows
+    # as the shareable link, so keep it beside the decoded params.
+    query = uri |> URI.parse() |> Map.get(:query) || ""
     params = Map.merge(query_params(uri), params)
     state = State.from_params(params, fields: @filters_fields)
 
