@@ -2459,7 +2459,10 @@
   /* Command palette */
 
   /* The visible openers. The pill reads as a search input at rest; the icon
-     variant shares the compact-square grammar of pc-scheme-toggle. */
+     variant shares the compact-square grammar of pc-scheme-toggle -
+     including shrink-0, see the squeeze note at the scheme switch. (The
+     pill needs none: whitespace-nowrap makes its min-content the full
+     label, so a flex row cannot crush it.) */
   .pc-command-trigger {
     @apply inline-flex items-center gap-2 text-sm text-gray-400 bg-white border border-gray-200 pl-3 pr-2 py-1.5 shadow-xs whitespace-nowrap cursor-pointer transition-colors duration-150 hover:border-gray-300 hover:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:text-gray-400;
     border-radius: var(--pc-radius, 0.625rem);
@@ -2478,7 +2481,7 @@
   }
 
   .pc-command-trigger--icon {
-    @apply inline-flex items-center justify-center w-9 h-9 text-gray-500 cursor-pointer transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    @apply inline-flex items-center justify-center w-9 h-9 shrink-0 text-gray-500 cursor-pointer transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -6946,9 +6949,14 @@
     @apply inline-block h-8 w-24 align-middle;
   }
 
-  /* Colour scheme switch */
+  /* Colour scheme switch. Every variant root wears shrink-0: these are
+     fixed-geometry chrome, and a specified width does not protect a flex
+     item - its automatic minimum is its *content's* min-content (the w-5
+     icon; the rail's minmax(0,1fr) tracks collapse further still), so a
+     tight row squeezes the width while the height holds and the hover
+     wash paints as a skinny vertical pill. */
   .pc-scheme-toggle {
-    @apply relative inline-flex items-center justify-center w-9 h-9 cursor-pointer text-gray-500 transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
+    @apply relative inline-flex items-center justify-center w-9 h-9 shrink-0 cursor-pointer text-gray-500 transition-colors duration-200 hover:bg-gray-900/5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:bg-gray-400/10 dark:hover:text-gray-200;
     border-radius: var(--pc-radius, 0.625rem);
   }
 
@@ -6993,7 +7001,7 @@
   }
 
   .pc-scheme-segmented {
-    @apply relative inline-grid grid-cols-3 gap-0.5 p-1 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
+    @apply relative inline-grid grid-cols-3 gap-0.5 p-1 shrink-0 bg-gray-900/5 text-gray-600 dark:bg-gray-400/15 dark:text-gray-300;
     /* Token x1.2 rail over x1 chips: the button-family curve, so the radius
        dial produces even, perceptible steps and only `full` pills. (Was
        pill-at-default x2.4 until 4.10 - see the toggle-group doctrine.) */
@@ -7023,7 +7031,7 @@
   }
 
   .pc-scheme-dropdown {
-    @apply inline-block;
+    @apply inline-block shrink-0;
   }
 
   .pc-scheme-dropdown__menu {
