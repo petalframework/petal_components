@@ -13,7 +13,9 @@
   dropdown trigger reuses it), the segmented rail (whose
   `minmax(0,1fr)` tracks collapse the same way), and the dropdown
   wrapper. The command palette's icon trigger shares the compact-square
-  grammar and gets the same hardening; the pill trigger needs none -
+  grammar and gets the same hardening, and so do the social button's
+  icon-only squares - provider chips live in exactly the compact rows
+  that squeeze. The pill trigger needs none -
   `whitespace-nowrap` already makes its min-content the full label.
 
 ### 4.16.0 - 2026-09-01

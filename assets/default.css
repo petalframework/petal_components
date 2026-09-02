@@ -7082,9 +7082,13 @@
   /* Exact squares per size - each is its own size's text-button height
      (2*py + line-height), so icon-only chips align with labelled
      siblings. aspect-ratio can't do this: it loses to content-derived
-     minimums inside flex rows and renders pills. */
+     minimums inside flex rows and renders pills. A specified width
+     alone loses the same way under flex-shrink (see the squeeze note
+     at the scheme switch), so the square also refuses to shrink -
+     provider chips live in exactly the compact rows that squeeze. */
   .pc-social-button--icon-only {
     padding: 0;
+    flex-shrink: 0;
   }
 
   .pc-button--sm.pc-social-button--icon-only {
