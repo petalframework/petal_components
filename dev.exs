@@ -1396,6 +1396,16 @@ defmodule Dev.PlaygroundLive do
 
   # Theme state lives in the URL, so any look is shareable / screenshotable.
   def handle_params(params, uri, socket) do
+    # PhoenixPlayground's dead render hands handle_params only the PATH
+    # params - the query string arrives solely in uri - so a shared theme
+    # link used to paint the defaults first and correct itself on the
+    # connected mount (a visible flash, and a wall for headless capture,
+    # which never sees the connected state). Decode the query from uri and
+    # let params win, so the dials are right on first paint; on connected
+    # patches params already carry the query and the merge is a no-op.
+    query = uri |> URI.parse() |> Map.get(:query) || ""
+    params = Map.merge(Plug.Conn.Query.decode(query), params)
+
     # /c/data-table-link folded into /c/data-table (Aug 2026). Old shared
     # links keep working: same page, and the State query params decode as
     # before. The address bar normalises on the first link-mode click.
