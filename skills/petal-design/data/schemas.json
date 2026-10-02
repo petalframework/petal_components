@@ -1573,7 +1573,7 @@
       "examples": [
         {
           "code": "<.breadcrumbs links={[\n  %{icon: \"hero-home\", to: \"#\", link_type: \"button\"},\n  %{label: \"Projects\", to: \"#\", link_type: \"button\"},\n  %{label: \"petal_components\", to: \"#\", link_type: \"button\"}\n]} />",
-          "description": "links take label and/or icon (the first crumb here is a home icon), to, and link_type (a / live_patch / live_redirect / button). The last crumb renders as the current page - strong text plus aria-current - and the nav carries an aria_label. separator=\"slash\" swaps the chevrons.",
+          "description": "links take label and/or icon (the first crumb here is a home icon), to, and link_type (a / live_patch / live_redirect / button). The last crumb renders as the current page - strong text plus aria-current - and the nav carries an aria_label. separator=\"chevron\" swaps the slashes.",
           "title": "Links from a plain list"
         }
       ],
@@ -18000,6 +18000,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-09-02T02:11:39.782296Z",
-  "version": "4.16.1"
+  "generated_at": "2026-10-02T01:59:06.791398Z",
+  "version": "4.17.0"
 }
