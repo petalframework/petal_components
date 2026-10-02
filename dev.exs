@@ -4097,7 +4097,7 @@ defmodule Dev.PlaygroundLive do
       ]
       |> Enum.filter(& &1)
 
-    "<.meteors #{Enum.join(attrs, " ")} />"
+    Enum.join(["<.meteors" | attrs], " ") <> " />"
   end
 
   defp plasma_snippet(pl) do
@@ -4634,6 +4634,975 @@ defmodule Dev.PlaygroundLive do
     ~s|<form phx-change="rate">
   <.rating interactive name="#{name}" rating={@#{name}} icon="#{assigns.rating.icon}"#{precision} size="#{assigns.rating.size}" />
 </form>|
+  end
+
+  # The :trigger slot stands in for the flagship's separate open_alert_dialog
+  # button - same opener, and it keeps the snippet one self-contained call.
+  defp alert_dialog_snippet(ad) do
+    copy =
+      if ad.variant == "destructive" do
+        %{
+          id: "delete-workspace",
+          title: "Delete this workspace?",
+          description:
+            "Everyone on the team loses access straight away, and the deployment history goes with it.",
+          confirm: "Delete workspace",
+          event: "delete_workspace",
+          icon: "hero-trash",
+          noun: "deployments"
+        }
+      else
+        %{
+          id: "publish-changes",
+          title: "Publish these changes?",
+          description: "The new version goes live for every visitor as soon as you confirm.",
+          confirm: "Publish",
+          event: "publish",
+          icon: "hero-rocket-launch",
+          noun: "pages"
+        }
+      end
+
+    attrs =
+      [
+        ~s(id="#{copy.id}"),
+        ad.variant != "default" && ~s(variant="#{ad.variant}"),
+        ~s(title="#{copy.title}"),
+        ad.description == "with" && ~s(description="#{copy.description}"),
+        ~s(confirm_label="#{copy.confirm}"),
+        ~s|on_confirm={JS.push("#{copy.event}")}|
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    media =
+      case ad.media do
+        "none" ->
+          ""
+
+        "icon" ->
+          """
+            <:media>
+              <.icon name="#{copy.icon}" class="pc-alert-dialog__media-icon" />
+            </:media>
+          """
+
+        "image" ->
+          """
+            <:media>
+              <img src={~p"/images/avatar.jpg"} alt="" />
+            </:media>
+          """
+      end
+
+    body =
+      if ad.length == "long" do
+        """
+          <ul class="pl-4 space-y-1 list-disc marker:text-gray-400">
+            <li>Project 1 and its 3 #{copy.noun}</li>
+            <li>Project 2 and its 6 #{copy.noun}</li>
+            <%!-- ... --%>
+          </ul>
+        """
+      else
+        ""
+      end
+
+    """
+    <.alert_dialog
+    #{Enum.join(attrs, "\n")}
+    >
+    #{media}  <:trigger>
+        <.button color="gray" variant="outline">Open alert dialog</.button>
+      </:trigger>
+    #{body}</.alert_dialog>\
+    """
+  end
+
+  defp carousel_snippet(car) do
+    # The indicator attrs only reach the paint while indicators are on, and the
+    # interval only while autoplay is.
+    attrs =
+      [
+        ~s(id="hero-carousel"),
+        car.transition != "fade" && ~s(transition_type="#{car.transition}"),
+        car.buttons != "overlay" && ~s(button_style="#{car.buttons}"),
+        car.indicators != "off" && "indicator",
+        car.indicators == "dots" && ~s(indicator_style="dots"),
+        car.indicators != "off" && car.ind_pos != "overlay" &&
+          ~s(indicator_position="#{car.ind_pos}"),
+        car.orientation != "horizontal" && ~s(orientation="#{car.orientation}"),
+        !car.loop && "loop={false}",
+        car.autoplay && "autoplay",
+        car.autoplay && "autoplay_interval={3500}",
+        car.thumbnails && "thumbnails"
+      ]
+      |> Enum.filter(& &1)
+
+    # A fully dialed carousel runs to eleven attrs, so lay the tag out the way
+    # mix format would: one line while it fits, one attr per line after.
+    line = Enum.join(["<.carousel" | attrs], " ") <> ">"
+
+    open =
+      if String.length(line) <= 98,
+        do: line,
+        else: "<.carousel\n" <> Enum.map_join(attrs, "\n", &("  " <> &1)) <> "\n>"
+
+    """
+    #{open}
+      <:slide image={~p"/images/forest.jpg"} title="Every mode, one component" />
+      <:slide image={~p"/images/sneaker.jpg"} title="Drag me on slide mode" />
+      <:slide image={~p"/images/code.jpg"} title="Keyboard works too" />
+    </.carousel>\
+    """
+  end
+
+  defp toast_snippet(t) do
+    attrs =
+      [
+        ~s(flash={@flash}),
+        t.pos != "bottom-right" && ~s(position="#{t.pos}")
+      ]
+      |> Enum.filter(& &1)
+
+    "<.toast_group #{Enum.join(attrs, " ")} />"
+  end
+
+  defp language_select_snippet(assigns) do
+    options =
+      Enum.map_join(assigns.playground_languages, ",\n", fn l ->
+        ~s(    %{locale: "#{l.locale}", flag: "#{l.flag}", label: "#{l.label}"})
+      end)
+
+    attrs =
+      [
+        ~s|current_locale={Gettext.get_locale(MyAppWeb.Gettext)}|,
+        ~s(current_path={@current_path}),
+        assigns.lang_variant != "flag" && ~s(variant="#{assigns.lang_variant}"),
+        assigns.lang_placement != "left" && ~s(placement="#{assigns.lang_placement}"),
+        "language_options={[\n#{options}\n  ]}"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    """
+    <.language_select
+    #{Enum.join(attrs, "\n")}
+    />\
+    """
+  end
+
+  defp file_upload_snippet(fu) do
+    # max_entries is upload config rather than an attr, so that dial shows up
+    # in the allow_upload/3 call. LiveView's own default is 1.
+    config =
+      [
+        "socket",
+        ":files",
+        fu.max_entries != 1 && "max_entries: #{fu.max_entries}",
+        "auto_upload: true",
+        "accept: ~w(.png .jpg .jpeg .gif .pdf)"
+      ]
+      |> Enum.filter(& &1)
+
+    attrs =
+      [
+        ~s(upload={@uploads.files}),
+        fu.variant != "dropzone" && ~s(variant="#{fu.variant}"),
+        ~s(label="Drop images or PDFs here")
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <%!-- in mount: allow_upload(#{Enum.join(config, ", ")}) --%>
+    <form id="upload-form" phx-change="validate" phx-submit="save">
+      <.file_upload #{Enum.join(attrs, " ")} />
+      <.button type="submit" size="sm" class="mt-4" disabled={@uploads.files.entries == []}>
+        Save
+      </.button>
+    </form>\
+    """
+  end
+
+  # max_width only sizes the side sheets - top and bottom run edge to edge.
+  defp slide_over_snippet(so) do
+    attrs =
+      [
+        ~s(id="profile"),
+        "hide",
+        so.origin != "right" && ~s(origin="#{so.origin}"),
+        so.origin in ~w(left right) && so.width != "md" && ~s(max_width="#{so.width}"),
+        ~s(title="Edit profile"),
+        ~s(description="Make changes to your profile here. Click save when you're done.")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    hide = ~s|hide_slide_over("#{so.origin}", "profile")|
+
+    """
+    <.slide_over
+    #{Enum.join(attrs, "\n")}
+    >
+      <%!-- name, username and bio fields --%>
+      <:footer>
+        <.button color="gray" variant="outline" phx-click={#{hide}}>
+          Cancel
+        </.button>
+        <.button phx-click={#{hide}}>Save changes</.button>
+      </:footer>
+    </.slide_over>\
+    """
+  end
+
+  defp skeleton_snippet(sk) do
+    # An unset animation already pulses, so pulse is the default left out.
+    attrs =
+      [
+        ~s(label="Loading article"),
+        sk.animation != "pulse" && ~s(animation="#{sk.animation}"),
+        ~s(class="flex w-full max-w-md flex-col gap-5")
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.skeleton_group #{Enum.join(attrs, " ")}>
+      <.skeleton class="h-40 w-full" />
+      <div class="flex items-center gap-4">
+        <.skeleton variant="circle" class="size-12 shrink-0" />
+        <div class="flex-1 space-y-2.5">
+          <.skeleton variant="text" class="w-1/2" />
+          <.skeleton variant="text" class="w-3/4" />
+        </div>
+      </div>
+      <.skeleton_text lines={3} />
+    </.skeleton_group>\
+    """
+  end
+
+  defp toggle_group_snippet(assigns) do
+    # Both rails wear the variant and size dials.
+    dials =
+      [
+        assigns.tg_variant != "solid" && ~s( variant="#{assigns.tg_variant}"),
+        assigns.tg_size != "md" && ~s( size="#{assigns.tg_size}")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.join()
+
+    """
+    <.toggle_group#{dials} aria_label="Density" value={@density} on_change="set_density">
+      <:item value="compact">Compact</:item>
+      <:item value="cozy">Cozy</:item>
+      <:item value="comfortable">Comfortable</:item>
+    </.toggle_group>
+
+    <.toggle_group multiple#{dials} aria_label="Formatting" value={@formats} on_change="toggle_format">
+      <:item value="bold" aria-label="Bold"><.icon name="hero-bold" /></:item>
+      <:item value="italic" aria-label="Italic"><.icon name="hero-italic" /></:item>
+      <:item value="underline" aria-label="Underline"><.icon name="hero-underline" /></:item>
+    </.toggle_group>\
+    """
+  end
+
+  # Real paths with the default link_type: the hero's crumbs are buttons only
+  # so the demo can't navigate away.
+  defp breadcrumbs_snippet(cr) do
+    separator = if cr.separator != "slash", do: ~s(\n  separator="#{cr.separator}"), else: ""
+
+    """
+    <.breadcrumbs#{separator}
+      links={[
+        %{icon: "hero-home", to: ~p"/"},
+        %{label: "Projects", to: ~p"/projects"},
+        %{label: "petal_components", to: ~p"/projects/petal_components"}
+      ]}
+    />\
+    """
+  end
+
+  defp timeline_snippet(tl) do
+    # Only the attrs that reach the paint: variant is vertical-only, and
+    # time_placement also sits out alternating.
+    vertical? = tl.orientation == "vertical"
+
+    attrs =
+      [
+        !vertical? && ~s(orientation="#{tl.orientation}"),
+        vertical? and tl.variant != "default" && ~s(variant="#{tl.variant}"),
+        tl.connector != "solid" && ~s(connector="#{tl.connector}"),
+        vertical? and tl.variant != "alternating" and tl.time_placement != "top" &&
+          ~s(time_placement="#{tl.time_placement}"),
+        ~s(label="Release pipeline")
+      ]
+      |> Enum.filter(& &1)
+
+    items =
+      Enum.map_join(pg_timeline_entries(tl), "\n", fn e ->
+        item =
+          [
+            e.marker != "dot" && ~s(marker="#{e.marker}"),
+            e.marker == "icon" && ~s(icon="#{e.icon}"),
+            e.marker == "avatar" && ~s(name="#{e.name}"),
+            e.color != "primary" && ~s(color="#{e.color}"),
+            e.state != "complete" && ~s(state="#{e.state}"),
+            ~s(time="#{e.time}"),
+            ~s(title="#{e.title}"),
+            ~s(description="#{e.description}")
+          ]
+          |> Enum.filter(& &1)
+
+        "  <:item #{Enum.join(item, " ")} />"
+      end)
+
+    """
+    <.timeline #{Enum.join(attrs, " ")}>
+    #{items}
+      <:item color="gray" title="Nightly build archived">
+        <span class="text-sm text-gray-500 dark:text-gray-400">
+          Completed <.local_time id="timeline-nightly-time" at={@archived_at} format="relative" /> on runner 4.
+        </span>
+      </:item>
+    </.timeline>\
+    """
+  end
+
+  defp sidebar_snippet(sb) do
+    attrs =
+      [
+        ~s(id="app-sidebar"),
+        ~s(label="Product"),
+        sb.side != "left" && ~s(side="#{sb.side}"),
+        sb.collapsible != "icon" && ~s(collapsible="#{sb.collapsible}"),
+        # nothing collapses a collapsible="none" rail, so the attr would be a no-op
+        sb.collapsed and sb.collapsible != "none" && "collapsed"
+      ]
+      |> Enum.filter(& &1)
+
+    badge = fn count -> if sb.badges, do: ~s( badge="#{count}"), else: "" end
+    align = if sb.side == "right", do: "end", else: "start"
+
+    """
+    <.sidebar_shell for="app-sidebar">
+      <:sidebar>
+        <.sidebar_nav #{Enum.join(attrs, " ")}>
+          <:header>
+            <.icon name="hero-cube" class="w-5 h-5 shrink-0 text-primary-500" />
+            <span class="pc-sidebar__brand">Acme Inc</span>
+            <.sidebar_trigger for="app-sidebar" class="ml-auto" />
+          </:header>
+          <.sidebar_group label="Workspace">
+            <.sidebar_item label="Dashboard" path={~p"/"} icon="hero-home" active />
+            <.sidebar_item label="Inbox" path={~p"/inbox"} icon="hero-inbox"#{badge.("12")} />
+            <.sidebar_item label="Invoices" path={~p"/invoices"} icon="hero-document-text"#{badge.("3")} />
+          </.sidebar_group>
+          <%!-- a collapsible Account group, with nested items --%>
+          <:footer>
+            <.user_dropdown_menu variant="sidebar" current_user_name="Ada Lovelace" current_user_email="ada@example.com" side="top" align="#{align}">
+              <%!-- dropdown_menu_item rows --%>
+            </.user_dropdown_menu>
+          </:footer>
+        </.sidebar_nav>
+      </:sidebar>
+      <.sidebar_trigger for="app-sidebar" target="mobile" />
+      <%!-- your page --%>
+    </.sidebar_shell>\
+    """
+  end
+
+  defp accordion_snippet(ac) do
+    # A fixed container_id: the hero's changes with the dials only to remount it.
+    attrs =
+      [
+        ~s(container_id="faq"),
+        ac.variant != "default" && ~s(variant="#{ac.variant}"),
+        ac.size != "md" && ~s(size="#{ac.size}"),
+        ac.multiple && "multiple",
+        "open_index={0}"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.accordion #{Enum.join(attrs, " ")}>
+      <:item heading="Is it accessible?">
+        Yes - proper button semantics, aria-expanded, and keyboard toggling out of the box.
+      </:item>
+      <:item heading="Can several be open at once?">
+        That is the multiple attr - flip it in the controls below.
+      </:item>
+      <:item heading="Does it follow the theme?">
+        Borders, radius token and text tiers all come from the doctrine.
+      </:item>
+    </.accordion>\
+    """
+  end
+
+  defp marquee_snippet(mq) do
+    attrs =
+      [
+        mq.reverse && "reverse",
+        mq.vertical && "vertical",
+        mq.pause && "pause_on_hover",
+        ~s(duration="24s"),
+        # max_height takes sm..2xl, not a CSS length - sm is 24rem
+        mq.vertical && ~s(max_height="sm")
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.marquee #{Enum.join(attrs, " ")}>
+      <div
+        :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)}
+        class="flex items-center gap-2 px-5 py-3 mx-2 border border-gray-200 rounded-xl dark:border-gray-400/17"
+      >
+        <.icon name="hero-bolt" class="w-4 h-4 text-gray-400" />
+        <span class="text-sm font-medium">{name}</span>
+      </div>
+    </.marquee>\
+    """
+  end
+
+  defp tabs_snippet(ts) do
+    # pill is the default; any other variant goes on the bar and on every tab.
+    variant = if ts.variant != "pill", do: ~s( variant="#{ts.variant}"), else: ""
+
+    tabs =
+      Enum.map_join(
+        [{"overview", "Overview", nil}, {"analytics", "Analytics", nil}, {"reports", "Reports", 4}],
+        "\n",
+        fn {slug, name, n} ->
+          number = if ts.number && n, do: " number={#{n}}", else: ""
+
+          ~s|  <.tab#{variant} is_active={@tab == "#{slug}"}#{number} link_type="button" phx-click="select_tab" phx-value-tab="#{slug}">#{name}</.tab>|
+        end
+      )
+
+    "<.tabs#{variant}>\n#{tabs}\n  <%!-- ... --%>\n</.tabs>"
+  end
+
+  defp pagination_snippet(pn) do
+    attrs =
+      [
+        "event",
+        "total_pages={12}",
+        "current_page={@page}",
+        pn.sibling != 1 && "sibling_count={#{pn.sibling}}",
+        pn.boundary != 1 && "boundary_count={#{pn.boundary}}"
+      ]
+      |> Enum.filter(& &1)
+
+    "<.pagination #{Enum.join(attrs, " ")} />"
+  end
+
+  defp table_snippet(tb) do
+    attrs =
+      [
+        if(tb.empty, do: "rows={[]}", else: "rows={@people}"),
+        tb.variant != "basic" && ~s(variant="#{tb.variant}"),
+        tb.density != "comfortable" && ~s(density="#{tb.density}"),
+        tb.striped && "striped",
+        "sort_by={@sort_by}",
+        "sort_dir={@sort_dir}"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.table #{Enum.join(attrs, " ")}>
+      <:col :let={p} label="Name" sortable>{p.name}</:col>
+      <:col :let={p} label="Role">{p.role}</:col>
+      <:col :let={p} label="Age" sortable>{p.age}</:col>
+      <%!-- Status: a <.badge> per row --%>
+      <:empty_state>
+        <div class="py-8 text-center text-gray-500 dark:text-gray-400">No people match.</div>
+      </:empty_state>
+      <:footer>
+        <.td colspan={2}>5 people</.td>
+        <.td>avg 67</.td>
+        <.td></.td>
+      </:footer>
+    </.table>\
+    """
+  end
+
+  # The flagship's id carries the disabled flag only to force a hook remount
+  # when the dial flips; a pasted menu just needs a stable one.
+  defp context_menu_snippet(cm) do
+    attrs =
+      [
+        ~s(:for={file <- @files}),
+        ~S|id={"file-#{file.id}"}|,
+        cm.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    #{Enum.join(["<.context_menu" | attrs], " ")}>
+      <:trigger>
+        <div class="p-4 border rounded-xl">{file.name}</div>
+      </:trigger>
+      <.context_menu_label>{file.name}</.context_menu_label>
+      <.context_menu_item kbd="↵">
+        <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4" /> Open
+      </.context_menu_item>
+      <%!-- Rename, Duplicate, a disabled Move to team folder --%>
+      <.context_menu_separator />
+      <.context_menu_item variant="danger" kbd="⌘⌫">
+        <.icon name="hero-trash" class="w-4 h-4" /> Delete
+      </.context_menu_item>
+    </.context_menu>\
+    """
+  end
+
+  # Same mapping as the corner dial in render_page("user-menu"): each answer
+  # settles both side and align.
+  defp user_menu_snippet(opens) do
+    {side, align} = if opens == "beside", do: {"right", "end"}, else: {"top", "start"}
+
+    """
+    <.user_dropdown_menu
+      variant="sidebar"
+      current_user_name="Sarah Chen"
+      current_user_email="sarah@acme.com"
+      side="#{side}"
+      align="#{align}"
+      menu_items_wrapper_class="w-60"
+    >
+      <.dropdown_menu_label>Organizations</.dropdown_menu_label>
+      <.dropdown_menu_item>
+        <.avatar name="Acme Inc" size="2xs" random_color /> Acme Inc
+        <.icon name="hero-check" class="w-4 h-4 ml-auto" />
+      </.dropdown_menu_item>
+      <%!-- more orgs, an Account group, a theme row, Sign out --%>
+    </.user_dropdown_menu>\
+    """
+  end
+
+  defp sortable_snippet(%{orientation: "grid"} = s) do
+    attrs =
+      [
+        ~s(id="photos"),
+        ~s(on_reorder="reorder_photos"),
+        ~s(orientation="grid"),
+        s.handle && "handle",
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    #{Enum.join(["<.sortable" | attrs], " ")}>
+      <:item
+        :for={photo <- @photos}
+        id={photo.id}
+        label={photo.title}
+        class="flex-col items-stretch gap-2 p-2"
+      >
+        <div class={["h-20 rounded-md bg-gradient-to-br", photo.tone]}></div>
+        <span class="text-xs text-gray-600 dark:text-gray-300">{photo.title}</span>
+      </:item>
+    </.sortable>\
+    """
+  end
+
+  defp sortable_snippet(s) do
+    attrs =
+      [
+        ~s(id="todos"),
+        ~s(on_reorder="reorder_todos"),
+        s.handle && "handle",
+        s.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    #{Enum.join(["<.sortable" | attrs], " ")}>
+      <:item
+        :for={todo <- @todos}
+        id={todo.id}
+        label={todo.title}
+        disabled={todo.locked}
+      >
+        <span class="grow">{todo.title}</span>
+        <.badge :if={todo.locked} size="sm" color="gray" label="locked" />
+      </:item>
+    </.sortable>\
+    """
+  end
+
+  # The group keeps only the height it needs (the flagship's border classes are
+  # frame decoration), and value_now/value_min mirror the nav panel's sizes so
+  # the server-rendered ARIA is right before the hook mounts.
+  defp resizable_snippet(r) do
+    orientation = r.orientation != "horizontal" && ~s(orientation="#{r.orientation}")
+
+    group =
+      [~s(id="docs"), orientation, ~s(class="h-64")]
+      |> Enum.filter(& &1)
+
+    nav =
+      [
+        ~s(id="docs-nav"),
+        "default_size={28}",
+        "min_size={18}",
+        r.collapsible && "collapsible"
+      ]
+      |> Enum.filter(& &1)
+
+    handle =
+      [
+        orientation,
+        r.with_handle && "with_handle",
+        ~s(controls="docs-nav"),
+        "value_now={28}",
+        "value_min={18}",
+        ~s(label="Resize navigation")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("    " <> &1))
+
+    """
+    #{Enum.join(["<.resizable_group" | group], " ")}>
+      #{Enum.join(["<.resizable_panel" | nav], " ")}>
+        <nav class="h-full p-3 overflow-auto text-sm bg-gray-50 dark:bg-gray-400/8">...</nav>
+      </.resizable_panel>
+      <.resizable_handle
+    #{Enum.join(handle, "\n")}
+      />
+      <.resizable_panel default_size={72} min_size={30}>
+        <div class="h-full p-5 overflow-auto">...</div>
+      </.resizable_panel>
+    </.resizable_group>\
+    """
+  end
+
+  # The bar keeps its own slot order, so walk that rather than the order the
+  # types were toggled back on in.
+  defp filters_snippet(types) do
+    fields =
+      [
+        "text" in types && ~s(<:field field={:name} label="Name" type="text" />),
+        "select" in types &&
+          """
+          <:field
+            field={:category}
+            label="Category"
+            type="select"
+            options={[{"Hand tools", "hand"}, {"Power tools", "power"}, {"Finishing", "finishing"}]}
+          />\
+          """,
+        "number_range" in types &&
+          ~s(<:field field={:price} label="Price" type="number_range" />),
+        "boolean" in types && ~s(<:field field={:in_stock} label="In stock" type="boolean" />),
+        "date_range" in types && ~s(<:field field={:added_on} label="Added" type="date_range" />)
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map_join("\n", &("  " <> String.replace(&1, "\n", "\n  ")))
+
+    body = if fields == "", do: "  <%!-- no field types registered --%>", else: fields
+
+    ~s(<.filters id="products-filters" state={@table} on_change="table">\n#{body}\n</.filters>)
+  end
+
+  defp combo_box_snippet(c) do
+    attrs =
+      [
+        ~s(id="city"),
+        ~s(name="city"),
+        ~s(value={@city}),
+        ~s(placeholder="Search cities…"),
+        "clearable",
+        c.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("    " <> &1))
+
+    """
+    <form id="city-form" phx-change="pick_city">
+      <.combo_box
+    #{Enum.join(attrs, "\n")}
+        options={[
+          {"Oceania", [{"Sydney", "syd"}, {"Perth", "per", disabled: true}]},
+          {"Europe", [{"Lisbon", "lis"}, {"Stockholm", "sto"}, {"Berlin", "ber"}]},
+          {"Asia", [{"Tokyo", "tyo"}, {"Singapore", "sin"}, {"Seoul", "sel"}]}
+        ]}
+      />
+    </form>\
+    """
+  end
+
+  defp navigation_menu_snippet(trigger) do
+    attrs =
+      [~s(id="main-nav"), trigger != "hover" && ~s(trigger="#{trigger}")]
+      |> Enum.filter(& &1)
+
+    """
+    #{Enum.join(["<.navigation_menu" | attrs], " ")}>
+      <:item label="Product">
+        <.navigation_menu_link
+          to="/analytics"
+          icon="hero-chart-bar"
+          title="Analytics"
+          description="Understand your traffic"
+        />
+        <%!-- Automations, Security --%>
+        <.navigation_menu_footer>
+          <.navigation_menu_footer_link to="/demo" icon="hero-play-circle" label="Watch demo" />
+          <.navigation_menu_footer_link to="/contact" icon="hero-phone" label="Contact sales" />
+        </.navigation_menu_footer>
+      </:item>
+      <:item label="Pricing" to="/pricing" />
+      <:item label="Docs" to="/docs" current />
+    </.navigation_menu>\
+    """
+  end
+
+  defp kbd_snippet(k) do
+    attrs =
+      [
+        k.size != "md" && ~s(size="#{k.size}"),
+        case kbd_sep(k.separator) do
+          "+" -> nil
+          nil -> "separator={nil}"
+          sep -> ~s(separator="#{sep}")
+        end
+      ]
+      |> Enum.filter(& &1)
+
+    tail = Enum.join(attrs ++ ["/>"], " ")
+
+    [~s(["cmd", "K"]), ~s(["ctrl", "shift", "B"]), ~s(["A", "I"])]
+    |> Enum.map_join("\n", &"<.kbd keys={#{&1}} #{tail}")
+  end
+
+  # Vertical drops the label, so label_position never reaches the paint there.
+  # self-center because an explicit height defeats self-stretch, and flexbox
+  # then parks the rule at the top of the row.
+  defp separator_snippet(%{orientation: "vertical"} = s) do
+    attrs =
+      [
+        ~s(orientation="vertical"),
+        !s.decorative && "decorative={false}",
+        ~s(class="h-6 self-center")
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <div class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-400/17">
+      <.button variant="ghost" size="sm" label="Bold" />
+      <.button variant="ghost" size="sm" label="Italic" />
+      <.separator #{Enum.join(attrs, " ")} />
+      <.button variant="ghost" size="sm" label="Link" />
+      <.button variant="ghost" size="sm" label="Code" />
+    </div>\
+    """
+  end
+
+  defp separator_snippet(s) do
+    attrs =
+      [
+        ~s(label="OR"),
+        s.label_position != "center" && ~s(label_position="#{s.label_position}"),
+        !s.decorative && "decorative={false}",
+        ~s(class="my-5")
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.button label="Sign in with email" class="w-full" />
+    <.separator #{Enum.join(attrs, " ")} />
+    <.button variant="outline" label="Continue with GitHub" class="w-full" />\
+    """
+  end
+
+  defp collapsible_snippet(c) do
+    attrs =
+      [
+        ~s(id="advanced-options"),
+        c.open && "open",
+        c.disabled && "disabled"
+      ]
+      |> Enum.filter(& &1)
+
+    """
+    <.collapsible #{Enum.join(attrs, " ")}>
+      <:trigger>Advanced options</:trigger>
+      <div class="space-y-3">
+        <.field type="number" name="timeout" label="Timeout (seconds)" value="30" no_margin />
+        <.field type="number" name="retries" label="Max retries" value="3" no_margin />
+        <.field type="checkbox" name="verify" label="Verify TLS certificate" checked no_margin />
+      </div>
+    </.collapsible>\
+    """
+  end
+
+  defp scroll_area_snippet(s) do
+    attrs =
+      [
+        s.orientation != "vertical" && ~s(orientation="#{s.orientation}"),
+        s.fade == "on" && "fade_edges",
+        s.gutter == "stable" && "gutter_stable",
+        s.visibility != "auto" && ~s(visibility="#{s.visibility}"),
+        ~s(aria-label="Playground content"),
+        ~s(class="w-full max-h-64")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("    " <> &1))
+
+    # Sideways scrolling needs content wider than the viewport.
+    width = if s.orientation == "vertical", do: "", else: " w-max"
+
+    """
+    <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-400/17">
+      <.scroll_area
+    #{Enum.join(attrs, "\n")}
+      >
+        <div class="space-y-3 text-sm#{width}">
+          <p :for={n <- 1..12}>Line {n} - long enough to run past the right edge, so the horizontal scrollbar has somewhere to go and you can see both axes at once.</p>
+        </div>
+      </.scroll_area>
+    </div>\
+    """
+  end
+
+  defp tree_snippet(t) do
+    attrs =
+      [
+        ~s(id="project-files"),
+        ~s(label="Project files"),
+        t.guides && "show_guides",
+        !t.row_expand && "expand_on_click={false}",
+        t.expand != "none" && "default_expanded={#{inspect(hero_expanded(t.expand))}}",
+        ~s(selected={@current}),
+        ~s(select_event="pick_file")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    items =
+      Enum.map_join(sample_tree(), ",\n", fn node ->
+        children = if node[:children], do: ", children: [...]", else: ""
+        ~s|    %{id: "#{node.id}", label: "#{node.label}"#{children}}|
+      end)
+
+    """
+    <.tree
+    #{Enum.join(attrs, "\n")}
+      items={[
+    #{items}
+      ]}
+    />\
+    """
+  end
+
+  defp calendar_snippet(c) do
+    value = %{"single" => "@date", "range" => "@range", "multiple" => "@dates"}[c.mode]
+
+    attrs =
+      [
+        ~s(id="calendar"),
+        c.mode != "single" && ~s(mode="#{c.mode}"),
+        "value={#{value}}",
+        "month={@month}",
+        c.starts_on != 1 && "starts_on={#{c.starts_on}}",
+        !c.outside && "show_outside_days={false}",
+        c.window && "min={Date.utc_today()}",
+        c.window && "max={Date.add(Date.utc_today(), 30)}",
+        ~s(on_select="pick_date"),
+        ~s(on_month_change="change_month"),
+        c.size != "2.25rem" && ~s(style="--pc-calendar-cell-size: #{c.size}")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    """
+    <.calendar
+    #{Enum.join(attrs, "\n")}
+    />\
+    """
+  end
+
+  defp date_picker_snippet(p) do
+    field = if p.mode == "range", do: "stay", else: "date"
+
+    attrs =
+      [
+        ~s(id="date-picker"),
+        ~s(name="#{field}"),
+        p.mode != "single" && ~s(mode="#{p.mode}"),
+        ~s(label="Check in and out"),
+        ~s(format="%d %b %Y"),
+        p.two_months && "two_months",
+        p.clearable && "clearable",
+        "value={@#{field}}",
+        "month={@month}",
+        ~s(on_month_change="change_month"),
+        "min={Date.utc_today()}"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("  " <> &1))
+
+    """
+    <.date_picker
+    #{Enum.join(attrs, "\n")}
+    />\
+    """
+  end
+
+  defp chat_snippet(c) do
+    convo =
+      [~s(id="chat"), c.variant != "plain" && ~s(variant="#{c.variant}")]
+      |> Enum.filter(& &1)
+
+    # The max_visible dial's "all" is the source count, so compare what each cap
+    # shows: anything at or past the count paints like the default of 5.
+    count = length(@chat_rag_sources)
+
+    sources =
+      [
+        "sources={@sources}",
+        c.sources_expanded && "expanded",
+        min(c.sources_max, count) != min(5, count) && "max_visible={#{c.sources_max}}"
+      ]
+      |> Enum.filter(& &1)
+
+    bar = if c.actions == "hover", do: ~s( visible="hover"), else: ""
+
+    # The size dial is allow_upload's max_file_size, not an attr.
+    cap =
+      if c.attach_limit == "tiny",
+        do: "\n    <%!-- allow_upload(socket, :attachments, max_file_size: 20_000) --%>",
+        else: ""
+
+    composer =
+      [
+        ~s(id="composer"),
+        ~s(phx-submit="send"),
+        ~s(phx-change="validate"),
+        "upload={@uploads.attachments}",
+        c.attach_hint && ~s(accept_hint="Images and PDFs up to 5 MB")
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.map(&("      " <> &1))
+
+    """
+    <Chat.conversation #{Enum.join(convo, " ")}>
+      <Chat.chat_message id="q-1" role="user">How does LiveView keep the page in sync?</Chat.chat_message>
+      <Chat.chat_message id="a-1" role="assistant">
+        <Chat.markdown id="md-a-1" content={@answer} sources={@sources} />
+        <Chat.chat_sources #{Enum.join(sources, " ")} />
+        <:actions>
+          <Chat.message_actions#{bar}>
+            <Chat.copy_button id="copy-a-1" text={@answer} icon />
+            <%!-- thumbs up, thumbs down, regenerate --%>
+          </Chat.message_actions>
+        </:actions>
+      </Chat.chat_message>
+      <:footer>#{cap}
+        <Chat.prompt_input
+    #{Enum.join(composer, "\n")}
+        />
+      </:footer>
+    </Chat.conversation>\
+    """
   end
 
   def render(assigns) do
@@ -5313,7 +6282,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
-        <.code_block id="pg-hero-field-code" code={field_snippet(@input)} attached />
+        <.code_block id="pg-hero-input-code" code={field_snippet(@input)} attached />
       </div>
 
       <div
@@ -5359,7 +6328,7 @@ defmodule Dev.PlaygroundLive do
         is the explicit opt-in to the danger wash.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-col items-center justify-center gap-3 px-6 py-14">
           <.button
             color="gray"
@@ -5438,7 +6407,7 @@ defmodule Dev.PlaygroundLive do
           </.alert_dialog>
         </div>
 
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <.toggle_group
@@ -5509,6 +6478,7 @@ defmodule Dev.PlaygroundLive do
         <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
           long proves the overflow: the body scrolls, the title and the action row stay put, and the page behind never moves
         </p>
+        <.code_block id="pg-hero-alert-dialog-code" code={alert_dialog_snippet(@alert_dialog)} attached />
       </div>
 
       <div class="p-4 mt-6 text-sm border border-gray-200 rounded-xl dark:border-gray-800">
@@ -5730,7 +6700,7 @@ defmodule Dev.PlaygroundLive do
         <p class="px-6 pb-3 -mt-1 text-xs text-gray-400 dark:text-gray-500">
           both modes hold still for reduced-motion users - the ring stays lit, it just stops moving
         </p>
-        <.code_block id="pg-hero-plasma-code" code={plasma_snippet(@plasma)} attached />
+        <.code_block id="pg-hero-border-plasma-code" code={plasma_snippet(@plasma)} attached />
       </div>
 
       <div class="mt-12 mb-3 text-xs font-medium tracking-wide text-gray-400 dark:text-gray-500">
@@ -5926,7 +6896,7 @@ defmodule Dev.PlaygroundLive do
         >
           a long sharp beam clamps to the panel for corner safety - turn on glow for the full length
         </p>
-        <.code_block id="pg-hero-beam-code" code={beam_snippet(@beam)} attached />
+        <.code_block id="pg-hero-border-beam-code" code={beam_snippet(@beam)} attached />
       </div>
 
       <div class="mt-12 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -6092,7 +7062,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
-        <.code_block id="pg-hero-shine-code" code={shine_snippet(@shine)} attached />
+        <.code_block id="pg-hero-shine-border-code" code={shine_snippet(@shine)} attached />
       </div>
 
       <div
@@ -6406,7 +7376,7 @@ defmodule Dev.PlaygroundLive do
         slides - zero JavaScript dependencies, one hook.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="p-4">
           <.carousel
             id={@car_id}
@@ -6438,7 +7408,7 @@ defmodule Dev.PlaygroundLive do
             />
           </.carousel>
         </div>
-        <div class="flex flex-wrap gap-x-8 gap-y-5 px-6 py-5 border-t border-gray-100 dark:border-gray-800/80">
+        <div class="flex flex-wrap gap-x-8 gap-y-5 px-6 py-5 border-t border-gray-100 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">transition</div>
             <.toggle_group
@@ -6549,6 +7519,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-carousel-code" code={carousel_snippet(@car)} attached />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -6725,24 +7696,27 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         Position - moves the live group
       </div>
-      <div class="px-6 py-5 border border-gray-200 rounded-xl dark:border-gray-800">
-        <.toggle_group
-          variant="outline"
-          size="sm"
-          aria_label="Pos"
-          value={@toast.pos}
-          on_change="ctl_toast"
-          class={@rail_class}
-        >
-          <:item
-            :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
-            value={pos}
-            phx-value-k="pos"
-            phx-value-v={pos}
+      <div class="overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
+        <div class="px-6 py-5">
+          <.toggle_group
+            variant="outline"
+            size="sm"
+            aria_label="Pos"
+            value={@toast.pos}
+            on_change="ctl_toast"
+            class={@rail_class}
           >
-            {pos}
-          </:item>
-        </.toggle_group>
+            <:item
+              :for={pos <- ~w(top-left top-center top-right bottom-left bottom-center bottom-right)}
+              value={pos}
+              phx-value-k="pos"
+              phx-value-v={pos}
+            >
+              {pos}
+            </:item>
+          </.toggle_group>
+        </div>
+        <.code_block id="pg-hero-toast-code" code={toast_snippet(@toast)} attached />
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.Toast.examples()} class="mt-10">
@@ -6913,7 +7887,7 @@ defmodule Dev.PlaygroundLive do
           turning the logo on forces error correction to :h - watch the code get denser, that is
           the redundancy that lets it survive the hole
         </p>
-        <.code_block id="pg-hero-qr-code" code={qr_snippet(@qr)} attached />
+        <.code_block id="pg-hero-qr-code-code" code={qr_snippet(@qr)} attached />
       </div>
 
       <%!-- the registry is the single source: View Code panels + petal.build
@@ -7186,7 +8160,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
-        <.code_block id="pg-hero-meteor-code" code={meteor_snippet(@meteors)} attached />
+        <.code_block id="pg-hero-meteors-code" code={meteor_snippet(@meteors)} attached />
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.Meteors.examples()} class="mt-10">
@@ -7521,7 +8495,7 @@ defmodule Dev.PlaygroundLive do
         contract - so it works on live and dead views alike.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex items-center justify-center px-4 py-12">
           <.language_select
             current_locale={@lang}
@@ -7531,7 +8505,7 @@ defmodule Dev.PlaygroundLive do
             variant={@lang_variant}
           />
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
             <.toggle_group
@@ -7561,6 +8535,7 @@ defmodule Dev.PlaygroundLive do
             reads it back - the real contract, not a simulation
           </p>
         </div>
+        <.code_block id="pg-hero-language-select-code" code={language_select_snippet(assigns)} attached />
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.LanguageSelect.examples()} class="mt-10">
@@ -7754,7 +8729,7 @@ defmodule Dev.PlaygroundLive do
         the progress are the server's, not the browser's.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-10">
           <form id="pg-upload-form" phx-change="pg_upload_validate" phx-submit="pg_upload_save">
             <.file_upload
@@ -7776,7 +8751,7 @@ defmodule Dev.PlaygroundLive do
             </div>
           </form>
         </div>
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <.toggle_group
@@ -7811,6 +8786,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-file-upload-code" code={file_upload_snippet(@file_upload)} attached />
       </div>
 
       <div class="p-4 mt-4 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -8100,8 +9076,8 @@ defmodule Dev.PlaygroundLive do
               inside needs lg or xl
             </div>
           </div>
-        <.code_block id="pg-hero-progress-code" code={progress_snippet(@progress)} attached />
         </div>
+        <.code_block id="pg-hero-progress-code" code={progress_snippet(@progress)} attached />
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.Progress.examples()} class="mt-10">
@@ -8280,7 +9256,7 @@ defmodule Dev.PlaygroundLive do
         full page. Slides from any edge, scrolls its body, pins its footer.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex items-center justify-center px-6 py-16">
           <.button
             color="gray"
@@ -8291,7 +9267,7 @@ defmodule Dev.PlaygroundLive do
           </.button>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">origin</div>
             <.toggle_group
@@ -8330,6 +9306,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-slide-over-code" code={slide_over_snippet(@slideover)} attached />
       </div>
 
       <.slide_over
@@ -8631,7 +9608,7 @@ defmodule Dev.PlaygroundLive do
         Compose any loading state instead of picking from prebuilt layouts.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex justify-center px-6 py-14">
           <.skeleton_group
             label="Loading article"
@@ -8650,7 +9627,7 @@ defmodule Dev.PlaygroundLive do
           </.skeleton_group>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">animation</div>
             <.toggle_group
@@ -8672,6 +9649,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-skeleton-code" code={skeleton_snippet(@skeleton)} attached />
       </div>
 
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
@@ -8789,7 +9767,7 @@ defmodule Dev.PlaygroundLive do
         LiveView state. The dials below are toggle groups themselves, so this section
         configures itself - and the radius dial up top drives every chip, step for step, on the same curve as buttons. Only full pills.
       </p>
-      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-wrap items-center justify-center gap-6 px-4 py-12">
           <.toggle_group
             variant={@tg_variant}
@@ -8816,7 +9794,7 @@ defmodule Dev.PlaygroundLive do
           </.toggle_group>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-6 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap justify-center gap-6 px-4 pt-5 pb-6 border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-center text-gray-400">
               variant
@@ -8850,6 +9828,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-toggle-group-code" code={toggle_group_snippet(assigns)} attached />
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">The device rail, working</h2>
@@ -8953,7 +9932,7 @@ defmodule Dev.PlaygroundLive do
       <p class="mt-2 text-gray-500 dark:text-gray-400">
         Where am I, and how do I get back up. Links from a plain list.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex justify-center px-6 py-12">
           <.breadcrumbs
             separator={@crumbs.separator}
@@ -8964,7 +9943,7 @@ defmodule Dev.PlaygroundLive do
             ]}
           />
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">separator</div>
             <.toggle_group
@@ -8986,6 +9965,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-breadcrumbs-code" code={breadcrumbs_snippet(@crumbs)} attached />
       </div>
       <div
         :for={ex <- examples_for(PetalComponents.Showcase.Breadcrumbs, ~w(basic)a)}
@@ -9259,7 +10239,7 @@ defmodule Dev.PlaygroundLive do
         company history. Nothing here is clickable: if the user is meant to move through
         it, you want the stepper instead.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-8">
           <.timeline
             orientation={@timeline.orientation}
@@ -9294,7 +10274,7 @@ defmodule Dev.PlaygroundLive do
             </:item>
           </.timeline>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -9426,6 +10406,7 @@ defmodule Dev.PlaygroundLive do
             </.button>
           </div>
         </div>
+        <.code_block id="pg-hero-timeline-code" code={timeline_snippet(@timeline)} attached />
       </div>
       <div :for={ex <- PetalComponents.Showcase.Timeline.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
@@ -9712,11 +10693,11 @@ defmodule Dev.PlaygroundLive do
         flipped by LiveView.JS - no hook, no round trip.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="p-6">
           <.sidebar_shell
             for="pg-sidebar"
-            class="h-[30rem] min-h-0 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-800"
+            class="h-[30rem] min-h-0 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-400/17"
           >
             <:sidebar>
               <.sidebar_nav
@@ -9800,7 +10781,7 @@ defmodule Dev.PlaygroundLive do
               </.sidebar_nav>
             </:sidebar>
 
-            <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-800">
+            <header class="flex items-center flex-none gap-3 px-4 border-b border-gray-200 h-14 dark:border-gray-400/17">
               <.sidebar_trigger for="pg-sidebar" target="mobile" />
               <span class="text-sm font-semibold">Dashboard</span>
             </header>
@@ -9811,7 +10792,7 @@ defmodule Dev.PlaygroundLive do
           </.sidebar_shell>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">collapsible</div>
             <.toggle_group
@@ -9867,6 +10848,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-sidebar-code" code={sidebar_snippet(@sidebar)} attached />
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -9913,7 +10895,7 @@ defmodule Dev.PlaygroundLive do
         Expandable sections for FAQs and dense settings. Pure LiveView.JS - no server
         round-trip to toggle.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-10">
           <div class="max-w-xl mx-auto">
             <.accordion
@@ -9936,7 +10918,7 @@ defmodule Dev.PlaygroundLive do
             </.accordion>
           </div>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <.toggle_group
@@ -9982,6 +10964,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-accordion-code" code={accordion_snippet(@accordion)} attached />
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         default is the shadcn row style - hairline dividers, headings underline on
@@ -10021,7 +11004,7 @@ defmodule Dev.PlaygroundLive do
         An infinite scroller for logos, testimonials, anything. Pure CSS animation with
         edge fade.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-2 py-10">
           <.marquee
             reverse={@marquee_ctl.reverse}
@@ -10039,7 +11022,7 @@ defmodule Dev.PlaygroundLive do
             </div>
           </.marquee>
         </div>
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">extras</div>
             <.toggle_group
@@ -10065,6 +11048,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-marquee-code" code={marquee_snippet(@marquee_ctl)} attached />
       </div>
       <div :for={ex <- PetalComponents.Showcase.Marquee.examples()} class="mt-10">
         <h2 class="mb-1 text-lg font-semibold">{ex.title}</h2>
@@ -10219,7 +11203,7 @@ defmodule Dev.PlaygroundLive do
         Tabs are links or buttons - wire them to live_patch, JS commands or events.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-col items-center gap-6 px-6 py-12">
           <.tabs variant={@tabs.variant}>
             <.tab
@@ -10242,7 +11226,7 @@ defmodule Dev.PlaygroundLive do
               {name}
             </.tab>
           </.tabs>
-          <div class="w-full max-w-md p-5 text-sm border border-gray-200 rounded-lg text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          <div class="w-full max-w-md p-5 text-sm border border-gray-200 rounded-lg text-gray-500 dark:border-gray-400/17 dark:text-gray-400">
             {case @tabs.active do
               "overview" -> "Your project at a glance - traffic, revenue and recent activity."
               "analytics" -> "Charts and breakdowns. This panel swapped without a page load."
@@ -10252,7 +11236,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <.toggle_group
@@ -10288,6 +11272,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-tabs-code" code={tabs_snippet(@tabs)} attached />
       </div>
 
       <div :for={ex <- PetalComponents.Showcase.Tabs.examples()} class="mt-10">
@@ -10319,7 +11304,7 @@ defmodule Dev.PlaygroundLive do
         (path templates) or pure events - this one is events.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-col items-center gap-4 px-6 py-14">
           <.pagination
             event
@@ -10333,7 +11318,7 @@ defmodule Dev.PlaygroundLive do
           </p>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">sibling count</div>
             <.toggle_group
@@ -10361,6 +11346,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-pagination-code" code={pagination_snippet(@page)} attached />
       </div>
 
       <div
@@ -10395,7 +11381,7 @@ defmodule Dev.PlaygroundLive do
         Name or Age to sort; the component fires the event, your app reorders the rows.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-8 overflow-x-auto">
           <.table
             rows={if @table.empty, do: [], else: table_rows(@table)}
@@ -10429,7 +11415,7 @@ defmodule Dev.PlaygroundLive do
           </.table>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-2 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">density</div>
             <.toggle_group
@@ -10481,6 +11467,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-table-code" code={table_snippet(@table)} attached />
       </div>
 
       <div
@@ -10875,7 +11862,7 @@ defmodule Dev.PlaygroundLive do
         itself inside the viewport.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-4 py-8 sm:px-6">
           <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
             Right-click a card. On a phone, hold it for half a second. Keyboard only:
@@ -10894,7 +11881,7 @@ defmodule Dev.PlaygroundLive do
               disabled={@context_menu.disabled}
             >
               <:trigger>
-                <div class="flex flex-col gap-3 p-4 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-800">
+                <div class="flex flex-col gap-3 p-4 bg-white border border-gray-200 rounded-xl dark:bg-gray-900 dark:border-gray-400/17">
                   <.icon name={f.icon} class="w-8 h-8 text-gray-400" />
                   <div class="min-w-0">
                     <div class="text-sm font-medium truncate">{f.name}</div>
@@ -10923,7 +11910,7 @@ defmodule Dev.PlaygroundLive do
             </.context_menu>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <.toggle_group
@@ -10942,6 +11929,7 @@ defmodule Dev.PlaygroundLive do
             disabled hands the region back to the browser's own menu.
           </p>
         </div>
+        <.code_block id="pg-hero-context-menu-code" code={context_menu_snippet(@context_menu)} attached />
       </div>
 
       <div
@@ -11040,7 +12028,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
-        <.code_block id="pg-hero-otp-code" code={otp_snippet(@otp)} attached />
+        <.code_block id="pg-hero-input-otp-code" code={otp_snippet(@otp)} attached />
       </div>
 
       <div
@@ -11119,12 +12107,12 @@ defmodule Dev.PlaygroundLive do
       <div class="mt-10 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500">
         The corner it actually lives in - variant="sidebar" pinned to the bottom of a sidebar
       </div>
-      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex h-[500px]">
           <%!-- p-2 rather than p-3 so the sidebar's own padding matches the
           panel's 8px side gap: in "beside" mode the panel then clears the
           sidebar's edge exactly instead of landing 4px inside it. --%>
-          <div class="flex flex-col flex-none p-2 border-r w-64 border-gray-200 dark:border-gray-800">
+          <div class="flex flex-col flex-none p-2 border-r w-64 border-gray-200 dark:border-gray-400/17">
             <div class="px-2 py-1 text-sm font-semibold">Acme Inc</div>
             <div class="mt-3 space-y-0.5">
               <div
@@ -11141,7 +12129,7 @@ defmodule Dev.PlaygroundLive do
                 <.icon name={icon} class="w-4 h-4 text-gray-400 dark:text-gray-500" />{label}
               </div>
             </div>
-            <div class="pt-3 mt-auto border-t border-gray-100 dark:border-gray-800/80">
+            <div class="pt-3 mt-auto border-t border-gray-100 dark:border-gray-400/17/80">
               <.user_dropdown_menu
                 variant="sidebar"
                 current_user_name="Sarah Chen"
@@ -11195,7 +12183,7 @@ defmodule Dev.PlaygroundLive do
             <div class="w-full h-24 rounded-lg bg-gray-50 dark:bg-gray-900/50"></div>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-400/17/80">
           <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">opens</div>
           <.toggle_group
             variant="outline"
@@ -11210,6 +12198,7 @@ defmodule Dev.PlaygroundLive do
             </:item>
           </.toggle_group>
         </div>
+        <.code_block id="pg-hero-user-menu-code" code={user_menu_snippet(@user_menu_opens)} attached />
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         The row takes the full sidebar width and carries the name and email itself, so
@@ -11588,7 +12577,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
-        <.code_block id="pg-hero-number-code" code={number_snippet(@number)} attached />
+        <.code_block id="pg-hero-number-field-code" code={number_snippet(@number)} attached />
       </div>
 
       <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
@@ -11689,7 +12678,7 @@ defmodule Dev.PlaygroundLive do
         and the order you left it in is still there.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-4 py-8 sm:px-6">
           <.sortable
             :if={@sortable.orientation == "vertical"}
@@ -11729,7 +12718,7 @@ defmodule Dev.PlaygroundLive do
           </.sortable>
         </div>
 
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 py-4 border-t border-gray-200 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 py-4 border-t border-gray-200 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -11763,6 +12752,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-sortable-code" code={sortable_snippet(@sortable)} attached />
       </div>
 
       <div class="p-4 mt-4 border border-gray-200 rounded-xl dark:border-gray-800">
@@ -12270,7 +13260,7 @@ defmodule Dev.PlaygroundLive do
         to toggle a collapsible pane. Double-click a divider to reset it.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="p-6">
           <.resizable_group
             id={"pg-rsz-#{@rsz.orientation}-#{@rsz.with_handle}-#{@rsz.collapsible}"}
@@ -12347,7 +13337,7 @@ defmodule Dev.PlaygroundLive do
           </.resizable_group>
         </div>
 
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -12391,6 +13381,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-resizable-code" code={resizable_snippet(@rsz)} attached />
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">on_resize: the persistence hook point</h2>
@@ -12704,7 +13695,7 @@ defmodule Dev.PlaygroundLive do
           </ul>
         </div>
 
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               registered field types
@@ -12728,6 +13719,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-filters-code" code={filters_snippet(@filters_types)} attached />
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">One State, bar and table</h2>
@@ -12853,7 +13845,7 @@ defmodule Dev.PlaygroundLive do
         the select underneath doing what selects do.
       </p>
 
-      <div class="border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex items-center justify-center px-6 py-12">
           <form id="pg-combo-form" phx-change="pg_combo_change" class="w-full max-w-sm">
             <.combo_box
@@ -12879,14 +13871,14 @@ defmodule Dev.PlaygroundLive do
           </form>
         </div>
 
-        <div class="px-4 py-3 text-sm border-t border-gray-200 sm:px-6 dark:border-gray-800">
+        <div class="px-4 py-3 text-sm border-t border-gray-200 sm:px-6 dark:border-gray-400/17">
           <span class="text-gray-400">the server has:</span>
           <code class="ml-1 font-mono text-gray-900 dark:text-gray-100">
             {if @combo.chosen in [nil, ""], do: "nothing yet", else: @combo.chosen}
           </code>
         </div>
 
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <.toggle_group
@@ -12901,6 +13893,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-combo-box-code" code={combo_box_snippet(@combo)} attached />
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">Field citizenship + sizes</h2>
@@ -13470,7 +14463,7 @@ defmodule Dev.PlaygroundLive do
         The marketing-site top nav - plain links and flyout panels with rich link
         rows and a CTA footer.
       </p>
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex justify-center px-6 pt-6 pb-72">
           <.navigation_menu id={"pg-nav-demo-#{@nav_trigger}"} trigger={@nav_trigger}>
             <:item label="Product" width="md">
@@ -13501,7 +14494,7 @@ defmodule Dev.PlaygroundLive do
             <:item label="Docs" to="#" current />
           </.navigation_menu>
         </div>
-        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-400/17/80">
           <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">trigger</div>
           <.toggle_group
             variant="outline"
@@ -13516,6 +14509,7 @@ defmodule Dev.PlaygroundLive do
             </:item>
           </.toggle_group>
         </div>
+        <.code_block id="pg-hero-navigation-menu-code" code={navigation_menu_snippet(@nav_trigger)} attached />
       </div>
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
         Hover Product (or tab to it) to open the flyout. A close grace period keeps
@@ -13551,7 +14545,7 @@ defmodule Dev.PlaygroundLive do
         else renders as you typed it. Pure HEEx and CSS, nothing to wire up.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-col items-center justify-center gap-5 px-6 py-10">
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             Open the command palette
@@ -13570,7 +14564,7 @@ defmodule Dev.PlaygroundLive do
             <.kbd keys={["A", "I"]} size={@kbd.size} separator={kbd_sep(@kbd.separator)} />
           </div>
         </div>
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">size</div>
             <.toggle_group
@@ -13605,6 +14599,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-kbd-code" code={kbd_snippet(@kbd)} attached />
       </div>
 
       <div class="mt-6">
@@ -13641,7 +14636,7 @@ defmodule Dev.PlaygroundLive do
         really does divide content screen readers should hear as separate.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex items-center justify-center px-6 py-12">
           <div :if={@separator.orientation == "horizontal"} class="w-full max-w-sm">
             <.button label="Sign in with email" class="w-full" />
@@ -13655,7 +14650,7 @@ defmodule Dev.PlaygroundLive do
           </div>
           <div
             :if={@separator.orientation == "vertical"}
-            class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-800"
+            class="inline-flex items-center gap-2 p-1.5 border border-gray-200 rounded-xl dark:border-gray-400/17"
           >
             <.button variant="ghost" size="sm" label="Bold" />
             <.button variant="ghost" size="sm" label="Italic" />
@@ -13664,7 +14659,7 @@ defmodule Dev.PlaygroundLive do
             <.button variant="ghost" size="sm" label="Code" />
           </div>
         </div>
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -13719,6 +14714,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-separator-code" code={separator_snippet(@separator)} attached />
       </div>
 
       <div
@@ -13756,7 +14752,7 @@ defmodule Dev.PlaygroundLive do
         height animation drops out while both rest states stay fully legible.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-10">
           <div class="max-w-md mx-auto">
             <.field
@@ -13791,7 +14787,7 @@ defmodule Dev.PlaygroundLive do
             </.collapsible>
           </div>
         </div>
-        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-800">
+        <div class="flex flex-wrap items-end px-4 py-4 border-t border-gray-200 gap-x-8 gap-y-4 sm:px-6 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">state</div>
             <.toggle_group
@@ -13811,6 +14807,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-collapsible-code" code={collapsible_snippet(@collapsible)} attached />
       </div>
 
       <div
@@ -13843,11 +14840,11 @@ defmodule Dev.PlaygroundLive do
         classes; the component never grows sizing attrs of its own.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <%!-- The border lives on the wrapper, not the scroll area: fade_edges
         masks the whole element, border included. --%>
         <div class="px-6 py-10">
-          <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-800">
+          <div class="p-4 border border-gray-200 rounded-lg dark:border-gray-400/17">
             <.scroll_area
               orientation={@scroll.orientation}
               fade_edges={@scroll.fade == "on"}
@@ -13867,7 +14864,7 @@ defmodule Dev.PlaygroundLive do
             </.scroll_area>
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">orientation</div>
             <.toggle_group
@@ -13938,6 +14935,7 @@ defmodule Dev.PlaygroundLive do
         <p class="px-6 pb-4 -mt-1 text-xs text-gray-400 dark:text-gray-500">
           tab into the panel and the arrow keys, Page Up/Down, Home and End all scroll it - that is native browser behaviour, not a hook
         </p>
+        <.code_block id="pg-hero-scroll-area-code" code={scroll_area_snippet(@scroll)} attached />
       </div>
 
       <div class="p-4 mt-6 text-sm border rounded-xl border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
@@ -14025,7 +15023,7 @@ defmodule Dev.PlaygroundLive do
         The LiveView-native AI chat kit. Tokens stream over the socket you already
         have - no client AI SDK. This demo is live: ask it something.
       </p>
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <Chat.conversation id="pg-chat" variant={@chat.variant}>
           <div :if={!@chat.history} class="flex justify-center">
             <button
@@ -14135,7 +15133,7 @@ defmodule Dev.PlaygroundLive do
             />
           </:footer>
         </Chat.conversation>
-        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-800/80">
+        <div class="flex flex-wrap gap-6 px-6 py-4 border-t border-gray-100 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">variant</div>
             <.toggle_group
@@ -14243,6 +15241,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-chat-code" code={chat_snippet(@chat)} attached />
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -15176,7 +16175,7 @@ defmodule Dev.PlaygroundLive do
         level. The whole tree is one Tab stop.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-8">
           <div class="max-w-md mx-auto">
             <.tree
@@ -15192,7 +16191,7 @@ defmodule Dev.PlaygroundLive do
           </div>
         </div>
 
-        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-800/80">
+        <div class="grid gap-5 px-6 py-5 border-t border-gray-100 md:grid-cols-3 dark:border-gray-400/17/80">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">
               default_expanded
@@ -15238,6 +16237,7 @@ defmodule Dev.PlaygroundLive do
             </code>
           </div>
         </div>
+        <.code_block id="pg-hero-tree-code" code={tree_snippet(@tree)} attached />
       </div>
 
       <div class="p-4 mt-3 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -15374,7 +16374,7 @@ defmodule Dev.PlaygroundLive do
         calendar.
       </p>
 
-      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 overflow-hidden border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="flex flex-col items-center gap-4 px-6 py-10">
           <.calendar
             id="pg-calendar"
@@ -15396,7 +16396,7 @@ defmodule Dev.PlaygroundLive do
             </span>
           </p>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
             <.toggle_group
@@ -15467,6 +16467,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-calendar-code" code={calendar_snippet(@cal)} attached />
       </div>
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -15516,7 +16517,7 @@ defmodule Dev.PlaygroundLive do
         input.
       </p>
 
-      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-800">
+      <div class="mt-8 border border-gray-200 rounded-xl dark:border-gray-400/17">
         <div class="px-6 py-10">
           <div class="max-w-sm">
             <.date_picker
@@ -15535,7 +16536,7 @@ defmodule Dev.PlaygroundLive do
             />
           </div>
         </div>
-        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-800">
+        <div class="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 sm:px-6 py-4 [&>div]:min-w-0 [&>div]:max-w-full border-t border-gray-200 dark:border-gray-400/17">
           <div>
             <div class="mb-2 text-[11px] font-medium tracking-wide text-gray-400">mode</div>
             <.toggle_group
@@ -15574,6 +16575,7 @@ defmodule Dev.PlaygroundLive do
             </.toggle_group>
           </div>
         </div>
+        <.code_block id="pg-hero-date-picker-code" code={date_picker_snippet(@picker)} attached />
       </div>
 
       <h2 class="mt-10 mb-1 text-lg font-semibold">Booking range</h2>
