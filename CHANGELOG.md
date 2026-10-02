@@ -1,5 +1,48 @@
 # Changelog
 
+### Unreleased
+
+#### Added
+
+- **`Showcase.Frame.code_block/1`: one code surface for every code
+  panel.** The showcase frame's code half is now a component of its
+  own, and the playground routes every code panel through it - example
+  panels, flagship snippets, Get Code, the live state readouts - so the
+  look is tuned in one place. One component covers a bare snippet (copy
+  in the corner), a named file (a quiet label), several files (tabs in
+  the petal.build landing's grammar, one copy per file), folding (a
+  short teaser behind one View code button; copy appears once it is
+  open), `attached` (flush under a preview), `locked` and `wrap`. Open
+  code caps at `--pc-code-max-height` (24rem) and scrolls, so there is
+  nothing to fold back. The toggles are pure CSS - no hook, works in
+  dead views.
+- **Every playground flagship shows the code its toggles produce.** The
+  57 flagships with toggles carry their snippet attached to the card,
+  rewritten live as the toggles turn (26 had a View code toggle before,
+  the rest had none).
+
+#### Changed
+
+- **Showcase code panels follow your theme.** The panel was hard-coded
+  One Dark (`#282c34`) under a second-colour header bar, in both
+  schemes. The `.pc-code` surface and every neutral token now ride the
+  gray dial in light and dark, and the four accent hues (component
+  names, strings, keywords, atoms) are `--pc-code-*` variables you can
+  override. Tokens come out of lumis as classes (`Showcase.Highlight`,
+  `html_linked`), so the palette lives in CSS rather than in the HTML.
+  The `.pc-showcase-code*` classes are gone.
+
+#### Fixed
+
+- **Showcase examples are coloured again on lumis 0.7.** Examples are
+  highlighted at compile time with a bare `:html_inline`, and lumis 0.7
+  stopped defaulting a theme for it, so apps on the newer lumis -
+  petal.build among them - rendered every example colourless. The
+  #689 chat fix never reached this path. Classed tokens need no theme.
+- **The breadcrumbs showcase had the default separator backwards.** It
+  said `separator="slash"` swaps the chevrons; slash is the default, so
+  it now says `separator="chevron"` swaps the slashes.
+
 ### 4.16.1 - 2026-09-02
 
 #### Fixed
