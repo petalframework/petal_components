@@ -320,17 +320,9 @@ defmodule PetalComponents.Showcase.Frame do
     %{name: name, code: code, html: highlighted || code_html(code, language)}
   end
 
+  # Same chrome, no colours, when lumis is absent.
   defp code_html(code, language) do
-    Highlight.to_html(code, language) || plain_html(code, language)
-  end
-
-  # Same chrome, no colours: the fallback when lumis is absent.
-  defp plain_html(code, language) do
-    escaped = code |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
-    language = String.replace(language, ~r/[^\w+-]/, "")
-
-    {:safe,
-     ~s(<pre class="pc-code__plain"><code class="language-#{language}">#{escaped}</code></pre>)}
+    Highlight.to_html(code, language) || Highlight.plain_html(code, language)
   end
 
   @extensions %{

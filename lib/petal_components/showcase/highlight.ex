@@ -37,4 +37,17 @@ defmodule PetalComponents.Showcase.Highlight do
   end
 
   def to_html(_code, _language), do: nil
+
+  @doc """
+  The same `<pre>` without colours: what the code block renders when
+  `to_html/2` returns nil.
+  """
+  @spec plain_html(String.t(), String.t()) :: {:safe, String.t()}
+  def plain_html(code, language) do
+    escaped = code |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+    language = String.replace(language, ~r/[^\w+-]/, "")
+
+    {:safe,
+     ~s(<pre class="pc-code__plain"><code class="language-#{language}">#{escaped}</code></pre>)}
+  end
 end

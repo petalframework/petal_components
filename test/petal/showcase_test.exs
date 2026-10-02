@@ -319,6 +319,29 @@ defmodule PetalComponents.ShowcaseTest do
       assert html =~ "pc-code--attached"
     end
 
+    test "a file's own language beats its extension" do
+      assigns = %{
+        files: [
+          %{name: "notes.txt", code: "<.button>Hi</.button>", language: "heex"},
+          %{name: "b.css", code: "a {}"}
+        ]
+      }
+
+      d = rendered_to_string(~H|<.code_block id="lang" files={@files} />|) |> doc()
+
+      assert count(d, "code.language-heex") == 1
+      assert count(d, "code.language-css") == 1
+    end
+
+    test "without a highlighter the code renders plain and escaped in the same chrome" do
+      assert {:safe, html} =
+               PetalComponents.Showcase.Highlight.plain_html(~s(<.button a="1">), ~s(he ex"><))
+
+      assert html =~ ~s(<pre class="pc-code__plain"><code class="language-heex">)
+      assert html =~ "&lt;.button a=&quot;1&quot;&gt;"
+      assert PetalComponents.Showcase.Highlight.to_html(nil, "heex") == nil
+    end
+
     test "highlighting emits classed tokens" do
       assert {:safe, html} =
                PetalComponents.Showcase.Highlight.to_html(
