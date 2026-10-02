@@ -10875,7 +10875,7 @@ defmodule Dev.PlaygroundLive do
       <h2 class="mt-10 mb-2 text-lg font-semibold">Properties</h2>
       <.showcase_props
         component={PetalComponents.Sidebar}
-        functions={[:sidebar_shell, :sidebar, :sidebar_group, :sidebar_item, :sidebar_trigger]}
+        functions={[:sidebar_shell, :sidebar_nav, :sidebar_group, :sidebar_item, :sidebar_trigger]}
       />
 
       <div class="p-4 mt-6 text-sm text-gray-500 border border-gray-200 rounded-xl dark:border-gray-800 dark:text-gray-400">
@@ -11011,7 +11011,7 @@ defmodule Dev.PlaygroundLive do
             vertical={@marquee_ctl.vertical}
             pause_on_hover={@marquee_ctl.pause}
             duration="24s"
-            max_height={@marquee_ctl.vertical && "300px"}
+            max_height={@marquee_ctl.vertical && "sm"}
           >
             <div
               :for={name <- ~w(Phoenix LiveView Tailwind Elixir Postgres Oban Ecto)}
@@ -14654,7 +14654,7 @@ defmodule Dev.PlaygroundLive do
           >
             <.button variant="ghost" size="sm" label="Bold" />
             <.button variant="ghost" size="sm" label="Italic" />
-            <.separator orientation="vertical" decorative={@separator.decorative} class="h-6" />
+            <.separator orientation="vertical" decorative={@separator.decorative} class="h-6 self-center" />
             <.button variant="ghost" size="sm" label="Link" />
             <.button variant="ghost" size="sm" label="Code" />
           </div>
