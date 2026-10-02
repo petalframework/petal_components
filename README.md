@@ -110,7 +110,7 @@ You can also fetch it at https://petal.build/petal-components/rules.md.
 
 ## Component catalogue
 
-30+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:
+200+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:
 
 **Layout & content**: `<.container>`, `<.card>`, `<.h1>`, `<.p>`, `<.accordion>`, `<.tabs>`, `<.stepper>`, `<.skeleton>`
 
