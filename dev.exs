@@ -17053,8 +17053,12 @@ defmodule Dev.PlaygroundLive do
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">How you use it</h2>
         <ol class="mt-3 space-y-2 text-sm text-gray-600 list-decimal list-inside dark:text-gray-300">
           <li>
-            <strong>Install once</strong> - <code>claude plugin install petal-design</code>, or copy
-            <code>deps/petal_components/skills/petal-design</code> into your project's <code>.claude/skills/</code>.
+            <strong>Install once</strong> - <code>claude plugin marketplace add petalframework/petal_components</code>,
+            then <code>claude plugin install petal-design</code>. Or copy <code>skills/petal-design</code> from the
+            <a
+              href="https://github.com/petalframework/petal_components/tree/main/skills/petal-design"
+              class="font-medium text-gray-900 underline underline-offset-2 dark:text-white"
+            >petal_components repo</a> into your project's <code>.claude/skills/</code>.
           </li>
           <li>
             <strong>Then just work</strong> - the skill triggers itself. Ask your agent to build a page,

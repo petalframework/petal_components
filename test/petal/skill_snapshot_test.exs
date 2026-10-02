@@ -7,6 +7,7 @@ defmodule PetalComponents.SkillSnapshotTest do
   # instead of shipping doctrine for the wrong version.
 
   @skill Path.expand("../../skills/petal-design", __DIR__)
+  @plugin Path.expand("../../.claude-plugin", __DIR__)
   @version Mix.Project.config()[:version]
 
   test "the bundled schema snapshot matches the package version" do
@@ -23,6 +24,28 @@ defmodule PetalComponents.SkillSnapshotTest do
 
     inventory = @skill |> Path.join("references/components.md") |> File.read!()
     assert inventory =~ "petal_components v#{@version}"
+  end
+
+  test "the plugin installs from where Claude Code looks and updates with each release" do
+    # `claude plugin marketplace add petalframework/petal_components` reads
+    # .claude-plugin/marketplace.json and nothing else - a marketplace.json at
+    # the repo root fails the add, and with it every install command we print.
+    %{"plugins" => plugins} =
+      @plugin |> Path.join("marketplace.json") |> File.read!() |> Jason.decode!()
+
+    entry = Enum.find(plugins, &(&1["name"] == "petal-design"))
+    assert entry, ".claude-plugin/marketplace.json no longer lists petal-design"
+
+    # Installs are cached under plugin.json's version and `claude plugin
+    # update` only fetches when it moves, so it tracks the package. The
+    # marketplace entry carries none of its own - the generator stamps one file.
+    refute Map.has_key?(entry, "version"),
+           "the marketplace entry has a version - drop it, plugin.json is the one the generator stamps"
+
+    %{"version" => v} = @plugin |> Path.join("plugin.json") |> File.read!() |> Jason.decode!()
+
+    assert v == @version,
+           ".claude-plugin/plugin.json is v#{v} but the package is v#{@version} - run mix petal.gen.skill_snapshot"
   end
 
   test "the snapshot's attrs and slots match the live modules" do
