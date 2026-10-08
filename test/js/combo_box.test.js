@@ -2152,6 +2152,60 @@ describe("pick order: the posted values follow the picks, not the option list", 
     ).toEqual(["tyo", "syd"]);
   });
 
+  // LiveView's nested ref lock: a patch that lands while a pick is in
+  // flight unlocks the select with a DOMPatch of its own, and no hook sits
+  // on the select - the options come back in server order with no
+  // updated() call. The hook must not depend on being told.
+  function rewriteBehindTheHook(c, selected) {
+    c.select.innerHTML = CITIES.map(
+      (o) =>
+        `<option value="${o.value}" ${selected.includes(o.value) ? "selected" : ""}>${o.label}</option>`,
+    ).join("");
+  }
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  it("a pick re-tails the earlier picks first, so a hook-less rewrite cannot leak option order", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "lis");
+    pick(c, "syd");
+    c.hook.orderObserver.disconnect(); // the observer is the next spec's job
+    rewriteBehindTheHook(c, ["lis", "syd"]);
+    expect(posted(form)).toEqual(["syd", "lis"]); // the damage
+    pick(c, "tyo");
+    expect(posted(form)).toEqual(["lis", "syd", "tyo"]);
+  });
+
+  it("the trigger variant re-tails from its own record the same way", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = inForm(c);
+    c.el.querySelector("[data-pc-combo-trigger]").click();
+    pick(c, "sto");
+    pick(c, "syd");
+    c.hook.orderObserver.disconnect();
+    rewriteBehindTheHook(c, ["sto", "syd"]);
+    expect(posted(form)).toEqual(["syd", "sto"]);
+    pick(c, "tyo");
+    expect(posted(form)).toEqual(["sto", "syd", "tyo"]);
+  });
+
+  it("the observer restores pick order after a hook-less rewrite, so a submit posts it too", async () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "lis");
+    pick(c, "syd");
+    rewriteBehindTheHook(c, ["lis", "syd"]);
+    expect(posted(form)).toEqual(["syd", "lis"]);
+    await tick();
+    expect(posted(form)).toEqual(["lis", "syd"]);
+    // and it settles: no churn once the tail matches
+    const before = [...c.select.options];
+    await tick();
+    expect([...c.select.options]).toEqual(before);
+  });
+
   it("single mode never moves an option", () => {
     const c = mountCombo({ options: CITIES });
     const before = [...c.select.options].map((o) => o.value);

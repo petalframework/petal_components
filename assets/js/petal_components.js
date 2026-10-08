@@ -4958,6 +4958,18 @@ export const PetalComboBox = {
     this.el.addEventListener("focusout", this.onFocusOut);
     this.form = this.select.form;
     if (this.form) this.form.addEventListener("reset", this.onFormReset);
+    // a patch can rewrite the options without reaching updated(): LiveView
+    // unlocks a ref-locked select with a DOMPatch of its own whose
+    // container IS the select, and no hook sits there. Watching the select
+    // keeps the chosen options at the tail whoever rewrote it - the re-sort
+    // is idempotent, so its own mutation settles in one extra callback.
+    if (typeof MutationObserver !== "undefined") {
+      this.orderObserver = new MutationObserver(() => this.syncSelectOrder());
+      this.orderObserver.observe(this.select, {
+        childList: true,
+        subtree: true,
+      });
+    }
     this.syncFromSelect();
     // everything from here is a real state CHANGE, so it can be announced
     this.announceReady = true;
@@ -5043,6 +5055,7 @@ export const PetalComboBox = {
     // teardown bails on exactly the same shape - dereferencing this.list
     // here threw, and the throw left the document listeners attached
     if (!this.select || !this.input || !this.panel || !this.list) return;
+    if (this.orderObserver) this.orderObserver.disconnect();
     this.input.removeEventListener("input", this.onInput);
     this.input.removeEventListener("keydown", this.onKeydown);
     this.list.removeEventListener("pointerover", this.onPointerOver);
@@ -5295,7 +5308,10 @@ export const PetalComboBox = {
       if (selected) {
         // to the tail NOW, before the change event serialises the form:
         // the select's DOM order is what carries pick order to the server
-        // (see syncSelectOrder). Move first, then flag - Tom Select's order
+        // (see syncSelectOrder). The tail is rebuilt first because a patch
+        // can have rewritten the options behind the hook's back (see the
+        // observer in mounted). Move first, then flag - Tom Select's order
+        this.syncSelectOrder();
         this.order.push(value);
         this.select.appendChild(option);
       }
