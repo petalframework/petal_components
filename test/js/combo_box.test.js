@@ -1614,8 +1614,10 @@ describe("chips: Backspace targets what the user sees", () => {
   it("removes the LAST CHIP, not the last option in the select's DOM order", () => {
     // audit repro: preselect Sydney + Tokyo, then pick Stockholm and
     // Lisbon in that order. Chips read [syd, tyo, sto, lis]; the select's
-    // DOM order is [syd, tyo, lis, sto], so reading the select deleted
-    // Stockholm - a chip from the MIDDLE of the row.
+    // DOM order USED to be [syd, tyo, lis, sto], so reading the select
+    // deleted Stockholm - a chip from the MIDDLE of the row. The select
+    // now follows the row (#713, pick order), but Backspace keeps reading
+    // the row: it is what the user sees.
     const c = mountCombo({ options: CITIES, multiple: true });
     c.select.querySelector('option[value="syd"]').selected = true;
     c.select.querySelector('option[value="tyo"]').selected = true;
@@ -1624,7 +1626,7 @@ describe("chips: Backspace targets what the user sees", () => {
     c.items().find((i) => i.dataset.value === "sto").click();
     c.items().find((i) => i.dataset.value === "lis").click();
     expect(c.chipValues()).toEqual(["syd", "tyo", "sto", "lis"]);
-    expect(c.hook.selectedValues()).toEqual(["syd", "tyo", "lis", "sto"]);
+    expect(c.hook.selectedValues()).toEqual(["syd", "tyo", "sto", "lis"]);
 
     c.input.value = "";
     key(c.input, "Backspace");
@@ -1942,5 +1944,153 @@ describe("lifecycle hardening", () => {
     expect(() => vi.runAllTimers()).not.toThrow();
     expect(vi.getTimerCount()).toBe(0);
     vi.useRealTimers();
+  });
+});
+
+// #713: a <select multiple> serialises in option DOM order, so picking
+// Lisbon then Sydney posted ["syd", "lis"], the server re-rendered the
+// chips in that order, and every pick appeared to land at the front of
+// the row. Tom Select kept pick order by moving each chosen <option> to
+// the end of the select; the hook now does the same.
+describe("pick order: the posted values follow the picks, not the option list", () => {
+  function inForm(c) {
+    const form = document.createElement("form");
+    c.el.replaceWith(form);
+    form.appendChild(c.el);
+    return form;
+  }
+  const posted = (form) => new FormData(form).getAll("city[]");
+  const pick = (c, value) =>
+    c
+      .items()
+      .find((i) => i.dataset.value === value)
+      .click();
+  // the patch: LiveView rewrites the options in the server's order (the
+  // selected flags are the server's too) and stamps the order it received
+  function patch(c, order) {
+    for (const o of CITIES) {
+      c.select.appendChild(c.select.querySelector(`option[value="${o.value}"]`));
+    }
+    c.el.dataset.order = JSON.stringify(order);
+    const chips = c.el.querySelector("[data-pc-combo-chips]");
+    if (chips) chips.dataset.order = JSON.stringify(order);
+    c.hook.updated();
+  }
+
+  it("posts the values in the order they were picked", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "lis");
+    pick(c, "syd");
+    expect(c.chipValues()).toEqual(["lis", "syd"]);
+    expect(posted(form)).toEqual(["lis", "syd"]);
+    // the listbox never moves - the server owns that DOM
+    expect(c.items().map((i) => i.dataset.value)).toEqual(
+      CITIES.map((o) => o.value),
+    );
+  });
+
+  it("the change event already sees the new order - phx-change serialises at event time", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    const seen = [];
+    form.addEventListener("change", () => seen.push(posted(form)));
+    c.control.click();
+    pick(c, "tyo");
+    pick(c, "syd");
+    expect(seen).toEqual([["tyo"], ["tyo", "syd"]]);
+  });
+
+  it("survives a patch that re-renders the options in option order", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "lis");
+    pick(c, "syd");
+    patch(c, ["lis", "syd"]);
+    expect(c.chipValues()).toEqual(["lis", "syd"]);
+    expect(posted(form)).toEqual(["lis", "syd"]);
+    // and the next pick lands after them
+    pick(c, "tyo");
+    expect(posted(form)).toEqual(["lis", "syd", "tyo"]);
+  });
+
+  it("a removed chip drops out without disturbing the rest", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    for (const v of ["sto", "syd", "tyo"]) pick(c, v);
+    c.chips()
+      .find((x) => x.dataset.value === "syd")
+      .querySelector("[data-pc-combo-chip-remove]")
+      .click();
+    expect(c.chipValues()).toEqual(["sto", "tyo"]);
+    expect(posted(form)).toEqual(["sto", "tyo"]);
+  });
+
+  it("a server reorder changes what is posted next", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "syd");
+    pick(c, "tyo");
+    patch(c, ["tyo", "syd"]);
+    expect(c.chipValues()).toEqual(["tyo", "syd"]);
+    expect(posted(form)).toEqual(["tyo", "syd"]);
+  });
+
+  it("a preset value posts in the order it was given, not option order", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    c.select.querySelector('option[value="syd"]').selected = true;
+    c.select.querySelector('option[value="tyo"]').selected = true;
+    patch(c, ["tyo", "syd"]);
+    expect(c.chipValues()).toEqual(["tyo", "syd"]);
+    expect(posted(form)).toEqual(["tyo", "syd"]);
+  });
+
+  it("free text joins the row at the end like any pick", () => {
+    const c = mountCombo({ options: CITIES, multiple: true, freeText: true });
+    const form = inForm(c);
+    c.control.click();
+    pick(c, "tyo");
+    c.input.value = "Nowhere";
+    c.input.dispatchEvent(new Event("input", { bubbles: true }));
+    key(c.input, "Enter");
+    expect(c.chipValues()).toEqual(["tyo", "Nowhere"]);
+    expect(posted(form)).toEqual(["tyo", "Nowhere"]);
+  });
+
+  it("the trigger variant has no chip row - the hook keeps the record itself", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = inForm(c);
+    expect(c.el.querySelector("[data-pc-combo-chips]")).toBeNull();
+    c.el.querySelector("[data-pc-combo-trigger]").click();
+    pick(c, "sto");
+    pick(c, "syd");
+    expect(posted(form)).toEqual(["sto", "syd"]);
+    patch(c, ["sto", "syd"]);
+    expect(posted(form)).toEqual(["sto", "syd"]);
+    // a pick the server has not stamped yet keeps its place after the stamp
+    pick(c, "tyo");
+    patch(c, ["sto", "syd"]);
+    expect(posted(form)).toEqual(["sto", "syd", "tyo"]);
+    // the server's stamp leads
+    patch(c, ["tyo", "sto", "syd"]);
+    expect(posted(form)).toEqual(["tyo", "sto", "syd"]);
+    // a deselect drops out of the record
+    pick(c, "sto");
+    expect(posted(form)).toEqual(["tyo", "syd"]);
+  });
+
+  it("single mode never moves an option", () => {
+    const c = mountCombo({ options: CITIES });
+    const before = [...c.select.options].map((o) => o.value);
+    c.control.click();
+    pick(c, "tyo");
+    pick(c, "syd");
+    expect([...c.select.options].map((o) => o.value)).toEqual(before);
+    expect(c.select.value).toBe("syd");
   });
 });

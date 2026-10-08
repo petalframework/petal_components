@@ -6,7 +6,7 @@ defmodule PetalComponents.Showcase.ComboBox do
 
   example :multiple, "Chips - multiple selection",
     description:
-      "multiple turns the trigger into a chip row: every choice renders as a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. The hidden select becomes a real select multiple - its name gains [] - so every choice survives the form post exactly like a native multiple select. max_items caps the count; at the cap, unchosen options rest until something is removed." do
+      "multiple turns the trigger into a chip row: every choice renders as a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. The hidden select becomes a real select multiple - its name gains [] - so every choice survives the form post, in the order it was picked (a native multiple select would post option order). max_items caps the count; at the cap, unchosen options rest until something is removed." do
     ~H"""
     <div class="w-full max-w-sm mx-auto">
       <.combo_box

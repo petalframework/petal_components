@@ -37,6 +37,12 @@ defmodule PetalComponents.ComboBox do
   the form post). `max_items` caps how many can be chosen - at the cap,
   unchosen options render inert until something is removed.
 
+  Chips and the posted values follow the order the user picked in, not
+  the option order: the hook keeps the chosen options at the end of the
+  hidden select in pick order (Tom Select's trick), so `tags[]` arrives
+  as `["b", "a"]` when B was picked first. Want them sorted? Sort on the
+  server - pick order is the one you cannot get back.
+
       <.combo_box
         field={f[:tags]}
         multiple
@@ -285,6 +291,7 @@ defmodule PetalComponents.ComboBox do
       data-remote-event={@remote_options_event_name}
       data-remote-target={@remote_options_target}
       data-has-value={@current_values != [] && "true"}
+      data-order={@multiple && Jason.encode!(@current_values)}
       {@rest}
     >
       <select

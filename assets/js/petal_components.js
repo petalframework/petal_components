@@ -4653,6 +4653,8 @@ export const PetalComboBox = {
 
     this.multiple = this.select.multiple;
     this.chips = this.el.querySelector("[data-pc-combo-chips]");
+    // pick order, the hook's own record (see syncSelectOrder)
+    this.order = [];
     this.freeText = this.el.hasAttribute("data-free-text");
     this.remoteEvent = this.el.dataset.remoteEvent || null;
     this.remoteTarget = this.el.dataset.remoteTarget || null;
@@ -5290,6 +5292,13 @@ export const PetalComboBox = {
     if (!option || option.selected === selected) return;
     if (this.multiple) {
       option.selected = selected;
+      if (selected) {
+        // to the tail NOW, before the change event serialises the form:
+        // the select's DOM order is what carries pick order to the server
+        // (see syncSelectOrder)
+        this.order.push(value);
+        this.select.appendChild(option);
+      }
     } else {
       this.select.value = selected ? value : "";
     }
@@ -5364,6 +5373,59 @@ export const PetalComboBox = {
     for (const chip of seq) this.chips.appendChild(chip);
   },
 
+  // -- pick order ----------------------------------------------------------
+  // A <select multiple> serialises in option DOM order, so a plain form
+  // post - and every phx-change - would hand the server the OPTION order
+  // and lose the order the user picked in: the order the chips show, and
+  // the one Tom Select kept. Tom Select's answer was to move each chosen
+  // <option> to the end of the select in pick order; the hook does the
+  // same. The chip row is the order of record when there is one. The
+  // trigger variant has no chips, so the hook keeps its own record
+  // (this.order), led by the server's data-order stamp on every patch
+  // with the picks the server has not stamped yet kept after it. Unchosen
+  // options keep their relative order at the front; the listbox rows
+  // never move - the server owns that DOM.
+  serverOrder() {
+    const raw =
+      this.el.dataset.order ?? (this.chips ? this.chips.dataset.order : null);
+    if (raw == null) return null;
+    try {
+      const order = JSON.parse(raw);
+      return Array.isArray(order) ? order : null;
+    } catch {
+      return null;
+    }
+  },
+
+  syncSelectOrder() {
+    if (!this.multiple) return;
+    const pool = Array.from(this.select.selectedOptions).filter(
+      (o) => o.value !== "",
+    );
+    // multiset draw: each wanted value claims one selected option
+    const seq = [];
+    const draw = (value) => {
+      const i = pool.findIndex((o) => o.value === value);
+      if (i !== -1) seq.push(pool.splice(i, 1)[0]);
+    };
+    if (this.chips) {
+      for (const chip of this.chips.querySelectorAll("[data-pc-combo-chip]")) {
+        draw(chip.dataset.value);
+      }
+    } else {
+      for (const v of this.serverOrder() || []) draw(v);
+      for (const v of this.order) draw(v);
+    }
+    // selected but known to neither record (a mount without a stamp, a
+    // programmatic change): DOM order, after everything else
+    seq.push(...pool);
+    this.order = seq.map((o) => o.value);
+    const all = Array.from(this.select.options);
+    const tail = all.slice(all.length - seq.length);
+    if (seq.every((o, i) => o === tail[i])) return;
+    for (const o of seq) this.select.appendChild(o);
+  },
+
   buildChip(value) {
     const option = Array.from(this.select.options).find(
       (o) => o.value === value,
@@ -5416,6 +5478,7 @@ export const PetalComboBox = {
     this.el.toggleAttribute("data-has-value", values.length > 0);
     if (this.multiple) {
       this.syncChips();
+      this.syncSelectOrder();
       const capped = this.maxReached();
       // the transition is tracked in hook state, not read back off the
       // attribute: a patch can rewrite the root element's attributes, and
@@ -5633,9 +5696,7 @@ export const PetalComboBox = {
     }
     const option = this.ensureOption(raw, raw);
     if (this.multiple) {
-      option.selected = true;
-      this.dispatchChange();
-      this.syncFromSelect();
+      this.setSelected(option.value, true);
       this.query = "";
       this.input.value = "";
       this.filter();
