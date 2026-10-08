@@ -5291,14 +5291,14 @@ export const PetalComboBox = {
     );
     if (!option || option.selected === selected) return;
     if (this.multiple) {
-      option.selected = selected;
       if (selected) {
         // to the tail NOW, before the change event serialises the form:
         // the select's DOM order is what carries pick order to the server
-        // (see syncSelectOrder)
+        // (see syncSelectOrder). Move first, then flag - Tom Select's order
         this.order.push(value);
         this.select.appendChild(option);
       }
+      option.selected = selected;
     } else {
       this.select.value = selected ? value : "";
     }
