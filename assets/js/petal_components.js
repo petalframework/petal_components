@@ -4619,10 +4619,11 @@ export const PetalToast = {
 // hidden, never reordered - the server owns DOM order. aria-selected tracks
 // the CHOSEN option (the check mark); the keyboard highlight is virtual:
 // data-highlighted + aria-activedescendant.
-// Same selection, any order: server-rendered rich content follows chosen
-// order while the hook reads DOM option order - freshness compares
-// MULTISETS (duplicate values are counted, never flattened), never
-// sequences.
+// Same selection, any order: the hook keeps the hidden select in pick
+// order (syncSelectOrder), but a stamp can still legitimately disagree
+// with a tree-order read - a trigger variant mounting without a stamp,
+// a patch in flight - so freshness compares MULTISETS (duplicate values
+// are counted, never flattened), never sequences.
 function sameValueMultiset(a, b) {
   if (a.length !== b.length) return false;
   const counts = new Map();
@@ -5384,7 +5385,12 @@ export const PetalComboBox = {
   // (this.order), led by the server's data-order stamp on every patch
   // with the picks the server has not stamped yet kept after it. Unchosen
   // options keep their relative order at the front; the listbox rows
-  // never move - the server owns that DOM.
+  // never move - the server owns that DOM. Two edges, both accepted: a
+  // grouped option gets hoisted out of its <optgroup> (the select is
+  // inert and aria-hidden, the listbox has its own role=group sections,
+  // and the next patch puts it back before this re-hoists it), and a
+  // dead view - no hook - posts list order, as a native multiple select
+  // does.
   serverOrder() {
     const raw =
       this.el.dataset.order ?? (this.chips ? this.chips.dataset.order : null);
@@ -5506,9 +5512,10 @@ export const PetalComboBox = {
     // patch that just landed), leave the rich DOM alone - overwrite with
     // optimistic text only for client-side changes, and drop the marker
     // so later syncs stay optimistic until the next patch.
-    // Order differences are legitimate: the server renders chosen order
-    // (chips follow pick order by design) while the hook reads DOM option
-    // order - so freshness is a SET comparison, never a sequence one.
+    // Order differences are legitimate: the stamp is the server's chosen
+    // order while this read is tree order, and the two only agree once
+    // syncSelectOrder has run for that patch - so freshness is a SET
+    // comparison, never a sequence one.
     let labelIsFresh = false;
     if (this.triggerLabel && this.triggerLabel.dataset.customLabel != null) {
       // JSON-encoded stamp: no delimiter to collide with value contents

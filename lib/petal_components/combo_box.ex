@@ -41,7 +41,9 @@ defmodule PetalComponents.ComboBox do
   the option order: the hook keeps the chosen options at the end of the
   hidden select in pick order (Tom Select's trick), so `tags[]` arrives
   as `["b", "a"]` when B was picked first. Want them sorted? Sort on the
-  server - pick order is the one you cannot get back.
+  server - pick order is the one you cannot get back. The hook keeps that
+  order; a dead view (no LiveView, no hook) posts list order, like any
+  native `select multiple`.
 
       <.combo_box
         field={f[:tags]}

@@ -2084,6 +2084,37 @@ describe("pick order: the posted values follow the picks, not the option list", 
     expect(posted(form)).toEqual(["tyo", "syd"]);
   });
 
+  it("the trigger variant's Backspace removes the last PICK, not the last option in list order", () => {
+    const c = mountCombo({ options: CITIES, trigger: true, multiple: true });
+    const form = inForm(c);
+    c.el.querySelector("[data-pc-combo-trigger]").click();
+    pick(c, "sto");
+    pick(c, "syd");
+    patch(c, ["sto", "syd"]);
+    c.input.value = "";
+    key(c.input, "Backspace");
+    expect(posted(form)).toEqual(["sto"]);
+  });
+
+  it("a grouped option is hoisted out of its optgroup and still posts in pick order", () => {
+    const c = mountCombo({ options: CITIES, multiple: true });
+    const form = inForm(c);
+    // the real component renders grouped options inside <optgroup>
+    const group = document.createElement("optgroup");
+    group.label = "Europe";
+    for (const v of ["lis", "sto"]) {
+      group.appendChild(c.select.querySelector(`option[value="${v}"]`));
+    }
+    c.select.appendChild(group);
+    c.control.click();
+    pick(c, "lis");
+    pick(c, "syd");
+    const lis = c.select.querySelector('option[value="lis"]');
+    expect(lis.parentElement).toBe(c.select);
+    expect(lis.selected).toBe(true);
+    expect(posted(form)).toEqual(["lis", "syd"]);
+  });
+
   it("single mode never moves an option", () => {
     const c = mountCombo({ options: CITIES });
     const before = [...c.select.options].map((o) => o.value);
