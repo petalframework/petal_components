@@ -2115,6 +2115,43 @@ describe("pick order: the posted values follow the picks, not the option list", 
     expect(posted(form)).toEqual(["lis", "syd"]);
   });
 
+  it("first paint: server-rendered chips and the stamp order the select on mount, before any patch", () => {
+    // an edit form: the server renders the stored value ["tyo", "syd"] as
+    // chips in that order, stamps it, and marks the options selected in
+    // option order - a dead post would send option order; the hook's
+    // mount is what makes the first live post agree with the chips
+    const seed = mountCombo({ options: CITIES, multiple: true });
+    const html = seed.el.outerHTML;
+    seed.el.remove();
+    const form = document.createElement("form");
+    form.innerHTML = html;
+    document.body.appendChild(form);
+    const el = form.firstElementChild;
+    el.dataset.order = JSON.stringify(["tyo", "syd"]);
+    for (const v of ["syd", "tyo"]) {
+      el.querySelector(`option[value="${v}"]`).setAttribute("selected", "");
+    }
+    const chips = el.querySelector("[data-pc-combo-chips]");
+    chips.dataset.order = JSON.stringify(["tyo", "syd"]);
+    chips.innerHTML = ["tyo", "syd"]
+      .map(
+        (v) =>
+          `<span class="pc-combo-box__chip" data-pc-combo-chip data-value="${v}"><span class="pc-combo-box__chip-label">${v}</span></span>`,
+      )
+      .join("");
+    expect(new FormData(form).getAll("city[]")).toEqual(["syd", "tyo"]);
+    const hook = Object.create(hooks.PetalComboBox);
+    hook.el = el;
+    hook.mounted();
+    mounted.push(hook);
+    expect(new FormData(form).getAll("city[]")).toEqual(["tyo", "syd"]);
+    expect(
+      [...chips.querySelectorAll("[data-pc-combo-chip]")].map(
+        (c) => c.dataset.value,
+      ),
+    ).toEqual(["tyo", "syd"]);
+  });
+
   it("single mode never moves an option", () => {
     const c = mountCombo({ options: CITIES });
     const before = [...c.select.options].map((o) => o.value);
