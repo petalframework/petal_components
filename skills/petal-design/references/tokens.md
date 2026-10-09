@@ -1,5 +1,7 @@
 # tokens.md - styling doctrine for custom markup and theme changes
 
+Same doctrine, two copies: this is the skill copy agents load; the human version is `guides/design.md` (sections 1-9 and 12). Change one, change the other.
+
 Load this file before styling any custom (non-component) markup, and for any brand / dark mode / radius request. Every value below is copied from `assets/default.css` in petal_components - do not substitute from memory.
 
 ## 1. The token layer

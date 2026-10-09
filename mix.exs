@@ -107,7 +107,16 @@ defmodule PetalComponents.MixProject do
       source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/petal_components",
       source_url: @source_url,
-      extras: ["README.md", "guides/streaming_chat.md", "rules.md", "UPGRADE_GUIDE.md"]
+      extras: [
+        "README.md",
+        "guides/design.md",
+        "guides/streaming_chat.md",
+        "rules.md",
+        "UPGRADE_GUIDE.md"
+      ],
+      groups_for_extras: [
+        Design: ["guides/design.md"]
+      ]
     ]
   end
 end

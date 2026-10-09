@@ -108,6 +108,8 @@ If you are a Cursor, Claude Code, Codex, Continue, Windsurf, or Cline user (or y
 
 You can also fetch it at https://petal.build/petal-components/rules.md.
 
+The design rules those tools follow (the `petal-design` skill in `skills/petal-design/`) are also written up for people: the [design system guide](guides/design.md) covers the token layer, the gray dial, dark mode, radius and type, the composition patterns, and a review checklist you can apply by hand.
+
 ## Component catalogue
 
 200+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:
