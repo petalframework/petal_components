@@ -1,5 +1,15 @@
 # Changelog
 
+### Unreleased
+
+#### Changed
+
+- **The AI rules file is now `usage-rules.md`.** Same content as the old
+  `rules.md`, under the name the `usage_rules` Hex package reads from a
+  dependency, so `mix usage_rules.sync` can pull it into a `CLAUDE.md`
+  or `AGENTS.md`. `rules.md` stays in the package as a pointer so old
+  links keep working, and hexdocs `rules.html` redirects.
+
 ### 4.17.1 - 2026-10-10
 
 #### Fixed

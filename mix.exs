@@ -94,8 +94,10 @@ defmodule PetalComponents.MixProject do
         "Rules for AI tools" => "https://petal.build/petal-components/rules.md",
         "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
       },
+      # usage-rules.md is the file `mix usage_rules.sync` reads from a dep; rules.md
+      # is a one-paragraph pointer kept so deps/petal_components/rules.md links survive.
       files:
-        ~w(mix.exs priv lib assets guides README.md LICENSE.md CHANGELOG.md rules.md UPGRADE_GUIDE.md)
+        ~w(mix.exs priv lib assets guides README.md LICENSE.md CHANGELOG.md usage-rules.md rules.md UPGRADE_GUIDE.md)
     ]
   end
 
@@ -107,7 +109,9 @@ defmodule PetalComponents.MixProject do
       source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/petal_components",
       source_url: @source_url,
-      extras: ["README.md", "guides/streaming_chat.md", "rules.md", "UPGRADE_GUIDE.md"]
+      extras: ["README.md", "guides/streaming_chat.md", "usage-rules.md", "UPGRADE_GUIDE.md"],
+      # hexdocs.pm/petal_components/rules.html predates the rename
+      redirects: %{"rules" => "usage-rules"}
     ]
   end
 end
