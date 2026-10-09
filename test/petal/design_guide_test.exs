@@ -72,6 +72,24 @@ defmodule PetalComponents.DesignGuideTest do
     end
   end
 
+  test "every code fence in the guide names a language", %{guide: guide} do
+    # ex_doc treats a bare ``` as Elixir and runs Makeup over it, so the ramp
+    # listing and the Tailwind class string came out coloured as atoms and
+    # module aliases on hexdocs. `text` renders without a lexer.
+    bare =
+      guide
+      |> String.split("\n")
+      |> Enum.with_index(1)
+      |> Enum.filter(fn {line, _} -> String.starts_with?(line, "```") end)
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn [{opening, line_no} | _] -> {String.trim_leading(opening, "`"), line_no} end)
+      |> Enum.filter(fn {lang, _} -> lang == "" end)
+      |> Enum.map(fn {_, line_no} -> line_no end)
+
+    assert bare == [],
+           "guides/design.md has language-less code fences (ex_doc highlights them as Elixir) at lines #{Enum.join(bare, ", ")}"
+  end
+
   test "each copy points at the other" do
     assert File.read!(@guide_md) =~ "skills/petal-design/"
 

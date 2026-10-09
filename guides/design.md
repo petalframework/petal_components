@@ -10,7 +10,7 @@ This guide is for the developer or designer writing HEEx and CSS in a Phoenix ap
 
 `default.css` opens with a Tailwind v4 `@theme default` block that defines seven semantic ramps, eleven OKLCH stops each (50 to 950):
 
-```
+```text
 --color-primary-{50..950}     default: Tailwind blue
 --color-secondary-{50..950}   default: Tailwind pink
 --color-info-{50..950}        default: sky
@@ -105,7 +105,7 @@ Note the crossover in dark: muted brightens (500 to 400) while glyphs dim (400 t
 
 The house recipe, on the focusable element itself:
 
-```
+```text
 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/50
 ```
 
