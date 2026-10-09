@@ -3837,7 +3837,7 @@
       "examples": [
         {
           "code": "<div class=\"w-full max-w-sm mx-auto\">\n  <.combo_box\n    id=\"sx-combo-multi\"\n    name=\"stack\"\n    multiple\n    max_items={4}\n    value={[\"phx\", \"lv\"]}\n    placeholder=\"Build your stack…\"\n    options={[\n      {\"Phoenix\", \"phx\"},\n      {\"LiveView\", \"lv\"},\n      {\"Ecto\", \"ecto\"},\n      {\"Oban\", \"oban\"},\n      {\"Tailwind\", \"tw\"},\n      {\"Postgres\", \"pg\"}\n    ]}\n  />\n</div>",
-          "description": "multiple turns the trigger into a chip row: every choice renders as a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. The hidden select becomes a real select multiple - its name gains [] - so every choice survives the form post exactly like a native multiple select. max_items caps the count; at the cap, unchosen options rest until something is removed.",
+          "description": "multiple turns the trigger into a chip row: every choice renders as a removable token, the panel stays open while picking, and Backspace in an empty input removes the last chip. The hidden select becomes a real select multiple - its name gains [] - so every choice survives the form post, in the order it was picked (a native multiple select would post option order). max_items caps the count; at the cap, unchosen options rest until something is removed.",
           "title": "Chips - multiple selection"
         },
         {
@@ -18000,6 +18000,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-10-02T01:59:06.791398Z",
-  "version": "4.17.0"
+  "generated_at": "2026-10-09T21:40:41.240640Z",
+  "version": "4.17.1"
 }
