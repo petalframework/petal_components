@@ -38,6 +38,54 @@ defmodule PetalComponents.CommandTest do
     assert html =~ "pc-command__input"
   end
 
+  defp input_attr(html, name) do
+    html |> parse_html() |> LazyHTML.query("input[role=combobox]") |> LazyHTML.attribute(name)
+  end
+
+  describe "command_input accessible name" do
+    test "defaults to the placeholder" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.command_input />
+        """)
+
+      assert input_attr(html, "aria-label") == ["Type a command or search..."]
+
+      html =
+        rendered_to_string(~H"""
+        <.command_input placeholder="Search docs" />
+        """)
+
+      assert input_attr(html, "aria-label") == ["Search docs"]
+    end
+
+    test "a caller's aria-label wins, rendered once" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.command_input placeholder="Search docs" aria-label="Search the docs" />
+        """)
+
+      assert input_attr(html, "aria-label") == ["Search the docs"]
+      assert count_substring(html, "aria-label=") == 1
+    end
+
+    test "aria-labelledby suppresses the default" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.command_input aria-labelledby="cmdk-title" />
+        """)
+
+      assert input_attr(html, "aria-labelledby") == ["cmdk-title"]
+      assert input_attr(html, "aria-label") == []
+    end
+  end
+
   test "command_list is a labelled listbox" do
     assigns = %{}
 

@@ -47,6 +47,41 @@ defmodule PetalComponents.DataTableTest do
     assert html =~ ~s(data-nav-template="/orders?search=:term&amp;order_by=name%3Adesc")
   end
 
+  test "the search input is named by its placeholder in both wiring modes" do
+    assigns = base()
+
+    event_html =
+      rendered_to_string(~H"""
+      <.data_table id="t" rows={@rows} state={@state} on_change="table" searchable>
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    link_html =
+      rendered_to_string(~H"""
+      <.data_table
+        id="t"
+        rows={@rows}
+        state={@state}
+        path={@path}
+        searchable
+        search_placeholder="Find orders"
+      >
+        <:col :let={row} field={:name}>{row.name}</:col>
+      </.data_table>
+      """)
+
+    search_label = fn html ->
+      html
+      |> parse_html()
+      |> LazyHTML.query(".pc-data-table__search-input")
+      |> LazyHTML.attribute("aria-label")
+    end
+
+    assert search_label.(event_html) == ["Search…"]
+    assert search_label.(link_html) == ["Find orders"]
+  end
+
   test "page_size_options renders the footer select in both wiring modes" do
     assigns = base(%{state: %State{total: 74, page_size: 20}})
 
