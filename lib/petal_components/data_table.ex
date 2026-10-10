@@ -118,7 +118,9 @@ defmodule PetalComponents.DataTable do
     default: false,
     doc: "render the quick-search input in the toolbar (drives `state.search`)"
 
-  attr :search_placeholder, :string, default: "Search…"
+  attr :search_placeholder, :string,
+    default: "Search…",
+    doc: "the quick-search input's placeholder, and its aria-label"
 
   attr :search_debounce, :integer,
     default: 300,
@@ -366,6 +368,7 @@ defmodule PetalComponents.DataTable do
                   name="term"
                   value={@state.search}
                   placeholder={@search_placeholder}
+                  aria-label={@search_placeholder}
                   phx-debounce={@search_debounce}
                   autocomplete="off"
                   class="pc-text-input pc-data-table__search-input"
@@ -376,6 +379,7 @@ defmodule PetalComponents.DataTable do
                 type="text"
                 value={@state.search}
                 placeholder={@search_placeholder}
+                aria-label={@search_placeholder}
                 autocomplete="off"
                 data-pc-dt-search
                 class="pc-text-input pc-data-table__search-input"
