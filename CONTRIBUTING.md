@@ -72,3 +72,7 @@ House rules that will come up in review:
 4. Releases (Hex publish, changelog, docs, MCP schema sync) are handled by maintainers after merge.
 
 Suggestions outside the current milestones are welcome too: open an issue with the shape of the API you'd want, or propose it on the [public roadmap](https://petal.build/components/roadmap).
+
+## Code review
+
+PRs from maintainers get one automatic Claude review when they open (`.github/workflows/claude-code-review.yml`), following `REVIEW.md`. PRs from forks don't, because forks can't read the repo's secrets; a maintainer can ask for one by commenting `@claude review`.
