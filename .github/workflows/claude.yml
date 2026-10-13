@@ -1,0 +1,36 @@
+name: Claude
+
+# Answers "@claude ..." in a PR comment, e.g. "@claude review" to re-run the review after changes.
+# Only the repo's owners, members and collaborators can trigger it, so strangers can't spend the subscription.
+# Read-only: it can comment, not push.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude:
+    if: >-
+      contains(github.event.comment.body, '@claude') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
+      (github.event_name == 'pull_request_review_comment' || github.event.issue.pull_request)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --max-turns 30
