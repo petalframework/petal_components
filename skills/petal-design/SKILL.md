@@ -29,7 +29,7 @@ Route by request. Propose and confirm - never auto-run work the user did not ask
 
 When picking which component to reach for, scan `references/components.md` - the generated
 inventory, one line per component. A run loads this file plus at most two reference files.
-For install questions, follow `deps/petal_components/rules.md` - never restate its steps here.
+For install questions, follow `deps/petal_components/usage-rules.md` - never restate its steps here.
 
 ## Resolving component schemas - the ladder
 
