@@ -34,6 +34,12 @@ defmodule PetalComponents.Alert do
     doc: "a list of properties passed to the close button"
   )
 
+  attr(:dismiss_label, :string,
+    default: "Dismiss",
+    doc:
+      "accessible name for the icon-only dismiss button (i18n). Rendered as screen-reader text, so an aria-label in close_button_properties still wins"
+  )
+
   attr :on_dismiss, JS,
     default: %JS{},
     doc:
@@ -105,6 +111,7 @@ defmodule PetalComponents.Alert do
                 }
               >
                 <.icon name="hero-x-mark" class="w-4 h-4" />
+                <span class="sr-only">{@dismiss_label}</span>
               </button>
             <% else %>
               <%= if @close_button_properties do %>
@@ -113,6 +120,7 @@ defmodule PetalComponents.Alert do
                   {@close_button_properties}
                 >
                   <.icon name="hero-x-mark" class="w-4 h-4" />
+                  <span class="sr-only">{@dismiss_label}</span>
                 </button>
               <% end %>
             <% end %>

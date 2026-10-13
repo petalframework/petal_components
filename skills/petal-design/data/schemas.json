@@ -274,6 +274,14 @@
           ]
         },
         {
+          "default": "\"Dismiss\"",
+          "doc": "accessible name for the icon-only dismiss button (i18n). Rendered as screen-reader text, so an aria-label in close_button_properties still wins",
+          "name": "dismiss_label",
+          "required": false,
+          "type": ":string",
+          "values": null
+        },
+        {
           "default": null,
           "doc": "label your heading",
           "name": "heading",
@@ -5308,7 +5316,7 @@
         },
         {
           "default": "\"Search…\"",
-          "doc": null,
+          "doc": "the quick-search input's placeholder, and its aria-label",
           "name": "search_placeholder",
           "required": false,
           "type": ":string",
@@ -18000,6 +18008,6 @@
       "slots": []
     }
   ],
-  "generated_at": "2026-10-09T21:40:41.240640Z",
+  "generated_at": "2026-10-10T02:44:57.280206Z",
   "version": "4.17.1"
 }
