@@ -190,6 +190,42 @@ defmodule PetalComponents.DatePickerTest do
       assert html =~ "Due on"
     end
 
+    test "label: nil derives from the field, \"\" suppresses it, text wins" do
+      assigns = %{field: form_field(~D[2026-03-14])}
+
+      derived =
+        rendered_to_string(~H"""
+        <.date_picker field={@field} />
+        """)
+
+      explicit =
+        rendered_to_string(~H"""
+        <.date_picker field={@field} label="Due date" />
+        """)
+
+      suppressed =
+        rendered_to_string(~H"""
+        <.date_picker field={@field} label="" />
+        """)
+
+      assert derived =~ "Due on"
+      assert explicit =~ "Due date"
+      refute explicit =~ "Due on"
+      refute suppressed =~ "<label"
+    end
+
+    test "without a field, no label renders for nil or \"\"" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.date_picker id="a" name="d" />
+        <.date_picker id="b" name="d" label="" />
+        """)
+
+      refute html =~ "<label"
+    end
+
     test "renders translated errors only once the input has been used" do
       assigns = %{field: form_field("", [{"can't be blank", []}])}
 
