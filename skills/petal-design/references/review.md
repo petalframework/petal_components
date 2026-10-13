@@ -1,5 +1,7 @@
 # Review mode - the playbook
 
+Same doctrine, two copies: this is the skill copy agents load; the human version is `guides/design.md` (section 11). Change one, change the other.
+
 You are reviewing Phoenix/LiveView UI built with petal_components. Run the
 steps below in order. Produce findings, not scores. Never fix anything unless
 asked.

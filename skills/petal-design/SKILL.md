@@ -6,6 +6,8 @@ petal_components_version: 4.17.1
 
 # petal-design
 
+Same doctrine, two copies: this skill is the one agents load; the human version is `guides/design.md` in the package (hexdocs "Design"). Change one, change the other.
+
 Petal ships the design system: `@theme` semantic ramps, one radius knob (`--pc-radius`),
 a dark-mode material, and 213 components. There is no init step, no interview, and no
 DESIGN.md to write - this file plus its references ARE the doctrine. Your job is to compose
