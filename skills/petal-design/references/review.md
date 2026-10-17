@@ -6,9 +6,8 @@ asked.
 
 Staleness check first: compare the petal_components version in SKILL.md
 frontmatter to the `petal_components` entry in the project's mix.lock. If they
-differ, print one line - "petal-design snapshot vX.Y.Z is behind mix.lock
-vA.B.C - re-copy from deps/petal_components/skills/petal-design" - then
-continue. Never block on staleness.
+differ, say so in one line with the fix SKILL.md's Staleness section gives for
+that direction, then continue. Never block on staleness.
 
 The order:
 1. Read the UI and its intent, write the design judgment - before any grep.
