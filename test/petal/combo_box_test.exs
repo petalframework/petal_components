@@ -191,8 +191,41 @@ defmodule PetalComponents.ComboBoxTest do
       assert html =~ "pc-combo-box__chip"
       # chip order follows chosen order
       assert html =~ ~r/Beta.*Alpha/s
+      # the root stamps that order for the hook, which keeps the hidden
+      # select's chosen options in it so the form posts pick order (#713)
+      assert html =~ ~r/<div id="tags"[^>]*data-order="\[&quot;b&quot;,&quot;a&quot;\]"/
       assert html =~ ~s|aria-label="Remove Beta"|
       assert html =~ ~s|data-pc-combo-chip-remove|
+    end
+
+    test "the trigger variant stamps the chosen order on the root - it has no chip row" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box
+          id="tags"
+          name="tags"
+          multiple
+          variant="trigger"
+          value={["b", "a"]}
+          options={[{"Alpha", "a"}, {"Beta", "b"}]}
+        />
+        """)
+
+      refute html =~ "data-pc-combo-chips"
+      assert html =~ ~r/<div id="tags"[^>]*data-order="\[&quot;b&quot;,&quot;a&quot;\]"/
+    end
+
+    test "single mode carries no order stamp" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <.combo_box id="city" name="city" value="a" options={[{"Alpha", "a"}, {"Beta", "b"}]} />
+        """)
+
+      refute html =~ "data-order"
     end
 
     test "chips mode is a token field - no chevron" do

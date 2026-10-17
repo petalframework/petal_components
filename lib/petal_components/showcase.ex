@@ -140,35 +140,14 @@ defmodule PetalComponents.Showcase do
     end
   end
 
-  # Highlight the example ONCE, at compile time, so there is no per-render MDEx
-  # cost - the One Dark HTML is baked into the compiled module. Guarded and
-  # rescued: without mdex + lumis (or on any error) we store nil, and the frame
-  # falls back to plain markup. The compile-time env equals the render-time env
-  # (same app), so if lumis is unavailable here it is unavailable at render too.
+  # Highlight the example ONCE, at compile time, so there is no per-render
+  # highlighter cost - the classed HTML is baked into the compiled module and
+  # its colours live in CSS. Without lumis (or on any error) we store nil, and
+  # the code block renders plain code. The compile-time env equals the
+  # render-time env (same app), so if lumis is unavailable here it is
+  # unavailable at render too.
   @doc false
-  def __highlight__(code) do
-    if Code.ensure_loaded?(MDEx) do
-      try do
-        opts = [
-          syntax_highlight: [formatter: :html_inline],
-          sanitize: MDEx.Document.default_sanitize_options()
-        ]
-
-        html =
-          case MDEx.to_html("```heex\n" <> code <> "\n```", opts) do
-            {:ok, h} -> h
-            h when is_binary(h) -> h
-            _ -> nil
-          end
-
-        if is_binary(html) and String.contains?(html, ~s|class="lumis"|),
-          do: {:safe, html},
-          else: nil
-      rescue
-        _ -> nil
-      end
-    end
-  end
+  def __highlight__(code), do: PetalComponents.Showcase.Highlight.to_html(code, "heex")
 
   # Pull the raw source out of a ~H sigil AST. Elixir's heredoc handling has
   # already dedented the block relative to its closing delimiter, so we only

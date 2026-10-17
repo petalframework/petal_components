@@ -4,7 +4,7 @@ defmodule PetalComponents.Showcase.Breadcrumbs do
 
   example :basic, "Links from a plain list",
     description:
-      "links take label and/or icon (the first crumb here is a home icon), to, and link_type (a / live_patch / live_redirect / button). The last crumb renders as the current page - strong text plus aria-current - and the nav carries an aria_label. separator=\"slash\" swaps the chevrons." do
+      "links take label and/or icon (the first crumb here is a home icon), to, and link_type (a / live_patch / live_redirect / button). The last crumb renders as the current page - strong text plus aria-current - and the nav carries an aria_label. separator=\"chevron\" swaps the slashes." do
     ~H"""
     <.breadcrumbs links={[
       %{icon: "hero-home", to: "#", link_type: "button"},

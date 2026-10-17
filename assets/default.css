@@ -7842,89 +7842,217 @@
     @apply absolute inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium tracking-wide text-gray-500 uppercase border border-gray-200 rounded-md cursor-help top-2 right-2 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/70 dark:border-gray-400/17;
   }
 
-  .pc-showcase-code {
-    @apply relative overflow-hidden border-t border-gray-200 rounded-b-xl dark:border-gray-400/17;
-    background-color: #282c34;
+  /* Code block - the one code surface (Frame.code_block/1). Example panels,
+     playground hero snippets, Get Code, recipes and docs all render through
+     it, so its look is tuned here and nowhere else.
+
+     The surface and every neutral token ride the gray dial; the four accent
+     hues are content colours (like chart series), tuned once per scheme.
+     lumis emits tokens as classes (`l-*`), so the palette lives in these rules
+     rather than in the HTML. Override any --pc-code-* var to reskin. */
+  .pc-code {
+    --pc-code-bg: color-mix(in oklab, var(--color-gray-50) 50%, var(--color-gray-100));
+    --pc-code-border: var(--color-gray-200);
+    --pc-code-fg: var(--color-gray-800);
+    --pc-code-muted: var(--color-gray-500);
+    --pc-code-attr: var(--color-gray-600);
+    --pc-code-comment: var(--color-gray-400);
+    --pc-code-name: oklch(0.55 0.15 45);
+    --pc-code-string: oklch(0.51 0.11 160);
+    --pc-code-keyword: oklch(0.5 0.19 300);
+    --pc-code-constant: oklch(0.52 0.14 250);
+    @apply relative overflow-hidden border rounded-xl;
+    @apply dark:[--pc-code-bg:color-mix(in_oklab,var(--color-gray-900)_75%,var(--color-gray-950))] dark:[--pc-code-border:color-mix(in_oklab,var(--color-gray-400)_17%,transparent)] dark:[--pc-code-fg:var(--color-gray-200)] dark:[--pc-code-attr:var(--color-gray-400)] dark:[--pc-code-comment:var(--color-gray-500)];
+    @apply dark:[--pc-code-name:oklch(0.83_0.1_60)] dark:[--pc-code-string:oklch(0.84_0.09_165)] dark:[--pc-code-keyword:oklch(0.78_0.12_300)] dark:[--pc-code-constant:oklch(0.8_0.09_235)];
+    background-color: var(--pc-code-bg);
+    border-color: var(--pc-code-border);
+    color: var(--pc-code-fg);
   }
 
-  .pc-showcase-code__bar {
-    @apply flex items-center justify-between px-4 py-2 border-b;
-    background-color: rgb(55 65 81 / 0.5);
-    border-color: rgb(107 114 128 / 0.3);
+  /* Flush under a preview: the frame draws the outer border, the block only
+     the seam. Its own bottom radius sits just inside the frame's 1px border. */
+  .pc-code--attached {
+    @apply border-x-0 border-b-0 rounded-t-none rounded-b-[calc(var(--radius-xl)-1px)];
   }
 
-  .pc-showcase-code__lang {
-    @apply text-xs font-semibold uppercase text-primary-300;
+  /* One header for one file or many: a quiet label names a single file,
+     tabs appear only when there is a choice. Same surface as the code, split
+     by a hairline - no second colour. */
+  .pc-code__header {
+    @apply flex items-center justify-between gap-2 h-11 px-2.5 border-b;
+    border-color: var(--pc-code-border);
+  }
+  .pc-code__tabs {
+    @apply flex items-center min-w-0 gap-1 overflow-x-auto;
+    scrollbar-width: none;
+  }
+  .pc-code__label,
+  .pc-code__tab {
+    @apply inline-flex items-center h-7 px-2.5 text-xs font-medium whitespace-nowrap rounded-md text-gray-500 dark:text-gray-400;
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
+  }
+  /* the landing page's file tabs: the open file lifts and takes a primary
+     underline, so docs and the landing speak one tab grammar */
+  .pc-code__tab {
+    @apply cursor-pointer select-none transition-colors hover:bg-gray-900/4 hover:text-gray-900 dark:hover:bg-gray-400/8 dark:hover:text-gray-100;
+  }
+  .pc-code__radio:checked + .pc-code__tab {
+    @apply text-gray-900 bg-gray-900/5 dark:text-gray-50 dark:bg-gray-400/12;
+    box-shadow: inset 0 -2px 0 var(--color-primary-500);
+  }
+  .pc-code__radio:focus-visible + .pc-code__tab {
+    @apply outline-none ring-2 ring-primary-500/50;
+  }
+  .pc-code__actions {
+    @apply flex items-center shrink-0;
   }
 
-  /* copy button: hidden until the panel is expanded */
-  .pc-showcase-code__copy {
-    @apply hidden items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-200;
+  /* Copy. Hidden while the code is folded (see Folding): the folded block
+     offers one action, View code. */
+  .pc-code__copy {
+    @apply inline-flex items-center justify-center rounded-md size-7 shrink-0 transition-colors text-gray-500 hover:text-gray-900 hover:bg-gray-200/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-400/12;
+  }
+  /* no header: the button sits in the corner, on the code's own surface so a
+     long first line slides under it instead of through it */
+  .pc-code__copy--floating {
+    @apply absolute top-2.5 right-2.5 z-[2];
+    background-color: var(--pc-code-bg);
   }
 
-  .pc-showcase-code__scroll {
-    @apply relative p-5 overflow-hidden text-sm leading-6 text-gray-50;
-    max-height: 10rem;
+  .pc-code__body {
+    @apply relative;
+  }
+  /* Open code is capped and scrolls in both directions, which is what makes
+     a fold-back control unnecessary. Raise --pc-code-max-height on a page (or
+     the block's class) for long files. */
+  .pc-code__pane pre {
+    @apply m-0 overflow-auto px-5 py-4 text-[13px] leading-[1.7];
+    max-height: var(--pc-code-max-height, 24rem);
+    background: none;
+    color: var(--pc-code-fg);
+    font-family: var(--pc-font-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace));
+    tab-size: 2;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--pc-code-muted) 40%, transparent) transparent;
   }
 
-  /* let the highlighted <pre> blend into the panel instead of carrying its
-     own dark. !important is genuinely required here: mdex's :html_inline
-     formatter writes the theme background into the <pre>'s style attribute,
-     and only an important declaration outranks an inline style. */
-  .pc-showcase-code__scroll pre {
-    @apply m-0 w-full;
-    background: transparent !important;
+  .pc-code--wrap .pc-code__pane pre {
+    @apply whitespace-pre-wrap break-words;
+  }
+  /* wrapped lines would run under a corner copy button; keep them clear */
+  .pc-code--wrap:has(.pc-code__copy--floating) .pc-code__pane pre {
+    @apply pr-12;
   }
 
-  .pc-showcase-code__fallback {
-    @apply whitespace-pre;
-  }
-
-  .pc-showcase-code__peek {
-    @apply absolute inset-0 flex items-center justify-center cursor-pointer;
-    background-image: linear-gradient(to top, #282c34, rgb(40 44 52 / 0.85), transparent);
-  }
-
-  .pc-showcase-code__peek-btn {
-    @apply inline-flex items-center h-10 gap-2 px-4 text-sm font-medium text-gray-800 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600/75;
-  }
-
-  .pc-showcase-code__hide {
-    @apply hidden items-center justify-center gap-1.5 py-2 border-t text-xs font-medium text-gray-400 cursor-pointer transition-colors hover:text-gray-200;
-    border-color: rgb(107 114 128 / 0.3);
-  }
-
-  .pc-showcase-code__lock {
-    @apply absolute inset-0 flex items-center justify-center backdrop-blur-sm;
-  }
-
-  .pc-showcase-code__lock-hint {
-    @apply inline-flex items-center h-10 gap-2 px-4 text-sm font-medium text-gray-800 bg-white border border-gray-200 rounded-lg shadow-sm dark:text-white dark:bg-gray-700 dark:border-gray-600;
-  }
-
-  /* the pure-CSS toggle */
-  .pc-showcase-code:has(.pc-showcase-code__toggle:checked) .pc-showcase-code__scroll {
-    max-height: none;
-    overflow-x: auto;
-  }
-
-  .pc-showcase-code:has(.pc-showcase-code__toggle:checked) .pc-showcase-code__peek {
+  /* Several files: one pane and one copy button per file, the checked tab
+     shows its own. One rule per index (the component caps files at 12). */
+  .pc-code--multi .pc-code__pane,
+  .pc-code--multi .pc-code__copy {
     display: none;
   }
-
-  .pc-showcase-code:has(.pc-showcase-code__toggle:checked) .pc-showcase-code__copy {
+  .pc-code--multi:has(.pc-code__radio[data-i="0"]:checked) .pc-code__pane[data-i="0"],
+  .pc-code--multi:has(.pc-code__radio[data-i="1"]:checked) .pc-code__pane[data-i="1"],
+  .pc-code--multi:has(.pc-code__radio[data-i="2"]:checked) .pc-code__pane[data-i="2"],
+  .pc-code--multi:has(.pc-code__radio[data-i="3"]:checked) .pc-code__pane[data-i="3"],
+  .pc-code--multi:has(.pc-code__radio[data-i="4"]:checked) .pc-code__pane[data-i="4"],
+  .pc-code--multi:has(.pc-code__radio[data-i="5"]:checked) .pc-code__pane[data-i="5"],
+  .pc-code--multi:has(.pc-code__radio[data-i="6"]:checked) .pc-code__pane[data-i="6"],
+  .pc-code--multi:has(.pc-code__radio[data-i="7"]:checked) .pc-code__pane[data-i="7"],
+  .pc-code--multi:has(.pc-code__radio[data-i="8"]:checked) .pc-code__pane[data-i="8"],
+  .pc-code--multi:has(.pc-code__radio[data-i="9"]:checked) .pc-code__pane[data-i="9"],
+  .pc-code--multi:has(.pc-code__radio[data-i="10"]:checked) .pc-code__pane[data-i="10"],
+  .pc-code--multi:has(.pc-code__radio[data-i="11"]:checked) .pc-code__pane[data-i="11"] {
+    display: block;
+  }
+  .pc-code--multi:has(.pc-code__radio[data-i="0"]:checked) .pc-code__copy[data-i="0"],
+  .pc-code--multi:has(.pc-code__radio[data-i="1"]:checked) .pc-code__copy[data-i="1"],
+  .pc-code--multi:has(.pc-code__radio[data-i="2"]:checked) .pc-code__copy[data-i="2"],
+  .pc-code--multi:has(.pc-code__radio[data-i="3"]:checked) .pc-code__copy[data-i="3"],
+  .pc-code--multi:has(.pc-code__radio[data-i="4"]:checked) .pc-code__copy[data-i="4"],
+  .pc-code--multi:has(.pc-code__radio[data-i="5"]:checked) .pc-code__copy[data-i="5"],
+  .pc-code--multi:has(.pc-code__radio[data-i="6"]:checked) .pc-code__copy[data-i="6"],
+  .pc-code--multi:has(.pc-code__radio[data-i="7"]:checked) .pc-code__copy[data-i="7"],
+  .pc-code--multi:has(.pc-code__radio[data-i="8"]:checked) .pc-code__copy[data-i="8"],
+  .pc-code--multi:has(.pc-code__radio[data-i="9"]:checked) .pc-code__copy[data-i="9"],
+  .pc-code--multi:has(.pc-code__radio[data-i="10"]:checked) .pc-code__copy[data-i="10"],
+  .pc-code--multi:has(.pc-code__radio[data-i="11"]:checked) .pc-code__copy[data-i="11"] {
     display: inline-flex;
   }
 
-  .pc-showcase-code:has(.pc-showcase-code__toggle:checked) .pc-showcase-code__hide {
-    display: flex;
+  /* Folding: a short teaser of the code fading out under one centred View
+     code button. The fade is a mask on the code itself, not a colour overlay,
+     so it works on any surface and never paints a band of the wrong colour;
+     the pane carries the clamp AND the mask, so the gradient spans exactly
+     the visible teaser. */
+  .pc-code--collapsible .pc-code__pane {
+    @apply overflow-hidden;
+    max-height: 7rem;
+    mask-image: linear-gradient(to bottom, black 10%, transparent 90%);
+  }
+  .pc-code--collapsible .pc-code__pane pre {
+    @apply overflow-hidden;
+  }
+  .pc-code--collapsible:not(:has(.pc-code__expand:checked)) :is(.pc-code__actions, .pc-code__copy--floating) {
+    display: none;
+  }
+  .pc-code__peek {
+    @apply absolute inset-0 z-[1] flex items-center justify-center pb-3 cursor-pointer;
+  }
+  /* opaque, on the page's own ground, so it reads as a button floating over
+     the code rather than a tint sitting in it */
+  .pc-code__peek-btn {
+    @apply bg-white text-gray-900 border-gray-200 shadow-xs hover:bg-gray-50 dark:bg-gray-950 dark:text-gray-50 dark:border-gray-400/25 dark:shadow-none dark:hover:bg-gray-900;
+  }
+  .pc-code:has(.pc-code__expand:checked) .pc-code__pane {
+    max-height: none;
+    mask-image: none;
+  }
+  .pc-code:has(.pc-code__expand:checked) .pc-code__pane pre {
+    overflow: auto;
+  }
+  .pc-code:has(.pc-code__expand:checked) .pc-code__peek {
+    display: none;
+  }
+  /* once open the toggle has nothing left to do: take it out of the tab
+     order rather than leave keyboard focus on an invisible control */
+  .pc-code__expand:checked {
+    display: none;
+  }
+  /* keyboard focus lands on the visually-hidden checkbox; ring the visible
+     button so keyboard users can see where they are */
+  .pc-code:has(.pc-code__expand:focus-visible) .pc-code__peek-btn {
+    @apply outline-none ring-2 ring-primary-500/50;
   }
 
-  /* keyboard focus lands on the visually-hidden checkbox; surface a ring on the
-     visible toggle buttons so keyboard users can see where they are */
-  .pc-showcase-code:has(.pc-showcase-code__toggle:focus-visible) .pc-showcase-code__peek-btn,
-  .pc-showcase-code:has(.pc-showcase-code__toggle:focus-visible) .pc-showcase-code__hide {
-    @apply outline-none ring-2 ring-primary-400;
+  .pc-code__lock {
+    @apply absolute inset-0 z-[1] flex items-center justify-center backdrop-blur-sm;
+  }
+
+  /* Syntax tokens. One class per span, so prefix matches cover every
+     sub-scope lumis emits (l-keyword-function, l-string-escape, ...). The
+     constant rule follows the string rule on purpose: atoms and keyword keys
+     are l-string-special-symbol, and equal specificity lets order decide. */
+  .pc-code :is(.l-tag-delimiter, .l-operator, [class^="l-punctuation"]) {
+    color: var(--pc-code-muted);
+  }
+  .pc-code :is(.l-tag-attribute, .l-attribute, .l-label, .l-variable-member, [class^="l-property"]) {
+    color: var(--pc-code-attr);
+  }
+  .pc-code :is([class^="l-function"], [class^="l-module"], [class^="l-type"], [class^="l-constructor"]) {
+    color: var(--pc-code-name);
+  }
+  .pc-code [class^="l-string"] {
+    color: var(--pc-code-string);
+  }
+  .pc-code [class^="l-keyword"] {
+    color: var(--pc-code-keyword);
+  }
+  .pc-code :is(.l-string-special-symbol, .l-boolean, [class^="l-constant"], [class^="l-number"], [class^="l-character"]) {
+    color: var(--pc-code-constant);
+  }
+  .pc-code [class^="l-comment"] {
+    color: var(--pc-code-comment);
+    font-style: italic;
   }
 
   /* props / slots table */

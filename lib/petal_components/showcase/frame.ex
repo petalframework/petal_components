@@ -3,12 +3,13 @@ defmodule PetalComponents.Showcase.Frame do
   The shared presentation shell for showcase examples - the piece that makes the
   dev playground and petal.build render example blocks identically.
 
-  `showcase_example/1` joins a live preview to a collapsible, syntax-highlighted
-  code panel with a copy button. The collapse toggle is pure CSS (a hidden
-  checkbox + `:has()` rules in `default.css`) so it needs no Alpine and no hook
-  and works in dead views. Code is highlighted server-side via the optional
-  `mdex` + `lumis` stack (same as the chat), falling back to plain `<pre>` markup
-  when they are absent.
+  `showcase_example/1` joins a live preview to a `code_block/1` - the one code
+  surface both sites use for every code panel (examples, hero snippets, Get
+  Code, recipes, docs). The block's toggles are pure CSS (hidden inputs +
+  `:has()` rules in `default.css`) so it needs no Alpine and no hook and works
+  in dead views. Code is highlighted server-side via the optional `:lumis`
+  dependency into classed tokens whose colours live in CSS, falling back to
+  plain code when lumis is absent.
 
   `showcase_props/1` renders a component's attrs/slots table straight from
   `Phoenix.Component.__components__/0`, so props documentation can never drift.
@@ -17,6 +18,7 @@ defmodule PetalComponents.Showcase.Frame do
   import PetalComponents.Icon
 
   alias PetalComponents.Showcase.Example
+  alias PetalComponents.Showcase.Highlight
 
   # Shown on `inert` previews. These examples render a fixed state that cannot
   # answer a click, so the frame says so rather than letting a live-looking
@@ -43,17 +45,15 @@ defmodule PetalComponents.Showcase.Frame do
   attr :class, :any, default: nil
   slot :locked_overlay, doc: "shown over the blurred code when locked; defaults to a lock hint"
 
-  @doc "Renders one showcase example: preview panel + collapsible code panel."
+  @doc "Renders one showcase example: a live preview with its code block attached underneath."
   def showcase_example(assigns) do
     # The id must be deterministic (derived from the example, not a counter):
     # LiveView re-renders regenerate function-component assigns, and a changing
-    # id would defeat the phx-update="ignore" below, resetting the user's
-    # expanded/collapsed state on every patch.
+    # id would defeat the phx-update="ignore" state inside the code block,
+    # resetting the user's expanded/collapsed state on every patch.
     assigns =
       assigns
       |> assign(:frame_id, assigns.id || "pcsx-#{assigns.example.id}")
-      |> assign(:collapsible, collapsible?(assigns.example.code))
-      |> assign(:code_html, code_html(assigns.example))
       |> assign(:static_hint, @static_hint)
 
     ~H"""
@@ -75,100 +75,284 @@ defmodule PetalComponents.Showcase.Frame do
         <span class="sr-only">- {@static_hint}</span>
       </span>
 
-      <%!-- phx-update="ignore": the panel is static content and the checkbox
-      holds client-side UI state (expanded/collapsed). Without this, any
-      LiveView patch on the page would reset an opened panel - the original
-      marketing implementation carried the same guard. --%>
-      <div :if={@show_code} id={"#{@frame_id}-code"} phx-update="ignore" class="pc-showcase-code">
+      <.code_block
+        :if={@show_code}
+        id={"#{@frame_id}-code"}
+        code={@example.code}
+        highlighted={@example.highlighted}
+        attached
+        locked={@locked}
+      >
+        <:locked_overlay :if={@locked_overlay != []}>{render_slot(@locked_overlay)}</:locked_overlay>
+      </.code_block>
+    </div>
+    """
+  end
+
+  # The pure-CSS file tabs carry one :has() rule per index in default.css, so a
+  # file past this count could never be shown. Raise instead of hiding it.
+  @max_files 12
+
+  attr :id, :string,
+    required: true,
+    doc: "DOM id; the expand toggle, file tabs and copy buttons derive theirs from it"
+
+  attr :code, :string, default: nil, doc: "a single snippet (ignored when `files` is given)"
+
+  attr :language, :string,
+    default: nil,
+    doc:
+      "the snippet's language, for highlighting; defaults to the filename's extension, else heex"
+
+  attr :filename, :string,
+    default: nil,
+    doc: "names the snippet; a named snippet gets the file header, like a one-file `files`"
+
+  attr :highlighted, :any,
+    default: nil,
+    doc: "precompiled `{:safe, html}` for `code` (showcase examples highlight at compile time)"
+
+  attr :files, :list,
+    default: nil,
+    doc:
+      "several files, one tab each: maps with `:name` and `:code`, plus `:language` when the name's extension does not say it"
+
+  attr :collapsible, :any,
+    default: :auto,
+    values: [:auto, true, false],
+    doc: "fold long code behind View code; `:auto` folds anything past five lines"
+
+  attr :attached, :boolean,
+    default: false,
+    doc: "sit flush under a preview: top border only, square top corners"
+
+  attr :locked, :boolean,
+    default: false,
+    doc: "blur the code behind an overlay (the surface decides who may see it)"
+
+  attr :wrap, :boolean,
+    default: false,
+    doc: "wrap long lines instead of scrolling sideways - for prose such as an agent prompt"
+
+  attr :copy, :boolean, default: true, doc: "show the copy button"
+  attr :class, :any, default: nil
+  slot :locked_overlay, doc: "shown over the blurred code when locked; defaults to a lock hint"
+
+  @doc """
+  The one code surface: every code panel on the playground and petal.build
+  renders through it, so its look is tuned in one place (`.pc-code` in
+  `default.css`).
+
+  One component, a few shapes:
+
+    * a bare `code` snippet - no header, the copy button sits in the corner
+    * a named snippet (`filename`) - a quiet header naming the file
+    * `files` - the same header holding one tab per file
+    * `collapsible` - long code folds behind View code (automatic past five
+      lines); copy appears once it is open. Open code is capped at
+      `--pc-code-max-height` (24rem) and scrolls, so there is no fold-back
+    * `attached` - flush under a preview, as in `showcase_example/1`
+    * `locked` - blurred behind an overlay
+
+  The expand toggle and file tabs are pure CSS (a hidden checkbox and radios +
+  `:has()`), so the block needs no hook or Alpine and works in dead views. Code
+  is highlighted server-side via the optional `:lumis` dependency, falling back
+  to plain code in the same chrome.
+
+      <.code_block id="install" filename="mix.exs" language="elixir" code={@deps} />
+
+      <.code_block id="recipe" files={[
+        %{name: "lib/my_app_web/live/chat_live.ex", code: @live},
+        %{name: "assets/js/hooks/chat.js", code: @hook}
+      ]} />
+  """
+  def code_block(assigns) do
+    files = code_files(assigns)
+
+    if length(files) > @max_files do
+      raise ArgumentError,
+            "code_block #{inspect(assigns.id)} got #{length(files)} files; it shows at most #{@max_files}"
+    end
+
+    multi = length(files) > 1
+
+    assigns =
+      assign(assigns,
+        files: Enum.with_index(files),
+        multi: multi,
+        header: multi or Enum.any?(files, & &1.name),
+        folds: folds?(assigns.collapsible, files)
+      )
+
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "pc-code not-prose",
+        @attached && "pc-code--attached",
+        @multi && "pc-code--multi",
+        @folds && "pc-code--collapsible",
+        @locked && "pc-code--locked",
+        @wrap && "pc-code--wrap",
+        @class
+      ]}
+    >
+      <%!-- Client-side UI state lives in inputs under phx-update="ignore": a
+      LiveView patch must not reset an expanded panel or a chosen file, while
+      the code itself still patches (the playground heroes rewrite theirs as
+      the dials turn). --%>
+      <div :if={@folds && !@locked} id={"#{@id}-state"} phx-update="ignore" class="pc-code__state">
         <input
           type="checkbox"
-          id={"#{@frame_id}-toggle"}
-          class="pc-showcase-code__toggle sr-only"
-          checked={!@collapsible}
-          aria-label="Show the code for this example"
+          id={"#{@id}-expand"}
+          class="pc-code__expand sr-only"
+          aria-label="Show all of the code"
         />
+      </div>
 
-        <div class="pc-showcase-code__bar">
-          <span class="pc-showcase-code__lang">heex</span>
-          <button
-            :if={!@locked}
-            type="button"
-            id={"#{@frame_id}-copy"}
-            class="pc-showcase-code__copy"
-            phx-hook="PetalCopy"
-            data-copy-text={@example.code}
-            data-copied-label="Copied!"
-          >
-            <span data-pc-copy-label class="inline-flex items-center gap-1.5">
-              <.icon name="hero-clipboard" class="w-3.5 h-3.5" />
-              <span data-pc-copy-default>Copy</span>
-              <span data-pc-copy-done class="hidden">Copied!</span>
-            </span>
-          </button>
-        </div>
-
-        <div class="pc-showcase-code__scroll">
-          {Phoenix.HTML.raw(@code_html)}
-
-          <%= if @locked do %>
-            <div class="pc-showcase-code__lock">
-              <%= if @locked_overlay != [] do %>
-                {render_slot(@locked_overlay)}
-              <% else %>
-                <span class="pc-showcase-code__lock-hint">
-                  <.icon name="hero-lock-closed" class="w-4 h-4" /> Log in to view
-                </span>
-              <% end %>
-            </div>
-          <% else %>
-            <label :if={@collapsible} for={"#{@frame_id}-toggle"} class="pc-showcase-code__peek">
-              <span class="pc-showcase-code__peek-btn">
-                <.icon name="hero-code-bracket" class="w-4 h-4" /> View Code
-              </span>
-            </label>
+      <div :if={@header} class="pc-code__header">
+        <div
+          :if={@multi}
+          id={"#{@id}-tabs"}
+          phx-update="ignore"
+          class="pc-code__tabs"
+          role="radiogroup"
+          aria-label="Files"
+        >
+          <%= for {file, i} <- @files do %>
+            <input
+              type="radio"
+              name={"#{@id}-file"}
+              id={"#{@id}-file-#{i}"}
+              class="pc-code__radio sr-only"
+              data-i={i}
+              checked={i == 0}
+            />
+            <label for={"#{@id}-file-#{i}"} class="pc-code__tab">{file.name || "File #{i + 1}"}</label>
           <% end %>
         </div>
+        <div :if={!@multi} class="pc-code__tabs">
+          <span :for={{file, _i} <- @files} class="pc-code__label">{file.name}</span>
+        </div>
+        <div :if={@copy && !@locked} class="pc-code__actions">
+          <.code_copy
+            :for={{file, i} <- @files}
+            id={"#{@id}-copy-#{i}"}
+            index={i}
+            code={file.code}
+            label={file.name}
+          />
+        </div>
+      </div>
 
-        <label
-          :if={!@locked && @collapsible}
-          for={"#{@frame_id}-toggle"}
-          class="pc-showcase-code__hide"
-        >
-          <.icon name="hero-chevron-up" class="w-3.5 h-3.5" /> Hide Code
+      <div class="pc-code__body">
+        <div :for={{file, i} <- @files} class="pc-code__pane" data-i={i}>{file.html}</div>
+
+        <.code_copy
+          :for={{file, i} <- @files}
+          :if={!@header && @copy && !@locked}
+          id={"#{@id}-copy-#{i}"}
+          index={i}
+          code={file.code}
+          floating
+        />
+
+        <label :if={@folds && !@locked} for={"#{@id}-expand"} class="pc-code__peek">
+          <span class="pc-button pc-button--sm pc-code__peek-btn">View code</span>
         </label>
+
+        <div :if={@locked} class="pc-code__lock">
+          <%= if @locked_overlay != [] do %>
+            {render_slot(@locked_overlay)}
+          <% else %>
+            <span class="pc-button pc-button--sm pc-code__peek-btn">
+              <.icon name="hero-lock-closed-mini" class="size-4" /> Log in to view
+            </span>
+          <% end %>
+        </div>
       </div>
     </div>
     """
   end
 
-  # Short snippets fit inside the collapsed height, so there is nothing to reveal.
-  defp collapsible?(code) when is_binary(code) do
-    code |> String.trim() |> String.split("\n") |> length() > 5
+  attr :id, :string, required: true
+  attr :index, :integer, required: true
+  attr :code, :string, required: true
+  attr :label, :string, default: nil
+  attr :floating, :boolean, default: false
+
+  # Icon mode of the PetalCopy hook: it swaps the default/done spans for a beat.
+  defp code_copy(assigns) do
+    ~H"""
+    <button
+      type="button"
+      id={@id}
+      class={["pc-code__copy", @floating && "pc-code__copy--floating"]}
+      data-i={@index}
+      phx-hook="PetalCopy"
+      data-copy-text={@code}
+      title="Copy"
+      aria-label={if @label, do: "Copy #{@label}", else: "Copy code"}
+    >
+      <span data-pc-copy-default><.icon name="hero-square-2-stack" class="size-4" /></span>
+      <span data-pc-copy-done class="hidden"><.icon name="hero-check" class="size-4" /></span>
+    </button>
+    """
   end
 
-  # Precompiled highlight (Phase 1) wins; otherwise highlight now via mdex/lumis;
-  # otherwise a plain escaped <pre> that a client highlighter could still colour.
-  defp code_html(%Example{highlighted: {:safe, html}}), do: html
+  defp code_files(%{files: files} = assigns) when is_list(files) and files != [] do
+    Enum.map(files, fn file ->
+      file = Map.new(file)
+      name = Map.get(file, :name)
+      language = Map.get(file, :language) || language_for(name) || assigns.language || "heex"
 
-  defp code_html(%Example{code: code}) do
-    if Code.ensure_loaded?(MDEx) and Code.ensure_loaded?(PetalComponents.Chat) do
-      # Never let a highlighter misconfiguration (e.g. lumis present but
-      # unconfigured, which raises) take down a page - fall back to plain code.
-      try do
-        PetalComponents.Chat.to_html("```heex\n" <> code <> "\n```")
-      rescue
-        _ -> fallback_pre(code)
-      end
-    else
-      fallback_pre(code)
-    end
+      code_file(name, Map.get(file, :code) || "", language, Map.get(file, :highlighted))
+    end)
   end
 
-  defp fallback_pre(code) do
-    escaped = code |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
-
-    ~s(<pre class="pc-showcase-code__fallback"><code class="language-heex">#{escaped}</code></pre>)
+  defp code_files(assigns) do
+    language = assigns.language || language_for(assigns.filename) || "heex"
+    [code_file(assigns.filename, assigns.code || "", language, assigns.highlighted)]
   end
+
+  defp code_file(name, code, language, highlighted) do
+    code = String.trim_trailing(code)
+    %{name: name, code: code, html: highlighted || code_html(code, language)}
+  end
+
+  # Same chrome, no colours, when lumis is absent.
+  defp code_html(code, language) do
+    Highlight.to_html(code, language) || Highlight.plain_html(code, language)
+  end
+
+  @extensions %{
+    ".ex" => "elixir",
+    ".exs" => "elixir",
+    ".heex" => "heex",
+    ".eex" => "eex",
+    ".js" => "javascript",
+    ".mjs" => "javascript",
+    ".ts" => "typescript",
+    ".css" => "css",
+    ".html" => "html",
+    ".json" => "json",
+    ".md" => "markdown",
+    ".sh" => "bash",
+    ".yml" => "yaml",
+    ".yaml" => "yaml",
+    ".toml" => "toml",
+    ".sql" => "sql",
+    ".diff" => "diff"
+  }
+
+  defp language_for(nil), do: nil
+  defp language_for(name), do: Map.get(@extensions, name |> Path.extname() |> String.downcase())
+
+  # Short snippets fit inside the folded height, so there is nothing to reveal.
+  defp folds?(:auto, files), do: Enum.any?(files, &(line_count(&1.code) > 5))
+  defp folds?(collapsible, _files), do: collapsible == true
+
+  defp line_count(code), do: code |> String.trim() |> String.split("\n") |> length()
 
   attr :component, :atom,
     required: true,

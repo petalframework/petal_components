@@ -86,7 +86,7 @@ defmodule PetalComponents.ShowcaseTest do
       html = rendered_to_string(~H"<.showcase_example example={@example} />")
 
       assert html =~ "pc-showcase"
-      assert html =~ "pc-showcase-code"
+      assert html =~ "pc-code"
       assert html =~ "PetalCopy"
       # the live preview rendered the real component
       assert html =~ "pc-command"
@@ -97,7 +97,7 @@ defmodule PetalComponents.ShowcaseTest do
 
       html = rendered_to_string(~H"<.showcase_example example={@example} locked />")
 
-      assert html =~ "pc-showcase-code__lock"
+      assert html =~ "pc-code__lock"
       refute html =~ "PetalCopy"
     end
 
@@ -170,13 +170,188 @@ defmodule PetalComponents.ShowcaseTest do
       assert a =~ ~s(id="pcsx-inline_palette")
     end
 
-    test "the code panel is guarded from LiveView patches (phx-update=ignore + id)" do
+    test "the code block's toggle state is guarded from LiveView patches, the code is not" do
       assigns = %{example: hd(PetalComponents.Showcase.Command.examples())}
 
-      html = rendered_to_string(~H"<.showcase_example example={@example} />")
+      doc =
+        rendered_to_string(~H"<.showcase_example example={@example} />")
+        |> LazyHTML.from_fragment()
 
-      assert html =~ ~s(id="pcsx-inline_palette-code")
-      assert html =~ ~s(phx-update="ignore")
+      assert doc |> LazyHTML.query("#pcsx-inline_palette-code") |> Enum.count() == 1
+
+      assert doc
+             |> LazyHTML.query(
+               ~s(#pcsx-inline_palette-code-state[phx-update="ignore"] .pc-code__expand)
+             )
+             |> Enum.count() == 1
+
+      # the block itself must keep patching - the playground heroes rewrite
+      # their code live as the dials turn
+      assert doc
+             |> LazyHTML.query(~s(#pcsx-inline_palette-code[phx-update="ignore"]))
+             |> Enum.empty?()
+    end
+
+    test "precompiled example highlighting is classed tokens, never inline colours" do
+      # A theme baked into inline styles went missing between lumis versions
+      # and shipped petal.build colourless; classes keep the palette in CSS.
+      for mod <- Registry.all(), ex <- mod.examples(), match?({:safe, _}, ex.highlighted) do
+        {:safe, html} = ex.highlighted
+        html = IO.iodata_to_binary(html)
+
+        assert html =~ ~s(class="l-), "#{inspect(mod)} example #{ex.id} is not classed"
+        refute html =~ "style=", "#{inspect(mod)} example #{ex.id} carries inline styles"
+      end
+    end
+  end
+
+  describe "code_block/1" do
+    @long Enum.map_join(1..8, "\n", &"<.button>Line #{&1}</.button>")
+
+    defp doc(html), do: LazyHTML.from_fragment(html)
+    defp count(doc, selector), do: doc |> LazyHTML.query(selector) |> Enum.count()
+
+    test "a bare snippet has no header and copies from the corner" do
+      assigns = %{}
+      html = rendered_to_string(~H|<.code_block id="snip" code="<.button>Save</.button>" />|)
+      d = doc(html)
+
+      assert count(d, "#snip.pc-code") == 1
+      assert count(d, ".pc-code__header") == 0
+      assert count(d, ~s(#snip-copy-0.pc-code__copy--floating[phx-hook="PetalCopy"])) == 1
+      assert html =~ ~s(data-copy-text="&lt;.button&gt;Save&lt;/.button&gt;")
+      # five lines or fewer: nothing to fold
+      assert count(d, ".pc-code__expand") == 0
+    end
+
+    test "a named snippet gets a quiet label header, with copy in the header" do
+      assigns = %{}
+
+      d =
+        rendered_to_string(~H|<.code_block id="named" filename="app.css" code="@import 'x';" />|)
+        |> doc()
+
+      assert count(d, ".pc-code__header .pc-code__label") == 1
+      # a single file is a label, not a tab: tabs exist only when there is a choice
+      assert count(d, ".pc-code__tab") == 0
+      assert count(d, ".pc-code__header #named-copy-0") == 1
+      assert count(d, ".pc-code__copy--floating") == 0
+      # the language follows the extension
+      assert count(d, "code.language-css") == 1
+    end
+
+    test "files render one tab, one pane and one copy button per file" do
+      assigns = %{
+        files: [
+          %{name: "lib/app_web/live/chat_live.ex", code: "defmodule ChatLive do\nend"},
+          %{name: "assets/js/hooks/chat.js", code: "export default {}"}
+        ]
+      }
+
+      d = rendered_to_string(~H|<.code_block id="multi" files={@files} />|) |> doc()
+
+      assert count(d, "#multi.pc-code--multi") == 1
+      assert count(d, ~s(#multi-tabs[phx-update="ignore"] .pc-code__radio)) == 2
+      assert count(d, ~s(#multi-file-0[data-i="0"][checked])) == 1
+      assert count(d, ~s(label[for="multi-file-1"].pc-code__tab)) == 1
+      assert count(d, ~s(.pc-code__pane[data-i="1"])) == 1
+
+      assert count(d, ~s(.pc-code__copy[data-i="1"][aria-label="Copy assets/js/hooks/chat.js"])) ==
+               1
+
+      assert count(d, "code.language-elixir") == 1
+      assert count(d, "code.language-javascript") == 1
+    end
+
+    test "more files than the tabs can show raises instead of hiding some" do
+      assigns = %{files: Enum.map(1..13, &%{name: "f#{&1}.ex", code: "x"})}
+
+      assert_raise ArgumentError, ~r/at most 12/, fn ->
+        rendered_to_string(~H|<.code_block id="many" files={@files} />|)
+      end
+    end
+
+    test "long code folds by default, behind a guarded toggle" do
+      assigns = %{code: @long}
+      d = rendered_to_string(~H|<.code_block id="long" code={@code} />|) |> doc()
+
+      assert count(d, "#long.pc-code--collapsible") == 1
+      assert count(d, ~s(#long-state[phx-update="ignore"] #long-expand)) == 1
+      assert count(d, ~s(label.pc-code__peek[for="long-expand"] .pc-code__peek-btn)) == 1
+      # open code is capped and scrolls, so there is no fold-back control
+      assert count(d, ".pc-code__hide") == 0
+    end
+
+    test "collapsible overrides the five-line rule both ways" do
+      assigns = %{code: @long}
+
+      never = rendered_to_string(~H|<.code_block id="n" code={@code} collapsible={false} />|)
+      always = rendered_to_string(~H|<.code_block id="a" code="x" collapsible />|)
+
+      refute never =~ "pc-code--collapsible"
+      assert always =~ "pc-code--collapsible"
+    end
+
+    test "locked hides copy and the toggles and shows the overlay" do
+      assigns = %{code: @long}
+
+      d = rendered_to_string(~H|<.code_block id="lk" code={@code} locked />|) |> doc()
+
+      assert count(d, ".pc-code__lock") == 1
+      assert count(d, ".pc-code__copy") == 0
+      assert count(d, ".pc-code__expand") == 0
+      assert count(d, ".pc-code__peek") == 0
+
+      custom =
+        rendered_to_string(~H"""
+        <.code_block id="lk2" code="x" locked>
+          <:locked_overlay><a href="/sign-in">Sign in to read</a></:locked_overlay>
+        </.code_block>
+        """)
+
+      assert custom =~ "Sign in to read"
+      refute custom =~ "Log in to view"
+    end
+
+    test "attached sits flush under a preview" do
+      assigns = %{}
+      html = rendered_to_string(~H|<.code_block id="att" code="x" attached />|)
+      assert html =~ "pc-code--attached"
+    end
+
+    test "a file's own language beats its extension" do
+      assigns = %{
+        files: [
+          %{name: "notes.txt", code: "<.button>Hi</.button>", language: "heex"},
+          %{name: "b.css", code: "a {}"}
+        ]
+      }
+
+      d = rendered_to_string(~H|<.code_block id="lang" files={@files} />|) |> doc()
+
+      assert count(d, "code.language-heex") == 1
+      assert count(d, "code.language-css") == 1
+    end
+
+    test "without a highlighter the code renders plain and escaped in the same chrome" do
+      assert {:safe, html} =
+               PetalComponents.Showcase.Highlight.plain_html(~s(<.button a="1">), ~s(he ex"><))
+
+      assert html =~ ~s(<pre class="pc-code__plain"><code class="language-heex">)
+      assert html =~ "&lt;.button a=&quot;1&quot;&gt;"
+      assert PetalComponents.Showcase.Highlight.to_html(nil, "heex") == nil
+    end
+
+    test "highlighting emits classed tokens" do
+      assert {:safe, html} =
+               PetalComponents.Showcase.Highlight.to_html(
+                 ~s(<.button variant="soft">Hi</.button>),
+                 "heex"
+               )
+
+      assert html =~ ~s(class="l-function")
+      assert html =~ ~s(class="l-tag-attribute")
+      refute html =~ "style="
     end
   end
 
