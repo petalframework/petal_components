@@ -4288,8 +4288,22 @@ export const PetalToast = {
       if (!msg) return;
       const kind = key === "error" ? "danger" : key === "info" ? "info" : key;
       this.upsert({ kind, title: msg });
-      this.pushEvent("lv:clear-flash", { key });
+      this.clearFlash(key);
     });
+  },
+
+  // lv:clear-flash drops the key from a LiveView's flash so the next patch
+  // does not toast it again. A controller-rendered (dead) page has no
+  // LiveView to tell: its hooks run in LiveView's dead view, where the
+  // promise form of pushEvent rejects with "unable to push hook event.
+  // LiveView not connected", uncaught. A dead page never opens the socket,
+  // so skip the push there. Otherwise push with a reply callback, the form
+  // LiveView documents as ignoring push errors: that covers a group outside
+  // a LiveView's container on a live page (in the root layout, say), where
+  // the socket is up but this hook's view has no channel.
+  clearFlash(key) {
+    if (this.liveSocket?.isConnected?.() === false) return;
+    this.pushEvent("lv:clear-flash", { key }, () => {});
   },
 
   // ---------------------------------------------------------------- content
