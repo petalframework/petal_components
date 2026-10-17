@@ -1,4 +1,12 @@
-on: push
+# Push covers branches in this repo. pull_request covers forks, whose pushes
+# never reach this repo's workflows, so a contributor's PR used to get no CI.
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
