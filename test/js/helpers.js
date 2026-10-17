@@ -9,10 +9,13 @@ import { PetalToast } from "../../assets/js/petal_components.js";
 // LiveView does.
 const mounted = [];
 
-export function mountGroup(id) {
+// opts.flash becomes data-flash (the put_flash bridge); opts.setup(hook) runs
+// before mounted(), to swap in a liveSocket or a pushEvent stand-in.
+export function mountGroup(id, { flash, setup } = {}) {
   const el = document.createElement("div");
   el.id = id;
   el.className = "pc-toast-group";
+  if (flash) el.dataset.flash = JSON.stringify(flash);
   const stack = document.createElement("div");
   stack.id = `${id}-stack`;
   stack.className = "pc-toast-group__stack";
@@ -27,6 +30,7 @@ export function mountGroup(id) {
     hook.handlers[name] = cb;
   };
   hook.pushEvent = (name, payload) => hook.pushed.push([name, payload]);
+  if (setup) setup(hook);
   hook.mounted();
 
   hook.stackEl = stack;
