@@ -108,5 +108,11 @@ Applies to every line of HEEx and CSS you write, in every mode.
 
 Compare `petal_components_version` in the frontmatter above to the `petal_components` entry
 in the project's `mix.lock`. If they differ, say so once - "skill snapshot is v4.15.4,
-project is on vX.Y.Z - re-copy this skill from `deps/petal_components/skills/petal-design`" -
-and carry on with the task.
+project is on vX.Y.Z" - with the fix for that direction, and carry on with the task.
+
+- **Project is newer** - update the skill. Installed as a plugin:
+  `claude plugin marketplace update petal`, then `claude plugin update petal-design@petal`.
+  Copied by hand: re-copy `skills/petal-design` from github.com/petalframework/petal_components.
+  The skill is not in the Hex package, so `deps/` has no copy of it.
+- **Project is older** - the snapshot and the MCP describe newer releases and can list attrs
+  the project's version lacks. Resolve schemas from rung 3 of the ladder, the `deps/` source.
