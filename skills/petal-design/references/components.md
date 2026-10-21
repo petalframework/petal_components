@@ -12,7 +12,7 @@ Function names have NO pc_ prefix; pc- is the CSS class prefix only.
 - `<.accordion>` - 9 attrs, 1 slots · required slots: item
 
 ## Alert
-- `<.alert>` - 10 attrs, 2 slots
+- `<.alert>` - 11 attrs, 2 slots
 
 ## AlertDialog
 - `<.alert_dialog>` - 10 attrs, 3 slots · required: id, title
