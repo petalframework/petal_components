@@ -1,0 +1,49 @@
+name: Claude review
+
+# One review when a PR opens or leaves draft. Not on every push.
+# Re-run it by commenting "@claude review" on the PR (claude.yml handles that).
+# Runs on the Claude subscription through CLAUDE_CODE_OAUTH_TOKEN. Its rules live in REVIEW.md.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip drafts, bots (Dependabot) and PRs from forks, which can't read the secret.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request. Read REVIEW.md at the repo root first and follow it exactly:
+            it decides scope and length. Read CLAUDE.md for the repo's conventions.
+            Use `gh pr diff` and `gh pr view` to see the change.
+            Put each finding tied to a line in an inline comment with
+            mcp__github_inline_comment__create_inline_comment, and post one short summary with `gh pr comment`.
+          claude_args: |
+            --model sonnet
+            --max-turns 30
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"

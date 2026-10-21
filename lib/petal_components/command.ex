@@ -216,8 +216,16 @@ defmodule PetalComponents.Command do
   attr :class, :any, default: nil
   attr :rest, :global
 
-  @doc "The search field. Keyboard focus lives here; the list highlight is virtual."
+  @doc """
+  The search field. Keyboard focus lives here; the list highlight is virtual.
+
+  A placeholder is not an accessible name, so the input takes the placeholder
+  as its `aria-label` unless you name it yourself: an `aria-label` or
+  `aria-labelledby` passed through the global attrs wins.
+  """
   def command_input(assigns) do
+    assigns = update(assigns, :rest, &default_aria_label(&1, assigns.placeholder))
+
     ~H"""
     <div class="pc-command__input-wrap">
       <.icon name="hero-magnifying-glass" class="pc-command__input-icon" />
@@ -236,6 +244,14 @@ defmodule PetalComponents.Command do
       />
     </div>
     """
+  end
+
+  # HEEx renders a static attribute and the same key in @rest twice, and the
+  # browser keeps the first - so the default goes into rest, never beside it.
+  defp default_aria_label(rest, label) do
+    if Map.has_key?(rest, :"aria-label") or Map.has_key?(rest, :"aria-labelledby"),
+      do: rest,
+      else: Map.put(rest, :"aria-label", label)
   end
 
   attr :label, :string, default: "Commands", doc: "accessible name for the listbox"

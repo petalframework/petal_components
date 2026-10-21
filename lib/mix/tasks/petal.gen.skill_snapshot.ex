@@ -11,8 +11,9 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
       inventory derived from those schemas
 
   It also stamps `petal_components_version:` in the skill's SKILL.md
-  frontmatter, so one run refreshes every version marker the snapshot tests
-  pin (`test/petal/skill_snapshot_test.exs`).
+  frontmatter and the plugin version in `.claude-plugin/plugin.json` (the key
+  `claude plugin update` compares), so one run refreshes every version marker
+  the snapshot tests pin (`test/petal/skill_snapshot_test.exs`).
 
   Run from this repo at release time, right after bumping `@version` in
   mix.exs and alongside the MCP schema sync:
@@ -59,6 +60,7 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
     write_schemas(components, version)
     write_inventory(components, version)
     stamp_skill_md(version)
+    stamp_plugin_manifest(version)
   end
 
   # ---------------------------------------------------------------------------
@@ -366,5 +368,26 @@ defmodule Mix.Tasks.Petal.Gen.SkillSnapshot do
 
     File.write!(path, stamped)
     Mix.shell().info("Stamped petal_components_version: #{version} in #{path}")
+  end
+
+  # ---------------------------------------------------------------------------
+  # .claude-plugin/plugin.json
+  # ---------------------------------------------------------------------------
+
+  # Claude Code caches a plugin install under its version and `claude plugin
+  # update` only fetches when that version moves - left alone, plugin users
+  # keep the snapshot they first installed. Ordered decode + pretty encode
+  # round-trips the hand-written file byte for byte, so only the value changes.
+  defp stamp_plugin_manifest(version) do
+    path = ".claude-plugin/plugin.json"
+
+    manifest =
+      path
+      |> File.read!()
+      |> Jason.decode!(objects: :ordered_objects)
+      |> put_in(["version"], version)
+
+    File.write!(path, Jason.encode!(manifest, pretty: true) <> "\n")
+    Mix.shell().info("Stamped version #{version} in #{path}")
   end
 end
