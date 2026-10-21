@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://petal.build/components">Live docs</a> ·
   <a href="https://mcp.petal.build">MCP server</a> ·
-  <a href="./rules.md">Rules for AI tools</a> ·
+  <a href="./usage-rules.md">Rules for AI tools</a> ·
   <a href="https://petal.build/petal-components/vs-shadcn">vs shadcn</a>
 </p>
 
@@ -98,7 +98,7 @@ Run `mix deps.get`, then `mix compile` to verify.
 
 ## For AI coding tools
 
-If you are a Cursor, Claude Code, Codex, Continue, Windsurf, or Cline user (or you maintain one of those tools), drop [`rules.md`](./rules.md) into your rules system. It is the canonical instruction set:
+If you are a Cursor, Claude Code, Codex, Continue, Windsurf, or Cline user (or you maintain one of those tools), drop [`usage-rules.md`](./usage-rules.md) into your rules system. It is the canonical instruction set:
 
 - Always reach for an existing petal_components tag before hand-rolling HEEx
 - The component naming map (HEEx tag form, module path, CSS class prefix)
@@ -107,6 +107,25 @@ If you are a Cursor, Claude Code, Codex, Continue, Windsurf, or Cline user (or y
 - When in doubt: call `list_components`, then `get_component`
 
 You can also fetch it at https://petal.build/petal-components/rules.md.
+
+The file ships in the Hex package under the name the [usage_rules](https://hexdocs.pm/usage_rules) package looks for, so you can have it synced into your `CLAUDE.md` (or `AGENTS.md`) instead of copying it by hand. Add `{:usage_rules, "~> 1.1", only: [:dev]}` to your deps, then in `mix.exs`:
+
+```elixir
+def project do
+  [
+    # ...
+    usage_rules: [file: "CLAUDE.md", usage_rules: [:petal_components]]
+  ]
+end
+```
+
+and run:
+
+```sh
+mix usage_rules.sync
+```
+
+Re-run it after upgrading petal_components and the block in your file updates in place.
 
 ## Component catalogue
 

@@ -1,6 +1,6 @@
 # patterns.md - composition grammar
 
-How petal_components compose into pages. API layer lives in rules.md (Hex package root) - read it for install and hard rules. This file is the wiring grammar. Look up every attr with the MCP ladder before writing it - never from memory.
+How petal_components compose into pages. API layer lives in usage-rules.md (Hex package root) - read it for install and hard rules. This file is the wiring grammar. Look up every attr with the MCP ladder before writing it - never from memory.
 
 ## One State, many surfaces
 
