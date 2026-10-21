@@ -127,6 +127,8 @@ mix usage_rules.sync
 
 Re-run it after upgrading petal_components and the block in your file updates in place.
 
+The design rules those tools follow (the `petal-design` skill in `skills/petal-design/`) are also written up for people: the [design system guide](guides/design.md) covers the token layer, the gray dial, dark mode, radius and type, the composition patterns, and a review checklist you can apply by hand.
+
 ## Component catalogue
 
 200+ components covering the patterns a real Phoenix app needs. The MCP server is always the canonical list - call `list_components` for the live inventory. Highlights:

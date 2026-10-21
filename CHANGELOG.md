@@ -2,6 +2,16 @@
 
 ### Unreleased
 
+#### Added
+
+- **The design system has a human-readable guide.** `guides/design.md`
+  (hexdocs, "Design" group) writes up the doctrine the `petal-design`
+  skill follows: the seven ramps and the gray dial, `--pc-radius` and the
+  type knobs, the dark ghost material, the text tiers, variants, spacing
+  and motion, theming, the composition patterns, and a review checklist
+  to apply by hand. Same values as the skill references; a test keeps
+  the two from drifting.
+
 #### Changed
 
 - **The AI rules file is now `usage-rules.md`.** Same content as the old
