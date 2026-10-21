@@ -10,6 +10,22 @@
   or `AGENTS.md`. `rules.md` stays in the package as a pointer so old
   links keep working, and hexdocs `rules.html` redirects.
 
+#### Fixed
+
+- **Icon-only controls that had no accessible name now have one.** A
+  screen reader announced the dismissible `alert`'s close button as just
+  "button", and the `command_input` search field and the `data_table`
+  quick-search had only a placeholder, which is not a name.
+  - `alert`'s dismiss button (both the `on_dismiss` and the
+    `close_button_properties` paths) carries screen-reader text from a
+    new `dismiss_label` attr, default "Dismiss". It is text, not an
+    `aria-label`, so an `aria-label` you already pass in
+    `close_button_properties` still wins.
+  - `command_input` takes its placeholder as its `aria-label` unless you
+    pass an `aria-label` or `aria-labelledby` yourself.
+  - The `data_table` quick-search takes `search_placeholder` as its
+    `aria-label` in both wiring modes.
+
 ### 4.17.1 - 2026-10-10
 
 #### Fixed
@@ -19,14 +35,15 @@
   picking Lisbon then Sydney posted `["syd", "lis"]`, the server
   re-rendered the chips in that order, and every pick appeared to land
   at the front of the row (#713). Tom Select, which Petal Pro's combobox
-  was built on before this component replaced it, kept pick order by
-  moving each chosen `<option>` to the end of the select; the hook now
-  does the same, with the chip row as the order of record and, for the
-  trigger variant (no chips), a `data-order` stamp on the root that leads
-  after every patch. The hook re-tails before every pick and watches the
-  select, so a patch that rewrites the options behind its back cannot
-  undo it. The listbox never moves. Want option order? Sort on the
-  server: pick order is the one you cannot get back.
+  still uses today (Pro moves to this component in its next release),
+  kept pick order by moving each chosen `<option>` to the end of the
+  select; the hook now does the same, with the chip row as the order of
+  record and, for the trigger variant (no chips), a `data-order` stamp
+  on the root that leads after every patch. The hook re-tails before
+  every pick and watches the select, so a patch that rewrites the
+  options behind its back cannot undo it. The listbox never moves. Want
+  option order? Sort on the server: pick order is the one you cannot get
+  back.
 
 ### 4.17.0 - 2026-10-02
 

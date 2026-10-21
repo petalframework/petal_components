@@ -9,6 +9,16 @@ defmodule PetalComponents.AlertTest do
   use ComponentCase
   import PetalComponents.Alert
 
+  # The icon-only button's accessible name: its aria-label, else its text.
+  defp dismiss_button_name(html) do
+    button = html |> parse_html() |> LazyHTML.query(".pc-alert__dismiss-button")
+
+    case LazyHTML.attribute(button, "aria-label") do
+      [label] when is_binary(label) -> label
+      _ -> button |> LazyHTML.text() |> String.trim()
+    end
+  end
+
   describe "alert/1 - basic rendering" do
     setup do
       %{assigns: default_assigns()}
@@ -252,6 +262,51 @@ defmodule PetalComponents.AlertTest do
         """)
 
       assert_attribute(html, "aria-label", "Close alert")
+    end
+
+    test "the on_dismiss button is named Dismiss by default", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.alert label="Alert" on_dismiss={Phoenix.LiveView.JS.dispatch("x:y")} />
+        """)
+
+      assert dismiss_button_name(html) == "Dismiss"
+    end
+
+    test "the close_button_properties button is named Dismiss by default", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.alert label="Alert" close_button_properties={["phx-click": "dismiss"]} />
+        """)
+
+      assert dismiss_button_name(html) == "Dismiss"
+    end
+
+    test "dismiss_label renames the dismiss button", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.alert
+          label="Alert"
+          dismiss_label="Fermer"
+          on_dismiss={Phoenix.LiveView.JS.dispatch("x:y")}
+        />
+        """)
+
+      assert dismiss_button_name(html) == "Fermer"
+    end
+
+    test "an aria-label in close_button_properties is the only aria-label", %{assigns: assigns} do
+      html =
+        rendered_to_string(~H"""
+        <.alert
+          label="Alert"
+          close_button_properties={["phx-click": "dismiss", "aria-label": "Close alert"]}
+        />
+        """)
+
+      button = html |> parse_html() |> LazyHTML.query(".pc-alert__dismiss-button")
+      assert LazyHTML.attribute(button, "aria-label") == ["Close alert"]
+      assert count_substring(html, "aria-label=") == 1
     end
 
     test "icon alerts maintain semantic meaning with aria-label", %{assigns: assigns} do
