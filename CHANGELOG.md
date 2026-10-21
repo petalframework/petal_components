@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 4.18.0 - 2026-10-21
 
 #### Added
 
@@ -10,7 +10,18 @@
   type knobs, the dark ghost material, the text tiers, variants, spacing
   and motion, theming, the composition patterns, and a review checklist
   to apply by hand. Same values as the skill references; a test keeps
-  the two from drifting.
+  the two from drifting (#717).
+- **`alert` takes a `dismiss_label`, so its close button has an
+  accessible name.** A screen reader announced the dismissible alert's
+  close button as just "button". The new attr, default "Dismiss",
+  renders as screen-reader text in both dismiss paths (`on_dismiss` and
+  `close_button_properties`). It is text rather than an `aria-label`,
+  so an `aria-label` you already pass in `close_button_properties`
+  still wins. The same audit found two search fields with only a
+  placeholder, which is not a name: `command_input` now takes its
+  placeholder as its `aria-label` unless you pass `aria-label` or
+  `aria-labelledby`, and the `data_table` quick-search takes
+  `search_placeholder` as its `aria-label` in both wiring modes (#718).
 
 #### Changed
 
@@ -18,23 +29,36 @@
   `rules.md`, under the name the `usage_rules` Hex package reads from a
   dependency, so `mix usage_rules.sync` can pull it into a `CLAUDE.md`
   or `AGENTS.md`. `rules.md` stays in the package as a pointer so old
-  links keep working, and hexdocs `rules.html` redirects.
+  links keep working, and hexdocs `rules.html` redirects (#716).
 
 #### Fixed
 
-- **Icon-only controls that had no accessible name now have one.** A
-  screen reader announced the dismissible `alert`'s close button as just
-  "button", and the `command_input` search field and the `data_table`
-  quick-search had only a placeholder, which is not a name.
-  - `alert`'s dismiss button (both the `on_dismiss` and the
-    `close_button_properties` paths) carries screen-reader text from a
-    new `dismiss_label` attr, default "Dismiss". It is text, not an
-    `aria-label`, so an `aria-label` you already pass in
-    `close_button_properties` still wins.
-  - `command_input` takes its placeholder as its `aria-label` unless you
-    pass an `aria-label` or `aria-labelledby` yourself.
-  - The `data_table` quick-search takes `search_placeholder` as its
-    `aria-label` in both wiring modes.
+- **A flash on a controller-rendered page no longer logs an uncaught
+  rejection.** `toast_group`'s hook pushed `lv:clear-flash` for every
+  flash it showed, so the next LiveView patch would not toast it again.
+  A dead page has no LiveView to tell, so the push rejected and every
+  controller-rendered page that showed a flash logged
+  `Uncaught (in promise) Error: unable to push hook event. LiveView not connected`.
+  The toast itself always rendered; the console error had been there
+  since the put_flash bridge shipped in 4.8.0. The hook now skips the
+  push when the socket is not connected, and otherwise pushes with a
+  reply callback, which LiveView documents as ignoring push errors.
+  That covers a group in the root layout of a live page, where the
+  socket is up but the hook has no channel. A connected LiveView still
+  gets the push, so its flash is still cleared (#722).
+- **The petal-design plugin installs.**
+  `claude plugin marketplace add petalframework/petal_components`
+  failed because `marketplace.json` sat at the repo root and Claude Code
+  only reads `.claude-plugin/marketplace.json`, so
+  `claude plugin install petal-design` found no plugin either. The
+  manifest has moved. `plugin.json` now carries the package version,
+  stamped each release by `mix petal.gen.skill_snapshot`: Claude Code
+  caches an install under that version and `claude plugin update` only
+  fetches when it moves, so a plugin pinned at 0.1.0 would never have
+  updated. The skill's staleness note pointed at
+  `deps/petal_components/skills/petal-design`, which the Hex package
+  does not ship; it now points at the repo on GitHub, where the plugin
+  installs from (#709).
 
 ### 4.17.1 - 2026-10-10
 
