@@ -4,6 +4,13 @@
 
 #### Added
 
+- **The design system has a human-readable guide.** `guides/design.md`
+  (hexdocs, "Design" group) writes up the doctrine the `petal-design`
+  skill follows: the seven ramps and the gray dial, `--pc-radius` and the
+  type knobs, the dark ghost material, the text tiers, variants, spacing
+  and motion, theming, the composition patterns, and a review checklist
+  to apply by hand. Same values as the skill references; a test keeps
+  the two from drifting (#717).
 - **`alert` takes a `dismiss_label`, so its close button has an
   accessible name.** A screen reader announced the dismissible alert's
   close button as just "button". The new attr, default "Dismiss",
@@ -16,23 +23,13 @@
   `aria-labelledby`, and the `data_table` quick-search takes
   `search_placeholder` as its `aria-label` in both wiring modes (#718).
 
-#### Added
-
-- **The design system has a human-readable guide.** `guides/design.md`
-  (hexdocs, "Design" group) writes up the doctrine the `petal-design`
-  skill follows: the seven ramps and the gray dial, `--pc-radius` and the
-  type knobs, the dark ghost material, the text tiers, variants, spacing
-  and motion, theming, the composition patterns, and a review checklist
-  to apply by hand. Same values as the skill references; a test keeps
-  the two from drifting.
-
 #### Changed
 
 - **The AI rules file is now `usage-rules.md`.** Same content as the old
   `rules.md`, under the name the `usage_rules` Hex package reads from a
   dependency, so `mix usage_rules.sync` can pull it into a `CLAUDE.md`
   or `AGENTS.md`. `rules.md` stays in the package as a pointer so old
-  links keep working, and hexdocs `rules.html` redirects.
+  links keep working, and hexdocs `rules.html` redirects (#716).
 
 #### Fixed
 
