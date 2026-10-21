@@ -4,7 +4,7 @@ Three arms, four fixed tasks, four measurable deltas. This is both the proof (sk
 
 ## Setup
 
-One fresh Phoenix app with petal_components installed per rules.md, at the same commit for all arms. Three clean sessions, output to `out/bare/`, `out/mcp/`, `out/skill/`. Same model, same task prompts verbatim, one attempt, no retries, no steering. If an arm asks a question, reply exactly: `your call`.
+One fresh Phoenix app with petal_components installed per usage-rules.md, at the same commit for all arms. Three clean sessions, output to `out/bare/`, `out/mcp/`, `out/skill/`. Same model, same task prompts verbatim, one attempt, no retries, no steering. If an arm asks a question, reply exactly: `your call`.
 
 ## Arms
 
