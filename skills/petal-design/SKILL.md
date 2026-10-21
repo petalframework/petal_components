@@ -6,6 +6,8 @@ petal_components_version: 4.18.0
 
 # petal-design
 
+Same doctrine, two copies: this skill is the one agents load; the human version is `guides/design.md` in the package (hexdocs "Design"). Change one, change the other.
+
 Petal ships the design system: `@theme` semantic ramps, one radius knob (`--pc-radius`),
 a dark-mode material, and 213 components. There is no init step, no interview, and no
 DESIGN.md to write - this file plus its references ARE the doctrine. Your job is to compose
@@ -29,7 +31,7 @@ Route by request. Propose and confirm - never auto-run work the user did not ask
 
 When picking which component to reach for, scan `references/components.md` - the generated
 inventory, one line per component. A run loads this file plus at most two reference files.
-For install questions, follow `deps/petal_components/rules.md` - never restate its steps here.
+For install questions, follow `deps/petal_components/usage-rules.md` - never restate its steps here.
 
 ## Resolving component schemas - the ladder
 
