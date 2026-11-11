@@ -68,8 +68,10 @@ In `assets/css/app.css`:
 
 ```css
 @import "tailwindcss";
-@source "../deps/petal_components/**/*.*ex";
-@import "../deps/petal_components/assets/default.css";
+@source "../../deps/petal_components/**/*.*ex";
+@source not "../../deps/petal_components/lib/petal_components/showcase";
+@import "../../deps/petal_components/assets/default.css";
+@plugin "@tailwindcss/forms";
 ```
 
 In your `MyAppWeb` module:

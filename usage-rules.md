@@ -26,18 +26,21 @@ mix deps.get
 
 ### 3. Configure Tailwind CSS
 
-Open `assets/css/app.css`. Find the `@import "tailwindcss";` line and add the two lines below it:
+Open `assets/css/app.css`. Find the `@import "tailwindcss"` line (Phoenix 1.8 writes it as `@import "tailwindcss" source(none);`) and add these lines below it:
 
 ```css
 @import "tailwindcss";
-@source "../deps/petal_components/**/*.*ex";
-@source not "../deps/petal_components/lib/petal_components/showcase";
-@import "../deps/petal_components/assets/default.css";
+@source "../../deps/petal_components/**/*.*ex";
+@source not "../../deps/petal_components/lib/petal_components/showcase";
+@import "../../deps/petal_components/assets/default.css";
+@plugin "@tailwindcss/forms";
 ```
 
 The `@source` line tells Tailwind to scan petal_components source for class usage. The `@source not` line skips the `showcase/` example modules - those power petal.build's own docs, not your app, so scanning them would only add unused utility classes to your CSS. (`@source not` needs Tailwind v4.1+. On v4.0 it's harmless to drop the line; you just get a little extra CSS.) The `@import` line brings in the default component styles (the `pc-*` CSS prefix).
 
-If `@import "tailwindcss";` is missing, the project is on Tailwind v3 and petal_components 4.x will not work. Tell the user to upgrade to Tailwind v4, or pin to `petal_components ~> 1.0` for Tailwind v3 support.
+The `@plugin` line loads `@tailwindcss/forms`. The form components are styled on top of it: the plugin sets the border width and padding on text inputs, selects and textareas, and resets the native look of checkboxes and selects. Without it, Tailwind's preflight leaves inputs with no border and no padding. Skip the line if the app already loads the plugin. The `tailwind` Hex package that Phoenix uses runs the standalone Tailwind CLI, which already includes the plugin, so there is nothing to install. If the app builds Tailwind through Node instead, run `npm install -D @tailwindcss/forms` in `assets/`.
+
+If there is no `@import "tailwindcss"` line, the project is on Tailwind v3 and petal_components 4.x will not work. Tell the user to upgrade to Tailwind v4, or pin to `petal_components ~> 1.0` for Tailwind v3 support.
 
 ### 4. Import the components in your web module
 
@@ -108,8 +111,8 @@ The roles: `primary` is the base action colour and tints every variant of every 
 One deliberate choice to know about: the `gray` role ships Tailwind's **zinc** values under the gray name, so one coherent neutral runs through every component. Because `--color-gray-*` is a shared namespace, this also sets what the app's own `text-gray-*` / `bg-gray-*` utilities render as. To use a different neutral, remap it like any other role (`--color-gray-50: var(--color-slate-50);` and so on per stop - slate, stone, neutral and zinc all remain available as variables). The one palette a `var()` cannot reach is Tailwind's original gray itself (its values only ever lived under the name petal_components now occupies), so restoring it is a one-line import after the default styles:
 
 ```css
-@import "../deps/petal_components/assets/default.css";
-@import "../deps/petal_components/assets/tailwind-gray.css";
+@import "../../deps/petal_components/assets/default.css";
+@import "../../deps/petal_components/assets/tailwind-gray.css";
 ```
 
 ### 8. Type (optional)
