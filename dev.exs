@@ -3304,9 +3304,10 @@ defmodule Dev.PlaygroundLive do
         name: "app.css",
         code: """
         /* assets/css/app.css - under @import "tailwindcss"; */
-        @source "../deps/petal_components/**/*.*ex";
-        @source not "../deps/petal_components/lib/petal_components/showcase";
-        @import "../deps/petal_components/assets/default.css";\
+        @source "../../deps/petal_components/**/*.*ex";
+        @source not "../../deps/petal_components/lib/petal_components/showcase";
+        @import "../../deps/petal_components/assets/default.css";
+        @plugin "@tailwindcss/forms";\
         """
       },
       %{
@@ -3389,7 +3390,7 @@ defmodule Dev.PlaygroundLive do
   defp gray_code("gray") do
     """
     /* after the default.css import */
-    @import "../deps/petal_components/assets/tailwind-gray.css";\
+    @import "../../deps/petal_components/assets/tailwind-gray.css";\
     """
   end
 

@@ -4,8 +4,8 @@
  * neutral for the whole component set). If you want Tailwind's original
  * gray back, import this file after default.css:
  *
- *   @import "../deps/petal_components/assets/default.css";
- *   @import "../deps/petal_components/assets/tailwind-gray.css";
+ *   @import "../../deps/petal_components/assets/default.css";
+ *   @import "../../deps/petal_components/assets/tailwind-gray.css";
  *
  * Literals are required here: the stock values only ever lived under
  * --color-gray-*, so once that name holds zinc there is no variable left

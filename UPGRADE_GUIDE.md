@@ -217,7 +217,7 @@ Then create the `colors.css` file:
 }
 ```
 
-To add the "typography" and "form" plug-ins:
+To add the "typography" and "form" plug-ins (petal_components' form inputs need `@tailwindcss/forms` for their border and padding):
 
 ```css
 @plugin "@tailwindcss/typography";

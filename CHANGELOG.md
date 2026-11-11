@@ -1,6 +1,6 @@
 # Changelog
 
-### 4.18.0 - 2026-10-21
+### 4.18.0 - 2026-11-11
 
 #### Added
 
@@ -59,6 +59,20 @@
   `deps/petal_components/skills/petal-design`, which the Hex package
   does not ship; it now points at the repo on GitHub, where the plugin
   installs from (#709).
+- **The install steps work on a fresh Phoenix app.** Step 3 of the
+  install (in `usage-rules.md`, the README and the playground's Get code
+  panel) pointed its CSS paths at `../deps/petal_components/...`, but
+  `app.css` lives in `assets/css/`, so Tailwind stopped with
+  `Can't resolve '../deps/petal_components/assets/default.css'`. The
+  paths now start `../../deps`, as Petal Pro and the boilerplate always
+  had. The step also never loaded `@tailwindcss/forms`, which the form
+  components style on top of: `.pc-text-input` sets no border width or
+  padding of its own, so on a fresh `phx.new` app inputs collapsed to a
+  borderless, unpadded box. The step now adds
+  `@plugin "@tailwindcss/forms";` and says why. The standalone Tailwind
+  CLI Phoenix uses already includes the plugin, so there is nothing to
+  install. Thanks to wesleimp for the report (petal-components-mcp #5)
+  (#724).
 
 ### 4.17.1 - 2026-10-10
 
