@@ -27,22 +27,6 @@ defmodule PetalComponents.DatePicker do
         <.date_picker field={@form[:due_on]} label="Due date" min={Date.utc_today()} />
       </.form>
 
-  ## Label
-
-  `label` has three states:
-
-    * `label="Due date"` - renders that text.
-    * not set (`nil`) - with a `field`, the label is derived from the field name
-      the way `<.field>` does it (`:due_on` becomes "Due on"); without a `field`,
-      no label renders.
-    * `label=""` - no label at all, even on a form field. Use it when the label
-      lives elsewhere, such as a table header or a surrounding `<fieldset>`.
-
-        <.date_picker field={@form[:due_on]} />                  <%!-- "Due on" --%>
-        <.date_picker field={@form[:due_on]} label="Due date" /> <%!-- "Due date" --%>
-        <.date_picker field={@form[:due_on]} label="" />         <%!-- no label --%>
-        <.date_picker name="due_on" />                           <%!-- no label --%>
-
   Range mode posts `from` and `to` sub-fields, so `params["stay"]` comes back as
   `%{"from" => "2026-03-10", "to" => "2026-03-17"}`:
 
@@ -53,6 +37,25 @@ defmodule PetalComponents.DatePicker do
         min={Date.utc_today()}
         value={{~D[2026-03-10], ~D[2026-03-17]}}
       />
+
+  ## Label
+
+  `label` has three states:
+
+    * `label="Due date"` - renders that text.
+    * not set (`nil`) - with a `field`, the label is derived from the field name
+      the way `<.field>` does it (`:due_on` becomes "Due on"); without a `field`,
+      no label renders.
+    * `label=""` - no label at all, even on a form field. The input still needs a
+      name, so render your own `<label>` pointed at it: the input's id is
+      `"<id>-input"` (`"booking_due_on-input"` for `@form[:due_on]`).
+
+  For example:
+
+      <.date_picker field={@form[:due_on]} />                  <%!-- "Due on" --%>
+      <.date_picker field={@form[:due_on]} label="Due date" /> <%!-- "Due date" --%>
+      <.date_picker field={@form[:due_on]} label="" />         <%!-- no label --%>
+      <.date_picker name="due_on" />                           <%!-- no label --%>
 
   ## What gets posted
 
@@ -136,7 +139,7 @@ defmodule PetalComponents.DatePicker do
   attr :label, :string,
     default: nil,
     doc:
-      ~s|the field label. With a `field`, leaving it unset derives one from the field name (`:due_on` becomes "Due on"); without one, no label renders. Pass `label=""` to suppress the label even on a form field|
+      ~s|the field label. With a `field`, leaving it unset derives one from the field name (`:due_on` becomes "Due on"); without one, no label renders. Pass `label=""` to drop it, then point a `<label>` of your own at the input (`"<id>-input"`) so it keeps an accessible name|
 
   attr :errors, :list, default: [], doc: "error messages rendered under the input"
   attr :help_text, :string, default: nil, doc: "context shown under the input"

@@ -209,6 +209,7 @@ defmodule PetalComponents.DatePickerTest do
         """)
 
       assert derived =~ "Due on"
+      assert attr_of(derived, "label", "for") == "booking_due_on-input"
       assert explicit =~ "Due date"
       refute explicit =~ "Due on"
       refute suppressed =~ "<label"
