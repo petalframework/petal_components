@@ -38,6 +38,25 @@ defmodule PetalComponents.DatePicker do
         value={{~D[2026-03-10], ~D[2026-03-17]}}
       />
 
+  ## Label
+
+  `label` has three states:
+
+    * `label="Due date"` - renders that text.
+    * not set (`nil`) - with a `field`, the label is derived from the field name
+      the way `<.field>` does it (`:due_on` becomes "Due on"); without a `field`,
+      no label renders.
+    * `label=""` - no label at all, even on a form field. The input still needs a
+      name, so render your own `<label>` pointed at it: the input's id is
+      `"<id>-input"` (`"booking_due_on-input"` for `@form[:due_on]`).
+
+  For example:
+
+      <.date_picker field={@form[:due_on]} />                  <%!-- "Due on" --%>
+      <.date_picker field={@form[:due_on]} label="Due date" /> <%!-- "Due date" --%>
+      <.date_picker field={@form[:due_on]} label="" />         <%!-- no label --%>
+      <.date_picker name="due_on" />                           <%!-- no label --%>
+
   ## What gets posted
 
   The visible input is display-only: it is not named, so it never posts. A hidden
@@ -117,7 +136,11 @@ defmodule PetalComponents.DatePicker do
     default: nil,
     doc: "a Date, an ISO string, or a {from, to} pair in range mode"
 
-  attr :label, :string, default: nil, doc: "the field label; omitted when nil"
+  attr :label, :string,
+    default: nil,
+    doc:
+      ~s|the field label. With a `field`, leaving it unset derives one from the field name (`:due_on` becomes "Due on"); without one, no label renders. Pass `label=""` to drop it, then point a `<label>` of your own at the input (`"<id>-input"`) so it keeps an accessible name|
+
   attr :errors, :list, default: [], doc: "error messages rendered under the input"
   attr :help_text, :string, default: nil, doc: "context shown under the input"
 
@@ -374,10 +397,18 @@ defmodule PetalComponents.DatePicker do
     |> assign(:errors, assigns.errors ++ errors)
     |> assign(:name, assigns.name || field.name)
     |> assign(:value, assigns.value || field.value)
-    |> assign(:label, assigns.label || PhoenixHTMLHelpers.Form.humanize(field.field))
+    |> assign(:label, get_label(assigns.label, field.field))
   end
 
-  defp from_field(assigns), do: assigns
+  defp from_field(assigns), do: assign(assigns, :label, get_label(assigns.label, nil))
+
+  # nil means "not given": a form field derives a humanized label from its name,
+  # anything else renders no label. An explicit "" always means "no label".
+  defp get_label(nil, field_name) when not is_nil(field_name),
+    do: PhoenixHTMLHelpers.Form.humanize(field_name)
+
+  defp get_label("", _field_name), do: nil
+  defp get_label(label, _field_name), do: label
 
   defp normalise(assigns) do
     {from, to} = value_pair(assigns.mode, assigns.value)
