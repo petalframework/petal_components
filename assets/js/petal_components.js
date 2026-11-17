@@ -4734,7 +4734,13 @@ export const PetalComboBox = {
       // text field or select in a slot impossible to focus by pointer.
       // The panel survives the focus move because onFocusOut only closes
       // when focus lands OUTSIDE the component.
-      if (e.target.closest && e.target.closest(FOCUSABLE_IN_PANEL)) return;
+      // closest() climbs past the panel, so the match only counts when it
+      // is IN the panel: a [tabindex] ancestor of the whole combobox (a
+      // scroll_area, a focusable card) matched every option press, the
+      // browser moved focus out to it, and the panel closed before the
+      // click could land (#725).
+      const focusable = e.target.closest && e.target.closest(FOCUSABLE_IN_PANEL);
+      if (focusable && this.panel.contains(focusable)) return;
       e.preventDefault();
     };
     // Chrome-vs-caret is decided at POINTERDOWN, not click: pointer events

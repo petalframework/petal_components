@@ -1848,6 +1848,50 @@ describe("panel slots", () => {
     document.getElementById("footer-text").dispatchEvent(chromePress);
     expect(chromePress.defaultPrevented).toBe(true);
   });
+
+  // #725: closest() does not stop at the panel, so a focusable ANCESTOR of
+  // the combobox (a scroll_area's tabindex="0", a card, a wrapping button)
+  // read as a slot control. The press went unprevented, the browser moved
+  // focus out to that ancestor, and the panel closed before the click.
+  it.each([
+    ["a [tabindex] container", () => {
+      const wrap = document.createElement("div");
+      wrap.setAttribute("tabindex", "0");
+      return wrap;
+    }],
+    ["a button", () => document.createElement("button")],
+  ])("an option press keeps focus when the combobox sits in %s", (_name, build) => {
+    const c = mountCombo({
+      options: CITIES,
+      footer: '<input type="text" id="footer-field" /><span id="footer-text">x</span>',
+    });
+    const wrap = build();
+    document.body.appendChild(wrap);
+    wrap.appendChild(c.el);
+    c.control.click();
+
+    const press = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.items()[1].dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+    // the label span inside the option is the usual real-world target
+    const labelPress = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    c.items()[1].firstElementChild.dispatchEvent(labelPress);
+    expect(labelPress.defaultPrevented).toBe(true);
+    const chromePress = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    document.getElementById("footer-text").dispatchEvent(chromePress);
+    expect(chromePress.defaultPrevented).toBe(true);
+
+    // ...and the click then selects, with the panel still open to take it
+    expect(c.panel.hidden).toBe(false);
+    c.items()[1].click();
+    expect(c.select.value).toBe("tyo");
+
+    // a real slot control inside the panel still takes its press
+    c.control.click();
+    const fieldPress = pointerEvent("pointerdown", "mouse", { cancelable: true });
+    document.getElementById("footer-field").dispatchEvent(fieldPress);
+    expect(fieldPress.defaultPrevented).toBe(false);
+  });
 });
 
 describe("lifecycle hardening", () => {
