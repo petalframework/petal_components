@@ -204,12 +204,13 @@ defmodule Dev.PlaygroundLive do
 
   ```elixir
   def deps do
-    [{:petal_components, "~> 4.5"}]
+    [{:petal_components, "~> 4.18"}]
   end
   ```
 
-  Then `use PetalComponents` in your web module - every component in this
-  playground is available as a plain HEEx tag.
+  Then `use PetalComponents` in `html_helpers` in your web module. Every
+  component in this playground except the Chat family is available as a
+  plain HEEx tag; alias `PetalComponents.Chat` and call `<Chat.markdown>`.
   """
 
   @chat_replies [
