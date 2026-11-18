@@ -30,8 +30,9 @@
 - **Three `usage-rules.md` statements are accurate.** It said the
   library needs no extra deps besides `mdex`, but `<.qr_code>` needs
   the optional `eqrcode`. It said `use PetalComponents` imports every
-  component, but the Chat family and the data table's filter editor are
-  not imported. And it never said that `<.prose>` needs the
+  component, but it does not import the Chat family, and the modules it
+  leaves out (the data table's filter editor, the old HeroiconsV1 sets,
+  the Showcase and Svg helpers) are now named. And it never said that `<.prose>` needs the
   `@tailwindcss/typography` plugin, without which it renders unstyled.
   The README says the same.
 - **Two `usage-rules.md` examples work when copied.** "Table with row
