@@ -71,8 +71,11 @@ defmodule PetalComponents.Check.Unit do
       Enum.any?(unit.tokens, &prose_word?(&1.text))
   end
 
+  # A trailing ! is also Tailwind v4's important (hidden!, block!), so a word
+  # ending in ! is prose only when it is not a class.
   defp prose_word?(text) do
-    text in @prose_words or text =~ ~r/^[A-Z][a-z]+[.,;:!?)]*$/ or text =~ ~r/^[a-z]+[.,;!?]$/
+    text in @prose_words or text =~ ~r/^[A-Z][a-z]+[.,;:!?)]*$/ or text =~ ~r/^[a-z]+[.,;?]$/ or
+      (text =~ ~r/^[a-z]+!$/ and Classes.parse(text) == :error)
   end
 
   @doc "The file {line, column} of a token."

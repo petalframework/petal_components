@@ -65,6 +65,19 @@ defmodule PetalComponents.Check.SamplesTest do
       assert rules == ["literal-neutral", "semantic-hue", "white-alpha-ghost"]
     end
 
+    test "a Tailwind v4 trailing bang on a bare utility is a class, not prose" do
+      src =
+        ~s(<.button class="hidden! !px-0">x</.button>\n<.button class="flex! #{zinc()}">x</.button>\n)
+
+      rules = run(:heex, src) |> Enum.map(& &1.rule) |> Enum.sort()
+      assert rules == ["bang-utility", "bang-utility", "bang-utility", "literal-neutral"]
+    end
+
+    test "a word ending in ! that is not a class is still prose" do
+      src = in_module(~s(<.button class="wow! #{zinc()}">x</.button>))
+      assert run(:ex, src) == []
+    end
+
     test "a class attr next to a code attr on the same call" do
       src = ~s(<.code_block code="x" class="#{zinc()}" />\n)
       assert [%{rule: "literal-neutral"}] = run(:heex, src)
