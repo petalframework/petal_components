@@ -38,7 +38,7 @@ defmodule PetalComponents.Check.Rules.WhiteAlphaGhost do
   end
 
   defp utility_re,
-    do: ~r/^(bg|border(?:-(?:x|y|t|r|b|s|e))?)-white\/(\d+|\[\s*[0-9.]+%?\s*\])$/
+    do: ~r/^(bg|border(?:-(?:x|y|t|r|b|l|s|e))?)-white\/(\d+|\[\s*[0-9.]+%?\s*\])$/
 
   @impl true
   def check(%Unit{} = unit, _ctx) do

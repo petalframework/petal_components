@@ -42,7 +42,7 @@ defmodule PetalComponents.Check.Rules.LiteralNeutral do
   defp cls(prop, family, stop), do: Enum.join([prop, family, stop], "-")
 
   defp utility_re do
-    ~r/^(-?(?:bg|text|border(?:-(?:x|y|t|r|b|s|e))?|ring|ring-offset|divide|outline|fill|stroke|from|via|to|placeholder|accent|caret|decoration|shadow|inset-shadow|inset-ring|drop-shadow))-(slate|zinc|neutral|stone)-(50|100|200|300|400|500|600|700|800|900|950)((?:\/\d+|\/\[[^\]]+\])?)$/
+    ~r/^(-?(?:bg|text|border(?:-(?:x|y|t|r|b|l|s|e))?|ring|ring-offset|divide|outline|fill|stroke|from|via|to|placeholder|accent|caret|decoration|shadow|inset-shadow|inset-ring|drop-shadow))-(slate|zinc|neutral|stone)-(50|100|200|300|400|500|600|700|800|900|950)((?:\/\d+|\/\[[^\]]+\])?)$/
   end
 
   @impl true

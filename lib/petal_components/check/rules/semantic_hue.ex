@@ -71,7 +71,7 @@ defmodule PetalComponents.Check.Rules.SemanticHue do
   end
 
   defp utility_re do
-    ~r/^(-?(?:bg|text|border(?:-(?:x|y|t|r|b|s|e))?|ring|stroke|divide|outline|decoration|placeholder|accent|caret))-(red|green|emerald|yellow|amber|sky)-(50|100|200|300|400|500|600|700|800|900|950)((?:\/\d+|\/\[[^\]]+\])?)$/
+    ~r/^(-?(?:bg|text|border(?:-(?:x|y|t|r|b|l|s|e))?|ring|stroke|divide|outline|decoration|placeholder|accent|caret))-(red|green|emerald|yellow|amber|sky)-(50|100|200|300|400|500|600|700|800|900|950)((?:\/\d+|\/\[[^\]]+\])?)$/
   end
 
   @impl true

@@ -37,6 +37,11 @@ defmodule PetalComponents.Check.Rules.WhiteAlphaGhostTest do
       assert b.note =~ "/25"
     end
 
+    test "a left border, like every other side" do
+      assert [f] = run(:heex, ~s(<div class="dark:border-l-white/10">x</div>\n))
+      assert f.replacement == "dark:border-l-gray-400/17"
+    end
+
     test "bracket alphas above the muted range" do
       assert [_, _] =
                run(:heex, ~s(<div class="dark:bg-white/[0.1] dark:bg-white/[10%]">x</div>\n))

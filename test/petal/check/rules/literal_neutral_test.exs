@@ -22,6 +22,14 @@ defmodule PetalComponents.Check.Rules.LiteralNeutralTest do
       assert f.tag_line == 1
     end
 
+    test "every border side, border-l included" do
+      for side <- ~w(x y t r b l s e) do
+        src = ~s(<div class="#{c("border-" <> side, "zinc", "500")}"></div>\n)
+        assert [f] = run(:heex, src), side
+        assert f.replacement == c("border-" <> side, "gray", "500")
+      end
+    end
+
     test "variants and alpha are kept in the fix" do
       src = ~s(<div class="dark:hover:#{c("bg", "zinc", "800")}/50"></div>\n)
       assert [f] = run(:heex, src)
