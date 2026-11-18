@@ -21,6 +21,13 @@ defmodule PetalComponents.Check.ComponentsTest do
            ]
   end
 
+  test "a PetalComponents module that defines no components brings in no names" do
+    assert Components.module_names(PetalComponents.Check) == MapSet.new()
+    assert Components.module_names(PetalComponents.NoSuchModule) == MapSet.new()
+    assert "icon" in Components.module_names(PetalComponents.Icon)
+    refute "icon" in Components.module_names(PetalComponents.Button)
+  end
+
   # Every public one-argument function `use PetalComponents` imports is either
   # a component (declared attrs, or named in undeclared/0) or a helper named
   # here. A new one fails this test until it is put in one list or the other,
