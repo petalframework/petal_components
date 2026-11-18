@@ -17,6 +17,14 @@
   `petal-check:ignore` comments handle existing code. `usage-rules.md`
   gains a rule telling your agent to run it after UI changes, and
   section 11 of the design guide says which review rows it covers.
+  Component rules count a `<.button>` call as petal_components' only
+  when the file brings PetalComponents in (directly or through
+  `use MyAppWeb, :html`), so an app's own `button` is never flagged.
+
+#### Changed
+
+- **jason `~> 1.3`** (was `~> 1.2`): the JSON report uses
+  `Jason.OrderedObject`, added in jason 1.3.0.
 
 #### Fixed
 
