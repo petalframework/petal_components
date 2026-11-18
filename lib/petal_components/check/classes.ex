@@ -25,7 +25,7 @@ defmodule PetalComponents.Check.Classes do
 
     * `:variants` - `["dark", "hover"]`
     * `:important` - `:none | :leading | :inner | :trailing`
-    * `:utility` - the utility without any bang, `"bg-white/20"`
+    * `:utility` - the utility without any bang, `"p-2"`
     * `:prefix` - the text before the utility (variants, colons, a leading bang)
     * `:inner` - `"!"` for an inner bang, else `""`
     * `:suffix` - `"!"` for a trailing bang, else `""`
