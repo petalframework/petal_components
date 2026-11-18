@@ -48,6 +48,8 @@ defmodule PetalComponents.Check.Rules.ImportantOnPc do
       ],
       exemptions: [
         ".pc- only inside :not(...) or :has(...), which does not target the component",
+        ".pc- only on an ancestor, .pc-modal .app-footer: the rule styles the app's element",
+        ~s(.pc- inside a quoted string or an attribute selector, a[href$=".pc-file"]),
         "animation, transition and scroll-behavior inside @media (prefers-reduced-motion: reduce)",
         "selectors with no .pc- class"
       ]
@@ -69,14 +71,35 @@ defmodule PetalComponents.Check.Rules.ImportantOnPc do
 
   def check(_st, _ctx), do: []
 
-  # The first selector in the list (split on top-level commas) that still
-  # names a .pc- class once :not() and :has() arguments are gone.
+  # The first selector, with nesting resolved (`&` is the parent; no `&`
+  # means a descendant of it), whose subject (its last compound selector,
+  # the element the rule styles) names a .pc- class once quoted strings,
+  # attribute selectors and :not()/:has() arguments are gone. A .pc- class
+  # only on an ancestor (`.pc-modal .app-footer`) styles the app's element.
   defp pc_selector(preludes) do
-    Enum.find_value(preludes, fn p ->
-      p
-      |> split_list()
-      |> Enum.find(&(strip_args(&1) =~ ~r/\.pc-[a-z0-9]/))
+    preludes
+    |> resolve()
+    |> Enum.find(&(&1 |> subject() |> String.match?(~r/\.pc-[a-z0-9]/)))
+  end
+
+  defp resolve(preludes) do
+    Enum.reduce(preludes, [""], fn prelude, parents ->
+      for parent <- parents, child <- split_list(prelude) do
+        cond do
+          parent == "" -> child
+          String.contains?(child, "&") -> String.replace(child, "&", parent)
+          true -> parent <> " " <> child
+        end
+      end
     end)
+  end
+
+  defp subject(sel) do
+    sel
+    |> String.replace(~r/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/, "")
+    |> strip_brackets()
+    |> strip_args()
+    |> last_compound()
   end
 
   defp split_list(prelude) do
@@ -91,6 +114,37 @@ defmodule PetalComponents.Check.Rules.ImportantOnPc do
       end)
 
     [cur | parts] |> Enum.reverse() |> Enum.map(&String.trim/1)
+  end
+
+  # Drops [attr...] selectors, nested brackets included.
+  defp strip_brackets(sel) do
+    {out, _} =
+      sel
+      |> String.graphemes()
+      |> Enum.reduce({"", 0}, fn
+        "[", {out, d} -> {out, d + 1}
+        "]", {out, d} when d > 0 -> {out, d - 1}
+        c, {out, 0} -> {out <> c, 0}
+        _c, {out, d} -> {out, d}
+      end)
+
+    out
+  end
+
+  # The text after the last top-level combinator (space, >, +, ~).
+  defp last_compound(sel) do
+    {_, cur} =
+      sel
+      |> String.trim()
+      |> String.graphemes()
+      |> Enum.reduce({0, ""}, fn
+        c, {0, _cur} when c in [" ", ">", "+", "~", "\n", "\t"] -> {0, ""}
+        "(", {d, cur} -> {d + 1, cur <> "("}
+        ")", {d, cur} -> {max(d - 1, 0), cur <> ")"}
+        c, {d, cur} -> {d, cur <> c}
+      end)
+
+    cur
   end
 
   # Deletes the arguments of :not(...) and :has(...), nested parens included.
@@ -125,7 +179,7 @@ defmodule PetalComponents.Check.Rules.ImportantOnPc do
     offset = byte_size(text) - byte_size(bang)
     {line, column} = Pos.advance({st.line, st.column}, binary_part(text, 0, offset))
     subject = String.trim_trailing(bang)
-    sel = selector |> String.replace(~r/\s+/, " ") |> String.slice(0, 60)
+    sel = selector |> String.replace(~r/\s+/, " ") |> String.slice(0, 80)
 
     if warn?(prop) do
       Rule.finding(rule(),

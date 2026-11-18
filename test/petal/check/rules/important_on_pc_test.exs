@@ -60,6 +60,15 @@ defmodule PetalComponents.Check.Rules.ImportantOnPcTest do
     end
   end
 
+  test "nesting is resolved, and the message names the whole selector" do
+    src =
+      ".card {\n  & .pc-button { color: red !important; }\n}\n.x { .pc-y& { color: red !important; } }\n"
+
+    assert [a, b] = run(src)
+    assert a.message =~ "!important on .card .pc-button (color)"
+    assert b.message =~ "!important on .pc-y.x (color)"
+  end
+
   describe "must not flag" do
     test "no pc class" do
       assert run(".btn { color: red !important; }\n") == []
@@ -70,6 +79,19 @@ defmodule PetalComponents.Check.Rules.ImportantOnPcTest do
       html.x *:not(.pc-scheme-toggle, .pc-scheme-toggle *) { transition: none !important; }
       .foo:has(.pc-x) { color: red !important; }
       .a:not(:has(.pc-y)) { color: red !important; }
+      """
+
+      assert run(src) == []
+    end
+
+    test ".pc- only on an ancestor, or inside a string or an attribute selector" do
+      src = """
+      .pc-modal .app-footer { color: red !important; }
+      .prose a[href$=".pc-file"] { color: red !important; }
+      .ok2[data-x=".pc-button"] { color: red !important; }
+      .pc-card { & .mine { color: red !important; } }
+      .pc-card { .mine { color: red !important; } }
+      .bad1 { .pc-button & { color: red !important; } }
       """
 
       assert run(src) == []
