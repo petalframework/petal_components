@@ -106,21 +106,73 @@ defmodule PetalComponents.Check.Heex do
   def fragment(content, map, tok) do
     lines = Pos.lines(content)
 
-    case raw_tokens(content, tok) do
-      {:ok, tokens, extras} ->
-        try do
-          {:ok, build(tokens, extras, content, lines, map)}
-        catch
-          {:shape, token} ->
-            {:unchecked, map.({1, 1}),
-             "the HEEx tokenizer returned a token shape this check does not know: " <>
-               (inspect(token, limit: 5) |> String.slice(0, 80))}
-        end
-
+    with {:ok, tokens, extras} <- raw_tokens(content, tok),
+         :ok <- balanced(tokens) do
+      try do
+        {:ok, build(tokens, extras, content, lines, map)}
+      catch
+        {:shape, token} ->
+          {:unchecked, map.({1, 1}),
+           "the HEEx tokenizer returned a token shape this check does not know: " <>
+             (inspect(token, limit: 5) |> String.slice(0, 80))}
+      end
+    else
       {:error, pos, msg} ->
         {:unchecked, map.(pos), "this HEEx could not be read: " <> msg}
     end
   end
+
+  # The tokenizer reads tags one at a time; the HEEx engine also rejects a
+  # closing tag that does not match the open one, and an open tag that is
+  # never closed. Such a template cannot compile, and its tags are not what
+  # the author meant, so it is unchecked rather than checked wrongly.
+  # EEx blocks (`<%= if @a do %>`) must be balanced inside, so reading the
+  # text pieces in order keeps a valid template balanced.
+  @doc false
+  def balanced(tokens) do
+    tokens
+    |> Enum.reduce_while([], fn
+      {kind, name, _attrs, meta}, stack when kind in @tag_kinds ->
+        if Map.has_key?(meta, :closing),
+          do: {:cont, stack},
+          else: {:cont, [{kind, name, {meta.line, meta.column}} | stack]}
+
+      {:close, kind, name, meta}, stack ->
+        case stack do
+          [{^kind, ^name, _} | rest] ->
+            {:cont, rest}
+
+          [_ | _] ->
+            {:halt,
+             {:error, {meta.line, meta.column},
+              "unmatched closing tag </#{display(kind, name)}>, expected </#{open_display(stack)}>"}}
+
+          [] ->
+            {:halt,
+             {:error, {meta.line, meta.column},
+              "closing tag </#{display(kind, name)}> has no opening tag"}}
+        end
+
+      _, stack ->
+        {:cont, stack}
+    end)
+    |> case do
+      [] ->
+        :ok
+
+      [{kind, name, pos} | _] ->
+        {:error, pos, "the template ends without a closing tag for <#{display(kind, name)}>"}
+
+      {:error, _, _} = error ->
+        error
+    end
+  end
+
+  defp open_display([{kind, name, _} | _]), do: display(kind, name)
+
+  defp display(:local_component, name), do: "." <> name
+  defp display(:slot, name), do: ":" <> name
+  defp display(_kind, name), do: name
 
   # EEx first (it owns <% %> and <%!-- --%>), then LiveView's tokenizer on
   # each text piece, exactly as the HEEx engine does.

@@ -36,10 +36,12 @@ defmodule PetalComponents.Check.Rules.FocusRingTest do
       assert f.message ==
                "focus:outline-none removes the focus outline with no visible replacement"
 
-      for tag <- [~s(a href="#"), "input", "select", "textarea", "summary", ~s(div tabindex="0")] do
+      for tag <- [~s(a href="#"), "select", "textarea", "summary", ~s(div tabindex="0")] do
         name = tag |> String.split() |> hd()
         assert [_] = run(:heex, ~s(<#{tag} class="outline-none">x</#{name}>\n)), tag
       end
+
+      assert [_] = run(:heex, ~s(<input type="text" class="outline-none" />\n))
 
       assert [_] = run(:heex, ~s(<.button class="focus-visible:outline-none">x</.button>\n))
     end

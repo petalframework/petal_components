@@ -96,4 +96,64 @@ defmodule PetalComponents.Check.HeexTest do
     r = run_files(%{"lib/a.html.heex" => "<p>\n<%= if @a\n</p>\n"}, rules: [ComboboxVariant])
     assert [%{kind: :parse, line: 2}] = r.unchecked
   end
+
+  describe "tags that do not balance are unchecked, as the HEEx engine rejects them" do
+    test "a closing tag that does not match, and strict exits 2" do
+      r =
+        run_files(%{"lib/a.html.heex" => "<div class=\"p-4\">\n  <span>hi</div>\n</span>\n"},
+          rules: [ComboboxVariant],
+          strict: true
+        )
+
+      assert [%{kind: :parse, line: 2, column: 11, reason: reason}] = r.unchecked
+
+      assert reason ==
+               "this HEEx could not be read: unmatched closing tag </div>, expected </span>"
+
+      assert r.exit_status == 2
+    end
+
+    test "an open tag never closed, in a ~H fragment" do
+      src = in_module("<div class=\"p-4\"\n  <p>broken")
+      r = run_files(%{"lib/a.ex" => src}, rules: [ComboboxVariant])
+      assert [%{kind: :parse, reason: reason}] = r.unchecked
+      assert reason =~ "the template ends without a closing tag for <div"
+    end
+
+    test "a stray closing tag and a component left open" do
+      r = run_files(%{"lib/a.html.heex" => "<p>x</p>\n</div>\n"}, rules: [ComboboxVariant])
+
+      assert [
+               %{
+                 line: 2,
+                 reason: "this HEEx could not be read: closing tag </div> has no opening tag"
+               }
+             ] =
+               r.unchecked
+
+      r = run_files(%{"lib/a.html.heex" => "<.card>\n  <p>x</p>\n"}, rules: [ComboboxVariant])
+      assert [%{line: 1, reason: reason}] = r.unchecked
+      assert reason =~ "<.card>"
+    end
+
+    test "valid templates stay checked: void, self-closing, slots, remote calls, EEx blocks, script" do
+      src = """
+      <div>
+        <br><input type="text"><img src="x"/>
+        <.card><:header>Hi</:header></.card>
+        <.icon name="hero-x-mark" />
+        <AppWeb.Layouts.app flash={@flash}><p>x</p></AppWeb.Layouts.app>
+        <%= if @a do %>
+          <p>a</p>
+        <% else %>
+          <span>b</span>
+        <% end %>
+        <script>if (a < b) { x() }</script>
+        <!-- <div> -->
+      </div>
+      """
+
+      assert run_files(%{"lib/a.html.heex" => src}, rules: [ComboboxVariant]).unchecked == []
+    end
+  end
 end
