@@ -4,18 +4,41 @@ defmodule PetalComponents.Check.Components do
 
   alias PetalComponents.Check.Heex.Tag
 
+  # Components that declare no attrs or slots, which `__components__/0` leaves
+  # out. `<.icon>` declares none when the heroicons dependency is installed
+  # (icon.ex), as it is in every Phoenix app, so without this list the most
+  # called component would only count as petal's in an app with no heroicons.
+  # A test fails when an imported module gains a one-argument function that
+  # is neither a declared component, nor here, nor a known helper.
+  @undeclared [:icon, :color_scheme_script]
+
+  @doc false
+  def undeclared, do: @undeclared
+
   @doc """
   The names `use PetalComponents` brings into scope. Built from the same
   module list as `__using__`, so the Chat family and Showcase (which it does
   not import) never count as local petal components.
   """
   def petal_names do
-    for mod <- PetalComponents.imported_modules(),
-        Code.ensure_loaded?(mod),
-        function_exported?(mod, :__components__, 0),
-        {name, _} <- mod.__components__(),
-        into: MapSet.new(),
-        do: Atom.to_string(name)
+    for mod <- PetalComponents.imported_modules(), reduce: MapSet.new() do
+      acc -> MapSet.union(acc, module_names(mod))
+    end
+  end
+
+  @doc "The component names one PetalComponents module exports."
+  def module_names(mod) do
+    if Code.ensure_loaded?(mod) and function_exported?(mod, :__components__, 0) do
+      declared =
+        for {name, _} <- mod.__components__(), into: MapSet.new(), do: Atom.to_string(name)
+
+      for name <- @undeclared,
+          function_exported?(mod, name, 1),
+          into: declared,
+          do: Atom.to_string(name)
+    else
+      MapSet.new()
+    end
   end
 
   @doc "The function name a tag calls: `field` for `<.field>` and `<PetalComponents.Field.field>`."

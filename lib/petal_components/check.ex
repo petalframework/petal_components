@@ -422,11 +422,7 @@ defmodule PetalComponents.Check do
 
       mod ->
         try do
-          m = Module.safe_concat([mod])
-
-          if Code.ensure_loaded?(m) and function_exported?(m, :__components__, 0),
-            do: for({n, _} <- m.__components__(), into: MapSet.new(), do: Atom.to_string(n)),
-            else: MapSet.new()
+          Components.module_names(Module.safe_concat([mod]))
         rescue
           ArgumentError -> MapSet.new()
         end
