@@ -5,6 +5,7 @@ defmodule PetalComponents.Check.EngineTest do
   alias PetalComponents.Check.Rule
   alias PetalComponents.Check.Rules.ComboboxVariant
   alias PetalComponents.Check.Rules.LiteralNeutral
+  alias PetalComponents.Check.Rules.RampComplete
 
   defp t, do: Enum.join(["bg", "zinc", "100"], "-")
   @both [LiteralNeutral, ComboboxVariant]
@@ -196,6 +197,38 @@ defmodule PetalComponents.Check.EngineTest do
       File.write!(Path.join(root, "assets/css/b.css"), ".y { color: red;\n")
       {:ok, r} = Check.run(root: root, rules: [Ramp], paths: ["assets/css/a.css"])
       assert r.findings == []
+    end
+
+    test "an unreadable .heex file does not stop the project rules", %{root: root} do
+      partial = "@theme {\n  --color-primary-500: red;\n  --color-primary-600: red;\n}\n"
+      File.write!(Path.join(root, "assets/css/a.css"), partial)
+      write_files(root, %{"lib/unclosed.html.heex" => "<div>\n"})
+      {:ok, r} = Check.run(root: root, rules: [RampComplete], no_baseline: true)
+      assert [%{rule: "ramp-complete", path: "assets/css/a.css"}] = r.findings
+      assert r.rules_not_run == []
+    end
+
+    test "a rule that did not run is named, fails --strict and leaves no unused suppression",
+         %{root: root} do
+      partial =
+        "@theme {\n  /* petal-check:ignore ramp-complete: a demo */\n  --color-primary-500: red;\n}\n"
+
+      File.write!(Path.join(root, "assets/css/a.css"), partial)
+      File.write!(Path.join(root, "assets/css/b.css"), ".y { color: red;\n")
+
+      {:ok, r} = Check.run(root: root, rules: [RampComplete], no_baseline: true, strict: true)
+      assert r.findings == []
+      assert r.rules_not_run == [{"ramp-complete", "assets/css/b.css could not be read"}]
+      assert r.exit_status == 2
+
+      text = Enum.join(PetalComponents.Check.Format.text(r), "\n")
+      assert text =~ "ramp-complete not run: assets/css/b.css could not be read."
+
+      json = r |> PetalComponents.Check.Format.json() |> Jason.decode!()
+
+      assert json["rules_not_run"] == [
+               %{"rule" => "ramp-complete", "reason" => "assets/css/b.css could not be read"}
+             ]
     end
   end
 end

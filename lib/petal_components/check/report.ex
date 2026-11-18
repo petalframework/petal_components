@@ -18,6 +18,8 @@ defmodule PetalComponents.Check.Report do
             live_view: nil,
             petal_components: nil,
             rules_run: [],
+            # [{rule_id, reason}]: project rules that could not run
+            rules_not_run: [],
             narrowing: %{},
             strict: false,
             mode: :check,
@@ -40,7 +42,8 @@ defmodule PetalComponents.Check.Report do
 
   @doc """
   Exit status. Advisory runs and baseline updates are always 0. Under
-  --strict: 1 new errors, 2 a file could not be read, 4 the HEEx tokenizer
+  --strict: 1 new errors, 2 a file could not be read (or a project rule
+  could not run because of one), 4 the HEEx tokenizer
   of this LiveView is not one this petal_components knows (so CI can choose
   to tolerate it). 3 (usage) never reaches a report.
   """
@@ -50,7 +53,7 @@ defmodule PetalComponents.Check.Report do
         r.mode != :check -> 0
         not r.strict -> 0
         new_errors(r) != [] -> 1
-        unreadable(r) != [] -> 2
+        unreadable(r) != [] or r.rules_not_run != [] -> 2
         tokenizer_unchecked(r) != [] -> 4
         true -> 0
       end

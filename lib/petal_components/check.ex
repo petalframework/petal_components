@@ -147,11 +147,13 @@ defmodule PetalComponents.Check do
 
     findings = List.flatten(findings)
 
-    {sources, project_found} = run_project(enabled, sources, files, root, tok)
+    {sources, project_found, not_run} = run_project(enabled, sources, files, root, tok)
     findings = findings ++ project_found
 
     known = Enum.map(all, & &1.id)
-    ran = Enum.map(enabled, & &1.id)
+    # A rule that did not run cannot leave a suppression unused or a
+    # baseline entry stale.
+    ran = Enum.map(enabled, & &1.id) -- Enum.map(not_run, &elem(&1, 0))
 
     {findings, meta} =
       Enum.reduce(sources, {[], []}, fn source, {fs, meta} ->
@@ -206,6 +208,7 @@ defmodule PetalComponents.Check do
       live_view: Heex.live_view_version(),
       petal_components: version(),
       rules_run: ran,
+      rules_not_run: not_run,
       narrowing: %{
         only: Keyword.get(opts, :only, []),
         except: Keyword.get(opts, :except, []),
@@ -280,13 +283,14 @@ defmodule PetalComponents.Check do
 
   # Project rules (a ramp split across CSS files) always read every CSS file
   # under the default roots, whatever paths the run was given, and report
-  # only in the files this run checks. If any input could not be read, they
-  # report nothing: a partial picture is how a false alarm happens.
+  # only in the files this run checks. If a CSS input could not be read, they
+  # do not run, and the report says so: a partial picture is how a false
+  # alarm happens. Returns {sources, findings, [{rule_id, reason}] not run}.
   defp run_project(enabled, sources, files, root, tok) do
     project = Enum.filter(enabled, &(&1.scope == :project))
 
     if project == [] do
-      {sources, []}
+      {sources, [], []}
     else
       checked = MapSet.new(Enum.map(sources, & &1.path))
 
@@ -295,25 +299,31 @@ defmodule PetalComponents.Check do
             not MapSet.member?(checked, rel),
             do: Source.read(Path.join(root, rel), rel, tok)
 
-      inputs = sources ++ extra
+      inputs = Enum.filter(sources ++ extra, &(&1.kind == :css))
 
-      found =
-        if Enum.any?(inputs, &(&1.unchecked != [])) do
-          []
-        else
-          Enum.flat_map(project, fn rule ->
-            ctx = %{root: root}
+      case Enum.find(inputs, &(&1.unchecked != [])) do
+        %Source{path: bad} ->
+          {sources, [], for(r <- project, do: {r.id, "#{bad} could not be read"})}
 
-            try do
-              collected = Enum.map(inputs, &rule.module.collect(&1, Map.put(ctx, :path, &1.path)))
-              rule.module.finish(collected, ctx)
-            rescue
-              _ -> []
-            end
-          end)
-        end
+        nil ->
+          {found, not_run} =
+            Enum.reduce(project, {[], []}, fn rule, {found, not_run} ->
+              ctx = %{root: root}
 
-      {sources, Enum.filter(found, &MapSet.member?(checked, &1.path))}
+              try do
+                collected =
+                  Enum.map(inputs, &rule.module.collect(&1, Map.put(ctx, :path, &1.path)))
+
+                {found ++ rule.module.finish(collected, ctx), not_run}
+              rescue
+                e ->
+                  why = "internal error (please report): " <> first_line(Exception.message(e))
+                  {found, not_run ++ [{rule.id, why}]}
+              end
+            end)
+
+          {sources, Enum.filter(found, &MapSet.member?(checked, &1.path)), not_run}
+      end
     end
   end
 

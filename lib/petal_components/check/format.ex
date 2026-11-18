@@ -129,6 +129,7 @@ defmodule PetalComponents.Check.Format do
       Enum.map(r.skipped, fn {path, why} ->
         "Skipped #{path}: #{why} (pass --include-excluded to check it)."
       end) ++
+      Enum.map(r.rules_not_run, fn {id, why} -> "#{id} not run: #{why}." end) ++
       stale_line(r) ++
       baseline_hint(r, errors) ++
       change_lines(r) ++
@@ -206,6 +207,9 @@ defmodule PetalComponents.Check.Format do
 
       1 ->
         ["petal.check --strict failed: #{errors} new #{plural(errors, "error")} #{counts}."]
+
+      2 when unreadable == 0 ->
+        ["petal.check --strict failed: a rule could not run #{counts}."]
 
       2 ->
         [
@@ -292,6 +296,10 @@ defmodule PetalComponents.Check.Format do
        end)},
       {"skipped",
        Enum.map(r.skipped, fn {p, why} -> OrderedObject.new([{"file", p}, {"reason", why}]) end)},
+      {"rules_not_run",
+       Enum.map(r.rules_not_run, fn {id, why} ->
+         OrderedObject.new([{"rule", id}, {"reason", why}])
+       end)},
       {"baseline_change", change_json(r.baseline_change)},
       {"not_checked", Enum.map(Check.not_checked(), fn {row, label} -> "#{row} #{label}" end)},
       {"exit_status", r.exit_status}
