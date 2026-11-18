@@ -77,6 +77,10 @@ defmodule PetalComponents.Check.Rules.DynamicHeroiconTest do
       assert run(:heex, ~s(<.icon id={"hero-\#{@id}"} name="hero-check" />\n)) == []
     end
 
+    test "a name attr on a component that is not an icon" do
+      assert run(:heex, ~s(<.avatar name={"hero-\#{@user}"} />\n)) == []
+    end
+
     test "an app that lists icons with @source inline" do
       files = %{
         "lib/app_web/page.html.heex" => ~s(<.icon name={"hero-\#{@icon}"} />\n),
