@@ -232,6 +232,13 @@ defmodule PetalComponents.Check.EdgeCasesTest do
       assert {:ok, opts} = parse(["--since", "main"])
       assert opts.changed == "main"
     end
+
+    test "--since refuses a ref that git would read as an option, and a missing ref" do
+      assert {:error, "--since --output=x.ex: a git ref (a branch or commit) cannot start with -"} =
+               parse(["--since=--output=x.ex"])
+
+      assert {:error, "--since needs a git ref" <> _} = parse(["--since", "--strict"])
+    end
   end
 
   describe "JSON" do

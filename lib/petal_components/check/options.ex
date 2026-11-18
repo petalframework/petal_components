@@ -53,7 +53,8 @@ defmodule PetalComponents.Check.Options do
          {:ok, only} <- ids(opts, :only, rule_ids),
          {:ok, except} <- ids(opts, :except, rule_ids),
          :ok <- disjoint(only, except),
-         {:ok, explain} <- explain(opts[:explain], rule_ids) do
+         {:ok, explain} <- explain(opts[:explain], rule_ids),
+         :ok <- since(opts[:since]) do
       o = %__MODULE__{
         strict: !!opts[:strict],
         format: format,
@@ -86,6 +87,11 @@ defmodule PetalComponents.Check.Options do
   end
 
   defp no_invalid([]), do: :ok
+
+  # `--since --strict`: OptionParser will not take a dash-led value, so the
+  # flag arrives here with no value.
+  defp no_invalid([{"--since", nil} | _]),
+    do: {:error, "--since needs a git ref (a branch or commit), for example --since main"}
 
   defp no_invalid([{flag, _} | _]),
     do: {:error, "unknown option #{flag}. Run mix help petal.check for the options."}
@@ -127,6 +133,13 @@ defmodule PetalComponents.Check.Options do
       do: {:ok, id},
       else: {:error, "--explain #{id}: not a rule. Rules: #{Enum.join(known, ", ")}"}
   end
+
+  # The ref goes to git as an argument; one that starts with a dash would be
+  # read as a git option (--output=FILE writes a file).
+  defp since("-" <> _ = ref),
+    do: {:error, "--since #{ref}: a git ref (a branch or commit) cannot start with -"}
+
+  defp since(_), do: :ok
 
   defp changed(opts) do
     cond do

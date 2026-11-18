@@ -193,6 +193,25 @@ defmodule Mix.Tasks.Petal.CheckTest do
     assert json["options"]["changed_against"] == "HEAD"
   end
 
+  test "--since never hands git an option, so it cannot write a file", %{root: root} do
+    write_files(root, %{"lib/app_web/old.ex" => "defmodule Old do\nend\n"})
+
+    {_, 0} =
+      System.cmd(
+        "sh",
+        ["-c", "git init -q && git add . && git -c user.email=t@t -c user.name=t commit -qm i"],
+        cd: root
+      )
+
+    for argv <- [["--since=--output=lib/app_web/old.ex"], ["--since=--output=pwn.txt"]] do
+      e = assert_raise Mix.Error, fn -> in_app(root, argv) end
+      assert e.mix == 3
+    end
+
+    assert File.read!(Path.join(root, "lib/app_web/old.ex")) == "defmodule Old do\nend\n"
+    refute File.exists?(Path.join(root, "pwn.txt"))
+  end
+
   test "--update-baseline then a clean strict run", %{root: root} do
     write_files(root, with_modules(%{"lib/app_web/page.html.heex" => bad_page()}))
     assert in_app(root, ["--update-baseline"]) == :ok

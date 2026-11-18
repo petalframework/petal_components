@@ -306,7 +306,8 @@ defmodule Mix.Tasks.Petal.Check do
 
   # Files changed against `ref` plus untracked ones, relative to the root.
   defp git_changed(root, ref) do
-    diff = git(root, ["diff", "--name-only", "--relative", "--diff-filter=d", ref])
+    # "--" ends the revisions, so the ref is never read as a path either.
+    diff = git(root, ["diff", "--name-only", "--relative", "--diff-filter=d", ref, "--"])
     untracked = git(root, ["ls-files", "--others", "--exclude-standard"])
     Enum.uniq(diff ++ untracked)
   end
